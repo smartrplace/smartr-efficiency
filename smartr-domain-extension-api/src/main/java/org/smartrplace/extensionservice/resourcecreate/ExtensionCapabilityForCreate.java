@@ -1,4 +1,4 @@
-package org.smartrplace.extenservice.resourcecreate;
+package org.smartrplace.extensionservice.resourcecreate;
 
 import org.smartrplace.extensionservice.ExtensionCapability;
 

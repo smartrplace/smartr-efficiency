@@ -1,4 +1,4 @@
-package org.smartrplace.extenservice.resourcecreate;
+package org.smartrplace.extensionservice.resourcecreate;
 
 import java.util.Collections;
 import java.util.List;

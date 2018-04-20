@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData.ConfigInfo;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData.ConfigInfo;
 import org.smartrplace.smarteff.admin.config.SmartEffAdminData;
 import org.smartrplace.smarteff.admin.gui.ExtensionNavigationPage;
 import org.smartrplace.smarteff.admin.protect.ExtensionResourceAccessInitDataImpl;

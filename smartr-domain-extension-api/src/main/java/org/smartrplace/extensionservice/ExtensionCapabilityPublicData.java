@@ -3,9 +3,9 @@ package org.smartrplace.extensionservice;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.proposal.ProposalProvider;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
+import org.smartrplace.extensionservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.widgets.template.LabelledItem;
 

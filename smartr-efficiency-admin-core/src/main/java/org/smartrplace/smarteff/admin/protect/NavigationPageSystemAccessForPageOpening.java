@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.proposal.ProposalPublicData;
-import org.smartrplace.extenservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
-import org.smartrplace.extenservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
+import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
+import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
 import org.smartrplace.smarteff.admin.util.SmartrEffUtil;

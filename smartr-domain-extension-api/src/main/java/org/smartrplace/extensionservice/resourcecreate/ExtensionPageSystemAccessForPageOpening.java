@@ -1,10 +1,10 @@
-package org.smartrplace.extenservice.resourcecreate;
+package org.smartrplace.extensionservice.resourcecreate;
 
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.proposal.ProposalPublicData;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
+import org.smartrplace.extensionservice.proposal.ProposalPublicData;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 
 public interface ExtensionPageSystemAccessForPageOpening {

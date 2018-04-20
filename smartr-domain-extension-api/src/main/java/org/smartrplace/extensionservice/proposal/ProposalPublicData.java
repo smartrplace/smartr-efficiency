@@ -1,11 +1,11 @@
-package org.smartrplace.extenservice.proposal;
+package org.smartrplace.extensionservice.proposal;
 
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.proposal.ProposalProvider.CalculationResultType;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
-import org.smartrplace.extenservice.resourcecreate.ProviderPublicDataForCreate;
+import org.smartrplace.extensionservice.proposal.ProposalProvider.CalculationResultType;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate;
 
 public interface ProposalPublicData extends ProviderPublicDataForCreate {
 

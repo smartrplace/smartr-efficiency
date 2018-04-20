@@ -1,7 +1,7 @@
 package org.smartrplace.extensionservice.gui;
 
-import org.smartrplace.extenservice.resourcecreate.ExtensionCapabilityForCreate;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCreate;
 
 /** A navigation page is an overview table or any other web page representation that allows to navigate
  * between views and that can initiate editing or creating of resources

@@ -1,12 +1,12 @@
-package org.smartrplace.extenservice.proposal;
+package org.smartrplace.extensionservice.proposal;
 
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionCapabilityForCreate;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCreate;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 /** A ProposalProvider calculates some results based on an entry point-based input resource and futher user and
  * general data it finds itself based on the entry point-based resource(s). So a ProposalProvider acts very

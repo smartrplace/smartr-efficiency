@@ -3,11 +3,11 @@ package org.smartrplace.smarteff.util.button;
 import java.util.Arrays;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionPageSystemAccessForCreate;
-import org.smartrplace.extenservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;

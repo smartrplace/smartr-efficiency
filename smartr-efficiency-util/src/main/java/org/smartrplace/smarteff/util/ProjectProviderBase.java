@@ -5,11 +5,11 @@ import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.smartrplace.extenservice.proposal.ProjectProposal;
-import org.smartrplace.extenservice.proposal.ProposalProvider;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 

@@ -1,9 +1,9 @@
 package extensionmodel.smarteff.defaultproposal;
 
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.smartrplace.extenservice.proposal.ProjectProposal;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProjectProviderBase;

@@ -1,7 +1,7 @@
 package org.smartrplace.smarteff.admin.util;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
+import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
 
 public class SmartrEffUtil {

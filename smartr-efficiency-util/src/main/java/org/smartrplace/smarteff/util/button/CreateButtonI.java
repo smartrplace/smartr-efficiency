@@ -1,7 +1,7 @@
 package org.smartrplace.smarteff.util.button;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 

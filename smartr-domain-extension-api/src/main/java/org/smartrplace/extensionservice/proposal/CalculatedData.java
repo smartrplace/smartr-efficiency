@@ -1,4 +1,4 @@
-package org.smartrplace.extenservice.proposal;
+package org.smartrplace.extensionservice.proposal;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;

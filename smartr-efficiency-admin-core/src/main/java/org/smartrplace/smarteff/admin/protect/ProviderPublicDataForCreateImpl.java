@@ -3,8 +3,8 @@ package org.smartrplace.smarteff.admin.protect;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionCapabilityForCreate;
-import org.smartrplace.extenservice.resourcecreate.ProviderPublicDataForCreate;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCreate;
+import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate;
 import org.smartrplace.smarteff.util.SPPageUtil;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;

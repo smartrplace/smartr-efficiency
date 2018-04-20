@@ -10,10 +10,10 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.efficiency.api.capabilities.SmartEffRecommendationProvider;
-import org.smartrplace.extenservice.proposal.ProposalProvider;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
+import org.smartrplace.extensionservice.proposal.ProposalProvider;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
 
 public class SmartrEffExtResourceTypeData {

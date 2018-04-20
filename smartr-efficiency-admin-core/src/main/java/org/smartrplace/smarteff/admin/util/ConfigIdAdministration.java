@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData.ConfigInfo;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData.ConfigInfo;
 
 /** TODO: This is not thread-safe yet
  * TODO: This has no clean-up mechanism yet

@@ -1,7 +1,7 @@
 package org.smartrplace.smarteff.admin.object;
 
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
-import org.smartrplace.extenservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.proposal.ProposalProvider;
 
 /** Standard ProposalProviders take parameter data from entry resources as well as from 
  * parameter resources and provide a result in a result resource. We assume that all parameters

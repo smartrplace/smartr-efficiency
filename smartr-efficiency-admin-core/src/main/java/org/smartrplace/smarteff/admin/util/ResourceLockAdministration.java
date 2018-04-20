@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionPageSystemAccessForCreate.LockResult;
-import org.smartrplace.extenservice.resourcecreate.ExtensionPageSystemAccessForCreate.ResourceAccessResult;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate.LockResult;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate.ResourceAccessResult;
 
 /** TODO: This is not thread-safe yet
  * TODO: Locking mechanisms are not really implemented yet*/

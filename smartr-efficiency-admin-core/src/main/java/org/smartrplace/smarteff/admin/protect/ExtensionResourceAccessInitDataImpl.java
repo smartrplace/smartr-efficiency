@@ -3,11 +3,11 @@ package org.smartrplace.smarteff.admin.protect;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extenservice.resourcecreate.ExtensionPageSystemAccessForCreate;
-import org.smartrplace.extenservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
-import org.smartrplace.extenservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAccessInitData {
 	private final int entryTypeIdx;

@@ -1,4 +1,4 @@
-package org.smartrplace.extenservice.proposal;
+package org.smartrplace.extensionservice.proposal;
 
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.StringResource;
