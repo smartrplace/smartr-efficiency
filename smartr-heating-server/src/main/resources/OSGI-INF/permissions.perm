@@ -1,0 +1,30 @@
+# Reduced OGEMA standard permissions
+(org.osgi.framework.ServicePermission "org.smartrplace.efficiency.api.base.SmartEffExtensionService" "register")
+(org.osgi.framework.PackagePermission "org.ogema.tools.*" "import")
+(org.osgi.framework.PackagePermission "org.ogema.util.*" "import")
+(org.osgi.framework.PackagePermission "org.ogema.core.*" "import")
+(org.osgi.framework.PackagePermission "org.ogema.model.*" "import")
+(org.osgi.framework.PackagePermission "org.ogema.pattern.*" "import")
+(org.osgi.framework.PackagePermission "de.iwes.widgets.*" "import")
+(org.osgi.framework.PackagePermission "de.iwes.tools.*" "import")
+(org.osgi.framework.PackagePermission "de.iwes.util.*" "import")
+(org.osgi.framework.PackagePermission "org.slf4j" "import")
+(org.osgi.framework.PackagePermission "org.smartrplace.*" "import")
+(org.osgi.framework.PackagePermission "extensionmodel.smarteff.*" "import")
+
+#add here manually if required:
+# - (java.util.PropertyPermission "<property_name>" "read")
+
+
+#Automated Generation Below:
+# import permissions
+(org.osgi.framework.PackagePermission "org.smartrplace.util.directresourcegui" "import")
+(org.osgi.framework.PackagePermission "org.apache.felix.scr.annotations" "import")
+
+# export/custom type permissions
+(org.osgi.framework.PackagePermission "extensionmodel.smarteff.smartrheating" "exportonly")
+
+# resource permissions
+(org.ogema.accesscontrol.ResourcePermission "type=extensionmodel.smarteff.SmartrHeatingData" "read,write,addsub,create")
+(org.ogema.accesscontrol.ResourcePermission "type=extensionmodel.smarteff.SmartrHeatingRadiatorTypeData" "read,write,addsub,create")
+(org.ogema.accesscontrol.ResourcePermission "type=extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit" "read")

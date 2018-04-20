@@ -1,0 +1,52 @@
+FendoDB
+Copyright 2018 Smartrplace UG
+
+// ------------------------------------------------------------------
+// Dependencies of this product
+// ------------------------------------------------------------------
+
+From: 'The Apache Software Foundation' (http://www.apache.org/)
+   - Apache Commons CSV (https://commons.apache.org/proper/commons-csv/) org.apache.commons:commons-csv:jar:1.4
+     License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+   - Apache Felix Gogo runtime (http://felix.apache.org/) org.apache.felix:org.apache.felix.gogo.runtime:jar:1.0.6
+     License: Apache License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'The OSGi alliance' (http://www.osgi.org)
+   - OSGi core API (https://mvnrepository.com/artifact/org.osgi/org.osgi.core/5.0.0) org.osgi:org.osgi.core:jar:5.0.0
+     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+   - OSGi Compendium (https://mvnrepository.com/artifact/org.osgi/org.osgi.compendium/5.0.0) org.osgi:org.osgi.compendium:jar:5.0.0
+     License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From: 'QOS.ch' (http://www.qos.ch)
+  - SLF4J API Module (http://www.slf4j.org) org.slf4j:slf4j-api:jar:1.7.2
+    License: MIT License  (http://www.opensource.org/licenses/mit-license.php)
+
+From: 'Fraunhofer Gesellschaft' (https://www.fraunhofer.de/)
+  - OGEMA (http://www.ogema.org), multiple artifacts, especially
+  - OGEMA API (http://www.ogema.org) org.ogema.core:api
+  - OGEMA Models (http://www.ogema.org) org.ogema.core:models
+  - OGEMA Internal API (http://www.ogema.org) org.ogema.ref-impl:internal-api
+  - OGEMA Memory timeseries (http://www.ogema.org) org.ogema.tools:memory-timeseries
+  - OGEMA Resource utils (http://www.ogema.org) org.ogema.tools:resource-utils
+  - OGEMA widgets framework (http://www.ogema.org), multiple artifacts
+    License: GPL, Version 3.0  (https://www.gnu.org/licenses/gpl-3.0.en.html)
+
+From 'joda.org' (http://www.joda.org)
+  - Joda time (http://www.joda.org/joda-time/) joda-time:joda-time:jar:2.9.9
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+	
+From 'json.org' (http://json.org)
+  - org.json (http://json.org) org.json:json:jar:20170516
+  	License: see http://json.org/license.html
+
+From 'Google' (http://google.com)
+  - Guava (https://github.com/google/guava/) com.google.guava:guava:jar:23.0
+    License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+
+From 'FasterXML' (https://github.com/FasterXML)
+  - Jackson JSON-processor (https://github.com/FasterXML) multiple artifacts
+	License: The Apache Software License, Version 2.0  (http://www.apache.org/licenses/LICENSE-2.0.txt)
+	
+From 'Oracle' (https://www.oracle.com)
+  - Servlet API (https://javaee.github.io/servlet-spec/) javax.servlet:javax.servlet-api:jar:2.4
+    License: either CDDL (https://oss.oracle.com/licenses/CDDL) or GPL v2.0 (https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)

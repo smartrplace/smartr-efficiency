@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Parent-POM: OGEMA master pom with project-wide settings -->
+    <parent>
+        <groupId>org.ogema.apps</groupId>
+        <artifactId>apps-master</artifactId>
+        <version>2.1.3</version>
+    </parent>
+	
+	<groupId>org.smartrplace.apps</groupId>
+    <artifactId>smartrefficiency-root</artifactId>
+	<name>Smartrplace API</name>
+	<version>2.1.3-SNAPSHOT</version>
+    <packaging>pom</packaging>
+	
+<!--	<scm>
+		<connection>scm:git:ssh://bitbucket.org:smartrplace/smartrplace-apps</connection>
+		<developerConnection>scm:git:ssh://git@bitbucket.org:smartrplace/smartrplace-apps</developerConnection>
+		<url>scm:git:ssh://bitbucket.org:smartrplace/smartrplace-apps</url>
+		<tag>smartrplace-2.1.1-SNAPSHOT</tag>
+	</scm> --> <!-- FIXME syntax -->
+    
+    
+    <repositories>
+    	<repository>
+		    <id>ogema-release</id>
+		    <name>ogema-release</name>
+		    <url>https://www.ogema-source.net/artifactory/libs-release</url>
+   		</repository>
+    </repositories>
+    
+
+  <!-- Sub-projects -->
+    <modules>
+		<module>smartr-domain-extension-api</module>
+		<module>smartr-efficiency-api</module>
+		<module>smartr-efficiency-util</module>
+		<module>smartr-efficiency-admin-core</module>
+		<module>smartr-efficiency-admin</module>
+		<module>smartr-heating-server</module>
+    </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.smartrplace.apps</groupId>
+				<artifactId>smartrplace-util</artifactId>
+				<version>2.1.3-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+	            <groupId>org.ogema.model</groupId>
+	            <artifactId>smartrplace-proposed</artifactId>
+	            <version>2.1.3-SNAPSHOT</version>
+        	</dependency>
+        	<dependency>
+	            <groupId>org.smartrplace.apps</groupId>
+	            <artifactId>smartrplace-util-proposed</artifactId>
+	            <version>2.1.3-SNAPSHOT</version>
+        	</dependency>
+			<dependency>
+				<groupId>de.iwes.widgets</groupId>
+				<artifactId>util-extended</artifactId>
+				<version>2.1.4-SNAPSHOT</version>
+			</dependency>
+			<dependency>
+				<groupId>org.ogema.model</groupId>
+				<artifactId>fhg-proposed</artifactId>
+				<version>2.1.1</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+    
+</project>
