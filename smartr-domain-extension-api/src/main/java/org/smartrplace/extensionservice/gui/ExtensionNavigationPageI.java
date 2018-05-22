@@ -8,7 +8,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 /**
- * Frame for navigation pages
+ * Framework access for navigation pages
  */
 public interface ExtensionNavigationPageI<T extends ExtensionUserDataNonEdit, C extends ExtensionResourceAccessInitData> {
 	

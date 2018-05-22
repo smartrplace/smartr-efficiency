@@ -25,6 +25,7 @@ import org.smartrplace.smarteff.util.button.ResourceTableOpenButton;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.ValueFormat;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.format.WidgetPageFormatter;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -35,6 +36,8 @@ public class SPPageUtil {
 	public static final String OPEN_NEW_TAB_STRING = "New Tab";
 	public static final String OPEN_SAME_TAB_STRING = "Same Tab";
 
+	public static WidgetPageFormatter STANDARD_PAGE_FORMATTER = new WidgetPageFormatter();
+	
 	public static OgemaWidget addOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			NavigationPublicPageData pageData,
@@ -165,7 +168,7 @@ public class SPPageUtil {
 	public static int getEntryIdx(NavigationPublicPageData navi, Class<? extends Resource> type) {
 		int idx = 0;
 		for(EntryType et: navi.getEntryTypes()) {
-			if(et.getType().isAssignableFrom(type)) {
+			if(et.getType().representingResourceType().isAssignableFrom(type)) {
 				return idx;
 			}
 			idx++;

@@ -65,7 +65,7 @@ public class UserAdmin {
 							app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 							app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
 							app.guiPageAdmin.proposalInfo, null, url);
-					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(-1, null, null,
+					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(-1, null, null, null,
 							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess);
 					return result;
 				} else {
@@ -77,7 +77,7 @@ public class UserAdmin {
 							app.guiPageAdmin.proposalInfo,
 							(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, url);
 					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
-							c.entryResources, c,
+							c.entryResources, null, c,
 							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess);
 					return result;
 				}
@@ -138,10 +138,10 @@ public class UserAdmin {
 			}
 			ExtensionResourceAccessInitData result;
 			if(c == null) {
-				result = new ExtensionResourceAccessInitDataImpl(-1, null, null,
+				result = new ExtensionResourceAccessInitDataImpl(-1, null, null, null,
 						editableData , userDataNonEdit, systemAccess);
 			} else {
-				result = new ExtensionResourceAccessInitDataImpl(c.entryIdx, c.entryResources, c,
+				result = new ExtensionResourceAccessInitDataImpl(c.entryIdx, c.entryResources, null, c,
 						editableData , userDataNonEdit, systemAccess);
 			}
 			return result;
@@ -153,7 +153,7 @@ public class UserAdmin {
 					app.guiPageAdmin.proposalInfo,
 					(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, url);
 			ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
-					c.entryResources, c,
+					c.entryResources, null, c,
 					userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess);
 			return result;
 		}

@@ -46,7 +46,7 @@ public class NavigationPageSystemAccess extends NavigationPageSystemAccessForPag
 	@Override
 	public String accessCreatePage(NavigationPublicPageData pageData, int entryIdx,
 			Resource parent) {
-		Class<? extends Resource> type = pageData.getEntryTypes().get(entryIdx).getType();
+		Class<? extends Resource> type = pageData.getEntryTypes().get(entryIdx).getType().representingResourceType();
 		ExtensionResourceTypeDeclaration<? extends Resource> typeDecl = appExt.getTypeDeclaration(type);
 		String name = CapabilityHelper.getNewMultiResourceName(type, parent);
 		NewResourceResult<? extends Resource> newResource = getNewResource(parent, name, typeDecl);

@@ -70,14 +70,14 @@ public class GUIPageAdministation {
 			else {
 				navigationPages.add(data);
 				for(EntryType t: navi.getEntryTypes()) {
-					List<NavigationPublicPageData> listPub = navigationPublicData.get(t.getType());
+					List<NavigationPublicPageData> listPub = navigationPublicData.get(t.getType().representingResourceType());
 					if(listPub == null) {
 						listPub = new ArrayList<>();
-						navigationPublicData.put(t.getType(), listPub);
+						navigationPublicData.put(t.getType().representingResourceType(), listPub);
 					}
 					NavigationPublicPageData dataPub = new NavigationPublicPageDataImpl(data);
 					listPub.add(dataPub);
-					System.out.println("Navi-URL: "+url+" EntryType:"+t.getType().getSimpleName()+" List# now:"+listPub.size());				 
+					System.out.println("Navi-URL: "+url+" EntryType:"+t.getType().representingResourceType().getSimpleName()+" List# now:"+listPub.size());				 
 				}
 			}
 			i++;
@@ -94,10 +94,10 @@ public class GUIPageAdministation {
 			proposalProviders.add(data);
 			if(navi.getEntryTypes() == null) continue;
 			for(EntryType t: navi.getEntryTypes()) {
-				List<ProposalPublicData> listPub = proposalInfo.get(t.getType());
+				List<ProposalPublicData> listPub = proposalInfo.get(t.getType().representingResourceType());
 				if(listPub == null) {
 					listPub = new ArrayList<>();
-					proposalInfo.put(t.getType(), listPub);
+					proposalInfo.put(t.getType().representingResourceType(), listPub);
 				}
 				ProposalPublicDataImpl dataPub = new ProposalPublicDataImpl(data);
 				listPub.add(dataPub);
@@ -122,9 +122,9 @@ public class GUIPageAdministation {
     		String naviId = SPPageUtil.buildId(navi);
  			if(navi.getEntryTypes() == null) continue;
 			else for(EntryType t: navi.getEntryTypes()) {
-				List<NavigationPublicPageData> listPub = navigationPublicData.get(t.getType());
+				List<NavigationPublicPageData> listPub = navigationPublicData.get(t.getType().representingResourceType());
 				if(listPub == null) {
-					logger.error("Navigation Public pages have no entry for "+t.getType().getName()+" when deregistering "+serviceId);
+					logger.error("Navigation Public pages have no entry for "+t.getType().representingResourceType().getName()+" when deregistering "+serviceId);
 					continue;
 				}
 				for(NavigationPublicPageData l:listPub) {
@@ -133,7 +133,7 @@ public class GUIPageAdministation {
 						break;
 					}
 				}
-				if(listPub.isEmpty()) navigationPublicData.remove(t.getType());
+				if(listPub.isEmpty()) navigationPublicData.remove(t.getType().representingResourceType());
 			}
     	}
     	
@@ -141,9 +141,9 @@ public class GUIPageAdministation {
     		String naviId = SPPageUtil.buildId(navi);
  			if(navi.getEntryTypes() == null) continue;
 			else for(EntryType t: navi.getEntryTypes()) {
-				List<ProposalPublicData> listPub = proposalInfo.get(t.getType());
+				List<ProposalPublicData> listPub = proposalInfo.get(t.getType().representingResourceType());
 				if(listPub == null) {
-					logger.error("Proposal providers have no entry for "+t.getType().getName()+" when deregistering "+serviceId);
+					logger.error("Proposal providers have no entry for "+t.getType().representingResourceType().getName()+" when deregistering "+serviceId);
 					continue;
 				}
 				for(ProposalPublicData l:listPub) {
@@ -152,7 +152,7 @@ public class GUIPageAdministation {
 						break;
 					}
 				}
-				if(listPub.isEmpty()) proposalInfo.remove(t.getType());
+				if(listPub.isEmpty()) proposalInfo.remove(t.getType().representingResourceType());
 			}
     		
     	}

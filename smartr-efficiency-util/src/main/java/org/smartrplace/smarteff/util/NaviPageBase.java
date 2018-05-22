@@ -71,7 +71,12 @@ public abstract class NaviPageBase<T extends Resource>  {
 			
 			addWidgets();
 			exPage.registerDependentWidgetOnInit(header);
+			finishPage();
 		}
+	}
+	
+	protected void finishPage() {
+		SPPageUtil.STANDARD_PAGE_FORMATTER.formatPage(page);
 	}
 	
 	public class Provider implements NavigationGUIProvider {

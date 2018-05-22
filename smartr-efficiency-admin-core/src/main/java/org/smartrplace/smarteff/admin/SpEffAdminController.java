@@ -14,7 +14,6 @@ import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
-import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.smarteff.admin.config.SmartEffAdminData;
 import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
 import org.smartrplace.smarteff.admin.gui.ResTypePage;
@@ -29,7 +28,6 @@ import org.smartrplace.util.format.ValueFormat;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
-import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class SpEffAdminController {
 	public final static String APPCONFIGDATA_LOCATION = ValueFormat.firstLowerCase(SmartEffAdminData.class.getSimpleName());

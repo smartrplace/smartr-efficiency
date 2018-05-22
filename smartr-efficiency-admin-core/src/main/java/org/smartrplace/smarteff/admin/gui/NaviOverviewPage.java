@@ -57,8 +57,8 @@ public class NaviOverviewPage extends ObjectGUITablePage<NavigationPageData, Res
 		String text = null;
 		if(object.provider.getEntryTypes() == null) text = "Start Page";
 		else for(EntryType t: object.provider.getEntryTypes()) {
-			if(text == null) text = t.getType().getSimpleName();
-			else text += "; "+t.getType().getSimpleName();
+			if(text == null) text = t.getType().representingResourceType().getSimpleName();
+			else text += "; "+t.getType().representingResourceType().getSimpleName();
 		}
 		vh.stringLabel("Entry Types", id, text, row);
 		//ExtensionResourceAccessInitData systemAccess = app.getUserAdmin().getAccessData(null, req, object.provider);
