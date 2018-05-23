@@ -9,9 +9,9 @@ import org.ogema.core.model.Resource;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.smartrplace.efficiency.api.capabilities.SmartEffRecommendationProvider;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.proposal.ProposalProvider;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
@@ -56,15 +56,17 @@ public class SmartrEffExtResourceTypeData {
 	public static class ServiceCapabilities {
 		public final Set<ProposalProvider> proposalProviders = new LinkedHashSet<>();
 		public final Set<NavigationGUIProvider> naviProviders = new LinkedHashSet<>();
-		public final Set<SmartEffRecommendationProvider> recommendationProviders = new LinkedHashSet<>();
+		//public final Set<SmartEffRecommendationProvider> recommendationProviders = new LinkedHashSet<>();
+		public final Set<DriverProvider> drivers = new LinkedHashSet<>();
 		public final Set<ExtensionCapability> otherProviders = new LinkedHashSet<>();
 	}
 	public static ServiceCapabilities getServiceCaps(SmartEffExtensionService service) {
 		ServiceCapabilities result = new ServiceCapabilities();
     	for(ExtensionCapability c: service.getCapabilities()) {
     		if(c instanceof ProposalProvider) result.proposalProviders.add((ProposalProvider) c);
-    		else if(c instanceof SmartEffRecommendationProvider) result.recommendationProviders.add((SmartEffRecommendationProvider) c);
+    		//else if(c instanceof SmartEffRecommendationProvider) result.recommendationProviders.add((SmartEffRecommendationProvider) c);
     		else if(c instanceof NavigationGUIProvider) result.naviProviders.add((NavigationGUIProvider) c);
+    		else if(c instanceof DriverProvider) result.drivers.add((DriverProvider) c);
     		else result.otherProviders.add(c);
     	}
 		return result;

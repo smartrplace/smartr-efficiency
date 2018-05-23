@@ -18,6 +18,7 @@ import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.util.format.ValueFormat;
 
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
@@ -143,14 +144,24 @@ public class CapabilityHelper {
 		return userResource;
 	}
 	public static <T extends Resource> T getGlobalVirtual(T resourceInUser, ExtensionGeneralData globalData) {
-		
-		String[] els = resourceInUser.getLocation().split("/", 3);
-		if(els.length < 3) throw new IllegalStateException("Not a subpath of userDataSpace");
-		String subPath = els[2];
+		String subPath = getSubPathBelowUser(resourceInUser, null);
+		if(subPath == null) throw new IllegalStateException("Not a subpath of userDataSpace");
 		@SuppressWarnings("unchecked")
 		T globalResource = (T) ResourceHelper.getSubResource(globalData, subPath , resourceInUser.getResourceType());
 		return globalResource;
 	}
+	
+	/**Returns subpath below user Read-Write-Space. Returns null if not in user space
+	 * @param userName if null any user name is accepted*/
+	public static String getSubPathBelowUser(Resource resourceInUser, String userName) {
+		String[] els = resourceInUser.getLocation().split("/", 3);
+		if(els.length < 3) return null;
+		String subPath = els[2];
+		if(userName == null) return subPath;
+		if(!els[0].equals(userName)) return null;
+		return subPath;
+	}
+	
 	/**
 	 * @deprecated use {@link MyParam} instead	 * 
 	 */
@@ -228,4 +239,48 @@ public class CapabilityHelper {
 			}
 			
 		};		
-	}}
+	}
+	
+	public static EntryType getEntryType(GaRoDataType type) {
+		return new EntryType() {
+			@Override
+			public Cardinality getCardinality() {
+				return Cardinality.MULTIPLE_REQUIRED;
+			}
+
+			@Override
+			public GenericDataTypeDeclaration getType() {
+				return type;
+				/*return new GenericDataTypeDeclaration() {
+					
+					@Override
+					public String label(OgemaLocale locale) {
+						return type.label(locale);
+					}
+					
+					@Override
+					public String id() {
+						return provider.id()+"__"+type.id();
+					}
+					
+					@Override
+					public TypeCardinality typeCardinality() {
+						return TypeCardinality.TIME_SERIES;
+					}
+					
+					@Override
+					public Class<? extends Resource> representingResourceType() {
+						return type.representingResourceType();
+					}
+					
+					@Override
+					public List<GenericAttribute> attributes() {
+						return type.attributes();
+					}
+				};*/
+			}
+			
+		};		
+	}
+
+}

@@ -16,6 +16,7 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.smarteff.util.SPPageUtil;
 
@@ -28,7 +29,7 @@ import de.iwes.widgets.api.widgets.WidgetApp;
  */
 @References({
 	@Reference(
-		name="evaluationProviders",
+		name="capabilityProviders",
 		referenceInterface=SmartEffExtensionService.class,
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
@@ -50,6 +51,13 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 	@Reference
 	private OgemaGuiService guiService;
 	
+	@Reference
+	public EvalResultManagement evalResultMan;
+	@Override
+	public EvalResultManagement evalResultMan() {
+		return evalResultMan;
+	}
+
 	/*public ServicePage mainPage;
 	public ServiceDetailPage offlineEvalPage;
 	public ResTypePage resTypePage;
@@ -152,4 +160,5 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 				controller.unregisterService(provider);			}
 		};
     }
+
 }

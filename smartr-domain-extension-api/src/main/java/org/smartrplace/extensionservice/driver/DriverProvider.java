@@ -38,16 +38,16 @@ import de.iwes.timeseries.eval.api.DataProvider;
  * only use them via the ApplicationManagerSPExt.
  */
 public interface DriverProvider extends ExtensionCapability {
-	Class<? extends DataProvider<Resource>> getDataProviderType();
+	Class<? extends DataProvider<?>> getDataProviderType();
 	
 	void init(ApplicationManagerSPExt appManExt);
 
 	/** Get data provider for the user. See {@link NavigationGUIProvider#initPage(ExtensionNavigationPageI, Resource)}
 	 * 
-	 * @param entryResources configuration resource(s) that are relevant for this data provider
+	 * @param entryResources configuration resource(s) that are relevant for this data provider.
 	 * @return data provider for the user. If the provider does not find the necessary configuration data for
 	 * the user it shall return null.
 	 */
-	DataProvider<Resource> getDataProvider(int entryTypeIdx, List<Resource> entryResources, Resource userData,
+	DataProvider<?> getDataProvider(int entryTypeIdx, List<Resource> entryResources, Resource userData,
 			ExtensionUserDataNonEdit userDataNonEdit);
 }

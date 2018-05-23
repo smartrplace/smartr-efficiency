@@ -12,6 +12,7 @@ import extensionmodel.smarteff.api.base.SmartEffUserData;
 
 /** To be provided as OSGi service
   * */
+@Deprecated
 public interface SmartEffRecommendationProvider extends ExtensionCapability {
 	/** TODO: Should we rather provide a Recommendation resource here? This makes the interface much more flexible,
 	if an older version of a data model is used just some fields may be missing, would be replaced by default value.

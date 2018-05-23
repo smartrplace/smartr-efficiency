@@ -48,4 +48,6 @@ public interface ExtensionResourceAccessInitData {
 	/** Access for module for simple page opening, supported also for page openings without
 	 * valid configId*/
 	ExtensionPageSystemAccessForPageOpening systemAccessForPageOpening();
+	
+	ExtensionPageSystemAccessForEvaluation getEvaluationManagement();
 }

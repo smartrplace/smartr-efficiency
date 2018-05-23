@@ -1,6 +1,7 @@
 package org.smartrplace.smarteff.admin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -9,11 +10,17 @@ import java.util.Set;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
+import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
+import org.ogema.util.evalcontrol.EvalScheduler;
+import org.ogema.util.evalcontrol.EvalScheduler.OverwriteMode;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
+import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.smarteff.admin.config.SmartEffAdminData;
 import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
 import org.smartrplace.smarteff.admin.gui.ResTypePage;
@@ -25,12 +32,19 @@ import org.smartrplace.smarteff.admin.util.ResourceLockAdministration;
 import org.smartrplace.smarteff.admin.util.TypeAdministration;
 import org.smartrplace.util.format.ValueFormat;
 
+import de.iwes.timeseries.eval.api.DataProvider;
+import de.iwes.timeseries.eval.api.configuration.Configuration;
+import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
+import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 public class SpEffAdminController {
 	public final static String APPCONFIGDATA_LOCATION = ValueFormat.firstLowerCase(SmartEffAdminData.class.getSimpleName());
+	public static final Integer[] INTERVALS_OFFERED =
+			new Integer[]{AbsoluteTiming.DAY, AbsoluteTiming.WEEK, AbsoluteTiming.MONTH};
 	
 	public final ServiceAccess serviceAccess;
 	public final OgemaLogger log;
@@ -93,6 +107,55 @@ public class SpEffAdminController {
 			if(appMan != null) return appMan.getLogger();
 			return null;
 		}
+		
+		@Override
+		@Deprecated
+		public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
+				List<Configuration<?>> configurations,
+				Resource userData, ExtensionUserDataNonEdit userDataNonEdit,
+				List<DriverProvider> drivers, boolean saveJsonResult,
+				int defaultIntervalsToCalculate) {
+			EvalScheduler scheduler = serviceAccess.evalResultMan().getEvalScheduler();
+			if(scheduler == null) throw new IllegalStateException("We need an implementation with scheduler here!");
+			
+			int[] intarray = new int[INTERVALS_OFFERED.length];
+			for(int i=0; i<INTERVALS_OFFERED.length; i++) {
+				intarray[i] = INTERVALS_OFFERED[i];
+			}
+			
+			List<GaRoMultiEvalDataProvider<?>> dataProvidersToUse = new ArrayList<>();
+			List<DriverProvider> driversToCheck;
+			if(drivers == null) driversToCheck = guiPageAdmin.drivers;
+			else driversToCheck = drivers;
+			for(DriverProvider driver: driversToCheck) {
+				int idx = 0;
+				for(EntryType et: driver.getEntryTypes()) {
+					if(et.getType().representingResourceType().equals(entryResource.getResourceType())) {
+						DataProvider<?> dp = driver.getDataProvider(idx, Arrays.asList(new Resource[]{entryResource}),
+								userDataNonEdit.editableData(), userDataNonEdit);
+						if(dp != null) dataProvidersToUse.add((GaRoMultiEvalDataProvider<?>) dp);
+						break;
+					}
+					idx++;
+				}
+			}
+			if(dataProvidersToUse.isEmpty()) return null;
+			
+			String subConfigId = entryResource.getLocation();
+			MultiKPIEvalConfiguration startConfig = scheduler.getOrCreateConfig(eval.id(),
+					subConfigId);
+			long[] result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate);
+			result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
+					result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE);
+			
+			
+			//TODO: We should hand in data providers with eval call, this is not thread-safe!
+			scheduler.setStandardDataProvidersToUse(dataProvidersToUse);
+			//List<MultiKPIEvalConfiguration> result = scheduler.registerProviderForKPI(eval, true, intarray , true, gwIds);
+			//scheduler.deactivateAutoEvaluation(eval.id());
+			
+			return result;
+		}
 	};
 	
     public SpEffAdminController(ApplicationManager appMan, ServiceAccess evaluationOCApp, final WidgetApp widgetApp) {
@@ -121,7 +184,8 @@ public class SpEffAdminController {
      	
     	typeAdmin.registerService(service);
     	guiPageAdmin.registerService(service);
-
+    	
+    	
     	servicesKnown.add(service);
     }
     

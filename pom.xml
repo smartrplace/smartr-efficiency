@@ -40,6 +40,7 @@
 		<module>smartr-efficiency-admin-core</module>
 		<module>smartr-efficiency-admin</module>
 		<module>smartr-heating-server</module>
+		<module>smartr-efficiency-evals</module>
     </modules>
 
     <build>

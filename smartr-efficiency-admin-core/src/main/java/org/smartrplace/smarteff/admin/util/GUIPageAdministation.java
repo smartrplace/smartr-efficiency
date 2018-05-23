@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
+import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
@@ -36,6 +37,8 @@ public class GUIPageAdministation {
 	public List<NavigationPageData> startPages = new ArrayList<>();
 	public List<NavigationPageData> navigationPages = new ArrayList<>();
 	public List<ProposalProviderData> proposalProviders = new ArrayList<>();
+	public List<DriverProvider> drivers = new ArrayList<>();
+
 	public Map<Class<? extends Resource>, List<NavigationPublicPageData>> navigationPublicData = new HashMap<>();
 	public List<NavigationPublicPageData> startPagesData = new ArrayList<>();
 	public Map<Class<? extends Resource>, List<ProposalPublicData>> proposalInfo = new HashMap<>();
@@ -157,6 +160,7 @@ public class GUIPageAdministation {
     		
     	}
 
+     	drivers.addAll(caps.drivers);
 	}
 	
 	public Collection<NavigationPageData> getAllProviders() {

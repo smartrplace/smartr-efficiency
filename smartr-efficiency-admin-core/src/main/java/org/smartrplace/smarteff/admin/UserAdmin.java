@@ -66,7 +66,7 @@ public class UserAdmin {
 							app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
 							app.guiPageAdmin.proposalInfo, null, url);
 					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(-1, null, null, null,
-							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess);
+							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 					return result;
 				} else {
 					ConfigInfo c = app.configIdAdmin.getConfigInfo(configId);
@@ -78,7 +78,7 @@ public class UserAdmin {
 							(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, url);
 					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
 							c.entryResources, null, c,
-							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess);
+							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 					return result;
 				}
 			}
@@ -139,10 +139,10 @@ public class UserAdmin {
 			ExtensionResourceAccessInitData result;
 			if(c == null) {
 				result = new ExtensionResourceAccessInitDataImpl(-1, null, null, null,
-						editableData , userDataNonEdit, systemAccess);
+						editableData , userDataNonEdit, systemAccess, app);
 			} else {
 				result = new ExtensionResourceAccessInitDataImpl(c.entryIdx, c.entryResources, null, c,
-						editableData , userDataNonEdit, systemAccess);
+						editableData , userDataNonEdit, systemAccess, app);
 			}
 			return result;
 		} else {
@@ -154,7 +154,7 @@ public class UserAdmin {
 					(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, url);
 			ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
 					c.entryResources, null, c,
-					userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess);
+					userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 			return result;
 		}
 	}
