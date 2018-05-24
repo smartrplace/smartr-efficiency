@@ -139,6 +139,6 @@ public abstract class NaviPageBase<T extends Resource>  {
 	
 	protected String getUserName(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-		return appData.userDataNonEdit().getName();
+		return appData.userDataNonEdit().ogemaUserName().getValue();
 	}
 }

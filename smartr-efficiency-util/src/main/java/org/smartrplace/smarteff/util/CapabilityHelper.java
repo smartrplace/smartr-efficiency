@@ -21,6 +21,7 @@ import org.smartrplace.util.format.ValueFormat;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class CapabilityHelper {
 	public static final String ERROR_START = "ERROR: ";
@@ -158,14 +159,20 @@ public class CapabilityHelper {
 		if(els.length < 3) return null;
 		String subPath = els[2];
 		if(userName == null) return subPath;
-		if(!els[0].equals(userName)) return null;
+		String resourceUser = getUserName(resourceInUser);
+		if(!resourceUser.equals(userName)) return null;
+		//if(!els[0].equals(userName)) return null;
 		return subPath;
 	}
 	
 	public static String getUserName(Resource resourceInUser) {
-		String[] els = resourceInUser.getLocation().split("/", 3);
+		Resource topr = ResourceHelper.getToplevelResource(resourceInUser);
+		if(!(topr instanceof SmartEffUserDataNonEdit)) return null;
+		SmartEffUserDataNonEdit top = (SmartEffUserDataNonEdit)topr;
+		return top.ogemaUserName().getValue();
+		/*String[] els = resourceInUser.getLocation().split("/", 3);
 		if(els.length < 3) return null;
-		return els[0];
+		return els[0];*/
 	}
 
 	/**

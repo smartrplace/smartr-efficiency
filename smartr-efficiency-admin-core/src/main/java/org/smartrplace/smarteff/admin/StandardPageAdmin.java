@@ -15,6 +15,7 @@ import org.smartrplace.smarteff.admin.object.SmartrEffExtResourceTypeData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.util.SPPageUtil;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
@@ -53,7 +54,11 @@ public class StandardPageAdmin {
 		this.controller = controller;
 		
 		//register a web page with dynamically generated HTML
-		pageServices = widgetApp.createStartPage();
+		if(!controller.appManExt.globalData().startPageId().isActive()) {
+			//otherwise do not register start page yet
+			pageServices = widgetApp.createStartPage();
+		} else
+			pageServices = widgetApp.createWidgetPage("pageService.html");
 		mainPage = new ServicePage(pageServices, controller);
 		pageServiceDetails = widgetApp.createWidgetPage("Details.html");
 		offlineEvalPage = new ServiceDetailPage(pageServiceDetails, controller);
@@ -98,6 +103,12 @@ public class StandardPageAdmin {
 		}
 	}
 	
+	public boolean isStartPage(String pageId) {
+		if(!controller.appManExt.globalData().startPageId().isActive()) return false;
+		String startId = controller.appManExt.globalData().startPageId().getValue();
+		if(startId.equals(pageId)) return true;
+		return false;
+	}
 	public void registerPage(NavigationPageData data, WidgetPage<?> page) {
 		String id = SPPageUtil.buildId(data.provider);
 		allPages.put(id, page);
@@ -111,6 +122,13 @@ public class StandardPageAdmin {
 			}
 		}
 	}
+	
+	public String getStartPageURL() {
+		if(controller.appManExt.globalData().startPageId().isActive())
+			return controller.appManExt.globalData().startPageId().getValue()+".html";
+		return null;
+	}
+	
 	public void addPageToMenu(NavigationGUIProvider provider) {
 		String id = SPPageUtil.buildId(provider);
 		WidgetPage<?> page = allPages.get(id);
@@ -120,6 +138,49 @@ public class StandardPageAdmin {
 		ValueResourceUtils.appendValue(controller.appManExt.globalData().menuPageIds(), id);
 		updatePageMenus();
 	}
-	//TODO: Implement removePageFromMenu
 	
+	public boolean removePageFromMenu(NavigationGUIProvider provider) {
+		String id = SPPageUtil.buildId(provider);
+		//WidgetPage<?> page = allPages.get(id);
+		//if(page == null) throw new IllegalStateException("widget page must be created before addPageToMenu is called.");
+		//Note: Existing entry for the NaviProvider is just overridden
+		int index = getIndex(id, controller.appManExt.globalData().menuPageIds().getValues());
+		if(index < 0) return false;
+		AdditionalMenuEntry result = additionalEntries.remove(id);
+		ValueResourceUtils.removeElement(controller.appManExt.globalData().menuPageIds(), index);
+		updatePageMenus();
+		return (result != null);
+	}
+	
+	public boolean isInMenu(NavigationGUIProvider provider) {
+		String id = SPPageUtil.buildId(provider);
+		int index = getIndex(id, controller.appManExt.globalData().menuPageIds().getValues());
+		if(index < 0) return false;
+		else return true;
+	}
+	
+	public boolean makeStartPage(NavigationGUIProvider provider) {
+		if(!isInMenu(provider)) return false;
+		String id = SPPageUtil.buildId(provider);
+		ValueResourceHelper.setCreate(controller.appManExt.globalData().startPageId(), id);
+		return true;
+	}
+	
+	public boolean isStartPage(NavigationGUIProvider provider) {
+		String id = SPPageUtil.buildId(provider);
+		return isStartPage(id);
+		//if(controller.appManExt.globalData().startPageId().isActive() &&
+		//		controller.appManExt.globalData().startPageId().getValue().equals(id))
+		//	return true;
+		//return false;
+	}
+
+	public static int getIndex(String s, String[] arr) {
+		int i = 0;
+		for(String a: arr) {
+			if(a.equals(s)) return i;
+			i++;
+		}
+		return -1;
+	}
 }

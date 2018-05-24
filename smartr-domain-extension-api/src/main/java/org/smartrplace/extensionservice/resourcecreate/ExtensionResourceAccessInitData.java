@@ -50,4 +50,10 @@ public interface ExtensionResourceAccessInitData {
 	ExtensionPageSystemAccessForPageOpening systemAccessForPageOpening();
 	
 	ExtensionPageSystemAccessForEvaluation getEvaluationManagement();
+	
+	public interface PublicUserInfo {
+		String userName();
+		boolean isAnonymousUser();
+	}
+	PublicUserInfo getUserInfo();
 }

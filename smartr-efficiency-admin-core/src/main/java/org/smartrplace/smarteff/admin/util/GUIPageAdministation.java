@@ -56,10 +56,12 @@ public class GUIPageAdministation {
     	ServiceCapabilities caps = SmartrEffExtResourceTypeData.getServiceCaps(service);
     	int i=0;
     	for(NavigationGUIProvider navi: caps.naviProviders) try {
-    		String id = WidgetHelper.getValidWidgetId(SPPageUtil.buildId(navi));
+    		String stdId = SPPageUtil.buildId(navi);
+    		String id = WidgetHelper.getValidWidgetId(stdId);
     		String url = SPPageUtil.getProviderURL(navi);
-    		WidgetPage<?> page = app.widgetApp.createWidgetPage(url);
-  		
+    		boolean isStartpage = app.pageAdmin.isStartPage(stdId);
+    		final WidgetPage<?> page;
+   			page = app.widgetApp.createWidgetPage(url, isStartpage);
   			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> dataExPage = app.getUserAdmin().
   					getNaviPage(page, url, "dataExplorer.html", id, navi);
     		navi.initPage(dataExPage, app.appManExt);

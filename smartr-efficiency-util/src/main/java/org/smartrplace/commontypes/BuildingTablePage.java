@@ -12,6 +12,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
+import org.smartrplace.smarteff.util.button.RegisterAsUserButton;
 import org.smartrplace.smarteff.util.button.TabButton;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
@@ -22,6 +23,7 @@ import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
@@ -76,8 +78,11 @@ public class BuildingTablePage extends NaviPageBase<BuildingData> {
 					return appData.userData();
 				}
 			};
-			StaticTable topTable = new StaticTable(1, 2, new int[]{10,2});
-			topTable.setContent(0, 0, addEntry).setContent(0, 1, tabButton);
+
+			Button registerUser = new RegisterAsUserButton(page, "registerUser", pid(), exPage, tabButton.control);
+
+			StaticTable topTable = new StaticTable(1, 3, new int[]{8,2, 2});
+			topTable.setContent(0, 0, addEntry).setContent(0, 1, registerUser).setContent(0, 2, tabButton);
 			page.append(topTable);
 			exPage.registerDependentWidgetOnInit(mainTable);
 		}

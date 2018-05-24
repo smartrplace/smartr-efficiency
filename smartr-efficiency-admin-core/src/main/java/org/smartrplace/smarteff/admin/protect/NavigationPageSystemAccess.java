@@ -91,6 +91,7 @@ public class NavigationPageSystemAccess extends NavigationPageSystemAccessForPag
 				name = ValueFormat.firstLowerCase(type.dataType().getSimpleName());
 				for(ResourceList<?> rl: parentIn.getSubResources(ResourceList.class, false)) {
 					if(rl.getElementType() == null) continue;
+					if(rl.getElementType().equals(Resource.class)) continue;
 					if(rl.getElementType().isAssignableFrom(type.dataType())) {
 						parent = (ResourceList<T>) rl;
 						if(!parent.getName().equals(name))

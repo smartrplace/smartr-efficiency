@@ -31,6 +31,7 @@ public class NaviOverviewPage extends ObjectGUITablePage<NavigationPageData, Res
 			NavigationPageData initData) {
 		super(page, app.appMan, initData);
 		this.app = app;
+		//retardationOnGET = 2000;
 	}
 	
 	@Override
@@ -67,18 +68,56 @@ public class NaviOverviewPage extends ObjectGUITablePage<NavigationPageData, Res
 			TemplateRedirectButton<NavigationPageData> but = vh.linkingButton("Open", id, null, row, "Open", object.url);
 			but.setDefaultOpenInNewTab(false);
 			if(req != null) {
-				Button favoriteButton = new Button(vh.getParent(), "favoriteButton"+id, "Add to Favourites", req) {
+				Button favoriteButton = new Button(vh.getParent(), "favoriteButton"+id, "", req) {
 					private static final long serialVersionUID = 8917341845056555889L;
 					@Override
+					public void onGET(OgemaHttpRequest req) {
+						if(app.pageAdmin.isInMenu(object.provider))
+							setText("Remove from Favourites", req);
+						else
+							setText("Add to Favourites", req);
+					}
+					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						app.pageAdmin.addPageToMenu(object.provider);
+						if(app.pageAdmin.isInMenu(object.provider))
+							app.pageAdmin.removePageFromMenu(object.provider);
+						else
+							app.pageAdmin.addPageToMenu(object.provider);
 					}
 				};
 				row.addCell("Favourite", favoriteButton);
-			} else vh.registerHeaderEntry("Favourite");
+				
+				Button startPageButton = new Button(vh.getParent(), "startPageButton"+id, "", req) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						if(app.pageAdmin.isStartPage(object.provider)) {
+							disable(req);
+							setText("Is start page", req);
+						} else	{
+							setText("Make start page", req);
+							if(app.pageAdmin.isInMenu(object.provider)) {
+								enable(req);
+							} else {
+								disable(req);
+							}
+						}
+					}
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						app.pageAdmin.makeStartPage(object.provider);
+					}
+				};
+				row.addCell("Start_Page", startPageButton);
+				triggerOnPost(favoriteButton, startPageButton);
+			} else {
+				vh.registerHeaderEntry("Favourite");
+				vh.registerHeaderEntry("Start Page");
+			}
 		} else {
 			vh.stringLabel("Open", id, "--", row);
 			vh.stringLabel("Favourite", id, "--", row);
+			vh.stringLabel("Start Page", id, "--", row);
 		}
 	}
 	

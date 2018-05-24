@@ -165,4 +165,13 @@ public class UserAdmin {
 			r.delete();
 		}
 	}
+	
+	protected List<String> getAnonymousUserNames() {
+		return null;
+	}
+	public boolean isAnonymousUser(String userName) {
+		if(getAnonymousUserNames() == null) return false;
+		if(getAnonymousUserNames().contains(userName)) return true;
+		return false;
+	}
 }

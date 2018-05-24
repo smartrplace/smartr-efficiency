@@ -241,4 +241,21 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			}
 		};
 	}
+
+	@Override
+	public PublicUserInfo getUserInfo() {
+		return new PublicUserInfo() {
+
+			@Override
+			public String userName() {
+				return userDataNonEdit().ogemaUserName().getValue();
+			}
+
+			@Override
+			public boolean isAnonymousUser() {
+				return controller.getUserAdmin().isAnonymousUser(userName());
+			}
+			
+		};
+	}
 }
