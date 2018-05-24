@@ -45,7 +45,7 @@ public class ProposalProvTablePage extends NaviPageBase<Resource> {
 				OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 			if(req != null) {
 				vh.stringLabel("Name", id, object.label(req.getLocale()), row);
-				Button calculateButton = new Button(vh.getParent(), "calculateButton"+pid(), "Calculate", req) {
+				Button calculateButton = new Button(vh.getParent(), "calculateButton"+pid()+id, "Calculate", req) {
 					private static final long serialVersionUID = 1L;
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -55,7 +55,11 @@ public class ProposalProvTablePage extends NaviPageBase<Resource> {
 				};
 				row.addCell("Calculate", calculateButton);
 				ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-				SPPageUtil.addResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
+				//TODO: This is not the right criteria to differentiate between normal and KPI providers
+				if(object.getEntryTypes() != null && object.getEntryTypes().size() > 1)
+					SPPageUtil.addKPITableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
+				else
+					SPPageUtil.addResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
 			} else {
 				vh.registerHeaderEntry("Name");
 				vh.registerHeaderEntry("Calculate");

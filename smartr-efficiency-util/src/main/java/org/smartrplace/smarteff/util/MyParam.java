@@ -43,8 +43,9 @@ public class MyParam<T extends Resource> {
 		String name = ResourceListHelper.createNewDecoratorName(globalResource.getName(), tempData);
 		tempResource = (T) tempData.addDecorator(name, resourceType);
 		//Now we have to merge globalResource and myResource
-		OGEMAResourceCopyHelper.copySubResourceIntoDestination(tempResource, globalResource, null, true);
-		OGEMAResourceCopyHelper.copySubResourceIntoDestination(tempResource, myResource, null, true);
+		OGEMAResourceCopyHelper.copySubResourceIntoDestination(tempResource, globalResource, null, false);
+		OGEMAResourceCopyHelper.copySubResourceIntoDestination(tempResource, myResource, null, false);
+		tempResource.activate(true);
 	}
 	
 	public T get() {

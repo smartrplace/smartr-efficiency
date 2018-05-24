@@ -191,9 +191,8 @@ public class BuildingPresenceEvalProvider extends GenericGaRoSingleEvalProvider 
 		return new EvalCore(input, requestedResults, configurations, listener, time, size, nrInput, idxSumOfPrevious, startEnd);
 	}
 	
-	@SuppressWarnings("unchecked")
-	public static final Configuration<? extends GenericObjectConfiguration<BuildingEvalData>> OBJECT_CONFIGURATION =
-			(Configuration<? extends GenericObjectConfiguration<BuildingEvalData>>) getConfiguration(ID, ROOM_PRESENCE_TS, BuildingEvalData.class);
+	public static final Configuration<GenericObjectConfiguration<BuildingEvalData>> OBJECT_CONFIGURATION =
+			getConfiguration(ID, ROOM_PRESENCE_TS, BuildingEvalData.class);
 		/*ConfigurationBuilder.newBuilder(ConfigurationInstance.GenericDurationConfiguration.class)
 			.withId("minimum_absence_cfg")
 			.withLabel("Minimum Absence")
@@ -210,15 +209,18 @@ public class BuildingPresenceEvalProvider extends GenericGaRoSingleEvalProvider 
 		return result ;
 	}
 
-	@SuppressWarnings("rawtypes")
-	protected static Configuration<GenericObjectConfiguration> getConfiguration(String id, ResultType anyResult,
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	protected static <T extends Resource> Configuration<GenericObjectConfiguration<T>> getConfiguration(String id, ResultType anyResult,
 			Class<? extends Resource> configType) {
-		return ConfigurationBuilder.newBuilder(ConfigurationInstance.GenericObjectConfiguration.class)
+		Configuration result2 =
+			ConfigurationBuilder.newBuilder(ConfigurationInstance.GenericObjectConfiguration.class)
 				.withId(id+"_cfg")
 				.withLabel(configType.getSimpleName()+" Configuration Object")
 				.withDescription(configType.getName()+" Configuration Object for provider "+id)
 				.withResultTypes(anyResult)
 				.isOptional(true)
 				.build();
+		Configuration<GenericObjectConfiguration<T>> result = result2;
+		return result ;
 	}
 }

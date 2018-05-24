@@ -13,6 +13,8 @@
     <version>2.1.3-SNAPSHOT</version>
     <description>EvaluationProviders developed for the SmartrEfficiency Collection</description>
 
+    <packaging>bundle</packaging>
+
     <build>
         <plugins>
             <plugin>

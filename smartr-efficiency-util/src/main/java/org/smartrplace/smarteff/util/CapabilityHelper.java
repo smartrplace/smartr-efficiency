@@ -162,6 +162,12 @@ public class CapabilityHelper {
 		return subPath;
 	}
 	
+	public static String getUserName(Resource resourceInUser) {
+		String[] els = resourceInUser.getLocation().split("/", 3);
+		if(els.length < 3) return null;
+		return els[0];
+	}
+
 	/**
 	 * @deprecated use {@link MyParam} instead	 * 
 	 */
@@ -282,5 +288,4 @@ public class CapabilityHelper {
 			
 		};		
 	}
-
 }

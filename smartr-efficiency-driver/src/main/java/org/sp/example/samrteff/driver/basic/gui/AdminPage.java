@@ -16,6 +16,7 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.selectiontree.SelectionItem;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
@@ -37,7 +38,7 @@ public class AdminPage extends ResourceGUITablePage<BasicGaRoDataProviderConfig>
 	public void addWidgets(BasicGaRoDataProviderConfig object, ResourceGUIHelper<BasicGaRoDataProviderConfig> vh,
 			String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		if(req != null) {
-			TemplateDropdown<BuildingData> buildingDrop = new TemplateDropdown<BuildingData>(page, "buildingDrop"+id) {
+			TemplateDropdown<BuildingData> buildingDrop = new TemplateDropdown<BuildingData>(mainTable, "buildingDrop"+id, req) {
 				private static final long serialVersionUID = 1L;
 				public void onGET(OgemaHttpRequest req) {
 					SmartEffUserDataNonEdit userNonEdit = object.getParent().getParent();
@@ -45,8 +46,19 @@ public class AdminPage extends ResourceGUITablePage<BasicGaRoDataProviderConfig>
 					update(buildings, req);
 				};
 			};
-			row.addCell("Building configured");
-			TemplateDropdown<SelectionItem> gwDrop = new TemplateDropdown<SelectionItem>(page, "gwDrop"+id) {
+			row.addCell("Building configured", buildingDrop);
+			Label userName = new Label(mainTable, "userName"+id, req) {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					BuildingData bd = buildingDrop.getSelectedItem(req);
+					if(bd == null) setText("n/a", req);
+					else setText(CapabilityHelper.getUserName(bd), req);
+				}
+			};
+			triggerOnPost(buildingDrop, userName);
+			row.addCell("User", userName);
+			TemplateDropdown<SelectionItem> gwDrop = new TemplateDropdown<SelectionItem>(mainTable, "gwDrop"+id, req) {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void onGET(OgemaHttpRequest req) {
@@ -75,6 +87,7 @@ public class AdminPage extends ResourceGUITablePage<BasicGaRoDataProviderConfig>
 			row.addCell("Gateway Id", gwDrop);
 		} else {
 			vh.registerHeaderEntry("Building configured");
+			vh.registerHeaderEntry("User");
 			vh.registerHeaderEntry("Gateway Id");
 		}
 	}

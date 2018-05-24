@@ -1,5 +1,6 @@
 package org.sp.example.smarteff.eval.capability;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -38,20 +39,10 @@ public class SPEvalDataService implements SmartEffExtensionService {
 
 	@Override
 	public Collection<ExtensionResourceTypeDeclaration<? extends SmartEffResource>> resourcesDefined() {
-		return null;
-	}
-
-	/*@Override
-	public Collection<ExtensionResourceTypeDeclaration<? extends SmartEffResource>> resourcesDefined() {
 		Collection<ExtensionResourceTypeDeclaration<? extends SmartEffResource>> result = 
 				new ArrayList<>();
-		result.add(BUILDING_DATA);
-		result.add(PRICE_DATA);
-		result.add(BUILDINGANALYSIS_PROVIDER.getTypeDeclaration());
-		if(BUILDINGANALYSIS_PROVIDER.getParamTypeDeclaration() != null) result.add(BUILDINGANALYSIS_PROVIDER.getParamTypeDeclaration());
-		result.add(new MasterUserRegistration.TypeDeclaration());
-		result.add(new RoomRegistration.TypeDeclaration());
-		result.add(new HeatBillRegistration.TypeDeclaration());
+		if(BUILDING_PRESENCE_PROVIDER.getParamTypeDeclaration() != null) result.add(BUILDING_PRESENCE_PROVIDER.getParamTypeDeclaration());
+		//result.add(new HeatBillRegistration.TypeDeclaration());
 		return result ;
-	}*/
+	}
 }

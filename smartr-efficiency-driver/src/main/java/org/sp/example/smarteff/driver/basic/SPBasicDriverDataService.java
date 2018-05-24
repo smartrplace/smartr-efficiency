@@ -5,11 +5,13 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.ogema.core.application.Application.AppStopReason;
+import org.ogema.util.evalcontrol.EvalScheduler;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.sp.eval.kpi.basic.gui.KPITablePageSP;
 import org.sp.example.smarteff.driver.basic.jaxb.DataDriverGaroJAXB;
 
 import de.iwes.timeseries.eval.garo.api.jaxb.GaRoMultiEvalDataProviderJAXB;
@@ -19,8 +21,9 @@ import extensionmodel.smarteff.driver.basic.BasicGaRoDataProviderConfig;
 
 public class SPBasicDriverDataService implements SmartEffExtensionService {
 	//private ApplicationManagerSPExt appManExt;
-	public SPBasicDriverDataService(GaRoMultiEvalDataProviderJAXB jaxbProvider) {
+	public SPBasicDriverDataService(GaRoMultiEvalDataProviderJAXB jaxbProvider, EvalScheduler scheduler) {
 		DRIVER_PROVIDER = new DataDriverGaroJAXB(jaxbProvider);
+		KPI_PAGE = new KPITablePageSP(scheduler);
 	}
 	
 	public final static ExtensionResourceTypeDeclaration<SmartEffResource> CONFIG_DATA = new ExtensionResourceTypeDeclaration<SmartEffResource>() {
@@ -49,6 +52,7 @@ public class SPBasicDriverDataService implements SmartEffExtensionService {
 	public final static org.smartrplace.smarteff.defaultservice.BuildingEditPage.Provider BUILDING_EDIT_PROVIDER = new BuildingEditPage().provider;
 	*/
 	public DataDriverGaroJAXB DRIVER_PROVIDER;
+	public KPITablePageSP KPI_PAGE;
 
 	@Override
 	public void start(ApplicationManagerSPExt appManExt) {
@@ -61,7 +65,7 @@ public class SPBasicDriverDataService implements SmartEffExtensionService {
 
 	@Override
 	public Collection<ExtensionCapability> getCapabilities() {
-		return Arrays.asList(new ExtensionCapability[] {DRIVER_PROVIDER});
+		return Arrays.asList(new ExtensionCapability[] {DRIVER_PROVIDER, KPI_PAGE.provider});
 	}
 
 	@Override

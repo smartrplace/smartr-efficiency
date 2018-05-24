@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.model.jsonresult.MultiEvalStartConfiguration;
+import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
@@ -149,6 +151,25 @@ public class SPPageUtil {
 				return vh.stringLabel("Results", id, "No Results", row);
 			} else {
 				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE_PROVIDER));
+				String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS);
+				int size = ProposalResTableOpenButton.getSize(object, appData);
+				return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
+						text+"("+size+")", "No BaseResult", true, PageType.TABLE_PAGE, controlProvider, null, req);
+			}
+		} else {
+			vh.registerHeaderEntry(columnName);
+			return null;
+		}
+	}
+	public static OgemaWidget addKPITableOpenButton(String columnName, Resource object,
+			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
+			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+		if(appData != null) {
+			List<MultiEvalStartConfiguration> resultsAvail = object.getSubResources(MultiEvalStartConfiguration.class, true);
+			if(resultsAvail.isEmpty()) {
+				return vh.stringLabel("Results", id, "No Results", row);
+			} else {
+				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider("org_sp_eval_kpi_basic_gui_KPITablePageSP");
 				String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS);
 				int size = ProposalResTableOpenButton.getSize(object, appData);
 				return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),

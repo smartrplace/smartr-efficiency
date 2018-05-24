@@ -16,6 +16,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
+import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
@@ -52,6 +53,9 @@ public class BasicDriverApp implements Application {
 	@Reference
 	private OgemaGuiService guiService;
 	
+	@Reference
+	public EvalResultManagement evalResultMan;
+
 	private final Map<String,DataProvider<?>> dataProviders = Collections.synchronizedMap(new LinkedHashMap<String,DataProvider<?>>());
 	
 	public Map<String, DataProvider<?>> getDataProviders() {
@@ -78,7 +82,7 @@ public class BasicDriverApp implements Application {
         // Remember framework references for later.
         //appMan = appManager;
         log = appManager.getLogger();
-        SPBasicDriverDataService service = new SPBasicDriverDataService(jaxbProvider);
+        SPBasicDriverDataService service = new SPBasicDriverDataService(jaxbProvider, evalResultMan.getEvalScheduler());
         sr = bc.registerService(SmartEffExtensionService.class, service, null);
         
         // 

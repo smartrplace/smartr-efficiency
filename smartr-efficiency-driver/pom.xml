@@ -13,6 +13,8 @@
     <version>2.1.3-SNAPSHOT</version>
     <description>DataProvider wrapper for the SmartrEfficiency Platform</description>
 
+    <packaging>bundle</packaging>
+
     <build>
         <plugins>
             <plugin>
