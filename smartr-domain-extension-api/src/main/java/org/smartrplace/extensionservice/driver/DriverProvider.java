@@ -3,6 +3,8 @@ package org.smartrplace.extensionservice.driver;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
@@ -50,4 +52,11 @@ public interface DriverProvider extends ExtensionCapability {
 	 */
 	DataProvider<?> getDataProvider(int entryTypeIdx, List<Resource> entryResources, Resource userData,
 			ExtensionUserDataNonEdit userDataNonEdit);
+	
+	/** Get time series matching an entry resource and a dataType declaration
+	 * 
+	 * @param entryResource
+	 * @param dataType if null all time series for the entryResource shall be returned
+	 */
+	List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType);
 }

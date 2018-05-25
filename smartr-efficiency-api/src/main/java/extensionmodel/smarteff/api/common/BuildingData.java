@@ -65,5 +65,6 @@ public interface BuildingData extends SmartEffResource {
 
 	ResourceList<HeatCostBillingInfo> heatCostBillingInfo();
 	
+	ResourceList<BuildingUnitData> subUnits();
 	//TODO: add further elements
 }

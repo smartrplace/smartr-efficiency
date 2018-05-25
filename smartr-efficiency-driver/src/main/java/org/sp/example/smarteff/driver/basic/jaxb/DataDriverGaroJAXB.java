@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.driver.DriverProvider;
@@ -92,6 +94,11 @@ public class DataDriverGaroJAXB implements DriverProvider {
 				throw new IllegalStateException("setGatewaysOffered not supported here!");
 			}
 		};
+	}
+
+	@Override
+	public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType) {
+		throw new UnsupportedOperationException("not implemented yet!");
 	}
 
 }
