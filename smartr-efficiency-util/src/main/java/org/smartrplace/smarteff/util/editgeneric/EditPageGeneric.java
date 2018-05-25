@@ -18,6 +18,8 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
+import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
@@ -27,6 +29,7 @@ import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.Visibility;
 import org.smartrplace.util.format.ValueConverter;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -42,6 +45,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
+import extensionmodel.smarteff.api.base.SmartEffTimeSeries;
 
 public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T> {
 	public static OgemaLocale EN = OgemaLocale.ENGLISH;
@@ -540,6 +544,25 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return mhLoc.timeLabel(sub, 0);
+		} else if(SmartEffTimeSeries.class.isAssignableFrom(type2.type)) {
+			if(isEditable)	{
+				FileUploadListenerToFile listenerToFile = new FileUploadListenerToFile() {
+					
+					@Override
+					public void fileUploaded(String filePath, OgemaHttpRequest req) {
+						T parent = mhLoc.getGatewayInfo(req);
+						SmartEffTimeSeries entryResource = ResourceHelper.getSubResource(parent, sub, SmartEffTimeSeries.class);
+						exPage.getAccessData(req).getTimeseriesManagement().registerSingleColumnCSVFile(
+								entryResource, GaRoDataType.PowerMeter, null, filePath, null);
+					}
+				};
+				FileUploaderProtected uploader = exPage.getSpecialWidgetManagement().
+						getFileUpload(page, "upload"+pid(), listenerToFile, null, alert);
+				CSVUploadButton valueWidget = new CSVUploadButton(page, "csvUploadButton", uploader, alert);
+				valueWidget.setDefaultText("Upload Profile as CSV");
+				valueWidget.registerDependentWidget(valueWidget);
+				return valueWidget;
+			} else return new Label(page, "noEdit_"+sub, "No Upload Allowed");
 		} else if(ResourceList.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
 				RedirectButton valueWidget = new ResourceOfTypeTableOpenButton(page, "open_"+sub, pid(), exPage, null) {
@@ -551,48 +574,6 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 						return type2.elementType;
 					}
 				};
-				/*new ResourceTableOpenButton(page, "open_"+sub, pid(), exPage, null) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected NavigationPublicPageData getPageData(ExtensionResourceAccessInitData appData,
-							Class<? extends Resource> type, PageType typeRequested, OgemaHttpRequest req) {
-						List<NavigationPublicPageData> provs = appData.systemAccessForPageOpening().
-								getPages(primaryEntryTypeClass(), true);
-						String url = null;
-						for(NavigationPublicPageData p: provs) {
-							if((p.typesListedInTable() != null) &&
-									p.typesListedInTable().contains(type2.elementType)) {
-								url = p.getUrl();
-								break;
-							}
-						}
-						//TODO: In this case we have to inject the type into configInfo
-						if(url == null) url = SPPageUtil.getProviderURL(BaseDataService.RESBYTYPE_PROVIDER);
-						return appData.systemAccessForPageOpening().getPageByProvider(url);//super.getPageData(appData, type, typeRequested);
-					}
-					
-					@Override
-					protected Object getContext(ExtensionResourceAccessInitData appData, Resource object) {
-						return object.getResourceType().getName();
-					}
-					
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						super.onGET(req);
-						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-						Resource destination = getResource(appData, req);
-						if(destination == null) {
-							disable(req);
-							setText("--", req);
-							return;
-						}
-
-						int size = getSize(destination, appData);
-						String text = "Open";
-						setText(text+"("+size+")", req);
-					}
-				};*/
 				valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return new Label(page, "noEdit_"+sub, "Not Allowed");

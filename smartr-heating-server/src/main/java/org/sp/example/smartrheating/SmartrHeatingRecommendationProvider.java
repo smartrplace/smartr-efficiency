@@ -3,13 +3,11 @@ package org.sp.example.smartrheating;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.efficiency.api.capabilities.SmartEffRecommendationProvider.Recommendation;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.ProposalProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
-import extensionmodel.smarteff.api.common.BuildingData;
 
 public class SmartrHeatingRecommendationProvider implements ProposalProvider {
 
@@ -55,47 +53,6 @@ public class SmartrHeatingRecommendationProvider implements ProposalProvider {
 			}
 		}
 	}*/
-
-	private class SrtrHeatingRecommendation implements Recommendation {
-		public BuildingData building;
-		
-		@Override
-		public String id() {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public String label(OgemaLocale locale) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public String description(OgemaLocale locale) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public float getNetInvestment() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
-		@Override
-		public float getAnnualNetSavings() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
-		@Override
-		public float getAnnualCO2Savings() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-		
-	}
 	
 	/*private List<BuildingData> getBuildingsChanged(List<SmartEffResource> resourcesChanged) {
 		//TODO

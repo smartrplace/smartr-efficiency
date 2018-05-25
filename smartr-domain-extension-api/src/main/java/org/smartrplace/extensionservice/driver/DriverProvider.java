@@ -58,5 +58,6 @@ public interface DriverProvider extends ExtensionCapability {
 	 * @param entryResource
 	 * @param dataType if null all time series for the entryResource shall be returned
 	 */
-	List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType);
+	List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
+			Resource userData, ExtensionUserDataNonEdit userDataNonEdit);
 }

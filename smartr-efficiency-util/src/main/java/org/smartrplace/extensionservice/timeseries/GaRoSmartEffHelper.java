@@ -58,6 +58,7 @@ import extensionmodel.smarteff.api.common.BuildingData;
  * 
  * TODO: General mechanisms for auto-queuing, management of repeated operation.
  */
+@Deprecated //Check documentation, but code probably not used!
 public class GaRoSmartEffHelper {
 
 	protected List<GaRoMultiEvalDataProvider<?>> dataProviders = new ArrayList<>();

@@ -6,6 +6,8 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 
+import extensionmodel.smarteff.api.base.SmartEffTimeSeries;
+
 public interface BuildingData extends SmartEffResource {
 	/** 1: single family home (SFH)<br>
 	 *  2: multi family home< (MFH)br>
@@ -67,4 +69,7 @@ public interface BuildingData extends SmartEffResource {
 	
 	ResourceList<BuildingUnitData> subUnits();
 	//TODO: add further elements
+	
+	/** Electricity consumption metered for the entire building*/
+	SmartEffTimeSeries electricityMainProfile();
 }

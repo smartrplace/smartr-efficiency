@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.schedule.Schedule;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.model.jsonresult.JSONResultFileData;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
@@ -22,8 +24,10 @@ import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForEvaluation;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForTimeseries;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
+import org.smartrplace.smarteff.admin.timeseries.GenericDriverProvider;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 
 import de.iwes.timeseries.eval.api.DataProvider;
@@ -43,6 +47,7 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 	
 	//TODO: This should be no risk for attacks on user data, but to be discussed
 	private final SpEffAdminController controller;
+	private final GenericDriverProvider tsDriver;
 	
 	public ExtensionResourceAccessInitDataImpl(int entryTypeIdx,
 			List<Resource> entryResources, List<GenericDataTypeDeclaration> entryData,
@@ -63,6 +68,7 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 		this.systemAccess = systemAccess;
 		this.configInfo = configInfo;
 		this.controller = controller;
+		this.tsDriver = controller.tsDriver;
 	}
 
 	@Override
@@ -256,6 +262,33 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 				return controller.getUserAdmin().isAnonymousUser(userName());
 			}
 			
+		};
+	}
+
+	@Override
+	public ExtensionPageSystemAccessForTimeseries getTimeseriesManagement() {
+		return new ExtensionPageSystemAccessForTimeseries() {
+			
+			@Override
+			public void registerSingleColumnCSVFile(Resource entryResource, GenericDataTypeDeclaration dataType,
+					String sourceId, String filePath, String format) {
+				tsDriver.addSingleColumnCSVFile(entryResource, dataType, sourceId, filePath, format);
+				
+			}
+			
+			@Override
+			public void registerSchedule(Resource entryResource, GenericDataTypeDeclaration dataType, String sourceId,
+					Schedule sched) {
+				tsDriver.addSchedule(entryResource, dataType, sourceId, sched);
+				
+			}
+			
+			@Override
+			public void registerRecordedData(Resource entryResource, GenericDataTypeDeclaration dataType, String sourceId,
+					SingleValueResource recordedDataParent) {
+				tsDriver.addRecordedData(entryResource, dataType, sourceId, recordedDataParent);
+				
+			}
 		};
 	}
 }

@@ -11,6 +11,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
+import org.ogema.tools.timeseriesimport.api.TimeseriesImport;
 import org.ogema.util.evalcontrol.EvalScheduler;
 import org.ogema.util.evalcontrol.EvalScheduler.OverwriteMode;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
@@ -26,6 +27,7 @@ import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
 import org.smartrplace.smarteff.admin.gui.ResTypePage;
 import org.smartrplace.smarteff.admin.object.NavigationPageData;
 import org.smartrplace.smarteff.admin.object.SmartrEffExtResourceTypeData;
+import org.smartrplace.smarteff.admin.timeseries.GenericDriverProvider;
 import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
 import org.smartrplace.smarteff.admin.util.GUIPageAdministation;
 import org.smartrplace.smarteff.admin.util.ResourceLockAdministration;
@@ -59,6 +61,7 @@ public class SpEffAdminController {
 	public TypeAdministration typeAdmin;
 	private UserAdmin userAdmin;
 	public StandardPageAdmin pageAdmin;
+	public final GenericDriverProvider tsDriver;
 	
 	public final ApplicationManagerSPExt appManExt = new ApplicationManagerSPExt() {
 		
@@ -158,11 +161,13 @@ public class SpEffAdminController {
 		}
 	};
 	
-    public SpEffAdminController(ApplicationManager appMan, ServiceAccess evaluationOCApp, final WidgetApp widgetApp) {
+    public SpEffAdminController(ApplicationManager appMan, ServiceAccess evaluationOCApp, final WidgetApp widgetApp,
+    		TimeseriesImport csvImport) {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
 		this.widgetApp = widgetApp;
 		this.serviceAccess = evaluationOCApp;
+		this.tsDriver = new GenericDriverProvider(csvImport, appMan);
 		init();
 	}
     

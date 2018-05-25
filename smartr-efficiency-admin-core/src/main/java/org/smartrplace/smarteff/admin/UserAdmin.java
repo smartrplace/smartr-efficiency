@@ -7,6 +7,7 @@ import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
+import org.smartrplace.extensionservice.gui.WidgetProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData.ConfigInfo;
 import org.smartrplace.smarteff.admin.config.SmartEffAdminData;
@@ -81,6 +82,10 @@ public class UserAdmin {
 							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 					return result;
 				}
+			}
+			@Override
+			public WidgetProvider getSpecialWidgetManagement() {
+				return new WidgetProviderImpl(app.appMan);	
 			}
 		};
 

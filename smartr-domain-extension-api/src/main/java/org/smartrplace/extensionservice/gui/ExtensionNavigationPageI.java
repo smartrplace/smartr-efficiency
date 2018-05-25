@@ -27,6 +27,8 @@ public interface ExtensionNavigationPageI<T extends ExtensionUserDataNonEdit, C 
 	
 	public ExtensionResourceAccessInitData getAccessData(OgemaHttpRequest req);
 	
+	public WidgetProvider getSpecialWidgetManagement();
+	
 	public static void registerDependentWidgets(OgemaWidget governor, StaticTable table) {
 		for(OgemaWidget el: table.getSubWidgets()) {
 			governor.triggerOnPOST(el);

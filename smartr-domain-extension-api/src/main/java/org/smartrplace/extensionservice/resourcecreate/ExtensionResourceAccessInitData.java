@@ -51,6 +51,8 @@ public interface ExtensionResourceAccessInitData {
 	
 	ExtensionPageSystemAccessForEvaluation getEvaluationManagement();
 	
+	ExtensionPageSystemAccessForTimeseries getTimeseriesManagement();
+	
 	public interface PublicUserInfo {
 		String userName();
 		boolean isAnonymousUser();

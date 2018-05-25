@@ -99,6 +99,8 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setDisplayOptions(sr.typeOfUser(), EN, USERTYPEMAP_EN);
 		setDisplayOptions(sr.typeOfUser(), DE, USERTYPEMAP_DE);
 		
+		setLabel(sr.electricityMainProfile(), EN, "Main Electricity Load Profile", DE , "Lastgang Strom");
+		
 		// Example how to insert a special widget into the automated generated page
 		// In this case also the standard intEdit could be generated and an EditLineProviderDisabling
 		// be set, see provider for yearOfReconstruction below
@@ -144,7 +146,6 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLineProvider(sr.numberOfUnitsInBuilding(), nrRoomProv);
 		//We still have to register the item and provide the label info, make sure it is inserted into list of labels
 		setLabel(sr.numberOfUnitsInBuilding(), EN, "Number of tenants/property units in building", DE, "Zahl der Wohnungen/Nutzereinheiten im Gebäude", 1, 99999);
-		
 		
 		setLabel(sr.roomNum(), EN, "Number of rooms in building", DE, "Zahl der Räume im Gebäude");
 		

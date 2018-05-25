@@ -16,7 +16,8 @@ public interface SmartEffTimeSeries extends SmartEffResource {
 	StringResource driverId();
 
 	/**Ids of selection items required to obtain the respective time series from the
-	 * DataProvider
+	 * DataProvider. Usually this is not stored, but time series are obtained via the
+	 * entry resource, which usually is the parent of this resource.
 	 */
 	StringArrayResource selectionItemIds();
 	

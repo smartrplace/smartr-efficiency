@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
+import org.smartrplace.extensionservice.gui.WidgetProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.admin.StandardPageAdmin;
 import org.smartrplace.smarteff.admin.UserAdmin;
@@ -66,5 +67,10 @@ implements ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAc
 		this.page = page;
 		this.userAdmin = userAdmin;
 		//this.userName = userName;
+	}
+
+	@Override
+	public WidgetProvider getSpecialWidgetManagement() {
+		return null;
 	}
 }

@@ -1,9 +1,9 @@
-package org.sp.smarteff.generic.dataprovider;
+package org.smartrplace.smarteff.admin.timeseries;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.core.model.schedule.Schedule;
-import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -33,13 +33,18 @@ public interface GenericTSDPTimeSeries extends SmartEffResource {
 	
 	/** The id of the respective {@link GenericDataTypeDeclaration}, e.g. GaRoDataType.
 	 */
-	StringResource inputTypeId();
+	StringResource dataTypeId();
+	
+	/**If more than one time series for the same entryResource and the same data type shall be reported,
+	 * the sourceId has to be set
+	 */
+	StringResource sourceId();
 	
 	/** Option 1: Storage in schedule*/
 	Schedule schedule();
 	
 	/**Option 2: Storage in RecordedData of the SingleValueResource*/
-	SingleValueResource recordedDataParent();
+	FloatResource recordedDataParent();
 	
 	/**Option 3: Storage in files*/
 	StringArrayResource filePaths();

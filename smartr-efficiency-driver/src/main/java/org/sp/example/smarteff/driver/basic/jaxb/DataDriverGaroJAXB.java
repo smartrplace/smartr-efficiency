@@ -1,6 +1,8 @@
 package org.sp.example.smarteff.driver.basic.jaxb;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
@@ -17,6 +19,7 @@ import de.iwes.timeseries.eval.garo.api.jaxb.GaRoMultiEvalDataProviderJAXB;
 import de.iwes.timeseries.eval.garo.api.jaxb.GaRoSelectionItemJAXB;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.html.selectiontree.SelectionItem;
+import de.iwes.widgets.html.selectiontree.TerminalOption;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.driver.basic.BasicGaRoDataProviderConfig;
@@ -96,9 +99,29 @@ public class DataDriverGaroJAXB implements DriverProvider {
 		};
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType) {
-		throw new UnsupportedOperationException("not implemented yet!");
+	public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
+			Resource userData, ExtensionUserDataNonEdit userDataNonEdit) {
+		GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB> provider = (GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB>)
+				getDataProvider(0, Arrays.asList(new Resource[]{entryResource}), userData, userDataNonEdit);
+		List<SelectionItem> gws = provider.getOptions(null, GaRoMultiEvalDataProvider.GW_LEVEL);
+		if(gws.isEmpty()) return null;
+		List<Collection<SelectionItem>> deps = new ArrayList<>();
+		deps.add(gws);
+		//There should maximum one entry
+		List<SelectionItem> rooms = provider.getOptions(deps , GaRoMultiEvalDataProvider.ROOM_LEVEL);
+		deps.add(rooms);
+		List<SelectionItem> tss = provider.getOptions(deps, GaRoMultiEvalDataProvider.TS_LEVEL);
+		List<ReadOnlyTimeSeries> result = new ArrayList<>();
+		TerminalOption<? extends ReadOnlyTimeSeries> to = provider.getTerminalOption();
+		for(SelectionItem ts: tss) {
+			if(dataType != null && (!dataType.id().equals(((GaRoSelectionItemJAXB)ts).getTypeForTerminalOption().id())))
+				continue;
+			ReadOnlyTimeSeries rots = to.getElement(ts);
+			result.add(rots);
+		}
+		return result;
 	}
 
 }

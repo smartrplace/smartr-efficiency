@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -16,8 +17,12 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.ogema.tools.timeseriesimport.api.TimeseriesImport;
 import org.ogema.util.jsonresult.management.api.EvalResultManagement;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
+import org.smartrplace.smarteff.multiadmin.util.BaseDataServiceMulti;
 import org.smartrplace.smarteff.util.SPPageUtil;
 
 import de.iwes.timeseries.eval.base.provider.BasicEvaluationProvider;
@@ -52,20 +57,24 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 	private OgemaGuiService guiService;
 	
 	@Reference
+	TimeseriesImport csvImport;
+	
+	@Reference
 	public EvalResultManagement evalResultMan;
 	@Override
 	public EvalResultManagement evalResultMan() {
 		return evalResultMan;
 	}
 
-	/*public ServicePage mainPage;
-	public ServiceDetailPage offlineEvalPage;
-	public ResTypePage resTypePage;
-	public DataExplorerPage dataExPage;
-	public NaviOverviewPage naviPage;
-	public NavigationMenu menu;*/
-	
-	private final Map<String,SmartEffExtensionService> evaluationProviders = Collections.synchronizedMap(new LinkedHashMap<String,SmartEffExtensionService>());
+	private BundleContext bc;
+	protected ServiceRegistration<SmartEffExtensionService> sr = null;
+
+    @Activate
+    void activate(BundleContext bc) {
+    	this.bc = bc;
+    }
+
+    private final Map<String,SmartEffExtensionService> evaluationProviders = Collections.synchronizedMap(new LinkedHashMap<String,SmartEffExtensionService>());
 	public Map<String, SmartEffExtensionService> getEvaluations() {
 		return evaluationProviders;
 	}
@@ -85,7 +94,7 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 
         // 
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
-        controller = new SpEffAdminController(appMan, this, widgetApp);
+        controller = new SpEffAdminController(appMan, this, widgetApp, csvImport);
 		
 		//register a web page with dynamically generated HTML
 		/*WidgetPage<?> page = widgetApp.createStartPage();
@@ -119,7 +128,10 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 		mc = pageNavis.getMenuConfiguration();
 		mc.setCustomNavigation(menu);*/
 
-		initDone = true;
+        BaseDataServiceMulti dataService = new BaseDataServiceMulti(controller);
+        sr = bc.registerService(SmartEffExtensionService.class, dataService, null);
+	
+        initDone = true;
         controller.processOpenServices();
  	}
 
@@ -128,6 +140,9 @@ public class SpEffAdminApp implements Application, ServiceAccess {
      */
     @Override
     public void stop(AppStopReason reason) {
+        if (sr != null) {
+            sr.unregister();
+        }
     	if (widgetApp != null) widgetApp.close();
 		if (controller != null)
     		controller.close();

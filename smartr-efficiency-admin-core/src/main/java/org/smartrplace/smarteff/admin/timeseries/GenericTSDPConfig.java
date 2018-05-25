@@ -1,4 +1,4 @@
-package org.sp.smarteff.generic.dataprovider;
+package org.smartrplace.smarteff.admin.timeseries;
 
 import org.ogema.core.model.ResourceList;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
