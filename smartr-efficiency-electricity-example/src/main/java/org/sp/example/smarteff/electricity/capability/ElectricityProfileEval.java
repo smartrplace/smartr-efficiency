@@ -1,4 +1,4 @@
-package org.sp.example.smarteff.eval.capability;
+package org.sp.example.smarteff.electricity.capability;
 
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
@@ -7,7 +7,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProposalEvalProviderBase;
-import org.sp.example.smarteff.eval.provider.ElectricityProfileEvalProvider;
+import org.sp.example.smarteff.electricity.provider.ElectricityProfileEvalProvider;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -15,7 +15,7 @@ import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.defaultproposal.CalculatedEvalResult;
 import extensionmodel.smarteff.electricity.example.ElectricityProfileEvalConfig;
 
-public class BuildingPresenceEval extends ProposalEvalProviderBase<BuildingData, ElectricityProfileEvalProvider> {
+public class ElectricityProfileEval extends ProposalEvalProviderBase<BuildingData, ElectricityProfileEvalProvider> {
 	public static final int DEFAULT_INTERVALS_TO_CALCULATE = 3;
 	//private Resource generalData;	
 	
@@ -25,13 +25,15 @@ public class BuildingPresenceEval extends ProposalEvalProviderBase<BuildingData,
 		return "User Presence time analysis for building";
 	}
 	@Override
-	protected void calculateProposal(BuildingData input,long startTime, long endTime,
+	protected void calculateProposal(BuildingData input, Long startTime, Long endTime,
 			CalculatedData result, ExtensionResourceAccessInitData data) {
 		//DefaultProviderParams params = CapabilityHelper.getSubResourceSingle(appManExt.globalData(), DefaultProviderParams.class);
 		MyParam<ElectricityProfileEvalConfig> paramHelper = CapabilityHelper.getMyParams(ElectricityProfileEvalConfig.class, data.userData(), appManExt);
 		ElectricityProfileEvalConfig myPar = paramHelper.get();
-		data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, DEFAULT_INTERVALS_TO_CALCULATE);
-		
+		if(startTime != null)
+			data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, startTime, endTime);
+		else		
+			data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, DEFAULT_INTERVALS_TO_CALCULATE);
 		CalculatedEvalResult bRes = (CalculatedEvalResult) result;
 		bRes.startTimes().create();
 		paramHelper.close();
@@ -61,7 +63,7 @@ public class BuildingPresenceEval extends ProposalEvalProviderBase<BuildingData,
 		return false;
 	}
 
-	public BuildingPresenceEval(ApplicationManagerSPExt appManExt) {
+	public ElectricityProfileEval(ApplicationManagerSPExt appManExt) {
 		super(appManExt);
 	}
 

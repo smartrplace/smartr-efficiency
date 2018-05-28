@@ -1,4 +1,4 @@
-package org.sp.example.smarteff.eval.provider;
+package org.sp.example.smarteff.electricity.provider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,10 +47,9 @@ public class ElectricityProfileEvalProvider extends GenericGaRoSingleEvalProvide
 	public static final long HOUR_MILLIS = 60*60000;
 	
 	/** Adapt these values to your provider*/
-    public final static String ID = "building_presence_eval_provider";
-    public final static String LABEL = "Building Presence evaluation provider";
-    public final static String DESCRIPTION = "Provides presence signal for entire building based"
-    		+ " on the presence signals of single rooms.";
+    public final static String ID = "electricity_profile_eval_provider";
+    public final static String LABEL = "Building electricity profile evaluation provider";
+    public final static String DESCRIPTION = "Provides analysis of electrictiy metering profile";
     
     public ElectricityProfileEvalProvider() {
         super(ID, LABEL, DESCRIPTION);

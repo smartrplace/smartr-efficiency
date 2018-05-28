@@ -20,9 +20,11 @@ import org.ogema.core.model.simple.TimeResource;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForTimeseries;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
+import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.ColumnType;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.Visibility;
@@ -33,6 +35,7 @@ import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.OgemaWidget;
+import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -42,6 +45,9 @@ import de.iwes.widgets.html.emptywidget.EmptyWidget;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.html.html5.Flexbox;
+import de.iwes.widgets.html.html5.flexbox.FlexWrap;
+import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
@@ -266,6 +272,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	@Override
 	protected void getEditTableLines(EditTableBuilder etb) {
 		//Map<String, Class<? extends Resource>> types = getTypes();
+		mh.setDoRegisterDependentWidgets(false);
 		for(String sub: labels.keySet()) {
 			if(sub.equals(HEADER_LABEL_ID) || sub.equals(HEADER_LINK_ID)) continue;
 			OgemaWidget valueWidget = null;
@@ -282,7 +289,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				linkButton = widgetProvider.linkColumn();
 				if(valueWidget != null) {
 					labelWidgets.put(sub, valueWidget);
-					alert2.registerDependentWidget(valueWidget);
+					mh.triggerOnPost(alert2, valueWidget); //alert2.registerDependentWidget(valueWidget);
 				}
 			}
 			
@@ -298,7 +305,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				if(valueWidget == null) continue;
 				if(widgetProvider != null) {
 					labelWidgets.put(sub, valueWidget);
-					alert2.registerDependentWidget(valueWidget);
+					mh.triggerOnPost(alert2, valueWidget); //alert2.registerDependentWidget(valueWidget);
 				}
 			}
 
@@ -308,7 +315,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 					linkButton = getLinkButton(sub, linkMap, widgetProvider);
 				}
 			}
-			if(triggeringSubs.contains(sub)) valueWidget.registerDependentWidget(alert2);
+			if(triggeringSubs.contains(sub)) mh.triggerOnPost(alert2, valueWidget); //valueWidget.registerDependentWidget(alert2);
 			performAddEditLine(label, valueWidget, linkButton, sub, type, etb, widgetProvider);
 		}
 	}
@@ -459,13 +466,13 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				float upv = (up!=null)?up:999999f;
 				TextField valueWidget = mhLoc.floatEdit((String)sub, alert, lowv, upv,
 						sub+" limits:"+lowv+" to "+upv);
-				valueWidget.registerDependentWidget(valueWidget);
+				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return mhLoc.floatLabel(sub, "%.2f");
 		} else if(BooleanResource.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
 				BooleanResourceCheckbox valueWidget = mhLoc.booleanEdit((String)sub);
-				valueWidget.registerDependentWidget(valueWidget);
+				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return mhLoc.resourceLabel(sub, 20);
 		} else if(IntegerResource.class.isAssignableFrom(type2.type)) {
@@ -515,7 +522,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 						}
 					};
 					//mh.dropdown(sub, valuesToSet, IntegerResource.class);
-					valueWidget.registerDependentWidget(valueWidget);
+					mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 					return valueWidget;
 				} else {
 					Float low = lowerLimits.get(sub);
@@ -531,7 +538,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 						}
 					};
 					TextField valueWidget = mhLoc.integerEditExt((String)sub, checker);
-					valueWidget.registerDependentWidget(valueWidget);
+					mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 					return valueWidget;
 				}
 			} else return mhLoc.intLabel(sub, 0);
@@ -541,7 +548,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				if(sub.contains("Day")) format = "YYYY-MM-DD";
 				else format = "YYYY-MM-DD HH:mm:ss";
 				DatepickerTimeResource valueWidget = mhLoc.datepicker((String)sub, format, (String)null, (String)null);
-				valueWidget.registerDependentWidget(valueWidget);
+				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return mhLoc.timeLabel(sub, 0);
 		} else if(SmartEffTimeSeries.class.isAssignableFrom(type2.type)) {
@@ -550,17 +557,38 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 					
 					@Override
 					public void fileUploaded(String filePath, OgemaHttpRequest req) {
-						T parent = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries entryResource = ResourceHelper.getSubResource(parent, sub, SmartEffTimeSeries.class);
-						exPage.getAccessData(req).getTimeseriesManagement().registerSingleColumnCSVFile(
+						System.out.println("File uploaded to "+filePath);
+						ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
+						T entryResource = mhLoc.getGatewayInfo(req);
+						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						tsResource.driverId().<StringResource>create().setValue(tsMan.getGenericDriverProviderId());
+						tsResource.inputTypeId().<StringResource>create().setValue(GaRoDataType.PowerMeter.id());
+						if(!tsResource.isActive()) {
+							tsResource.activate(true);
+						}
+						tsMan.registerSingleColumnCSVFile(
 								entryResource, GaRoDataType.PowerMeter, null, filePath, null);
 					}
 				};
 				FileUploaderProtected uploader = exPage.getSpecialWidgetManagement().
 						getFileUpload(page, "upload"+pid(), listenerToFile, null, alert);
-				CSVUploadButton valueWidget = new CSVUploadButton(page, "csvUploadButton", uploader, alert);
-				valueWidget.setDefaultText("Upload Profile as CSV");
-				valueWidget.registerDependentWidget(valueWidget);
+				CSVUploadButton csvButton = new CSVUploadButton(page, "csvUploadButton", uploader, alert) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					protected Integer getSize(OgemaHttpRequest req) {
+						ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
+						T entryResource = mhLoc.getGatewayInfo(req);
+						return tsMan.getFileNum(entryResource, GaRoDataType.PowerMeter, null);
+					}
+				};
+				csvButton.setDefaultText("Upload Profile as CSV");
+				csvButton.triggerOnPOST(csvButton); //csvButton.registerDependentWidget(csvButton);
+				
+				RedirectButton openEvalButton = new ProposalProvTableOpenButton(page, "openEvalButton", pid(),
+						exPage, null);
+				
+				Flexbox valueWidget = getHorizontalFlexBox(page, "flexbox"+pid(),
+						csvButton, uploader.getFileUpload(), openEvalButton);
 				return valueWidget;
 			} else return new Label(page, "noEdit_"+sub, "No Upload Allowed");
 		} else if(ResourceList.class.isAssignableFrom(type2.type)) {
@@ -574,11 +602,21 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 						return type2.elementType;
 					}
 				};
-				valueWidget.registerDependentWidget(valueWidget);
+				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return new Label(page, "noEdit_"+sub, "Not Allowed");
 		} else {
 			return null;
 		}
 	}
+	
+	public static Flexbox getHorizontalFlexBox(WidgetPage<?> page, String id, OgemaWidget... w1) {
+		Flexbox flex = new Flexbox(page, id, true);
+		for(OgemaWidget w: w1) {
+			flex.addItem(w, null);			
+		}
+		flex.setJustifyContent(JustifyContent.SPACE_AROUND, null);
+		flex.setDefaultFlexWrap(FlexWrap.NOWRAP);
+		return flex;
+}
 }

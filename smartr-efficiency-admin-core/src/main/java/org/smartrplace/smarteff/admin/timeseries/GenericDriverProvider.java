@@ -55,6 +55,11 @@ public class GenericDriverProvider implements DriverProvider {
 	public String label(OgemaLocale locale) {
 		return "Generic Timeseries Driver";
 	}
+	
+	@Override
+	public String id() {
+		return GenericDriverProvider.class.getName();
+	}
 
 	@Override
 	public List<EntryType> getEntryTypes() {
@@ -91,7 +96,15 @@ public class GenericDriverProvider implements DriverProvider {
 		}
 		return result;
 	}
-	
+
+	@Override
+	public ReadOnlyTimeSeries getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
+			String sourceId,
+			Resource userData, ExtensionUserDataNonEdit userDataNonEdit) {
+		GenericTSDPTimeSeries cr = getTSConfig(entryResource, dataType, sourceId);
+		return getTimeSeries(cr);
+	}
+
 	protected ReadOnlyTimeSeries getTimeSeries(GenericTSDPTimeSeries dpTS) {
 		if(dpTS.schedule().isActive()) return dpTS.schedule();
 		if(dpTS.recordedDataParent().isActive()) return dpTS.recordedDataParent().getHistoricalData();
@@ -150,6 +163,13 @@ public class GenericDriverProvider implements DriverProvider {
 				SINGLE_COLUMN_CSV_ID+((format!=null)?format:DEFAULT_TIMESTAMP_FORMAT));
 	}
 
+	public int getFileNum(Resource entryResource, GenericDataTypeDeclaration dataType, 
+			String sourceId) {
+		GenericTSDPTimeSeries dpTS = getTSConfig(entryResource, dataType, sourceId);
+		if(dpTS == null) return 0;
+		if(dpTS.filePaths().isActive()) return dpTS.filePaths().size();
+		return -1;
+	}
 	
     protected void initConfigurationResource() {
     	appConfigData = ValueFormat.getStdTopLevelResource(GenericTSDPConfig.class,
@@ -193,7 +213,7 @@ public class GenericDriverProvider implements DriverProvider {
     	result = appConfigData.timeseries().add();
     	result.entryResource().setAsReference(entryResource);
     	result.dataTypeId().<StringResource>create().setValue(dataType.id());
-    	result.sourceId().<StringResource>create().setValue(sourceId);
+    	if(sourceId != null) result.sourceId().<StringResource>create().setValue(sourceId);
     	result.activate(true);
     	return result;
     }

@@ -25,7 +25,7 @@ public class BuildingPresenceEval extends ProposalEvalProviderBase<BuildingData,
 		return "User Presence time analysis for building";
 	}
 	@Override
-	protected void calculateProposal(BuildingData input,long startTime, long endTime,
+	protected void calculateProposal(BuildingData input, Long startTime, Long endTime,
 			CalculatedData result, ExtensionResourceAccessInitData data) {
 		//DefaultProviderParams params = CapabilityHelper.getSubResourceSingle(appManExt.globalData(), DefaultProviderParams.class);
 		MyParam<BuildingEvalData> paramHelper = CapabilityHelper.getMyParams(BuildingEvalData.class, data.userData(), appManExt);

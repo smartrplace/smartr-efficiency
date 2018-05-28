@@ -12,6 +12,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.ogema.core.application.ApplicationManager;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
+import org.smartrplace.os.util.DirUtils;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -65,19 +66,20 @@ public class FileUploaderProtectedImpl implements FileUploaderProtected {
 					if(listenerToFile != null) {
 						String destinationDir = System.getProperty("org.smartrplace.store.filestoragelocation",
 								"./filestorage");
+						DirUtils.makeSureDirExists(Paths.get(destinationDir));
 						String fileName = fileItem.getName();
 						Path file = Paths.get(destinationDir, fileName);
 						int i = fileName.lastIndexOf(".");
 						String ext;
-						if(fileName.length() > i && i > 0)
-							ext = fileName.substring(i);
+						if(i > 0)
+							ext = fileName.substring(i+1);
 						else ext = "";
 						String main;
 						if(i > 0) main = fileName.substring(0, i);
 						else main = fileName;
 						int add = 1;
 						while(Files.exists(file)) {
-							fileName = main + "_" + add + "." + ext;
+							fileName = main + "_" + add + ext;
 							add++;
 							file = Paths.get(destinationDir, fileName);						
 						}
@@ -95,7 +97,7 @@ public class FileUploaderProtectedImpl implements FileUploaderProtected {
 			}
 			
 		};
-		page.append(upload);
+		//page.append(upload);
 		/*buttonUpload = new Button(page, "buttonUploadReplay"+widgetId, "Upload&Update Replay-on-clean") {
 		//final Button buttonUploadReplay = new Button(page, "buttonUploadReplay", "Upload&Reboot") {
 			private static final long serialVersionUID = 1L;
@@ -141,4 +143,9 @@ public class FileUploaderProtectedImpl implements FileUploaderProtected {
 	public Button getUploadButton() {
 		return buttonUpload;
 	}*/
+
+	@Override
+	public OgemaWidget getFileUpload() {
+		return upload;
+	}
 }

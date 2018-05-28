@@ -42,6 +42,7 @@
 		<module>smartr-heating-server</module>
 		<module>smartr-efficiency-evals</module>
 		<module>smartr-efficiency-driver</module>
+		<module>smartr-efficiency-electricity-example</module>
     </modules>
 
     <build>

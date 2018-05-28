@@ -15,12 +15,13 @@ import de.iwes.widgets.html.form.button.Button;
 import extensionmodel.smarteff.api.base.SmartEffTimeSeries;
 
 public class CSVUploadButton extends Button {
-	protected SmartEffTimeSeries parent;
+	protected Integer getSize(OgemaHttpRequest req) {return null;}
+	//protected SmartEffTimeSeries parent;
 	protected final FileUploaderProtected uploader;
 	protected final Alert alert;
 	
-	public CSVUploadButton(WidgetPage<?> parent, String id, FileUploaderProtected uploader, Alert alert) {
-		super(parent, id);
+	public CSVUploadButton(WidgetPage<?> page, String id, FileUploaderProtected uploader, Alert alert) {
+		super(page, id);
 		this.uploader = uploader;
 		this.alert = alert;
     	uploader.registerTrigger(this); //triggerAction(upload, TriggeringAction.POST_REQUEST, TriggeredAction.POST_REQUEST);
@@ -39,9 +40,13 @@ public class CSVUploadButton extends Button {
 	public void onGET(OgemaHttpRequest req) {
 		String text;
 		text = BUTTON_TEXTS.get(req.getLocale());
-		if(text == null) text = BUTTON_TEXTS.get(OgemaLocale.ENGLISH);						
-		int size = getSize(parent);
-		setText(text+"("+size+")", req);			
+		if(text == null) text = BUTTON_TEXTS.get(OgemaLocale.ENGLISH);
+		//Resource parent;
+		Integer size = getSize(req);
+		//int size = getSize(parent);
+		if(size != null)
+			setText(text+"("+size+")", req);			
+		else setText(text, req);			
 	}
 	
 	@Override

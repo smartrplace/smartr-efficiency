@@ -9,10 +9,12 @@ import de.iwes.widgets.html.fileupload.FileUploadListener;
 public interface WidgetProvider {
 	public interface FileUploaderProtected {
 		/**Call this in button that initiates the upload*/
-		public void onPOST(OgemaHttpRequest req);
+		void onPOST(OgemaHttpRequest req);
 		
 		/**Register a button that opens the widget*/
-		public void registerTrigger(OgemaWidget governor);
+		void registerTrigger(OgemaWidget governor);
+		
+		OgemaWidget getFileUpload();
 	}
 	
 	public interface FileUploadListenerToFile {

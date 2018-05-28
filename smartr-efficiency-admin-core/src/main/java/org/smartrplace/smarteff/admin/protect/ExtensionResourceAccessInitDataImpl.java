@@ -10,6 +10,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.model.jsonresult.JSONResultFileData;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
@@ -119,6 +120,20 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
 					Resource configurationResource, List<DriverProvider> drivers, boolean saveJsonResult,
 					int defaultIntervalsToCalculate) {
+				return calculateKPIs(eval, entryResource, configurationResource, drivers, saveJsonResult,
+						null, null, defaultIntervalsToCalculate);
+				
+			}
+			@Override
+			public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
+					Resource configurationResource, List<DriverProvider> drivers, boolean saveJsonResult,
+					long startTime, long endTime) {
+				return calculateKPIs(eval, entryResource, configurationResource, drivers, saveJsonResult,
+						startTime, endTime, null);
+			}
+			private long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
+					Resource configurationResource, List<DriverProvider> drivers, boolean saveJsonResult,
+					Long startTime, Long endTime, Integer defaultIntervalsToCalculate) {
 			return AccessController.doPrivileged(new PrivilegedAction<long[]>() {
 				@Override
 				public long[] run()  {
@@ -161,7 +176,11 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 						resList.activate(false);
 					}
 					resList.addDecorator(ResourceUtils.getValidResourceName(eval.id()), startConfig);
-					long[] result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate);
+					long[] result;
+					if(defaultIntervalsToCalculate != null)
+						result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate);
+					else
+						result = new long[] {startTime, endTime};
 					result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
 							result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE);
 					return result;
@@ -288,6 +307,23 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 					SingleValueResource recordedDataParent) {
 				tsDriver.addRecordedData(entryResource, dataType, sourceId, recordedDataParent);
 				
+			}
+			
+			@Override
+			public String getGenericDriverProviderId() {
+				return tsDriver.id();
+			}
+
+			@Override
+			public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
+					String sourceId) {
+				return tsDriver.getTimeSeries(entryResource, dataType, entryResource, userDataNonEdit);
+			}
+			
+			@Override
+			public int getFileNum(Resource entryResource, GenericDataTypeDeclaration dataType,
+					String sourceId) {
+				return tsDriver.getFileNum(entryResource, dataType, sourceId);
 			}
 		};
 	}

@@ -99,20 +99,13 @@ public class DataDriverGaroJAXB implements DriverProvider {
 		};
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
+	@SuppressWarnings("unchecked")
 	public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
 			Resource userData, ExtensionUserDataNonEdit userDataNonEdit) {
 		GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB> provider = (GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB>)
 				getDataProvider(0, Arrays.asList(new Resource[]{entryResource}), userData, userDataNonEdit);
-		List<SelectionItem> gws = provider.getOptions(null, GaRoMultiEvalDataProvider.GW_LEVEL);
-		if(gws.isEmpty()) return null;
-		List<Collection<SelectionItem>> deps = new ArrayList<>();
-		deps.add(gws);
-		//There should maximum one entry
-		List<SelectionItem> rooms = provider.getOptions(deps , GaRoMultiEvalDataProvider.ROOM_LEVEL);
-		deps.add(rooms);
-		List<SelectionItem> tss = provider.getOptions(deps, GaRoMultiEvalDataProvider.TS_LEVEL);
+		List<SelectionItem> tss = getTerminalOptions(entryResource, dataType, provider);
 		List<ReadOnlyTimeSeries> result = new ArrayList<>();
 		TerminalOption<? extends ReadOnlyTimeSeries> to = provider.getTerminalOption();
 		for(SelectionItem ts: tss) {
@@ -122,6 +115,36 @@ public class DataDriverGaroJAXB implements DriverProvider {
 			result.add(rots);
 		}
 		return result;
+	}
+	
+	private List<SelectionItem> getTerminalOptions(Resource entryResource, GenericDataTypeDeclaration dataType,
+			GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB> provider) {
+		List<SelectionItem> gws = provider.getOptions(null, GaRoMultiEvalDataProvider.GW_LEVEL);
+		if(gws.isEmpty()) return null;
+		List<Collection<SelectionItem>> deps = new ArrayList<>();
+		deps.add(gws);
+		//There should maximum one entry
+		List<SelectionItem> rooms = provider.getOptions(deps , GaRoMultiEvalDataProvider.ROOM_LEVEL);
+		deps.add(rooms);
+		List<SelectionItem> tss = provider.getOptions(deps, GaRoMultiEvalDataProvider.TS_LEVEL);
+		return tss;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public ReadOnlyTimeSeries getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
+			String sourceId, Resource userData, ExtensionUserDataNonEdit userDataNonEdit) {
+		GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB> provider = (GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB>)
+				getDataProvider(0, Arrays.asList(new Resource[]{entryResource}), userData, userDataNonEdit);
+		List<SelectionItem> tss = getTerminalOptions(entryResource, dataType, provider);
+		TerminalOption<? extends ReadOnlyTimeSeries> to = provider.getTerminalOption();
+		for(SelectionItem ts: tss) {
+			if(dataType != null && (!dataType.id().equals(((GaRoSelectionItemJAXB)ts).getTypeForTerminalOption().id())))
+				continue;
+			if(ts.id().equals(sourceId))
+				return to.getElement(ts);
+		}
+		return null;
 	}
 
 }

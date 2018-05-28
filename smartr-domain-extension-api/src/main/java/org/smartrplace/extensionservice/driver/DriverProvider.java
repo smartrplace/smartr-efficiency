@@ -60,4 +60,8 @@ public interface DriverProvider extends ExtensionCapability {
 	 */
 	List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
 			Resource userData, ExtensionUserDataNonEdit userDataNonEdit);
+	
+	/** With a sourceId only a single result should be found*/
+	ReadOnlyTimeSeries getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
+			String sourceId, Resource userData, ExtensionUserDataNonEdit userDataNonEdit);
 }

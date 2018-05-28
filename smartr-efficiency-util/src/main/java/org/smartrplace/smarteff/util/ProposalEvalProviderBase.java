@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.TimeResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
@@ -18,7 +19,7 @@ public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E ext
 		throw new IllegalStateException("Only use calculateProposal with eval signature here!");
 	};
 	protected abstract void calculateProposal(T input,
-			long startTime, long endTime,
+			Long startTime, Long endTime,
 			CalculatedData result, ExtensionResourceAccessInitData data);
 	@Override
 	protected abstract Class<? extends CalculatedEvalResult> getResultType();
@@ -32,7 +33,16 @@ public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E ext
 	public List<Resource> calculate(ExtensionResourceAccessInitData data) {
 		T input = getReqData(data);
 		CalculatedData result = input.addDecorator(CapabilityHelper.getSingleResourceName(getResultType()), getResultType());
-		calculateProposal(input, result, data);
+		
+		TimeResource start = input.getSubResource("startTime", TimeResource.class);
+		TimeResource end = input.getSubResource("endTime", TimeResource.class);
+		
+		if(start.isActive() && end.isActive())
+			calculateProposal(input, start.getValue(), end.getValue(), result, data);
+		else
+			calculateProposal(input, null, null, result, data);
+		
+		//calculateProposal(input, result, data);
 		result.activate(true);
 		return Arrays.asList(new CalculatedData[] {result});
 	}

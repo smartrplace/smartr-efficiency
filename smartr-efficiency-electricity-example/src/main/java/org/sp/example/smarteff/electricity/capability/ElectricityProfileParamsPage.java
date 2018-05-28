@@ -1,4 +1,4 @@
-package org.sp.example.smarteff.eval.capability;
+package org.sp.example.smarteff.electricity.capability;
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericParams;
 

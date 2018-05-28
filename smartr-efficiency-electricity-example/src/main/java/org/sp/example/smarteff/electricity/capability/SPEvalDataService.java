@@ -1,4 +1,4 @@
-package org.sp.example.smarteff.eval.capability;
+package org.sp.example.smarteff.electricity.capability;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,11 +21,11 @@ public class SPEvalDataService implements SmartEffExtensionService {
 	/*public final static org.smartrplace.smarteff.defaultservice.BuildingTablePage.Provider BUILDING_NAVI_PROVIDER = new BuildingTablePage().provider;
 	public final static org.smartrplace.smarteff.defaultservice.BuildingEditPage.Provider BUILDING_EDIT_PROVIDER = new BuildingEditPage().provider;
 	*/
-	public BuildingPresenceEval BUILDING_PRESENCE_PROVIDER;
+	public ElectricityProfileEval BUILDING_PRESENCE_PROVIDER;
 	@Override
 	public void start(ApplicationManagerSPExt appManExt) {
 		//this.appManExt = appManExt;
-		BUILDING_PRESENCE_PROVIDER = new BuildingPresenceEval(appManExt);
+		BUILDING_PRESENCE_PROVIDER = new ElectricityProfileEval(appManExt);
 	}
 
 	@Override
