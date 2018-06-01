@@ -18,7 +18,7 @@ import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.util.format.ValueFormat;
 
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
@@ -254,7 +254,7 @@ public class CapabilityHelper {
 		};		
 	}
 	
-	public static EntryType getEntryType(GaRoDataType type) {
+	public static EntryType getEntryType(GaRoDataTypeI type) {
 		return new EntryType() {
 			@Override
 			public Cardinality getCardinality() {

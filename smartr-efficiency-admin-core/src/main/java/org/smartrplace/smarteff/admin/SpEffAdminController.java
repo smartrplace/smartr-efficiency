@@ -149,7 +149,7 @@ public class SpEffAdminController {
 					subConfigId);
 			long[] result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate);
 			result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
-					result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE);
+					result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE, true);
 			
 			
 			//TODO: We should hand in data providers with eval call, this is not thread-safe!

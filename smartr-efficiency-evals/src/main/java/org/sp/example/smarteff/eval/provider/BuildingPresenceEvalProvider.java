@@ -152,29 +152,32 @@ public class BuildingPresenceEvalProvider extends GenericGaRoSingleEvalProvider 
  	/**
  	 * Define the results of the evaluation here including the final calculation
  	 */
-    public final static GenericGaRoResultType ROOM_PRESENCE_TS = new GenericGaRoResultType("Cleaned_Presence_TS") {
-			@Override
-			public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
-					List<TimeSeriesData> inputData) {
-				EvalCore cec = ((EvalCore)ec);
-				return new TimeSeriesResultImpl(rt, cec.tsBuilder.getTimeSeries(), inputData);
-			}
+    public final static GenericGaRoResultType ROOM_PRESENCE_TS = new GenericGaRoResultType(
+    		"Cleaned_Presence_TS", ID) {
+		@Override
+		public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
+				List<TimeSeriesData> inputData) {
+			EvalCore cec = ((EvalCore)ec);
+			return new TimeSeriesResultImpl(rt, cec.tsBuilder.getTimeSeries(), inputData);
+		}
     };
-    public final static GenericGaRoResultType PRESENCE_SHARE = new GenericGaRoResultType("Presence_Share", "Time with presence compared to total evaluation time") {
-			@Override
-			public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
-					List<TimeSeriesData> inputData) {
-				EvalCore cec = ((EvalCore)ec);
-				return new SingleValueResultImpl<Float>(rt, (float) ((double)cec.countPresenceTime/cec.totalTime), inputData);
-			}
+    public final static GenericGaRoResultType PRESENCE_SHARE = new GenericGaRoResultType("Presence_Share",
+    		"Time with presence compared to total evaluation time", ID) {
+		@Override
+		public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
+				List<TimeSeriesData> inputData) {
+			EvalCore cec = ((EvalCore)ec);
+			return new SingleValueResultImpl<Float>(rt, (float) ((double)cec.countPresenceTime/cec.totalTime), inputData);
+		}
     };
-    public final static GenericGaRoResultType PRESENCE_NUM = new GenericGaRoResultType("Presence_Num", "Number of Presence Times separated by Absence") {
-			@Override
-			public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
-					List<TimeSeriesData> inputData) {
-				EvalCore cec = ((EvalCore)ec);
-				return new SingleValueResultImpl<Integer>(rt, cec.countPresenceEvents, inputData);
-			}
+    public final static GenericGaRoResultType PRESENCE_NUM = new GenericGaRoResultType("Presence_Num",
+    		"Number of Presence Times separated by Absence", ID) {
+		@Override
+		public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
+				List<TimeSeriesData> inputData) {
+			EvalCore cec = ((EvalCore)ec);
+			return new SingleValueResultImpl<Integer>(rt, cec.countPresenceEvents, inputData);
+		}
     };
     private static final List<GenericGaRoResultType> RESULTS = Arrays.asList(ROOM_PRESENCE_TS,
     		PRESENCE_SHARE, PRESENCE_NUM);

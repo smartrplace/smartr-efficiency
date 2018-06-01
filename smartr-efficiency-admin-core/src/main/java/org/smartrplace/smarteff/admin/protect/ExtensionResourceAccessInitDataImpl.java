@@ -182,7 +182,7 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 					else
 						result = new long[] {startTime, endTime};
 					result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
-							result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE);
+							result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE, true);
 					return result;
 				}
 			});

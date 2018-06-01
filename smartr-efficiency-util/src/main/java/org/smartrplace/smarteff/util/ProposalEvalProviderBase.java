@@ -10,7 +10,7 @@ import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
 import extensionmodel.smarteff.defaultproposal.CalculatedEvalResult;
 
@@ -76,7 +76,7 @@ public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E ext
 	@Override
 	public List<EntryType> getEntryTypes() {
 		List<EntryType> result = CapabilityHelper.getStandardEntryTypeList(typeClass());
-		for(GaRoDataType inp: evalProvider.getGaRoInputTypes()) {
+		for(GaRoDataTypeI inp: evalProvider.getGaRoInputTypes()) {
 			result.add(CapabilityHelper.getEntryType(inp));
 		}
 		return result;

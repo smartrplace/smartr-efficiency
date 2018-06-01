@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataType.Level;
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI.Level;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.html.selectiontree.SelectionItem;

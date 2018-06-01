@@ -141,40 +141,44 @@ public class ElectricityProfileEvalProvider extends GenericGaRoSingleEvalProvide
  	/**
  	 * Define the results of the evaluation here including the final calculation
  	 */
-    public final static GenericGaRoResultType CLEAN_PROFILE_TS = new GenericGaRoResultType("Clean_Profile_TS") {
-			@Override
-			public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
-					List<TimeSeriesData> inputData) {
-				EvalCore cec = ((EvalCore)ec);
-				return new TimeSeriesResultImpl(rt, cec.tsBuilder.getTimeSeries(), inputData);
-			}
+    public final static GenericGaRoResultType CLEAN_PROFILE_TS = new GenericGaRoResultType(
+    		"Clean_Profile_TS", ID) {
+		@Override
+		public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
+				List<TimeSeriesData> inputData) {
+			EvalCore cec = ((EvalCore)ec);
+			return new TimeSeriesResultImpl(rt, cec.tsBuilder.getTimeSeries(), inputData);
+		}
     };
-    public final static GenericGaRoResultType PEAK_ENERGY = new GenericGaRoResultType("Peak_Energy", "Total energy during peak hours") {
-			@Override
-			public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
-					List<TimeSeriesData> inputData) {
-				EvalCore cec = ((EvalCore)ec);
-				return new SingleValueResultImpl<Float>(rt, (float) (cec.peakSum/HOUR_MILLIS), inputData);
-			}
+    public final static GenericGaRoResultType PEAK_ENERGY = new GenericGaRoResultType("Peak_Energy",
+    		"Total energy during peak hours", ID) {
+		@Override
+		public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
+				List<TimeSeriesData> inputData) {
+			EvalCore cec = ((EvalCore)ec);
+			return new SingleValueResultImpl<Float>(rt, (float) (cec.peakSum/HOUR_MILLIS), inputData);
+		}
     };
-    public final static GenericGaRoResultType OFFPEAK_ENERGY = new GenericGaRoResultType("Offpeak_Energy", "Total energy during offpeak hours") {
-			@Override
-			public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
-					List<TimeSeriesData> inputData) {
-				EvalCore cec = ((EvalCore)ec);
-				return new SingleValueResultImpl<Float>(rt, (float) (cec.offpeakSum/HOUR_MILLIS), inputData);
-			}
+    public final static GenericGaRoResultType OFFPEAK_ENERGY = new GenericGaRoResultType("Offpeak_Energy",
+    		"Total energy during offpeak hours", ID) {
+		@Override
+		public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
+				List<TimeSeriesData> inputData) {
+			EvalCore cec = ((EvalCore)ec);
+			return new SingleValueResultImpl<Float>(rt, (float) (cec.offpeakSum/HOUR_MILLIS), inputData);
+		}
     };
-    public final static GenericGaRoResultType PRICE_PER_KWH_AV = new GenericGaRoResultType("Price_AV", "Average price per kWh based on peak and offpeak price") {
-			@Override
-			public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
-					List<TimeSeriesData> inputData) {
-				EvalCore cec = ((EvalCore)ec);
-				float cost = (float) ((cec.peakSum * cec.peakPrice + cec.offpeakSum * cec.offPeakPrice)/HOUR_MILLIS);
-				float energy = (float) ((cec.peakSum + cec.offpeakSum)/HOUR_MILLIS);
-				float price = cost / energy;
-				return new SingleValueResultImpl<Float>(rt, price, inputData);
-			}
+    public final static GenericGaRoResultType PRICE_PER_KWH_AV = new GenericGaRoResultType("Price_AV",
+    		"Average price per kWh based on peak and offpeak price", ID) {
+		@Override
+		public SingleEvaluationResult getEvalResult(GenericGaRoEvaluationCore ec, ResultType rt,
+				List<TimeSeriesData> inputData) {
+			EvalCore cec = ((EvalCore)ec);
+			float cost = (float) ((cec.peakSum * cec.peakPrice + cec.offpeakSum * cec.offPeakPrice)/HOUR_MILLIS);
+			float energy = (float) ((cec.peakSum + cec.offpeakSum)/HOUR_MILLIS);
+			float price = cost / energy;
+			return new SingleValueResultImpl<Float>(rt, price, inputData);
+		}
     };
     private static final List<GenericGaRoResultType> RESULTS = Arrays.asList(CLEAN_PROFILE_TS,
     		PEAK_ENERGY, OFFPEAK_ENERGY, PRICE_PER_KWH_AV);
