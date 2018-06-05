@@ -147,7 +147,8 @@ public class SpEffAdminController {
 			String subConfigId = entryResource.getLocation();
 			MultiKPIEvalConfiguration startConfig = scheduler.getOrCreateConfig(eval.id(),
 					subConfigId);
-			long[] result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate);
+			long[] result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate, false);
+			if(result == null) return null;
 			result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
 					result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE, true);
 			

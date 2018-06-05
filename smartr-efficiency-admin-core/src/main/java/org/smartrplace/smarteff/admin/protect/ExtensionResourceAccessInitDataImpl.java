@@ -178,7 +178,7 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 					resList.addDecorator(ResourceUtils.getValidResourceName(eval.id()), startConfig);
 					long[] result;
 					if(defaultIntervalsToCalculate != null)
-						result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate);
+						result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate, true);
 					else
 						result = new long[] {startTime, endTime};
 					result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
