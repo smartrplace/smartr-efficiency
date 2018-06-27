@@ -42,7 +42,8 @@ public interface ExtensionResourceAccessInitData {
 	/** User data than cannot be edited by the user*/
 	ExtensionUserDataNonEdit userDataNonEdit();
 	
-	/** Access for module for resource creation process*/
+	/** Access for module for resource creation process. This is an extended version of
+	 * {@link #systemAccessForPageOpening()} and can only be used by modules that create resources.*/
 	ExtensionPageSystemAccessForCreate systemAccess();
 
 	/** Access for module for simple page opening, supported also for page openings without
