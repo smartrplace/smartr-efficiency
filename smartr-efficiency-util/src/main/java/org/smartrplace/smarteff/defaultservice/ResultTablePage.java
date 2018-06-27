@@ -14,7 +14,7 @@ import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCrea
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
-import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
+import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceTableOpenButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
@@ -79,7 +79,7 @@ public class ResultTablePage extends NaviPageBase<Resource> {
 					return appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESOURCE_NAVI_PROVIDER));
 				}
 			};*/
-			ProposalProvTableOpenButton proposalTableOpenButton = new ProposalProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
+			LogicProvTableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
 			topTable.setContent(0, 0, "--").setContent(0, 1, resourceButton2).setContent(0, 2, proposalTableOpenButton);
 			page.append(topTable);
 		}

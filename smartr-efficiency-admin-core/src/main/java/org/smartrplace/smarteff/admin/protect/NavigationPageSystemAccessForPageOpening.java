@@ -106,7 +106,7 @@ System.out.println("Navi-URL: "+navi.getUrl()+ " Searched:"+url);
 	}
 
 	@Override
-	public List<ProposalPublicData> getProposalProviders(Class<? extends Resource> type) {
+	public List<ProposalPublicData> getLogicProviders(Class<? extends Resource> type) {
 		List<ProposalPublicData> resultAll = proposalInfo.get(type);
 		List<ProposalPublicData> resultRes = proposalInfo.get(Resource.class);
 		if(resultRes != null) resultAll.addAll(resultRes);

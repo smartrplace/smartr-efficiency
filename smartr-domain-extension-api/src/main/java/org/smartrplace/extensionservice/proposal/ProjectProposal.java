@@ -3,6 +3,9 @@ package org.smartrplace.extensionservice.proposal;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.StringResource;
 
+/** A ProjectProposal is a special CalculatedData that provides some information on a
+ * project planned. 
+ */
 public interface ProjectProposal extends CalculatedData {
 	/** Total cost to be paid if project is done as planned. This includes cost for additional
 	 * material, transportation etc., but not cost for own labor of the client if the 
@@ -11,7 +14,7 @@ public interface ProjectProposal extends CalculatedData {
 	FloatResource costOfProject();
 	/** Like costOfProject, but includes cost for ownHours, Loss of income etc. according to
 	 * customer specification. These additional costs are usually not planned by the
-	 * ProposalProvider, but are just added based on a cost-per-hour-rate and additional costs
+	 * LogicProvider, but are just added based on a cost-per-hour-rate and additional costs
 	 * specified by the planner. 
 	 */
 	FloatResource costOfProjectIncludingInternal();

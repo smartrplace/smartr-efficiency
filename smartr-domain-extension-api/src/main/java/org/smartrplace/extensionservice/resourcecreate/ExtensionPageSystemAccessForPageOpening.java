@@ -15,7 +15,7 @@ public interface ExtensionPageSystemAccessForPageOpening {
 	List<NavigationPublicPageData> getStartPages();
 	
 	NavigationPublicPageData getPageByProvider(String url);
-	List<ProposalPublicData> getProposalProviders(Class<? extends Resource> type);
+	List<ProposalPublicData> getLogicProviders(Class<? extends Resource> type);
 	
 	/**Get configId to put as parameter into page request when opening new page*/
 	String accessPage(NavigationPublicPageData pageData, int entryIdx, List<Resource> entryResources);

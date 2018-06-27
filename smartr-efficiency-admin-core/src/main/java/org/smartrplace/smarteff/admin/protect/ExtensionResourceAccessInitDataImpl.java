@@ -14,13 +14,13 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.model.jsonresult.JSONResultFileData;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.ogema.util.evalcontrol.EvalScheduler;
 import org.ogema.util.evalcontrol.EvalScheduler.OverwriteMode;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForEvaluation;
@@ -119,21 +119,21 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			@Override
 			public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
 					Resource configurationResource, List<DriverProvider> drivers, boolean saveJsonResult,
-					int defaultIntervalsToCalculate) {
+					int defaultIntervalsToCalculate, Integer stepInterval) {
 				return calculateKPIs(eval, entryResource, configurationResource, drivers, saveJsonResult,
-						null, null, defaultIntervalsToCalculate);
+						null, null, defaultIntervalsToCalculate, stepInterval);
 				
 			}
 			@Override
 			public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
 					Resource configurationResource, List<DriverProvider> drivers, boolean saveJsonResult,
-					long startTime, long endTime) {
+					long startTime, long endTime, Integer stepInterval) {
 				return calculateKPIs(eval, entryResource, configurationResource, drivers, saveJsonResult,
-						startTime, endTime, null);
+						startTime, endTime, null, stepInterval);
 			}
 			private long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
 					Resource configurationResource, List<DriverProvider> drivers, boolean saveJsonResult,
-					Long startTime, Long endTime, Integer defaultIntervalsToCalculate) {
+					Long startTime, Long endTime, Integer defaultIntervalsToCalculate, Integer stepInterval) {
 			return AccessController.doPrivileged(new PrivilegedAction<long[]>() {
 				@Override
 				public long[] run()  {
@@ -164,10 +164,18 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 					if(dataProvidersToUse.isEmpty()) return null;
 					
 					String subConfigId = entryResource.getLocation();
-					MultiKPIEvalConfiguration startConfig = scheduler.getOrCreateConfig(eval.id(),
-							subConfigId);
+					MultiKPIEvalConfiguration startConfig;
+					startConfig = scheduler.getOrCreateConfig(eval.id(),
+							subConfigId, stepInterval, true);
+					/*if(stepInterval == null)
+						startConfig = scheduler.getOrCreateConfig(eval.id(),
+								subConfigId, null, null, false);
+					else startConfig = scheduler.getOrCreateConfig(eval.id(),
+								subConfigId, stepInterval, true);*/
 					startConfig.configurationResource().setAsReference(configurationResource);
-					@SuppressWarnings("unchecked")
+					CapabilityHelper.addMultiTypeToList(entryResource, eval.id(), startConfig);
+					
+					/*@SuppressWarnings("unchecked")
 					ResourceList<MultiKPIEvalConfiguration> resList =
 							entryResource.getSubResource("multiKPIEvalConfiguration", ResourceList.class);
 					if(!resList.exists()) {
@@ -176,6 +184,7 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 						resList.activate(false);
 					}
 					resList.addDecorator(ResourceUtils.getValidResourceName(eval.id()), startConfig);
+					*/
 					long[] result;
 					if(defaultIntervalsToCalculate != null)
 						result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate, true);
@@ -289,23 +298,23 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 		return new ExtensionPageSystemAccessForTimeseries() {
 			
 			@Override
-			public void registerSingleColumnCSVFile(Resource entryResource, GenericDataTypeDeclaration dataType,
+			public void registerSingleColumnCSVFile(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType,
 					String sourceId, String filePath, String format) {
-				tsDriver.addSingleColumnCSVFile(entryResource, dataType, sourceId, filePath, format);
+				tsDriver.addSingleColumnCSVFile(timeSeries, dataType, sourceId, filePath, format);
 				
 			}
 			
 			@Override
-			public void registerSchedule(Resource entryResource, GenericDataTypeDeclaration dataType, String sourceId,
+			public void registerSchedule(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType, String sourceId,
 					Schedule sched) {
-				tsDriver.addSchedule(entryResource, dataType, sourceId, sched);
+				tsDriver.addSchedule(timeSeries, dataType, sourceId, sched);
 				
 			}
 			
 			@Override
-			public void registerRecordedData(Resource entryResource, GenericDataTypeDeclaration dataType, String sourceId,
+			public void registerRecordedData(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType, String sourceId,
 					SingleValueResource recordedDataParent) {
-				tsDriver.addRecordedData(entryResource, dataType, sourceId, recordedDataParent);
+				tsDriver.addRecordedData(timeSeries, dataType, sourceId, recordedDataParent);
 				
 			}
 			
@@ -321,9 +330,9 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			}
 			
 			@Override
-			public int getFileNum(Resource entryResource, GenericDataTypeDeclaration dataType,
+			public int getFileNum(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType,
 					String sourceId) {
-				return tsDriver.getFileNum(entryResource, dataType, sourceId);
+				return tsDriver.getFileNum(timeSeries, dataType, sourceId);
 			}
 		};
 	}

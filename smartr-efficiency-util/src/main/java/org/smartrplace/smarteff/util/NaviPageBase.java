@@ -10,6 +10,7 @@ import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
+import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 
 import de.iwes.widgets.api.extended.WidgetData;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -19,6 +20,14 @@ import de.iwes.widgets.html.form.label.Header;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public abstract class NaviPageBase<T extends Resource>  {
+	/** For Edit-pages this is the resource type that can be edited by the class. For
+	 * table pages this is the super type below which resources are shown. As the method
+	 * {@link #getEntryTypes()} supports more than one type more resource types may be added for a
+	 * table page. In most cases only a single type is sufficient, though.<br>
+	 * If the table shall only contain resources of a certain type and the type shall be declared
+	 * use {@link #typesListedInTable()}. See also {@link ResourceOfTypeTableOpenButton}.typeToOpen()
+	 * regarding this. 
+	 */
 	protected abstract Class<T> primaryEntryTypeClass();
 	protected abstract String label(OgemaLocale locale);
 	protected abstract void addWidgets();

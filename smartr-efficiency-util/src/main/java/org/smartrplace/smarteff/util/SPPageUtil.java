@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.ogema.model.jsonresult.MultiEvalStartConfiguration;
+import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
@@ -20,7 +20,7 @@ import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.defaultservice.ResultTablePage;
 import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.ButtonControlProvider;
-import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
+import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ProposalResTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceTableOpenButton;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -126,13 +126,13 @@ public class SPPageUtil {
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
 		if(appData != null) {
-			List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getProposalProviders(object.getResourceType());
+			List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(object.getResourceType());
 			if(provs.isEmpty()) {
 				return vh.stringLabel("Evaluations", id, "No Providers", row);
 			} else {
 				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.PROPOSALTABLE_PROVIDER));
-				String text = ValueFormat.getLocaleString(req, ProposalProvTableOpenButton.BUTTON_TEXTS);
-				int size = ProposalProvTableOpenButton.getSize(object, appData);
+				String text = ValueFormat.getLocaleString(req, LogicProvTableOpenButton.BUTTON_TEXTS);
+				int size = LogicProvTableOpenButton.getSize(object, appData);
 				return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
 						text+"("+size+")", "No BaseEval", true, PageType.TABLE_PAGE, controlProvider, null, req);
 			}
@@ -141,7 +141,7 @@ public class SPPageUtil {
 			return null;
 		}
 	}
-	public static OgemaWidget addResultTableOpenButton(String columnName, Resource object,
+	public static OgemaWidget addProjectResultTableOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
 		if(appData != null) {
@@ -151,7 +151,7 @@ public class SPPageUtil {
 			} else {
 				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE_PROVIDER));
 				String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS);
-				int size = ProposalResTableOpenButton.getSize(object, appData);
+				int size = ProposalResTableOpenButton.getSize(object, appData, ProjectProposal.class);
 				return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
 						text+"("+size+")", "No BaseResult", true, PageType.TABLE_PAGE, controlProvider, null, req);
 			}
@@ -160,17 +160,23 @@ public class SPPageUtil {
 			return null;
 		}
 	}
+	/** For a timeseries based evaluation a KPI result as well as a normal resource result
+	 * is generated
+	 */
 	public static OgemaWidget addKPITableOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
-			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider,
+			ProposalPublicData proposalPublic, OgemaHttpRequest req) {
 		if(appData != null) {
-			List<MultiEvalStartConfiguration> resultsAvail = object.getSubResources(MultiEvalStartConfiguration.class, true);
-			if(resultsAvail.isEmpty()) {
-				return vh.stringLabel("Results", id, "No Results", row);
+			List<KPIStatisticsManagement> kpis = appData.getEvaluationManagement().getKPIManagement(
+					object, proposalPublic.getProviderId());
+			//List<MultiEvalStartConfiguration> resultsAvail = object.getSubResources(MultiEvalStartConfiguration.class, true);
+			if(kpis == null || kpis.isEmpty()) {
+				return vh.stringLabel(columnName, id, "No Results", row);
 			} else {
-				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider("org_sp_eval_kpi_basic_gui_KPITablePageSP");
-				String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS);
-				int size = ProposalResTableOpenButton.getSize(object, appData);
+				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider("org_sp_eval_kpi_basic_gui_KPITablePageSP.html");
+				String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS)+"(KPI)";
+				int size = kpis.size(); //ProposalResTableOpenButton.getSize(object, appData, CalculatedData.class);
 				return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
 						text+"("+size+")", "No BaseResult", true, PageType.TABLE_PAGE, controlProvider, null, req);
 			}

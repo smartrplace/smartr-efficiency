@@ -5,7 +5,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.button.BackButton;
-import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
+import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
 
 import de.iwes.util.resource.OGEMAResourceCopyHelper;
@@ -92,7 +92,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 		allParamsButton.setDefaultOpenInNewTab(false);
 		TableOpenButton backButton = new BackButton(page, "back", pid(), exPage, null);
 		table.setContent(c, 0, "").setContent(c, 1, backButton);
-		TableOpenButton proposalTableOpenButton = new ProposalProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
+		TableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
 		table.setContent(c, 2, proposalTableOpenButton);
 
 		page.append(table);

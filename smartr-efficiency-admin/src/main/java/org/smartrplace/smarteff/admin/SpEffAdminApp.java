@@ -22,7 +22,7 @@ import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
-import org.smartrplace.smarteff.multiadmin.util.BaseDataServiceMulti;
+import org.smartrplace.smarteff.multiadmin.util.BaseDataServiceAdmin;
 import org.smartrplace.smarteff.util.SPPageUtil;
 
 import de.iwes.timeseries.eval.base.provider.BasicEvaluationProvider;
@@ -128,7 +128,7 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 		mc = pageNavis.getMenuConfiguration();
 		mc.setCustomNavigation(menu);*/
 
-        BaseDataServiceMulti dataService = new BaseDataServiceMulti(controller);
+        BaseDataServiceAdmin dataService = new BaseDataServiceAdmin(controller);
         sr = bc.registerService(SmartEffExtensionService.class, dataService, null);
 	
         initDone = true;

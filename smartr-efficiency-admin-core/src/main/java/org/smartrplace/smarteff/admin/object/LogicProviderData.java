@@ -1,9 +1,9 @@
 package org.smartrplace.smarteff.admin.object;
 
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
-import org.smartrplace.extensionservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.proposal.LogicProvider;
 
-/** Standard ProposalProviders take parameter data from entry resources as well as from 
+/** Standard LogicProviders take parameter data from entry resources as well as from 
  * parameter resources and provide a result in a result resource. We assume that all parameters
  * are available as the proposal providers sets default values itself and the entry resources
  * have all their standard data set. <br>
@@ -31,11 +31,11 @@ import org.smartrplace.extensionservice.proposal.ProposalProvider;
  * to define additional access systems for time series that refer to sub levels of the SmartEff resource
  * structure.
  */
-public class ProposalProviderData {
-	public final ProposalProvider provider;
+public class LogicProviderData {
+	public final LogicProvider provider;
 	public final SmartEffExtensionService parent;
 	
-	public ProposalProviderData(ProposalProvider provider, SmartEffExtensionService parent) {
+	public LogicProviderData(LogicProvider provider, SmartEffExtensionService parent) {
 		this.provider = provider;
 		this.parent = parent;
 	}

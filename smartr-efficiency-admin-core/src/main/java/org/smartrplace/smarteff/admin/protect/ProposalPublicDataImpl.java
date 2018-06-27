@@ -5,12 +5,12 @@ import java.util.List;
 import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.proposal.ProposalPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
-import org.smartrplace.smarteff.admin.object.ProposalProviderData;
+import org.smartrplace.smarteff.admin.object.LogicProviderData;
 
 public class ProposalPublicDataImpl extends ProviderPublicDataForCreateImpl implements ProposalPublicData {
-	private final ProposalProviderData internalData;
+	private final LogicProviderData internalData;
 	
-	public ProposalPublicDataImpl(ProposalProviderData internalData) {
+	public ProposalPublicDataImpl(LogicProviderData internalData) {
 		super(internalData.provider);
 		this.internalData = internalData;
 	}
@@ -30,4 +30,13 @@ public class ProposalPublicDataImpl extends ProviderPublicDataForCreateImpl impl
 		return internalData.provider.resultTypes();
 	}
 
+	@Override
+	public List<EvaluationResultTypes> getEvaluationResultTypes() {
+		return internalData.provider.getEvaluationResultTypes();
+	}
+	
+	@Override
+	public String getProviderId() {
+		return internalData.provider.getProviderId();
+	}
 }

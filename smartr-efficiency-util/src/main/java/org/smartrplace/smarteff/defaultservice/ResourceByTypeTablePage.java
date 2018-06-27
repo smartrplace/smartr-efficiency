@@ -18,13 +18,18 @@ public class ResourceByTypeTablePage extends ResourceTablePage {
 		super();
 	}
 	
+	/**Overwrite this if the type shall be determined in a different way
+	 */
 	protected Class<? extends Resource> typeSelected(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		if(appData.getConfigInfo().context == null) throw new IllegalStateException("Context required for resource type!");
 		if(!(appData.getConfigInfo().context instanceof String)) throw new IllegalStateException("Type must be transmitted as String!");
 		String param = (String)appData.getConfigInfo().context;
-		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclararions()) {
+		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclarations()) {
 			if(decl.dataType().getName().equals(param)) return decl.dataType();
+		}
+		for(Class<? extends Resource> t: appManExt.getSystemTypes()) {
+			if(t.getName().equals(param)) return t;
 		}
 		return null;
 	}
@@ -38,10 +43,10 @@ public class ResourceByTypeTablePage extends ResourceTablePage {
 	protected List<Resource> provideResourcesInTable(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		List<? extends Resource> resultAll = ((SmartEffUserData)appData.userData()).getSubResources(typeSelected(req), true);
-		List<Resource> result = new ArrayList<>();
-		for(Resource r: resultAll) {
+		List<Resource> result = new ArrayList<>(resultAll);
+		/*for(Resource r: resultAll) {
 			result.add(r);
-		}
+		}*/
 		return result;
 	}
 	

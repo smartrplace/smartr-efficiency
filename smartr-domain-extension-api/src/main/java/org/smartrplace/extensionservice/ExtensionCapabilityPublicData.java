@@ -5,7 +5,7 @@ import java.util.List;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
 import org.smartrplace.extensionservice.driver.DriverProvider;
-import org.smartrplace.extensionservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.proposal.LogicProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.timeseries.eval.api.ResultType;
@@ -13,7 +13,7 @@ import de.iwes.widgets.template.LabelledItem;
 
 /** Capability information that is made public to users and applications. The main information
  * provided via this interface is the definition of the input types of NavigationGUIProviders and
- * ProposalProviders whereas ProposalProviders can also be Synchronizers (see {@link DriverProvider},
+ * LogicProviders whereas LogicProviders can also be Synchronizers (see {@link DriverProvider},
  * HouseKeeping modules and probably also manual import/export modules (to be tested via development).
  * <br>
  * There are currently 3 interfaces used for evaluation input type definition:
@@ -48,7 +48,7 @@ public interface ExtensionCapabilityPublicData extends LabelledItem {
 	 */
 	List<EntryType> getEntryTypes();
 
-	/** For ProposalProviders this method checks if {@link ProposalProvider#calculate(ExtensionResourceAccessInitData)}
+	/** For LogicProviders this method checks if {@link LogicProvider#calculate(ExtensionResourceAccessInitData)}
 	 * can be called with the same input data. For NavigationProviders it checks whether a page can be
 	 * opened for a certain input. If only a single entry resource is required this is usually true
 	 * assuming that the edit page for the entry resource has a meaningful checkResource method before

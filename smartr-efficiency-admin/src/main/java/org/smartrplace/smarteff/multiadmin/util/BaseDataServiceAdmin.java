@@ -14,10 +14,10 @@ import org.smartrplace.smarteff.admin.timeseries.GenericDriverProvider;
 
 //@Service(SmartEffExtensionService.class)
 //@Component
-public class BaseDataServiceMulti implements SmartEffExtensionService {
+public class BaseDataServiceAdmin implements SmartEffExtensionService {
 	public GenericDriverProvider GENERIC_DRIVER_PROVIDER;
 	
-	public BaseDataServiceMulti(SpEffAdminController controller) {
+	public BaseDataServiceAdmin(SpEffAdminController controller) {
 		 GENERIC_DRIVER_PROVIDER = controller.tsDriver;
 	}
 

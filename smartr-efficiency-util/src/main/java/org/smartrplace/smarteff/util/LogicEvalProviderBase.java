@@ -8,13 +8,29 @@ import org.ogema.core.model.simple.TimeResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
+import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
+import org.smartrplace.extensionservice.proposal.LogicProvider;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForEvaluation;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
-import extensionmodel.smarteff.defaultproposal.CalculatedEvalResult;
 
-public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E extends GaRoSingleEvalProvider>  extends ProposalProviderBase<T> {
+/** Template for LogicProviders that use time series as input. Usually such providers calculate KPIs
+ * for the provider. These KPIs may be used to provide certain result values in the result resource.<br>
+ * Note that currently {@link ExtensionPageSystemAccessForEvaluation} only supports starting
+ * OGEMA evaluations for KPI calculation, so under standard permissions only KPI-based evaluation is
+ * supported. If an evaluation would need to evaluate exactly startTime to endTime then another
+ * mechanism is required. Whether this is required may have to be discussed.<br>
+ * In most cases {@link ExtensionPageSystemAccessForEvaluation#calculateKPIs(GaRoSingleEvalProvider, Resource, Resource, List, boolean, int)}
+ * is used, so check this method for more details.
+ * @param <T> Type of resource that is required as input. See {@link LogicProviderBase} for details.
+ * If the input has sub resources named startTime and endTime of type TimeResource these resources
+ * are used to determine the respective input values of {@link #calculateProposal(SmartEffResource, Long, Long, CalculatedData, ExtensionResourceAccessInitData)}.
+ * All results of the EvaluationProvider are added to the result types of {@link LogicProvider#resultTypes()}.
+ * @param <E> OGEMA EvaluationProvider that is used to calculate the results.
+ */
+public abstract class LogicEvalProviderBase<T extends SmartEffResource, E extends GaRoSingleEvalProvider>  extends LogicProviderBase<T> {
 	protected void calculateProposal(T input, CalculatedData result, ExtensionResourceAccessInitData data) {
 		throw new IllegalStateException("Only use calculateProposal with eval signature here!");
 	};
@@ -24,6 +40,10 @@ public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E ext
 	@Override
 	protected abstract Class<? extends CalculatedEvalResult> getResultType();
 	protected abstract Class<T> typeClass();
+	
+	/** This method is called once on startup and the implementation needs to provide an instance
+	 * of the EvaluationProvider here that will be used over the entire runtime of the module
+	 */
 	protected abstract E evalProvider();
 	
 	protected final E evalProvider;
@@ -54,7 +74,7 @@ public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E ext
 
 	@Override
 	public String id() {
-		return ProposalEvalProviderBase.this.getClass().getName();
+		return LogicEvalProviderBase.this.getClass().getName();
 	}
 
 	@Override
@@ -68,7 +88,7 @@ public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E ext
 		}
 	}
 	
-	public ProposalEvalProviderBase(ApplicationManagerSPExt appManExt) {
+	public LogicEvalProviderBase(ApplicationManagerSPExt appManExt) {
 		super(appManExt);
 		evalProvider = evalProvider();
 	}
@@ -82,6 +102,11 @@ public abstract class ProposalEvalProviderBase<T extends SmartEffResource, E ext
 		return result;
 	}
 	
+	@Override
+	public String getProviderId() {
+		return evalProvider.id();
+	}
+
 	/*public List<GaRoMultiEvalDataProvider<?>> getDataProvidersToUse() {
 		StringArrayResource dataProvidersToUse;
 		if(!dataProvidersToUse.isActive() || dataProvidersToUse.getValues().length == 0)

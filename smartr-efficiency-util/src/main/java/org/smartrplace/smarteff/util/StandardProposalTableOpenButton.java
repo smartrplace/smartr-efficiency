@@ -42,8 +42,9 @@ public class StandardProposalTableOpenButton extends TableOpenButton {
 	public void onGET(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		Class<? extends Resource> type = getResource(appData, req).getResourceType();
-		List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getProposalProviders(type);
-		if(provs.isEmpty()) disable(req);
+		List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(type);
+		if(provs.isEmpty())
+			disable(req);
 		else enable(req);
 	}
 }

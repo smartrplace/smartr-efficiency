@@ -11,7 +11,7 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI.InitListene
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.button.BackButton;
-import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
+import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -167,7 +167,7 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 		}
 		TableOpenButton tableButton = new BackButton(page, "back", pid(), exPage, null);
 		table.setContent(c, 0, activateButton).setContent(c, 1, tableButton);
-		TableOpenButton proposalTableOpenButton = new ProposalProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
+		TableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
 		table.setContent(c, 2, proposalTableOpenButton);
 
 		page.append(table);

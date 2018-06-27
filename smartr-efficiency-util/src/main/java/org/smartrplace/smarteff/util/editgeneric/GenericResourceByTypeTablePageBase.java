@@ -33,7 +33,7 @@ public class GenericResourceByTypeTablePageBase<T extends Resource> extends Reso
 		if(appData.getConfigInfo().context == null) throw new IllegalStateException("Context required for resource type!");
 		if(!(appData.getConfigInfo().context instanceof String)) throw new IllegalStateException("Type must be transmitted as String!");
 		String param = (String)appData.getConfigInfo().context;
-		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclararions()) {
+		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclarations()) {
 			if(decl.dataType().getName().equals(param)) return decl.dataType();
 		}
 		return null;

@@ -46,7 +46,7 @@ public class UserAdmin {
 	public List<SmartEffUserDataNonEdit> getAllUserData() {
 		return Arrays.asList(new SmartEffUserDataNonEdit[] {userDataNE});
 	}
-	
+
 	public ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> getNaviPage(final WidgetPage<?> page, String url, String overviewUrl,
 			String providerId, NavigationGUIProvider navi) {
 		return new ExtensionNavigationPage<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData>(page, url, "dataExplorer.html",
@@ -85,7 +85,13 @@ public class UserAdmin {
 			}
 			@Override
 			public WidgetProvider getSpecialWidgetManagement() {
-				return new WidgetProviderImpl(app.appMan);	
+				return new WidgetProviderImpl(app.appMan) {
+					@Override
+					public String getUserName(OgemaHttpRequest req) {
+						return userDataNE.ogemaUserName().getValue();
+					}
+					
+				};	
 			}
 		};
 

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
+
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI.Level;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
@@ -61,7 +63,7 @@ public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGa
 			return result;
 		case GaRoMultiEvalDataProvider.TS_LEVEL:
 			//First get all time series declarators relevant to entry resources
-			List<GenericTSDPTimeSeries> recIds = new ArrayList<>();
+			List<SmartEffTimeSeries> recIds = new ArrayList<>();
 			if(buildingUnitEntryResources == null) {
 				for(BuildingData bd: buildingEntryResources)
 					recIds.addAll(provider.getTSConfigs(bd, null));
@@ -72,14 +74,14 @@ public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGa
 
 			result = new ArrayList<>();
 			if(superItem.resource == null) {
-				for(GenericTSDPTimeSeries ts: recIds) {
+				for(SmartEffTimeSeries ts: recIds) {
 					result.add(new SmartEffGaRoSelectionItemTS(ts.dataTypeId().getValue(),
 							ts, superItem));
 				}				
 			} else {
 				//here only use ids that belong to the room
 				List<String> devicePaths = superItem.getDevicePaths();
-				for(GenericTSDPTimeSeries ts: recIds) {
+				for(SmartEffTimeSeries ts: recIds) {
 					String tsId = ts.dataTypeId().getValue();
 					GaRoDataType gtype = knownGaRoTypes.get(tsId);
 					//Gateway-specific types shall be evaluated for every room

@@ -3,19 +3,19 @@ package org.sp.example.smarteff.eval.capability;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
+import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
+import org.smartrplace.smarteff.util.LogicEvalProviderBase;
 import org.smartrplace.smarteff.util.MyParam;
-import org.smartrplace.smarteff.util.ProposalEvalProviderBase;
 import org.sp.example.smarteff.eval.provider.BuildingPresenceEvalProvider;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.basic.evals.BuildingEvalData;
-import extensionmodel.smarteff.defaultproposal.CalculatedEvalResult;
 
-public class BuildingPresenceEval extends ProposalEvalProviderBase<BuildingData, BuildingPresenceEvalProvider> {
+public class BuildingPresenceEval extends LogicEvalProviderBase<BuildingData, BuildingPresenceEvalProvider> {
 	public static final int DEFAULT_INTERVALS_TO_CALCULATE = 3;
 	//private Resource generalData;	
 	
@@ -30,7 +30,7 @@ public class BuildingPresenceEval extends ProposalEvalProviderBase<BuildingData,
 		//DefaultProviderParams params = CapabilityHelper.getSubResourceSingle(appManExt.globalData(), DefaultProviderParams.class);
 		MyParam<BuildingEvalData> paramHelper = CapabilityHelper.getMyParams(BuildingEvalData.class, data.userData(), appManExt);
 		BuildingEvalData myPar = paramHelper.get();
-		data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, DEFAULT_INTERVALS_TO_CALCULATE);
+		data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, DEFAULT_INTERVALS_TO_CALCULATE, null);
 		
 		CalculatedEvalResult bRes = (CalculatedEvalResult) result;
 		bRes.startTimes().create();

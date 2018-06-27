@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
@@ -15,7 +16,7 @@ import extensionmodel.smarteff.api.common.BuildingUnitData;
 public class SmartEffGaRoSelectionItemTS extends GaRoSelectionItem {
 	//only relevant for level GW_LEVEL
 	private final String gwId;
-	private final GenericTSDPTimeSeries timeSeries;
+	private final SmartEffTimeSeries timeSeries;
 	private final GenericDriverProvider provider;
 	
 	protected BuildingUnitData resource;
@@ -44,7 +45,7 @@ public class SmartEffGaRoSelectionItemTS extends GaRoSelectionItem {
 		this.provider = superSelectionItem.provider;
 		this.timeSeries = null;
 	}
-	public SmartEffGaRoSelectionItemTS(String tsId, GenericTSDPTimeSeries timeSeries,
+	public SmartEffGaRoSelectionItemTS(String tsId, SmartEffTimeSeries timeSeries,
 			SmartEffGaRoSelectionItemTS superSelectionItem) {
 		super(GaRoMultiEvalDataProvider.TS_LEVEL, tsId);
 		this.gwId = superSelectionItem.gwId;

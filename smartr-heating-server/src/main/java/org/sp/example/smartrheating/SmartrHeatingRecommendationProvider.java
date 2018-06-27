@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
-import org.smartrplace.extensionservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.proposal.LogicProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
-public class SmartrHeatingRecommendationProvider implements ProposalProvider {
+public class SmartrHeatingRecommendationProvider implements LogicProvider {
 
 	@Override
 	public String id() {

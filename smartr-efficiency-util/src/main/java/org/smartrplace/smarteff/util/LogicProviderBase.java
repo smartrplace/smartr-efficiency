@@ -7,19 +7,30 @@ import org.ogema.core.model.Resource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
-import org.smartrplace.extensionservice.proposal.ProjectProposal;
-import org.smartrplace.extensionservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.proposal.CalculatedData;
+import org.smartrplace.extensionservice.proposal.LogicProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
-@Deprecated
-public abstract class ProjectProviderBaseBak<T extends SmartEffResource>  implements ProposalProvider {
-	protected abstract void calculateProposal(T input, ProjectProposal result, ExtensionResourceAccessInitData data);
-	protected abstract Class<? extends ProjectProposal> getResultType();
+/** Standard template for LogicProvider implementations. Note that LogicProviders that
+ * perform project planning usually use {@link ProjectProviderBase} as template.
+ *
+ * @param <T> Type of resource that is required as input. Note that this template in its standard
+ * form is intended for LogicProviders that require only a single resource as input besides the
+ * parameter resource that is not declared here. The parameter resource type is defined by
+ * {@link #getParamType()}.<br>
+ * Note that each calculation in method {@link #calculateProposal(SmartEffResource, CalculatedData, ExtensionResourceAccessInitData)}
+ * usually takes 3 input: The input resource, the parameter resource that provides parameters that
+ * may be a mix of public and private user parameters but that are not specific for a certain input
+ * resource and the output resource that is filled by the calculation.
+ */
+public abstract class LogicProviderBase<T extends SmartEffResource>  implements LogicProvider {
+	protected abstract void calculateProposal(T input, CalculatedData result, ExtensionResourceAccessInitData data);
+	protected abstract Class<? extends CalculatedData> getResultType();
 	protected abstract Class<T> typeClass();
-	/** The ProjectProposalProvider shall put all its specific parameters into a
-	 * single type. The type may also be used by other ProposalProviders. Parameters
+	/** The ProjectLogicProvider shall put all its specific parameters into a
+	 * single type. The type may also be used by other LogicProviders. Parameters
 	 * from other sources may be used, but value initialization should not be
 	 * required there.<br>
 	 * If no own parameters need to be initialized this can be null
@@ -37,10 +48,10 @@ public abstract class ProjectProviderBaseBak<T extends SmartEffResource>  implem
 	@Override
 	public List<Resource> calculate(ExtensionResourceAccessInitData data) {
 		T input = getReqData(data);
-		ProjectProposal result = input.addDecorator(CapabilityHelper.getSingleResourceName(getResultType()), getResultType());
+		CalculatedData result = input.addDecorator(CapabilityHelper.getSingleResourceName(getResultType()), getResultType());
 		calculateProposal(input, result, data);
 		result.activate(true);
-		return Arrays.asList(new ProjectProposal[] {result});
+		return Arrays.asList(new CalculatedData[] {result});
 	}
 	@Override
 	public List<CalculationResultType> resultTypes() {
@@ -57,7 +68,7 @@ public abstract class ProjectProviderBaseBak<T extends SmartEffResource>  implem
 	
 	@Override
 	public String id() {
-		return ProjectProviderBaseBak.this.getClass().getName();
+		return LogicProviderBase.this.getClass().getName();
 	}
 
 	@Override
@@ -71,7 +82,7 @@ public abstract class ProjectProviderBaseBak<T extends SmartEffResource>  implem
 		}
 	}
 	
-	public ProjectProviderBaseBak(ApplicationManagerSPExt appManExt) {
+	public LogicProviderBase(ApplicationManagerSPExt appManExt) {
 		this.appManExt = appManExt;
 		resultTypeDeclaration = new ExtensionResourceTypeDeclaration<SmartEffResource>() {
 
@@ -83,7 +94,7 @@ public abstract class ProjectProviderBaseBak<T extends SmartEffResource>  implem
 
 			@Override
 			public String label(OgemaLocale locale) {
-				return ProjectProviderBaseBak.this.label(locale)+" Result";
+				return LogicProviderBase.this.label(locale)+" Result";
 			}
 
 			@Override
@@ -110,7 +121,7 @@ public abstract class ProjectProviderBaseBak<T extends SmartEffResource>  implem
 
 					@Override
 					public String label(OgemaLocale locale) {
-						return ProjectProviderBaseBak.this.label(locale)+" Parameters";
+						return LogicProviderBase.this.label(locale)+" Parameters";
 					}
 
 					@Override

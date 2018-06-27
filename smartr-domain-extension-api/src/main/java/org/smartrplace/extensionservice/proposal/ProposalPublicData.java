@@ -6,20 +6,18 @@ import java.util.Map;
 import org.ogema.core.model.Resource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForEvaluation;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate;
 
+/** Methods of a {@link LogicProvider} that are accessible by applications.
+ *
+ */
 public interface ProposalPublicData extends ProviderPublicDataForCreate {
 
-	/** For each new session the relevant user data is provided with this method
+	/** Perform calculation of logic
 	 * 
-	 * @param entryTypeIdx index within {@link #getEntryTypes()} used to open the page
-	 * @param entryResources resources of the entry type specified by entryTypeIdx. If the cardinality of
-	 * 		the EntryType does not allow multiple entries the list will only contain a single element. If
-	 * 		the cardinality allows zero the list may be empty.
-	 * @param userData domain-specific reference to user data. May also be obtainable just as parent of the resource.
-	 * @param listener when the user presses a "Save" button or finishes editing otherwise, finishing of editing
-	 *		 shall be notified to the main domain app so that it can activate resources etc.
+	 * @param data system access for the calculation
 	 * @return resources created and modified. The first element should contain the most important result and the
 	 * 		further order of the list should reflect the relevance of the changes (if possible) 
 	 */
@@ -82,4 +80,9 @@ public interface ProposalPublicData extends ProviderPublicDataForCreate {
 	
 	/** If no evaluations are supported return null*/
 	default List<EvaluationResultTypes> getEvaluationResultTypes() {return null;}
+	
+	/** If the logic provider calculates KPIs the provider id returned here can be used to obtain
+	 * the KPI results via {@link ExtensionPageSystemAccessForEvaluation}.
+	 */
+	default String getProviderId() {return null;}
 }

@@ -7,6 +7,7 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.generictype.GenericDataTypeDeclaration;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
 public interface ExtensionPageSystemAccessForTimeseries {
 	
@@ -18,13 +19,14 @@ public interface ExtensionPageSystemAccessForTimeseries {
 	 * @param sourceId may be null
 	 * @param sched
 	 */
-	public void registerSchedule(Resource entryResource, GenericDataTypeDeclaration dataType, 
+	public void registerSchedule(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType, 
 			String sourceId, Schedule sched);
 	
-	public void registerRecordedData(Resource entryResource, GenericDataTypeDeclaration dataType, 
+	public void registerRecordedData(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType, 
 			String sourceId, SingleValueResource recordedDataParent);
 	
-	public void registerSingleColumnCSVFile(Resource entryResource, GenericDataTypeDeclaration dataType, 
+	//TODO: This is a very specific method, should be more general in the future
+	public void registerSingleColumnCSVFile(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType, 
 			String sourceId, String filePath, String format);
 	
 	public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType, 
@@ -35,7 +37,7 @@ public interface ExtensionPageSystemAccessForTimeseries {
 	 * efficient than getting the actual time series to calculate the number of data points, which can
 	 * also be used to provide size information.
 	 */
-	public int getFileNum(Resource entryResource, GenericDataTypeDeclaration dataType,
+	public int getFileNum(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType,
 			String sourceId);
 	
 	public String getGenericDriverProviderId();

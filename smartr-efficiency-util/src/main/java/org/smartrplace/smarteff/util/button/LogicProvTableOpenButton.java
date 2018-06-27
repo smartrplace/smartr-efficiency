@@ -19,7 +19,7 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
-public class ProposalProvTableOpenButton extends TableOpenButton {
+public class LogicProvTableOpenButton extends TableOpenButton {
 	private static final long serialVersionUID = 1L;
 	
 	public static final Map<OgemaLocale, String> BUTTON_TEXTS = new HashMap<>();
@@ -29,7 +29,7 @@ public class ProposalProvTableOpenButton extends TableOpenButton {
 		BUTTON_TEXTS.put(OgemaLocale.FRENCH, "Calculateurs");
 	}
 
-	public ProposalProvTableOpenButton(WidgetPage<?> page, String id, String pid,
+	public LogicProvTableOpenButton(WidgetPage<?> page, String id, String pid,
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider) {
@@ -37,7 +37,7 @@ public class ProposalProvTableOpenButton extends TableOpenButton {
 		setDefaultOpenInNewTab(false);
 	}
 
-	public ProposalProvTableOpenButton(OgemaWidget parent, String id, String pid,
+	public LogicProvTableOpenButton(OgemaWidget parent, String id, String pid,
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
@@ -55,8 +55,6 @@ public class ProposalProvTableOpenButton extends TableOpenButton {
 	public void onGET(OgemaHttpRequest req) {
 		super.onGET(req);
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-		/*Class<? extends Resource> type = getResource(appData, req).getResourceType();
-		List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getProposalProviders(type);*/
 		Resource myRes = getResource(appData, req);
 		String text = BUTTON_TEXTS.get(req.getLocale());
 		if(text == null) text = BUTTON_TEXTS.get(OgemaLocale.ENGLISH);
@@ -70,7 +68,7 @@ public class ProposalProvTableOpenButton extends TableOpenButton {
 	
 	public static int getSize(Resource myResource, ExtensionResourceAccessInitData appData) {
 		Class<? extends Resource> type = myResource.getResourceType();
-		List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getProposalProviders(type);
+		List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(type);
 		return provs.size();
 	}
 }

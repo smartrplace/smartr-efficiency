@@ -26,7 +26,9 @@ public class NaviOpenButton extends RedirectButton {
 	protected final PageType pageType;
 	//doCreate only relevant for pageType EDIT
 	protected final boolean doCreate;
-	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object) {return null;}
+	
+	/** Overwrite this to provide a context object to the page opened*/
+	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {return null;}
 	
 	protected final ButtonControlProvider controlProvider;
 	
@@ -88,8 +90,10 @@ public class NaviOpenButton extends RedirectButton {
 		final Resource object = getResource(appData, req);
 		final Class<? extends Resource> type = getEntryType(appData, req);
 		NavigationPublicPageData pageData = getPageData(appData, type, pageType, req);
+		if(pageData == null)
+			throw new IllegalStateException("Page to open for "+type.getSimpleName()+", "+pageType+", typesToShow:"+"not found in "+this.getClass().getSimpleName()+"! Maybe not registered?");
 		final String configId = getConfigId(pageType, object, appData.systemAccessForPageOpening(),
-				pageData, doCreate, type, getContext(appData, object)); //type(appData, req)
+				pageData, doCreate, type, getContext(appData, object, req)); //type(appData, req)
 		if(configId.startsWith(CapabilityHelper.ERROR_START)) setUrl("error/"+configId, req);
 		else setUrl(pageData.getUrl()+"?configId="+configId, req);
 	}
@@ -116,8 +120,12 @@ public class NaviOpenButton extends RedirectButton {
 				return systemAccess.accessPage(pageData, -1, null, context);			
 			}
 			else {
-				return systemAccess.accessPage(pageData, SPPageUtil.getEntryIdx(pageData, type),
-						Arrays.asList(new Resource[]{object}), context);			
+				if(pageData.getEntryTypes() == null)
+					return systemAccess.accessPage(pageData, -1,
+							Arrays.asList(new Resource[]{object}), context);			
+				else
+					return systemAccess.accessPage(pageData, SPPageUtil.getEntryIdx(pageData, type),
+							Arrays.asList(new Resource[]{object}), context);			
 			}
 		}
 		

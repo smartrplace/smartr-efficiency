@@ -85,10 +85,11 @@ public class BaseDataService implements SmartEffExtensionService {
 	*/
 	public final static NaviPageBase<Resource>.Provider RESOURCE_NAVI_PROVIDER = new ResourceTablePage().provider;
 	public final static NaviPageBase<Resource>.Provider RESOURCEALL_NAVI_PROVIDER = new ResourceAllTablePage().provider;
-	public final static NaviPageBase<Resource>.Provider PROPOSALTABLE_PROVIDER = new ProposalProvTablePage().provider;
+	public final static NaviPageBase<Resource>.Provider PROPOSALTABLE_PROVIDER = new LogicProvTablePage().provider;
 	public final static NaviPageBase<Resource>.Provider RESULTTABLE_PROVIDER = new ResultTablePage().provider;
 	//This one opens as start page (shows alls resources of type in UserData)
 	public final static NaviPageBase<Resource>.Provider RESBYTYPE_PROVIDER = new ResourceByTypeTablePage().provider;
+	public final static NaviPageBase<Resource>.Provider RESSUBBYTYPE_PROVIDER = new ResourceSubByTypeTablePage().provider;
 	//This one opens for a certain resources, requires a resource as entry point
 	public final static NaviPageBase<Resource>.Provider RESBYTYPE_ENTRYPOINT_PROVIDER = new GenericResourceByTypeTablePageBase<Resource>().provider;
 	public final static EditPageGenericWithTable<HeatCostBillingInfo> BILLEDIT = new HeatBillRegistration.EditPage();
@@ -112,7 +113,7 @@ public class BaseDataService implements SmartEffExtensionService {
 				PROPOSALTABLE_PROVIDER, RESULTTABLE_PROVIDER, new TopConfigTablePage().provider,
 				BUILDINGANALYSIS_PROVIDER, new DefaultProviderParamsPage().provider,
 				new MasterUserRegistration.EditPage().provider, new RoomRegistration.EditPage().provider,
-				RESBYTYPE_PROVIDER, RESBYTYPE_ENTRYPOINT_PROVIDER,
+				RESBYTYPE_PROVIDER, RESBYTYPE_ENTRYPOINT_PROVIDER, RESSUBBYTYPE_PROVIDER,
 				BILLEDIT.provider, BILLTABLE.provider});
 	}
 
@@ -127,6 +128,7 @@ public class BaseDataService implements SmartEffExtensionService {
 		result.add(new MasterUserRegistration.TypeDeclaration());
 		result.add(new RoomRegistration.TypeDeclaration());
 		result.add(new HeatBillRegistration.TypeDeclaration());
+		
 		return result ;
 	}
 }

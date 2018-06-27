@@ -3,26 +3,26 @@ package org.sp.example.smarteff.electricity.capability;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
+import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
+import org.smartrplace.smarteff.util.LogicEvalProviderBase;
 import org.smartrplace.smarteff.util.MyParam;
-import org.smartrplace.smarteff.util.ProposalEvalProviderBase;
 import org.sp.example.smarteff.electricity.provider.ElectricityProfileEvalProvider;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.BuildingData;
-import extensionmodel.smarteff.defaultproposal.CalculatedEvalResult;
 import extensionmodel.smarteff.electricity.example.ElectricityProfileEvalConfig;
 
-public class ElectricityProfileEval extends ProposalEvalProviderBase<BuildingData, ElectricityProfileEvalProvider> {
+public class ElectricityProfileEval extends LogicEvalProviderBase<BuildingData, ElectricityProfileEvalProvider> {
 	public static final int DEFAULT_INTERVALS_TO_CALCULATE = 3;
 	//private Resource generalData;	
 	
 	@Override
 	public String label(OgemaLocale locale) {
 		if(locale == OgemaLocale.GERMAN) return "Anwesenheitsanalyse für ein Gebäude";
-		return "User Presence time analysis for building";
+		return "Electricity profile analysis for building";
 	}
 	@Override
 	protected void calculateProposal(BuildingData input, Long startTime, Long endTime,
@@ -30,10 +30,12 @@ public class ElectricityProfileEval extends ProposalEvalProviderBase<BuildingDat
 		//DefaultProviderParams params = CapabilityHelper.getSubResourceSingle(appManExt.globalData(), DefaultProviderParams.class);
 		MyParam<ElectricityProfileEvalConfig> paramHelper = CapabilityHelper.getMyParams(ElectricityProfileEvalConfig.class, data.userData(), appManExt);
 		ElectricityProfileEvalConfig myPar = paramHelper.get();
+		long[] res;
 		if(startTime != null)
-			data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, startTime, endTime);
+			res = data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, startTime, endTime, null);
 		else		
-			data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, DEFAULT_INTERVALS_TO_CALCULATE);
+			res = data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, DEFAULT_INTERVALS_TO_CALCULATE, null);
+		if(res == null) throw new IllegalStateException("Evaluation was not possible for some reason!");
 		CalculatedEvalResult bRes = (CalculatedEvalResult) result;
 		bRes.startTimes().create();
 		paramHelper.close();

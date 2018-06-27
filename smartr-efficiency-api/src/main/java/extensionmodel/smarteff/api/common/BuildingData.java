@@ -5,8 +5,7 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-
-import extensionmodel.smarteff.api.base.SmartEffTimeSeries;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
 public interface BuildingData extends SmartEffResource {
 	/** 1: single family home (SFH)<br>

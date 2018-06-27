@@ -17,12 +17,12 @@ import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
-import org.smartrplace.extensionservice.proposal.ProposalProvider;
+import org.smartrplace.extensionservice.proposal.LogicProvider;
 import org.smartrplace.extensionservice.proposal.ProposalPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
 import org.smartrplace.smarteff.admin.object.NavigationPageData;
-import org.smartrplace.smarteff.admin.object.ProposalProviderData;
+import org.smartrplace.smarteff.admin.object.LogicProviderData;
 import org.smartrplace.smarteff.admin.object.SmartrEffExtResourceTypeData;
 import org.smartrplace.smarteff.admin.object.SmartrEffExtResourceTypeData.ServiceCapabilities;
 import org.smartrplace.smarteff.admin.protect.NavigationPublicPageDataImpl;
@@ -36,7 +36,7 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 public class GUIPageAdministation {
 	public List<NavigationPageData> startPages = new ArrayList<>();
 	public List<NavigationPageData> navigationPages = new ArrayList<>();
-	public List<ProposalProviderData> proposalProviders = new ArrayList<>();
+	public List<LogicProviderData> logicProviders = new ArrayList<>();
 	public List<DriverProvider> drivers = new ArrayList<>();
 
 	public Map<Class<? extends Resource>, List<NavigationPublicPageData>> navigationPublicData = new HashMap<>();
@@ -92,11 +92,11 @@ public class GUIPageAdministation {
 		}
     	
     	i = 0;
-    	for(ProposalProvider navi: caps.proposalProviders) try {
+    	for(LogicProvider navi: caps.logicProviders) try {
     		navi.init(app.appManExt);
     		
-    		ProposalProviderData data = new ProposalProviderData(navi, service);
-			proposalProviders.add(data);
+    		LogicProviderData data = new LogicProviderData(navi, service);
+			logicProviders.add(data);
 			if(navi.getEntryTypes() == null) continue;
 			for(EntryType t: navi.getEntryTypes()) {
 				List<ProposalPublicData> listPub = proposalInfo.get(t.getType().representingResourceType());
@@ -112,6 +112,7 @@ public class GUIPageAdministation {
 			System.out.println("Proposal-Provider["+i+"] failed: Label:"+navi.label(null)+" service:"+service.getClass().getSimpleName());				
 			e.printStackTrace();
 		}
+     	drivers.addAll(caps.drivers);
 	}
 	
 	public void unregisterService(SmartEffExtensionService service) {
@@ -142,7 +143,7 @@ public class GUIPageAdministation {
 			}
     	}
     	
-     	for(ProposalProvider navi: caps.proposalProviders) {
+     	for(LogicProvider navi: caps.logicProviders) {
     		String naviId = SPPageUtil.buildId(navi);
  			if(navi.getEntryTypes() == null) continue;
 			else for(EntryType t: navi.getEntryTypes()) {
@@ -162,7 +163,7 @@ public class GUIPageAdministation {
     		
     	}
 
-     	drivers.addAll(caps.drivers);
+     	drivers.removeAll(caps.drivers);
 	}
 	
 	public Collection<NavigationPageData> getAllProviders() {

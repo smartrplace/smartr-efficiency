@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.tools.resource.util.TimeUtils;
+import org.ogema.util.directresourcegui.kpi.IntervalTypeDropdown;
 import org.ogema.util.directresourcegui.kpi.KPIMonitoringReport;
 import org.ogema.util.directresourcegui.kpi.KPIResultType;
 import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
@@ -19,7 +21,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.NaviPageBase;
-import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
+import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceTableOpenButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
@@ -28,6 +30,7 @@ import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.form.label.Label;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class KPITablePageSP extends NaviPageBase<Resource> {
@@ -46,7 +49,7 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 
 	public class TablePage extends KPIMonitoringReport {
 		//private final ApplicationManagerMinimal appManMin;
-		private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
+		private final ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
 		
 		public TablePage(ExtensionNavigationPageI<SmartEffUserDataNonEdit,
 				ExtensionResourceAccessInitData> exPage, ApplicationManagerMinimal appManMin,
@@ -57,17 +60,40 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 			this.exPage = exPage;
 			//this.appManMin = appManMin;
 			//triggerPageBuild();
+			StaticTable topTable = new StaticTable(1, 5);
+			TableOpenButton resourceButton2 = new ResourceTableOpenButton(page, "resourceButton", pid(), exPage, null);
+			LogicProvTableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
+			topTable.setContent(0, 0, intervalDrop).setContent(0, 1, dateOfReport);
+			topTable.setContent(0, 2, "--").setContent(0, 3, resourceButton2).setContent(0,4, proposalTableOpenButton);
+			page.append(topTable);
+			retardationOnGET = 1000;
 		}
 
 		@Override
 		public void addWidgetsAboveTable() {
-			StaticTable topTable = new StaticTable(1, 3);
-			TableOpenButton resourceButton2 = new ResourceTableOpenButton(page, "resourceButton", pid(), exPage, null);
-			ProposalProvTableOpenButton proposalTableOpenButton = new ProposalProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
-			topTable.setContent(0, 0, "--").setContent(0, 1, resourceButton2).setContent(0, 2, proposalTableOpenButton);
-			page.append(topTable);
-		}
+			this.intervalDrop = new IntervalTypeDropdown(page, "singleTimeInterval", false, intervalTypes, standardInterval);
+			this.dateOfReport = new Label(page, "dateOfReport") {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					currentTime = appManExt.getFrameworkTime();
+					String timeOfReport = "Time of Report: " + TimeUtils.getDateAndTimeString(currentTime);
+					setText(timeOfReport, req);
+				}
+			};
+			triggerOnPost(dateOfReport, intervalDrop);
+			//this.header = new Header(page, "header", "KPI Standard Overview");
+			//page.append(header);
+			//page.append(Linebreak.getInstance());
+			//page.append(dateOfReport);
+			//page.append(intervalDrop);
 
+			//We finish this in constructor as we need exPage here and this method is called from super-constructor
+		}
+		@Override
+		protected void addWidgetsBelowTable() {
+		}
+		
 		@Override
 		public Collection<KPIResultType> getObjectsInTable(OgemaHttpRequest req) {
 			List<KPIResultType> result = new ArrayList<>();
@@ -90,7 +116,7 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 	
 	@Override
 	public String label(OgemaLocale locale) {
-		return "Results for Resource Recursive";
+		return "KPI base table page";
 	}
 
 	@Override
@@ -100,7 +126,7 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
-		return "Results for "+ResourceUtils.getHumanReadableName(getReqData(req))+" (+Subtree)";
+		return "KPIs for "+ResourceUtils.getHumanReadableName(getReqData(req))+" (+Subtree)";
 	}
 	
 	@Override

@@ -3,6 +3,7 @@ package org.smartrplace.smarteff.util.editgeneric;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -12,7 +13,6 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.button.Button;
-import extensionmodel.smarteff.api.base.SmartEffTimeSeries;
 
 public class CSVUploadButton extends Button {
 	protected Integer getSize(OgemaHttpRequest req) {return null;}

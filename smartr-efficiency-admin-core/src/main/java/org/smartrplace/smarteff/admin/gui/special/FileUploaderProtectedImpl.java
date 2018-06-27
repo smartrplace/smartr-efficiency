@@ -28,12 +28,14 @@ import de.iwes.widgets.html.fileupload.FileUploadListener;
  * @author dnestle
  *
  */
-public class FileUploaderProtectedImpl implements FileUploaderProtected {
+public abstract class FileUploaderProtectedImpl implements FileUploaderProtected {
+	public abstract String getUserName(OgemaHttpRequest req);
+	
 	
 	/** Call this on button POST*/
 	@Override
 	public void onPOST(OgemaHttpRequest req) {
-		upload.registerListener(listener, 1.5f, req);
+		upload.registerListener(listener, getUserName(req), req);
 	}
 	
 	@Override
@@ -44,7 +46,7 @@ public class FileUploaderProtectedImpl implements FileUploaderProtected {
 	//protected abstract void fileUploadFinished(FileItem fileItem, Float context, OgemaHttpRequest req)
 	//			throws IOException;
 	private final FileUpload upload;
-	private final FileUploadListener<Float> listener;
+	private final FileUploadListener<String> listener;
 	//private final Button buttonUpload;
 	//private final FileUploadListener<?> userListener;
 	
@@ -58,17 +60,18 @@ public class FileUploaderProtectedImpl implements FileUploaderProtected {
 			FileUploadListenerToFile listenerToFile, FileUploadListener<?> userListener) {
 		this.upload =  new FileUpload(page, "upload"+widgetId, appMan, true);
 		//this.userListener = userListener;
-		listener = new FileUploadListener<Float>() {
+		listener = new FileUploadListener<String>() {
 
 			@Override
-			public void fileUploaded(FileItem fileItem, Float context, OgemaHttpRequest req) {
+			public void fileUploaded(FileItem fileItem, String context, OgemaHttpRequest req) {
 				try {
 					if(listenerToFile != null) {
 						String destinationDir = System.getProperty("org.smartrplace.store.filestoragelocation",
 								"./filestorage");
-						DirUtils.makeSureDirExists(Paths.get(destinationDir));
+						String userName = getUserName(req);
+						DirUtils.makeSureDirExists(Paths.get(destinationDir, userName));
 						String fileName = fileItem.getName();
-						Path file = Paths.get(destinationDir, fileName);
+						Path file = Paths.get(destinationDir, userName, fileName);
 						int i = fileName.lastIndexOf(".");
 						String ext;
 						if(i > 0)
@@ -81,7 +84,7 @@ public class FileUploaderProtectedImpl implements FileUploaderProtected {
 						while(Files.exists(file)) {
 							fileName = main + "_" + add + ext;
 							add++;
-							file = Paths.get(destinationDir, fileName);						
+							file = Paths.get(destinationDir, userName, fileName);						
 						}
 						//File destFile = new File(destinationDir, fileItem.getName());
 						writeFile(fileItem.getInputStream(), file.toFile());						

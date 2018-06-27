@@ -1,7 +1,6 @@
 package org.smartrplace.smarteff.admin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -10,18 +9,15 @@ import java.util.Set;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
-import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
 import org.ogema.tools.timeseriesimport.api.TimeseriesImport;
-import org.ogema.util.evalcontrol.EvalScheduler;
-import org.ogema.util.evalcontrol.EvalScheduler.OverwriteMode;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
-import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
-import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
-import org.smartrplace.extensionservice.driver.DriverProvider;
+import org.smartrplace.extensionservice.proposal.CalculatedData;
+import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
+import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.smarteff.admin.config.SmartEffAdminData;
 import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
 import org.smartrplace.smarteff.admin.gui.ResTypePage;
@@ -34,10 +30,6 @@ import org.smartrplace.smarteff.admin.util.ResourceLockAdministration;
 import org.smartrplace.smarteff.admin.util.TypeAdministration;
 import org.smartrplace.util.format.ValueFormat;
 
-import de.iwes.timeseries.eval.api.DataProvider;
-import de.iwes.timeseries.eval.api.configuration.Configuration;
-import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
-import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -85,7 +77,7 @@ public class SpEffAdminController {
 		}
 
 		@Override
-		public List<ExtensionResourceTypeDeclaration<?>> getAllTypeDeclararions() {
+		public List<ExtensionResourceTypeDeclaration<?>> getAllTypeDeclarations() {
 			List<ExtensionResourceTypeDeclaration<?>> result = new ArrayList<>();
 			for(SmartrEffExtResourceTypeData data: typeAdmin.resourceTypes.values()) {
 				result.add(data.typeDeclaration);
@@ -111,7 +103,7 @@ public class SpEffAdminController {
 			return null;
 		}
 		
-		@Override
+		/*@Override
 		@Deprecated
 		public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
 				List<Configuration<?>> configurations,
@@ -159,6 +151,16 @@ public class SpEffAdminController {
 			//scheduler.deactivateAutoEvaluation(eval.id());
 			
 			return result;
+		}*/
+
+		@Override
+		public List<Class<? extends Resource>> getSystemTypes() {
+			List<Class<? extends Resource>> result = new ArrayList<>();
+			result.add(Resource.class);
+			result.add(CalculatedData.class);
+			result.add(ProjectProposal.class);
+			result.add(CalculatedEvalResult.class);
+			return result ;
 		}
 	};
 	

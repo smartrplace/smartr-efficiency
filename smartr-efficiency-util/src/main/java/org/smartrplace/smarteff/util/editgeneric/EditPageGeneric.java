@@ -18,13 +18,14 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForTimeseries;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
-import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
+import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.ColumnType;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.Visibility;
@@ -51,7 +52,6 @@ import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
-import extensionmodel.smarteff.api.base.SmartEffTimeSeries;
 
 public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T> {
 	public static OgemaLocale EN = OgemaLocale.ENGLISH;
@@ -562,12 +562,12 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 						T entryResource = mhLoc.getGatewayInfo(req);
 						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
 						tsResource.driverId().<StringResource>create().setValue(tsMan.getGenericDriverProviderId());
-						tsResource.inputTypeId().<StringResource>create().setValue(GaRoDataType.PowerMeter.id());
+						tsResource.dataTypeId().<StringResource>create().setValue(GaRoDataType.PowerMeter.id());
 						if(!tsResource.isActive()) {
 							tsResource.activate(true);
 						}
 						tsMan.registerSingleColumnCSVFile(
-								entryResource, GaRoDataType.PowerMeter, null, filePath, null);
+								tsResource, GaRoDataType.PowerMeter, null, filePath, null);
 					}
 				};
 				FileUploaderProtected uploader = exPage.getSpecialWidgetManagement().
@@ -578,13 +578,14 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 					protected Integer getSize(OgemaHttpRequest req) {
 						ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
 						T entryResource = mhLoc.getGatewayInfo(req);
-						return tsMan.getFileNum(entryResource, GaRoDataType.PowerMeter, null);
+						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						return tsMan.getFileNum(tsResource, GaRoDataType.PowerMeter, null);
 					}
 				};
 				csvButton.setDefaultText("Upload Profile as CSV");
 				csvButton.triggerOnPOST(csvButton); //csvButton.registerDependentWidget(csvButton);
 				
-				RedirectButton openEvalButton = new ProposalProvTableOpenButton(page, "openEvalButton", pid(),
+				RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openEvalButton", pid(),
 						exPage, null);
 				
 				Flexbox valueWidget = getHorizontalFlexBox(page, "flexbox"+pid(),

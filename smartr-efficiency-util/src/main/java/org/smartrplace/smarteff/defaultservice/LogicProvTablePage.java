@@ -1,6 +1,8 @@
 package org.smartrplace.smarteff.defaultservice;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -8,26 +10,34 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
+import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.proposal.ProposalPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
+import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
-public class ProposalProvTablePage extends NaviPageBase<Resource> {
+public class LogicProvTablePage extends NaviPageBase<Resource> {
 	protected TablePage tablePage;
+	public static final Map<OgemaLocale, String> RESBUTTON_TEXTS = new HashMap<>();
+	static {
+		RESBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Logic Result");
+		RESBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Logik-Ergebnis");
+	}
 	
-	public ProposalProvTablePage() {
+	public LogicProvTablePage() {
 		super();
 	}
 
@@ -55,15 +65,36 @@ public class ProposalProvTablePage extends NaviPageBase<Resource> {
 				};
 				row.addCell("Calculate", calculateButton);
 				ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-				//TODO: This is not the right criteria to differentiate between normal and KPI providers
-				if(object.getEntryTypes() != null && object.getEntryTypes().size() > 1)
-					SPPageUtil.addKPITableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
-				else
-					SPPageUtil.addResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
+				for(EntryType o: object.getEntryTypes()) if(o.getType() instanceof GaRoDataTypeI) {
+					SPPageUtil.addKPITableOpenButton("KPIs", getReqData(req), vh, id, row, appData, null,
+							object, req);
+					break;
+				}
+				//if(object.getEntryTypes() != null && object.getEntryTypes().size() > 1) {
+				//}
+				if(!ProjectProposal.class.isAssignableFrom(object.resultTypes().get(0).resourceType())) {
+					ResourceOfTypeTableOpenButton resultButton = new ResourceOfTypeTableOpenButton(vh.getParent(),
+							"resultButton"+id, pid(), exPage, null, req) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						protected Class<? extends Resource> typeToOpen(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+							return object.resultTypes().get(0).resourceType();
+						}
+						protected Map<OgemaLocale, String> getTextMap(OgemaHttpRequest req) {
+							return LogicProvTablePage.RESBUTTON_TEXTS;
+						}
+					};
+					resultButton.openResSub(true);
+					row.addCell("Results", resultButton);
+					
+				} else
+					SPPageUtil.addProjectResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
 			} else {
 				vh.registerHeaderEntry("Name");
 				vh.registerHeaderEntry("Calculate");
 				vh.registerHeaderEntry("Results");
+				vh.registerHeaderEntry("KPIs");
 			}
 		}
 
@@ -75,7 +106,7 @@ public class ProposalProvTablePage extends NaviPageBase<Resource> {
 		public List<ProposalPublicData> getObjectsInTable(OgemaHttpRequest req) {
 			ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 			Class<? extends Resource> type =  getReqData(req).getResourceType();
-			return appData.systemAccessForPageOpening().getProposalProviders(type);
+			return appData.systemAccessForPageOpening().getLogicProviders(type);
 		}
 
 		@Override
@@ -91,7 +122,7 @@ public class ProposalProvTablePage extends NaviPageBase<Resource> {
 	
 	@Override //optional
 	public String pid() {
-		return ProposalProvTablePage.class.getSimpleName();
+		return LogicProvTablePage.class.getSimpleName();
 	}
 
 	@Override
@@ -106,7 +137,7 @@ public class ProposalProvTablePage extends NaviPageBase<Resource> {
 
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
-		return "Proposal providers for "+ResourceUtils.getHumanReadableName(getReqData(req)); //super.getHeader(req);
+		return "Logic providers for "+ResourceUtils.getHumanReadableName(getReqData(req)); //super.getHeader(req);
 	}
 	
 	@Override

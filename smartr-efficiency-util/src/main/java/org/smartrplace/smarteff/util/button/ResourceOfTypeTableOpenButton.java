@@ -1,23 +1,40 @@
 package org.smartrplace.smarteff.util.button;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
-import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
+import org.smartrplace.smarteff.defaultservice.ResourceByTypeTablePage;
 import org.smartrplace.smarteff.util.SPPageUtil;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenButton {
 	private static final long serialVersionUID = 1L;
-
+	public static final Map<OgemaLocale, String> BUTTON_TEXTS = new HashMap<>();
+	static {
+		BUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Open");
+		BUTTON_TEXTS.put(OgemaLocale.GERMAN, "Öffnen");
+		BUTTON_TEXTS.put(OgemaLocale.FRENCH, "Ouvrier");
+	}
+	protected Map<OgemaLocale, String> getTextMap(OgemaHttpRequest req) {
+		return BUTTON_TEXTS;
+	}
+	protected boolean openResSub = false;
+	public void openResSub(boolean openResSub) {
+		this.openResSub = openResSub;
+	}
+	
 	protected abstract Class<? extends Resource> typeToOpen(ExtensionResourceAccessInitData appData, OgemaHttpRequest req);
 	
 	public ResourceOfTypeTableOpenButton(WidgetPage<?> page, String id, String pid,
@@ -49,20 +66,30 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 				break;
 			}
 		}
-		if(url == null) url = SPPageUtil.getProviderURL(BaseDataService.RESBYTYPE_PROVIDER);
+		if(url == null) {
+			if(openResSub)
+				url = SPPageUtil.getProviderURL(BaseDataService.RESSUBBYTYPE_PROVIDER);
+			else
+				url = SPPageUtil.getProviderURL(BaseDataService.RESBYTYPE_PROVIDER);
+		}
 		return appData.systemAccessForPageOpening().getPageByProvider(url);//super.getPageData(appData, type, typeRequested);
 	}
 	
 	@Override
-	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object) {
-		return object.getResourceType().getName();
+	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {
+		return typeToOpen(appData, req).getName();
+		//return object.getResourceType().getName();
 	}
 	
 	@Override
 	public void onGET(OgemaHttpRequest req) {
-		super.onGET(req);
+		//super.onGET(req);
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-		Resource destination = getResource(appData, req);
+		Resource destination;
+		if(openResSub)
+			destination = getResource(appData, req);
+		else
+			destination = appData.userData();
 		if(destination == null) {
 			disable(req);
 			setText("--", req);
@@ -70,13 +97,20 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 		}
 
 		int size = getSize(destination, appData, typeToOpen(appData, req));
-		String text = "Open";
+		String text;
+		text = getTextMap(req).get(req.getLocale());
+		if(text == null) text = BUTTON_TEXTS.get(OgemaLocale.ENGLISH);						
 		setText(text+"("+size+")", req);
+		enable(req);
 	}
 
-	//TODO: Searching for all subresources on every GET of the button may be too costly
+	/** TODO: Searching for all subresources on every GET of the button may be too costly
+	 * @param myResource if {@link ResourceByTypeTablePage} is opened this should be the user resource,
+	 * otherwise this should be the parent resource
+	 */
 	public static int getSize(Resource myResource, ExtensionResourceAccessInitData appData, Class<? extends Resource> typeSelected) {
 		List<? extends Resource> resultAll = myResource.getSubResources(typeSelected, true);
 		return resultAll.size();
 	}
+	
 }

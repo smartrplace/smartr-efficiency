@@ -20,7 +20,9 @@ public interface ApplicationManagerSPExt extends ApplicationManagerMinimal {
 	/** Get all types declaring this type as parent or types from which parent is inherited*/
 	public List<Class<? extends Resource>> getSubTypes(Class<? extends Resource> parentType);
 	
-	public List<ExtensionResourceTypeDeclaration<?>> getAllTypeDeclararions();
+	public List<ExtensionResourceTypeDeclaration<?>> getAllTypeDeclarations();
+	/** System types that do not have an ExtensionResourceTypeDeclaration*/
+	public List<Class<? extends Resource>> getSystemTypes();
 	
 	public OgemaLogger log();
 	
@@ -35,9 +37,10 @@ public interface ApplicationManagerSPExt extends ApplicationManagerMinimal {
 	 * @return
 	 * @deprecated moved to {@link ExtensionPageSystemAccessForEvaluation}
 	 */
-	@Deprecated
+	/*@Deprecated
 	public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource, List<Configuration<?>> configurations,
 			Resource userData, ExtensionUserDataNonEdit userDataNonEdit,
 			List<DriverProvider> drivers, boolean saveJsonResult,
 			int defaultIntervalsToCalculate);
+			*/
 }

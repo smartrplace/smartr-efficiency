@@ -16,6 +16,7 @@ import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
+import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
@@ -25,7 +26,7 @@ import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
 import org.smartrplace.smarteff.util.button.ButtonControlProvider;
-import org.smartrplace.smarteff.util.button.ProposalProvTableOpenButton;
+import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ProposalResTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceTableOpenButton;
@@ -88,11 +89,11 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 			allResourceButton2.setDefaultOpenInNewTab(false);
 		}
 		addTopButtonsExceptFirstTwo(editResource, allResourceButton2, tabButton);
-	};
+	}
 	
 	protected void addTopButtonsExceptFirstTwo(OgemaWidget editResource, OgemaWidget allResourceButton2, TabButton tabButton) {
-		TableOpenButton proposalTableOpenButton = new ProposalProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, tabButton.control);
-		TableOpenButton resultTableOpenButton = new ProposalResTableOpenButton(page, "resultTableOpenButton", pid(), exPage, tabButton.control);
+		TableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, tabButton.control);
+		TableOpenButton resultTableOpenButton = new ProposalResTableOpenButton(page, "resultTableOpenButton", pid(), exPage, tabButton.control, ProjectProposal.class);
 		TableOpenButton upTableOpenButton = new ResourceTableOpenButton(page, "upTableOpenButton", pid(), exPage, tabButton.control,true);
 		
 		StaticTable topTable = new StaticTable(1, 6);

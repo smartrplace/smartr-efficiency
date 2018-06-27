@@ -5,9 +5,11 @@ import java.util.Collections;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.generictype.GenericAttribute;
 import org.ogema.generictype.GenericDataTypeDeclaration;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
@@ -20,6 +22,7 @@ import org.smartrplace.util.format.ValueFormat;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
@@ -58,7 +61,7 @@ public class CapabilityHelper {
 		final String nameToUse;
 		if(elementName.startsWith("default")) nameToUse = ValueFormat.firstUpperCase(elementName.substring(7));
 		else  nameToUse = ValueFormat.firstUpperCase(elementName);
-		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclararions()) {
+		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclarations()) {
 			if(decl.dataType().getSimpleName().equals(nameToUse)) return decl;
 		}
 		return null;
@@ -111,6 +114,63 @@ public class CapabilityHelper {
 		}
 		if(list.size() > 1) throw new IllegalStateException("Multiple resources of single type "+type.getName()+" found in "+parent.getLocation());
 		return list.get(0);
+	}
+	
+	/** Make sure a resource list with fitting name exists and element is added
+	 * 
+	 * @param parent parent of resource list
+	 * @param name name of new element in resource list to be added if null the name will
+	 * 		be chosen automatically
+	 * @param resourceToAddAsReference existing resource to add as reference
+	 * @return the element that was added or found if checkIfExists is true and it already
+	 * 		existed
+	 */
+	public static <T extends Resource> T addMultiTypeToList(Resource parent, String name,
+			T resourceToAddAsReference) {
+		@SuppressWarnings("unchecked")
+		Class<T> elementType = (Class<T>) resourceToAddAsReference.getResourceType();
+		String listName = getSingleResourceName(elementType);
+		@SuppressWarnings("unchecked")
+		ResourceList<T> resList =
+				parent.getSubResource(listName, ResourceList.class);
+		if(!resList.exists()) {
+			resList.create();
+			resList.setElementType(elementType);
+			resList.activate(false);
+		}
+		if(name == null) name = ResourceListHelper.createNewDecoratorName(name, resList);
+		return resList.addDecorator(ResourceUtils.getValidResourceName(name), resourceToAddAsReference);
+	}
+	/** Like {@link #addMultiTypeToList(Resource, String, Resource)}, but create new element
+	 * directly in list
+	 * @param elementType type of element in ResourceList that shall be created
+	 * @return
+	 */
+	public static <T extends Resource> T addMultiTypeToList(Resource parent, String name,
+			Class<T> elementType) {
+		String listName = getSingleResourceName(elementType);
+		@SuppressWarnings("unchecked")
+		ResourceList<T> resList =
+				parent.getSubResource(listName, ResourceList.class);
+		if(!resList.exists()) {
+			resList.create();
+			resList.setElementType(elementType);
+			resList.activate(false);
+		}
+		if(name == null) return resList.add();
+		return resList.addDecorator(ResourceUtils.getValidResourceName(name), elementType);
+	}
+	public static <T extends Resource> ResourceList<T> getMultiTypeList(Resource parent, Class<T> elementType) {
+		String listName = getSingleResourceName(elementType);
+		@SuppressWarnings("unchecked")
+		ResourceList<T> resList =
+				parent.getSubResource(listName, ResourceList.class);
+		if(!resList.exists()) {
+			resList.create();
+			resList.setElementType(elementType);
+		} else if(!resList.getElementType().isAssignableFrom(elementType))
+			throw new IllegalStateException("Type of "+resList.getLocation()+":"+resList.getElementType().getSimpleName()+", requested:"+elementType.getSimpleName());
+		return resList;
 	}
 	
 	/** Get resource to be used for a user. If a user-specific resource is available for the resource
@@ -166,13 +226,19 @@ public class CapabilityHelper {
 	}
 	
 	public static String getUserName(Resource resourceInUser) {
-		Resource topr = ResourceHelper.getToplevelResource(resourceInUser);
-		if(!(topr instanceof SmartEffUserDataNonEdit)) return null;
-		SmartEffUserDataNonEdit top = (SmartEffUserDataNonEdit)topr;
+		SmartEffUserDataNonEdit top = getNonEditUserData(resourceInUser);
+		if(top == null) return null;
 		return top.ogemaUserName().getValue();
 		/*String[] els = resourceInUser.getLocation().split("/", 3);
 		if(els.length < 3) return null;
 		return els[0];*/
+	}
+	
+	public static SmartEffUserDataNonEdit getNonEditUserData(Resource resourceInUser) {
+		Resource topr = ResourceHelper.getToplevelResource(resourceInUser);
+		if(!(topr instanceof SmartEffUserDataNonEdit)) return null;
+		SmartEffUserDataNonEdit top = (SmartEffUserDataNonEdit)topr;
+		return top;
 	}
 
 	/**
