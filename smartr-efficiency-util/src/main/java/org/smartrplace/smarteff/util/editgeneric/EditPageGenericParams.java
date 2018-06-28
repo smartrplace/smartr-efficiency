@@ -18,6 +18,11 @@ import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.button.TemplateInitSingleEmpty;
 import de.iwes.widgets.html.form.label.Label;
 
+/** Base template for paramter edit pages that allow to see global parameters and to create local variants for
+ * each value. The input resource can be the global resource or the local user resource.
+ *
+ * @param <T> parameter resource type to be edited.
+ */
 public abstract class EditPageGenericParams<T extends Resource> extends EditPageGenericWithTable<T> {
 	public EditPageGenericParams() {
 		super(false);
@@ -139,7 +144,8 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
 				Resource res = ResourceHelper.getSubResource(getReqData(req), sub);
-				boolean enable = paramProvider.enable(req);
+				//boolean enable =
+				paramProvider.enable(req);
 				if(res == null) {
 					alert.showAlert("Resource path null, user resource cannot be generated", false, req);
 				} else if(!res.isActive()) {

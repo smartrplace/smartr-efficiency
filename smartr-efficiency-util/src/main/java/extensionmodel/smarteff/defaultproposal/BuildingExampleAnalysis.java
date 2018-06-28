@@ -69,7 +69,7 @@ public class BuildingExampleAnalysis extends ProjectProviderBase<BuildingData> {
 		return BuildingData.class;
 	}
 	@Override
-	protected Class<? extends SmartEffResource> getParamType() {
+	public Class<? extends SmartEffResource> getParamType() {
 		return DefaultProviderParams.class;
 	}
 	

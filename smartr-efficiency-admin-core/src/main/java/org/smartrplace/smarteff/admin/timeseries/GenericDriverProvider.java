@@ -42,7 +42,7 @@ import extensionmodel.smarteff.api.common.BuildingUnitData;
 
 public class GenericDriverProvider implements DriverProvider {
 	public static final String SINGLE_COLUMN_CSV_ID = "SINGLE_COLUMN_CSV:";
-	public static final String DEFAULT_TIMESTAMP_FORMAT = "d:m:yy h:mm";
+	public static final String DEFAULT_TIMESTAMP_FORMAT = "d.M.y H:m"; //"d:m:yy h:mm";
 	
 	//private GenericTSDPConfig appConfigData;
 	//private final ApplicationManager appMan;
@@ -111,7 +111,7 @@ public class GenericDriverProvider implements DriverProvider {
 		return getTimeSeries(cr);
 	}
 
-	protected ReadOnlyTimeSeries getTimeSeries(SmartEffTimeSeries dpTS) {
+	public ReadOnlyTimeSeries getTimeSeries(SmartEffTimeSeries dpTS) {
 		if(dpTS.schedule().isActive()) return dpTS.schedule();
 		if(dpTS.recordedDataParent().isActive()) return dpTS.recordedDataParent().getHistoricalData();
 		// must be file
@@ -121,7 +121,7 @@ public class GenericDriverProvider implements DriverProvider {
 				SimpleDateFormat dateTimeFormat = new SimpleDateFormat(format);
 				ImportConfiguration csvConfig = ImportConfigurationBuilder.newInstance().
 						setDateTimeFormat(dateTimeFormat).
-						setInterpolationMode(InterpolationMode.STEPS).build();
+						setInterpolationMode(InterpolationMode.STEPS).setDelimiter(';').setDecimalSeparator(',').build();
 				try {
 					String[] paths = dpTS.filePaths().filePaths().getValues();
 					if(paths.length == 0) return null;

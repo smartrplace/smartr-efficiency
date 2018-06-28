@@ -6,6 +6,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.model.jsonresult.JSONResultFileData;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
 import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
+import org.ogema.util.evalcontrol.EvalScheduler;
 import org.smartrplace.extensionservice.driver.DriverProvider;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoSuperEvalResult;
@@ -35,6 +36,13 @@ public interface ExtensionPageSystemAccessForEvaluation {
 	 * @param stepInterval base interval for the configuration. If null the standard base
 	 * 		interval is used. Note that setting this stepInterval is forced so it is highly
 	 * 		recommended to use only a single value for a certain evaluation provider and not change it.
+	 * @param defaultIntervalsToCalculate see {@link EvalScheduler#getStandardStartEndTime(MultiKPIEvalConfiguration, int, boolean)}
+	 * 		TODO: In the future a negative value should indicate that the end time is the last
+	 * 		time stamp of the first input time series availabe, a zero should indicate that all time
+	 * 		steps provided by this time series shall be used.
+	 *@param endTime if null the current time will be used as end time as specified in
+	 * 		{@link EvalScheduler#getStandardStartEndTime(MultiKPIEvalConfiguration, int, boolean)}.
+	 * 		Otherwise the end time given here is used.
 	 * @return
 	 */
 	public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,

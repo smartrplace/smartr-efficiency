@@ -1,13 +1,17 @@
 package org.smartrplace.smarteff.util;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.model.Resource;
 import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
+import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
+import org.smartrplace.extensionservice.ExtensionGeneralData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
@@ -29,6 +33,7 @@ import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.format.WidgetPageFormatter;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.TemplateRedirectButton;
@@ -39,6 +44,12 @@ public class SPPageUtil {
 
 	public static WidgetPageFormatter STANDARD_PAGE_FORMATTER = new WidgetPageFormatter();
 	
+	public static final Map<OgemaLocale, String> BUTTON_PARAMS_TEXTS = new HashMap<>();
+	static {
+		BUTTON_PARAMS_TEXTS.put(OgemaLocale.ENGLISH, "Parameters");
+		BUTTON_PARAMS_TEXTS.put(OgemaLocale.GERMAN, "Parameter");
+	}
+
 	public static OgemaWidget addOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			NavigationPublicPageData pageData,
@@ -128,7 +139,7 @@ public class SPPageUtil {
 		if(appData != null) {
 			List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(object.getResourceType());
 			if(provs.isEmpty()) {
-				return vh.stringLabel("Evaluations", id, "No Providers", row);
+				return vh.stringLabel(columnName, id, "No Providers", row);
 			} else {
 				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.PROPOSALTABLE_PROVIDER));
 				String text = ValueFormat.getLocaleString(req, LogicProvTableOpenButton.BUTTON_TEXTS);
@@ -147,7 +158,7 @@ public class SPPageUtil {
 		if(appData != null) {
 			List<ProjectProposal> resultsAvail = object.getSubResources(ResultTablePage.TYPE_SHOWN, true);
 			if(resultsAvail.isEmpty()) {
-				return vh.stringLabel("Results", id, "No Results", row);
+				return vh.stringLabel(columnName, id, "No Results", row);
 			} else {
 				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE_PROVIDER));
 				String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS);
@@ -160,6 +171,39 @@ public class SPPageUtil {
 			return null;
 		}
 	}
+	public static OgemaWidget addParameterEditOpenButton(String columnName,
+			ProposalPublicData object, ExtensionGeneralData globalData,
+			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
+			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+		if(appData != null) {
+			SmartEffResource param = null;
+			Class<? extends SmartEffResource> paramType = null;
+			if(object instanceof LogicProviderBase) {
+				LogicProviderBase<?> logic = (LogicProviderBase<?>) object;
+				paramType = logic.getParamType();
+				List<? extends SmartEffResource> all = appData.userData().getSubResources(paramType, true);
+				if(all.isEmpty()) {
+					List<? extends SmartEffResource> all2 = globalData.getSubResources(paramType, true);
+					if(!all2.isEmpty()) param = all2.get(0);
+				}
+				else param = all.get(0);
+			}
+			if(param == null) {
+				return vh.stringLabel(columnName, id, "No Parameter", row);
+			} else {
+				NavigationPublicPageData pageData = appData.systemAccessForPageOpening().
+						getMaximumPriorityPage(paramType, PageType.EDIT_PAGE); //.getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE_PROVIDER));
+				String text = ValueFormat.getLocaleString(req, BUTTON_PARAMS_TEXTS);
+				int size = AddEditButton.getSize(param, appData);
+				return addOpenButton(columnName, param, vh, id, row, pageData, appData.systemAccess(),
+						text+"("+size+")", "No ParamPage", true, PageType.EDIT_PAGE, controlProvider, null, req);
+			}
+		} else {
+			vh.registerHeaderEntry(columnName);
+			return null;
+		}
+	}
+
 	/** For a timeseries based evaluation a KPI result as well as a normal resource result
 	 * is generated
 	 */

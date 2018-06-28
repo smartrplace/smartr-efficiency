@@ -4,12 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.LogicProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGenericParams;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
@@ -33,9 +35,22 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 	 * single type. The type may also be used by other LogicProviders. Parameters
 	 * from other sources may be used, but value initialization should not be
 	 * required there.<br>
-	 * If no own parameters need to be initialized this can be null
+	 * If no own parameters need to be initialized this can be null. Otherwise a parameter resource is
+	 * created in the {@link #init(ApplicationManagerSPExt)} method of this module and the implementation
+	 * of {@link #initParams(SmartEffResource)} is called so that the resource can be filled with
+	 * values. By default parameter resources are created in the global space, user specific
+	 * adaptations that overwrite the global settings if present can be created via a page extending
+	 * {@link EditPageGenericParams}.<br>
+	 * If this type is provided and the parameter type is not registered as {@link ExtensionResourceTypeDeclaration}
+	 * somewhere else then the respective ExtensionResourceTypeDeclaration is created automatically by this
+	 * template class. The declaration can be obtained via {@link #getParamTypeDeclaration()} in order to be
+	 * added to the {@link SmartEffExtensionService#resourcesDefined()} of the module. In most cases parameter
+	 * resources do not have a parent and they are just appended to the editableData or globalData as parameters
+	 * are not specific for a certain resources, but are values that are applied to all evaluations of a type. In
+	 * some cases parameters still have a hierarchy, then the parent parameter type has to be given in
+	 * {@link #getParentParamType()} in order to build the correct ExtensionResourceTypeDeclaration.
 	 */
-	protected abstract Class<? extends SmartEffResource> getParamType();
+	public abstract Class<? extends SmartEffResource> getParamType();
 	/** Return true if resource shall be activated*/
 	protected boolean initParams(SmartEffResource params) {return false;};
 	

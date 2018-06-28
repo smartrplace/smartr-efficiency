@@ -8,6 +8,8 @@ import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.model.prototypes.Data;
 import org.smartrplace.smarteff.model.syste.GenericTSDPTimeSeries;
 
+import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvaluationInput;
+
 /** This is a base resource for all value resources containing time series. Usually the data is
  * provided via a DriverProvider that provides specific DataProvider instances for each user
  * based on a certain DataProvider class.
@@ -24,7 +26,14 @@ public interface SmartEffTimeSeries extends Data {
 	 */
 	//StringResource inputTypeId();
 	
-	/** The id of the respective {@link GenericDataTypeDeclaration}, e.g. GaRoDataType.
+	/** The id of the respective {@link GenericDataTypeDeclaration}. Note that this usually is a
+	 * standard GaRoDataType and that we currently use the label(null) of these as they all have
+	 * the same id (TODO: Check if this could be changed). Non-standard GaRoDataTypes currently
+	 * cannot be processed by {@link GaRoMultiEvaluationInput#itemSelector()} and thus will not
+	 * be found as input for evaluations. Such non-standard GaRoTypes usually occur as a result
+	 * of another evaluation (which is a pre-evaluation for another evaluation) and here currently
+	 * only the JSON file reading pre-evaluation mechanism is supported, no other time series injection
+	 * as input.
 	 */
 	StringResource dataTypeId();
 	

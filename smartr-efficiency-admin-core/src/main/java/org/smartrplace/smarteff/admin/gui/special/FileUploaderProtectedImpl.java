@@ -75,7 +75,7 @@ public abstract class FileUploaderProtectedImpl implements FileUploaderProtected
 						int i = fileName.lastIndexOf(".");
 						String ext;
 						if(i > 0)
-							ext = fileName.substring(i+1);
+							ext = fileName.substring(i);
 						else ext = "";
 						String main;
 						if(i > 0) main = fileName.substring(0, i);

@@ -12,6 +12,7 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 
 import de.iwes.timeseries.eval.api.DataProvider;
+import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 
 /** A driver provider reads data from external sources and provides it to other extension modules via the
  * interface DataProvider. Usually this data shall not be stored persistently on the OGEMA system, but this
@@ -45,6 +46,8 @@ public interface DriverProvider extends ExtensionCapability {
 	void init(ApplicationManagerSPExt appManExt);
 
 	/** Get data provider for the user. See {@link NavigationGUIProvider#initPage(ExtensionNavigationPageI, Resource)}
+	 * 	Usually this is a {@link GaRoMultiEvalDataProvider} that uses the building resource location
+	 * 	as gateway id and the BuildingUnitData resource location as room id.
 	 * 
 	 * @param entryResources configuration resource(s) that are relevant for this data provider.
 	 * @return data provider for the user. If the provider does not find the necessary configuration data for

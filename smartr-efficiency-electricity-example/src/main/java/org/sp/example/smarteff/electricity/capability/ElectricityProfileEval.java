@@ -1,7 +1,10 @@
 package org.sp.example.smarteff.electricity.capability;
 
+import org.ogema.core.channelmanager.measurements.SampledValue;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -30,12 +33,27 @@ public class ElectricityProfileEval extends LogicEvalProviderBase<BuildingData, 
 		//DefaultProviderParams params = CapabilityHelper.getSubResourceSingle(appManExt.globalData(), DefaultProviderParams.class);
 		MyParam<ElectricityProfileEvalConfig> paramHelper = CapabilityHelper.getMyParams(ElectricityProfileEvalConfig.class, data.userData(), appManExt);
 		ElectricityProfileEvalConfig myPar = paramHelper.get();
+		
+		if(startTime == null) {
+			SmartEffTimeSeries tsRes = input.electricityMainProfile();
+			ReadOnlyTimeSeries ts = data.getTimeseriesManagement().getTimeSeries(tsRes);
+			if(ts != null) {
+				SampledValue val = ts.getNextValue(0);
+				SampledValue val2 = ts.getPreviousValue(Long.MAX_VALUE);
+				if(val != null && val2 != null) {
+					startTime = val.getTimestamp();
+					endTime = val2.getTimestamp();			
+				}
+			}
+		}
+		
 		long[] res;
 		if(startTime != null)
 			res = data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, startTime, endTime, null);
 		else		
 			res = data.getEvaluationManagement().calculateKPIs(evalProvider, input, myPar, null, true, DEFAULT_INTERVALS_TO_CALCULATE, null);
-		if(res == null) throw new IllegalStateException("Evaluation was not possible for some reason!");
+		//res == null is also returned when no gaps found
+		//if(res == null) throw new IllegalStateException("Evaluation was not possible for some reason!");
 		CalculatedEvalResult bRes = (CalculatedEvalResult) result;
 		bRes.startTimes().create();
 		paramHelper.close();
@@ -50,7 +68,7 @@ public class ElectricityProfileEval extends LogicEvalProviderBase<BuildingData, 
 		return BuildingData.class;
 	}
 	@Override
-	protected Class<? extends SmartEffResource> getParamType() {
+	public Class<? extends SmartEffResource> getParamType() {
 		return ElectricityProfileEvalConfig.class;
 	}
 	

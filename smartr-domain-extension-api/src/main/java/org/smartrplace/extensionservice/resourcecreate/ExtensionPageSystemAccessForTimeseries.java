@@ -31,6 +31,7 @@ public interface ExtensionPageSystemAccessForTimeseries {
 	
 	public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType, 
 			String sourceId);
+	public ReadOnlyTimeSeries getTimeSeries(SmartEffTimeSeries smartTs);
 	
 	/** Number of data imports or similar larger data packages that were used to provide a certain
 	 * time series. This is mainly intended for data provided via file imports and should be much more

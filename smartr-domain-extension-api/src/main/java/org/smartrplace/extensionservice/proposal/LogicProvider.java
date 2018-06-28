@@ -11,11 +11,13 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCre
  * suitable to be operated in batch processes etc.<br>
  * LogicProviders are not designed to operate as a background service, listen to new resources etc. This
  * has to be done by a separate module if required that would start relevant LogicProviders when
- * new data is available etc.
+ * new data is available etc.<br>
  * TODO: An importer could use this interface, but then the result type should be able to specify
  * and GenericDataTypeDeclaration. In this case input resources would act as the configuration
  * resources in {@link DriverProvider}. Also here no regular import would occur, but it has to be
- * triggered from somewhere else.
+ * triggered from somewhere else.<br>
+ * TODO: A LogicProvider should specify its parameters. Currently this is only available in the
+ * abstract class LogicProviderBase.
  */
 public interface LogicProvider extends ExtensionCapabilityForCreate, ProposalPublicData {
 	void init(ApplicationManagerSPExt appManExt);

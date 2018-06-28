@@ -31,7 +31,7 @@ public class NaviOverviewPage extends ObjectGUITablePage<NavigationPageData, Res
 			NavigationPageData initData) {
 		super(page, app.appMan, initData);
 		this.app = app;
-		//retardationOnGET = 2000;
+		retardationOnGET = 1000;
 	}
 	
 	@Override

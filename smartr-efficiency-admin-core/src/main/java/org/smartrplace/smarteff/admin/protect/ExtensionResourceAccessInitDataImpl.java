@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
@@ -35,6 +36,8 @@ import de.iwes.timeseries.eval.api.DataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoSuperEvalResult;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
+import de.iwes.util.resource.ResourceHelper;
+import extensionmodel.smarteff.api.common.BuildingData;
 
 public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAccessInitData {
 	private final int entryTypeIdx;
@@ -167,29 +170,27 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 					MultiKPIEvalConfiguration startConfig;
 					startConfig = scheduler.getOrCreateConfig(eval.id(),
 							subConfigId, stepInterval, true);
-					/*if(stepInterval == null)
-						startConfig = scheduler.getOrCreateConfig(eval.id(),
-								subConfigId, null, null, false);
-					else startConfig = scheduler.getOrCreateConfig(eval.id(),
-								subConfigId, stepInterval, true);*/
+
+					BuildingData bd;
+					if(entryResource instanceof BuildingData) bd = (BuildingData) entryResource;
+					else bd = ResourceHelper.getFirstParentOfType(entryResource, BuildingData.class);
+					if(bd != null) {
+						startConfig.gwIds().<StringArrayResource>create().setValues(new String[] {bd.getLocation()});
+						//TODO: We cannot specify any rooms here yet
+					}
 					startConfig.configurationResource().setAsReference(configurationResource);
 					CapabilityHelper.addMultiTypeToList(entryResource, eval.id(), startConfig);
 					
-					/*@SuppressWarnings("unchecked")
-					ResourceList<MultiKPIEvalConfiguration> resList =
-							entryResource.getSubResource("multiKPIEvalConfiguration", ResourceList.class);
-					if(!resList.exists()) {
-						resList.create();
-						resList.setElementType(MultiKPIEvalConfiguration.class);
-						resList.activate(false);
-					}
-					resList.addDecorator(ResourceUtils.getValidResourceName(eval.id()), startConfig);
-					*/
 					long[] result;
-					if(defaultIntervalsToCalculate != null)
+					if(defaultIntervalsToCalculate != null) {
+						if(defaultIntervalsToCalculate <= 0) {
+							//TODO
+							//ts = dataProvidersToUse.get(0).getData(items)
+						}
 						result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate, true);
-					else
+					} else {
 						result = new long[] {startTime, endTime};
+					}
 					result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
 							result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE, true);
 					return result;
@@ -326,7 +327,16 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			@Override
 			public List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
 					String sourceId) {
-				return tsDriver.getTimeSeries(entryResource, dataType, entryResource, userDataNonEdit);
+				if(sourceId != null) {
+					ReadOnlyTimeSeries ts = tsDriver.getTimeSeries(entryResource, dataType, sourceId, userData, userDataNonEdit);					
+					return Arrays.asList(new ReadOnlyTimeSeries[] {ts});
+				}
+				return tsDriver.getTimeSeries(entryResource, dataType, userData, userDataNonEdit);
+			}
+			
+			@Override
+			public ReadOnlyTimeSeries getTimeSeries(SmartEffTimeSeries smartTs) {
+				return tsDriver.getTimeSeries(smartTs);
 			}
 			
 			@Override

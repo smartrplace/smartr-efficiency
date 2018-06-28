@@ -90,11 +90,15 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 					
 				} else
 					SPPageUtil.addProjectResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
+				
+				SPPageUtil.addParameterEditOpenButton("Parameters", object, appManExt.globalData(),
+						vh, id, row, appData, null, req);					
 			} else {
 				vh.registerHeaderEntry("Name");
 				vh.registerHeaderEntry("Calculate");
 				vh.registerHeaderEntry("Results");
 				vh.registerHeaderEntry("KPIs");
+				vh.registerHeaderEntry("Parameters");
 			}
 		}
 

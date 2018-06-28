@@ -562,7 +562,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 						T entryResource = mhLoc.getGatewayInfo(req);
 						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
 						tsResource.driverId().<StringResource>create().setValue(tsMan.getGenericDriverProviderId());
-						tsResource.dataTypeId().<StringResource>create().setValue(GaRoDataType.PowerMeter.id());
+						tsResource.dataTypeId().<StringResource>create().setValue(GaRoDataType.PowerMeter.label(null));
 						if(!tsResource.isActive()) {
 							tsResource.activate(true);
 						}

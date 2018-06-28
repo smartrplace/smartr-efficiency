@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.TimeUtils;
@@ -76,7 +77,21 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void onGET(OgemaHttpRequest req) {
-					currentTime = appManExt.getFrameworkTime();
+					Resource entryRes = getReqData(req);
+					ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+					List<KPIStatisticsManagement> evalsP = appData.getEvaluationManagement().getKPIManagement(entryRes);
+					int baseInterval = -2;
+					if(evalsP != null && (!evalsP.isEmpty())) {
+						baseInterval = evalsP.get(0).getBaseInterval();
+						if(baseInterval > 0) {
+							SampledValue sv = evalsP.get(0).getIntervalSchedule(baseInterval).getPreviousValue(Long.MAX_VALUE);
+							if(sv == null) baseInterval = -3;
+							else
+								currentTime = sv.getTimestamp();
+					}
+					if(baseInterval <= 0)
+						currentTime = appManExt.getFrameworkTime();
+					}					
 					String timeOfReport = "Time of Report: " + TimeUtils.getDateAndTimeString(currentTime);
 					setText(timeOfReport, req);
 				}

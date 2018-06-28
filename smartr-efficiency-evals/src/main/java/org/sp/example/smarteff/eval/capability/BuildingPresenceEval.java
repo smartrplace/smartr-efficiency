@@ -46,7 +46,7 @@ public class BuildingPresenceEval extends LogicEvalProviderBase<BuildingData, Bu
 		return BuildingData.class;
 	}
 	@Override
-	protected Class<? extends SmartEffResource> getParamType() {
+	public Class<? extends SmartEffResource> getParamType() {
 		return BuildingEvalData.class;
 	}
 	
