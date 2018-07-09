@@ -11,7 +11,7 @@ import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoSelectionItem;
 import extensionmodel.smarteff.api.common.BuildingData;
-import extensionmodel.smarteff.api.common.BuildingUnitData;
+import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class SmartEffGaRoSelectionItemTS extends GaRoSelectionItem {
 	//only relevant for level GW_LEVEL
@@ -19,7 +19,7 @@ public class SmartEffGaRoSelectionItemTS extends GaRoSelectionItem {
 	private final SmartEffTimeSeries timeSeries;
 	private final GenericDriverProvider provider;
 	
-	protected BuildingUnitData resource;
+	protected BuildingUnit resource;
 	
 	//only relevant for level ROOM_LEVEL, TS_LEVEL
 	public SmartEffGaRoSelectionItemTS getGwSelectionItem() {
@@ -35,7 +35,7 @@ public class SmartEffGaRoSelectionItemTS extends GaRoSelectionItem {
 		this.provider = provider;
 		this.timeSeries = null;
 	}
-	public SmartEffGaRoSelectionItemTS(BuildingUnitData buildingUnit,
+	public SmartEffGaRoSelectionItemTS(BuildingUnit buildingUnit,
 			SmartEffGaRoSelectionItemTS superSelectionItem) {
 		super(GaRoMultiEvalDataProvider.ROOM_LEVEL, buildingUnit.getLocation());
 		//String unitId = buildingUnit.getLocation();
@@ -70,7 +70,7 @@ public class SmartEffGaRoSelectionItemTS extends GaRoSelectionItem {
 		return null;
 	}
 	
-	protected BuildingUnitData getBuildingUnit() {
+	protected BuildingUnit getBuildingUnit() {
 		switch(level) {
 		case GaRoMultiEvalDataProvider.GW_LEVEL:
 			throw new IllegalArgumentException("No gateway resource available");
@@ -89,7 +89,7 @@ public class SmartEffGaRoSelectionItemTS extends GaRoSelectionItem {
 		return getRoomTypeStatic(getBuildingUnit());
 	}
 	
-	public static Integer getRoomTypeStatic(BuildingUnitData room) {
+	public static Integer getRoomTypeStatic(BuildingUnit room) {
 		return room.roomData().type().getValue();
 	}
 

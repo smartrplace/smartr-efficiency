@@ -13,7 +13,7 @@ import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCrea
 /** Methods of a {@link LogicProvider} that are accessible by applications.
  *
  */
-public interface ProposalPublicData extends ProviderPublicDataForCreate {
+public interface LogicProviderPublicData extends ProviderPublicDataForCreate {
 
 	/** Perform calculation of logic
 	 * 
@@ -85,4 +85,12 @@ public interface ProposalPublicData extends ProviderPublicDataForCreate {
 	 * the KPI results via {@link ExtensionPageSystemAccessForEvaluation}.
 	 */
 	default String getProviderId() {return null;}
+	
+	/** The LogicProvider shall put all its primary specific parameters into a
+	 * single type. The type may also be used by other LogicProviders. Parameters
+	 * from other sources may be used, but value initialization should not be
+	 * required from the provider.<br>
+	 * If no own parameters need to be initialized this can be null.
+	 */
+	Class<? extends Resource> getParamType();
 }

@@ -15,9 +15,11 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.model.jsonresult.JSONResultFileData;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.ogema.util.evalcontrol.EvalScheduler;
 import org.ogema.util.evalcontrol.EvalScheduler.OverwriteMode;
+import org.smartrplace.critical.crossuser.ExtensionPageSystemAccessForCrossuserAccess;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
@@ -37,12 +39,15 @@ import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoSuperEvalResult;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
 import de.iwes.util.resource.ResourceHelper;
+import extensionmodel.smarteff.api.base.SmartEffUserData;
+import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
+import extensionmodel.smarteff.api.common.AccessControl;
 import extensionmodel.smarteff.api.common.BuildingData;
 
 public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAccessInitData {
 	private final int entryTypeIdx;
 	private final List<Resource> entryResources;
-	private final List<GenericDataTypeDeclaration> entryData;
+	//private final List<GenericDataTypeDeclaration> entryData;
 	
 	private final ConfigInfo configInfo;
 	private final ExtensionUserData userData;
@@ -54,7 +59,8 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 	private final GenericDriverProvider tsDriver;
 	
 	public ExtensionResourceAccessInitDataImpl(int entryTypeIdx,
-			List<Resource> entryResources, List<GenericDataTypeDeclaration> entryData,
+			List<Resource> entryResources,
+			//List<GenericDataTypeDeclaration> entryData,
 			ConfigInfo configInfo,
 			ExtensionUserData userData, ExtensionUserDataNonEdit userDataNonEdit,
 			ExtensionPageSystemAccessForPageOpening systemAccess,
@@ -62,10 +68,10 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 		this.entryTypeIdx = entryTypeIdx;
 		if(entryResources == null) {
 			this.entryResources = entryResources;
-			this.entryData = entryData;			
+			//this.entryData = entryData;			
 		} else {
 			this.entryResources = entryResources;
-			this.entryData = entryData;			
+			//this.entryData = entryData;			
 		}
 		this.userData = userData;
 		this.userDataNonEdit = userDataNonEdit;
@@ -84,10 +90,10 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 	public List<Resource> entryResources() {
 		return entryResources;
 	}
-	@Override
-	public List<GenericDataTypeDeclaration> entryData() {
-		return entryData;
-	}
+	//@Override
+	//public List<GenericDataTypeDeclaration> entryData() {
+	//	return entryData;
+	//}
 
 	@Override
 	public ExtensionUserData userData() {
@@ -345,5 +351,70 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 				return tsDriver.getFileNum(timeSeries, dataType, sourceId);
 			}
 		};
+	}
+
+	@Override
+	public ExtensionPageSystemAccessForCrossuserAccess getCrossuserAccess() {
+		return new ExtensionPageSystemAccessForCrossuserAccess() {
+
+			@Override
+			public <T extends Resource> T getAccess(String subUserPath, String userSource, Class<T> type, Object module4authentication) {
+				SmartEffUserData destNonEdit = null;
+				for(SmartEffUserDataNonEdit user: controller.getUserAdmin().getAllUserData()) {
+					if(user.ogemaUserName().getValue().equals(userSource)) {
+						destNonEdit = user.editableData();
+						break;
+					}
+				}
+				if(destNonEdit == null) return null;
+				T result = ResourceHelper.getSubResource(destNonEdit, subUserPath, type);
+				if(result == null) return null;
+				Resource par = getFirstParentWithSubResourceOfType(result, "accessControl", AccessControl.class);
+				if(par == null) return null;
+				AccessControl sub = par.getSubResource("accessControl", AccessControl.class);
+				if(sub == null) return null;
+				if(!sub.modules().isActive()) return null;
+				String[] modules = sub.modules().getValues();
+				String className = module4authentication.getClass().getName();
+				for(String m: modules) {
+					if(m.equals(className)) return result;
+				}
+				return null;
+			}
+
+			@SuppressWarnings("unchecked")
+			@Override
+			public <T extends Resource> List<T> getAccess(Class<T> type) {
+				List<AccessControl> accs = controller.appMan.getResourceAccess().getResources(AccessControl.class);
+				String myUser = userDataNonEdit.getLocation();
+				List<T> result = new ArrayList<>();
+				for(AccessControl acc: accs) {
+					if(ValueResourceUtils.contains(acc.users(), myUser)) {
+						if(type == null) result.add(acc.getParent());
+						else {
+							Resource par = acc.getParent();
+							if(type.isAssignableFrom(par.getClass())) result.add((T) par);
+						}
+					}
+				}
+				return result;
+			}
+		};
+	}
+	
+	/** Get a resource that has an active sub resource with the name and the type requested. This may
+	 * be the initial parent provided or any parent or super-parent of the initial parent.
+	 * @param type
+	 * @return
+	 */
+	public static Resource getFirstParentWithSubResourceOfType(Resource initialParent, String name, Class<? extends Resource> type) {
+		Resource curParent = initialParent;
+		Resource sub = curParent.getSubResource(name, type);
+		while(sub == null || (!sub.isActive())) {
+			curParent = curParent.getParent();
+			if(curParent == null) return null;
+			sub = curParent.getSubResource(name, type);
+		}
+		return curParent;
 	}
 }

@@ -10,7 +10,7 @@ import org.ogema.core.resourcemanager.ResourceException;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
 import org.smartrplace.smarteff.admin.util.ResourceLockAdministration;
@@ -33,7 +33,7 @@ public class NavigationPageSystemAccess extends NavigationPageSystemAccessForPag
 			ResourceLockAdministration lockAdmin, ConfigIdAdministration configIdAdmin,
 			TypeAdministration typeAdmin,
 			ApplicationManagerSPExt appExt,
-			Map<Class<? extends Resource>, List<ProposalPublicData>> proposalInfo,
+			Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo,
 			Resource myPrimaryResource, String myUrl) {
 		super(pageInfo, startPagesData, configIdAdmin, proposalInfo, myPrimaryResource, myUrl);
 		this.userName = userName;
@@ -48,7 +48,10 @@ public class NavigationPageSystemAccess extends NavigationPageSystemAccessForPag
 			Resource parent) {
 		Class<? extends Resource> type = pageData.getEntryTypes().get(entryIdx).getType().representingResourceType();
 		ExtensionResourceTypeDeclaration<? extends Resource> typeDecl = appExt.getTypeDeclaration(type);
-		String name = CapabilityHelper.getNewMultiResourceName(type, parent);
+		String name;
+		if(SPPageUtil.isMulti(typeDecl.cardinality()))
+			name = CapabilityHelper.getNewMultiElementResourceName(type, parent);
+		else name = CapabilityHelper.getSingleResourceName(typeDecl.dataType());
 		NewResourceResult<? extends Resource> newResource = getNewResource(parent, name, typeDecl);
 		if(newResource.result != ResourceAccessResult.OK) {
 			System.out.println("Error while trying to create "+parent.getLocation()+"/"+name+": "+newResource.result);

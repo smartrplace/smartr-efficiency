@@ -18,6 +18,9 @@ import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.smarteff.accesscontrol.AccessControlRegistration;
+import org.smartrplace.smarteff.accesscontrol.CrossUserBuildingTablePage;
+import org.smartrplace.smarteff.accesscontrol.AccessControlRegistration.EditPage;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
 import org.smartrplace.smarteff.util.editgeneric.GenericResourceByTypeTablePageBase;
@@ -97,6 +100,9 @@ public class BaseDataService implements SmartEffExtensionService {
 	//public final static NaviPageBase<DefaultProviderParams>.Provider BA_PARAMSEDIT_PROVIDER = new DefaultProviderParamsPage().provider;
 	//public final static NaviPageBase<Resource>.Provider TOPCONFIG_NAVI_PROVIDER = new TopConfigTablePage().provider;
 	public BuildingExampleAnalysis BUILDINGANALYSIS_PROVIDER;
+	public final static EditPage ACCESS_EDIT = new AccessControlRegistration.EditPage();
+	public final static CrossUserBuildingTablePage CROSSUSERBUILDING_TABLE = new CrossUserBuildingTablePage();
+
 	@Override
 	public void start(ApplicationManagerSPExt appManExt) {
 		//this.appManExt = appManExt;
@@ -114,7 +120,8 @@ public class BaseDataService implements SmartEffExtensionService {
 				BUILDINGANALYSIS_PROVIDER, new DefaultProviderParamsPage().provider,
 				new MasterUserRegistration.EditPage().provider, new RoomRegistration.EditPage().provider,
 				RESBYTYPE_PROVIDER, RESBYTYPE_ENTRYPOINT_PROVIDER, RESSUBBYTYPE_PROVIDER,
-				BILLEDIT.provider, BILLTABLE.provider});
+				BILLEDIT.provider, BILLTABLE.provider, ACCESS_EDIT.provider,
+				CROSSUSERBUILDING_TABLE.provider});
 	}
 
 	@Override
@@ -123,12 +130,12 @@ public class BaseDataService implements SmartEffExtensionService {
 				new ArrayList<>();
 		result.add(BUILDING_DATA);
 		result.add(PRICE_DATA);
-		result.add(BUILDINGANALYSIS_PROVIDER.getTypeDeclaration());
+		result.add(BUILDINGANALYSIS_PROVIDER.getResultTypeDeclaration());
 		if(BUILDINGANALYSIS_PROVIDER.getParamTypeDeclaration() != null) result.add(BUILDINGANALYSIS_PROVIDER.getParamTypeDeclaration());
 		result.add(new MasterUserRegistration.TypeDeclaration());
 		result.add(new RoomRegistration.TypeDeclaration());
 		result.add(new HeatBillRegistration.TypeDeclaration());
-		
+		result.add(new AccessControlRegistration.TypeDeclaration());
 		return result ;
 	}
 }

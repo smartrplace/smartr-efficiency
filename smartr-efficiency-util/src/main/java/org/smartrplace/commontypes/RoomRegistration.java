@@ -1,7 +1,5 @@
 package org.smartrplace.commontypes;
 
-import org.ogema.core.model.units.AreaResource;
-import org.ogema.core.model.units.VolumeResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
@@ -9,17 +7,18 @@ import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.common.BuildingData;
+import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class RoomRegistration {
-	public static final Class<? extends SmartEffResource> TYPE_CLASS = RoomData.class;
+	public static final Class<? extends SmartEffResource> TYPE_CLASS = BuildingUnit.class; //RoomData.class;
 	
-	public static interface RoomData extends SmartEffResource {
+	/*public static interface RoomData extends SmartEffResource {
 		AreaResource groundArea();
 		VolumeResource volume();
 		AreaResource outsideWindowArea();
 		/**Including window area*/
-		AreaResource totalOutsideWallArea();
-	}
+		//AreaResource totalOutsideWallArea();
+	//}
 	
 	public static class TypeDeclaration implements ExtensionResourceTypeDeclaration<SmartEffResource> {
 
@@ -44,9 +43,9 @@ public class RoomRegistration {
 		}
 	}
 	
-	public static class EditPage extends EditPageGeneric<RoomData> {
+	public static class EditPage extends EditPageGeneric<BuildingUnit> {
 		@Override
-		public void setData(RoomData sr) {
+		public void setData(BuildingUnit sr) {
 			setHeaderLabel(EN, "Room Data", DE, "Raumdaten");
 			//setHeaderLink(EN, "https://en.wikipedia.org/wiki/Master_data");
 			setLabel(sr.name(), EN, "Name",
@@ -57,8 +56,8 @@ public class RoomRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<RoomData> primaryEntryTypeClass() {
-			return (Class<RoomData>) TYPE_CLASS;
+		protected Class<BuildingUnit> primaryEntryTypeClass() {
+			return (Class<BuildingUnit>) TYPE_CLASS;
 		}
 		
 		@Override

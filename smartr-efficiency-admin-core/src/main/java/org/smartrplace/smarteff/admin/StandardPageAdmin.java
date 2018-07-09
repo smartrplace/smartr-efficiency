@@ -27,7 +27,7 @@ public class StandardPageAdmin {
 	public final ServiceDetailPage offlineEvalPage;
 	public final ResTypePage resTypePage;
 	//public final DataExplorerPage dataExPage;
-	//public final NaviOverviewPage naviPage;
+	public final NaviOverviewPage naviPage;
 	public NavigationMenu menu;
 
 	private final WidgetPage<?> pageServices;
@@ -69,7 +69,7 @@ public class StandardPageAdmin {
 		//dataExPage = new DataExplorerPage(page3, controller, controller.getUserAdmin().getAppConfigData().globalData());
 		pageNavis = widgetApp.createWidgetPage(NAVI_OVERVIEW_URL);
 		NavigationPageData navi = new NavigationPageData(BaseDataService.RESOURCEALL_NAVI_PROVIDER, null, "", null);
-		//naviPage = controller.getNaviPage(pageNavis, navi);
+		naviPage = controller.getNaviPage(pageNavis, navi);
 
 		updatePageMenus();
 	}

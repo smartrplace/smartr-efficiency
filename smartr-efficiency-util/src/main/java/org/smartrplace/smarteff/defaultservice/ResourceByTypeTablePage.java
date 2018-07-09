@@ -67,7 +67,7 @@ public class ResourceByTypeTablePage extends ResourceTablePage {
 
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
-		return "Resources for "+typeSelected(req);
+		return "All Resources of type "+typeSelected(req).getSimpleName();
 	}
 	
 	@Override

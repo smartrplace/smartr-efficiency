@@ -5,7 +5,7 @@ import java.util.List;
 import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
@@ -42,7 +42,7 @@ public class StandardProposalTableOpenButton extends TableOpenButton {
 	public void onGET(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		Class<? extends Resource> type = getResource(appData, req).getResourceType();
-		List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(type);
+		List<LogicProviderPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(type);
 		if(provs.isEmpty())
 			disable(req);
 		else enable(req);

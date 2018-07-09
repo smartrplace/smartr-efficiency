@@ -25,12 +25,4 @@ public interface ProviderPublicDataForCreate extends ExtensionCapabilityPublicDa
 	default PagePriority getPriority() {
 		return PagePriority.STANDARD;
 	}
-	
-	/** Pages that provide a table specifically for one or several resource types indicate these resource
-	 * types here
-	 * @return usually a single element list. Specific tables for similar types not inherited from each other
-	 * 		may be provided as a list
-	 */
-	//List<Class<? extends Resource>> typesListedInTable();
-	default List<Class<? extends Resource>> typesListedInTable() {return null;}
 }

@@ -177,6 +177,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setDisplayOptions(sr.heatSource(), DE, HEATTYPEMAP_DE);
 		setLabel(sr.coGeneration(), EN, "Cogeneration Device", DE, "KWK-Anlage");
 		setLabel(sr.heatCostBillingInfo(), EN, "Edit Bills", DE, "Heizkostenabrechnungen");
+		setLabel(sr.buildingUnit(), EN, "Rooms / Sub Units", DE, "Räume / Gebäudeteile");
 	}
 
 	@Override

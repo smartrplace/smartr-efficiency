@@ -31,7 +31,7 @@ public class CapabilityHelper {
 	public static final String STD_LOCATION = "smartEffAdminData/generalData/";
 	public static final int STD_LOCATION_LENGTH = STD_LOCATION.length();
 	
-	public static String getNewMultiResourceName(Class<? extends Resource> type, Resource parent) {
+	public static String getNewMultiElementResourceName(Class<? extends Resource> type, Resource parent) {
 		return getnewDecoratorName(getSingleResourceName(type), parent, "_");
 	}
 	public static String getnewDecoratorName(String baseName, Resource parent) {
@@ -103,7 +103,7 @@ public class CapabilityHelper {
 		if(list.isEmpty()) {
 			if(appManExt == null) return null;
 			ExtensionResourceTypeDeclaration<T> decl = appManExt.getTypeDeclaration(type);
-			if(decl == null) throw new IllegalStateException("Using resource type without type declaration!");
+			if(decl == null) throw new IllegalStateException("Using resource type "+type.getName()+" without type declaration!");
 			if(decl.parentType() == null) {
 				if(!((parent instanceof ExtensionUserData)||(parent instanceof ExtensionUserDataNonEdit)))
 					throw new IllegalStateException("Requested sub type from resource "+parent.getLocation()+" for toplevel-type!");
@@ -273,6 +273,37 @@ public class CapabilityHelper {
 		return result;
 	}
 	
+	public static GenericDataTypeDeclaration getGenericDataTypeDeclaration(Class<? extends Resource> type) {
+		return new GenericDataTypeDeclaration() {
+			
+			@Override
+			public String label(OgemaLocale arg0) {
+				return type.getSimpleName();
+			}
+			
+			@Override
+			public String id() {
+				return type.getName();
+			}
+			
+			@Override
+			public TypeCardinality typeCardinality() {
+				return TypeCardinality.OBJECT;
+			}
+			
+			@Override
+			public Class<? extends Resource> representingResourceType() {
+				return type;
+			}
+			
+			@Override
+			public List<GenericAttribute> attributes() {
+				return Collections.emptyList();
+			}
+		};
+		
+	}
+	
 	private static EntryType getEntryType(Class<? extends Resource> type) {
 		return new EntryType() {
 
@@ -288,33 +319,7 @@ public class CapabilityHelper {
 
 			@Override
 			public GenericDataTypeDeclaration getType() {
-				return new GenericDataTypeDeclaration() {
-					
-					@Override
-					public String label(OgemaLocale arg0) {
-						return type.getSimpleName();
-					}
-					
-					@Override
-					public String id() {
-						return type.getName();
-					}
-					
-					@Override
-					public TypeCardinality typeCardinality() {
-						return TypeCardinality.OBJECT;
-					}
-					
-					@Override
-					public Class<? extends Resource> representingResourceType() {
-						return type;
-					}
-					
-					@Override
-					public List<GenericAttribute> attributes() {
-						return Collections.emptyList();
-					}
-				};
+				return getGenericDataTypeDeclaration(type);
 			}
 			
 		};		
@@ -330,35 +335,29 @@ public class CapabilityHelper {
 			@Override
 			public GenericDataTypeDeclaration getType() {
 				return type;
-				/*return new GenericDataTypeDeclaration() {
-					
-					@Override
-					public String label(OgemaLocale locale) {
-						return type.label(locale);
-					}
-					
-					@Override
-					public String id() {
-						return provider.id()+"__"+type.id();
-					}
-					
-					@Override
-					public TypeCardinality typeCardinality() {
-						return TypeCardinality.TIME_SERIES;
-					}
-					
-					@Override
-					public Class<? extends Resource> representingResourceType() {
-						return type.representingResourceType();
-					}
-					
-					@Override
-					public List<GenericAttribute> attributes() {
-						return type.attributes();
-					}
-				};*/
 			}
 			
 		};		
+	}
+	
+	/** Get existing or virtual resource. Note that name of virtual resource will be replaced when actual
+	 * create process takes place
+	 */
+	public static <T extends Resource> T getSubResourceOfTypeSingle(Resource parent, Class<T> t) {
+		List<T> resOfType = parent.getSubResources(t, false);
+		if(resOfType.size() > 1) throw new IllegalStateException("Found "+resOfType.size()+" resources of expected single type "+t.getName());
+		if(resOfType.isEmpty()) {
+			return parent.getSubResource("Virtual"+t.getSimpleName(), t);
+		} else return resOfType.get(0);		
+	}
+	
+	/** Like {@link #getSubResourceOfTypeSingle(Resource, Class)}, but returns null if the resource does not exist
+	 */
+	public static <T extends Resource> T getSubResourceOfTypeSingleIfExisting(Resource parent, Class<T> t) {
+		List<T> resOfType = parent.getSubResources(t, false);
+		if(resOfType.size() > 1) throw new IllegalStateException("Found "+resOfType.size()+" resources of expected single type "+t.getName());
+		if(resOfType.isEmpty()) {
+			return null;
+		} else return resOfType.get(0);		
 	}
 }

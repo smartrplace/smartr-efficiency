@@ -14,6 +14,12 @@ public abstract class ProjectProviderBase<T extends SmartEffResource>  extends L
 	protected abstract void calculateProposal(T input, ProjectProposal result, ExtensionResourceAccessInitData data);
 	@Override
 	protected void calculateProposal(T input, CalculatedData result, ExtensionResourceAccessInitData data) {
+		if(!typeClass().isAssignableFrom(input.getClass())) {
+			T subRes = CapabilityHelper.getSubResourceOfTypeSingleIfExisting(input, typeClass());
+			if(subRes.isActive()) calculateProposal(subRes, (ProjectProposal)result, data);
+			else throw new IllegalStateException("Resource "+input.getLocation()+" is not suitable as input for "+this.getClass().getSimpleName());
+			return;
+		}
 		calculateProposal(input, (ProjectProposal)result, data);
 	}
 	@Override

@@ -13,12 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
+import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.LogicProvider;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
 import org.smartrplace.smarteff.admin.object.NavigationPageData;
@@ -41,7 +42,7 @@ public class GUIPageAdministation {
 
 	public Map<Class<? extends Resource>, List<NavigationPublicPageData>> navigationPublicData = new HashMap<>();
 	public List<NavigationPublicPageData> startPagesData = new ArrayList<>();
-	public Map<Class<? extends Resource>, List<ProposalPublicData>> proposalInfo = new HashMap<>();
+	public Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo = new HashMap<>();
 	private final SpEffAdminController app;
 	
 	public GUIPageAdministation(SpEffAdminController app) {
@@ -61,7 +62,11 @@ public class GUIPageAdministation {
     		String url = SPPageUtil.getProviderURL(navi);
     		boolean isStartpage = app.pageAdmin.isStartPage(stdId);
     		final WidgetPage<?> page;
-   			page = app.widgetApp.createWidgetPage(url, isStartpage);
+    		try {
+    			page = app.widgetApp.createWidgetPage(url, isStartpage);
+    		} catch(IllegalArgumentException e) {
+    			throw new IllegalArgumentException("Could not create "+url, e);
+    		}
   			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> dataExPage = app.getUserAdmin().
   					getNaviPage(page, url, "dataExplorer.html", id, navi);
     		navi.initPage(dataExPage, app.appManExt);
@@ -93,13 +98,18 @@ public class GUIPageAdministation {
     	
     	i = 0;
     	for(LogicProvider navi: caps.logicProviders) try {
-    		navi.init(app.appManExt);
+    		String user = navi.userName();
+       		ExtensionUserDataNonEdit userData = null;
+       		if(user != null) {
+    			userData = app.getUserAdmin().getUserData(user);
+    		}
+ 			navi.init(app.appManExt, userData);
     		
     		LogicProviderData data = new LogicProviderData(navi, service);
 			logicProviders.add(data);
 			if(navi.getEntryTypes() == null) continue;
 			for(EntryType t: navi.getEntryTypes()) {
-				List<ProposalPublicData> listPub = proposalInfo.get(t.getType().representingResourceType());
+				List<LogicProviderPublicData> listPub = proposalInfo.get(t.getType().representingResourceType());
 				if(listPub == null) {
 					listPub = new ArrayList<>();
 					proposalInfo.put(t.getType().representingResourceType(), listPub);
@@ -147,12 +157,12 @@ public class GUIPageAdministation {
     		String naviId = SPPageUtil.buildId(navi);
  			if(navi.getEntryTypes() == null) continue;
 			else for(EntryType t: navi.getEntryTypes()) {
-				List<ProposalPublicData> listPub = proposalInfo.get(t.getType().representingResourceType());
+				List<LogicProviderPublicData> listPub = proposalInfo.get(t.getType().representingResourceType());
 				if(listPub == null) {
 					logger.error("Proposal providers have no entry for "+t.getType().representingResourceType().getName()+" when deregistering "+serviceId);
 					continue;
 				}
-				for(ProposalPublicData l:listPub) {
+				for(LogicProviderPublicData l:listPub) {
 					if(l.id().equals(naviId)) {
 						listPub.remove(l);
 						break;

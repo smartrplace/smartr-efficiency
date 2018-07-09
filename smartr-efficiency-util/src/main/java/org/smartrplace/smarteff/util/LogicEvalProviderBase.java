@@ -77,7 +77,7 @@ public abstract class LogicEvalProviderBase<T extends SmartEffResource, E extend
 		return LogicEvalProviderBase.this.getClass().getName();
 	}
 
-	@Override
+	/*@Override
 	public void init(ApplicationManagerSPExt appManExt) {
 		//ProjectProviderBase.this.appManExt = appManExt;
 		//add param and init
@@ -86,7 +86,12 @@ public abstract class LogicEvalProviderBase<T extends SmartEffResource, E extend
 			params.create();
 			if(initParams(params)) params.activate(true);
 		}
-	}
+		if(getInternalParamType() != null) {
+			SmartEffResource params = CapabilityHelper.getSubResourceSingle(userData.editableData(), getInternalParamType(), appManExt);
+			params.create();
+			if(initInternalParams(params)) params.activate(true);
+		}
+	}*/
 	
 	public LogicEvalProviderBase(ApplicationManagerSPExt appManExt) {
 		super(appManExt);

@@ -3,7 +3,7 @@ package org.smartrplace.extensionservice.resourcecreate;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.ogema.generictype.GenericDataTypeDeclaration;
+import org.smartrplace.critical.crossuser.ExtensionPageSystemAccessForCrossuserAccess;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
@@ -31,7 +31,7 @@ public interface ExtensionResourceAccessInitData {
 	 * 		the cardinality allows zero the list may be empty.
 	 */
 	List<Resource> entryResources();
-	List<GenericDataTypeDeclaration> entryData();
+	//List<GenericDataTypeDeclaration> entryData();
 	
 	ConfigInfo getConfigInfo();
 
@@ -54,9 +54,13 @@ public interface ExtensionResourceAccessInitData {
 	
 	ExtensionPageSystemAccessForTimeseries getTimeseriesManagement();
 	
+	ExtensionPageSystemAccessForCrossuserAccess getCrossuserAccess();
+	
 	public interface PublicUserInfo {
 		String userName();
 		boolean isAnonymousUser();
 	}
 	PublicUserInfo getUserInfo();
+	
+	
 }

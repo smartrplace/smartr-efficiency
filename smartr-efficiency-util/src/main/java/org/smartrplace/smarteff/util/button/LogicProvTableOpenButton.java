@@ -8,7 +8,7 @@ import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.util.SPPageUtil;
@@ -68,7 +68,7 @@ public class LogicProvTableOpenButton extends TableOpenButton {
 	
 	public static int getSize(Resource myResource, ExtensionResourceAccessInitData appData) {
 		Class<? extends Resource> type = myResource.getResourceType();
-		List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(type);
+		List<LogicProviderPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(type);
 		return provs.size();
 	}
 }

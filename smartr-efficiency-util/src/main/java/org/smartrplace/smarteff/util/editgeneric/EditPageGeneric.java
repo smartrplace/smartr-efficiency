@@ -12,12 +12,14 @@ import java.util.Map.Entry;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
@@ -49,6 +51,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.FlexWrap;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
+import de.iwes.widgets.multiselect.extended.MultiSelectStringArrayFreeText;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
@@ -139,7 +142,8 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			if(i == els.length) {
 				if(ResourceList.class.isAssignableFrom(cr)) {
 					TypeResult result = new TypeResult(cr);
-					result.elementType = CapabilityHelper.getTypeFromName(els[i-1], appManExt).dataType();
+					ExtensionResourceTypeDeclaration<?> superType = CapabilityHelper.getTypeFromName(els[i-1], appManExt);
+					result.elementType = superType.dataType();
 					return result;
 				}
 				return new TypeResult(cr);
@@ -278,7 +282,12 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			OgemaWidget valueWidget = null;
 			OgemaWidget label = null;
 			OgemaWidget linkButton = null;
-			TypeResult type = getType(sub);
+			TypeResult type = null;
+			try {
+				type = getType(sub);
+			} catch(NullPointerException e) {
+				throw new IllegalStateException("Could not process sub "+sub+"! Note that ResourceList names must fit the elementType name.");
+			}
 			if(type == null)
 				continue;
 			
@@ -475,6 +484,12 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return mhLoc.resourceLabel(sub, 20);
+		} else if(StringResource.class.isAssignableFrom(type2.type)) {
+			if(isEditable)	{
+				TextField valueWidget = mhLoc.stringEdit((String)sub, alert);
+				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
+				return valueWidget;
+			} else return mhLoc.stringLabel(sub);
 		} else if(IntegerResource.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
 				Map<OgemaLocale, Map<String, String>> innerMap = displayOptions.get(sub);
@@ -572,7 +587,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				};
 				FileUploaderProtected uploader = exPage.getSpecialWidgetManagement().
 						getFileUpload(page, "upload"+pid(), listenerToFile, null, alert);
-				CSVUploadButton csvButton = new CSVUploadButton(page, "csvUploadButton", uploader, alert) {
+				CSVUploadButton csvButton = new CSVUploadButton(page, "csvUploadButton"+sub, uploader, alert) {
 					private static final long serialVersionUID = 1L;
 					@Override
 					protected Integer getSize(OgemaHttpRequest req) {
@@ -585,16 +600,16 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				csvButton.setDefaultText("Upload Profile as CSV");
 				csvButton.triggerOnPOST(csvButton); //csvButton.registerDependentWidget(csvButton);
 				
-				RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openEvalButton", pid(),
+				RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openEvalButton"+sub, pid(),
 						exPage, null);
 				
-				Flexbox valueWidget = getHorizontalFlexBox(page, "flexbox"+pid(),
+				Flexbox valueWidget = getHorizontalFlexBox(page, "flexbox"+sub+pid(),
 						csvButton, uploader.getFileUpload(), openEvalButton);
 				return valueWidget;
 			} else return new Label(page, "noEdit_"+sub, "No Upload Allowed");
 		} else if(ResourceList.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
-				RedirectButton valueWidget = new ResourceOfTypeTableOpenButton(page, "open_"+sub, pid(), exPage, null) {
+				ResourceOfTypeTableOpenButton valueWidget = new ResourceOfTypeTableOpenButton(page, "open_"+sub, pid(), exPage, null) {
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -603,9 +618,24 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 						return type2.elementType;
 					}
 				};
+				valueWidget.openResSub(true);
 				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return new Label(page, "noEdit_"+sub, "Not Allowed");
+		} else if(StringArrayResource.class.isAssignableFrom(type2.type)) {
+			if(isEditable)	{
+				MultiSelectStringArrayFreeText multi = new MultiSelectStringArrayFreeText(page, "multisel"+sub) {
+					@Override
+					protected StringArrayResource getStringArrayResource(OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						StringArrayResource tsResource = ResourceHelper.getSubResource(entryResource, sub, StringArrayResource.class);
+						return tsResource;
+					}
+				};
+				Flexbox valueWidget = getHorizontalFlexBox(page, "flexbox"+sub+pid(),
+						multi.multiSelect, multi.newValue, multi.submit);
+				return valueWidget;
+			} else return mhLoc.stringLabel(sub);
 		} else {
 			return null;
 		}

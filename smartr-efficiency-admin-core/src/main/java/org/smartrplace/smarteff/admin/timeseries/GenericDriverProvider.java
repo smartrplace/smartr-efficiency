@@ -38,7 +38,7 @@ import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
-import extensionmodel.smarteff.api.common.BuildingUnitData;
+import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class GenericDriverProvider implements DriverProvider {
 	public static final String SINGLE_COLUMN_CSV_ID = "SINGLE_COLUMN_CSV:";
@@ -69,7 +69,7 @@ public class GenericDriverProvider implements DriverProvider {
 
 	@Override
 	public List<EntryType> getEntryTypes() {
-		return CapabilityHelper.getStandardEntryTypeList(BuildingData.class, BuildingUnitData.class);
+		return CapabilityHelper.getStandardEntryTypeList(BuildingData.class, BuildingUnit.class);
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class GenericDriverProvider implements DriverProvider {
 			BuildingData[] inp = entryResources.toArray(new BuildingData[0]);
 			return new SmartEffGaRoProviderTS(inp, this, knownGaRoTypes);
 		} else {
-			BuildingUnitData[] inp = entryResources.toArray(new BuildingUnitData[0]);
+			BuildingUnit[] inp = entryResources.toArray(new BuildingUnit[0]);
 			return new SmartEffGaRoProviderTS(inp, this, knownGaRoTypes);			
 		}
 	}

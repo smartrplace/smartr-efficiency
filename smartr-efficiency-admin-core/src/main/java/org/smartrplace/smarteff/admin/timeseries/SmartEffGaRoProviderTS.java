@@ -12,12 +12,12 @@ import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.html.selectiontree.SelectionItem;
 import extensionmodel.smarteff.api.common.BuildingData;
-import extensionmodel.smarteff.api.common.BuildingUnitData;
+import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGaRoSelectionItemTS> {
 
 	private final BuildingData[] buildingEntryResources;
-	private final BuildingUnitData[] buildingUnitEntryResources;
+	private final BuildingUnit[] buildingUnitEntryResources;
 	private final GenericDriverProvider provider;
 	private final Map<String, GaRoDataType> knownGaRoTypes;
 	
@@ -32,7 +32,7 @@ public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGa
 		this.provider = provider;
 		this.knownGaRoTypes = knownGaRoTypes;
 	}
-	public SmartEffGaRoProviderTS(BuildingUnitData[] buildingUnitEntryResources, GenericDriverProvider provider,
+	public SmartEffGaRoProviderTS(BuildingUnit[] buildingUnitEntryResources, GenericDriverProvider provider,
 			Map<String, GaRoDataType> knownGaRoTypes) {
 		super();
 		BuildingData building = ResourceHelper.getFirstParentOfType(
@@ -55,9 +55,9 @@ public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGa
 			return gwSelectionItems;
 		case GaRoMultiEvalDataProvider.ROOM_LEVEL:
 			List<SelectionItem> result = new ArrayList<>();
-			if(buildingUnitEntryResources != null) for(BuildingUnitData room: buildingUnitEntryResources)
+			if(buildingUnitEntryResources != null) for(BuildingUnit room: buildingUnitEntryResources)
 				result.add(new SmartEffGaRoSelectionItemTS(room, superItem));
-			else if(buildingEntryResources[0].subUnits().isActive()) for(BuildingUnitData room: buildingEntryResources[0].subUnits().getAllElements())
+			else if(buildingEntryResources[0].buildingUnit().isActive()) for(BuildingUnit room: buildingEntryResources[0].buildingUnit().getAllElements())
 				result.add(new SmartEffGaRoSelectionItemTS(room, superItem));
 			result.add(new SmartEffGaRoSelectionItemTS(GaRoMultiEvalDataProvider.BUILDING_OVERALL_ROOM_ID, null, superItem));
 			return result;
@@ -68,7 +68,7 @@ public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGa
 				for(BuildingData bd: buildingEntryResources)
 					recIds.addAll(provider.getTSConfigs(bd, null));
 			} else {
-				for(BuildingUnitData bd: buildingUnitEntryResources)
+				for(BuildingUnit bd: buildingUnitEntryResources)
 					recIds.addAll(provider.getTSConfigs(bd, null));
 			}
 

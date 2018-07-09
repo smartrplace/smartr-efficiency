@@ -11,10 +11,12 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.ResourceTablePage;
+import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
@@ -95,9 +97,9 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 	}
 	
 	@Override
-	protected List<Class<? extends Resource>> typesListedInTable() {
-		List<Class<? extends Resource>> result = new ArrayList<>();
-		result.add(creatingPage.getPrimaryEntryTypeClass());
+	protected List<GenericDataTypeDeclaration> typesListedInTable() {
+		List<GenericDataTypeDeclaration> result = new ArrayList<>();
+		result.add(CapabilityHelper.getGenericDataTypeDeclaration(creatingPage.getPrimaryEntryTypeClass()));
 		return result ;
 	}
 	

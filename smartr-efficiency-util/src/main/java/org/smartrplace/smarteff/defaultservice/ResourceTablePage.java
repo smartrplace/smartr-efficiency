@@ -118,6 +118,7 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 			this.exPage = exPage;
 			//this.appManMin = appManMin;
 			finishInit();
+			retardationOnGET = 1000;
 		}
 		protected void finishInit() {
 			triggerPageBuild();			
@@ -216,8 +217,10 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 		if(object.exists()) {
 			vh.stringLabel("Name", id, getSimpleName(object), row);
 			if(object instanceof CalculatedData) {
-				vh.stringLabel("Edit", id, "Result Resource", row);
-				SPPageUtil.addResEditOpenButton("Open", object, vh, id, row, appData, tabController, req);
+				//TODO: Page that provides details of result without option to edit
+				//vh.stringLabel("Edit", id, "Result Resource", row);
+				SPPageUtil.addResEditOpenButton("Edit", object, vh, id, row, appData, tabController, req);
+				SPPageUtil.addResTableOpenButton("Open", object, vh, id, row, appData, tabController, req);
 				vh.stringLabel("Evaluations", id, "--", row);
 				vh.stringLabel("Delete", id, "--", row);
 				vh.stringLabel("AddResource", id, "--", row);

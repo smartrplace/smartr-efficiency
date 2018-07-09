@@ -3,11 +3,11 @@ package org.smartrplace.smarteff.admin.protect;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.admin.object.LogicProviderData;
 
-public class ProposalPublicDataImpl extends ProviderPublicDataForCreateImpl implements ProposalPublicData {
+public class ProposalPublicDataImpl extends ProviderPublicDataForCreateImpl implements LogicProviderPublicData {
 	private final LogicProviderData internalData;
 	
 	public ProposalPublicDataImpl(LogicProviderData internalData) {
@@ -38,5 +38,10 @@ public class ProposalPublicDataImpl extends ProviderPublicDataForCreateImpl impl
 	@Override
 	public String getProviderId() {
 		return internalData.provider.getProviderId();
+	}
+
+	@Override
+	public Class<? extends Resource> getParamType() {
+		return internalData.provider.getParamType();
 	}
 }

@@ -40,6 +40,10 @@ public class UserAdmin {
 	public SmartEffUserDataNonEdit getUserData() {
         return userDataNE;
 	}
+	public SmartEffUserDataNonEdit getUserData(String userName) {
+		if(!userDataNE.ogemaUserName().getValue().equals(userName)) return null;
+        return userDataNE;
+	}
 	public Resource getAllUserResource() {
         return userDataNE;
 	}
@@ -66,7 +70,7 @@ public class UserAdmin {
 							app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 							app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
 							app.guiPageAdmin.proposalInfo, null, url);
-					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(-1, null, null, null,
+					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(-1, null, null,
 							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 					return result;
 				} else {
@@ -78,7 +82,7 @@ public class UserAdmin {
 							app.guiPageAdmin.proposalInfo,
 							(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, url);
 					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
-							c.entryResources, null, c,
+							c.entryResources, c,
 							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 					return result;
 				}
@@ -149,10 +153,10 @@ public class UserAdmin {
 			}
 			ExtensionResourceAccessInitData result;
 			if(c == null) {
-				result = new ExtensionResourceAccessInitDataImpl(-1, null, null, null,
+				result = new ExtensionResourceAccessInitDataImpl(-1, null, null,
 						editableData , userDataNonEdit, systemAccess, app);
 			} else {
-				result = new ExtensionResourceAccessInitDataImpl(c.entryIdx, c.entryResources, null, c,
+				result = new ExtensionResourceAccessInitDataImpl(c.entryIdx, c.entryResources, c,
 						editableData , userDataNonEdit, systemAccess, app);
 			}
 			return result;
@@ -164,7 +168,7 @@ public class UserAdmin {
 					app.guiPageAdmin.proposalInfo,
 					(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, url);
 			ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
-					c.entryResources, null, c,
+					c.entryResources, c,
 					userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 			return result;
 		}

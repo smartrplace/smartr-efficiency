@@ -13,6 +13,12 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 public class AddEntryButton extends NaviOpenButton implements CreateButtonI {
 	private static final long serialVersionUID = 1L;
 
+	/**Overwrite this if type shall be dynamic. Then set type=null in constructor*/
+	@Override
+	public Class<? extends Resource> typeToCreate(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+		return type;
+	}
+
 	private final Class<? extends Resource> type;
 	
 	public AddEntryButton(WidgetPage<?> page, String id, String pid, String text,
@@ -29,10 +35,5 @@ public class AddEntryButton extends NaviOpenButton implements CreateButtonI {
 			ButtonControlProvider tabButton, OgemaHttpRequest req) {
 		super(parent, id, pid, text, exPage, PageType.EDIT_PAGE, true, tabButton, req);
 		this.type = type;
-	}
-
-	@Override
-	public Class<? extends Resource> typeToCreate(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
-		return type;
 	}
 }

@@ -1,5 +1,6 @@
 package org.smartrplace.smarteff.defaultservice;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +12,7 @@ import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.util.CapabilityHelper;
@@ -31,6 +32,13 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class LogicProvTablePage extends NaviPageBase<Resource> {
 	protected TablePage tablePage;
+	
+	/** Providers that take a resource type as input that is a direct sub type of the resource
+	 * opened and has cardinality single can also be displayed and the respective sub resources
+	 * can be created/edited via this page as these can be considered "specific parameters" for
+	 * the LogicProvider.
+	 */
+	protected boolean includeSubProviders = true;
 	public static final Map<OgemaLocale, String> RESBUTTON_TEXTS = new HashMap<>();
 	static {
 		RESBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Logic Result");
@@ -41,7 +49,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 		super();
 	}
 
-	public class TablePage extends ObjectGUITablePage<ProposalPublicData, Resource> {
+	public class TablePage extends ObjectGUITablePage<LogicProviderPublicData, Resource> {
 		//private final ApplicationManagerMinimal appManMin;
 		private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
 		
@@ -51,20 +59,49 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 		}
 
 		@Override
-		public void addWidgets(ProposalPublicData object, ObjectResourceGUIHelper<ProposalPublicData, Resource> vh, String id,
+		public void addWidgets(LogicProviderPublicData object, ObjectResourceGUIHelper<LogicProviderPublicData, Resource> vh, String id,
 				OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 			if(req != null) {
 				vh.stringLabel("Name", id, object.label(req.getLocale()), row);
-				Button calculateButton = new Button(vh.getParent(), "calculateButton"+pid()+id, "Calculate", req) {
-					private static final long serialVersionUID = 1L;
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-						object.calculate(appData);
-					}
-				};
-				row.addCell("Calculate", calculateButton);
+
 				ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+				SPPageUtil.addParameterEditOpenButton("Parameters", object, appManExt.globalData(),
+						vh, id, row, appData, null, req);
+				
+				Resource entryResource = getReqData(req);
+				List<Class<? extends Resource>> types = new ArrayList<>();
+				for(EntryType et: object.getEntryTypes()) types.add(et.getType().representingResourceType());
+				Class<? extends Resource> primarySubType = object.getEntryTypes().get(0).getType().representingResourceType();
+				Resource subRes = null;
+				if(!types.contains(entryResource.getResourceType())) {
+					subRes = CapabilityHelper.getSubResourceOfTypeSingle(entryResource,
+							primarySubType);
+					SPPageUtil.addResEditOrCreateOpenButton("Input Data", subRes, vh, id, row, appData, null, req,
+							exPage);
+				} else {
+					if(!primarySubType.equals(entryResource.getResourceType())) {
+						vh.stringLabel("Input Data", id, "2nd plus", row);						
+					} else {
+						vh.stringLabel("Input Data", id, "--", row);
+					}
+				}
+				
+				boolean offerCalc = true;
+				if(subRes != null && (!subRes.isActive())) {
+					vh.stringLabel("Calculate", id, "Input Data missing", row);
+					offerCalc = false;
+				}
+				if(offerCalc) {
+					Button calculateButton = new Button(vh.getParent(), "calculateButton"+pid()+id, "Calculate", req) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+							object.calculate(appData);
+						}
+					};
+					row.addCell("Calculate", calculateButton);					
+				}
 				for(EntryType o: object.getEntryTypes()) if(o.getType() instanceof GaRoDataTypeI) {
 					SPPageUtil.addKPITableOpenButton("KPIs", getReqData(req), vh, id, row, appData, null,
 							object, req);
@@ -91,14 +128,13 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 				} else
 					SPPageUtil.addProjectResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
 				
-				SPPageUtil.addParameterEditOpenButton("Parameters", object, appManExt.globalData(),
-						vh, id, row, appData, null, req);					
 			} else {
 				vh.registerHeaderEntry("Name");
+				vh.registerHeaderEntry("Parameters");
+				vh.registerHeaderEntry("Input Data");
 				vh.registerHeaderEntry("Calculate");
 				vh.registerHeaderEntry("Results");
 				vh.registerHeaderEntry("KPIs");
-				vh.registerHeaderEntry("Parameters");
 			}
 		}
 
@@ -107,14 +143,21 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 		}
 		
 		@Override
-		public List<ProposalPublicData> getObjectsInTable(OgemaHttpRequest req) {
+		public List<LogicProviderPublicData> getObjectsInTable(OgemaHttpRequest req) {
 			ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 			Class<? extends Resource> type =  getReqData(req).getResourceType();
-			return appData.systemAccessForPageOpening().getLogicProviders(type);
+			if(!includeSubProviders)
+				return appData.systemAccessForPageOpening().getLogicProviders(type);
+			List<LogicProviderPublicData> result = appData.systemAccessForPageOpening().getLogicProviders(type);
+			for(Class<? extends Resource> subtype: appManExt.getSubTypes(type)) {
+				List<LogicProviderPublicData> subres = appData.systemAccessForPageOpening().getLogicProviders(subtype);
+				result.addAll(subres);
+			}
+			return result;
 		}
 
 		@Override
-		public Resource getResource(ProposalPublicData object, OgemaHttpRequest req) {
+		public Resource getResource(LogicProviderPublicData object, OgemaHttpRequest req) {
 			throw new IllegalStateException("Resource not provided for proposal table");
 		}
 	}

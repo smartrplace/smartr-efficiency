@@ -8,7 +8,7 @@ import java.util.Map;
 import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
@@ -17,7 +17,7 @@ import org.smartrplace.smarteff.admin.util.SmartrEffUtil;
 public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSystemAccessForPageOpening {
 	protected final Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo;
 	private final List<NavigationPublicPageData> startPagesData;
-	protected final Map<Class<? extends Resource>, List<ProposalPublicData>> proposalInfo;
+	protected final Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo;
 	protected final ConfigIdAdministration configIdAdmin;
 	private final Resource myPrimaryResource;
 	private final NavigationPublicPageData myNaviData;
@@ -26,7 +26,7 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo,
 			List<NavigationPublicPageData> startPagesData,
 			ConfigIdAdministration configIdAdmin,
-			Map<Class<? extends Resource>, List<ProposalPublicData>> proposalInfo,
+			Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo,
 			Resource myPrimaryResource, String myUrl) {
 		this.pageInfo = pageInfo;
 		this.startPagesData = startPagesData;
@@ -106,13 +106,13 @@ System.out.println("Navi-URL: "+navi.getUrl()+ " Searched:"+url);
 	}
 
 	@Override
-	public List<ProposalPublicData> getLogicProviders(Class<? extends Resource> type) {
-		List<ProposalPublicData> resultAll = proposalInfo.get(type);
-		List<ProposalPublicData> resultRes = proposalInfo.get(Resource.class);
+	public List<LogicProviderPublicData> getLogicProviders(Class<? extends Resource> type) {
+		List<LogicProviderPublicData> resultAll = proposalInfo.get(type);
+		List<LogicProviderPublicData> resultRes = proposalInfo.get(Resource.class);
 		if(resultRes != null) resultAll.addAll(resultRes);
 		if(resultAll == null) return Collections.emptyList();
-		List<ProposalPublicData> result = new ArrayList<>();
-		for(ProposalPublicData r: resultAll) {
+		List<LogicProviderPublicData> result = new ArrayList<>();
+		for(LogicProviderPublicData r: resultAll) {
 			if(r.getPriority() != PagePriority.HIDDEN) result.add(r);
 		}
 		return result;

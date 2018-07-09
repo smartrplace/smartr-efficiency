@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -36,6 +37,10 @@ public class GenericResourceByTypeTablePageBase<T extends Resource> extends Reso
 		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclarations()) {
 			if(decl.dataType().getName().equals(param)) return decl.dataType();
 		}
+		return null;
+	}
+	
+	public List<GenericDataTypeDeclaration> getElementTypes() {
 		return null;
 	}
 	

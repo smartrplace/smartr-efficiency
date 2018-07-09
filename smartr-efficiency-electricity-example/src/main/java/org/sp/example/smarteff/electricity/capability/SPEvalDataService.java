@@ -12,6 +12,9 @@ import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.smarteff.util.NaviPageBase;
+
+import extensionmodel.smarteff.electricity.example.ElectricityProfileEvalConfig;
 
 @Service(SmartEffExtensionService.class)
 @Component
@@ -22,6 +25,8 @@ public class SPEvalDataService implements SmartEffExtensionService {
 	public final static org.smartrplace.smarteff.defaultservice.BuildingEditPage.Provider BUILDING_EDIT_PROVIDER = new BuildingEditPage().provider;
 	*/
 	public ElectricityProfileEval BUILDING_PRESENCE_PROVIDER;
+	static final NaviPageBase<ElectricityProfileEvalConfig>.Provider PARAM_PAGE = new ElectricityProfileParamsPage().provider;
+	
 	@Override
 	public void start(ApplicationManagerSPExt appManExt) {
 		//this.appManExt = appManExt;
@@ -34,7 +39,7 @@ public class SPEvalDataService implements SmartEffExtensionService {
 
 	@Override
 	public Collection<ExtensionCapability> getCapabilities() {
-		return Arrays.asList(new ExtensionCapability[] {BUILDING_PRESENCE_PROVIDER});
+		return Arrays.asList(new ExtensionCapability[] {BUILDING_PRESENCE_PROVIDER, PARAM_PAGE});
 	}
 
 	@Override

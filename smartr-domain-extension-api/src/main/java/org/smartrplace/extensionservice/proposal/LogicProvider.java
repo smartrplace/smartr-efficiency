@@ -1,6 +1,7 @@
 package org.smartrplace.extensionservice.proposal;
 
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCreate;
 
@@ -15,10 +16,13 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCre
  * TODO: An importer could use this interface, but then the result type should be able to specify
  * and GenericDataTypeDeclaration. In this case input resources would act as the configuration
  * resources in {@link DriverProvider}. Also here no regular import would occur, but it has to be
- * triggered from somewhere else.<br>
- * TODO: A LogicProvider should specify its parameters. Currently this is only available in the
- * abstract class LogicProviderBase.
+ * triggered from somewhere else.
  */
-public interface LogicProvider extends ExtensionCapabilityForCreate, ProposalPublicData {
-	void init(ApplicationManagerSPExt appManExt);
+public interface LogicProvider extends ExtensionCapabilityForCreate, LogicProviderPublicData {
+	/** Called from framework to init provider
+	 * 
+	 * @param appManExt
+	 * @param userData user data of use declared via {@link #userName()}
+	 */
+	void init(ApplicationManagerSPExt appManExt, ExtensionUserDataNonEdit userData);
 }

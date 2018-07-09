@@ -8,21 +8,22 @@ import java.util.Map;
 import org.ogema.core.model.Resource;
 import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
-import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
+import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
-import org.smartrplace.extensionservice.proposal.ProposalPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.defaultservice.ResultTablePage;
 import org.smartrplace.smarteff.util.button.AddEditButton;
+import org.smartrplace.smarteff.util.button.AddEntryButton;
 import org.smartrplace.smarteff.util.button.ButtonControlProvider;
 import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ProposalResTableOpenButton;
@@ -37,6 +38,7 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.TemplateRedirectButton;
+import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class SPPageUtil {
 	public static final String OPEN_NEW_TAB_STRING = "New Tab";
@@ -119,6 +121,28 @@ public class SPPageUtil {
 			return null;
 		}
 	}
+	public static OgemaWidget addResEditOrCreateOpenButton(String columnName, Resource object,
+			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
+			ExtensionResourceAccessInitData appData,
+			ButtonControlProvider controlProvider, OgemaHttpRequest req,
+			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage) {
+		if(appData != null) {
+			if(object.exists()) {
+				NavigationPublicPageData pageData = getPageData(appData, object.getResourceType(), PageType.EDIT_PAGE);
+				int size = AddEditButton.getSize(object, appData);
+				String text = ValueFormat.getLocaleString(req, AddEditButton.BUTTON_TEXTS);
+				return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
+						text+"("+size+")", "Locked", false, PageType.EDIT_PAGE, controlProvider, null, req);
+			}
+			String widgetId = WidgetHelper.getValidWidgetId(columnName);
+			AddEntryButton addButton = new AddEntryButton(vh.getParent(), widgetId, id, "Add Sub Resource", object.getResourceType(), exPage, controlProvider, req);
+			row.addCell(widgetId, addButton);
+			return addButton;
+		} else {
+			vh.registerHeaderEntry(columnName);
+			return null;
+		}
+	}
 	public static OgemaWidget addResTableOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
@@ -137,7 +161,7 @@ public class SPPageUtil {
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
 		if(appData != null) {
-			List<ProposalPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(object.getResourceType());
+			List<LogicProviderPublicData> provs = appData.systemAccessForPageOpening().getLogicProviders(object.getResourceType());
 			if(provs.isEmpty()) {
 				return vh.stringLabel(columnName, id, "No Providers", row);
 			} else {
@@ -172,22 +196,19 @@ public class SPPageUtil {
 		}
 	}
 	public static OgemaWidget addParameterEditOpenButton(String columnName,
-			ProposalPublicData object, ExtensionGeneralData globalData,
+			LogicProviderPublicData object, ExtensionGeneralData globalData,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
 		if(appData != null) {
-			SmartEffResource param = null;
-			Class<? extends SmartEffResource> paramType = null;
-			if(object instanceof LogicProviderBase) {
-				LogicProviderBase<?> logic = (LogicProviderBase<?>) object;
-				paramType = logic.getParamType();
-				List<? extends SmartEffResource> all = appData.userData().getSubResources(paramType, true);
-				if(all.isEmpty()) {
-					List<? extends SmartEffResource> all2 = globalData.getSubResources(paramType, true);
-					if(!all2.isEmpty()) param = all2.get(0);
-				}
-				else param = all.get(0);
+			Resource param = null;
+			Class<? extends Resource> paramType = null;
+			paramType = object.getParamType();
+			List<? extends Resource> all = appData.userData().getSubResources(paramType, true);
+			if(all.isEmpty()) {
+				List<? extends Resource> all2 = globalData.getSubResources(paramType, true);
+				if(!all2.isEmpty()) param = all2.get(0);
 			}
+			else param = all.get(0);
 			if(param == null) {
 				return vh.stringLabel(columnName, id, "No Parameter", row);
 			} else {
@@ -210,7 +231,7 @@ public class SPPageUtil {
 	public static OgemaWidget addKPITableOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider,
-			ProposalPublicData proposalPublic, OgemaHttpRequest req) {
+			LogicProviderPublicData proposalPublic, OgemaHttpRequest req) {
 		if(appData != null) {
 			List<KPIStatisticsManagement> kpis = appData.getEvaluationManagement().getKPIManagement(
 					object, proposalPublic.getProviderId());

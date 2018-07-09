@@ -4,7 +4,8 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.sp.example.smartrheating.SmartrHeatingRadiatorTypeData;
+
+import extensionmodel.smarteff.api.common.BuildingData;
 
 public interface SmartrHeatingData extends SmartEffResource {
 	/** 1: Standard on radiators<br>
@@ -14,6 +15,7 @@ public interface SmartrHeatingData extends SmartEffResource {
 	 */
 	IntegerResource typeOfThermostats();
 	
+	/**TODO: This value already exists as {@link BuildingData#roomNum()}*/
 	IntegerResource numberOfRooms();
 	
 	IntegerResource numberOfRadiators();
@@ -26,7 +28,7 @@ public interface SmartrHeatingData extends SmartEffResource {
 	
 	BooleanResource gasMeterHasPulseOutput();
 	
-	ResourceList<SmartrHeatingRadiatorTypeData> radiatorTypes();
+	ResourceList<SHeatRadiatorType> sHeatRadiatorType();
 	
 	//TODO: add further elements
 }

@@ -3,6 +3,7 @@ package org.smartrplace.smarteff.util;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
@@ -32,6 +33,10 @@ public abstract class NaviPageBase<T extends Resource>  {
 	protected abstract String label(OgemaLocale locale);
 	protected abstract void addWidgets();
 	protected abstract List<EntryType> getEntryTypes();
+	protected List<GenericDataTypeDeclaration> getElementTypes() {
+		return null;
+	}
+
 	protected abstract PageType getPageType();
 	//Overwrite if necessary
 	protected String getHeader(OgemaHttpRequest req) {
@@ -44,7 +49,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 		return PagePriority.STANDARD;
 	}
 	protected String getMaintainer() { return null;}
-	protected List<Class<? extends Resource>> typesListedInTable() {return null;}
+	protected List<GenericDataTypeDeclaration> typesListedInTable() {return null;}
 
 	protected EditPage editOrTablePage;
 	public final Provider provider;	
@@ -118,7 +123,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 		public List<EntryType> getEntryTypes() {
 			return NaviPageBase.this.getEntryTypes();
 		}
-
+		
 		@Override
 		public PageType getPageType() {
 			return NaviPageBase.this.getPageType();
@@ -135,7 +140,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 		}
 		
 		@Override
-		public List<Class<? extends Resource>> typesListedInTable() {
+		public List<GenericDataTypeDeclaration> typesListedInTable() {
 			return NaviPageBase.this.typesListedInTable();
 		}
 	}
