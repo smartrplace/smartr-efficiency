@@ -3,6 +3,7 @@ package org.smartrplace.smarteff.admin.protect;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCreate;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate;
 import org.smartrplace.smarteff.util.SPPageUtil;
@@ -37,7 +38,7 @@ public class ProviderPublicDataForCreateImpl implements ProviderPublicDataForCre
 	}
 
 	@Override
-	public List<Class<? extends Resource>> typesListedInTable() {
+	public List<GenericDataTypeDeclaration> typesListedInTable() {
 		return inputProvider.typesListedInTable();
 	}
 
