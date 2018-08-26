@@ -55,7 +55,7 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 	public GenericResourceByTypeTablePageBase<T> getTablePage() {
 		if(!isWithTable) return null;
 		if(genericTablePageWrapper != null) return genericTablePageWrapper;
-		genericTablePageWrapper = new GenericResourceByTypeTablePage<T>(this);
+		genericTablePageWrapper = new GenericResourceByTypeTablePage<T>(this, this.getClass().getName()+"_TablePage");
 		return genericTablePageWrapper;
 	}
 	

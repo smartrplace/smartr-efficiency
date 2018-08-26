@@ -65,7 +65,10 @@ public class GUIPageAdministation {
     		try {
     			page = app.widgetApp.createWidgetPage(url, isStartpage);
     		} catch(IllegalArgumentException e) {
-    			throw new IllegalArgumentException("Could not create "+url, e);
+    			//print stack trace
+    			new IllegalArgumentException("Could not create "+url+" for "+navi.id(), e).printStackTrace();
+    			continue;
+    			//Note that exception "rootWidget already exists" is usually thrown when the same URL has been registered before
     		}
   			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> dataExPage = app.getUserAdmin().
   					getNaviPage(page, url, "dataExplorer.html", id, navi);

@@ -31,10 +31,17 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class GenericResourceByTypeTablePage<T extends Resource> extends GenericResourceByTypeTablePageBase<T> {
 	private final EditPageGenericWithTable<T> creatingPage;
+	private final String id;
 	
-	public GenericResourceByTypeTablePage(EditPageGenericWithTable<T> creatingPage) {
+	public GenericResourceByTypeTablePage(EditPageGenericWithTable<T> creatingPage, String id) {
 		super();
 		this.creatingPage = creatingPage;
+		this.id = id;
+	}
+	
+	@Override
+	public String id() {
+		return id;
 	}
 
 	class TablePageEPM extends ResourceTablePage.TablePage {

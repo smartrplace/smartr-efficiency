@@ -42,6 +42,9 @@ public abstract class NaviPageBase<T extends Resource>  {
 	protected String getHeader(OgemaHttpRequest req) {
 		return getReqData(req).getLocation();
 	}
+	protected String id() {
+		return this.getClass().getName();
+	}
 	protected String pid() {
 		return primaryEntryTypeClass().getSimpleName();
 	}
@@ -103,7 +106,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 		
 		@Override
 		public String id() {
-			return NaviPageBase.this.getClass().getName();
+			return NaviPageBase.this.id();
 		}
 	
 		@Override

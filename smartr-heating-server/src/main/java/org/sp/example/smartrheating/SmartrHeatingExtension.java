@@ -45,10 +45,11 @@ public class SmartrHeatingExtension implements SmartEffExtensionService {
 	@Override
 	public Collection<ExtensionCapability> getCapabilities() {
 		return Arrays.asList(new ExtensionCapability[] {EDIT_PROVIDER,
-				PROPOSAL_PROV, PARAM_PAGE.provider, RADIATOR_PAGE.provider, RADIATOR_TABLE.provider,
+				PROPOSAL_PROV, PARAM_PAGE.provider, RADIATOR_TABLE.provider,
 				PARAMINTERNAL_PAGE.provider});
 	}
-
+	//RADIATOR_PAGE.provider
+	
 	@Override
 	public Collection<ExtensionResourceTypeDeclaration<? extends SmartEffResource>> resourcesDefined() {
 		Collection<ExtensionResourceTypeDeclaration<? extends SmartEffResource>> result = 
