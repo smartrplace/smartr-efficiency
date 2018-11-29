@@ -76,6 +76,10 @@
         </dependency>
         <dependency>
             <groupId>org.ogema.widgets</groupId>
+            <artifactId>widget-extended</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ogema.widgets</groupId>
             <artifactId>widget-experimental</artifactId>
         </dependency>
   		<dependency>

@@ -12,7 +12,6 @@ import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.util.directresourcegui.kpi.IntervalTypeDropdown;
 import org.ogema.util.directresourcegui.kpi.KPIMonitoringReport;
 import org.ogema.util.directresourcegui.kpi.KPIResultType;
-import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.ogema.util.evalcontrol.EvalScheduler;
 import org.ogema.util.jsonresult.management.EvalResultManagementStd;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
@@ -27,6 +26,7 @@ import org.smartrplace.smarteff.util.button.ResourceTableOpenButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 
+import de.iwes.timeseries.eval.garo.multibase.KPIStatisticsManagementI;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -72,14 +72,14 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 
 		@Override
 		public void addWidgetsAboveTable() {
-			this.intervalDrop = new IntervalTypeDropdown(page, "singleTimeInterval", false, intervalTypes, standardInterval);
+			this.intervalDrop = new IntervalTypeDropdown(page, "singleTimeInterval", false, intervalTypesNP, standardInterval);
 			this.dateOfReport = new Label(page, "dateOfReport") {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void onGET(OgemaHttpRequest req) {
 					Resource entryRes = getReqData(req);
 					ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-					List<KPIStatisticsManagement> evalsP = appData.getEvaluationManagement().getKPIManagement(entryRes);
+					List<KPIStatisticsManagementI> evalsP = appData.getEvaluationManagement().getKPIManagement(entryRes);
 					int baseInterval = -2;
 					if(evalsP != null && (!evalsP.isEmpty())) {
 						baseInterval = evalsP.get(0).getBaseInterval();
@@ -115,8 +115,8 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 			
 			Resource entryRes = getReqData(req);
 			ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-			List<KPIStatisticsManagement> evalsP = appData.getEvaluationManagement().getKPIManagement(entryRes);
-			for(KPIStatisticsManagement ksm: evalsP) {
+			List<KPIStatisticsManagementI> evalsP = appData.getEvaluationManagement().getKPIManagement(entryRes);
+			for(KPIStatisticsManagementI ksm: evalsP) {
 				result.add(new KPIResultType(ksm));
 			}
 			return result;

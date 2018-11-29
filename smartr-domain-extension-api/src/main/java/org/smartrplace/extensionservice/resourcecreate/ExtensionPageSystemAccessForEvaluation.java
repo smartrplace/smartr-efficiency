@@ -11,6 +11,7 @@ import org.smartrplace.extensionservice.driver.DriverProvider;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoSuperEvalResult;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
+import de.iwes.timeseries.eval.garo.multibase.KPIStatisticsManagementI;
 
 public interface ExtensionPageSystemAccessForEvaluation {
 	
@@ -72,10 +73,10 @@ public interface ExtensionPageSystemAccessForEvaluation {
 	
 	/**Get instances KPIStatisticsManagement that can be used to access the KPI data
 	 * */
-	public List<KPIStatisticsManagement> getKPIManagement(Resource entryResource, String providerId);
+	public List<KPIStatisticsManagementI> getKPIManagement(Resource entryResource, String providerId);
 	/** Get all KPIStatisticsManagement instances relevant for an entry resouce
 	 */
-	public List<KPIStatisticsManagement> getKPIManagement(Resource entryResource);
+	public List<KPIStatisticsManagementI> getKPIManagement(Resource entryResource);
 	
 	/** Get all results for entryResource*/
 	public List<JSONResultFileData> getDataOfResource(Resource entryResource);

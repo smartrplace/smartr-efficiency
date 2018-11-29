@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
-import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
@@ -33,6 +32,7 @@ import org.smartrplace.util.format.ValueFormat;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.format.WidgetPageFormatter;
 
+import de.iwes.timeseries.eval.garo.multibase.KPIStatisticsManagementI;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -233,7 +233,7 @@ public class SPPageUtil {
 			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider,
 			LogicProviderPublicData proposalPublic, OgemaHttpRequest req) {
 		if(appData != null) {
-			List<KPIStatisticsManagement> kpis = appData.getEvaluationManagement().getKPIManagement(
+			List<KPIStatisticsManagementI> kpis = appData.getEvaluationManagement().getKPIManagement(
 					object, proposalPublic.getProviderId());
 			//List<MultiEvalStartConfiguration> resultsAvail = object.getSubResources(MultiEvalStartConfiguration.class, true);
 			if(kpis == null || kpis.isEmpty()) {

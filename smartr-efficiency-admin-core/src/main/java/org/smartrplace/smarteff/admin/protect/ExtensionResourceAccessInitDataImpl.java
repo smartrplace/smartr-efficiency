@@ -16,7 +16,6 @@ import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.model.jsonresult.JSONResultFileData;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
-import org.ogema.util.directresourcegui.kpi.KPIStatisticsManagement;
 import org.ogema.util.evalcontrol.EvalScheduler;
 import org.ogema.util.evalcontrol.EvalScheduler.OverwriteMode;
 import org.smartrplace.critical.crossuser.ExtensionPageSystemAccessForCrossuserAccess;
@@ -38,6 +37,7 @@ import de.iwes.timeseries.eval.api.DataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoSuperEvalResult;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
+import de.iwes.timeseries.eval.garo.multibase.KPIStatisticsManagementI;
 import de.iwes.util.resource.ResourceHelper;
 import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
@@ -235,7 +235,7 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			 * be configured
 			 * @return management objects for each ResultType-KPI*/
 			@Override
-			public List<KPIStatisticsManagement> getKPIManagement(Resource entryResource, String providerId) {
+			public List<KPIStatisticsManagementI> getKPIManagement(Resource entryResource, String providerId) {
 				MultiKPIEvalConfiguration startConfig = null;
 				@SuppressWarnings("unchecked")
 				ResourceList<MultiKPIEvalConfiguration> resList =
@@ -250,15 +250,16 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 						startConfig, eval );
 			}
 			
-			private List<KPIStatisticsManagement> getKPIManagement(MultiKPIEvalConfiguration startConfig) {
+			private List<KPIStatisticsManagementI> getKPIManagement(MultiKPIEvalConfiguration startConfig) {
 				String providerId = startConfig.evaluationProviderId().getValue();
 				GaRoSingleEvalProvider eval = controller.serviceAccess.evalResultMan().getEvalScheduler().getProvider(providerId);
 				return controller.serviceAccess.evalResultMan().getEvalScheduler().configureKPIManagement(
 						startConfig, eval );
 			}
 			
-			public List<KPIStatisticsManagement> getKPIManagement(Resource entryResource) {
-				List<KPIStatisticsManagement> result = new ArrayList<>();
+			@Override
+			public List<KPIStatisticsManagementI> getKPIManagement(Resource entryResource) {
+				List<KPIStatisticsManagementI> result = new ArrayList<>();
 				@SuppressWarnings("unchecked")
 				ResourceList<MultiKPIEvalConfiguration> resList =
 						entryResource.getSubResource("multiKPIEvalConfiguration", ResourceList.class);

@@ -14,6 +14,7 @@ import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 
 import de.iwes.timeseries.eval.api.DataProvider;
+import de.iwes.timeseries.eval.garo.api.base.EvaluationInputImplGaRo;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.jaxb.GaRoMultiEvalDataProviderJAXB;
 import de.iwes.timeseries.eval.garo.api.jaxb.GaRoSelectionItemJAXB;
@@ -95,6 +96,16 @@ public class DataDriverGaroJAXB implements DriverProvider {
 			@Override
 			public void setGatewaysOffered(List<SelectionItem> gwSelectionItemsToOffer) {
 				throw new IllegalStateException("setGatewaysOffered not supported here!");
+			}
+
+			@Override
+			public List<String> getGatewayIds() {
+				return jaxbProvider.getGatewayIds();
+			}
+
+			@Override
+			public EvaluationInputImplGaRo getData(List<SelectionItem> items) {
+				return jaxbProvider.getData(items);
 			}
 		};
 	}

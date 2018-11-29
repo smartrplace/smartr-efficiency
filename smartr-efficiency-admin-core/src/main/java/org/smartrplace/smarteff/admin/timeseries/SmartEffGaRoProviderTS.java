@@ -6,10 +6,14 @@ import java.util.Map;
 
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
+import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.timeseries.eval.garo.api.base.EvaluationInputImplGaRo;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI.Level;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
+import de.iwes.timeseries.eval.garo.resource.GaRoSelectionItemResource;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ResourceHelper.DeviceInfo;
 import de.iwes.widgets.html.selectiontree.SelectionItem;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
@@ -111,6 +115,27 @@ public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGa
 	@Override
 	public void setGatewaysOffered(List<SelectionItem> gwSelectionItemsToOffer) {
 		throw new IllegalStateException("setGatewaysOffered not supported here!");
+	}
+	@Override
+	public List<String> getGatewayIds() {
+		List<String> result = new ArrayList<>();
+		for(BuildingData gw: buildingEntryResources)
+			result.add(gw.getLocation());
+		return result;
+	}
+	@Override
+	public EvaluationInputImplGaRo getData(List<SelectionItem> items) {
+		//from GaRoMultiEvalProviderResource
+		List<TimeSeriesData> tsList = new ArrayList<>();
+		List<DeviceInfo> devList = new ArrayList<>();
+		for(SelectionItem item: items) {
+			tsList.add(terminalOption.getElement(item));
+			if(item instanceof GaRoSelectionItemResource) {
+				DeviceInfo dev = ResourceHelper.getDeviceInformation(((GaRoSelectionItemResource)item).resource);
+				devList.add(dev);				
+			} else devList.add(null);
+		}
+		return new EvaluationInputImplGaRo(tsList, devList);
 	}
 
 }
