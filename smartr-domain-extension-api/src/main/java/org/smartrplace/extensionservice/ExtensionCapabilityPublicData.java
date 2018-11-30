@@ -10,27 +10,12 @@ import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.proposal.LogicProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
-import de.iwes.timeseries.eval.api.ResultType;
 import de.iwes.widgets.template.LabelledItem;
 
 /** Capability information that is made public to users and applications. The main information
  * provided via this interface is the definition of the input types of NavigationGUIProviders and
  * LogicProviders whereas LogicProviders can also be Synchronizers (see {@link DriverProvider},
  * HouseKeeping modules and probably also manual import/export modules (to be tested via development).
- * <br>
- * There are currently 3 interfaces used for evaluation input type definition:
- * - {@link ResultType}: Standard evaluation input. Besides id and label that cannot be interpreted
- *    automatically this only contains the SingleValueResource-type that is expected as timeseries
- *    input. Scalar/Constant input is only supported via configurations. Furthermore this is usually
- *    limited to a certain EvaluationProvider.
- * - {@link GenericDataTypeDeclaration}: Here timeseries, constant value and structured input can
- *    be requested in extension to the definition of the input resource type. Also additional
- *    attributes can be given. Note that it does NOT extend ResultType as such instances are usually
- *    not limited to be used only by a single EvaluationProvider.
- * - GaRoDataType: This extends GenericDataTypeDeclaration. It provides additional documentation to
- *    really define a very specific input type in the GaRo context as two data sources that have
- *    the same GenericDataTypeDeclaration may still have different content. As it extends
- *    GenericDataTypeDeclaration also a GaRoDataType can be given in {@link EntryType#getType()}.
  */
 public interface ExtensionCapabilityPublicData extends LabelledItem {
 	public static interface EntryType {

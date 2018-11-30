@@ -30,9 +30,9 @@ public class UserAdmin {
 		this.app = app;
 		if(app == null) return;
 		userDataNE = app.appMan.getResourceAccess().getResource("master");
+		initConfigurationResource();
 		if(!userDataNE.isActive()) {
 			initTestData();
-			
 		}
 		cleanUpAccount(userDataNE);
 	}

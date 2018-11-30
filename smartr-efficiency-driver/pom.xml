@@ -4,7 +4,7 @@
      <parent>
        <artifactId>apps-master</artifactId>
        <groupId>org.ogema.apps</groupId>
-        <version>2.2.1-SNAPSHOT</version> <!-- FIX ME SNAPSHOT VERSIon -->
+        <version>2.2.0</version>
     </parent>
     
     <artifactId>smartr-efficiency-driver</artifactId>

@@ -1,4 +1,4 @@
-package org.smartrplace.smarteff.admin;
+package org.smartrplace.smarteff.stdadmin;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -22,7 +22,9 @@ import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
-import org.smartrplace.smarteff.multiadmin.util.BaseDataServiceAdmin;
+import org.smartrplace.smarteff.admin.ServiceAccess;
+import org.smartrplace.smarteff.admin.SpEffAdminController;
+import org.smartrplace.smarteff.stdadmin.util.BaseDataServiceAdmin;
 import org.smartrplace.smarteff.util.SPPageUtil;
 
 import de.iwes.timeseries.eval.base.provider.BasicEvaluationProvider;
@@ -34,7 +36,7 @@ import de.iwes.widgets.api.widgets.WidgetApp;
  */
 @References({
 	@Reference(
-		name="capabilityProviders",
+		name="evaluationProviders",
 		referenceInterface=SmartEffExtensionService.class,
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
@@ -69,11 +71,6 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 	private BundleContext bc;
 	protected ServiceRegistration<SmartEffExtensionService> sr = null;
 
-    @Activate
-    void activate(BundleContext bc) {
-    	this.bc = bc;
-    }
-
     private final Map<String,SmartEffExtensionService> evaluationProviders = Collections.synchronizedMap(new LinkedHashMap<String,SmartEffExtensionService>());
 	public Map<String, SmartEffExtensionService> getEvaluations() {
 		return evaluationProviders;
@@ -81,9 +78,12 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 
 	public BasicEvaluationProvider basicEvalProvider = null;
 
+    @Activate
+    void activate(BundleContext bc) {
+    	this.bc = bc;
+    }
 
-	/*
-     * This is the entry point to the application.
+	/* This is the entry point to the application.
      */
  	@Override
     public void start(ApplicationManager appManager) {
@@ -96,38 +96,6 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
         controller = new SpEffAdminController(appMan, this, widgetApp, csvImport);
 		
-		//register a web page with dynamically generated HTML
-		/*WidgetPage<?> page = widgetApp.createStartPage();
-		mainPage = new ServicePage(page, controller);
-		WidgetPage<?> pageDetails = widgetApp.createWidgetPage("Details.html");
-		offlineEvalPage = new ServiceDetailPage(pageDetails, controller);
-		WidgetPage<?> pageResTypes = widgetApp.createWidgetPage("resTypes.html");
-		SmartrEffExtResourceTypeData rtd = new SmartrEffExtResourceTypeData(BaseDataService.BUILDING_DATA, null, null);
-		resTypePage = new ResTypePage(pageResTypes, controller, rtd );
-		WidgetPage<?> page3 = widgetApp.createWidgetPage("dataExplorer.html");
-		dataExPage = new DataExplorerPage(page3, controller, controller.getUserAdmin().getAppConfigData().globalData());
-		WidgetPage<?> pageNavis = widgetApp.createWidgetPage("naviOverview.html");
-		NavigationPageData navi = new NavigationPageData(BaseDataService.BUILDING_NAVI_PROVIDER, null, "", null);
-		naviPage = new NaviOverviewPage(pageNavis, controller, navi);
-
-		menu = new NavigationMenu("Select Page");
-		menu.addEntry("Services Overview Page", page);
-		menu.addEntry("Services Details Page", pageDetails);
-		menu.addEntry("Data Types", pageResTypes);
-		//menu.addEntry("Data Explorer", page3);
-		menu.addEntry("Navigation Pages", pageNavis);
-		
-		MenuConfiguration mc = page.getMenuConfiguration();
-		mc.setCustomNavigation(menu);
-		mc = pageDetails.getMenuConfiguration();
-		mc.setCustomNavigation(menu);
-		mc = pageResTypes.getMenuConfiguration();
-		mc.setCustomNavigation(menu);
-		mc = page3.getMenuConfiguration();
-		mc.setCustomNavigation(menu);
-		mc = pageNavis.getMenuConfiguration();
-		mc.setCustomNavigation(menu);*/
-
         BaseDataServiceAdmin dataService = new BaseDataServiceAdmin(controller);
         sr = bc.registerService(SmartEffExtensionService.class, dataService, null);
 	
@@ -175,5 +143,4 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 				controller.unregisterService(provider);			}
 		};
     }
-
 }

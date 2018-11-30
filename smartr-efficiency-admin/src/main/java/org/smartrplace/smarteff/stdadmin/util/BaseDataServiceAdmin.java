@@ -1,4 +1,4 @@
-package org.smartrplace.smarteff.multiadmin.util;
+package org.smartrplace.smarteff.stdadmin.util;
 
 import java.util.Arrays;
 import java.util.Collection;
