@@ -33,6 +33,21 @@ import extensionmodel.smarteff.api.common.AccessControl;
  * usually takes 3 input: The input resource, the parameter resource that provides parameters that
  * may be a mix of public and private user parameters but that are not specific for a certain input
  * resource and the output resource that is filled by the calculation.
+ * <br>
+ * TIMESERIES EVALUATION INPUT CONCEPT<br>
+ * There are currently 3 interfaces used for time series evaluation input type definition:
+ * - {@link ResultType}: Standard evaluation input. Besides id and label that cannot be interpreted
+ *    automatically this only contains the SingleValueResource-type that is expected as timeseries
+ *    input. Scalar/Constant input is only supported via configurations. Furthermore this is usually
+ *    limited to a certain EvaluationProvider.
+ * - {@link GenericDataTypeDeclaration}: Here timeseries, constant value and structured input can
+ *    be requested in extension to the definition of the input resource type. Also additional
+ *    attributes can be given. Note that it does NOT extend ResultType as such instances are usually
+ *    not limited to be used only by a single EvaluationProvider.
+ * - {@link GaRoDataType}: This extends GenericDataTypeDeclaration. It provides additional documentation to
+ *    really define a very specific input type in the GaRo context as two data sources that have
+ *    the same GenericDataTypeDeclaration may still have different content. As it extends
+ *    GenericDataTypeDeclaration also a GaRoDataType can be given in {@link EntryType#getType()}.
  */
 public abstract class LogicProviderBase<T extends SmartEffResource>  implements LogicProvider {
 	protected abstract void calculateProposal(T input, CalculatedData result, ExtensionResourceAccessInitData data);
@@ -56,21 +71,6 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 	 * If vendor-internal parameters are required declare the model in {@link #getInternalParamType()}.
 	 * So in total four resource types are required to describe input (3x) and output (1x) in general.
 	 * This assumes that vendor-internal parameters are only required from a single vendor.
-	 *  * <br>
-	 * TIMESERIES EVALUATION INPUT CONCEPT<br>
-	 * There are currently 3 interfaces used for time series evaluation input type definition:
-	 * - {@link ResultType}: Standard evaluation input. Besides id and label that cannot be interpreted
-	 *    automatically this only contains the SingleValueResource-type that is expected as timeseries
-	 *    input. Scalar/Constant input is only supported via configurations. Furthermore this is usually
-	 *    limited to a certain EvaluationProvider.
-	 * - {@link GenericDataTypeDeclaration}: Here timeseries, constant value and structured input can
-	 *    be requested in extension to the definition of the input resource type. Also additional
-	 *    attributes can be given. Note that it does NOT extend ResultType as such instances are usually
-	 *    not limited to be used only by a single EvaluationProvider.
-	 * - {@link GaRoDataType}: This extends GenericDataTypeDeclaration. It provides additional documentation to
-	 *    really define a very specific input type in the GaRo context as two data sources that have
-	 *    the same GenericDataTypeDeclaration may still have different content. As it extends
-	 *    GenericDataTypeDeclaration also a GaRoDataType can be given in {@link EntryType#getType()}.
 	 */
 	@Override
 	public abstract Class<? extends SmartEffResource> getParamType();

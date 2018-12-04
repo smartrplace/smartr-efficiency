@@ -22,6 +22,8 @@ import de.iwes.widgets.html.form.button.TemplateRedirectButton;
  */
 public abstract class ExtensionNavigationPage<T extends ExtensionUserDataNonEdit, C extends ExtensionResourceAccessInitData> 
 		implements ExtensionNavigationPageI<T, C>{
+	public static final String PARAM_PROVIDER_ID = "providerId";
+	
 	protected abstract List<T> getUsers(OgemaHttpRequest req);
 	
 	public final WidgetPage<?> page;
@@ -31,6 +33,7 @@ public abstract class ExtensionNavigationPage<T extends ExtensionUserDataNonEdit
 	public final TemplateInitSingleEmpty<C> init;
 	protected void init(OgemaHttpRequest req) {};
 	protected abstract  C getItemById(String configId, OgemaHttpRequest req);
+	protected C getItemById(String providerId, String configId, OgemaHttpRequest req) { return null;}
 	private final List<InitListener> initListeners = new ArrayList<>();
 	
 	public ExtensionNavigationPage(final WidgetPage<?> page, String url, String overviewUrl,
@@ -52,11 +55,24 @@ public abstract class ExtensionNavigationPage<T extends ExtensionUserDataNonEdit
 					if (patterns == null || patterns.length == 0)
 						res = ExtensionNavigationPage.this.getItemById(null, req);
 					else {
-						final String selected = patterns[0];
-						try {
-							res = ExtensionNavigationPage.this.getItemById(selected, req); // may return null or throw an exception
-						} catch (Exception e) { // if the type does not match
-							LoggerFactory.getLogger(TemplateInitSingleEmpty.class).info("Empty template widget could not be initialized with the selected value {}",selected,e);
+						final String configId = patterns[0];
+						String[] patternsProv = params.get(PARAM_PROVIDER_ID);
+						if ((patternsProv != null) && (patternsProv.length > 0)) {
+							final String providerId = patternsProv[0];
+							try {
+								res = ExtensionNavigationPage.this.getItemById(providerId, configId, req);
+								if(res == null) {
+									LoggerFactory.getLogger(TemplateInitSingleEmpty.class).info("Null:Empty template widget could not be initialized with providerId:{}, configId:{}",providerId,configId);
+								}
+							} catch (Exception e) { // if the type does not match
+								LoggerFactory.getLogger(TemplateInitSingleEmpty.class).info("Empty template widget could not be initialized with providerId:{}, configId:{}",providerId,configId,e);
+							}
+						} else {
+							try {
+								res = ExtensionNavigationPage.this.getItemById(configId, req); // may return null or throw an exception
+							} catch (Exception e) { // if the type does not match
+								LoggerFactory.getLogger(TemplateInitSingleEmpty.class).info("Empty template widget could not be initialized with the selected value {}",configId,e);
+							}
 						}
 					}
 				}

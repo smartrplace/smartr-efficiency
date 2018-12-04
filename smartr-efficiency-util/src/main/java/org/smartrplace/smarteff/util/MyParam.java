@@ -55,7 +55,9 @@ public class MyParam<T extends Resource> {
 
 	public void close() {
 		if((tempResource == null) || (!tempResource.exists())) return;
-		if(tempResource != null) tempResource.delete();
+		//TODO: We cannot delete the resource here as the evaluation might not be finished yet
+		//We have to find another mechanism in the future
+		//if(tempResource != null) tempResource.delete();
 	}
 
 	@Override

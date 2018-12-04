@@ -2,7 +2,7 @@ package org.smartrplace.commontypes;
 
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -43,7 +43,7 @@ public class RoomRegistration {
 		}
 	}
 	
-	public static class EditPage extends EditPageGeneric<BuildingUnit> {
+	public static class EditPage extends EditPageGenericWithTable<BuildingUnit> {
 		@Override
 		public void setData(BuildingUnit sr) {
 			setHeaderLabel(EN, "Room Data", DE, "Raumdaten");

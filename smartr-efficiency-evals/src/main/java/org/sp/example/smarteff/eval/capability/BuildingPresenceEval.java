@@ -53,7 +53,7 @@ public class BuildingPresenceEval extends LogicEvalProviderBase<BuildingData, Bu
 	@Override
 	protected boolean initParams(SmartEffResource paramsIn) {
 		BuildingEvalData params = (BuildingEvalData)paramsIn;
-		if(ValueResourceHelper.setIfNew(params.minimumAbsenceTime(), BuildingPresenceEvalProvider.DEFAULT_MINIMUM_ABSENCE)) {
+		if(ValueResourceHelper.setIfNew(params.minimumAbsenceDuration(), BuildingPresenceEvalProvider.DEFAULT_MINIMUM_ABSENCE)) {
 			return true;
 		}
 		return false;

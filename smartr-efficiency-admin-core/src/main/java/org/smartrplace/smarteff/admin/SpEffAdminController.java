@@ -18,6 +18,7 @@ import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.smarteff.access.api.GenericPageConfigurationProvider;
 import org.smartrplace.smarteff.admin.config.SmartEffAdminData;
 import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
 import org.smartrplace.smarteff.admin.gui.ResTypePage;
@@ -182,8 +183,11 @@ public class SpEffAdminController {
     }
     
     public void processOpenServices() {
-		for(SmartEffExtensionService service: serviceAccess.getEvaluations().values()) {
+		for(SmartEffExtensionService service: serviceAccess.providersToProcess()) {
 			processNewService(service);
+		}    	
+		for(GenericPageConfigurationProvider service: serviceAccess.pageConfigProvidersToProcess()) {
+			processNewPageConfigService(service);
 		}    	
     }
 
@@ -196,11 +200,17 @@ public class SpEffAdminController {
     	
     	servicesKnown.add(service);
     }
-    
+    public void processNewPageConfigService(GenericPageConfigurationProvider service) {
+    	//nothing to do for now
+    }
+       
     public void unregisterService(SmartEffExtensionService service) {
     	servicesKnown.remove(service);
     	typeAdmin.unregisterService(service);
     	guiPageAdmin.unregisterService(service);
+    }
+    public void unregisterPageProviderService(GenericPageConfigurationProvider service) {
+    	//nothing to do for now
     }
     
     

@@ -22,6 +22,7 @@ import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
+import org.smartrplace.smarteff.access.api.GenericPageConfigurationProvider;
 import org.smartrplace.smarteff.admin.ServiceAccess;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
 import org.smartrplace.smarteff.stdadmin.util.BaseDataServiceAdmin;
@@ -42,6 +43,13 @@ import de.iwes.widgets.api.widgets.WidgetApp;
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addProvider",
 		unbind="removeProvider"),
+	@Reference(
+			name="pageConfigProviders",
+			referenceInterface=GenericPageConfigurationProvider.class,
+			cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+			policy=ReferencePolicy.DYNAMIC,
+			bind="addPageConfigProvider",
+			unbind="removePageConfigProvider"),
 })
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)
@@ -117,7 +125,8 @@ public class SpEffAdminApp implements Application, ServiceAccess {
         log.info("{} stopped", getClass().getName());
     }
     
-    List<SmartEffExtensionService> providersToProcess = new CopyOnWriteArrayList<>();
+    private List<SmartEffExtensionService> providersToProcess = new CopyOnWriteArrayList<>();
+    private List<GenericPageConfigurationProvider> pageConfigProvidersToProcess = new CopyOnWriteArrayList<>();
 
     protected void addProvider(SmartEffExtensionService provider) {
     	evaluationProviders.put(SPPageUtil.buildId(provider), provider);
@@ -143,4 +152,45 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 				controller.unregisterService(provider);			}
 		};
     }
+
+    private final Map<String,GenericPageConfigurationProvider> pageConfigProviders = Collections.synchronizedMap(new LinkedHashMap<String,GenericPageConfigurationProvider>());
+    protected void addPageConfigProvider(GenericPageConfigurationProvider provider) {
+    	pageConfigProviders.put(provider.id(), provider);
+    	// Execute in main application thread
+    	if(initDone) {
+    		new CountDownDelayedExecutionTimer(appMan, 1) {
+				@Override
+				public void delayedExecution() {
+					controller.processNewPageConfigService(provider);
+				}
+    		};
+		} else
+			pageConfigProvidersToProcess.add(provider);
+    }
+    
+    protected void removePageConfigProvider(GenericPageConfigurationProvider provider) {
+    	pageConfigProviders.remove(provider.id());
+    	// Execute in main application thread
+    	if(controller != null) new CountDownDelayedExecutionTimer(appMan, 1) {
+			
+			@Override
+			public void delayedExecution() {
+				controller.unregisterPageProviderService(provider);			}
+		};
+    }
+
+	@Override
+	public Map<String, GenericPageConfigurationProvider> getPageConfigProviders() {
+		return pageConfigProviders;
+	}
+
+	@Override
+	public List<SmartEffExtensionService> providersToProcess() {
+		return providersToProcess;
+	}
+
+	@Override
+	public List<GenericPageConfigurationProvider> pageConfigProvidersToProcess() {
+		return pageConfigProvidersToProcess;
+	}
 }

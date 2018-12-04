@@ -5,9 +5,15 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
+import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
+/** Use this template to create a table overview page together with an edit page for a
+ * resource type. To declare special table headers use the method {@link #setTableHeader(Resource, OgemaLocale, String)}
+ * and its derivates. To register the page you have to add the table page declaration obtained via
+ * {@link #getTablePage()} in the getCapabilities method of the {@link SmartEffExtensionService}.
+ */
 public abstract class EditPageGenericWithTable<T extends Resource> extends EditPageGeneric<T> {
 	Map<String, Map<OgemaLocale, String>> tableHeaders = new LinkedHashMap<>();
 	
@@ -59,16 +65,10 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 		return genericTablePageWrapper;
 	}
 	
-	// public methods for GenericResourceByTypeTablePage
-	/*public ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> getExPage() {
-		return exPage;
-	}
-	
-	public ExtensionResourceAccessInitData getAppData(OgemaHttpRequest req) {
-		return exPage.getAccessData(req);
-	}*/
-	
-	public Class<? extends Resource> getPrimaryEntryTypeClass() {
+	/** Usually this method is not relevant and needs not to be overwritten. The method
+	 * primaryEntryTypeClass is not public, which is required for the table page creation.*/
+	public Class<? extends Resource> primaryEntryTypeClassPublic() {
 		return primaryEntryTypeClass();
 	}
+	
 }

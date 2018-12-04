@@ -11,6 +11,7 @@ import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
+import org.smartrplace.smarteff.access.api.ConfigContextExternal;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 
 import de.iwes.widgets.api.extended.WidgetData;
@@ -80,7 +81,11 @@ public abstract class NaviPageBase<T extends Resource>  {
 
 				@Override
 				public void onGET(OgemaHttpRequest req) {
-					setText(getHeader(req), req);
+					ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+					if((appData.getConfigInfo() != null) && (appData.getConfigInfo().context != null) && (appData.getConfigInfo().context instanceof ConfigContextExternal)) {
+						setText(((ConfigContextExternal)appData.getConfigInfo().context).header, req);						
+					}
+					else setText(getHeader(req), req);
 				}
 			};
 			header.addDefaultStyle(WidgetData.TEXT_ALIGNMENT_LEFT);

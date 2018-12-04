@@ -106,7 +106,7 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 	@Override
 	protected List<GenericDataTypeDeclaration> typesListedInTable() {
 		List<GenericDataTypeDeclaration> result = new ArrayList<>();
-		result.add(CapabilityHelper.getGenericDataTypeDeclaration(creatingPage.getPrimaryEntryTypeClass()));
+		result.add(CapabilityHelper.getGenericDataTypeDeclaration(creatingPage.primaryEntryTypeClassPublic()));
 		return result ;
 	}
 	
@@ -134,6 +134,6 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 
 	@Override
 	protected Class<? extends Resource> typeSelected(OgemaHttpRequest req) {
-		return creatingPage.getPrimaryEntryTypeClass();
+		return creatingPage.primaryEntryTypeClassPublic();
 	}
 }

@@ -9,7 +9,6 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.channelmanager.measurements.FloatValue;
 import org.ogema.core.channelmanager.measurements.SampledValue;
-import org.ogema.core.model.Resource;
 import org.ogema.tools.timeseries.iterator.api.SampledValueDataPoint;
 
 import de.iwes.timeseries.eval.api.EvaluationInput;
@@ -21,19 +20,19 @@ import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.api.configuration.Configuration;
 import de.iwes.timeseries.eval.api.configuration.ConfigurationInstance;
 import de.iwes.timeseries.eval.api.configuration.ConfigurationInstance.GenericObjectConfiguration;
-import de.iwes.timeseries.eval.base.provider.utils.ConfigurationBuilder;
 import de.iwes.timeseries.eval.base.provider.utils.SingleValueResultImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesResultImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.timeseries.eval.garo.multibase.generic.GenericGaRoEvaluationCore;
 import de.iwes.timeseries.eval.garo.multibase.generic.GenericGaRoResultType;
 import de.iwes.timeseries.eval.garo.multibase.generic.GenericGaRoSingleEvalProvider;
+import de.iwes.timeseries.eval.garo.util.ConfigurationUtil;
 import de.iwes.timeseries.eval.online.utils.InputSeriesAggregator;
 import de.iwes.timeseries.eval.online.utils.InputSeriesAggregator.AggregationMode;
 import de.iwes.timeseries.eval.online.utils.InputSeriesAggregator.ValueDuration;
+import de.iwes.timeseries.eval.online.utils.TimeSeriesOnlineBuilder;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
-import de.iwes.timeseries.eval.online.utils.TimeSeriesOnlineBuilder;
 import extensionmodel.smarteff.electricity.example.ElectricityProfileEvalConfig;
 
 /**
@@ -196,24 +195,17 @@ public class ElectricityProfileEvalProvider extends GenericGaRoSingleEvalProvide
 	}
 	
 	public static final Configuration<GenericObjectConfiguration<ElectricityProfileEvalConfig>> OBJECT_CONFIGURATION =
-			getConfiguration(ID, PEAK_ENERGY, ElectricityProfileEvalConfig.class);
-		/*ConfigurationBuilder.newBuilder(ConfigurationInstance.GenericDurationConfiguration.class)
-			.withId("minimum_absence_cfg")
-			.withLabel("Minimum Absence")
-			.withDescription("Absence times below this will be covered by presence.")
-			.withDefaultFloat(DEFAULT_MINIMUM_ABSENCE)
-			.withResultTypes(ROOM_PRESENCE_TS)
-			.isOptional(true)
-			.build();*/
+			ConfigurationUtil.getConfiguration(ID, PEAK_ENERGY, ElectricityProfileEvalConfig.class);
+
 	@Override
 	public List<Configuration<?>> getConfigurations() {
 		List<Configuration<?>> result = new ArrayList<>();
-		result.addAll(super.getConfigurations());
 		result.add(OBJECT_CONFIGURATION);
+		result.addAll(super.getConfigurations());
 		return result ;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	/*@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected static <T extends Resource> Configuration<GenericObjectConfiguration<T>> getConfiguration(String id, ResultType anyResult,
 			Class<? extends Resource> configType) {
 		Configuration result2 =
@@ -226,5 +218,5 @@ public class ElectricityProfileEvalProvider extends GenericGaRoSingleEvalProvide
 				.build();
 		Configuration<GenericObjectConfiguration<T>> result = result2;
 		return result ;
-	}
+	}*/
 }

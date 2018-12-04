@@ -7,20 +7,19 @@ import org.smartrplace.critical.crossuser.ExtensionPageSystemAccessForCrossuserA
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
+import org.smartrplace.smarteff.access.api.ConfigInfoExt;
 
 public interface ExtensionResourceAccessInitData {
-	public static class ConfigInfo {
+	public static class ConfigInfo extends ConfigInfoExt {
 		public ConfigInfo(int entryIdx, List<Resource> entryResources) {
-			this.entryIdx = entryIdx;
-			this.entryResources = entryResources;
+			super(entryIdx, entryResources);
 		}
-		public int entryIdx;
-		public List<Resource> entryResources;
-		
-		public Resource lastPrimaryResource;
+		public ConfigInfo(ConfigInfoExt cext) {
+			super(cext.entryIdx, cext.entryResources);
+			this.context = cext.context;
+			this.lastPrimaryResource = cext.lastPrimaryResource;
+		}
 		public NavigationPublicPageData lastPage;
-		
-		public Object context; 
 	}
 
 	/** index within {@link #getEntryTypes()} used to open the page*/

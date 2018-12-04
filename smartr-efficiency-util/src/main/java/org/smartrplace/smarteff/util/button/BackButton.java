@@ -57,6 +57,10 @@ public class BackButton extends TableOpenButton {
 		if(appData.getConfigInfo() == null) return null;
 		return appData.getConfigInfo().lastPrimaryResource;
 	}
+	protected Object getContext(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+		if(appData.getConfigInfo() == null) return null;
+		return appData.getConfigInfo().lastContext;
+	}
 
 	
 	@Override

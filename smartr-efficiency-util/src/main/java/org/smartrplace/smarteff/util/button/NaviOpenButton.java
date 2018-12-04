@@ -28,7 +28,10 @@ public class NaviOpenButton extends RedirectButton {
 	protected final boolean doCreate;
 	
 	/** Overwrite this to provide a context object to the page opened*/
-	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {return null;}
+	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {
+		if(appData.getConfigInfo() == null) return null;
+		return appData.getConfigInfo().lastContext;
+	}
 	
 	protected final ButtonControlProvider controlProvider;
 	
@@ -38,9 +41,7 @@ public class NaviOpenButton extends RedirectButton {
 		if(appData.entryResources() == null) return null;
 		return appData.entryResources().get(0);
 	}
-	//protected Class<? extends Resource> type(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
-	//	return defaultType;
-	//}
+
 	protected NavigationPublicPageData getPageData(ExtensionResourceAccessInitData appData,
 			Class<? extends Resource> type, PageType typeRequested, OgemaHttpRequest req) {
 		return SPPageUtil.getPageData(appData, type, pageType);

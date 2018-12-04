@@ -21,19 +21,21 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 	protected final ConfigIdAdministration configIdAdmin;
 	private final Resource myPrimaryResource;
 	private final NavigationPublicPageData myNaviData;
+	private final Object myContext;
 	
 	public NavigationPageSystemAccessForPageOpening(
 			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo,
 			List<NavigationPublicPageData> startPagesData,
 			ConfigIdAdministration configIdAdmin,
 			Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo,
-			Resource myPrimaryResource, String myUrl) {
+			Resource myPrimaryResource, Object myContext, String myUrl) {
 		this.pageInfo = pageInfo;
 		this.startPagesData = startPagesData;
 		this.configIdAdmin = configIdAdmin;
 		this.proposalInfo = proposalInfo;
 		this.myNaviData = getPageByProvider(myUrl);
 		this.myPrimaryResource = myPrimaryResource;
+		this.myContext = myContext;
 	}
 
 	@Override
@@ -99,10 +101,10 @@ System.out.println("Navi-URL: "+navi.getUrl()+ " Searched:"+url);
 	@Override
 	public String accessPage(NavigationPublicPageData pageData, int entryIdx,
 			List<Resource> entryResources) {
-		return configIdAdmin.getConfigId(entryIdx, entryResources, myNaviData, myPrimaryResource, null);
+		return configIdAdmin.getConfigId(entryIdx, entryResources, myNaviData, myPrimaryResource, null, myContext);
 	}
 	public String accessPage(NavigationPublicPageData pageData, int entryIdx, List<Resource> entryResources, Object context) {
-		return configIdAdmin.getConfigId(entryIdx, entryResources, myNaviData, myPrimaryResource, context);		
+		return configIdAdmin.getConfigId(entryIdx, entryResources, myNaviData, myPrimaryResource, context, myContext);		
 	}
 
 	@Override

@@ -10,7 +10,6 @@ import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.channelmanager.measurements.FloatValue;
 import org.ogema.core.channelmanager.measurements.Quality;
 import org.ogema.core.channelmanager.measurements.SampledValue;
-import org.ogema.core.model.Resource;
 import org.ogema.tools.timeseries.iterator.api.SampledValueDataPoint;
 
 import de.iwes.timeseries.eval.api.EvaluationInput;
@@ -22,13 +21,13 @@ import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.api.configuration.Configuration;
 import de.iwes.timeseries.eval.api.configuration.ConfigurationInstance;
 import de.iwes.timeseries.eval.api.configuration.ConfigurationInstance.GenericObjectConfiguration;
-import de.iwes.timeseries.eval.base.provider.utils.ConfigurationBuilder;
 import de.iwes.timeseries.eval.base.provider.utils.SingleValueResultImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesResultImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.timeseries.eval.garo.multibase.generic.GenericGaRoEvaluationCore;
 import de.iwes.timeseries.eval.garo.multibase.generic.GenericGaRoResultType;
 import de.iwes.timeseries.eval.garo.multibase.generic.GenericGaRoSingleEvalProvider;
+import de.iwes.timeseries.eval.garo.util.ConfigurationUtil;
 import de.iwes.timeseries.eval.online.utils.InputSeriesAggregator;
 import de.iwes.timeseries.eval.online.utils.InputSeriesAggregator.AggregationMode;
 import de.iwes.timeseries.eval.online.utils.InputSeriesAggregator.ValueDuration;
@@ -102,7 +101,7 @@ public class BuildingPresenceEvalProvider extends GenericGaRoSingleEvalProvider 
             for (ConfigurationInstance cfg : configurations) {
                 if (cfg.getConfigurationType().equals(OBJECT_CONFIGURATION)) {
                 	configuration = ((ConfigurationInstance.GenericObjectConfiguration<BuildingEvalData>) cfg).getValue();
-                    val = configuration.minimumAbsenceTime().getValue();
+                    val = configuration.minimumAbsenceDuration().getValue();
                     break;
                 }
             }
@@ -195,35 +194,12 @@ public class BuildingPresenceEvalProvider extends GenericGaRoSingleEvalProvider 
 	}
 	
 	public static final Configuration<GenericObjectConfiguration<BuildingEvalData>> OBJECT_CONFIGURATION =
-			getConfiguration(ID, ROOM_PRESENCE_TS, BuildingEvalData.class);
-		/*ConfigurationBuilder.newBuilder(ConfigurationInstance.GenericDurationConfiguration.class)
-			.withId("minimum_absence_cfg")
-			.withLabel("Minimum Absence")
-			.withDescription("Absence times below this will be covered by presence.")
-			.withDefaultFloat(DEFAULT_MINIMUM_ABSENCE)
-			.withResultTypes(ROOM_PRESENCE_TS)
-			.isOptional(true)
-			.build();*/
+			ConfigurationUtil.getConfiguration(ID, ROOM_PRESENCE_TS, BuildingEvalData.class);
 	@Override
 	public List<Configuration<?>> getConfigurations() {
 		List<Configuration<?>> result = new ArrayList<>();
-		result.addAll(super.getConfigurations());
 		result.add(OBJECT_CONFIGURATION);
-		return result ;
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	protected static <T extends Resource> Configuration<GenericObjectConfiguration<T>> getConfiguration(String id, ResultType anyResult,
-			Class<? extends Resource> configType) {
-		Configuration result2 =
-			ConfigurationBuilder.newBuilder(ConfigurationInstance.GenericObjectConfiguration.class)
-				.withId(id+"_cfg")
-				.withLabel(configType.getSimpleName()+" Configuration Object")
-				.withDescription(configType.getName()+" Configuration Object for provider "+id)
-				.withResultTypes(anyResult)
-				.isOptional(true)
-				.build();
-		Configuration<GenericObjectConfiguration<T>> result = result2;
+		result.addAll(super.getConfigurations());
 		return result ;
 	}
 }

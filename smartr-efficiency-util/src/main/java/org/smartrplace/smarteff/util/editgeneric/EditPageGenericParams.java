@@ -152,7 +152,8 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 					if(!res.exists()) {
 						res.create();
 						Resource global = ResourceHelper.getSubResource(getReqDataGlobal(req), sub);
-						OGEMAResourceCopyHelper.copySubResourceIntoDestination(global, res, null, true);
+						if(global != null)
+							OGEMAResourceCopyHelper.copySubResourceIntoDestination(global, res, null, true);
 					}
 					res.activate(false);
 				} else {
@@ -163,6 +164,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 		};
 		control.registerDependentWidget(valueWidget);
 		control.registerDependentWidget(alert);
+		control.registerDependentWidget(control);
 		
 		if(etb instanceof EditPageGenericParams.EditTableBuilderParams) {
 			((EditTableBuilderParams)etb).addEditLine(label, valueWidget, linkButton, globalValueWidget, control);

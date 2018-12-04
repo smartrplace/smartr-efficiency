@@ -78,7 +78,6 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 	@Override
 	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {
 		return typeToOpen(appData, req).getName();
-		//return object.getResourceType().getName();
 	}
 	
 	@Override

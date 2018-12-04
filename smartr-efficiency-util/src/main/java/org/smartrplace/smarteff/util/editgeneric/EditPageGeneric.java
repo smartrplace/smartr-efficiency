@@ -558,6 +558,15 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				}
 			} else return mhLoc.intLabel(sub, 0);
 		} else if(TimeResource.class.isAssignableFrom(type2.type)) {
+			if(sub.contains("Duration")||sub.contains("Interval")) {
+				if(isEditable)	{
+					TextField valueWidget = mhLoc.timeEdit((String)sub, null, 0l, Long.MAX_VALUE, "Interval ragen invalid!", -1);
+					mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
+					return valueWidget;
+				} else
+					return mhLoc.timeLabel(sub, 1);
+			}
+
 			if(isEditable)	{
 				final String format;
 				if(sub.contains("Day")) format = "YYYY-MM-DD";
