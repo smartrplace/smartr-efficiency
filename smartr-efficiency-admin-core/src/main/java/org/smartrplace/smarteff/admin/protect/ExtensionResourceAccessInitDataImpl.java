@@ -347,9 +347,8 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			}
 			
 			@Override
-			public int getFileNum(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType,
-					String sourceId) {
-				return tsDriver.getFileNum(timeSeries, dataType, sourceId);
+			public int getFileNum(SmartEffTimeSeries timeSeries, String sourceId) {
+				return tsDriver.getFileNum(timeSeries, sourceId);
 			}
 		};
 	}

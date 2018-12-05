@@ -12,14 +12,6 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 public class RoomRegistration {
 	public static final Class<? extends SmartEffResource> TYPE_CLASS = BuildingUnit.class; //RoomData.class;
 	
-	/*public static interface RoomData extends SmartEffResource {
-		AreaResource groundArea();
-		VolumeResource volume();
-		AreaResource outsideWindowArea();
-		/**Including window area*/
-		//AreaResource totalOutsideWallArea();
-	//}
-	
 	public static class TypeDeclaration implements ExtensionResourceTypeDeclaration<SmartEffResource> {
 
 		@Override
@@ -50,8 +42,10 @@ public class RoomRegistration {
 			//setHeaderLink(EN, "https://en.wikipedia.org/wiki/Master_data");
 			setLabel(sr.name(), EN, "Name",
 					DE, "Voller Name");
+			setTableHeader(sr.name(), EN, "Name");
 			setLabel(sr.groundArea(), EN, "Ground Area",
 					DE, "Nutzfläche");
+			setTableHeader(sr.groundArea(), EN, "Ground Area", DE, "Nutzfläche");
 		}
 
 		@SuppressWarnings("unchecked")

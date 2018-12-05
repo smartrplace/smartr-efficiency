@@ -116,11 +116,6 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 		return super.getMaintainer();
 	}
 	
-	//@Override
-	//protected String getHeader(OgemaHttpRequest req) {
-	//	return getReqData(req).getParent().getParent().getName();
-	//}
-	
 	//Note: Supertable is already HIDDEN
 	
 	@Override
@@ -135,5 +130,10 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 	@Override
 	protected Class<? extends Resource> typeSelected(OgemaHttpRequest req) {
 		return creatingPage.primaryEntryTypeClassPublic();
+	}
+	
+	@Override
+	protected Map<OgemaLocale, String> getSuperEditButtonTexts() {
+		return creatingPage.getSuperEditButtonTexts();
 	}
 }

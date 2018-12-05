@@ -80,7 +80,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 				table.setContent(c, 1, etl.title).setContent(c,2, etl.stringForWidget);
 			else if((etl.widgetForTitle != null)&&(etl.widget != null)) {
 				table.setContent(c, 1, etl.widgetForTitle).setContent(c,2, etl.widget);
-				if(etl.decriptionLink != null) table.setContent(c, 5, etl.decriptionLink);
+				if(etl.descriptionLink != null) table.setContent(c, 5, etl.descriptionLink);
 				//etl.widget.registerDependentWidget(activateButton);
 				if(etl instanceof EditPageGenericParams.EditElementParams) {
 					@SuppressWarnings("unchecked")
@@ -107,7 +107,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void performAddEditLine(OgemaWidget label, OgemaWidget valueWidget, OgemaWidget linkButton, String sub,
-			EditPageGeneric<T>.TypeResult type, EditPageBase<T>.EditTableBuilder etb, EditLineProvider orgProvider) {
+			TypeResult type, EditPageBase<T>.EditTableBuilder etb, EditLineProvider orgProvider) {
 		
 		//We have finished to create widgets, so we can replace the provider
 		EditLineProviderDisabling paramProvider = new EditLineProviderDisabling() {

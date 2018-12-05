@@ -15,6 +15,12 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
  * {@link #getTablePage()} in the getCapabilities method of the {@link SmartEffExtensionService}.
  */
 public abstract class EditPageGenericWithTable<T extends Resource> extends EditPageGeneric<T> {
+	public static final Map<OgemaLocale, String> SUPEREDITBUTTON_TEXTS = new HashMap<>();
+	static {
+		SUPEREDITBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Step Up");
+		SUPEREDITBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Ebene hoch");
+	}
+
 	Map<String, Map<OgemaLocale, String>> tableHeaders = new LinkedHashMap<>();
 	
 	private GenericResourceByTypeTablePageBase<T> genericTablePageWrapper;
@@ -26,6 +32,11 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 	public EditPageGenericWithTable(boolean isWithTable) {
 		super();
 		this.isWithTable = isWithTable;
+	}
+	
+	//Overwrite
+	public Map<OgemaLocale, String> getSuperEditButtonTexts() {
+		return SUPEREDITBUTTON_TEXTS;
 	}
 	
 	protected void setTableHeader(String resourceName, OgemaLocale locale, String text) {
@@ -70,5 +81,4 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 	public Class<? extends Resource> primaryEntryTypeClassPublic() {
 		return primaryEntryTypeClass();
 	}
-	
 }

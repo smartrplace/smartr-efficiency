@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
@@ -60,15 +61,17 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 		String url = null;
 		Class<? extends Resource> openType = typeToOpen(appData, req);
 		for(NavigationPublicPageData p: provs) {
-			if((p.typesListedInTable() != null) &&
-					p.typesListedInTable().contains(openType)) {
-				url = p.getUrl();
-				break;
+			if((p.typesListedInTable() != null)) {
+				for(GenericDataTypeDeclaration typeListed: p.typesListedInTable()) if(typeListed.representingResourceType().equals(openType)) {
+					url = p.getUrl();
+					break;					
+				}
 			}
 		}
 		if(url == null) {
 			if(openResSub)
-				url = SPPageUtil.getProviderURL(BaseDataService.RESSUBBYTYPE_PROVIDER);
+				url = SPPageUtil.getProviderURL(BaseDataService.RESBYTYPE_ENTRYPOINT_PROVIDER);
+				//url = SPPageUtil.getProviderURL(BaseDataService.RESSUBBYTYPE_PROVIDER);
 			else
 				url = SPPageUtil.getProviderURL(BaseDataService.RESBYTYPE_PROVIDER);
 		}

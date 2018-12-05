@@ -2,43 +2,28 @@ package org.smartrplace.smarteff.util.editgeneric;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
-import org.ogema.core.model.array.StringArrayResource;
-import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
-import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
-import org.ogema.core.model.simple.TimeResource;
-import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
-import org.smartrplace.extensionservice.SmartEffTimeSeries;
-import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
-import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
-import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForTimeseries;
-import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
-import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
-import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.ColumnType;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.Visibility;
-import org.smartrplace.util.format.ValueConverter;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGenericTableWidgetProvider.CapabilityDeclaration;
 import org.smartrplace.util.format.WidgetHelper;
 
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.OgemaWidget;
-import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -47,15 +32,19 @@ import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.emptywidget.EmptyWidget;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Label;
-import de.iwes.widgets.html.form.textfield.TextField;
-import de.iwes.widgets.html.html5.Flexbox;
-import de.iwes.widgets.html.html5.flexbox.FlexWrap;
-import de.iwes.widgets.html.html5.flexbox.JustifyContent;
-import de.iwes.widgets.multiselect.extended.MultiSelectStringArrayFreeText;
-import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
-import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
-import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 
+/** Template for edit pages based on {@link EditPageBase}. See documentation there.
+ * You can specify a header and a general documentation link for the page using
+ * {@link #setHeaderLabel(OgemaLocale, String)} and {@link #setHeaderLink(OgemaLocale, String)}.
+ * In the methods {@link #setLabel(String, OgemaLocale, String)} etc. you can use any uniqueID instead
+ * of the resourceName for lines that do not refer to a single subresource. Such lines should either
+ * provider a value widget via {@link EditLineProvider#valueColumn()} or the sub should be processed
+ * by an {@link EditPageGenericTableWidgetProvider}.<br>
+ * IDs starting with a hash (#) are not processed,
+ * but given to the EditPageGenericTableWidgetProviders directly. See {@link DefaultWidgetProvider}
+ * for default IDs supported there. 
+ * @param <T> resource type to edit
+ */
 public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T> {
 	public static OgemaLocale EN = OgemaLocale.ENGLISH;
 	public static OgemaLocale DE = OgemaLocale.GERMAN;
@@ -65,13 +54,6 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected static final String HEADER_LABEL_ID = "#L";
 	protected static final String HEADER_LINK_ID = "#H";
 
-	public static final Map<OgemaLocale, String> LINK_BUTTON_TEXTS = new HashMap<>();
-	static {
-		LINK_BUTTON_TEXTS.put(EN, "Info in Wiki");
-		LINK_BUTTON_TEXTS.put(DE, "Info im Wiki");
-		LINK_BUTTON_TEXTS.put(FR, "Info en Wiki");
-	}
-
 	private T sampleResource;
 	private int sampleResourceLength;
 	
@@ -80,8 +62,6 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	 */
 	public abstract void setData(T sr);
 	
-	Map<String, Map<OgemaLocale, String>> labels = new LinkedHashMap<>();
-	Map<String, Map<OgemaLocale, String>> links = new HashMap<>();
 	Map<String, Float> lowerLimits = new HashMap<>();
 	Map<String, Float> upperLimits = new HashMap<>();
 	Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions = new HashMap<>();
@@ -94,9 +74,16 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	
 	protected boolean defaultIsEditable = true;
 	Map<String, Boolean> isEditable = new HashMap<>();
+	final List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders;
 	
-	OgemaLocale localeDefault = OgemaLocale.ENGLISH;
-	
+	public EditPageGeneric() {
+		this(null);
+	}
+	public EditPageGeneric(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders) {
+		super();
+		this.additionalWidgetProviders = additionalWidgetProviders;
+	}
+
 	@SuppressWarnings("unchecked")
 	private void fillMap(Map<String, Class<? extends Resource>> typeMap, Class<? extends Resource> resType) {
 		//typeMap.put("name", StringResource.class);
@@ -127,14 +114,28 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		}
 		return subTypeMap;
 	}
-	class TypeResult {
-		public Class<? extends Resource> type;
+	public static class TypeResult {
+		/** Only one of type or typeString shall be non-null. Usually typeString should start with
+		 * a hash (#).
+		 * TODO: The typeString equals sub and this is a doublet information currently. We still have
+		 * 		to create a TypeResult object to identify that a line shall be created.
+		 */
+		public final Class<? extends Resource> type;
+		public final String typeString;
 		public TypeResult(Class<? extends Resource> type) {
 			this.type = type;
+			this.typeString = null;
+		}
+		public TypeResult(String subPath) {
+			this.type = null;
+			this.typeString = subPath;
 		}
 		public Class<? extends Resource> elementType = null;
 	}
 	protected TypeResult getType(String subPath) {
+		if(subPath.startsWith("#")) {
+			return new TypeResult(subPath);
+		}
 		String[] els = subPath.split("/");
 		Class<? extends Resource> cr = primaryEntryTypeClass();
 		for(int i=0; i<=els.length; i++) {
@@ -257,7 +258,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		//Map<String, Class<? extends Resource>> types = getTypes();
 		for(String sub: labels.keySet()) {
 			TypeResult type = getType(sub);
-			if(type == null) continue;
+			if(type == null || type.type == null) continue;
 			if(FloatResource.class.isAssignableFrom(type.type)) {
 				Float low = lowerLimits.get(sub);
 				Float up = upperLimits.get(sub);
@@ -339,6 +340,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected void addWidgets() {
 		sampleResource = ResourceHelper.getSampleResource(primaryEntryTypeClass());
 		sampleResourceLength = sampleResource.getPath().length()+1;
+		alert = new Alert(page, "alert"+pid(), "");
 		setData(sampleResource);
 		super.addWidgets();
 	}
@@ -367,7 +369,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		}
 		final Map<OgemaLocale, String> linkMap = links.get(HEADER_LINK_ID);
 		if((linkMap != null) && (!linkMap.isEmpty())) {
-			RedirectButton linkButton = getLinkButton("_Header", linkMap, null);
+			RedirectButton linkButton = getLinkButton("_Header", linkMap, (EditLineProvider)null);
 			pageInfoTable.setContent(0, 1, linkButton);
 		}
 		page.append(pageInfoTable);
@@ -431,6 +433,8 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			}
 		};		
 	}
+	
+	/** Slightly extended version of {@link #getLabel(String, Map, Visibility)}*/
 	protected Label getLabel(String sub, Map<OgemaLocale, String> innerMap, EditLineProvider elp) {
 		return new Label(page, WidgetHelper.getValidWidgetId("label"+sub+pid())) {
 			private static final long serialVersionUID = -2849170377959516221L;
@@ -454,14 +458,51 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			}
 		};
 	}
+
 	
-	protected boolean isEditable(String sub) {
+	private boolean isEditable(String sub) {
 		Boolean specific = isEditable.get(sub);
 		if(specific == null) return defaultIsEditable;
 		else return specific;
 	}
 	
+	protected EditPageGenericTableWidgetProvider<T> defaultWP =
+			new DefaultWidgetProvider<T>();
 	protected OgemaWidget createValueWidget(String sub, TypeResult type2,
+			Label labelWidgetForValue, ObjectResourceGUIHelperExt mhLoc, boolean isEditable) {
+		Map<Integer, EditPageGenericTableWidgetProvider<T>> fittingProvs = new HashMap<>();
+		if(additionalWidgetProviders != null) for(EditPageGenericTableWidgetProvider<T> wp: additionalWidgetProviders) {
+			for(CapabilityDeclaration cap: wp.capabilities()) {
+				if(cap.type.isAssignableFrom(type2.type)) {
+					//TODO handle same priority
+					fittingProvs.put(cap.priority, wp);
+				}
+			}
+		}
+		if(fittingProvs.isEmpty()) {
+			//TODO: Do not always initialize
+			defaultWP.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page);
+			return defaultWP.createValueWidget(sub, type2, labelWidgetForValue, mhLoc, isEditable,
+					isEditable(sub), pid());
+		} else {
+			Integer maxPriority = Collections.max(fittingProvs.keySet());
+			EditPageGenericTableWidgetProvider<T> wp = fittingProvs.get(maxPriority);
+			wp.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page);
+			return wp.createValueWidget(sub, type2, labelWidgetForValue, mhLoc, isEditable,
+					isEditable(sub), pid());
+		}
+	}
+	/*************
+	 *  We are still using the old version, new version for modularity may be used in 
+	 *  the future
+	 * @param sub
+	 * @param type2
+	 * @param labelWidgetForValue
+	 * @param mhLoc
+	 * @param isEditable
+	 * @return
+	 */
+	/*protected OgemaWidget createValueWidget(String sub, TypeResult type2,
 			Label labelWidgetForValue, ObjectResourceGUIHelperExt mhLoc, boolean isEditable) {
 		String subId = WidgetHelper.getValidWidgetId(sub);
 		if(StringResource.class.isAssignableFrom(type2.type)) {
@@ -648,15 +689,5 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		} else {
 			return null;
 		}
-	}
-	
-	public static Flexbox getHorizontalFlexBox(WidgetPage<?> page, String id, OgemaWidget... w1) {
-		Flexbox flex = new Flexbox(page, id, true);
-		for(OgemaWidget w: w1) {
-			flex.addItem(w, null);			
-		}
-		flex.setJustifyContent(JustifyContent.SPACE_AROUND, null);
-		flex.setDefaultFlexWrap(FlexWrap.NOWRAP);
-		return flex;
-}
+	}*/
 }

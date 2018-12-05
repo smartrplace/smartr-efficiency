@@ -1,7 +1,9 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.model.Resource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
@@ -10,6 +12,7 @@ import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.defaultservice.ResourceTablePage;
+import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
 import org.smartrplace.smarteff.util.button.BackButton;
 import org.smartrplace.smarteff.util.button.TabButton;
@@ -20,13 +23,18 @@ import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.button.RedirectButton;
-import extensionmodel.smarteff.api.common.HeatCostBillingInfo;
 
 public class GenericResourceByTypeTablePageBase<T extends Resource> extends ResourceTablePage {
+	public static final Map<OgemaLocale, String> SUPEREDITBUTTON_TEXTS = new HashMap<>();
+	static {
+		SUPEREDITBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Step Up");
+		SUPEREDITBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Ebene hoch");
+	}
+	
 	public boolean triggerForTablePageDone;
 
 	public GenericResourceByTypeTablePageBase() {
-		super();
+		super(false);
 	}
 	
 	protected Class<? extends Resource> typeSelected(OgemaHttpRequest req) {
@@ -38,6 +46,10 @@ public class GenericResourceByTypeTablePageBase<T extends Resource> extends Reso
 			if(decl.dataType().getName().equals(param)) return decl.dataType();
 		}
 		return null;
+	}
+	
+	protected Map<OgemaLocale, String> getSuperEditButtonTexts() {
+		return SUPEREDITBUTTON_TEXTS;
 	}
 	
 	public List<GenericDataTypeDeclaration> getElementTypes() {
@@ -89,17 +101,29 @@ public class GenericResourceByTypeTablePageBase<T extends Resource> extends Reso
 	}
 	
 	@Override
-	protected void addTopButtonsExceptFirstTwo(OgemaWidget editResource, OgemaWidget allResourceButton2,
+	protected void addTopButtonsExceptFirstTwo(AddEditButton editResource, OgemaWidget allResourceButton2,
 			TabButton tabButton) {
-		RedirectButton addEntry = new AddEntryButton(page, "addEntry", pid(), ">  +  <", HeatCostBillingInfo.class, exPage, tabButton.control);
+		if(getSuperEditButtonTexts() != null) editResource.setButtonTexts(getSuperEditButtonTexts());
+		RedirectButton addEntry = new AddEntryButton(page, "addEntry", pid(), ">  +  <", null, exPage, tabButton.control) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public Class<? extends Resource> typeToCreate(ExtensionResourceAccessInitData appData,
+					OgemaHttpRequest req) {
+				return typeSelected(req);
+			}
+		};
 		RedirectButton allBuildingsButton = new RedirectButton(page, "allBuildingsButton", "Home", "org_smartrplace_commontypes_BuildingTablePage.html");
 		allBuildingsButton.setDefaultOpenInNewTab(false);
 		TableOpenButton backButton = new BackButton(page, "back", pid(), exPage, tabButton.control);
 		
 		StaticTable topTable = new StaticTable(1, 6);
-		topTable.setContent(0, 0, editResource).setContent(0, 1, allResourceButton2).
-				setContent(0, 2, addEntry).setContent(0, 3, allBuildingsButton).
+		topTable.setContent(0, 0, addEntry).setContent(0, 1, editResource).
+				setContent(0, 2, "").setContent(0, 3, allBuildingsButton).
 				setContent(0,  4, backButton).setContent(0, 5, tabButton);
+		//In standard variant we do not provide link to Data Explorer here (allResourceButton2)
+		//topTable.setContent(0, 0, editResource).setContent(0, 1, allResourceButton2).
+		//	setContent(0, 2, addEntry).setContent(0, 3, allBuildingsButton).
+		//	setContent(0,  4, backButton).setContent(0, 5, tabButton);
 		page.append(topTable);		
 	}
 }

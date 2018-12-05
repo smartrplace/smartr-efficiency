@@ -38,8 +38,7 @@ public interface ExtensionPageSystemAccessForTimeseries {
 	 * efficient than getting the actual time series to calculate the number of data points, which can
 	 * also be used to provide size information.
 	 */
-	public int getFileNum(SmartEffTimeSeries timeSeries, GenericDataTypeDeclaration dataType,
-			String sourceId);
+	public int getFileNum(SmartEffTimeSeries timeSeries, String sourceId);
 	
 	public String getGenericDriverProviderId();
 }

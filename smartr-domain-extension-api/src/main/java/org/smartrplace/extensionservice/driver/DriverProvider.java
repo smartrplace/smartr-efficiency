@@ -8,6 +8,7 @@ import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 
@@ -64,7 +65,9 @@ public interface DriverProvider extends ExtensionCapability {
 	List<ReadOnlyTimeSeries> getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
 			Resource userData, ExtensionUserDataNonEdit userDataNonEdit);
 	
-	/** With a sourceId only a single result should be found*/
+	/** With a sourceId only a single result should be found
+	 * @param sourceId usually equivalent to {@link SmartEffTimeSeries#dataTypeId()} or a
+	 * 		RecordedData time series id*/
 	ReadOnlyTimeSeries getTimeSeries(Resource entryResource, GenericDataTypeDeclaration dataType,
 			String sourceId, Resource userData, ExtensionUserDataNonEdit userDataNonEdit);
 }

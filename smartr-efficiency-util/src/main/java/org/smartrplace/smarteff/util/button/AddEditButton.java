@@ -20,6 +20,14 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 	private static final long serialVersionUID = 1L;
 
 	public static final Map<OgemaLocale, String> BUTTON_TEXTS = new HashMap<>();
+	protected Map<OgemaLocale, String> buttonTexts = null;
+	public void setButtonTexts(Map<OgemaLocale, String> buttonTexts) {
+		this.buttonTexts = buttonTexts;
+	}
+	protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
+		if(buttonTexts == null) return BUTTON_TEXTS;
+		else return buttonTexts;
+	}
 
 	static {
 		BUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Edit Values");
@@ -48,8 +56,8 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 			if((r instanceof ValueResource)) result.add(r);
 		}*/
 		int size = getSize(getResource(appData, req), appData);
-		String text = BUTTON_TEXTS.get(req.getLocale());
-		if(text == null) text = BUTTON_TEXTS.get(OgemaLocale.ENGLISH);
+		String text = getButtonTexts(req).get(req.getLocale());
+		if(text == null) text = getButtonTexts(req).get(OgemaLocale.ENGLISH);
 		setText(text+"("+size+")", req);
 	}
 	

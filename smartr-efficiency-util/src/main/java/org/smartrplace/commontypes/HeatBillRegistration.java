@@ -115,6 +115,14 @@ public class HeatBillRegistration {
 			return getReqData(req).getParent().getParent().getName();
 		}
 		
-		
+		public static final Map<OgemaLocale, String> SUPEREDITBUTTON_TEXTS = new HashMap<>();
+		static {
+			SUPEREDITBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Building Data");
+			SUPEREDITBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Gebäudedaten");
+		}
+		@Override
+		public Map<OgemaLocale, String> getSuperEditButtonTexts() {
+			return SUPEREDITBUTTON_TEXTS;
+		}
 	}
 }

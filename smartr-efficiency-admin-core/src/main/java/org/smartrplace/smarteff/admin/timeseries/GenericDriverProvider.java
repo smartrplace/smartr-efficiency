@@ -40,6 +40,9 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
+/** Default and example implementation of the DriverProvider interface
+ * 
+ */
 public class GenericDriverProvider implements DriverProvider {
 	public static final String SINGLE_COLUMN_CSV_ID = "SINGLE_COLUMN_CSV:";
 	public static final String DEFAULT_TIMESTAMP_FORMAT = "d.M.y H:m"; //"d:m:yy h:mm";
@@ -177,7 +180,7 @@ public class GenericDriverProvider implements DriverProvider {
 		}});
 	}
 
-	public int getFileNum(SmartEffTimeSeries dpTS, GenericDataTypeDeclaration dataType, 
+	public int getFileNum(SmartEffTimeSeries dpTS, 
 			String sourceId) {
 		//SmartEffTimeSeries dpTS = getTSConfig(entryResource, dataType, sourceId);
 		if(dpTS == null || (!dpTS.isActive())) return 0;

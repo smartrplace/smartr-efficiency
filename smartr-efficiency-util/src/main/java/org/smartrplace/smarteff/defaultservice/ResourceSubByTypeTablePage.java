@@ -18,6 +18,10 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
+@Deprecated
+/** @deprecated use GenericResourceByTypeTablePageBase instead
+ * 
+ */
 public class ResourceSubByTypeTablePage extends ResourceByTypeTablePage {
 	public ResourceSubByTypeTablePage() {
 		super();

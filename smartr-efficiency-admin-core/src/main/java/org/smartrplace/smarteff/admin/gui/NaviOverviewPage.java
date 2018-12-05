@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
 import org.smartrplace.smarteff.admin.object.NavigationPageData;
@@ -62,6 +63,12 @@ public class NaviOverviewPage extends ObjectGUITablePage<NavigationPageData, Res
 			else text += "; "+t.getType().representingResourceType().getSimpleName();
 		}
 		vh.stringLabel("Entry Types", id, text, row);
+		if(object.provider.typesListedInTable() == null) text = "--";
+		else for(GenericDataTypeDeclaration gt: object.provider.typesListedInTable()) {
+			if(text == null) text = gt.representingResourceType().getSimpleName();
+			else text += "; "+gt.representingResourceType().getSimpleName();			
+		}
+		vh.stringLabel("Table Types", id, text, row);
 		//ExtensionResourceAccessInitData systemAccess = app.getUserAdmin().getAccessData(null, req, object.provider);
 		//SPPageUtil.addOpenButton("Open", null, null, vh, id, row, object, systemAccess.systemAccess(), "Open", "--");
 		if(object.provider.getEntryTypes() == null) {
