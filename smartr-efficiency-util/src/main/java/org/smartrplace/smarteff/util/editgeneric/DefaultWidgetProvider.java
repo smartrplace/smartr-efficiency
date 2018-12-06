@@ -21,10 +21,10 @@ import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
+import org.smartrplace.smarteff.defaultservice.TSManagementPage.SubmitTSValueButton;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.ObjectResourceGUIHelperExtPublic;
 import org.smartrplace.smarteff.util.button.AddEditButton;
-import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.TypeResult;
 import org.smartrplace.util.format.ValueConverter;
@@ -36,6 +36,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
@@ -59,7 +60,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 	private Map<String, Float> upperLimits;
 	private Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions;
 
-	//private ApplicationManagerSPExt appManExt;
+	private ApplicationManagerSPExt appManExt;
 	private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
 	private WidgetPage<?> page;
 
@@ -215,42 +216,100 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			} else return mhLoc.timeLabel(sub, 0);
 		} else if(SmartEffTimeSeries.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
-				if(sub.toLowerCase().contains("csv")) {
+				//if(sub.toLowerCase().contains("csv")) {
 					//TODO: Move this to special WidgetProvider, should usually not be used
-					CSVUploadWidgets csvData = new CSVUploadWidgets(exPage, page, alert, subId+pid,
-							"Upload Profile as CSV") {
-						
-						@Override
-						protected SmartEffTimeSeries getTSResource(OgemaHttpRequest req) {
-							T entryResource = mhLoc.getGatewayInfo(req);
-							SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
-							return tsResource;
-						}
-					};
-					RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openTSManButton"+sub, pid,
-							exPage, null);
+				CSVUploadWidgets csvData = new CSVUploadWidgets(exPage, page, alert, subId+pid,
+						"Upload Profile as CSV", null) {
 					
-					Flexbox valueWidget = EditPageBase.getHorizontalFlexBox(page, "flexbox"+sub+pid,
-							csvData.csvButton, csvData.uploader.getFileUpload(), openEvalButton);
-					return valueWidget;
-				} else {
-					RedirectButton valueWidget = new AddEditButton(page, "openEvalButton"+sub, pid,
-							exPage, null) {
-						private static final long serialVersionUID = 1L;
-						@Override
-						protected Resource getResource(ExtensionResourceAccessInitData appData,
-								OgemaHttpRequest req) {
-							T entryResource = mhLoc.getGatewayInfo(req);
-							SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
-							return tsResource;
+					@Override
+					protected SmartEffTimeSeries getTSResource(OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						return tsResource;
+					}
+				};
+				//RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openTSManButton"+sub, pid,
+				//		exPage, null);
+				
+				TextField newValue = new TextField(page, "newValueSP"+pid);
+				Button newValueButton = new SubmitTSValueButton(page, "newValueButton",
+						newValue, null, null, alert, appManExt) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean submitForNow(OgemaHttpRequest req) {
+						return true;
+					}
+					
+					@Override
+					protected SmartEffTimeSeries getResource(OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						return tsResource;
+					}
+					
+					@Override
+					protected boolean disableForSure(OgemaHttpRequest req) {
+						return newValue.isDisabled(req);
+					}
+				};
+				
+				RedirectButton openTSManButton = new AddEditButton(page, "openEvalButton"+sub, pid,
+						exPage, null) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public void updateDependentWidgets(OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						if(tsResource.schedule().isActive()) {
+							newValue.setWidgetVisibility(true, req);
+							newValueButton.setWidgetVisibility(true, req);
+							csvData.csvButton.setWidgetVisibility(false, req);
+							csvData.uploader.getFileUpload().setWidgetVisibility(false, req);							
+						} else {
+							newValue.setWidgetVisibility(false, req);
+							newValueButton.setWidgetVisibility(false, req);
+							if(tsResource.fileType().isActive()) {
+								csvData.csvButton.setWidgetVisibility(true, req);
+								csvData.uploader.getFileUpload().setWidgetVisibility(true, req);
+							} else {
+								csvData.csvButton.setWidgetVisibility(false, req);
+								csvData.uploader.getFileUpload().setWidgetVisibility(false, req);							
+							}
 						}
-						@Override
-						protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
-							return TSManagementPage.SUPERBUTTON_TEXTS;
-						}
-					};
-					return valueWidget;
-				}
+					}
+					@Override
+					protected Resource getResource(ExtensionResourceAccessInitData appData,
+							OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						return tsResource;
+					}
+					@Override
+					protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
+						return TSManagementPage.SUPERBUTTON_TEXTS;
+					}
+				};
+				mhLoc.triggerOnPost(openTSManButton, csvData.csvButton);
+				mhLoc.triggerOnPost(openTSManButton, csvData.uploader.getFileUpload());
+				mhLoc.triggerOnPost(openTSManButton, newValue);
+				mhLoc.triggerOnPost(newValue, newValueButton);
+				mhLoc.triggerOnPost(newValueButton, alert);
+				
+				//StaticTable pos1 = new StaticTable(1, 1);
+				//pos1.setContent(0, 0, csvData.csvButton).setContent(0, 0, newValue);
+				//StaticTable pos2 = new StaticTable(1, 1);
+				//pos2.setContent(0, 0, csvData.uploader.getFileUpload()).setContent(0, 0, newValueButton);
+				csvData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+				newValueButton.setDefaultPadding("1em", false, true, false, true);
+				Flexbox valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+sub+pid,
+						csvData.csvButton, newValue, csvData.uploader.getFileUpload(), newValueButton, openTSManButton);
+				//Flexbox valueWidget = EditPageBase.getHorizontalFlexBox(page, "flexbox"+sub+pid,
+				//		csvData.csvButton, csvData.uploader.getFileUpload(), openTSManButton);
+				return valueWidget;
+				//} else {
+				//	return valueWidget;
+				//}
 				//getCSVUploadWidgets(exPage, page, alert, mhLoc, subId, pid,
 				//		"Upload Profile as CSV");
 				/*FileUploadListenerToFile listenerToFile = new FileUploadListenerToFile() {
@@ -330,7 +389,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 		this.lowerLimits = lowerLimits;
 		this.upperLimits = upperLimits;
 		this.displayOptions = displayOptions;
-		//this.appManExt = appManExt;
+		this.appManExt = appManExt;
 		this.page = page;
 		this.exPage = exPage;
 	}

@@ -18,6 +18,9 @@ public interface SmartrHeatingData extends SmartEffResource {
 	/**TODO: This value already exists as {@link BuildingData#roomNum()}*/
 	IntegerResource numberOfRooms();
 	
+	/** If no information on radiator types is provided the total number of radiators can be given here.
+	 * Note that typically the number of raditors is the number of radiators that can technically be controlled
+	 * individually (which is equal to the number of valves).*/
 	IntegerResource numberOfRadiators();
 	
 	/** 1: None<br>

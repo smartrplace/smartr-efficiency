@@ -33,6 +33,11 @@ public interface ExtensionPageSystemAccessForTimeseries {
 			String sourceId);
 	public ReadOnlyTimeSeries getTimeSeries(SmartEffTimeSeries smartTs);
 	
+	/** Read time series from files on disk.
+	 * @param fileType see {@link SmartEffTimeSeries#fileType()}
+	 * @param paths paths of files to be read*/
+	public ReadOnlyTimeSeries readTimeSeriesFromFiles(String fileType, String[] paths);
+	
 	/** Number of data imports or similar larger data packages that were used to provide a certain
 	 * time series. This is mainly intended for data provided via file imports and should be much more
 	 * efficient than getting the actual time series to calculate the number of data points, which can

@@ -31,6 +31,7 @@ import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.driver.DriverProvider;
 import org.smartrplace.smarteff.model.syste.GenericTSDPTimeSeries;
 import org.smartrplace.smarteff.util.CapabilityHelper;
+import org.smartrplace.smarteff.util.editgeneric.CSVUploadWidgets;
 
 import de.iwes.timeseries.eval.api.DataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
@@ -44,8 +45,6 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
  * 
  */
 public class GenericDriverProvider implements DriverProvider {
-	public static final String SINGLE_COLUMN_CSV_ID = "SINGLE_COLUMN_CSV:";
-	public static final String DEFAULT_TIMESTAMP_FORMAT = "d.M.y H:m"; //"d:m:yy h:mm";
 	
 	//private GenericTSDPConfig appConfigData;
 	//private final ApplicationManager appMan;
@@ -119,8 +118,8 @@ public class GenericDriverProvider implements DriverProvider {
 		if(dpTS.recordedDataParent().isActive()) return dpTS.recordedDataParent().getHistoricalData();
 		// must be file
 		return AccessController.doPrivileged(new PrivilegedAction<ReadOnlyTimeSeries>() { public ReadOnlyTimeSeries run() {
-			if(dpTS.fileType().getValue().startsWith(SINGLE_COLUMN_CSV_ID)) {
-				String format = dpTS.fileType().getValue().substring(SINGLE_COLUMN_CSV_ID.length());
+			if(dpTS.fileType().getValue().startsWith(CSVUploadWidgets.SINGLE_COLUMN_CSV_ID)) {
+				String format = dpTS.fileType().getValue().substring(CSVUploadWidgets.SINGLE_COLUMN_CSV_ID.length());
 				SimpleDateFormat dateTimeFormat = new SimpleDateFormat(format);
 				ImportConfiguration csvConfig = ImportConfigurationBuilder.newInstance().
 						setDateTimeFormat(dateTimeFormat).
@@ -143,6 +142,31 @@ public class GenericDriverProvider implements DriverProvider {
 			}
 			throw new IllegalStateException("Unsupported file type: "+dpTS.fileType().getValue());
 		}});
+	}
+	
+	public ReadOnlyTimeSeries readTimeSeries(String fileType, String[] paths) {
+		if(fileType.startsWith(CSVUploadWidgets.SINGLE_COLUMN_CSV_ID)) {
+			String format = fileType.substring(CSVUploadWidgets.SINGLE_COLUMN_CSV_ID.length());
+			SimpleDateFormat dateTimeFormat = new SimpleDateFormat(format);
+			ImportConfiguration csvConfig = ImportConfigurationBuilder.newInstance().
+					setDateTimeFormat(dateTimeFormat).
+					setInterpolationMode(InterpolationMode.STEPS).setDelimiter(';').setDecimalSeparator(',').build();
+			try {
+				if(paths.length == 0) return null;
+				if(paths.length == 1)
+					return csvImport.parseCsv(Paths.get(paths[0]), csvConfig);
+				FloatTreeTimeSeries result = new FloatTreeTimeSeries();
+				for(int i=0; i<paths.length; i++) {
+					ReadOnlyTimeSeries add = csvImport.parseCsv(Paths.get(paths[1]), csvConfig);
+					result.addValues(add.getValues(0));
+				}
+				return result;
+			} catch (IOException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -175,7 +199,7 @@ public class GenericDriverProvider implements DriverProvider {
 				dpTS.filePaths().setAsReference(gdpTS);
 			} else ValueResourceUtils.appendValue(dpTS.filePaths().filePaths(), filePath);
 			ValueResourceHelper.setCreate(dpTS.fileType(),
-					SINGLE_COLUMN_CSV_ID+((format!=null)?format:DEFAULT_TIMESTAMP_FORMAT));
+					CSVUploadWidgets.SINGLE_COLUMN_CSV_ID+((format!=null)?format:CSVUploadWidgets.DEFAULT_TIMESTAMP_FORMAT));
 			return null;
 		}});
 	}

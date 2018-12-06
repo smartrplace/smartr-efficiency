@@ -345,7 +345,12 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 			public ReadOnlyTimeSeries getTimeSeries(SmartEffTimeSeries smartTs) {
 				return tsDriver.getTimeSeries(smartTs);
 			}
-			
+
+			@Override
+			public ReadOnlyTimeSeries readTimeSeriesFromFiles(String fileType, String[] paths) {
+				return tsDriver.readTimeSeries(fileType, paths);
+			}
+
 			@Override
 			public int getFileNum(SmartEffTimeSeries timeSeries, String sourceId) {
 				return tsDriver.getFileNum(timeSeries, sourceId);

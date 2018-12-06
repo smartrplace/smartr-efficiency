@@ -1,4 +1,4 @@
-package org.smartrplace.commontypes;
+package org.sp.example.timeseries.entrywizard;
 
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
@@ -9,7 +9,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
-public class RoomRegistration {
+public class RoomWizardRegistration {
 	public static final Class<? extends SmartEffResource> TYPE_CLASS = BuildingUnit.class; //RoomData.class;
 	
 	public static class TypeDeclaration implements ExtensionResourceTypeDeclaration<SmartEffResource> {
@@ -45,9 +45,7 @@ public class RoomRegistration {
 			setTableHeader(sr.name(), EN, "Name");
 			setLabel(sr.groundArea(), EN, "Ground Area",
 					DE, "Nutzfläche");
-			setTableHeader(sr.groundArea(), EN, "Ground Area (m2)", DE, "Nutzfläche (m2)");
-			setLabel(sr.totalOutsideWallArea(), EN, "Total area of outside walls (m2)", DE ,"Gesamtfläche Außenwände (m2)");
-			setLabel(sr.outsideWindowArea(), EN, "Total area of windows in outside walls (m2)", DE, "Gesamt-Fensterfläche (nur Außenwände) in m2");
+			setTableHeader(sr.groundArea(), EN, "Ground Area", DE, "Nutzfläche");
 		}
 
 		@SuppressWarnings("unchecked")

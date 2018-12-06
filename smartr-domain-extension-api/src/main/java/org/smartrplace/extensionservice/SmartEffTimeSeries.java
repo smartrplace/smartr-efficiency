@@ -1,6 +1,7 @@
 package org.smartrplace.extensionservice;
 
 import org.ogema.core.model.array.StringArrayResource;
+import org.ogema.core.model.array.TimeArrayResource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
@@ -82,4 +83,8 @@ public interface SmartEffTimeSeries extends Data {
 	 * @return
 	 */
 	BooleanResource allowNanValues();
+	
+	/** comments and commentTimeStamps must always have same length and same index*/
+	StringArrayResource comments();
+	TimeArrayResource commmentTimeStamps();
 }
