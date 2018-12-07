@@ -1,5 +1,6 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,9 +19,11 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
+import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
+import org.smartrplace.smarteff.defaultservice.TSManagementPage.ContextType;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.SubmitTSValueButton;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.ObjectResourceGUIHelperExtPublic;
@@ -63,8 +66,9 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 	private ApplicationManagerSPExt appManExt;
 	private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
 	private WidgetPage<?> page;
+	private Class<? extends Resource> pageResoureType;
 
-	OgemaLocale localeDefault = OgemaLocale.ENGLISH;
+	static OgemaLocale localeDefault = OgemaLocale.ENGLISH;
 
 	@Override
 	public List<CapabilityDeclaration> capabilities() {
@@ -231,8 +235,41 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				//RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openTSManButton"+sub, pid,
 				//		exPage, null);
 				
-				TextField newValue = new TextField(page, "newValueSP"+pid);
-				Button newValueButton = new SubmitTSValueButton(page, "newValueButton",
+				OgemaWidget newValue;
+				Map<OgemaLocale, Map<String, String>> innerMap = displayOptions.get(sub);
+				if(innerMap != null) {
+					newValue = new TSManagementPage.AddValueDropdown(page, "newValueSP"+subId+pid, innerMap);
+				} else {				
+					 newValue = new TextField(page, "newValueSP"+subId+pid);
+				}		
+
+				/*if(innerMap != null) {
+					TemplateDropdownLoc<Integer> drop = new TemplateDropdownLoc<Integer>(page, "dropNV"+subId);
+					drop.setTemplate(new DisplayTemplate<Integer>() {
+						
+						@Override
+						public String getLabel(Integer object, OgemaLocale locale) {
+							Map<String, String> inMapLoc = innerMap.get(locale);
+							if(inMapLoc == null) inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
+							return inMapLoc.get(""+object);
+						}
+						
+						@Override
+						public String getId(Integer object) {
+							return ""+object;
+						}
+					});
+					Map<String, String> inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
+					List<Integer> items = new ArrayList<>();
+					for(String s: inMapLoc.keySet()) {
+						items.add(Integer.parseInt(s));
+					}
+					drop.setDefaultItems(items);
+					newValue = drop;
+				} else {				
+					 newValue = new TextField(page, "newValueSP"+subId+pid);
+				}*/
+				Button newValueButton = new SubmitTSValueButton(page, "newValueButton"+subId+pid,
 						newValue, null, null, alert, appManExt) {
 					private static final long serialVersionUID = 1L;
 
@@ -246,6 +283,20 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						T entryResource = mhLoc.getGatewayInfo(req);
 						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
 						return tsResource;
+					}
+					
+					@Override
+					protected Class<? extends Resource> getType(OgemaHttpRequest req) {
+						//T entryResource = mhLoc.getGatewayInfo(req);
+						try {
+							Class<? extends Resource> ptype = pageResoureType;
+							Method method = ptype.getMethod(sub); //entryResource.getClass().getMethod(sub);
+							DataType an = method.getAnnotation(DataType.class);
+							if(an == null) return FloatResource.class;
+							return an.resourcetype();
+						} catch (NoSuchMethodException | SecurityException e) {
+							return FloatResource.class;
+						}
 					}
 					
 					@Override
@@ -286,6 +337,23 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						return tsResource;
 					}
 					@Override
+					protected Object getContext(ExtensionResourceAccessInitData appData, Resource object,
+							OgemaHttpRequest req) {
+						try {
+							ContextType ctt = new ContextType();
+							Class<? extends Resource> ptype = pageResoureType;
+							Method method = ptype.getMethod(sub); //entryResource.getClass().getMethod(sub);
+							DataType an = method.getAnnotation(DataType.class);
+							if(an == null) ctt.type = null; //super.getContext(appData, object, req);
+							else ctt.type = an.resourcetype();
+							ctt.innerMap = innerMap;
+							return ctt;
+						} catch (NoSuchMethodException | SecurityException e) {
+							return super.getContext(appData, object, req);
+						}
+						//return super.getContext(appData, object, req);
+					}
+					@Override
 					protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
 						return TSManagementPage.SUPERBUTTON_TEXTS;
 					}
@@ -296,16 +364,10 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				mhLoc.triggerOnPost(newValue, newValueButton);
 				mhLoc.triggerOnPost(newValueButton, alert);
 				
-				//StaticTable pos1 = new StaticTable(1, 1);
-				//pos1.setContent(0, 0, csvData.csvButton).setContent(0, 0, newValue);
-				//StaticTable pos2 = new StaticTable(1, 1);
-				//pos2.setContent(0, 0, csvData.uploader.getFileUpload()).setContent(0, 0, newValueButton);
 				csvData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 				newValueButton.setDefaultPadding("1em", false, true, false, true);
 				Flexbox valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+sub+pid,
 						csvData.csvButton, newValue, csvData.uploader.getFileUpload(), newValueButton, openTSManButton);
-				//Flexbox valueWidget = EditPageBase.getHorizontalFlexBox(page, "flexbox"+sub+pid,
-				//		csvData.csvButton, csvData.uploader.getFileUpload(), openTSManButton);
 				return valueWidget;
 				//} else {
 				//	return valueWidget;
@@ -383,7 +445,8 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			Map<String, Float> lowerLimits, Map<String, Float> upperLimits,
 			Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions, ApplicationManagerSPExt appManExt,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
-			WidgetPage<?> page) {
+			WidgetPage<?> page,
+			Class<? extends Resource> pageResoureType) {
 		this.mh = mh;
 		this.alert = alert;
 		this.lowerLimits = lowerLimits;
@@ -392,5 +455,12 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 		this.appManExt = appManExt;
 		this.page = page;
 		this.exPage = exPage;
+		this.pageResoureType = pageResoureType;
+	}
+	
+	public static String getLocalString(OgemaLocale locale, Map<OgemaLocale, String> map) {
+		String result = map.get(locale);
+		if(result != null) return result;
+		return map.get(localeDefault);
 	}
 }

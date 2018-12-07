@@ -3,6 +3,7 @@ package org.sp.example.smartrheating;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.smartrplace.commontypes.RadiatorTypeRegistration;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -30,7 +31,6 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 
 	public static final Map<String, String> FUNGUSMAP_EN = new HashMap<>();
 	public static final Map<String, String> FUNGUSMAP_DE = new HashMap<>();
-	public static final Map<String, String> THTMAP_EN = new HashMap<>();
 
 	static {
 		FUNGUSMAP_EN.put("1", "None");
@@ -39,10 +39,6 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 		FUNGUSMAP_DE.put("1", "Keine");
 		FUNGUSMAP_DE.put("2", "Relevant");
 		FUNGUSMAP_DE.put("3", "Ernsthaftes Problem");
-		THTMAP_EN.put("1", "Standard on radiators");
-		THTMAP_EN.put("2", "Control knob connected via pressure cable");
-		THTMAP_EN.put("3", "Room control device");
-		THTMAP_EN.put("4", "Part of building automation system");
 	}
 	
 	@Override
@@ -55,8 +51,7 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 		setDisplayOptions(sr.problemsWithFungusOrMould(), EN, FUNGUSMAP_EN);
 		setDisplayOptions(sr.problemsWithFungusOrMould(), DE, FUNGUSMAP_DE);
 		setLabel(sr.typeOfThermostats(), EN, "Type of thermostats", DE, "Art Heizkörperthermostate");
-		setDisplayOptions(sr.typeOfThermostats(), EN, THTMAP_EN);
-		setLabel(sr.sHeatRadiatorType(), EN, "Different types of thermostats in building", DE, "Verschiedene Arten von Heizkörperthermostaten im Gebäude");
+		setDisplayOptions(sr.typeOfThermostats(), EN, RadiatorTypeRegistration.THTMAP_EN);
 	}
 
 	/*@Override

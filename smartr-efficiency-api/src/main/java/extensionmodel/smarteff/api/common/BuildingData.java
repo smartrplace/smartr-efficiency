@@ -1,11 +1,14 @@
 package extensionmodel.smarteff.api.common;
 
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.ModelModifiers.NonPersistent;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.units.EnergyResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
+import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
 
 public interface BuildingData extends SmartEffResource {
 	/** 1: single family home (SFH)<br>
@@ -69,6 +72,16 @@ public interface BuildingData extends SmartEffResource {
 	ResourceList<BuildingUnit> buildingUnit();
 	//TODO: add further elements
 	
-	/** Electricity consumption metered for the entire building*/
+	/** Electricity consumption metered for the entire building (power in W)*/
 	SmartEffTimeSeries electricityMainProfile();
+	
+	/** Electricity meter count value at the time of value recording (Energy in kWh)*/
+	public SmartEffTimeSeries electricityMeterCountValue();
+	
+	/** Radiator types in the building*/
+	public ResourceList<HeatRadiatorType> heatRadiatorType();
+	
+	/** Usually one value per day should be given here with hours where
+	 * heating is generally required in the building*/
+	SmartEffTimeSeries estimatedHoursWithPresence();
 }

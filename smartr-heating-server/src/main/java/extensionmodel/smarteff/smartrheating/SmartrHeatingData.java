@@ -1,17 +1,15 @@
 package extensionmodel.smarteff.smartrheating;
 
-import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 
 import extensionmodel.smarteff.api.common.BuildingData;
+import extensionmodel.smarteff.api.common.HeatRadiatorType;
 
 public interface SmartrHeatingData extends SmartEffResource {
-	/** 1: Standard on radiators<br>
-	 *  2: Control knob connected via pressure cable<br>
-	 *  3: room control device<br>
-	 *  4: building automation system
+	/** Standard type of thermostats for entire building (exceptions might be modeled separatly
+	 * for special rooms). See {@link HeatRadiatorType#typeOfThermostat() for values}. 
 	 */
 	IntegerResource typeOfThermostats();
 	
@@ -30,8 +28,4 @@ public interface SmartrHeatingData extends SmartEffResource {
 	IntegerResource problemsWithFungusOrMould();
 	
 	BooleanResource gasMeterHasPulseOutput();
-	
-	ResourceList<SHeatRadiatorType> sHeatRadiatorType();
-	
-	//TODO: add further elements
 }

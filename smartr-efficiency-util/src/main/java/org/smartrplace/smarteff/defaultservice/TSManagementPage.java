@@ -2,6 +2,7 @@ package org.smartrplace.smarteff.defaultservice;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,7 +11,13 @@ import java.util.Map;
 
 import org.ogema.core.channelmanager.measurements.FloatValue;
 import org.ogema.core.channelmanager.measurements.SampledValue;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.schedule.Schedule;
+import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.units.EnergyResource;
+import org.ogema.core.model.units.LengthResource;
+import org.ogema.core.model.units.PercentageResource;
+import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
@@ -21,12 +28,13 @@ import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.EditPageBase;
-import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.CSVUploadButton;
 import org.smartrplace.smarteff.util.editgeneric.CSVUploadWidgets;
 import org.smartrplace.smarteff.util.editgeneric.CSVUploadWidgets.TimeseriesUploadListener;
+import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.smartrplace.smarteff.util.editgeneric.TemplateDropdownLoc;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
@@ -37,18 +45,41 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.button.Button;
-import de.iwes.widgets.html.form.button.RedirectButton;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.FlexWrap;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
+import de.iwes.widgets.template.DisplayTemplate;
 
 public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	public static final SimpleDateFormat TS_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	public static final Map<OgemaLocale, String> SUPERBUTTON_TEXTS = new HashMap<>();
 
-	private static final String OPEN_TS_TEXT = "Open Timestamp";
+	//Entire object and all elements are optional (can be null)
+	public static class ContextType {
+		public Class<? extends Resource> type;
+		public Map<OgemaLocale, Map<String, String>> innerMap;
+	}
+	
+	//private static final String OPEN_TS_TEXT = "Open Timestamp";
+	private static final Map<OgemaLocale, String> OPEN_TS_MAP = new HashMap<>();
+	private static final Map<OgemaLocale, String> CLOSE_TS_MAP = new HashMap<>();
+	private static final Map<OgemaLocale, String> SUBMIT_NOW_MAP = new HashMap<>();
+	private static final Map<OgemaLocale, String> SUBMIT_TS_MAP = new HashMap<>();
+	static {
+		OPEN_TS_MAP.put(OgemaLocale.ENGLISH, "Open Timestamp");
+		OPEN_TS_MAP.put(OgemaLocale.GERMAN, "Zeitstempel eingeben");
+		CLOSE_TS_MAP.put(OgemaLocale.ENGLISH, "Use Current Time");
+		CLOSE_TS_MAP.put(OgemaLocale.GERMAN, "Aktuelle Zeit verwenden");
+		SUBMIT_NOW_MAP.put(OgemaLocale.ENGLISH, "Submit for Now");
+		SUBMIT_NOW_MAP.put(OgemaLocale.GERMAN, "Speichern (aktuell)");
+		SUBMIT_TS_MAP.put(OgemaLocale.ENGLISH, "Submit for Timestamp");
+		SUBMIT_TS_MAP.put(OgemaLocale.GERMAN, "Speichern (Zeitstempel)");
+	}
+	
 	static {
 		SUPERBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Timeseries Administration...");
 		SUPERBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Verwaltung Zeitreihe...");
@@ -69,7 +100,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		setLabel(sr.allowNanValues(), EN, "Not-a-number values (NaN) allowed", DE, "Ungültige Werte (NaN) in Zeitreihe zulässig");
 		//Label separatorLabel = new Label(page, "separatorLabel", "||");
 				
-		activateTimestampButton = new Button(page, "activateTimestampButton", OPEN_TS_TEXT) {
+		activateTimestampButton = new Button(page, "activateTimestampButton", OPEN_TS_MAP.get(OgemaLocale.ENGLISH)) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -89,8 +120,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
 				String befText = getText(req);
-				if(!isTimeStampActive(befText)) setText("Use Current Time", req);
-				else setText(OPEN_TS_TEXT, req);
+				if(!isTimeStampActive(befText)) setText(DefaultWidgetProvider.getLocalString(req.getLocale(), CLOSE_TS_MAP), req);
+				else setText(DefaultWidgetProvider.getLocalString(req.getLocale(), OPEN_TS_MAP), req);
 			}
 		};
 		
@@ -139,12 +170,37 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			}
 		};
 		
+		TemplateDropdown<Integer> newValueDrop = new AddValueDropdown(page, "newValueDrop"+pid(), null) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				super.onGET(req);
+				if(getInnerMapByReq(req) != null) {
+					setWidgetVisibility(true, req);
+					if(activateTimestampButton.isDisabled(req)) {
+						disable(req);
+					} else enable(req);
+				}
+				else
+					setWidgetVisibility(false, req);
+			}
+			
+			@Override
+			protected Map<OgemaLocale, Map<String, String>> getInnerMap(OgemaHttpRequest req) {
+				return getInnerMapByReq(req);
+			}
+		};
 		TextField newValue = new TextField(page, "newValue"+pid()) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				if(activateTimestampButton.isDisabled(req)) disable(req);
-				else enable(req);
+				if(getInnerMapByReq(req) == null) {
+					setWidgetVisibility(true, req);
+					if(activateTimestampButton.isDisabled(req)) {
+						disable(req);
+					} else enable(req);
+				}
+				else setWidgetVisibility(false, req);
 				/*SmartEffTimeSeries res = getReqData(req);
 				if(res.schedule().isActive()) {
 					enable(req);
@@ -152,7 +208,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			}
 		};
 		Button newValueButton = new SubmitTSValueButton(page, "newValueButton",
-				newValue, newTimestamp, newComment, alert, appManExt) {
+				newValue, newValueDrop, newTimestamp, newComment, alert, appManExt) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -165,6 +221,14 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			protected SmartEffTimeSeries getResource(OgemaHttpRequest req) {
 				return getReqData(req);
 			}
+			@Override
+			protected Class<? extends Resource> getType(OgemaHttpRequest req) {
+				return getValueType(req);
+				/*ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+				Object ct = appData.getConfigInfo().context;
+				if(ct == null || (!(ct instanceof Class))) return super.getType(req);
+				return (Class<? extends Resource>) ct;*/
+			}
 			
 			@Override
 			protected boolean disableForSure(OgemaHttpRequest req) {
@@ -173,11 +237,33 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		};
 		newValueButton.setDefaultPadding("1em", false, true, false, true);
 		Flexbox flexLineAdd = getHorizontalFlexBox(page, "addFlex"+pid(),
-				newValue, newValueButton);
+				newValue, newValueDrop, newValueButton);
 		EditLineProvider addValueProv = new EditLineProvider() {
 			@Override
 			public OgemaWidget valueColumn() {
 				return flexLineAdd;
+			}
+			@Override
+			public OgemaWidget labelColumn() {
+				final Map<OgemaLocale, String> innerMap = labels.get("#addValue");
+				return new Label(page, "addValueLable"+pid()) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						Class<? extends Resource> type = getValueType(req);
+						String unit = getEUHumanUnitString(type);
+						if(unit == null) {
+							SmartEffTimeSeries res = getReqData(req);
+							if(res.recordedDataParent() instanceof PhysicalUnitResource)
+								((PhysicalUnitResource)res).getUnit().toString();
+							else unit = "";
+						}
+						String text = innerMap.get(req.getLocale());
+						if(text == null) text = innerMap.get(localeDefault);
+						if(text != null) setText(text+" ("+unit+")", req);
+						else setText("*"+"#addValue"+"*", req);
+					}
+				};
 			}
 		};
 		setLineProvider("#addValue", addValueProv);
@@ -277,7 +363,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		setLineProvider("#schedView", schedViewProv);
 		setLabel("#schedView", EN,"Open Schedule Viewer", DE, "Plot/Bearbeiten");
 		
-		RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openTSManButton", pid(),
+		/*RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openTSManButton", pid(),
 				exPage, null);
 		EditLineProvider logicProv = new EditLineProvider() {
 			@Override
@@ -287,7 +373,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		};
 		setLineProvider("#logicView", logicProv);
 		setLabel("#logicView", EN, "Overview LogicProviders for timeseries", DE, "Überblick Rechner für die Zeitreihe");
-
+		 */
 		
 		activateTimestampButton.registerDependentWidget(newTimestamp);
 		activateTimestampButton.registerDependentWidget(newValueButton);
@@ -296,16 +382,33 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		activateTimestampButton.registerDependentWidget(csvImportButton);
 		if(alert != null) newValueButton.registerDependentWidget(alert);
 		newValue.registerDependentWidget(newValueButton);
+		newValueDrop.registerDependentWidget(newValueButton);
 	}
 
 	protected boolean isTimeStampActive(String buttonText) {
-		if(buttonText.equals(OPEN_TS_TEXT)) return false;
+		if(OPEN_TS_MAP.values().contains(buttonText)) return false;
 		return true;
 	}
 	
 	@Override
 	protected Class<SmartEffTimeSeries> primaryEntryTypeClass() {
 		return SmartEffTimeSeries.class;
+	}
+	
+	protected Class<? extends Resource> getValueType(OgemaHttpRequest req) {
+		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+		Object ct = appData.getConfigInfo().context;
+		if(ct == null || (!(ct instanceof ContextType)) || ((ContextType)ct).type == null) return FloatResource.class;
+		ContextType ctt = (ContextType) ct;
+		return ctt.type;
+	}
+	
+	protected Map<OgemaLocale, Map<String, String>> getInnerMapByReq(OgemaHttpRequest req) {
+		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+		Object ct = appData.getConfigInfo().context;
+		if(ct == null || (!(ct instanceof ContextType)) || ((ContextType)ct).innerMap == null) return null;
+		ContextType ctt = (ContextType) ct;
+		return ctt.innerMap;
 	}
 	
 	public static Flexbox getHorizontalFlexBox(WidgetPage<?> page, String id, OgemaWidget... w1) {
@@ -325,10 +428,19 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		/**If true the widget shall be disabled even if other criteria would enable it*/
 		protected abstract boolean disableForSure(OgemaHttpRequest req);
 		protected abstract SmartEffTimeSeries getResource(OgemaHttpRequest req);
+		protected Class<? extends Resource> getType(OgemaHttpRequest req) {
+			return FloatResource.class;
+		}
 		/**If false an external time stamp shall be used for submission*/
 		protected abstract boolean submitForNow(OgemaHttpRequest req);
-		
-		private final TextField newValue;
+		/** Overwrite this if default conversion shall be overwritten
+		 * @return null if no valid value could be obtained*/
+		protected Float getValue(String value, Class<? extends Resource> type, OgemaHttpRequest req) {
+			return getOGEMAValue(value, type);
+		}
+
+		private final TextField newValue2;
+		private final TemplateDropdown<Integer> newValueDrop;
 		/** if null submitForNow needs to be true always*/
 		private final TextField newTimestamp;
 		/** may be null*/
@@ -340,40 +452,60 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		 */
 		int mode = 0;
 
+		@SuppressWarnings("unchecked")
 		public SubmitTSValueButton(WidgetPage<?> page, String id,
-				TextField newValue, TextField newTimestamp, TextField newComment,
+				OgemaWidget newValue, TextField newTimestamp, TextField newComment,
 				Alert alert, ApplicationManagerSPExt appManExt) {
-			super(page, "newValueButton", "Submit");
-			this.newValue = newValue;
+			this(page, id,
+				(newValue instanceof TextField)?(TextField)newValue:null,
+				(newValue instanceof TemplateDropdown)?(TemplateDropdown<Integer>)newValue:null,
+				newTimestamp, newComment, alert, appManExt);
+		}
+	
+		public SubmitTSValueButton(WidgetPage<?> page, String id,
+				TextField newValue, TemplateDropdown<Integer> newValueDrop,
+				TextField newTimestamp, TextField newComment,
+				Alert alert, ApplicationManagerSPExt appManExt) {
+			super(page, id, "Submit");
+			/*if(newValue instanceof TextField) {
+				this.newValue2 = (TextField) newValue;
+				newValueDrop = null;
+			} else if(newValue instanceof TemplateDropdown) {
+				this.newValue2 = null;
+				this.newValueDrop = (TemplateDropdown<Integer>) newValue;
+			} else throw new IllegalArgumentException("Unsupported widget type for newValue:"+newValue.getClass());*/
+			this.newValue2 = newValue;
+			this.newValueDrop = newValueDrop;
 			this.newTimestamp = newTimestamp;
 			this.newComment = newComment;
 			this.alert = alert;
 			this.appManExt = appManExt;
 		}
-
+		
 		@Override
 		public void onGET(OgemaHttpRequest req) {
 			if(disableForSure(req)) {
 				disable(req);
 				return;
 			}
-			String val = newValue.getValue(req);
-			if(val.toLowerCase().equals("nan")) {
-				SmartEffTimeSeries res = getResource(req);
-				if(res.allowNanValues().getValue()) {
-					enable(req);
-				} else disable(req);
-				return;
-			}
-			try {
-				Float.parseFloat(val);
-			} catch (NumberFormatException | NullPointerException e) {
-				disable(req);
-				return;
+			//Dropdown has no invalid values
+			if(newValue2 != null && newValue2.isVisible(req)) {
+				String val = newValue2.getValue(req);
+				if(val.toLowerCase().equals("nan")) {
+					SmartEffTimeSeries res = getResource(req);
+					if(res.allowNanValues().getValue()) {
+						enable(req);
+					} else disable(req);
+					return;
+				}
+				if(getValue(val, getType(req), req) == null) {
+					disable(req);
+					return;				
+				}
 			}
 			if(submitForNow(req)) {
-				setText("Submit for Now", req);
-			} else setText("Submit for Timestamp", req);
+				setText(DefaultWidgetProvider.getLocalString(req.getLocale(), SUBMIT_NOW_MAP), req);
+			} else setText(DefaultWidgetProvider.getLocalString(req.getLocale(), SUBMIT_TS_MAP), req);
 			enable(req);
 		}
 		private void setValue(Schedule sched, float value, long timestamp) {
@@ -388,35 +520,39 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			float maximumAllowed = 999999;
 			float minimumAllowed = 0;
 
-			String val = newValue.getValue(req);
-			float value;
-			if(val.toLowerCase().equals("nan")) {
-				SmartEffTimeSeries res = getResource(req);
-				if(res.allowNanValues().getValue()) {
-					value = Float.NaN;
-				} else  {
-					if(alert != null) alert.showAlert(notAllowedMessageUsed+" (NaN)", false, req);
+			Float value;
+			if(newValue2 != null) {
+				String val = newValue2.getValue(req);
+				if(val.toLowerCase().equals("nan")) {
+					SmartEffTimeSeries res = getResource(req);
+					if(res.allowNanValues().getValue()) {
+						value = Float.NaN;
+					} else  {
+						if(alert != null) alert.showAlert(notAllowedMessageUsed+" (NaN)", false, req);
+						return;
+					}
+				} else {
+					value  = getValue(val, getType(req), req);
+					if(value == null) {
+						if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
+						return;					
+					}
+				}
+				if (value < minimumAllowed) {
+					if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
 					return;
 				}
-			} else 	try {
-				value  = Float.parseFloat(val);
-			} catch (NumberFormatException | NullPointerException e) {
-				if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
-				return;
+				if (value > maximumAllowed) {
+					if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
+					return;
+				}
+			} else {
+				value = (float)newValueDrop.getSelectedItem(req);
 			}
-			if (value < minimumAllowed) {
-				if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
-				return;
-			}
-			if (value > maximumAllowed) {
-				if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
-				return;
-			}
-			
 			long ts;
 			//String buttonText = activateTimestampButton.getText(req);
 			if(!submitForNow(req)) {
-				val = newTimestamp.getValue(req);
+				String val = newTimestamp.getValue(req);
 				try {
 					ts = TS_FORMAT.parse(val).getTime();
 				} catch (ParseException e) {
@@ -428,7 +564,11 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			SmartEffTimeSeries res = getResource(req);
 			Schedule sched = res.schedule();
 			if(!sched.exists()) {
-				res.recordedDataParent().create();
+				Class<? extends Resource> type = getType(req);
+				if(!type.equals(FloatResource.class))
+					res.getSubResource("recordedDataParent", type);
+				else
+					res.recordedDataParent().create();
 				res.recordedDataParent().program().create();
 				sched.setAsReference(res.recordedDataParent().program());					
 			}
@@ -451,6 +591,104 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			ValueResourceUtils.appendValue(res.commmentTimeStamps(), timestamp);
 			if(!res.comments().isActive()) res.comments().activate(false);
 			if(!res.commmentTimeStamps().isActive()) res.commmentTimeStamps().activate(false);
+		}
+	}
+	
+	/** Convert from a European human standard value into OGEMA value (e.g. °C to K)
+	 * 
+	 * @param euHumValue value as expected by most continental European humans
+	 * @param type
+	 * @param req
+	 * @return
+	 */
+	public static Float getOGEMAValue(String euHumValue, Class<? extends Resource> type) {
+		try {
+			float val =  Float.parseFloat(euHumValue);
+			if(type.equals(TemperatureResource.class))
+				return val + 273.15f;
+			if(type.equals(EnergyResource.class))
+				return val*3600000f;
+			if(type.equals(PercentageResource.class))
+				return val * 0.01f;
+			return val;
+		} catch (NumberFormatException | NullPointerException e) {
+			return null;
+		}
+	}
+	
+	public static float getEUHumanValue(float ogemaValue, Class<? extends Resource> type) {
+		if(type.equals(TemperatureResource.class))
+			return ogemaValue - 273.15f;
+		if(type.equals(EnergyResource.class))
+			return ogemaValue *(1.0f/3600000f);
+		if(type.equals(PercentageResource.class))
+			return ogemaValue * 100;
+		return ogemaValue;		
+	}
+	
+	public static String getEUHumanUnitString(Class<? extends Resource> type) {
+		if(type.equals(TemperatureResource.class))
+			return "°C";
+		if(type.equals(EnergyResource.class))
+			return "kWh";
+		if(type.equals(PercentageResource.class))
+			return "%";
+		if(type.equals(LengthResource.class))
+			return "m";
+		return null;
+	}
+	
+	public static class AddValueDropdown extends TemplateDropdownLoc<Integer> {
+		private static final long serialVersionUID = 1L;
+		protected final Map<OgemaLocale, Map<String, String>> innerMapIn;
+		protected Map<OgemaLocale, Map<String, String>> getInnerMap(OgemaHttpRequest req) {return null;}
+		
+		public AddValueDropdown(WidgetPage<?> page, String id,
+			Map<OgemaLocale, Map<String, String>> innerMapIn) {
+			super(page, id, innerMapIn == null);
+			this.innerMapIn = innerMapIn;
+			setTemplate(new DisplayTemplate<Integer>() {
+				@Override
+				public String getLabel(Integer object, OgemaLocale locale) {
+					if(innerMapIn == null)
+						throw new IllegalStateException("Have to use getLabel(OgemaHttpRequest) for flexible Map!");
+					Map<String, String> inMapLoc = innerMapIn.get(locale);
+					if(inMapLoc == null) inMapLoc = innerMapIn.get(OgemaLocale.ENGLISH);
+					return inMapLoc.get(""+object);
+				}
+				
+				@Override
+				public String getId(Integer object) {
+					return ""+object;
+				}
+			});
+		}
+		
+		@Override
+		public void onGET(OgemaHttpRequest req) {
+			super.onGET(req);
+			Map<OgemaLocale, Map<String, String>> innerMap;
+			if(innerMapIn == null) {
+				innerMap = getInnerMap(req);
+			} else innerMap = innerMapIn;
+			Map<String, String> inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
+			List<Integer> items = new ArrayList<>();
+			for(String s: inMapLoc.keySet()) {
+				items.add(Integer.parseInt(s));
+			}
+			update(items, req);
+		}
+			
+		@Override
+		public String getFlexLabel(Integer object, OgemaHttpRequest req) {
+			OgemaLocale locale = req.getLocale();
+			Map<OgemaLocale, Map<String, String>> innerMap;
+			if(innerMapIn == null) {
+				innerMap = getInnerMap(req);
+			} else innerMap = innerMapIn;
+			Map<String, String> inMapLoc = innerMap.get(locale);
+			if(inMapLoc == null) inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
+			return inMapLoc.get(""+object);
 		}
 	}
 }

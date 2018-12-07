@@ -45,5 +45,6 @@ public interface EditPageGenericTableWidgetProvider<T extends Resource> {
 	void setGlobalData(ObjectResourceGUIHelperExtPublic<T> mh, Alert alert, Map<String, Float> lowerLimits, Map<String, Float> upperLimits,
 			Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions,
 			ApplicationManagerSPExt appManExt,  ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
-			WidgetPage<?> page);
+			WidgetPage<?> page,
+			Class<? extends Resource> pageResoureType);
 }

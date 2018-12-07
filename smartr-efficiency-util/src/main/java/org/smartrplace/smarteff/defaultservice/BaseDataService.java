@@ -12,6 +12,7 @@ import org.smartrplace.commontypes.BuildingEditPage;
 import org.smartrplace.commontypes.BuildingTablePage;
 import org.smartrplace.commontypes.HeatBillRegistration;
 import org.smartrplace.commontypes.MasterUserRegistration;
+import org.smartrplace.commontypes.RadiatorTypeRegistration;
 import org.smartrplace.commontypes.RoomRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -32,6 +33,7 @@ import extensionmodel.smarteff.api.base.SmartEffPriceData;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.api.common.HeatCostBillingInfo;
+import extensionmodel.smarteff.api.common.HeatRadiatorType;
 import extensionmodel.smarteff.defaultproposal.BuildingExampleAnalysis;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParamsPage;
 
@@ -105,6 +107,9 @@ public class BaseDataService implements SmartEffExtensionService {
 		
 	public final static NaviPageBase<SmartEffTimeSeries>.Provider TSMAN_EDIT = new TSManagementPage().provider;
 	
+	private final static EditPageGenericWithTable<HeatRadiatorType> RADIATOR_PAGE = new RadiatorTypeRegistration.EditPage();
+	private final static GenericResourceByTypeTablePageBase<HeatRadiatorType> RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
+
 	//public final static NaviPageBase<DefaultProviderParams>.Provider BA_PARAMSEDIT_PROVIDER = new DefaultProviderParamsPage().provider;
 	//public final static NaviPageBase<Resource>.Provider TOPCONFIG_NAVI_PROVIDER = new TopConfigTablePage().provider;
 	public BuildingExampleAnalysis BUILDINGANALYSIS_PROVIDER;
@@ -132,7 +137,8 @@ public class BaseDataService implements SmartEffExtensionService {
 				//RESSUBBYTYPE_PROVIDER,
 				BILLEDIT.provider, BILLTABLE.provider, ACCESS_EDIT.provider,
 				CROSSUSERBUILDING_TABLE.provider,
-				TSMAN_EDIT});
+				TSMAN_EDIT,
+				RADIATOR_PAGE.provider, RADIATOR_TABLE.provider});
 	}
 
 	@Override
@@ -146,6 +152,7 @@ public class BaseDataService implements SmartEffExtensionService {
 		result.add(new MasterUserRegistration.TypeDeclaration());
 		result.add(new RoomRegistration.TypeDeclaration());
 		result.add(new HeatBillRegistration.TypeDeclaration());
+		result.add(new RadiatorTypeRegistration.TypeDeclaration());
 		result.add(new AccessControlRegistration.TypeDeclaration());
 		return result ;
 	}

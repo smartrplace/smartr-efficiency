@@ -481,13 +481,15 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		}
 		if(fittingProvs.isEmpty()) {
 			//TODO: Do not always initialize
-			defaultWP.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page);
+			defaultWP.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page,
+					primaryEntryTypeClass());
 			return defaultWP.createValueWidget(sub, type2, labelWidgetForValue, mhLoc, isEditable,
 					isEditable(sub), pid());
 		} else {
 			Integer maxPriority = Collections.max(fittingProvs.keySet());
 			EditPageGenericTableWidgetProvider<T> wp = fittingProvs.get(maxPriority);
-			wp.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page);
+			wp.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page,
+					primaryEntryTypeClass());
 			return wp.createValueWidget(sub, type2, labelWidgetForValue, mhLoc, isEditable,
 					isEditable(sub), pid());
 		}

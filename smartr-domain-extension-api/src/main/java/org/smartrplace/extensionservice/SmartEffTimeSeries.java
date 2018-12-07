@@ -12,7 +12,10 @@ import org.smartrplace.smarteff.model.syste.GenericTSDPTimeSeries;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvaluationInput;
 
-/** This is a base resource for all value resources containing time series. Usually the data is
+/** This is a base resource for all value resources containing time series. The mode is more flexible
+ * then OGEMA RecordedData and Schedules as also time series can be represented that are not directly
+ * accessible via OGEMA resources such as RecordedData collected from other OGEMA instances or
+ * time series provided by external data bases or CSV files. Usually the data is
  * provided via a DriverProvider that provides specific DataProvider instances for each user
  * based on a certain DataProvider class.
  * Not all data provided by DataProviders should be represented
@@ -22,7 +25,13 @@ import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvaluationInput;
  * {@link #recordedDataParent()} then {@link #recordedDataParent()} should NOT be active, but the
  * schedule should be active. Currently we support only a single mode for each time series. So
  * if you want to import data via CSV and also manipulate data manually then you have to copy
- * all data into a schedule.
+ * all data into a schedule.<br>
+ * In contrast to standard OGEMA time series representation via RecordedData or Schedules this model
+ * has no representation for the 'current value'. For external data sets that refer to data collected
+ * in the past this would not make much sense anyways. So data with a continious inflow for
+ * real-time supervision and control should still be processed via standard OGEMA mechanisms. If
+ * manual entered data in a SmartEffTimeSeries needs to be treated like this the last value from
+ * the time series has to be extracted.
  */
 public interface SmartEffTimeSeries extends Data {
 	/**DataProvider id that is used to provide the data.*/

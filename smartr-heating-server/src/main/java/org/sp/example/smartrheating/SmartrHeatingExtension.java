@@ -13,12 +13,9 @@ import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.NaviPageBase;
-import org.smartrplace.smarteff.util.editgeneric.GenericResourceByTypeTablePageBase;
-import org.sp.example.smartrheating.RadiatorTypeRegistration.EditPage;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.BuildingData;
-import extensionmodel.smarteff.smartrheating.SHeatRadiatorType;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingData;
 
 @Service(SmartEffExtensionService.class)
@@ -37,15 +34,16 @@ public class SmartrHeatingExtension implements SmartEffExtensionService {
 	}
 
 	private final static NaviPageBase<SmartrHeatingData>.Provider EDIT_PROVIDER = new SmartrHeatingEditPage().provider;
-	private final static EditPage RADIATOR_PAGE = new RadiatorTypeRegistration.EditPage();
-	private final static GenericResourceByTypeTablePageBase<SHeatRadiatorType> RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
+	//private final static EditPage RADIATOR_PAGE = new RadiatorTypeRegistration.EditPage();
+	//private final static GenericResourceByTypeTablePageBase<SHeatRadiatorType> RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
 	private static SmartrHeatingEval PROPOSAL_PROV;
 	private final static SmartrHeatingParamsPage PARAM_PAGE = new SmartrHeatingParamsPage();
 	private final static SmartrHeatingInternalParamsPage PARAMINTERNAL_PAGE = new SmartrHeatingInternalParamsPage();
 	@Override
 	public Collection<ExtensionCapability> getCapabilities() {
 		return Arrays.asList(new ExtensionCapability[] {EDIT_PROVIDER,
-				PROPOSAL_PROV, PARAM_PAGE.provider, RADIATOR_TABLE.provider,
+				PROPOSAL_PROV, PARAM_PAGE.provider,
+				//RADIATOR_TABLE.provider,
 				PARAMINTERNAL_PAGE.provider});
 	}
 	//RADIATOR_PAGE.provider
@@ -77,7 +75,7 @@ public class SmartrHeatingExtension implements SmartEffExtensionService {
 			}
 			
 		});
-		result.add(new RadiatorTypeRegistration.TypeDeclaration());
+		//result.add(new RadiatorTypeRegistration.TypeDeclaration());
 		result.add(PROPOSAL_PROV.getResultTypeDeclaration());
 		if(PROPOSAL_PROV.getParamTypeDeclaration() != null) result.add(PROPOSAL_PROV.getParamTypeDeclaration());
 		if(PROPOSAL_PROV.getInternalParamTypeDeclaration() != null) result.add(PROPOSAL_PROV.getInternalParamTypeDeclaration());

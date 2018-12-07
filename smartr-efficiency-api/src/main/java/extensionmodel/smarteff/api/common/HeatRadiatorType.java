@@ -1,4 +1,4 @@
-package extensionmodel.smarteff.smartrheating;
+package extensionmodel.smarteff.api.common;
 
 import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.core.model.simple.FloatResource;
@@ -8,11 +8,26 @@ import org.ogema.core.model.units.LengthResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 
 /** Note that each radiator type should have a name resource used as an individual ID*/
-@Deprecated //moved to general building API
-public interface SHeatRadiatorType extends SmartEffResource {
+public interface HeatRadiatorType extends SmartEffResource {
+	/** 1: Standard on radiators<br>
+	 *  2: Control knob connected via pressure cable<br>
+	 *  3: room control device<br>
+	 *  4: building automation system
+	 */
+	IntegerResource typeOfThermostat();
+	/** Usually this model is used for radiators in the room, not for underfloor heating.
+	 * But the model can also be used for this, values:
+	 * 0: hot-water powered radiator for walls (default, used if sub resource does not exist)
+	 * 1: under-floor heating (powered by hot water)
+	 * 2: ceiling heating (powered by hot water)
+	 * 10: electricity-powered radiator. In this case several values given
+	 * 		here might need a re-definition. This option needs further elobaration
+	 * 		in the future.*/
+	IntegerResource radiatorType();
+	
 	/** If the single rooms of a building are not represented in the database or
-	 * the radiators (or their types) are not modelled per room the total number of radiators
-	 * of a type can be stored in this value.
+	 * the radiators (or their types) are not modeled per room the total number of radiators
+	 * of a type can be stored in this value for the entire building.
 	 */
 	IntegerResource numberOfRadiators();
 	/** TODO: No support for this in EditPageGeneric yet*/

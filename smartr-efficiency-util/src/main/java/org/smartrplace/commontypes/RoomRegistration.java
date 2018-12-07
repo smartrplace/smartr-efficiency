@@ -1,5 +1,9 @@
 package org.smartrplace.commontypes;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
@@ -11,6 +15,27 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class RoomRegistration {
 	public static final Class<? extends SmartEffResource> TYPE_CLASS = BuildingUnit.class; //RoomData.class;
+	
+	public static final Map<String, String> TEMPFB_MAP_EN = new LinkedHashMap<>();
+	public static final Map<String, String> TEMPFB_MAP_DE = new LinkedHashMap<>();
+	static {
+		TEMPFB_MAP_EN.put("1", "OK, no complaints");
+		TEMPFB_MAP_EN.put("2", "Feels improved compared to earlier situations");
+		TEMPFB_MAP_EN.put("10", "Too cold");
+		TEMPFB_MAP_EN.put("11", "Too warm");
+		TEMPFB_MAP_EN.put("12", "Too cold / warm mixed");
+		TEMPFB_MAP_EN.put("100", "Heating does not seem to work at all");
+		TEMPFB_MAP_EN.put("101", "Too hot: Heating working full power");
+		
+		TEMPFB_MAP_DE.put("1", "OK, keine Beschwerden");
+		TEMPFB_MAP_DE.put("2", "Gegenüber vorherigem Zustand verbessert");
+		TEMPFB_MAP_DE.put("10", "Zu kalt");
+		TEMPFB_MAP_DE.put("11", "Zu warm");
+		TEMPFB_MAP_DE.put("12", "Wechselnd zu kalt/zu warm");
+		TEMPFB_MAP_DE.put("100", "Kalt - Heizung funktioniert gar nicht");
+		TEMPFB_MAP_DE.put("101", "Zu heiß - Heizung läuft immer voll");
+
+	}
 	
 	public static class TypeDeclaration implements ExtensionResourceTypeDeclaration<SmartEffResource> {
 
@@ -48,6 +73,12 @@ public class RoomRegistration {
 			setTableHeader(sr.groundArea(), EN, "Ground Area (m2)", DE, "Nutzfläche (m2)");
 			setLabel(sr.totalOutsideWallArea(), EN, "Total area of outside walls (m2)", DE ,"Gesamtfläche Außenwände (m2)");
 			setLabel(sr.outsideWindowArea(), EN, "Total area of windows in outside walls (m2)", DE, "Gesamt-Fensterfläche (nur Außenwände) in m2");
+			setLabel(sr.manualTemperatureReading(), EN, "Manual temperature reading (°C)");
+			setLabel(sr.manualHumidityReading(), EN, "Manual humidity reading (%)");
+			setLabel(sr.roomTemperatureQualityRating(), EN, "Room temperature comfort level user feedback",
+					DE, "Nutzer-Feedback zur Raumtemperatur");
+			setDisplayOptions(sr.roomTemperatureQualityRating(), EN, TEMPFB_MAP_EN);
+			setDisplayOptions(sr.roomTemperatureQualityRating(), DE, TEMPFB_MAP_DE);
 		}
 
 		@SuppressWarnings("unchecked")

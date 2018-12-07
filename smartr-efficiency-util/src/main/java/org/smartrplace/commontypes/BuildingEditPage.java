@@ -178,6 +178,8 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel(sr.coGeneration(), EN, "Cogeneration Device", DE, "KWK-Anlage");
 		setLabel(sr.heatCostBillingInfo(), EN, "Edit Bills", DE, "Heizkostenabrechnungen");
 		setLabel(sr.buildingUnit(), EN, "Rooms / Sub Units", DE, "Räume / Gebäudeteile");
+		setLabel(sr.heatRadiatorType(), EN, "Different types of thermostats in building", DE, "Verschiedene Arten von Heizkörperthermostaten im Gebäude");
+		setLabel(sr.electricityMeterCountValue(), EN, "Meter count with time of measuerment", DE, "Aktueller Zählerstand");
 	}
 
 	@Override
