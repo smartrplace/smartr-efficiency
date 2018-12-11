@@ -174,8 +174,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				super.onGET(req);
 				if(getInnerMapByReq(req) != null) {
+					super.onGET(req);
 					setWidgetVisibility(true, req);
 					if(activateTimestampButton.isDisabled(req)) {
 						disable(req);
@@ -215,6 +215,11 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			protected boolean submitForNow(OgemaHttpRequest req) {
 				//String buttonText = activateTimestampButton.getText(req);
 				return newTimestamp.isDisabled(req); //(!isTimeStampActive(buttonText)) &&
+			}
+			
+			@Override
+			protected boolean checkValue(OgemaHttpRequest req) {
+				return (getInnerMapByReq(req) == null);
 			}
 			
 			@Override
@@ -427,6 +432,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 
 		/**If true the widget shall be disabled even if other criteria would enable it*/
 		protected abstract boolean disableForSure(OgemaHttpRequest req);
+		protected boolean checkValue(OgemaHttpRequest req) {return true;}
 		protected abstract SmartEffTimeSeries getResource(OgemaHttpRequest req);
 		protected Class<? extends Resource> getType(OgemaHttpRequest req) {
 			return FloatResource.class;
@@ -489,7 +495,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				return;
 			}
 			//Dropdown has no invalid values
-			if(newValue2 != null && newValue2.isVisible(req)) {
+			if(newValue2 != null && checkValue(req)) { //newValue2.isVisible(req)) {
 				String val = newValue2.getValue(req);
 				if(val.toLowerCase().equals("nan")) {
 					SmartEffTimeSeries res = getResource(req);
@@ -516,12 +522,13 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		}
 		@Override
 		public void onPOSTComplete(String data, OgemaHttpRequest req) {
-			String notAllowedMessageUsed = "Invalid time series value!";
+			String notAllowedMessageUsed = "Invalid value!";
+			String notAllowedMessageTS = "Invalid time series value!";
 			float maximumAllowed = 999999;
 			float minimumAllowed = 0;
 
 			Float value;
-			if(newValue2 != null) {
+			if((newValue2 != null)  && checkValue(req)) {
 				String val = newValue2.getValue(req);
 				if(val.toLowerCase().equals("nan")) {
 					SmartEffTimeSeries res = getResource(req);
@@ -534,7 +541,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				} else {
 					value  = getValue(val, getType(req), req);
 					if(value == null) {
-						if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
+						if(alert != null) alert.showAlert(notAllowedMessageUsed+":"+val, false, req);
 						return;					
 					}
 				}
@@ -556,7 +563,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				try {
 					ts = TS_FORMAT.parse(val).getTime();
 				} catch (ParseException e) {
-					alert.showAlert("Invalid time stamp:"+val, false, req);
+					alert.showAlert(notAllowedMessageTS+":"+val, false, req);
 					return;
 				}
 			} else

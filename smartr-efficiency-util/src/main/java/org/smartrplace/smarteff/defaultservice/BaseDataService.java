@@ -21,8 +21,8 @@ import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.smarteff.accesscontrol.AccessControlRegistration;
-import org.smartrplace.smarteff.accesscontrol.CrossUserBuildingTablePage;
 import org.smartrplace.smarteff.accesscontrol.AccessControlRegistration.EditPage;
+import org.smartrplace.smarteff.accesscontrol.CrossUserBuildingTablePage;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
 import org.smartrplace.smarteff.util.editgeneric.GenericResourceByTypeTablePageBase;
@@ -87,6 +87,10 @@ public class BaseDataService implements SmartEffExtensionService {
 		}
 		
 	};
+	public final static RoomRegistration.TypeDeclaration ROOM_TYPE = new RoomRegistration.TypeDeclaration();
+	public final static RadiatorTypeRegistration.TypeDeclaration RADIATOR_TYPE = new RadiatorTypeRegistration.TypeDeclaration();
+	
+	
 	/*public final static org.smartrplace.smarteff.defaultservice.BuildingTablePage.Provider BUILDING_NAVI_PROVIDER = new BuildingTablePage().provider;
 	public final static org.smartrplace.smarteff.defaultservice.BuildingEditPage.Provider BUILDING_EDIT_PROVIDER = new BuildingEditPage().provider;
 	*/
@@ -150,9 +154,9 @@ public class BaseDataService implements SmartEffExtensionService {
 		result.add(BUILDINGANALYSIS_PROVIDER.getResultTypeDeclaration());
 		if(BUILDINGANALYSIS_PROVIDER.getParamTypeDeclaration() != null) result.add(BUILDINGANALYSIS_PROVIDER.getParamTypeDeclaration());
 		result.add(new MasterUserRegistration.TypeDeclaration());
-		result.add(new RoomRegistration.TypeDeclaration());
+		result.add(ROOM_TYPE);
 		result.add(new HeatBillRegistration.TypeDeclaration());
-		result.add(new RadiatorTypeRegistration.TypeDeclaration());
+		result.add(RADIATOR_TYPE);
 		result.add(new AccessControlRegistration.TypeDeclaration());
 		return result ;
 	}

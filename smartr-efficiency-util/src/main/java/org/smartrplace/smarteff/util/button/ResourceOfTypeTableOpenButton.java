@@ -13,6 +13,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.defaultservice.ResourceByTypeTablePage;
 import org.smartrplace.smarteff.util.SPPageUtil;
+import org.smartrplace.smarteff.util.editgeneric.GenericResourceByTypeTablePageBase.ResourceOfTypeContext;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -31,6 +32,8 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 	protected Map<OgemaLocale, String> getTextMap(OgemaHttpRequest req) {
 		return BUTTON_TEXTS;
 	}
+	protected String getEditPageURL() {return null;}
+	
 	protected boolean openResSub = false;
 	public void openResSub(boolean openResSub) {
 		this.openResSub = openResSub;
@@ -54,11 +57,11 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 	@Override
 	protected NavigationPublicPageData getPageData(ExtensionResourceAccessInitData appData,
 			Class<? extends Resource> type, PageType typeRequested, OgemaHttpRequest req) {
+		String url = null;
 		Resource object = getResource(appData, req);
 		Class<? extends Resource> entryType = object.getResourceType(); //primaryEntryTypeClass()
 		List<NavigationPublicPageData> provs = appData.systemAccessForPageOpening().
 				getPages(entryType, true);
-		String url = null;
 		Class<? extends Resource> openType = typeToOpen(appData, req);
 		for(NavigationPublicPageData p: provs) {
 			if((p.typesListedInTable() != null)) {
@@ -80,7 +83,10 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 	
 	@Override
 	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {
-		return typeToOpen(appData, req).getName();
+		ResourceOfTypeContext ct = new ResourceOfTypeContext();
+		ct.dataTypeName = typeToOpen(appData, req).getName();
+		ct.editPageURL = getEditPageURL();
+		return ct;
 	}
 	
 	@Override

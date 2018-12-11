@@ -37,7 +37,24 @@ public class GenericResourceByTypeTablePageBase<T extends Resource> extends Reso
 		super(false);
 	}
 	
+	public static class ResourceOfTypeContext {
+		public String dataTypeName;
+		
+		/** If present this URL shall be used for edit page*/
+		public String editPageURL = null;
+	}
+	
 	protected Class<? extends Resource> typeSelected(OgemaHttpRequest req) {
+		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+		if(appData.getConfigInfo().context == null) throw new IllegalStateException("Context required for resource type!");
+		if(!(appData.getConfigInfo().context instanceof ResourceOfTypeContext)) throw new IllegalStateException("Type must be transmitted as ResourceOfTypeContext!");
+		ResourceOfTypeContext param = (ResourceOfTypeContext)appData.getConfigInfo().context;
+		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclarations()) {
+			if(decl.dataType().getName().equals(param.dataTypeName)) return decl.dataType();
+		}
+		return null;
+	}
+	/*protected Class<? extends Resource> typeSelected(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		if(appData.getConfigInfo().context == null) throw new IllegalStateException("Context required for resource type!");
 		if(!(appData.getConfigInfo().context instanceof String)) throw new IllegalStateException("Type must be transmitted as String!");
@@ -46,7 +63,7 @@ public class GenericResourceByTypeTablePageBase<T extends Resource> extends Reso
 			if(decl.dataType().getName().equals(param)) return decl.dataType();
 		}
 		return null;
-	}
+	}*/
 	
 	protected Map<OgemaLocale, String> getSuperEditButtonTexts() {
 		return SUPEREDITBUTTON_TEXTS;

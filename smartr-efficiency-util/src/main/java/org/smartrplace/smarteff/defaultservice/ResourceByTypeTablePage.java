@@ -7,6 +7,7 @@ import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
+import org.smartrplace.smarteff.util.editgeneric.GenericResourceByTypeTablePageBase.ResourceOfTypeContext;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -23,13 +24,13 @@ public class ResourceByTypeTablePage extends ResourceTablePage {
 	protected Class<? extends Resource> typeSelected(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		if(appData.getConfigInfo().context == null) throw new IllegalStateException("Context required for resource type!");
-		if(!(appData.getConfigInfo().context instanceof String)) throw new IllegalStateException("Type must be transmitted as String!");
-		String param = (String)appData.getConfigInfo().context;
+		if(!(appData.getConfigInfo().context instanceof ResourceOfTypeContext)) throw new IllegalStateException("Type must be transmitted as ResourceOfTypeContext!");
+		ResourceOfTypeContext param = (ResourceOfTypeContext)appData.getConfigInfo().context;
 		for(ExtensionResourceTypeDeclaration<?> decl: appManExt.getAllTypeDeclarations()) {
-			if(decl.dataType().getName().equals(param)) return decl.dataType();
+			if(decl.dataType().getName().equals(param.dataTypeName)) return decl.dataType();
 		}
 		for(Class<? extends Resource> t: appManExt.getSystemTypes()) {
-			if(t.getName().equals(param)) return t;
+			if(t.getName().equals(param.dataTypeName)) return t;
 		}
 		return null;
 	}

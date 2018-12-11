@@ -32,6 +32,9 @@ public class NaviOpenButton extends RedirectButton {
 		if(appData.getConfigInfo() == null) return null;
 		return appData.getConfigInfo().lastContext;
 	}
+	protected String getDestinationURL(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {
+		return null;
+	}
 	
 	protected final ButtonControlProvider controlProvider;
 	
@@ -90,13 +93,27 @@ public class NaviOpenButton extends RedirectButton {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		final Resource object = getResource(appData, req);
 		final Class<? extends Resource> type = getEntryType(appData, req);
-		NavigationPublicPageData pageData = getPageData(appData, type, pageType, req);
-		if(pageData == null)
-			throw new IllegalStateException("Page to open for "+type.getSimpleName()+", "+pageType+", typesToShow:"+"not found in "+this.getClass().getSimpleName()+"! Maybe not registered?");
+		String url = getDestinationURL(appData, object, req);
+		NavigationPublicPageData pageData;
+		if(url != null) {
+			pageData = appData.systemAccessForPageOpening().getPageByProvider(url);			
+			if(pageData == null) {
+				throw new IllegalStateException("Special Page to open for "+url+", "+pageType+", typesToShow:"+"not found in "+this.getClass().getSimpleName()+"! Maybe not registered?");
+			}
+		} else {
+			pageData = getPageData(appData, type, pageType, req);
+			if(pageData == null) {
+				throw new IllegalStateException("Page to open for "+type.getSimpleName()+", "+pageType+", typesToShow:"+"not found in "+this.getClass().getSimpleName()+"! Maybe not registered?");
+			}
+			url = pageData.getUrl();
+		}
 		final String configId = getConfigId(pageType, object, appData.systemAccessForPageOpening(),
 				pageData, doCreate, type, getContext(appData, object, req)); //type(appData, req)
-		if(configId.startsWith(CapabilityHelper.ERROR_START)) setUrl("error/"+configId, req);
-		else setUrl(pageData.getUrl()+"?configId="+configId, req);
+		if(configId.startsWith(CapabilityHelper.ERROR_START)) {
+			setUrl("error/"+configId, req);
+			return;
+		}
+		setUrl(url+"?configId="+configId, req);
 	}
 
 	private Class<? extends Resource> getEntryType(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {

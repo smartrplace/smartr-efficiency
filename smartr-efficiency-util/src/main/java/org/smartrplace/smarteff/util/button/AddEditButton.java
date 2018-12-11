@@ -50,15 +50,14 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 	public void onGET(OgemaHttpRequest req) {
 		super.onGET(req);
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-		/*List<Resource> resultAll = getResource(appData, req).getSubResources(false);
-		List<Resource> result = new ArrayList<>();
-		for(Resource r: resultAll) {
-			if((r instanceof ValueResource)) result.add(r);
-		}*/
-		int size = getSize(getResource(appData, req), appData);
 		String text = getButtonTexts(req).get(req.getLocale());
 		if(text == null) text = getButtonTexts(req).get(OgemaLocale.ENGLISH);
-		setText(text+"("+size+")", req);
+
+		Resource res = getResource(appData, req);
+		if(res != null) {
+			int size = getSize(res, appData);
+			setText(text+"("+size+")", req);
+		} else setText(text, req);
 	}
 	
 	public static int getSize(Resource myResource, ExtensionResourceAccessInitData appData) {

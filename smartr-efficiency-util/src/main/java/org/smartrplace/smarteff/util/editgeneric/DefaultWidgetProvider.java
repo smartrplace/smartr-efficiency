@@ -25,6 +25,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ContextType;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.SubmitTSValueButton;
+import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.ObjectResourceGUIHelperExtPublic;
 import org.smartrplace.smarteff.util.button.AddEditButton;
@@ -108,7 +109,8 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			return specialLabel;
 		}
 		if(StringResource.class.isAssignableFrom(type2.type)) {
-			if(isEditableSpecific)	return mhLoc.stringEdit(sub, alert);
+			//if(isEditableSpecific)
+			if(isEditable)	return mhLoc.stringEdit(sub, alert);
 			else return mhLoc.stringLabel(sub);
 		} else if(FloatResource.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
@@ -243,32 +245,6 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					 newValue = new TextField(page, "newValueSP"+subId+pid);
 				}		
 
-				/*if(innerMap != null) {
-					TemplateDropdownLoc<Integer> drop = new TemplateDropdownLoc<Integer>(page, "dropNV"+subId);
-					drop.setTemplate(new DisplayTemplate<Integer>() {
-						
-						@Override
-						public String getLabel(Integer object, OgemaLocale locale) {
-							Map<String, String> inMapLoc = innerMap.get(locale);
-							if(inMapLoc == null) inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
-							return inMapLoc.get(""+object);
-						}
-						
-						@Override
-						public String getId(Integer object) {
-							return ""+object;
-						}
-					});
-					Map<String, String> inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
-					List<Integer> items = new ArrayList<>();
-					for(String s: inMapLoc.keySet()) {
-						items.add(Integer.parseInt(s));
-					}
-					drop.setDefaultItems(items);
-					newValue = drop;
-				} else {				
-					 newValue = new TextField(page, "newValueSP"+subId+pid);
-				}*/
 				Button newValueButton = new SubmitTSValueButton(page, "newValueButton"+subId+pid,
 						newValue, null, null, alert, appManExt) {
 					private static final long serialVersionUID = 1L;
@@ -305,13 +281,16 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					}
 				};
 				
-				RedirectButton openTSManButton = new AddEditButton(page, "openEvalButton"+sub, pid,
+				RedirectButton openTSManButton = new AddEditButton(page, "openEvalButton"+subId, pid,
 						exPage, null) {
 					private static final long serialVersionUID = 1L;
 					@Override
 					public void updateDependentWidgets(OgemaHttpRequest req) {
 						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
+						//SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
 						if(tsResource.schedule().isActive()) {
 							newValue.setWidgetVisibility(true, req);
 							newValueButton.setWidgetVisibility(true, req);
@@ -333,7 +312,9 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					protected Resource getResource(ExtensionResourceAccessInitData appData,
 							OgemaHttpRequest req) {
 						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
+						//SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
 						return tsResource;
 					}
 					@Override
@@ -342,7 +323,19 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						try {
 							ContextType ctt = new ContextType();
 							Class<? extends Resource> ptype = pageResoureType;
-							Method method = ptype.getMethod(sub); //entryResource.getClass().getMethod(sub);
+							final Method method;
+							if(sub.contains("/")) {
+								T entryResource = mhLoc.getGatewayInfo(req);
+								SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+										sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
+								ptype = tsResource.getParent().getResourceType();
+								String lastSub = sub.substring(sub.lastIndexOf('/')+1);
+								method = ptype.getMethod(lastSub);
+								//String newSub = sub.substring(0, sub.lastIndexOf('/'));
+								//newParent = CapabilityHelper.getOrcreateResource(parent,
+								//		newSub, appData.systemAccess(), appManExt, resultType);
+							}
+							else method = ptype.getMethod(sub); //entryResource.getClass().getMethod(sub);
 							DataType an = method.getAnnotation(DataType.class);
 							if(an == null) ctt.type = null; //super.getContext(appData, object, req);
 							else ctt.type = an.resourcetype();
@@ -366,7 +359,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				
 				csvData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 				newValueButton.setDefaultPadding("1em", false, true, false, true);
-				Flexbox valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+sub+pid,
+				Flexbox valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+subId+pid,
 						csvData.csvButton, newValue, csvData.uploader.getFileUpload(), newValueButton, openTSManButton);
 				return valueWidget;
 				//} else {

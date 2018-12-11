@@ -168,13 +168,44 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 		
 		buildMainTable();
 		
-		exPage.registerInitExtension(new InitListener() {
+		if(getEntryTypes() != null) exPage.registerInitExtension(new InitListener() {
 			@Override
 			public void onInitComplete(OgemaHttpRequest req) {
 				T data = getReqData(req);
 				checkResource(data);
 			}
 		});
+	}
+	
+	protected class BuildMainTableCoreResult {
+		public StaticTable table;
+		public int c;
+	}
+	protected BuildMainTableCoreResult buildMainTableCore(Button activateButton) {
+		EditTableBuilder etb = new EditTableBuilder();
+		getEditTableLines(etb);
+
+		StaticTable table = new StaticTable(etb.editElements.size()+1, 4, new int[]{1,5,5,1});
+		int c = 0;
+		for(EditPageBase<T>.EditElement etl: etb.editElements) {
+			if((etl.title != null)&&(etl.widget != null)) {
+				table.setContent(c, 1, etl.title).setContent(c,2, etl.widget);
+				if(activateButton != null) etl.widget.registerDependentWidget(activateButton);
+			} else if((etl.title != null)&&(etl.stringForWidget != null))
+				table.setContent(c, 1, etl.title).setContent(c,2, etl.stringForWidget);
+			else if((etl.widgetForTitle != null)&&(etl.widget != null)) {
+				table.setContent(c, 1, etl.widgetForTitle).setContent(c,2, etl.widget);
+				if(etl.descriptionLink != null) table.setContent(c, 3, etl.descriptionLink);
+				if(activateButton != null) etl.widget.registerDependentWidget(activateButton);
+			}
+			else
+				throw new IllegalStateException("Something went wrong with building the edit line "+c+" Obj:"+etl);
+			c++;
+		}
+		BuildMainTableCoreResult result = new BuildMainTableCoreResult();
+		result.table = table;
+		result.c = c;
+		return result;
 	}
 	
 	protected void buildMainTable() {
@@ -200,33 +231,14 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 		};
 		activateButton.registerDependentWidget(activateButton);
 
-		EditTableBuilder etb = new EditTableBuilder();
-		getEditTableLines(etb);
-
-		StaticTable table = new StaticTable(etb.editElements.size()+1, 4, new int[]{1,5,5,1});
-		int c = 0;
-		for(EditPageBase<T>.EditElement etl: etb.editElements) {
-			if((etl.title != null)&&(etl.widget != null)) {
-				table.setContent(c, 1, etl.title).setContent(c,2, etl.widget);
-				etl.widget.registerDependentWidget(activateButton);
-			} else if((etl.title != null)&&(etl.stringForWidget != null))
-				table.setContent(c, 1, etl.title).setContent(c,2, etl.stringForWidget);
-			else if((etl.widgetForTitle != null)&&(etl.widget != null)) {
-				table.setContent(c, 1, etl.widgetForTitle).setContent(c,2, etl.widget);
-				if(etl.descriptionLink != null) table.setContent(c, 3, etl.descriptionLink);
-				etl.widget.registerDependentWidget(activateButton);
-			}
-			else
-				throw new IllegalStateException("Something went wrong with building the edit line "+c+" Obj:"+etl);
-			c++;
-		}
+		BuildMainTableCoreResult tableData = buildMainTableCore(activateButton);
 		TableOpenButton tableButton = new BackButton(page, "back", pid(), exPage, null);
-		table.setContent(c, 0, activateButton).setContent(c, 1, tableButton);
+		tableData.table.setContent(tableData.c, 0, activateButton).setContent(tableData.c, 1, tableButton);
 		TableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
-		table.setContent(c, 2, proposalTableOpenButton);
+		tableData.table.setContent(tableData.c, 2, proposalTableOpenButton);
 
-		page.append(table);
-		exPage.registerAppTableWidgetsDependentOnInit(table);
+		page.append(tableData.table);
+		exPage.registerAppTableWidgetsDependentOnInit(tableData.table);
 	}
 	
 	@Override

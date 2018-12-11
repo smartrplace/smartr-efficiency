@@ -80,6 +80,7 @@ public class SpEffAdminController {
 		@Override
 		public List<ExtensionResourceTypeDeclaration<?>> getAllTypeDeclarations() {
 			List<ExtensionResourceTypeDeclaration<?>> result = new ArrayList<>();
+System.out.println("   ###### ExtensionResourceTypeDeclaration# "+typeAdmin.resourceTypes.size());
 			for(SmartrEffExtResourceTypeData data: typeAdmin.resourceTypes.values()) {
 				result.add(data.typeDeclaration);
 			}

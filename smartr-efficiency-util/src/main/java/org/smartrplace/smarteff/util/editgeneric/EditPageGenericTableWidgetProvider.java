@@ -19,9 +19,28 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public interface EditPageGenericTableWidgetProvider<T extends Resource> {
 	public static class CapabilityDeclaration {
-		Class<? extends Resource> type;
+		/** See {@link TypeResult}*/
+		public Class<? extends Resource> type;
+		public String typeString;
 		/** highest value is used*/
-		int priority;
+		public int priority;
+		
+		public CapabilityDeclaration(Class<? extends Resource> type) {
+			this(type, 10);
+		}
+		public CapabilityDeclaration(String typeString) {
+			this(typeString, 10);
+		}
+		public CapabilityDeclaration(Class<? extends Resource> type, int priority) {
+			this.type = type;
+			this.typeString = null;
+			this.priority = priority;
+		}
+		public CapabilityDeclaration(String typeString, int priority) {
+			this.type = null;
+			this.typeString = typeString;
+			this.priority = priority;
+		}
 	}
 	
 	List<CapabilityDeclaration> capabilities();
@@ -33,7 +52,7 @@ public interface EditPageGenericTableWidgetProvider<T extends Resource> {
 	 * @param labelWidgetForValue
 	 * @param mhLoc
 	 * @param isEditable
-	 * @param isEditableSpecific
+	 * @param isEditableSpecific most likely not required at all, should not be used
 	 * @param pid
 	 * @return
 	 */

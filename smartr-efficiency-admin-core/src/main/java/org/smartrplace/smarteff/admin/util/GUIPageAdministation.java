@@ -72,7 +72,8 @@ public class GUIPageAdministation {
     		}
   			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> dataExPage = app.getUserAdmin().
   					getNaviPage(page, url, "dataExplorer.html", id, navi);
-    		navi.initPage(dataExPage, app.appManExt);
+   			navi.initPage(dataExPage, app.appManExt);
+
     		
     		NavigationPageData data = new NavigationPageData(navi, service, url, dataExPage);
     		app.pageAdmin.registerPage(data, page);

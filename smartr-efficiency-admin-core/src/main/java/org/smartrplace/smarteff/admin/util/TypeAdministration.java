@@ -1,5 +1,6 @@
 package org.smartrplace.smarteff.admin.util;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,9 +20,13 @@ public class TypeAdministration {
 		this.app = app;
 	}
 
+	/** Note that we only need the parent resource type, not the parent ExtensionResourceTypeDeclaration here.
+	 * So there should be no problem regarding dependencies.
+	 */
 	public void registerService(SmartEffExtensionService service) {
 		int i = 0;
-    	if(service.resourcesDefined() != null) for(ExtensionResourceTypeDeclaration<? extends SmartEffResource> rtd: service.resourcesDefined()) {
+    	Collection<ExtensionResourceTypeDeclaration<? extends SmartEffResource>> resDefList = service.resourcesDefined();
+		if(resDefList  != null) for(ExtensionResourceTypeDeclaration<? extends SmartEffResource> rtd: resDefList) {
     		try {
 	    		Class<? extends SmartEffResource> rt = rtd.dataType();
 	    		SmartrEffExtResourceTypeData data = resourceTypes.get(rt);

@@ -93,6 +93,10 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				typeMap.put(m.getName(), (Class<? extends Resource>) rawClass);				
 			}
 		}
+		for(Class<? extends Resource> rawClass: appManExt.getSubTypes(resType)) {
+			String name = CapabilityHelper.getSingleResourceName(rawClass);
+			typeMap.put(name, rawClass);
+		}
 	}
 	Map<String, Class<? extends Resource>> typesGlob = null;
 	Map<String, Class<? extends Resource>> getTypes() {
@@ -139,7 +143,8 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		String[] els = subPath.split("/");
 		Class<? extends Resource> cr = primaryEntryTypeClass();
 		for(int i=0; i<=els.length; i++) {
-			if(cr == null) return null;
+			if(cr == null)
+				return null;
 			if(i == els.length) {
 				if(ResourceList.class.isAssignableFrom(cr)) {
 					TypeResult result = new TypeResult(cr);
@@ -239,6 +244,13 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		setTriggering(getSubPath(res));
 	}
 	
+	protected void setEditable(String resourceName, boolean editable) {
+		isEditable.put(resourceName, editable);
+	}
+	protected void setEditable(Resource res, boolean editable) {
+		setEditable(getSubPath(res), editable);
+	}
+	
 	public void setDefaultLocale(OgemaLocale locale) {
 		localeDefault = locale;
 	}
@@ -287,7 +299,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			try {
 				type = getType(sub);
 			} catch(NullPointerException e) {
-				throw new IllegalStateException("Could not process sub "+sub+"! Note that ResourceList names must fit the elementType name.");
+				throw new IllegalStateException("Could not process sub "+sub+"! Note that ResourceList names must fit the elementType name.\r\nPlease check if the resource type has been registed in resourcesDefined as dependency.", e);
 			}
 			if(type == null)
 				continue;
@@ -473,9 +485,17 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		Map<Integer, EditPageGenericTableWidgetProvider<T>> fittingProvs = new HashMap<>();
 		if(additionalWidgetProviders != null) for(EditPageGenericTableWidgetProvider<T> wp: additionalWidgetProviders) {
 			for(CapabilityDeclaration cap: wp.capabilities()) {
-				if(cap.type.isAssignableFrom(type2.type)) {
+				if((type2.typeString != null) && (cap.typeString != null) &&
+						cap.typeString.equals(type2.typeString)) {
+					fittingProvs.put(cap.priority, wp);
+				} else if((type2.type == null) || (cap.type == null)) {
+					continue;
+				} else if(cap.type.isAssignableFrom(type2.type)) {
 					//TODO handle same priority
 					fittingProvs.put(cap.priority, wp);
+				} else if(ResourceList.class.isAssignableFrom(type2.type) &&
+						cap.type.isAssignableFrom(type2.elementType)) {
+					fittingProvs.put(cap.priority, wp);					
 				}
 			}
 		}

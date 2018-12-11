@@ -17,6 +17,8 @@ import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate.NewResourceResult;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.util.format.ValueFormat;
 
@@ -171,6 +173,29 @@ public class CapabilityHelper {
 		} else if(!resList.getElementType().isAssignableFrom(elementType))
 			throw new IllegalStateException("Type of "+resList.getLocation()+":"+resList.getElementType().getSimpleName()+", requested:"+elementType.getSimpleName());
 		return resList;
+	}
+	
+	/** Works like {@link ResourceHelper#getSubResource(Resource, String)} but can create intermediate
+	 * decorators
+	 * @param parent
+	 * @param subPath
+	 * @param extPageC
+	 * @return
+	 */
+	public static <T extends Resource> T getOrcreateResource(Resource parent, String subPath, ExtensionPageSystemAccessForCreate extPageC,
+			ApplicationManagerSPExt appManExt, Class<T> resultType) {
+		T res = ResourceHelper.getSubResource(parent, subPath, resultType);
+		if(res != null) return res;
+		String[] els = subPath.split("/", 2);
+		if(els.length <= 1) return null;
+		ExtensionResourceTypeDeclaration<?> type = CapabilityHelper.getTypeFromName(els[0], appManExt);
+		NewResourceResult<?> newParent = extPageC.getNewResource(parent, els[0], type);
+		Resource newRes = newParent.newResource;
+		String newSubPath = els[1];
+		//for(int i=2;i<els.length; i++) {
+		//	newSubPath += "/"+els[i];
+		//}
+		return getOrcreateResource(newRes, newSubPath, extPageC, appManExt, resultType);
 	}
 	
 	/** Get resource to be used for a user. If a user-specific resource is available for the resource
