@@ -32,6 +32,9 @@ public class UserAdmin {
 		this.app = app;
 		if(app == null) return;
 		userDataNE = app.appMan.getResourceAccess().getResource("master");
+		if(userDataNE == null) {
+			userDataNE = app.appMan.getResourceManagement().createResource("master", SmartEffUserDataNonEdit.class);
+		}
 		initConfigurationResource();
 		if(!userDataNE.isActive()) {
 			initTestData();

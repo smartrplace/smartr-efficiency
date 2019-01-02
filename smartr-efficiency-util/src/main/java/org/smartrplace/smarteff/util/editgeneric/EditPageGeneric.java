@@ -16,6 +16,7 @@ import org.ogema.core.model.simple.StringResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
+import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.ColumnType;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.Visibility;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericTableWidgetProvider.CapabilityDeclaration;
@@ -94,8 +95,12 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			}
 		}
 		for(Class<? extends Resource> rawClass: appManExt.getSubTypes(resType)) {
+			ExtensionResourceTypeDeclaration<? extends Resource> decl = appManExt.getTypeDeclaration(rawClass);
 			String name = CapabilityHelper.getSingleResourceName(rawClass);
-			typeMap.put(name, rawClass);
+			if(SPPageUtil.isMulti(decl.cardinality()))
+				typeMap.put(name, ResourceList.class);
+			else
+				typeMap.put(name, rawClass);
 		}
 	}
 	Map<String, Class<? extends Resource>> typesGlob = null;

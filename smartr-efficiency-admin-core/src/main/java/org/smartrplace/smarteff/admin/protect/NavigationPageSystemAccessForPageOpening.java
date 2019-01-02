@@ -88,7 +88,6 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 	public NavigationPublicPageData getPageByProvider(String url) {
 		for(List<NavigationPublicPageData> list: pageInfo.values()) {
 			for(NavigationPublicPageData navi: list) {
-System.out.println("Navi-URL: "+navi.getUrl()+ " Searched:"+url);				
 				if(navi.getUrl().equals(url)) return navi;
 			}
 		}

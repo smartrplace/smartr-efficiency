@@ -1,7 +1,7 @@
 package org.smartrplace.smarteff.defaultservice;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
@@ -14,7 +14,7 @@ import de.iwes.widgets.reswidget.scheduleviewer.api.ScheduleViewerConfigurationP
 public class ScheduleViewerConfigProvTSMan extends DefaultScheduleViewerConfigurationProviderExtended {
 	public static final String PROVIDER_ID = "SmartrEffTSMan";
 
-	protected static Map<String, SessionConfiguration> configs = new HashMap<>();
+	protected static volatile Map<String, SessionConfiguration> configs = new ConcurrentHashMap<>();
 	protected static int lastConfig = 0;
 
 	@Override
@@ -38,4 +38,13 @@ public class ScheduleViewerConfigProvTSMan extends DefaultScheduleViewerConfigur
 		return instance;
 	}
 
+	protected static volatile ScheduleViewerConfigProvTSMan instance = null;
+	@Override
+	protected DefaultScheduleViewerConfigurationProviderExtended getInstanceObj() {
+		return instance;
+	}
+	@Override
+	protected void setInstance(DefaultScheduleViewerConfigurationProviderExtended instanceIn) {
+		instance = (ScheduleViewerConfigProvTSMan) instanceIn;
+	}
 }
