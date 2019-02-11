@@ -3,6 +3,7 @@ package org.smartrplace.smarteff.util;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
@@ -41,7 +42,12 @@ public abstract class NaviPageBase<T extends Resource>  {
 	protected abstract PageType getPageType();
 	//Overwrite if necessary
 	protected String getHeader(OgemaHttpRequest req) {
-		return getReqData(req).getLocation();
+		T res = getReqData(req);
+		Resource name = res.getSubResource("name");
+		if(name != null && (StringResource.class.isAssignableFrom(name.getResourceType()))) {
+			return ((StringResource)name).getValue();
+		}
+		else return res.getLocation();
 	}
 	protected String id() {
 		return this.getClass().getName();

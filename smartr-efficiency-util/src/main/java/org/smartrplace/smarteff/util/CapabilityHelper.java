@@ -182,19 +182,41 @@ public class CapabilityHelper {
 	 * @param extPageC
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T extends Resource> T getOrcreateResource(Resource parent, String subPath, ExtensionPageSystemAccessForCreate extPageC,
 			ApplicationManagerSPExt appManExt, Class<T> resultType) {
-		T res = ResourceHelper.getSubResource(parent, subPath, resultType);
-		if(res != null) return res;
+		if(!subPath.contains("#$")) {
+			T res = ResourceHelper.getSubResource(parent, subPath, resultType);
+			if(res != null) return res;
+		}
 		String[] els = subPath.split("/", 2);
-		if(els.length <= 1) return null;
-		ExtensionResourceTypeDeclaration<?> type = CapabilityHelper.getTypeFromName(els[0], appManExt);
-		NewResourceResult<?> newParent = extPageC.getNewResource(parent, els[0], type);
-		Resource newRes = newParent.newResource;
+		final String realSub;
+		int index = -1;
+		final Resource newRes;
+		if(els[0].contains("#$")) {
+			int inStringIdx = els[0].indexOf("#$");
+			String intString = els[0].substring(inStringIdx+2);
+			realSub = els[0].substring(0, inStringIdx);
+			index = Integer.parseInt(intString);
+			//cr = getElementClassOfResourceList(cr, realSub);
+			ResourceList<?> resList = parent.getSubResource(realSub, ResourceList.class);
+			//ExtensionResourceTypeDeclaration<?> type = CapabilityHelper.getTypeFromName(realSub, appManExt);
+			//NewResourceResult<?> newParent = extPageC.getNewResource(parent, realSub, type);
+			//newRes = newParent.newResource;
+			//if(!(newRes instanceof ResourceList)) return null;
+			//ResourceList<?> resList = (ResourceList<?>)newRes;
+			if(resList.size() <= index) return null;
+			newRes = resList.getAllElements().get(index);
+			if(!newRes.exists()) return null;
+			if(els.length == 1) return (T) newRes;
+		} else {
+			if(els.length <= 1) return null;
+			realSub = els[0];
+			ExtensionResourceTypeDeclaration<?> type = CapabilityHelper.getTypeFromName(realSub, appManExt);
+			NewResourceResult<?> newParent = extPageC.getNewResource(parent, realSub, type);
+			newRes = newParent.newResource;
+		}
 		String newSubPath = els[1];
-		//for(int i=2;i<els.length; i++) {
-		//	newSubPath += "/"+els[i];
-		//}
 		return getOrcreateResource(newRes, newSubPath, extPageC, appManExt, resultType);
 	}
 	

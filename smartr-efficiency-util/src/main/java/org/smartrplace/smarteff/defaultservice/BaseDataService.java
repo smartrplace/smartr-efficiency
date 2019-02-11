@@ -13,6 +13,7 @@ import org.smartrplace.commontypes.BuildingTablePage;
 import org.smartrplace.commontypes.HeatBillRegistration;
 import org.smartrplace.commontypes.MasterUserRegistration;
 import org.smartrplace.commontypes.RadiatorTypeRegistration;
+import org.smartrplace.commontypes.RoomRadiatorRegistration;
 import org.smartrplace.commontypes.RoomRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -33,6 +34,7 @@ import extensionmodel.smarteff.api.base.SmartEffPriceData;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.api.common.HeatCostBillingInfo;
+import extensionmodel.smarteff.api.common.HeatRadiator;
 import extensionmodel.smarteff.api.common.HeatRadiatorType;
 import extensionmodel.smarteff.defaultproposal.BuildingExampleAnalysis;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParamsPage;
@@ -89,7 +91,7 @@ public class BaseDataService implements SmartEffExtensionService {
 	};
 	public final static RoomRegistration.TypeDeclaration ROOM_TYPE = new RoomRegistration.TypeDeclaration();
 	public final static RadiatorTypeRegistration.TypeDeclaration RADIATOR_TYPE = new RadiatorTypeRegistration.TypeDeclaration();
-	
+	public final static RoomRadiatorRegistration.TypeDeclaration ROOMRAD_TYPE = new RoomRadiatorRegistration.TypeDeclaration();
 	
 	/*public final static org.smartrplace.smarteff.defaultservice.BuildingTablePage.Provider BUILDING_NAVI_PROVIDER = new BuildingTablePage().provider;
 	public final static org.smartrplace.smarteff.defaultservice.BuildingEditPage.Provider BUILDING_EDIT_PROVIDER = new BuildingEditPage().provider;
@@ -113,6 +115,8 @@ public class BaseDataService implements SmartEffExtensionService {
 	
 	private final static EditPageGenericWithTable<HeatRadiatorType> RADIATOR_PAGE = new RadiatorTypeRegistration.EditPage();
 	private final static GenericResourceByTypeTablePageBase<HeatRadiatorType> RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
+	private final static EditPageGenericWithTable<HeatRadiator> ROOMRAD_PAGE = new RoomRadiatorRegistration.EditPage();
+	private final static GenericResourceByTypeTablePageBase<HeatRadiator> ROOMRAD_TABLE = ROOMRAD_PAGE.getTablePage();
 
 	//public final static NaviPageBase<DefaultProviderParams>.Provider BA_PARAMSEDIT_PROVIDER = new DefaultProviderParamsPage().provider;
 	//public final static NaviPageBase<Resource>.Provider TOPCONFIG_NAVI_PROVIDER = new TopConfigTablePage().provider;
@@ -142,7 +146,7 @@ public class BaseDataService implements SmartEffExtensionService {
 				BILLEDIT.provider, BILLTABLE.provider, ACCESS_EDIT.provider,
 				CROSSUSERBUILDING_TABLE.provider,
 				TSMAN_EDIT,
-				RADIATOR_PAGE.provider, RADIATOR_TABLE.provider});
+				RADIATOR_PAGE.provider, RADIATOR_TABLE.provider, ROOMRAD_PAGE.provider, ROOMRAD_TABLE.provider});
 	}
 
 	@Override
@@ -157,6 +161,7 @@ public class BaseDataService implements SmartEffExtensionService {
 		result.add(ROOM_TYPE);
 		result.add(new HeatBillRegistration.TypeDeclaration());
 		result.add(RADIATOR_TYPE);
+		result.add(ROOMRAD_TYPE);
 		result.add(new AccessControlRegistration.TypeDeclaration());
 		return result ;
 	}

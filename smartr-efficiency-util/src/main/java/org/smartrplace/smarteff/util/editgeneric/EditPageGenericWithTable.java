@@ -2,6 +2,7 @@ package org.smartrplace.smarteff.util.editgeneric;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
@@ -32,6 +33,11 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 	public EditPageGenericWithTable(boolean isWithTable) {
 		super();
 		this.isWithTable = isWithTable;
+	}
+	public EditPageGenericWithTable(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
+			boolean isWithTable) {
+		super(additionalWidgetProviders);
+		this.isWithTable =isWithTable;
 	}
 	
 	//Overwrite

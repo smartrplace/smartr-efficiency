@@ -11,6 +11,7 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
+import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -42,6 +43,14 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider) {
 		super(page, id, pid, "", exPage, PageType.EDIT_PAGE, false, controlProvider);
+		//this.type = type;
+		setDefaultOpenInNewTab(false);
+	}
+	public AddEditButton(OgemaWidget parent, String id, String pid,
+			//Class<? extends Resource> type,
+			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
+			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+		super(parent, id, pid, "", exPage, PageType.EDIT_PAGE, false, controlProvider, req);
 		//this.type = type;
 		setDefaultOpenInNewTab(false);
 	}

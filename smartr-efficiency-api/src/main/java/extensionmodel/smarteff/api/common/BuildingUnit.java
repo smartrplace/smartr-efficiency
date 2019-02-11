@@ -23,7 +23,7 @@ public interface BuildingUnit extends SmartEffResource {
 	/**Including window area*/
 	AreaResource totalOutsideWallArea();
 	
-	ResourceList<HeatRadiatorModel> radiators();
+	ResourceList<HeatRadiator> heatRadiator();
 	
 	/** This is a rating that can be given by users for the current situation or
 	 * e.g. for an entire day. At this stage we assume that it is not realistic to

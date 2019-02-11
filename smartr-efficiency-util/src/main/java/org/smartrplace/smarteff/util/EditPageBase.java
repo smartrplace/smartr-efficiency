@@ -234,8 +234,10 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 		BuildMainTableCoreResult tableData = buildMainTableCore(activateButton);
 		TableOpenButton tableButton = new BackButton(page, "back", pid(), exPage, null);
 		tableData.table.setContent(tableData.c, 0, activateButton).setContent(tableData.c, 1, tableButton);
-		TableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
-		tableData.table.setContent(tableData.c, 2, proposalTableOpenButton);
+		if(!Boolean.getBoolean("smartrefficiency.util.suppressCalculatorButton")) {
+			TableOpenButton proposalTableOpenButton = new LogicProvTableOpenButton(page, "proposalTableOpenButton", pid(), exPage, null);
+			tableData.table.setContent(tableData.c, 2, proposalTableOpenButton);
+		}
 
 		page.append(tableData.table);
 		exPage.registerAppTableWidgetsDependentOnInit(tableData.table);

@@ -1,6 +1,5 @@
 package org.smartrplace.commontypes;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -9,7 +8,6 @@ import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
-import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
@@ -63,8 +61,6 @@ public class RoomRegistration {
 	public static class EditPage extends EditPageGenericWithTable<BuildingUnit> {
 		@Override
 		public void setData(BuildingUnit sr) {
-			setHeaderLabel(EN, "Room Data", DE, "Raumdaten");
-			//setHeaderLink(EN, "https://en.wikipedia.org/wiki/Master_data");
 			setLabel(sr.name(), EN, "Name",
 					DE, "Voller Name");
 			setTableHeader(sr.name(), EN, "Name");
@@ -79,6 +75,8 @@ public class RoomRegistration {
 					DE, "Nutzer-Feedback zur Raumtemperatur");
 			setDisplayOptions(sr.roomTemperatureQualityRating(), EN, TEMPFB_MAP_EN);
 			setDisplayOptions(sr.roomTemperatureQualityRating(), DE, TEMPFB_MAP_DE);
+			
+			setLabel(sr.heatRadiator(), EN, "Radiators in the room", DE, "Heizköper im Raum verwalten");
 		}
 
 		@SuppressWarnings("unchecked")
@@ -92,9 +90,9 @@ public class RoomRegistration {
 			return "test1";
 		}
 		
-		@Override
+		/*@Override
 		protected String getHeader(OgemaHttpRequest req) {
 			return getReqData(req).getParent().getParent().getName();
-		}
+		}*/
 	}
 }

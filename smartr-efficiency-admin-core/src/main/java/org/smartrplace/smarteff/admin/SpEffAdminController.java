@@ -13,8 +13,11 @@ import org.ogema.tools.timeseriesimport.api.TimeseriesImport;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.ApplicationManagerSpExtMinimal;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
+import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
@@ -24,6 +27,7 @@ import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
 import org.smartrplace.smarteff.admin.gui.ResTypePage;
 import org.smartrplace.smarteff.admin.object.NavigationPageData;
 import org.smartrplace.smarteff.admin.object.SmartrEffExtResourceTypeData;
+import org.smartrplace.smarteff.admin.protect.NavigationPageSystemAccessForPageOpening;
 import org.smartrplace.smarteff.admin.timeseries.GenericDriverProvider;
 import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
 import org.smartrplace.smarteff.admin.util.GUIPageAdministation;
@@ -55,6 +59,20 @@ public class SpEffAdminController {
 	private UserAdmin userAdmin;
 	public StandardPageAdmin pageAdmin;
 	public final GenericDriverProvider tsDriver;
+	public final ApplicationManagerSpExtMinimal appManExtMin = new ApplicationManagerSpExtMinimal() {
+		
+		@Override
+		public long getFrameworkTime() {
+			if(appMan != null) return appMan.getFrameworkTime();
+			return -1;
+		}
+		
+		@Override
+		public NavigationPublicPageData getMaximumPriorityPageStatic(Class<? extends Resource> type, PageType pageType) {
+			return NavigationPageSystemAccessForPageOpening.getMaximumPriorityPageStatic(type, pageType,
+					guiPageAdmin.navigationPublicData);
+		}
+	};
 	
 	public final ApplicationManagerSPExt appManExt = new ApplicationManagerSPExt() {
 		
@@ -103,56 +121,6 @@ public class SpEffAdminController {
 			if(appMan != null) return appMan.getLogger();
 			return null;
 		}
-		
-		/*@Override
-		@Deprecated
-		public long[] calculateKPIs(GaRoSingleEvalProvider eval, Resource entryResource,
-				List<Configuration<?>> configurations,
-				Resource userData, ExtensionUserDataNonEdit userDataNonEdit,
-				List<DriverProvider> drivers, boolean saveJsonResult,
-				int defaultIntervalsToCalculate) {
-			EvalScheduler scheduler = serviceAccess.evalResultMan().getEvalScheduler();
-			if(scheduler == null) throw new IllegalStateException("We need an implementation with scheduler here!");
-			
-			int[] intarray = new int[INTERVALS_OFFERED.length];
-			for(int i=0; i<INTERVALS_OFFERED.length; i++) {
-				intarray[i] = INTERVALS_OFFERED[i];
-			}
-			
-			List<GaRoMultiEvalDataProvider<?>> dataProvidersToUse = new ArrayList<>();
-			List<DriverProvider> driversToCheck;
-			if(drivers == null) driversToCheck = guiPageAdmin.drivers;
-			else driversToCheck = drivers;
-			for(DriverProvider driver: driversToCheck) {
-				int idx = 0;
-				for(EntryType et: driver.getEntryTypes()) {
-					if(et.getType().representingResourceType().equals(entryResource.getResourceType())) {
-						DataProvider<?> dp = driver.getDataProvider(idx, Arrays.asList(new Resource[]{entryResource}),
-								userDataNonEdit.editableData(), userDataNonEdit);
-						if(dp != null) dataProvidersToUse.add((GaRoMultiEvalDataProvider<?>) dp);
-						break;
-					}
-					idx++;
-				}
-			}
-			if(dataProvidersToUse.isEmpty()) return null;
-			
-			String subConfigId = entryResource.getLocation();
-			MultiKPIEvalConfiguration startConfig = scheduler.getOrCreateConfig(eval.id(),
-					subConfigId);
-			long[] result = scheduler.getStandardStartEndTime(startConfig, defaultIntervalsToCalculate, false);
-			if(result == null) return null;
-			result = scheduler.queueEvalConfig(startConfig, saveJsonResult, null,
-					result[0], result[1], dataProvidersToUse, true, OverwriteMode.NO_OVERWRITE, true);
-			
-			
-			//TODO: We should hand in data providers with eval call, this is not thread-safe!
-			scheduler.setStandardDataProvidersToUse(dataProvidersToUse);
-			//List<MultiKPIEvalConfiguration> result = scheduler.registerProviderForKPI(eval, true, intarray , true, gwIds);
-			//scheduler.deactivateAutoEvaluation(eval.id());
-			
-			return result;
-		}*/
 
 		@Override
 		public List<Class<? extends Resource>> getSystemTypes() {
@@ -162,6 +130,13 @@ public class SpEffAdminController {
 			result.add(ProjectProposal.class);
 			result.add(CalculatedEvalResult.class);
 			return result ;
+		}
+
+		@Override
+		public NavigationPublicPageData getMaximumPriorityPageStatic(Class<? extends Resource> type,
+				PageType pageType) {
+			return NavigationPageSystemAccessForPageOpening.getMaximumPriorityPageStatic(type, pageType,
+					guiPageAdmin.navigationPublicData);
 		}
 	};
 	

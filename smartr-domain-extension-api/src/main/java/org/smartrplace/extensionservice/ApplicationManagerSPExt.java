@@ -4,14 +4,8 @@ import java.util.List;
 
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
-import org.smartrplace.extensionservice.driver.DriverProvider;
-import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForEvaluation;
-import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 
-import de.iwes.timeseries.eval.api.configuration.Configuration;
-import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
-
-public interface ApplicationManagerSPExt extends ApplicationManagerMinimal {
+public interface ApplicationManagerSPExt extends ApplicationManagerSpExtMinimal {
 	public ExtensionGeneralData globalData();
 	
 	/** Get type declaration from extension resource type*/

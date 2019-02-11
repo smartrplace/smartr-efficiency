@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpSession;
+
+import org.ogema.accesscontrol.Constants;
+import org.ogema.accesscontrol.SessionAuth;
 import org.ogema.core.channelmanager.measurements.FloatValue;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
@@ -95,8 +99,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	public void setData(SmartEffTimeSeries sr) {
 		setLabel("#humanreadable", EN, "Internal Name");
 		setLabel("#location", EN, "Resource Location", DE, "Interner Speicherort");
-		setLabel(sr.dataProviderId(), EN, "DataProvider");
-		setLabel(sr.sourceId(), EN, "SourceId");		
+		//setLabel(sr.dataProviderId(), EN, "DataProvider");
+		//setLabel(sr.sourceId(), EN, "SourceId");		
 		setLabel(sr.allowNanValues(), EN, "Not-a-number values (NaN) allowed", DE, "Ungültige Werte (NaN) in Zeitreihe zulässig");
 		//Label separatorLabel = new Label(page, "separatorLabel", "||");
 				
@@ -107,11 +111,21 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				SmartEffTimeSeries res = getReqData(req);
 				boolean typeDef = isTypeDefined(res);
 				if(res.fileType().isActive() || (!typeDef)) {
-					csvButton.enable(req);
-					csvImportButton.disable(req);					
+			        HttpSession session = req.getReq().getSession();
+			        SessionAuth sauth = (SessionAuth) session.getAttribute(Constants.AUTH_ATTRIBUTE_NAME);
+			        final String user = sauth.getName();
+			        if(user.equals("supermaster"))
+			        	csvButton.setWidgetVisibility(true, req);
+			        else
+			        	csvButton.setWidgetVisibility(false, req);
+					//svButton.enable(req);
+					csvImportButton.setWidgetVisibility(false, req);
+					//csvImportButton.disable(req);					
 				} else {
-					csvButton.disable(req);
-					csvImportButton.enable(req);					
+					csvButton.setWidgetVisibility(false, req);
+					//csvButton.disable(req);
+					csvImportButton.setWidgetVisibility(true, req);
+					//csvImportButton.enable(req);					
 				}
 				if(res.schedule().isActive() || (!typeDef)) {
 					enable(req);
@@ -331,7 +345,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		setLabel("#csvImport", EN,"CSV Upload (Import mode - not for very large files)", DE, "CSV-Datei hochladen (Importmodus - nicht für sehr große Dateien)");
 
 		ScheduleViewerOpenButtonEval schedOpenButton = new ScheduleViewerOpenButtonEval(page, "schedOpenButton"+pid(),
-				"Schedule Viewer",
+				"Data Viewer",
 				ScheduleViewerConfigProvTSMan.PROVIDER_ID, new ScheduleViewerConfigProvTSMan()) {
 			private static final long serialVersionUID = 1L;
 

@@ -118,4 +118,42 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 		}
 		return result;
 	}
+	
+	//TODO: Check if these methods make sense, otherwise remove them
+	public static NavigationPublicPageData getMaximumPriorityPageStatic(Class<? extends Resource> type, PageType pageType,
+			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo2) {
+		List<NavigationPublicPageData> resultAll = getPagesStatic(type, false, pageInfo2);
+		if(resultAll == null || resultAll.isEmpty()) return null;
+		NavigationPublicPageData result = null;
+		for(NavigationPublicPageData r: resultAll) {
+			if(r.getPageType() != pageType) continue;
+			if(result == null) result = r;
+			else if(SmartrEffUtil.comparePagePriorities(r.getPriority(), result.getPriority()) > 0) {
+				result = r;
+			}
+		}
+		return result;
+	}
+	public static List<NavigationPublicPageData> getPagesStatic(Class<? extends Resource> type, boolean includeHidden,
+			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo2) {
+		List<NavigationPublicPageData> result = new ArrayList<>();
+		if(includeHidden) {
+			List<NavigationPublicPageData> l = pageInfo2.get(type);
+			if(l != null) result.addAll(l);
+			l = pageInfo2.get(Resource.class);
+			if(l != null) result.addAll(l);
+		} else {
+			processResultTypeStatic(result, pageInfo2.get(type));
+			processResultTypeStatic(result, pageInfo2.get(Resource.class));
+		}
+		return result;
+	}
+
+	private static void processResultTypeStatic(List<NavigationPublicPageData> result, List<NavigationPublicPageData> resultAll) {
+		if(resultAll == null) return;
+		for(NavigationPublicPageData r: resultAll) {
+			if(r.getPriority() != PagePriority.HIDDEN) result.add(r);
+		}
+	}
+
 }

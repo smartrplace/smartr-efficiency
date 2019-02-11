@@ -17,6 +17,7 @@ import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
@@ -29,6 +30,7 @@ import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.ObjectResourceGUIHelperExtPublic;
 import org.smartrplace.smarteff.util.button.AddEditButton;
+import org.smartrplace.smarteff.util.button.AddEditButtonForCreate;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.TypeResult;
 import org.smartrplace.util.format.ValueConverter;
@@ -224,28 +226,36 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			if(isEditable)	{
 				//if(sub.toLowerCase().contains("csv")) {
 					//TODO: Move this to special WidgetProvider, should usually not be used
-				CSVUploadWidgets csvData = new CSVUploadWidgets(exPage, page, alert, subId+pid,
+				final CSVUploadWidgets csvData;
+				final OgemaWidget newValue;
+				final Button newValueButton;
+				
+				csvData = new CSVUploadWidgets(exPage, page, alert, subId+pid,
 						"Upload Profile as CSV", null) {
 					
 					@Override
 					protected SmartEffTimeSeries getTSResource(OgemaHttpRequest req) {
 						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
 						return tsResource;
 					}
 				};
+				csvData.csvButton.setDefaultVisibility(false);
+				csvData.uploader.getFileUpload().setDefaultVisibility(false);														
 				//RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openTSManButton"+sub, pid,
 				//		exPage, null);
 				
-				OgemaWidget newValue;
 				Map<OgemaLocale, Map<String, String>> innerMap = displayOptions.get(sub);
 				if(innerMap != null) {
 					newValue = new TSManagementPage.AddValueDropdown(page, "newValueSP"+subId+pid, innerMap);
 				} else {				
 					 newValue = new TextField(page, "newValueSP"+subId+pid);
 				}		
+				newValue.setDefaultVisibility(false);
 
-				Button newValueButton = new SubmitTSValueButton(page, "newValueButton"+subId+pid,
+				newValueButton = new SubmitTSValueButton(page, "newValueButton"+subId+pid,
 						newValue, null, null, alert, appManExt) {
 					private static final long serialVersionUID = 1L;
 
@@ -257,7 +267,9 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					@Override
 					protected SmartEffTimeSeries getResource(OgemaHttpRequest req) {
 						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
 						return tsResource;
 					}
 					
@@ -279,7 +291,19 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					protected boolean disableForSure(OgemaHttpRequest req) {
 						return newValue.isDisabled(req);
 					}
+					
+					/*@Override
+					public void onGET(OgemaHttpRequest req) {
+						SmartEffTimeSeries tsResource = getResource(req);
+						if(tsResource == null || (!tsResource.schedule().isActive())) {
+							newValue.setWidgetVisibility(false, req);
+							return;
+						}
+						newValue.setWidgetVisibility(true, req);
+						super.onGET(req);
+					}*/
 				};
+				//newValueButton.setDefaultVisibility(false);
 				
 				RedirectButton openTSManButton = new AddEditButton(page, "openEvalButton"+subId, pid,
 						exPage, null) {
@@ -291,7 +315,12 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
 								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
 						//SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
-						if(tsResource.schedule().isActive()) {
+						if(tsResource == null) {
+							newValue.setWidgetVisibility(false, req);
+							newValueButton.setWidgetVisibility(false, req);
+							csvData.csvButton.setWidgetVisibility(false, req);
+							csvData.uploader.getFileUpload().setWidgetVisibility(false, req);														
+						} else if(tsResource.schedule().isActive()) {
 							newValue.setWidgetVisibility(true, req);
 							newValueButton.setWidgetVisibility(true, req);
 							csvData.csvButton.setWidgetVisibility(false, req);
@@ -351,6 +380,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						return TSManagementPage.SUPERBUTTON_TEXTS;
 					}
 				};
+				
 				mhLoc.triggerOnPost(openTSManButton, csvData.csvButton);
 				mhLoc.triggerOnPost(openTSManButton, csvData.uploader.getFileUpload());
 				mhLoc.triggerOnPost(openTSManButton, newValue);
@@ -362,42 +392,6 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				Flexbox valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+subId+pid,
 						csvData.csvButton, newValue, csvData.uploader.getFileUpload(), newValueButton, openTSManButton);
 				return valueWidget;
-				//} else {
-				//	return valueWidget;
-				//}
-				//getCSVUploadWidgets(exPage, page, alert, mhLoc, subId, pid,
-				//		"Upload Profile as CSV");
-				/*FileUploadListenerToFile listenerToFile = new FileUploadListenerToFile() {
-					
-					@Override
-					public void fileUploaded(String filePath, OgemaHttpRequest req) {
-						System.out.println("File uploaded to "+filePath);
-						ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
-						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
-						tsResource.driverId().<StringResource>create().setValue(tsMan.getGenericDriverProviderId());
-						tsResource.dataTypeId().<StringResource>create().setValue(GaRoDataType.PowerMeter.label(null));
-						if(!tsResource.isActive()) {
-							tsResource.activate(true);
-						}
-						tsMan.registerSingleColumnCSVFile(
-								tsResource, GaRoDataType.PowerMeter, null, filePath, null);
-					}
-				};
-				FileUploaderProtected uploader = exPage.getSpecialWidgetManagement().
-						getFileUpload(page, "upload"+pid, listenerToFile, null, alert);
-				CSVUploadButton csvButton = new CSVUploadButton(page, "csvUploadButton"+sub, uploader, alert) {
-					private static final long serialVersionUID = 1L;
-					@Override
-					protected Integer getSize(OgemaHttpRequest req) {
-						ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
-						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
-						return tsMan.getFileNum(tsResource, null);
-					}
-				};
-				csvButton.setDefaultText(uploadButtonText);
-				csvButton.triggerOnPOST(csvButton); //csvButton.registerDependentWidget(csvButton);*/
 			} else return new Label(page, "noEdit_"+sub, "No Upload Allowed");
 		} else if(ResourceList.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
@@ -420,7 +414,9 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					@Override
 					protected StringArrayResource getStringArrayResource(OgemaHttpRequest req) {
 						T entryResource = mhLoc.getGatewayInfo(req);
-						StringArrayResource tsResource = ResourceHelper.getSubResource(entryResource, sub, StringArrayResource.class);
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						StringArrayResource tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, StringArrayResource.class);
 						return tsResource;
 					}
 				};
@@ -428,8 +424,25 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						multi.multiSelect, multi.newValue, multi.submit);
 				return valueWidget;
 			} else return mhLoc.stringLabel(sub);
+		} else if(SmartEffResource.class.isAssignableFrom(type2.type)) {
+			if(isEditable)	{
+				AddEditButtonForCreate valueWidget = new AddEditButtonForCreate(page, "open_"+sub, pid, type2.type, exPage, null) {
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					protected Resource getResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						Resource destResource = CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, type2.type);
+						//Resource destResource = ResourceHelper.getSubResource(entryResource, sub, type2.type);
+						return destResource;
+					}
+				};
+				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
+				return valueWidget;
+			} else return new Label(page, "noEdit_"+sub, "Not Allowed");
 		} else {
-			return null;
+			return new Label(page, "noEdit_"+sub, "No Widget to edit "+sub+" of type "+type2.type.getSimpleName());
 		}
 	}
 

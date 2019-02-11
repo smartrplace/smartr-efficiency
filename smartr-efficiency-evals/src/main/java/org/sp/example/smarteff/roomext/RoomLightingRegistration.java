@@ -55,8 +55,6 @@ public class RoomLightingRegistration {
 	public static class EditPage extends EditPageGeneric<RoomLightingData> {
 		@Override
 		public void setData(RoomLightingData sr) {
-			setHeaderLabel(EN, "Room Lighting Data", DE, "Raumdaten Beleuchtung");
-			//setHeaderLink(EN, "https://en.wikipedia.org/wiki/Master_data");
 			setLabel(sr.lightNum(), EN, "Number of electrical lights in the room",
 					DE, "Zahl der einzeln schaltbaren elektrischen Leuchten im Room");
 			setLabel(sr.installedLightPower(), EN, "Total electrical power of lights in the room (W)",
@@ -78,11 +76,6 @@ public class RoomLightingRegistration {
 		@Override
 		protected String getMaintainer() {
 			return "test1";
-		}
-		
-		@Override
-		protected String getHeader(OgemaHttpRequest req) {
-			return getReqData(req).getParent().getParent().getName();
 		}
 	}
 }

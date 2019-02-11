@@ -135,6 +135,7 @@ public class StandardPageAdmin {
 		if(page == null) throw new IllegalStateException("widget page must be created before addPageToMenu is called.");
 		//Note: Existing entry for the NaviProvider is just overridden
 		additionalEntries.put(id, new AdditionalMenuEntry(page, provider.label(null)));
+		controller.appManExt.globalData().menuPageIds().create();
 		ValueResourceUtils.appendValue(controller.appManExt.globalData().menuPageIds(), id);
 		updatePageMenus();
 	}

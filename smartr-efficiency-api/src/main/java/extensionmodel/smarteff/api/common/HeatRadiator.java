@@ -7,7 +7,7 @@ import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
 /** Note that each radiator type should have a name resource used as an individual ID*/
-public interface HeatRadiatorModel extends SmartEffResource {
+public interface HeatRadiator extends SmartEffResource {
 	/** Usually this should be a reference to a type modeled for a building or 
 	 * provided as global data
 	 */

@@ -22,6 +22,7 @@ import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
+import org.smartrplace.extensionservice.ApplicationManagerSpExtMinimal;
 import org.smartrplace.smarteff.access.api.GenericPageConfigurationProvider;
 import org.smartrplace.smarteff.admin.ServiceAccess;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
@@ -78,6 +79,7 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 
 	private BundleContext bc;
 	protected ServiceRegistration<SmartEffExtensionService> sr = null;
+	protected ServiceRegistration<ApplicationManagerSpExtMinimal> srAppManSPMin = null;
 
     private final Map<String,SmartEffExtensionService> evaluationProviders = Collections.synchronizedMap(new LinkedHashMap<String,SmartEffExtensionService>());
 	public Map<String, SmartEffExtensionService> getEvaluations() {
@@ -106,6 +108,7 @@ public class SpEffAdminApp implements Application, ServiceAccess {
 		
         BaseDataServiceAdmin dataService = new BaseDataServiceAdmin(controller);
         sr = bc.registerService(SmartEffExtensionService.class, dataService, null);
+        srAppManSPMin = bc.registerService(ApplicationManagerSpExtMinimal.class, controller.appManExtMin, null);
 	
         initDone = true;
         controller.processOpenServices();
@@ -118,6 +121,9 @@ public class SpEffAdminApp implements Application, ServiceAccess {
     public void stop(AppStopReason reason) {
         if (sr != null) {
             sr.unregister();
+        }
+        if (srAppManSPMin != null) {
+            srAppManSPMin.unregister();
         }
     	if (widgetApp != null) widgetApp.close();
 		if (controller != null)

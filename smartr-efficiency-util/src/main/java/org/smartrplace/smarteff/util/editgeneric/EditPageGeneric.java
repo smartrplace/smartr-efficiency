@@ -1,6 +1,8 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -141,6 +143,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		}
 		public Class<? extends Resource> elementType = null;
 	}
+
 	protected TypeResult getType(String subPath) {
 		if(subPath.startsWith("#")) {
 			return new TypeResult(subPath);
@@ -160,12 +163,52 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				return new TypeResult(cr);
 			}
 			//we cannot go over ValueResources and ResourceLists here
+			if(els[i].contains("#$")) {
+				int inStringIdx = els[i].indexOf("#$");
+				//String intString = els[i].substring(inStringIdx+2);
+				String realSub = els[i].substring(0, inStringIdx);
+				//int index = Integer.parseInt(intString);
+				cr = getElementClassOfResourceList(cr, realSub);
+				if(cr == null)
+					throw new IllegalStateException("Path "+subPath+" does not reference ResourceList or could not be processed at "+els[i]+"!");
+				continue;
+			}
 			if(ValueResource.class.isAssignableFrom(cr)) throw new IllegalStateException("Path "+subPath+" includes a ValueResouce in middle!");
-			if(ResourceList.class.isAssignableFrom(cr)) throw new IllegalStateException("Path "+subPath+" includes a ResourceList in middle!");
+			if(ResourceList.class.isAssignableFrom(cr)) {
+				throw new IllegalStateException("Path "+subPath+" includes a ResourceList in middle!");
+			}
 			cr = getSubTypes(cr).get(els[i]);
 		}
 		//if(els.length == 1) return new TypeResult(cr);
 		throw new IllegalStateException("we should never get here");		
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static Class<? extends Resource> getElementClassOfResourceList(
+			Class<? extends Resource> parentClass, String resListName) {
+		for(Method m: parentClass.getMethods()) {
+			Class<?> rawClass = m.getReturnType();
+			if(ResourceList.class.isAssignableFrom(rawClass) && (m.getParameterCount()==0)) {
+				//Analyse this;
+				if(m.getName().equals(resListName)) {
+					//getSubType
+					Type genClass = m.getGenericReturnType();
+					if(genClass instanceof ParameterizedType) {
+						Type[] types = ((ParameterizedType)genClass).getActualTypeArguments();
+						if(types.length == 1) {
+							if(types[0] instanceof Class) {
+								Class<?> cl = (Class<?>)(types[0]);
+								if(Resource.class.isAssignableFrom(cl))
+									return (Class<? extends Resource>) cl;
+							}
+						}
+					}
+					return null;
+				}
+			}
+		}
+		return null;
+		
 	}
 	
 	protected void setLabel(String resourceName, OgemaLocale locale, String text) {
@@ -519,202 +562,4 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 					isEditable(sub), pid());
 		}
 	}
-	/*************
-	 *  We are still using the old version, new version for modularity may be used in 
-	 *  the future
-	 * @param sub
-	 * @param type2
-	 * @param labelWidgetForValue
-	 * @param mhLoc
-	 * @param isEditable
-	 * @return
-	 */
-	/*protected OgemaWidget createValueWidget(String sub, TypeResult type2,
-			Label labelWidgetForValue, ObjectResourceGUIHelperExt mhLoc, boolean isEditable) {
-		String subId = WidgetHelper.getValidWidgetId(sub);
-		if(StringResource.class.isAssignableFrom(type2.type)) {
-			if(isEditable(sub))	return mhLoc.stringEdit(sub, alert);
-			else return mhLoc.stringLabel(sub);
-		} else if(FloatResource.class.isAssignableFrom(type2.type)) {
-			if(isEditable)	{
-				Float low = lowerLimits.get(sub);
-				Float up = upperLimits.get(sub);
-				float lowv = (low!=null)?low:0;
-				float upv = (up!=null)?up:999999f;
-				TextField valueWidget = mhLoc.floatEdit((String)sub, alert, lowv, upv,
-						sub+" limits:"+lowv+" to "+upv);
-				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-				return valueWidget;
-			} else return mhLoc.floatLabel(sub, "%.2f");
-		} else if(BooleanResource.class.isAssignableFrom(type2.type)) {
-			if(isEditable)	{
-				BooleanResourceCheckbox valueWidget = mhLoc.booleanEdit((String)sub);
-				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-				return valueWidget;
-			} else return mhLoc.resourceLabel(sub, 20);
-		} else if(StringResource.class.isAssignableFrom(type2.type)) {
-			if(isEditable)	{
-				TextField valueWidget = mhLoc.stringEdit((String)sub, alert);
-				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-				return valueWidget;
-			} else return mhLoc.stringLabel(sub);
-		} else if(IntegerResource.class.isAssignableFrom(type2.type)) {
-			if(isEditable)	{
-				Map<OgemaLocale, Map<String, String>> innerMap = displayOptions.get(sub);
-				if(innerMap != null) {
-					ValueResourceDropdown<IntegerResource> valueWidget = new ValueResourceDropdown<IntegerResource>(page, "drop"+subId) {
-						private static final long serialVersionUID = 1L;
-						public void onGET(OgemaHttpRequest req) {
-							IntegerResource source = ResourceHelper.getSubResource(mhLoc.getGatewayInfo(req), sub, IntegerResource.class);
-							selectItem(source, req);
-							Map<String, String> valuesToSet = innerMap.get(req.getLocale());
-							if(valuesToSet == null) valuesToSet = innerMap.get(localeDefault);
-							setDisplayedValues(new ArrayList<>(valuesToSet.values()), req);
-						}
-						@Override
-						public void onPrePOST(String data, OgemaHttpRequest req) {
-							IntegerResource source = ResourceHelper.getSubResource(mhLoc.getGatewayInfo(req), sub, IntegerResource.class);
-							if(!source.exists()) {
-								source.create();
-								source.activate(true);
-							}
-						}
-						@Override
-						public String getSelection(IntegerResource resource, Locale locale, List<String> displayedValues) {
-							OgemaLocale loc = OgemaLocale.getLocale(locale.getLanguage());
-							Map<String, String> valuesToSet = innerMap.get(loc);
-							if(valuesToSet == null) valuesToSet = innerMap.get(localeDefault);
-							if(valuesToSet == null) return super.getSelection(resource, locale, displayedValues);
-							String value = ValueResourceUtils.getValue(resource);
-							String display = valuesToSet.get(value);
-							if(display == null) return displayedValues.get(0);
-							return display;
-						}
-						@Override
-						protected void setResourceValue(IntegerResource resource, String value, List<String> displayedValues) {
-							//TODO: Make this more efficient with a new widget
-							for(Map<String, String> valuesToSet : innerMap.values()) {
-								for(Entry<String, String> e: valuesToSet.entrySet()) {
-									if(e.getValue().equals(value)) {
-										ValueResourceUtils.setValue(resource, e.getKey());
-										return;
-									}
-								}
-							}
-							super.setResourceValue(resource, value, displayedValues);
-						}
-					};
-					//mh.dropdown(sub, valuesToSet, IntegerResource.class);
-					mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-					return valueWidget;
-				} else {
-					Float low = lowerLimits.get(sub);
-					Float up = upperLimits.get(sub);
-					int lowv = (low!=null)?(int)(float)low:0;
-					int upv = (up!=null)?(int)(float)up:999999;
-					ValueConverter checker = new ValueConverter(sub, alert, (float)lowv, (float)upv) {
-						@Override
-						protected String getFieldName(OgemaHttpRequest req) {
-							if(labelWidgetForValue != null)
-								return labelWidgetForValue.getText(req);
-							else return sub;
-						}
-					};
-					TextField valueWidget = mhLoc.integerEditExt((String)sub, checker);
-					mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-					return valueWidget;
-				}
-			} else return mhLoc.intLabel(sub, 0);
-		} else if(TimeResource.class.isAssignableFrom(type2.type)) {
-			if(sub.contains("Duration")||sub.contains("Interval")) {
-				if(isEditable)	{
-					TextField valueWidget = mhLoc.timeEdit((String)sub, null, 0l, Long.MAX_VALUE, "Interval ragen invalid!", -1);
-					mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-					return valueWidget;
-				} else
-					return mhLoc.timeLabel(sub, 1);
-			}
-
-			if(isEditable)	{
-				final String format;
-				if(sub.contains("Day")) format = "YYYY-MM-DD";
-				else format = "YYYY-MM-DD HH:mm:ss";
-				DatepickerTimeResource valueWidget = mhLoc.datepicker((String)sub, format, (String)null, (String)null);
-				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-				return valueWidget;
-			} else return mhLoc.timeLabel(sub, 0);
-		} else if(SmartEffTimeSeries.class.isAssignableFrom(type2.type)) {
-			if(isEditable)	{
-				FileUploadListenerToFile listenerToFile = new FileUploadListenerToFile() {
-					
-					@Override
-					public void fileUploaded(String filePath, OgemaHttpRequest req) {
-						System.out.println("File uploaded to "+filePath);
-						ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
-						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
-						tsResource.driverId().<StringResource>create().setValue(tsMan.getGenericDriverProviderId());
-						tsResource.dataTypeId().<StringResource>create().setValue(GaRoDataType.PowerMeter.label(null));
-						if(!tsResource.isActive()) {
-							tsResource.activate(true);
-						}
-						tsMan.registerSingleColumnCSVFile(
-								tsResource, GaRoDataType.PowerMeter, null, filePath, null);
-					}
-				};
-				FileUploaderProtected uploader = exPage.getSpecialWidgetManagement().
-						getFileUpload(page, "upload"+pid(), listenerToFile, null, alert);
-				CSVUploadButton csvButton = new CSVUploadButton(page, "csvUploadButton"+sub, uploader, alert) {
-					private static final long serialVersionUID = 1L;
-					@Override
-					protected Integer getSize(OgemaHttpRequest req) {
-						ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
-						T entryResource = mhLoc.getGatewayInfo(req);
-						SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
-						return tsMan.getFileNum(tsResource, GaRoDataType.PowerMeter, null);
-					}
-				};
-				csvButton.setDefaultText("Upload Profile as CSV");
-				csvButton.triggerOnPOST(csvButton); //csvButton.registerDependentWidget(csvButton);
-				
-				RedirectButton openEvalButton = new LogicProvTableOpenButton(page, "openEvalButton"+sub, pid(),
-						exPage, null);
-				
-				Flexbox valueWidget = getHorizontalFlexBox(page, "flexbox"+sub+pid(),
-						csvButton, uploader.getFileUpload(), openEvalButton);
-				return valueWidget;
-			} else return new Label(page, "noEdit_"+sub, "No Upload Allowed");
-		} else if(ResourceList.class.isAssignableFrom(type2.type)) {
-			if(isEditable)	{
-				ResourceOfTypeTableOpenButton valueWidget = new ResourceOfTypeTableOpenButton(page, "open_"+sub, pid(), exPage, null) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected Class<? extends Resource> typeToOpen(ExtensionResourceAccessInitData appData,
-							OgemaHttpRequest req) {
-						return type2.elementType;
-					}
-				};
-				valueWidget.openResSub(true);
-				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
-				return valueWidget;
-			} else return new Label(page, "noEdit_"+sub, "Not Allowed");
-		} else if(StringArrayResource.class.isAssignableFrom(type2.type)) {
-			if(isEditable)	{
-				MultiSelectStringArrayFreeText multi = new MultiSelectStringArrayFreeText(page, "multisel"+sub) {
-					@Override
-					protected StringArrayResource getStringArrayResource(OgemaHttpRequest req) {
-						T entryResource = mhLoc.getGatewayInfo(req);
-						StringArrayResource tsResource = ResourceHelper.getSubResource(entryResource, sub, StringArrayResource.class);
-						return tsResource;
-					}
-				};
-				Flexbox valueWidget = getHorizontalFlexBox(page, "flexbox"+sub+pid(),
-						multi.multiSelect, multi.newValue, multi.submit);
-				return valueWidget;
-			} else return mhLoc.stringLabel(sub);
-		} else {
-			return null;
-		}
-	}*/
 }

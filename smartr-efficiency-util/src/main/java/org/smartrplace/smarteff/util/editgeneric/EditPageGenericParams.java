@@ -1,5 +1,7 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
+import java.util.List;
+
 import org.ogema.core.model.Resource;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
@@ -29,6 +31,10 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 	}
 	public EditPageGenericParams(boolean isWithTable) {
 		super(isWithTable);
+	}
+	public EditPageGenericParams(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
+			boolean isWithTable) {
+		super(additionalWidgetProviders, isWithTable);
 	}
 	
 	protected class EditElementParams extends EditElement {

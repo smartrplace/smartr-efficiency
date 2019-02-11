@@ -1,4 +1,4 @@
-package org.sp.example.buildingwizard;
+package org.smartrplace.smarteff.util.wizard;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,13 +11,11 @@ import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.ObjectResourceGUIHelperExtPublic;
-import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.TypeResult;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericTableWidgetProvider;
 import org.smartrplace.util.format.WidgetHelper;
-import org.sp.example.smarteff.eval.capability.SPEvalDataService;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -28,9 +26,22 @@ import de.iwes.widgets.html.form.label.Label;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
-/** Special implementation
+/** Generic EditPageGenericTableWidgetProvider for wizard pages (parent and child)
+ * @param T resource type of respective page
+ * @param S resource type of child page. The wizard goes through the resources of this type of a resource list below
+ * 		the parent.
  */
-public class WizBexWidgetProvider<T extends Resource> implements EditPageGenericTableWidgetProvider<T> {
+public abstract class WizBexWidgetProvider<T extends Resource, S extends Resource> implements EditPageGenericTableWidgetProvider<T> {
+	protected void checkResource(T res) {}
+	protected abstract Class<S> getType();
+	protected abstract String getEditPageURL();
+	
+	public static final String ROOM_FIRST_LABEL_ID = "#roomPageSeries";
+
+	public static final String ROOM_NEXT_LABEL_ID = "#roomNext";
+	public static final String ROOM_BACK_LABEL_ID = "#roomBack";
+	public static final String ROOM_ENTRY_LABEL_ID = "#roomEntry";
+
 	private ObjectResourceGUIHelperExtPublic<T> mh;
 	//private Alert alert;
 	//private Map<String, Float> lowerLimits;
@@ -47,6 +58,7 @@ public class WizBexWidgetProvider<T extends Resource> implements EditPageGeneric
 	public static final Map<OgemaLocale, String> ROOMSTEPBUTTON_TEXTS = new HashMap<>();
 	public static final Map<OgemaLocale, String> ROOMBACKBUTTON_TEXTS = new HashMap<>();
 	public static final Map<OgemaLocale, String> ROOMFINALBUTTON_TEXTS = new HashMap<>();
+	public static final Map<OgemaLocale, String> TABLEOPEN_BUTTON_TEXTS = new HashMap<>();
 	static {
 		ROOMFIRSTBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Open first room...");
 		ROOMFIRSTBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Ersten Raum öffnen...");
@@ -56,15 +68,18 @@ public class WizBexWidgetProvider<T extends Resource> implements EditPageGeneric
 		ROOMBACKBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Vorheriger Raum...");
 		ROOMFINALBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "No more rooms, finish");
 		ROOMFINALBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Keine weiteren Räume, beenden");
+
+		TABLEOPEN_BUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Room Administration...");
+		TABLEOPEN_BUTTON_TEXTS.put(OgemaLocale.GERMAN, "Raumverwaltung...");
 	}
 
 	@Override
 	public List<CapabilityDeclaration> capabilities() {
 		List<CapabilityDeclaration> result = new ArrayList<>();
 		result.add(new CapabilityDeclaration(BuildingUnit.class));
-		result.add(new CapabilityDeclaration(WizBexBuildingEditPage.ROOM_NEXT_LABEL_ID));
-		result.add(new CapabilityDeclaration(WizBexRoomEditPage.ROOM_NEXT_LABEL_ID));
-		result.add(new CapabilityDeclaration(WizBexRoomEditPage.ROOM_BACK_LABEL_ID));
+		result.add(new CapabilityDeclaration(ROOM_FIRST_LABEL_ID));
+		result.add(new CapabilityDeclaration(ROOM_NEXT_LABEL_ID));
+		result.add(new CapabilityDeclaration(ROOM_BACK_LABEL_ID));
 		return result;
 	}
 
@@ -74,22 +89,22 @@ public class WizBexWidgetProvider<T extends Resource> implements EditPageGeneric
 			boolean isEditableSpecific, String pid) {
 		String subId = WidgetHelper.getValidWidgetId(sub);
 		if(type2.type == null) {
-			AddEditButton valueWidget = new AddEditButtonWizardList<T>(page, "openFirstPage"+subId, pid,
-					exPage, null, (sub.equals(WizBexRoomEditPage.ROOM_BACK_LABEL_ID))) {
+			AddEditButton valueWidget = new AddEditButtonWizardList<S>(page, "openFirstPage"+subId, pid,
+					exPage, null, (sub.equals(ROOM_BACK_LABEL_ID))) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
 					switch(sub) {
-					case WizBexBuildingEditPage.ROOM_NEXT_LABEL_ID:
+					case ROOM_FIRST_LABEL_ID:
 						return ROOMFIRSTBUTTON_TEXTS;
-					case WizBexRoomEditPage.ROOM_NEXT_LABEL_ID:
+					case ROOM_NEXT_LABEL_ID:
 						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 						if(getResource(appData, req) == null)
 							return ROOMFINALBUTTON_TEXTS;
 						else
 							return ROOMSTEPBUTTON_TEXTS;
-					case WizBexRoomEditPage.ROOM_BACK_LABEL_ID:
+					case ROOM_BACK_LABEL_ID:
 						return ROOMBACKBUTTON_TEXTS;
 					default: throw new IllegalStateException("Unknown page sub ID:"+sub);
 					}
@@ -102,12 +117,15 @@ public class WizBexWidgetProvider<T extends Resource> implements EditPageGeneric
 				}
 				@Override
 				protected T getEntryResource(OgemaHttpRequest req) {
-					return mhLoc.getGatewayInfo(req);
+					T res = mhLoc.getGatewayInfo(req);
+					checkResource(res);
+					return res;
 				}
 				@Override
 				protected String getDestinationURL(ExtensionResourceAccessInitData appData, Resource object,
 						OgemaHttpRequest req) {
-					return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM.provider);
+					return WizBexWidgetProvider.this.getEditPageURL();
+					//return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM.provider);
 				}
 				@Override
 				public void setUrl(String url, OgemaHttpRequest req) {
@@ -116,6 +134,10 @@ public class WizBexWidgetProvider<T extends Resource> implements EditPageGeneric
 						super.setUrl("org_sp_example_buildingwizard_WizBexEntryPage.html", req);
 					else
 						super.setUrl(url, req);
+				}
+				@Override
+				protected Class<S> getType() {
+					return WizBexWidgetProvider.this.getType();
 				}
 			};
 			return valueWidget;
@@ -132,7 +154,13 @@ public class WizBexWidgetProvider<T extends Resource> implements EditPageGeneric
 					}
 					@Override
 					protected String getEditPageURL() {
-						return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM.provider);
+						return WizBexWidgetProvider.this.getEditPageURL();
+						//return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM.provider);
+					}
+					
+					@Override
+					protected Map<OgemaLocale, String> getTextMap(OgemaHttpRequest req) {
+						return TABLEOPEN_BUTTON_TEXTS;
 					}
 				};
 				valueWidget.openResSub(true);

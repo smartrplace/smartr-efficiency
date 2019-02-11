@@ -2,16 +2,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-       <artifactId>apps-master</artifactId>
-       <groupId>org.ogema.apps</groupId>
-       <version>2.2.0</version>
+       <artifactId>smartrefficiency-root</artifactId>
+       <groupId>org.smartrplace.apps</groupId>
+        <version>2.1.3-SNAPSHOT</version> <!-- FIXME SNAPSHOT -->
     </parent>
+  
     
-    <artifactId>smartr-efficiency-util</artifactId>
-    <groupId>org.smartrplace.apps</groupId>
-    <name>Util classes for SmartrEfficiency</name>
-    <version>2.1.3-SNAPSHOT</version>
-    <description>Util classes for SmartrEfficiency Collection</description>
+    <artifactId>smartr-eval-admin</artifactId>
+     <name>SmartrEvalAdmin</name>
+    <description>EvaluationProvider Admin for SmartrEfficiency</description>
     
     <packaging>bundle</packaging>
     
@@ -32,6 +31,7 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+
             </plugin>
              <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -68,45 +68,50 @@
         </dependency>
         <dependency>
             <groupId>org.ogema.widgets</groupId>
-            <artifactId>ogema-js-bundle</artifactId>
+            <artifactId>ogema-gui-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ogema.widgets</groupId>
+            <artifactId>util-extended</artifactId>
+            <version>2.2.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.ogema.widgets</groupId>
             <artifactId>widget-collection</artifactId>
         </dependency>
-        <dependency>
+         <dependency>
             <groupId>org.ogema.widgets</groupId>
-            <artifactId>widget-extended</artifactId>
+            <artifactId>ogema-js-bundle</artifactId>
         </dependency>
+         
         <dependency>
             <groupId>org.ogema.widgets</groupId>
             <artifactId>widget-experimental</artifactId>
         </dependency>
-  		<dependency>
-            <groupId>org.smartrplace.api</groupId>
-            <artifactId>smartr-efficiency-api</artifactId>
-            <version>2.1.3-SNAPSHOT</version>
-        </dependency>  
-        <dependency>
+ 		<dependency>
+			<groupId>org.ogema.eval</groupId>
+			<artifactId>timeseries-multieval-garo-base</artifactId>
+			<version>2.2.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
             <groupId>org.smartrplace.apps</groupId>
             <artifactId>smartrplace-util-proposed</artifactId>
-			<version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0-SNAPSHOT</version>
         </dependency>
-        <dependency>
+		<dependency>
             <groupId>org.ogema.eval.tools</groupId>
             <artifactId>util-extended-eval</artifactId>
             <version>2.1.3-SNAPSHOT</version>
+        </dependency>
+		<dependency>
+            <groupId>com.example.app</groupId>
+            <artifactId>evaluation-offline-control</artifactId>
+            <version>2.1.3-SNAPSHOT</version>
+        </dependency>
+		<dependency>
+            <groupId>org.smartrplace.api</groupId>
+            <artifactId>smartr-domain-extension-api</artifactId>
+            <version>2.1.3-SNAPSHOT</version>
         </dependency>  
-        <dependency>
-            <groupId>org.ogema.tools</groupId>
-            <artifactId>timeseries-import</artifactId>
-            <version>2.1.4-SNAPSHOT</version>
-        </dependency>  
- 		<dependency>
-            <groupId>org.ogema.eval</groupId>
-            <artifactId>timeseries-multieval-garo-base</artifactId>
-            <version>2.2.1-SNAPSHOT</version>
-        </dependency>  
-        
    </dependencies>
 </project>
