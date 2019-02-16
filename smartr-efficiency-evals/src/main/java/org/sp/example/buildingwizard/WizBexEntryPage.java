@@ -1,5 +1,6 @@
 package org.sp.example.buildingwizard;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,8 @@ import org.smartrplace.smarteff.util.button.TableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.smartrplace.smarteff.util.wizard.AddEditButtonWizardList;
+import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider.SmartEffTimeSeriesWidgetContext;
 import org.sp.example.smarteff.eval.capability.SPEvalDataService;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -24,28 +27,24 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import extensionmodel.smarteff.api.common.BuildingData;
 
-/** This page is no real edit page, but just uses the grid functionality of the edit page*/
+/** This page is no real edit page, but just uses the grid functionality of the edit page. The type of the page is arbitrary*/
 public class WizBexEntryPage extends EditPageGeneric<SmartEffResource> {
 	public static final Map<OgemaLocale, String> STARTBUTTON_TEXTS = new HashMap<>();
 	public static final Map<OgemaLocale, String> HEADER_TEXTS = new HashMap<>();
+	public static final List<SmartEffTimeSeriesWidgetContext> counterCts = new ArrayList<>();
 	static {
 		STARTBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Start");
 		STARTBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Beginnen");
 		HEADER_TEXTS.put(OgemaLocale.ENGLISH, "Building Measurement Data Entry Wizard Start Page");
 		HEADER_TEXTS.put(OgemaLocale.GERMAN, "Eingabedialog Gebäude-Messdaten");
+		counterCts.addAll(WizBexBuildingEditPage.counterCts);
+		counterCts.addAll(WizBexRoomEditPage.counterCts);
 	}
-	/*protected static final List<EditPageGenericTableWidgetProvider<SmartEffResource>> provList =
-			new ArrayList<>();
-	static {
-		provList.add(new WizBexWidgetProvider<>());
-	}
+	
 
-	public WizBexEntryPage() {
-		super(provList);
-	}*/
 	
 	@Override
-	public void setData(SmartEffResource sr) {
+	public void setData(SmartEffResource srAny) {
 		TabButton tabButton = new TabButton(page, "tabButton", pid());
 		EditLineProvider tabProv = new EditLineProvider() {
 			@Override
@@ -78,6 +77,10 @@ public class WizBexEntryPage extends EditPageGeneric<SmartEffResource> {
 			protected Resource getResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
 				List<BuildingData> all = appData.userData().getSubResources(BuildingData.class, true);
 				return all.get(0);
+			}
+			@Override
+			protected Integer getSizeInternal(Resource myResource, ExtensionResourceAccessInitData appData) {
+				return AddEditButtonWizardList.getTimeSeriesNumWithoutValueForToday(null, counterCts, appManExt);
 			}
 		};
 		EditLineProvider startProv = new EditLineProvider() {

@@ -2,11 +2,13 @@ package org.smartrplace.smarteff.util.editgeneric;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.array.StringArrayResource;
@@ -15,6 +17,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -37,6 +40,8 @@ import org.smartrplace.util.format.ValueConverter;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -60,11 +65,21 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
  * <li> #location : get resource location
  */
 public class DefaultWidgetProvider<T extends Resource> implements EditPageGenericTableWidgetProvider<T> {
+	public static class SmartEffTimeSeriesWidgetContext {
+		/** resourceLocation -> lastTimeStamp
+		 * Note that this mechanism of updating the lastTimeStamp when the widget to edit SmartEffTimeSeries is
+		 * accessed works only if the time series are not edited elsewhere. It would be possible, though, to pass
+		 * this context also to such other apps and let them update the resource.
+		 */
+		public Map<String, Long> lastTimeStamp = new HashMap<>();
+	}
+	
 	private ObjectResourceGUIHelperExtPublic<T> mh;
 	private Alert alert;
 	private Map<String, Float> lowerLimits;
 	private Map<String, Float> upperLimits;
 	private Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions;
+	private Map<String, Object> widgetContexts;
 
 	private ApplicationManagerSPExt appManExt;
 	private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
@@ -379,6 +394,25 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
 						return TSManagementPage.SUPERBUTTON_TEXTS;
 					}
+					
+					@Override
+					protected Integer getSizeInternal(Resource myResource,
+							ExtensionResourceAccessInitData appData) {
+						Object ct = widgetContexts.get(sub);
+						if(ct != null && ct instanceof SmartEffTimeSeriesWidgetContext) {
+							SmartEffTimeSeries tsResource = (SmartEffTimeSeries) myResource;
+							ReadOnlyTimeSeries ts = appData.getTimeseriesManagement().getTimeSeries(tsResource);
+							if(ts == null) return -99;
+							long dayStart = AbsoluteTimeHelper.getIntervalStart(appManExt.getFrameworkTime(), AbsoluteTiming.DAY);
+							long dayEnd = AbsoluteTimeHelper.addIntervalsFromAlignedTime(dayStart, 1, AbsoluteTiming.DAY)-1;
+							int size = ts.size(dayStart, dayEnd);
+							SmartEffTimeSeriesWidgetContext sct = ((SmartEffTimeSeriesWidgetContext)ct);
+							SampledValue sv = ts.getPreviousValue(Long.MAX_VALUE);
+							if(sv != null)  sct.lastTimeStamp.put(tsResource.getLocation(), sv.getTimestamp());
+							return 1 - size;
+						}
+						return null;
+					}
 				};
 				
 				mhLoc.triggerOnPost(openTSManButton, csvData.csvButton);
@@ -452,7 +486,8 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions, ApplicationManagerSPExt appManExt,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			WidgetPage<?> page,
-			Class<? extends Resource> pageResoureType) {
+			Class<? extends Resource> pageResoureType,
+			Map<String, Object> widgetContexts) {
 		this.mh = mh;
 		this.alert = alert;
 		this.lowerLimits = lowerLimits;
@@ -462,6 +497,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 		this.page = page;
 		this.exPage = exPage;
 		this.pageResoureType = pageResoureType;
+		this.widgetContexts = widgetContexts;
 	}
 	
 	public static String getLocalString(OgemaLocale locale, Map<OgemaLocale, String> map) {

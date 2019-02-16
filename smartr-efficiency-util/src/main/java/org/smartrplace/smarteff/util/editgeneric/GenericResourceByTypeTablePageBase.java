@@ -24,7 +24,7 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
-public class GenericResourceByTypeTablePageBase<T extends Resource> extends ResourceTablePage {
+public class GenericResourceByTypeTablePageBase extends ResourceTablePage {
 	public static final Map<OgemaLocale, String> SUPEREDITBUTTON_TEXTS = new HashMap<>();
 	static {
 		SUPEREDITBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Step Up");
@@ -104,8 +104,8 @@ public class GenericResourceByTypeTablePageBase<T extends Resource> extends Reso
 	}
 	
 	@Override
-	protected PagePriority getPriority() {
-		return PagePriority.HIDDEN;
+	protected PagePriority getPriorityImpl() {
+		return PagePriority.SECONDARY;
 	}
 	
 	//@Override

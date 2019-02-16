@@ -155,7 +155,7 @@ public class KPITablePageSP extends NaviPageBase<Resource> {
 	}
 	
 	@Override
-	protected PagePriority getPriority() {
+	protected PagePriority getPriorityImpl() {
 		return PagePriority.HIDDEN;
 	}
 }

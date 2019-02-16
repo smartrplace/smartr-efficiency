@@ -198,7 +198,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 	}
 	
 	@Override
-	protected PagePriority getPriority() {
+	protected PagePriority getPriorityImpl() {
 		return PagePriority.HIDDEN;
 	}
 }

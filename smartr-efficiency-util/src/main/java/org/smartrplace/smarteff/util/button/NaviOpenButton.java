@@ -26,6 +26,7 @@ public class NaviOpenButton extends RedirectButton {
 	protected final PageType pageType;
 	//doCreate only relevant for pageType EDIT
 	protected final boolean doCreate;
+	protected final boolean isBackButton;
 	
 	/** Overwrite this to provide a context object to the page opened*/
 	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {
@@ -53,10 +54,18 @@ public class NaviOpenButton extends RedirectButton {
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			PageType pageType, boolean doCreate, ButtonControlProvider controlProvider) {
+		this(page, id, pid, text, exPage, pageType, doCreate, false, controlProvider);
+	}
+	public NaviOpenButton(WidgetPage<?> page, String id, String pid, String text,
+			//Class<? extends Resource> type,
+			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
+			PageType pageType, boolean doCreate, boolean isBackButton,
+			ButtonControlProvider controlProvider) {
 		super(page, id, text);
 		this.exPage = exPage;
 		this.pageType = pageType;
 		this.doCreate = doCreate;
+		this.isBackButton = isBackButton;
 		this.controlProvider = controlProvider;
 	}
 	public NaviOpenButton(OgemaWidget parent, String id, String pid, String text,
@@ -68,6 +77,7 @@ public class NaviOpenButton extends RedirectButton {
 		this.pageType = pageType;
 		this.doCreate = doCreate;
 		this.controlProvider = controlProvider;
+		this.isBackButton = false;
 	}
 	@Override
 	public void onGET(OgemaHttpRequest req) {
@@ -135,15 +145,15 @@ public class NaviOpenButton extends RedirectButton {
 				object);
 		} else {
 			if(object == null)  {
-				return systemAccess.accessPage(pageData, -1, null, context);			
+				return systemAccess.accessPage(pageData, -1, null, context, isBackButton);			
 			}
 			else {
 				if(pageData.getEntryTypes() == null)
 					return systemAccess.accessPage(pageData, -1,
-							Arrays.asList(new Resource[]{object}), context);			
+							Arrays.asList(new Resource[]{object}), context, isBackButton);			
 				else
 					return systemAccess.accessPage(pageData, SPPageUtil.getEntryIdx(pageData, type),
-							Arrays.asList(new Resource[]{object}), context);			
+							Arrays.asList(new Resource[]{object}), context, isBackButton);			
 			}
 		}
 		

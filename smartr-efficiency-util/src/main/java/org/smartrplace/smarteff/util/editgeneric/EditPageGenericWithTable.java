@@ -22,9 +22,14 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 		SUPEREDITBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Ebene hoch");
 	}
 
+	//override if required
+	protected GenericResourceByTypeTablePageBase createTablePage() {
+		return new GenericResourceByTypeTablePage<T>(this, this.getClass().getName()+"_TablePage");
+	}
+	
 	Map<String, Map<OgemaLocale, String>> tableHeaders = new LinkedHashMap<>();
 	
-	private GenericResourceByTypeTablePageBase<T> genericTablePageWrapper;
+	private GenericResourceByTypeTablePageBase genericTablePageWrapper;
 	private final boolean isWithTable;
 	
 	public EditPageGenericWithTable() {
@@ -75,10 +80,10 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 		}
 	}
 	
-	public GenericResourceByTypeTablePageBase<T> getTablePage() {
+	public GenericResourceByTypeTablePageBase getTablePage() {
 		if(!isWithTable) return null;
 		if(genericTablePageWrapper != null) return genericTablePageWrapper;
-		genericTablePageWrapper = new GenericResourceByTypeTablePage<T>(this, this.getClass().getName()+"_TablePage");
+		genericTablePageWrapper = createTablePage();
 		return genericTablePageWrapper;
 	}
 	

@@ -110,8 +110,19 @@ public class SPPageUtil {
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+		return addResEditOpenButton(columnName, object, vh, id, row, appData, controlProvider, req, null);
+	}
+	public static OgemaWidget addResEditOpenButton(String columnName, Resource object,
+			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
+			ExtensionResourceAccessInitData appData,
+			ButtonControlProvider controlProvider, OgemaHttpRequest req,
+			String editPageURL) {
 		if(appData != null) {
-			NavigationPublicPageData pageData = getPageData(appData, object.getResourceType(), PageType.EDIT_PAGE);
+			final NavigationPublicPageData pageData;
+			if(editPageURL == null)
+				pageData = getPageData(appData, object.getResourceType(), PageType.EDIT_PAGE);
+			else
+				pageData = appData.systemAccessForPageOpening().getPageByProvider(editPageURL);
 			int size = AddEditButton.getSize(object, appData);
 			String text = ValueFormat.getLocaleString(req, AddEditButton.BUTTON_TEXTS);
 			return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),

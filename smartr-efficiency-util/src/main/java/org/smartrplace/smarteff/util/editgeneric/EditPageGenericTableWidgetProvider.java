@@ -65,5 +65,6 @@ public interface EditPageGenericTableWidgetProvider<T extends Resource> {
 			Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions,
 			ApplicationManagerSPExt appManExt,  ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			WidgetPage<?> page,
-			Class<? extends Resource> pageResoureType);
+			Class<? extends Resource> pageResoureType,
+			Map<String, Object> widgetContexts);
 }

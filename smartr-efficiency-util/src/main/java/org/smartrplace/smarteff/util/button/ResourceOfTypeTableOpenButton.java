@@ -60,14 +60,20 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 		String url = null;
 		Resource object = getResource(appData, req);
 		Class<? extends Resource> entryType = object.getResourceType(); //primaryEntryTypeClass()
-		List<NavigationPublicPageData> provs = appData.systemAccessForPageOpening().
-				getPages(entryType, true);
 		Class<? extends Resource> openType = typeToOpen(appData, req);
-		for(NavigationPublicPageData p: provs) {
-			if((p.typesListedInTable() != null)) {
-				for(GenericDataTypeDeclaration typeListed: p.typesListedInTable()) if(typeListed.representingResourceType().equals(openType)) {
-					url = p.getUrl();
-					break;					
+		NavigationPublicPageData prov = appData.systemAccessForPageOpening().getMaximumPriorityTablePage(entryType, openType);
+		if(prov != null) url = prov.getUrl();
+		else {
+			//TODO: It is not clear whether the logic in this else statement can ever find a provider/url if the
+			//previous method failed, but we keep it for now for sure
+			List<NavigationPublicPageData> provs = appData.systemAccessForPageOpening().
+					getPages(entryType, true);
+			for(NavigationPublicPageData p: provs) {
+				if((p.typesListedInTable() != null)) {
+					for(GenericDataTypeDeclaration typeListed: p.typesListedInTable()) if(typeListed.representingResourceType().equals(openType)) {
+						url = p.getUrl();
+						break;					
+					}
 				}
 			}
 		}

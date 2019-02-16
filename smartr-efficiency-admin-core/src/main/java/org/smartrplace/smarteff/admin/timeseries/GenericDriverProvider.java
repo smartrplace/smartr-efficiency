@@ -118,6 +118,7 @@ public class GenericDriverProvider implements DriverProvider {
 		if(dpTS.recordedDataParent().isActive()) return dpTS.recordedDataParent().getHistoricalData();
 		// must be file
 		return AccessController.doPrivileged(new PrivilegedAction<ReadOnlyTimeSeries>() { public ReadOnlyTimeSeries run() {
+			if(!dpTS.fileType().isActive()) return null;
 			if(dpTS.fileType().getValue().startsWith(CSVUploadWidgets.SINGLE_COLUMN_CSV_ID)) {
 				String format = dpTS.fileType().getValue().substring(CSVUploadWidgets.SINGLE_COLUMN_CSV_ID.length());
 				SimpleDateFormat dateTimeFormat = new SimpleDateFormat(format);

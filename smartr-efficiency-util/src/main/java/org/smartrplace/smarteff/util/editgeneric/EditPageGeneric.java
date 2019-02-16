@@ -68,6 +68,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	Map<String, Float> lowerLimits = new HashMap<>();
 	Map<String, Float> upperLimits = new HashMap<>();
 	Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions = new HashMap<>();
+	Map<String, Object> widgetContexts = new HashMap<>();
 	
 	Map<String, EditLineProvider> providers = new HashMap<>();
 	//Widgets that are governed by an EditLineProvider
@@ -284,6 +285,12 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected void setDisplayOptions(Resource res, OgemaLocale locale, Map<String, String> options) {
 		setDisplayOptions(getSubPath(res), locale, options);
 	}
+	protected void setWidgetContext(String resourceName, Object context) {
+		widgetContexts.put(resourceName, context);		
+	}
+	protected void setWidgetContext(Resource res, Object context) {
+		setWidgetContext(getSubPath(res), context);
+	}
 	
 	protected void setTriggering(String resourceName) {
 		triggeringSubs.add(resourceName);
@@ -396,9 +403,10 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		etb.addEditLine(label, valueWidget, linkButton);		
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void addWidgets() {
-		sampleResource = ResourceHelper.getSampleResource(primaryEntryTypeClass());
+		sampleResource = (T) ResourceHelper.getSampleResource(primaryEntryTypeClass());
 		sampleResourceLength = sampleResource.getPath().length()+1;
 		alert = new Alert(page, "alert"+pid(), "");
 		setData(sampleResource);
@@ -550,14 +558,14 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		if(fittingProvs.isEmpty()) {
 			//TODO: Do not always initialize
 			defaultWP.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page,
-					primaryEntryTypeClass());
+					primaryEntryTypeClass(), widgetContexts);
 			return defaultWP.createValueWidget(sub, type2, labelWidgetForValue, mhLoc, isEditable,
 					isEditable(sub), pid());
 		} else {
 			Integer maxPriority = Collections.max(fittingProvs.keySet());
 			EditPageGenericTableWidgetProvider<T> wp = fittingProvs.get(maxPriority);
 			wp.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page,
-					primaryEntryTypeClass());
+					primaryEntryTypeClass(), widgetContexts);
 			return wp.createValueWidget(sub, type2, labelWidgetForValue, mhLoc, isEditable,
 					isEditable(sub), pid());
 		}

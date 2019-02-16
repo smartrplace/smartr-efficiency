@@ -104,19 +104,19 @@ public class BaseDataService implements SmartEffExtensionService {
 	public final static NaviPageBase<Resource>.Provider RESBYTYPE_PROVIDER = new ResourceByTypeTablePage().provider;
 	//public final static NaviPageBase<Resource>.Provider RESSUBBYTYPE_PROVIDER = new ResourceSubByTypeTablePage().provider;
 	//This one opens for a certain resources, requires a resource as entry point
-	public final static NaviPageBase<Resource>.Provider RESBYTYPE_ENTRYPOINT_PROVIDER = new GenericResourceByTypeTablePageBase<Resource>().provider;
+	public final static NaviPageBase<Resource>.Provider RESBYTYPE_ENTRYPOINT_PROVIDER = new GenericResourceByTypeTablePageBase().provider;
 
 	public final static EditPageGenericWithTable<HeatCostBillingInfo> BILLEDIT = new HeatBillRegistration.EditPage();
-	public final static GenericResourceByTypeTablePageBase<HeatCostBillingInfo> BILLTABLE = BILLEDIT.getTablePage();
+	public final static GenericResourceByTypeTablePageBase BILLTABLE = BILLEDIT.getTablePage();
 	public final static EditPageGenericWithTable<BuildingUnit> ROOMEDIT = new RoomRegistration.EditPage();
-	public final static GenericResourceByTypeTablePageBase<BuildingUnit> ROOMTABLE = ROOMEDIT.getTablePage();
+	public final static GenericResourceByTypeTablePageBase ROOMTABLE = ROOMEDIT.getTablePage();
 		
 	public final static NaviPageBase<SmartEffTimeSeries>.Provider TSMAN_EDIT = new TSManagementPage().provider;
 	
 	private final static EditPageGenericWithTable<HeatRadiatorType> RADIATOR_PAGE = new RadiatorTypeRegistration.EditPage();
-	private final static GenericResourceByTypeTablePageBase<HeatRadiatorType> RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
+	private final static GenericResourceByTypeTablePageBase RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
 	private final static EditPageGenericWithTable<HeatRadiator> ROOMRAD_PAGE = new RoomRadiatorRegistration.EditPage();
-	private final static GenericResourceByTypeTablePageBase<HeatRadiator> ROOMRAD_TABLE = ROOMRAD_PAGE.getTablePage();
+	private final static GenericResourceByTypeTablePageBase ROOMRAD_TABLE = ROOMRAD_PAGE.getTablePage();
 
 	//public final static NaviPageBase<DefaultProviderParams>.Provider BA_PARAMSEDIT_PROVIDER = new DefaultProviderParamsPage().provider;
 	//public final static NaviPageBase<Resource>.Provider TOPCONFIG_NAVI_PROVIDER = new TopConfigTablePage().provider;

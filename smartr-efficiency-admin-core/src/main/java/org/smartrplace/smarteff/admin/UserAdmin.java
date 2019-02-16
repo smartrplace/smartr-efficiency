@@ -74,7 +74,7 @@ public class UserAdmin {
 							(navi!=null?navi.label(req.getLocale()):providerId),
 							app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 							app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
-							app.guiPageAdmin.proposalInfo, null, null, url);
+							app.guiPageAdmin.proposalInfo, null, null, url, configId);
 					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(-1, null, null,
 							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
 					return result;
@@ -85,7 +85,7 @@ public class UserAdmin {
 							app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 							app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
 							app.guiPageAdmin.proposalInfo,
-							(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, c.context, url);
+							(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, c.context, url, configId);
 					ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
 							c.entryResources, c,
 							userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);
@@ -104,7 +104,7 @@ public class UserAdmin {
 						app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 						app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
 						app.guiPageAdmin.proposalInfo,
-						(cext.entryResources !=null && (!cext.entryResources.isEmpty()))?cext.entryResources.get(0):null, cext.context, url);
+						(cext.entryResources !=null && (!cext.entryResources.isEmpty()))?cext.entryResources.get(0):null, cext.context, url, configId);
 				
 				ConfigInfo c = new ConfigInfo(cext);
 				ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(cext.entryIdx,
@@ -170,11 +170,11 @@ public class UserAdmin {
 						navi.label(req.getLocale()),
 						app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 						app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
-						app.guiPageAdmin.proposalInfo, null, null, url);
+						app.guiPageAdmin.proposalInfo, null, null, url, null);
 			} else {
 				systemAccess = new NavigationPageSystemAccessForPageOpening(
 					app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData, app.configIdAdmin,
-					app.guiPageAdmin.proposalInfo, null, null, url);
+					app.guiPageAdmin.proposalInfo, null, null, url, null);
 			}
 			ExtensionResourceAccessInitData result;
 			if(c == null) {
@@ -191,7 +191,7 @@ public class UserAdmin {
 					app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 					app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
 					app.guiPageAdmin.proposalInfo,
-					(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, c.context, url);
+					(c.entryResources !=null && (!c.entryResources.isEmpty()))?c.entryResources.get(0):null, c.context, url, configId);
 			ExtensionResourceAccessInitData result = new ExtensionResourceAccessInitDataImpl(c.entryIdx,
 					c.entryResources, c,
 					userDataNonEdit.editableData().getLocationResource(), userDataNonEdit, systemAccess, app);

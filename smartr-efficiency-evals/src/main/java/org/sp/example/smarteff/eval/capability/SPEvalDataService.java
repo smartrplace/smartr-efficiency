@@ -14,6 +14,7 @@ import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.util.NaviPageBase;
+import org.smartrplace.smarteff.util.editgeneric.GenericResourceByTypeTablePageBase;
 import org.sp.example.buildingwizard.WizBexBuildingEditPage;
 import org.sp.example.buildingwizard.WizBexEntryPage;
 import org.sp.example.buildingwizard.WizBexRoomEditPage;
@@ -35,15 +36,19 @@ public class SPEvalDataService implements SmartEffExtensionService {
 	*/
 	public BuildingPresenceEval BUILDING_PRESENCE_PROVIDER;
 	static final NaviPageBase<BuildingEvalData>.Provider PARAM_PAGE = new BuildingEvalParamsPage().provider;
-	static final WizBexEntryPage WIZBEX_ENTRY = new WizBexEntryPage();
-	public static final WizBexBuildingEditPage WIZBEX_BUILDING = new WizBexBuildingEditPage();
-	public static final WizBexRoomEditPage WIZBEX_ROOM = new WizBexRoomEditPage();
+	public static final WizBexEntryPage WIZBEX_ENTRY = new WizBexEntryPage();
+	public static WizBexBuildingEditPage WIZBEX_BUILDING; // = new WizBexBuildingEditPage();
+	public static WizBexRoomEditPage WIZBEX_ROOM; // = new WizBexRoomEditPage();
+	public static GenericResourceByTypeTablePageBase WIZBEX_ROOM_TABLE; // = WIZBEX_ROOM.getTablePage();
 	static final EditPage ROOMLIGHT_PAGE = new RoomLightingRegistration.EditPage();
 
 	@Override
 	public void start(ApplicationManagerSPExt appManExt) {
 		//this.appManExt = appManExt;
 		BUILDING_PRESENCE_PROVIDER = new BuildingPresenceEval(appManExt);
+		WIZBEX_BUILDING = new WizBexBuildingEditPage(appManExt);
+		WIZBEX_ROOM = new WizBexRoomEditPage(appManExt);
+		WIZBEX_ROOM_TABLE = WIZBEX_ROOM.getTablePage();
 	}
 
 	@Override
@@ -54,7 +59,7 @@ public class SPEvalDataService implements SmartEffExtensionService {
 	public Collection<ExtensionCapability> getCapabilities() {
 		return Arrays.asList(new ExtensionCapability[] {BUILDING_PRESENCE_PROVIDER, PARAM_PAGE,
 				ROOMLIGHT_PAGE.provider,
-				WIZBEX_ENTRY.provider, WIZBEX_BUILDING.provider, WIZBEX_ROOM.provider});
+				WIZBEX_ENTRY.provider, WIZBEX_BUILDING.provider, WIZBEX_ROOM.provider, WIZBEX_ROOM_TABLE.provider});
 	}
 
 	public static final ExtensionResourceTypeDeclaration<SmartEffResource> QUALITY_FB_TYPE = new ExtensionResourceTypeDeclaration<SmartEffResource>() {

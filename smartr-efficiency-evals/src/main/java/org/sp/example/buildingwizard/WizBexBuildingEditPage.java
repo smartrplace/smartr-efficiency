@@ -1,18 +1,21 @@
 package org.sp.example.buildingwizard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.core.model.simple.IntegerResource;
+import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.smarteff.util.CapabilityHelper;
-import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericTableWidgetProvider;
+import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider.SmartEffTimeSeriesWidgetContext;
 import org.smartrplace.smarteff.util.wizard.WizBexWidgetProvider;
-import org.sp.example.smarteff.eval.capability.SPEvalDataService;
+import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -38,26 +41,34 @@ public class WizBexBuildingEditPage extends EditPageGeneric<BuildingData> {
 		HEADER_MAP.put(EN, "Building Wizard Page: ");
 		HEADER_MAP.put(EN, "Gesamtgebäude Startseite: ");
 	}
+	
+	public static final SmartEffTimeSeriesWidgetContext elMeterCt = new SmartEffTimeSeriesWidgetContext();
+	public static final SmartEffTimeSeriesWidgetContext overallQualityCt = new SmartEffTimeSeriesWidgetContext();
+	public static final List<SmartEffTimeSeriesWidgetContext> counterCts = Arrays.asList(new SmartEffTimeSeriesWidgetContext[]{
+			elMeterCt, overallQualityCt});
+	
 	protected static final List<EditPageGenericTableWidgetProvider<BuildingData>> provList =
 			new ArrayList<>();
+	
+	private static ApplicationManagerMinimal appManMinStatic = null;
 	static {
-		provList.add(new WizBexWidgetProvider<BuildingData, BuildingUnit>() {
+		provList.add(new WizBexWidgetProviderSpec<BuildingData>() {
 
 			@Override
-			protected Class<BuildingUnit> getType() {
-				return BuildingUnit.class;
-			}
-
-			@Override
-			protected String getEditPageURL() {
-				return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM.provider);
+			protected ApplicationManagerMinimal appManMin() {
+				return appManMinStatic;
 			}
 			
+			@Override
+			protected List<SmartEffTimeSeriesWidgetContext> tsCountersImpl() {
+				return WizBexRoomEditPage.counterCts;
+			}
 		});
 	}
 
-	public WizBexBuildingEditPage() {
+	public WizBexBuildingEditPage(ApplicationManagerSPExt appManExt) {
 		super(provList);
+		appManMinStatic = appManExt;
 	}
 	
 	@Override
@@ -67,6 +78,7 @@ public class WizBexBuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel("#location", EN, "Resource Location", DE, "Interner Speicherort");
 		
 		setLabel(sr.electricityMeterCountValue(), EN, "Meter count with time of measuerment", DE, "Aktueller Zählerstand");
+		setWidgetContext(sr.electricityMeterCountValue(), elMeterCt);
 		setLabel(WizBexWidgetProvider.ROOM_FIRST_LABEL_ID, EN, "Enter room data", DE, "Raumdaten eingeben");
 		
 		SmartEffTimeSeries sub = sr.getSubResource(CapabilityHelper.getSingleResourceName(
@@ -74,11 +86,34 @@ public class WizBexBuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel(sub, EN, "Overall system quality feedback", DE, "Rückmeldung Qualität Gesamtsystem");
 		setDisplayOptions(sub, EN, OVERALLFB_MAP_EN);
 		setDisplayOptions(sub, DE, OVERALLFB_MAP_DE);
+		setWidgetContext(sub, overallQualityCt);
 
-		setLabel(WizBexWidgetProvider.ROOM_ENTRY_LABEL_ID, EN, "Wizard Room Overview", DE, "Wizard-Überblick Räume");
+		setLabel(WizBexWidgetProvider.ROOM_TABLE_LABEL_ID, EN, "Wizard Room Overview", DE, "Wizard-Überblick Räume");
 		setLabel(sr.buildingUnit(), EN, "Rooms / Sub Units Administration", DE, "Räume / Gebäudeteile verwalten");
 	}
 
+	@Override
+	public boolean checkResource(BuildingData res) {
+		List<BuildingUnit> missingPosId = new ArrayList<>();
+		for(BuildingUnit bu: res.buildingUnit().getAllElements()) {
+			if(!bu.getSubResource("wizardPosition", IntegerResource.class).isActive()) {
+				missingPosId.add(bu);
+			}
+		}
+		if(!missingPosId.isEmpty()) {
+			List<BuildingUnit> defaults = res.buildingUnit().getAllElements();
+			for(BuildingUnit bum: missingPosId) {
+				IntegerResource subPos = bum.getSubResource("wizardPosition", IntegerResource.class);
+				subPos.create();
+				subPos.activate(true);
+				int idx = defaults.indexOf(bum);
+				if(idx < 0) idx = defaults.size();
+				subPos.setValue(idx);
+			}
+		}
+		return super.checkResource(res);
+	}
+	
 	@Override
 	protected Class<BuildingData> primaryEntryTypeClass() {
 		return BuildingData.class;

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
+import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
@@ -22,13 +23,15 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 	private final Resource myPrimaryResource;
 	private final NavigationPublicPageData myNaviData;
 	private final Object myContext;
+	private final String myConfigId;
 	
 	public NavigationPageSystemAccessForPageOpening(
 			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo,
 			List<NavigationPublicPageData> startPagesData,
 			ConfigIdAdministration configIdAdmin,
 			Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo,
-			Resource myPrimaryResource, Object myContext, String myUrl) {
+			Resource myPrimaryResource, Object myContext, String myUrl,
+			String myConfigId) {
 		this.pageInfo = pageInfo;
 		this.startPagesData = startPagesData;
 		this.configIdAdmin = configIdAdmin;
@@ -36,6 +39,7 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 		this.myNaviData = getPageByProvider(myUrl);
 		this.myPrimaryResource = myPrimaryResource;
 		this.myContext = myContext;
+		this.myConfigId = myConfigId;
 	}
 
 	@Override
@@ -78,6 +82,27 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 		}
 		return result;
 	}
+
+	@Override
+	public NavigationPublicPageData getMaximumPriorityTablePage(Class<? extends Resource> primaryType,
+			Class<? extends Resource> elementType) {
+		List<NavigationPublicPageData> resultAll = getPages(primaryType);
+		if(resultAll == null || resultAll.isEmpty()) return null;
+		NavigationPublicPageData result = null;
+		for(NavigationPublicPageData r: resultAll) {
+			if(r.getPageType() != PageType.TABLE_PAGE) continue;
+			if(r.typesListedInTable() == null) continue;
+			for(GenericDataTypeDeclaration typeListed: r.typesListedInTable()) {
+				if(typeListed.representingResourceType().equals(elementType)) {
+					if(result == null) result = r;
+					else if(SmartrEffUtil.comparePagePriorities(r.getPriority(), result.getPriority()) > 0) {
+						result = r;
+					}
+				}
+			}
+		}
+		return result;
+	}
 	
 	@Override
 	public	List<NavigationPublicPageData> getStartPages() {
@@ -100,10 +125,22 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 	@Override
 	public String accessPage(NavigationPublicPageData pageData, int entryIdx,
 			List<Resource> entryResources) {
-		return configIdAdmin.getConfigId(entryIdx, entryResources, myNaviData, myPrimaryResource, null, myContext);
+		return configIdAdmin.getConfigId(entryIdx, entryResources, myNaviData, myPrimaryResource, null,
+				myContext, myConfigId);
 	}
+	@Override
 	public String accessPage(NavigationPublicPageData pageData, int entryIdx, List<Resource> entryResources, Object context) {
-		return configIdAdmin.getConfigId(entryIdx, entryResources, myNaviData, myPrimaryResource, context, myContext);		
+		return accessPage(pageData, entryIdx, entryResources, context, false);
+	}
+	/** Note
+	 * @param isBackLink if true the data for "lastPage" is not updated so that another step back can go back to the real
+	 * 		previous page.
+	 * @return
+	 */
+	@Override
+	public String accessPage(NavigationPublicPageData pageData, int entryIdx, List<Resource> entryResources, Object context,
+			boolean isBackLink) {
+		return configIdAdmin.getConfigId(entryIdx, entryResources, isBackLink?null:myNaviData, myPrimaryResource, context, myContext, myConfigId);		
 	}
 
 	@Override

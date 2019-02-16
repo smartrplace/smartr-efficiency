@@ -18,6 +18,13 @@ public class TableOpenButton extends NaviOpenButton{
 			ButtonControlProvider controlProvider) {
 		super(page, id, pid, text, exPage, PageType.TABLE_PAGE, false, controlProvider);
 	}
+	public TableOpenButton(WidgetPage<?> page, String id, String pid, String text,
+			//Class<? extends Resource> type,
+			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
+			boolean isBackButton,
+			ButtonControlProvider controlProvider) {
+		super(page, id, pid, text, exPage, PageType.TABLE_PAGE, false, isBackButton, controlProvider);
+	}
 
 	public TableOpenButton(OgemaWidget parent, String id, String pid, String text,
 			//Class<? extends Resource> type,

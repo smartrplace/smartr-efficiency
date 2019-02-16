@@ -34,8 +34,9 @@ public class NavigationPageSystemAccess extends NavigationPageSystemAccessForPag
 			TypeAdministration typeAdmin,
 			ApplicationManagerSPExt appExt,
 			Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo,
-			Resource myPrimaryResource, Object myContext, String myUrl) {
-		super(pageInfo, startPagesData, configIdAdmin, proposalInfo, myPrimaryResource, myContext, myUrl);
+			Resource myPrimaryResource, Object myContext, String myUrl, String myConfigId) {
+		super(pageInfo, startPagesData, configIdAdmin, proposalInfo, myPrimaryResource, myContext,
+				myUrl, myConfigId);
 		this.userName = userName;
 		this.applicationName = applicationName;
 		this.lockAdmin = lockAdmin;

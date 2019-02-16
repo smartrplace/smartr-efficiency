@@ -1,29 +1,35 @@
 package org.sp.example.buildingwizard;
 
-import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.Resource;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.wizard.WizBexWidgetProvider;
 import org.sp.example.smarteff.eval.capability.SPEvalDataService;
 
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
-public class WizBexWidgetProviderSpec extends WizBexWidgetProvider<BuildingUnit, BuildingUnit> {
-	@Override
-	protected void checkResource(BuildingUnit res) {
-		IntegerResource subPos = res.getSubResource("wizardPosition", IntegerResource.class);
-		if(!subPos.isActive()) {
-			subPos.create();
-			subPos.activate(true);
-		}
+public abstract class WizBexWidgetProviderSpec<T extends Resource> extends WizBexWidgetProvider<T, BuildingUnit> {
+	public WizBexWidgetProviderSpec() {
+		super();
 	}
 
 	@Override
-	protected Class<BuildingUnit> getType() {
+	protected Class<BuildingUnit> typeS() {
 		return BuildingUnit.class;
 	}
 
 	@Override
-	protected String getEditPageURL() {
+	protected String editPageURL() {
 		return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM.provider);
 	}
+
+	@Override
+	protected String entryPageUrl() {
+		return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ENTRY.provider);
+	}
+
+	@Override
+	protected String tablePageUrl() {
+		return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM_TABLE.provider);
+	}
 }
+

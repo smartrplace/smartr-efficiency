@@ -161,7 +161,7 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 	}
 	
 	@Override
-	protected Class<Resource> primaryEntryTypeClass() {
+	protected Class<? extends Resource> primaryEntryTypeClass() {
 		return Resource.class;
 	}
 	
@@ -196,10 +196,10 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 		return PageType.TABLE_PAGE;
 	}
 	
-	@Override
+	/*@Override
 	protected PagePriority getPriority() {
 		return PagePriority.SECONDARY;
-	}
+	}*/
 	
 	public static String getSimpleName(Resource resource) {
 		Resource name = resource.getSubResource("name");

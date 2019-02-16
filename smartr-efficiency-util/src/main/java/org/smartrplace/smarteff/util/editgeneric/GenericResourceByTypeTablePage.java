@@ -19,8 +19,6 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.defaultservice.ResourceTablePage;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.SPPageUtil;
-import org.smartrplace.smarteff.util.wizard.AddEditButtonWizardList;
-import org.smartrplace.smarteff.util.wizard.WizBexWidgetProvider;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
@@ -31,11 +29,15 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
-import extensionmodel.smarteff.api.common.BuildingUnit;
 
-public class GenericResourceByTypeTablePage<T extends Resource> extends GenericResourceByTypeTablePageBase<T> {
+public class GenericResourceByTypeTablePage<T extends Resource> extends GenericResourceByTypeTablePageBase {
 	private final EditPageGenericWithTable<T> creatingPage;
 	private final String id;
+	
+	protected TablePageEPM createTablePage(ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
+				ApplicationManagerMinimal appManMin) {
+		return new TablePageEPM(exPage, appManExt);
+	}
 	
 	public GenericResourceByTypeTablePage(EditPageGenericWithTable<T> creatingPage, String id) {
 		super();
@@ -48,13 +50,38 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 		return id;
 	}
 
-	class TablePageEPM extends ResourceTablePage.TablePage {
+	public class TablePageEPM extends ResourceTablePage.TablePage {
+		/** Note that the underlying class {@link ResourceTablePage} is not typed and always uses
+		 * Resource.class as type. For this reason we also get just objects of type Resource here. Especially
+		 * during init we really have an object just of type Resource.
+		 * TODO: Maybe we can cast the obejct for processWidgetByInheritedPage, but this has to be checked.
+		 */
+		protected String getHeaderEntry(Resource object, String sub) {return null;}
+		protected boolean processWidgetByInheritedPage(T object, String sub,
+				Map<OgemaLocale,String> labels, String id, OgemaHttpRequest req, Row row) {
+			return false;
+		}
+		
 		public TablePageEPM(
 				ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 				ApplicationManagerMinimal appManMin) {
 			super(exPage, appManMin);
 		}
 
+		protected void finishRow(Resource object, ResourceGUIHelper<Resource> vh, String id,
+				OgemaHttpRequest req, Row row, ExtensionResourceAccessInitData appData) {
+			if(req != null) {
+				if(!(appData.getConfigInfo().context instanceof ResourceOfTypeContext)) throw new IllegalStateException("Type must be transmitted as ResourceOfTypeContext!");
+				ResourceOfTypeContext param = (ResourceOfTypeContext)appData.getConfigInfo().context;
+				SPPageUtil.addResEditOpenButton("Edit", object, vh, id, row, appData, tabButton.control, req,
+						param.editPageURL);
+			} else {
+				vh.registerHeaderEntry("Edit");
+			}
+			GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);			
+		}
+		
+		@SuppressWarnings("unchecked")
 		@Override
 		public void addWidgets(Resource object, ResourceGUIHelper<Resource> vh, String id,
 				OgemaHttpRequest req, Row row, ApplicationManager appMan) {
@@ -65,9 +92,17 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 			Map<String, Map<OgemaLocale, String>> locMap = creatingPage.tableHeaders;
 			for(Entry<String,Map<OgemaLocale,String>> entry: locMap.entrySet()) {
 				String sub = entry.getKey();
-				if(sub.equals(WizBexWidgetProvider.ROOM_ENTRY_LABEL_ID)) {
+				if(req == null) {
+					String headEntry = getHeaderEntry(object, sub);
+					if(headEntry != null) {
+						vh.registerHeaderEntry(headEntry);
+						continue;
+					}
+				} else if(processWidgetByInheritedPage((T) object, sub, entry.getValue(), id, req, row))
+					continue;
+				/*if(sub.equals(WizBexWidgetProvider.ROOM_ENTRY_LABEL_ID)) {
 					if(req != null) {
-						AddEditButtonWizardList<BuildingUnit> openButton = new AddEditButtonWizardList<BuildingUnit>(
+						AddEditButtonWizardList<T> openButton = new AddEditButtonWizardList<T>(
 								mainTable, sub, sub, exPage, null, registerDependentWidgets, req) {
 							private static final long serialVersionUID = 1L;
 
@@ -77,8 +112,14 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 							}
 
 							@Override
-							protected Class<BuildingUnit> getType() {
-								return BuildingUnit.class;
+							protected Class<T> getType() {
+								return (Class<T>) creatingPage.primaryEntryTypeClassPublic();
+							}
+							
+							@Override
+							protected String getDestinationURL(ExtensionResourceAccessInitData appData,
+									Resource object, OgemaHttpRequest req) {
+								return SPPageUtil.getProviderURL();
 							}
 						};
 						row.addCell("Entry", openButton);
@@ -87,7 +128,7 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 						vh.registerHeaderEntry("Entry");
 					}
 					continue;
-				}
+				}*/
 				
 				Resource cellObject = ResourceHelper.getSubResource(object, sub);
 				//Resource cellObject = CapabilityHelper.getOrcreateResource(object,
@@ -105,9 +146,9 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				else if(cellObject instanceof FloatResource)
 					vh.floatLabel(text, id, (FloatResource)cellObject, row, "%.2f");
 				else if(cellObject instanceof IntegerResource) {
-					if(doEdit)
-						vh.integerEdit(sub, id, (IntegerResource)cellObject, row, null, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
-					else
+					//if(doEdit)
+					//	vh.integerEdit(sub, id, (IntegerResource)cellObject, row, null, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
+					//else
 						vh.intLabel(sub, id, (IntegerResource)cellObject, row, 0);
 				}
 				else if(cellObject instanceof BooleanResource)
@@ -122,12 +163,7 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				else
 					vh.stringLabel(text, id, "not a value", row);
 			}
-			if(req != null) {
-				SPPageUtil.addResEditOpenButton("Edit", object, vh, id, row, appData, tabButton.control, req);
-			} else {
-				vh.registerHeaderEntry("Edit");
-			}
-			GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);
+			finishRow(object, vh, id, req, row, appData);
 		}
 		
 		//We trigger the init ourselves
@@ -159,7 +195,7 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 	
 	@Override
 	protected void addWidgets() {
-		tablePage = new TablePageEPM(exPage, appManExt);
+		tablePage = createTablePage(exPage, appManExt);
 		if(creatingPage.providerInitDone && (!triggerForTablePageDone)) {
 			triggerForTablePageDone = true;
 			triggerPageBuild();

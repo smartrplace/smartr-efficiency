@@ -9,10 +9,9 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ValueResource;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
-import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 
-import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -33,18 +32,17 @@ public class BackButton extends TableOpenButton {
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider) {
-		super(page, id, pid, "", exPage, controlProvider);
+		super(page, id, pid, "", exPage, true, controlProvider);
 		setDefaultOpenInNewTab(false);
 	}
 
-	public BackButton(OgemaWidget parent, String id, String pid,
+	/*public BackButton(OgemaWidget parent, String id, String pid,
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
 		super(parent, id, pid, "", exPage, controlProvider, req);
 		setDefaultOpenInNewTab(false);
-	}
-
+	}*/
 
 	@Override
 	protected NavigationPublicPageData getPageData(ExtensionResourceAccessInitData appData,

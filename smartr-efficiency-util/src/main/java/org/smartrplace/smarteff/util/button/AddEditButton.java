@@ -42,7 +42,13 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider) {
-		super(page, id, pid, "", exPage, PageType.EDIT_PAGE, false, controlProvider);
+		this(page, id, pid, exPage, false, controlProvider);
+	}
+	public AddEditButton(WidgetPage<?> page, String id, String pid,
+			//Class<? extends Resource> type,
+			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
+			boolean isBackButton, ButtonControlProvider controlProvider) {
+		super(page, id, pid, "", exPage, PageType.EDIT_PAGE, false, isBackButton, controlProvider);
 		//this.type = type;
 		setDefaultOpenInNewTab(false);
 	}
@@ -64,11 +70,25 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 
 		Resource res = getResource(appData, req);
 		if(res != null) {
-			int size = getSize(res, appData);
-			setText(text+"("+size+")", req);
-		} else setText(text, req);
+			Integer size = getSizeInternal(res, appData);
+			if(size != null) {
+				setText(text+"("+size+")", req);
+				return;
+			}
+		}
+		setText(text, req);
 	}
 	
+	/**Intended to be overwritten. 
+	 * 
+	 * @param myResource
+	 * @param appData
+	 * @return if null no size will be shown
+	 */
+	protected Integer getSizeInternal(Resource myResource, ExtensionResourceAccessInitData appData) {
+		return getSize(myResource, appData);
+	}
+
 	public static int getSize(Resource myResource, ExtensionResourceAccessInitData appData) {
 		List<Resource> resultAll = myResource.getSubResources(false);
 		List<Resource> result = new ArrayList<>();

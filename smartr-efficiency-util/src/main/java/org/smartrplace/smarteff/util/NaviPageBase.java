@@ -31,7 +31,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 	 * use {@link #typesListedInTable()}. See also {@link ResourceOfTypeTableOpenButton}.typeToOpen()
 	 * regarding this. 
 	 */
-	protected abstract Class<T> primaryEntryTypeClass();
+	protected abstract Class<? extends Resource> primaryEntryTypeClass();
 	protected abstract String label(OgemaLocale locale);
 	protected abstract void addWidgets();
 	protected abstract List<EntryType> getEntryTypes();
@@ -55,7 +55,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 	protected String pid() {
 		return primaryEntryTypeClass().getSimpleName();
 	}
-	protected PagePriority getPriority() {
+	protected PagePriority getPriorityImpl() {
 		return PagePriority.STANDARD;
 	}
 	protected String getMaintainer() { return null;}
@@ -145,7 +145,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 		
 		@Override
 		public PagePriority getPriority() {
-			return NaviPageBase.this.getPriority();
+			return getPriorityImpl();
 		}
 		
 		@Override

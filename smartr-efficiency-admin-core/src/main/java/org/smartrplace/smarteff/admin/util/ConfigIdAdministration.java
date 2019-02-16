@@ -17,13 +17,23 @@ public class ConfigIdAdministration {
 	private int counter = 1000;
 	
 	public String getConfigId(int entryIdx, List<Resource> entryResources, NavigationPublicPageData currentPage, Resource currentPrimaryResource, Object context,
-			Object lastContext) {
+			Object lastContext, String currentConfigId) {
 		String result = ""+counter;
 		counter++;
 		ConfigInfo newConfig = new ConfigInfo(entryIdx, entryResources);
-		newConfig.lastPage = currentPage;
-		newConfig.lastPrimaryResource = currentPrimaryResource;
-		newConfig.lastContext = lastContext;
+		if(currentPage == null) {
+			//TODO: We assume that we are processing a BackButton at this point, but
+			//maybe this condition also applies for other cases
+			ConfigInfo currentConfig = getConfigInfo(currentConfigId);
+			return currentConfig.lastConfigId;
+		} else {
+			//TODO: It has not been tested if these values are still required when going back is
+			//implemented by using the ConfigInfo of the page to which we go back.
+			newConfig.lastPage = currentPage;
+			newConfig.lastPrimaryResource = currentPrimaryResource;
+			newConfig.lastContext = lastContext;
+			newConfig.lastConfigId = currentConfigId;
+		}
 		newConfig.context = context;
 		resourcesLocked.put(result, newConfig );
 		return result;

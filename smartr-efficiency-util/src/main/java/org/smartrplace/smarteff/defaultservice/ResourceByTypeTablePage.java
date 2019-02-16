@@ -72,7 +72,7 @@ public class ResourceByTypeTablePage extends ResourceTablePage {
 	}
 	
 	@Override
-	protected PagePriority getPriority() {
+	protected PagePriority getPriorityImpl() {
 		return PagePriority.HIDDEN;
 	}
 	
