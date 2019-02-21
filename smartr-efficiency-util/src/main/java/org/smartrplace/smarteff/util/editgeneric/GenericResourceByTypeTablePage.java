@@ -146,10 +146,10 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				else if(cellObject instanceof FloatResource)
 					vh.floatLabel(text, id, (FloatResource)cellObject, row, "%.2f");
 				else if(cellObject instanceof IntegerResource) {
-					//if(doEdit)
-					//	vh.integerEdit(sub, id, (IntegerResource)cellObject, row, null, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
-					//else
-						vh.intLabel(sub, id, (IntegerResource)cellObject, row, 0);
+					if(doEdit)
+						vh.integerEdit(text, id, (IntegerResource)cellObject, row, null, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
+					else
+						vh.intLabel(text, id, (IntegerResource)cellObject, row, 0);
 				}
 				else if(cellObject instanceof BooleanResource)
 					vh.stringLabel(text, id, ""+((BooleanResource)cellObject).getValue(), row);

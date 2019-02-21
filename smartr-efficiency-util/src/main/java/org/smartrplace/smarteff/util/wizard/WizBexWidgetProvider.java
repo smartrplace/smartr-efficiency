@@ -13,9 +13,9 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.ObjectResourceGUIHelperExtPublic;
 import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
+import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider.SmartEffTimeSeriesWidgetContext;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.TypeResult;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericTableWidgetProvider;
-import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider.SmartEffTimeSeriesWidgetContext;
 import org.smartrplace.smarteff.util.wizard.AddEditButtonWizardList.BACKTYPE;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.format.WidgetHelper;
@@ -44,14 +44,18 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 		//this.tablePageUrl = tablePageUrl;
 	}
 	
-	protected void checkResource(T res) {}
+	//protected void checkResource(T res) {}
 	protected abstract Class<S> typeS();
 	protected abstract String editPageURL();
+	protected abstract String editParentPageURL();
 	protected abstract String entryPageUrl();
 	protected abstract String tablePageUrl();
 	protected abstract ApplicationManagerMinimal appManMin();
 	protected abstract List<SmartEffTimeSeriesWidgetContext> tsCountersImpl();
-	
+	protected Resource getTableResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+		return appData.entryResources().get(0);
+	}
+
 	public static final String ROOM_FIRST_LABEL_ID = "#roomPageSeries";
 
 	public static final String ROOM_NEXT_LABEL_ID = "#roomNext";
@@ -138,6 +142,11 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 				protected Map<OgemaLocale, String> getTextMap(OgemaHttpRequest req) {
 					return ROOMTABLEOPEN_BUTTON_TEXTS;
 				}
+				
+				@Override
+				protected Resource getResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+					return getTableResource(appData, req);
+				}
 			};
 			valueWidget.openResSub(true);
 			mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
@@ -155,7 +164,8 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 						return ROOMFIRSTBUTTON_TEXTS;
 					case ROOM_NEXT_LABEL_ID:
 						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-						if(getResource(appData, req) == null)
+						Resource res = getResource(appData, req);
+						if(res == null || (!typeS().isAssignableFrom(res.getResourceType())))
 							return ROOMFINALBUTTON_TEXTS;
 						else
 							return ROOMSTEPBUTTON_TEXTS;
@@ -174,26 +184,44 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 					if(getResource(appData, req) == null) return true;
 					return null;
 				}
+				
+				@Override
+				protected Object getContext(ExtensionResourceAccessInitData appData, Resource object,
+						OgemaHttpRequest req) {
+					if(!typeS().isAssignableFrom(object.getResourceType())) return null;
+					return super.getContext(appData, object, req);
+				}
+				
 				@Override
 				protected T getEntryResource(OgemaHttpRequest req) {
 					T res = mhLoc.getGatewayInfo(req);
-					checkResource(res);
+					//checkResource(res);
 					return res;
 				}
 				@Override
 				protected String getDestinationURL(ExtensionResourceAccessInitData appData, Resource object,
 						OgemaHttpRequest req) {
-					return editPageURL();
+					Resource res = getResource(appData, req);
+					if(res == null)
+						return entryPageUrl();
+					else if(!typeS().isAssignableFrom(res.getResourceType()))
+						 return editParentPageURL();
+					else
+						return editPageURL();
+					//return editPageURL();
 					//return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM.provider);
 				}
-				@Override
+				/*@Override
 				public void setUrl(String url, OgemaHttpRequest req) {
 					ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-					if(getResource(appData, req) == null)
+					Resource res = getResource(appData, req);
+					if(res == null)
 						super.setUrl(entryPageUrl(), req);
+					else if(!typeS().isAssignableFrom(res.getResourceType()))
+						super.setUrl(tablePageUrl(), req);
 					else
 						super.setUrl(url, req);
-				}
+				}*/
 				@Override
 				protected Class<S> getType() {
 					return typeS();

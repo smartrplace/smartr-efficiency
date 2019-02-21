@@ -31,5 +31,10 @@ public abstract class WizBexWidgetProviderSpec<T extends Resource> extends WizBe
 	protected String tablePageUrl() {
 		return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_ROOM_TABLE.provider);
 	}
+	
+	@Override
+	protected String editParentPageURL() {
+		return SPPageUtil.getProviderURL(SPEvalDataService.WIZBEX_BUILDING.provider);
+	}
 }
 

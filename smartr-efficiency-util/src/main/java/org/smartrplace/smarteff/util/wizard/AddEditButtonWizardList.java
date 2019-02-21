@@ -21,6 +21,7 @@ import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
+import extensionmodel.smarteff.api.common.BuildingData;
 
 public abstract class AddEditButtonWizardList<T extends Resource> extends AddEditButton {
 	private static final long serialVersionUID = 1L;
@@ -63,7 +64,7 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 	}
 	protected final BACKTYPE isBackButton;
 	
-	private WizBexRoomContext getMyContext(boolean inPOST, OgemaHttpRequest req) {
+	protected WizBexRoomContext getMyContext(boolean inPOST, OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		Object ct = appData.getConfigInfo().context;
 		if((ct != null) && (ct instanceof AddEditButtonWizardList.WizBexRoomContext)) {
@@ -110,21 +111,21 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 			return;
 		}
 		WizBexRoomContext ct = getMyContext(false, req);
-		List<T> resList = ct.allResource;
+		//List<T> resList = ct.allResource;
 		int idx = getShiftedIndex(ct);
 		//if((ct.currentIndex < 0) || (ct.currentIndex >= resList.size())) disable(req);
-		if((idx < 0) || (idx >= resList.size())) disable(req);
+		if((idx < 0)) disable(req);
 		else enable(req);
 	}
 	
 	/** Calling getMyContext once before POST is processed should make sure the shifting is
 	 * done now
 	 */
-	@Override
+	/*@Override
 	public void onPrePOST(String data, OgemaHttpRequest req) {
 		getMyContext(true, req);
 		super.onPrePOST(data, req);
-	}
+	}*/
 	
 	@Override
 	protected Resource getResource(ExtensionResourceAccessInitData appData,
@@ -132,24 +133,26 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 		WizBexRoomContext ct = getMyContext(false, req);
 		List<T> resList = ct.allResource;
 		int idx = getShiftedIndex(ct);
-		if((idx < 0) || (idx >= resList.size())) return null;
+		if((idx < 0) || (idx >= resList.size())) {
+			if(ct.allResource != null && !ct.allResource.isEmpty()) {
+				return ct.allResource.get(0).getParent().getParent();
+			}
+			Resource entryResource = getEntryResource(req);
+			if(entryResource instanceof BuildingData) return entryResource;
+			return null;
+		}
 		else return ct.allResource.get(idx);
 		//if((ct.currentIndex < 0) || (ct.currentIndex >= resList.size())) return null;
 		//else return ct.allResource.get(ct.currentIndex);
 	}
+	
 	@Override
 	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object,
 			OgemaHttpRequest req) {
 		WizBexRoomContext ct = getMyContext(true, req);
-		//WizBexRoomContext newContext = shiftContext(ct); //new WizBexRoomContext();
 		WizBexRoomContext newContext = new WizBexRoomContext();
 		newContext.allResource = ct.allResource;
 		newContext.currentIndex = ct.currentIndex;
-		/*if(isBackButton==BACKTYPE.BACK)
-			newContext.currentIndex = ct.currentIndex - 1;
-		else if(isBackButton == BACKTYPE.FORWARD)
-			newContext.currentIndex = ct.currentIndex + 1;
-		else newContext.currentIndex = ct.currentIndex;*/
 		return newContext;
 	}
 	
@@ -159,7 +162,7 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 		else if(isBackButton == BACKTYPE.FORWARD)
 			ct.currentIndex = ct.currentIndex + 1;
 	}
-	private int getShiftedIndex(WizBexRoomContext ct) {
+	protected int getShiftedIndex(WizBexRoomContext ct) {
 		if(ct.isShifted) return ct.currentIndex;
 		if(isBackButton==BACKTYPE.BACK)
 			return ct.currentIndex - 1;

@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.smartrplace.commontypes.RoomRegistration;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.editgeneric.DefaultWidgetProvider.SmartEffTimeSeriesWidgetContext;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericTableWidgetProvider;
@@ -17,6 +19,7 @@ import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.sp.example.smarteff.roomext.RoomLightingRegistration;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.basic.evals.RoomLightingData;
 
@@ -26,14 +29,14 @@ public class WizBexRoomEditPage extends EditPageGenericWithTable<BuildingUnit> {
 	private static ApplicationManagerMinimal appManMinStatic = null;
 	static {
 		provList.add(new WizBexWidgetProviderSpec<BuildingUnit>() {
-			@Override
+			/*@Override
 			protected void checkResource(BuildingUnit res) {
 				IntegerResource subPos = res.getSubResource("wizardPosition", IntegerResource.class);
 				if(!subPos.isActive()) {
 					subPos.create();
 					subPos.activate(true);
 				}
-			}
+			}*/
 
 			@Override
 			protected ApplicationManagerMinimal appManMin() {
@@ -43,6 +46,12 @@ public class WizBexRoomEditPage extends EditPageGenericWithTable<BuildingUnit> {
 			@Override
 			protected List<SmartEffTimeSeriesWidgetContext> tsCountersImpl() {
 				return counterCts;
+			}
+			
+			@Override
+			protected Resource getTableResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+				Resource room = super.getTableResource(appData, req);
+				return room.getParent().getParent();
 			}
 		});
 	}
