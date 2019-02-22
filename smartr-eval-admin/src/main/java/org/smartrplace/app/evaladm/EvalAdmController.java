@@ -6,8 +6,8 @@ import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.timeseries.access.api.example.EvalButtonConfigServiceExpl;
+import org.smartrplace.app.evaladm.gui.EvalButtonConfigServiceProvider;
 import org.smartrplace.extensionservice.ApplicationManagerSpExtMinimal;
-import org.smartrplace.smarteff.access.api.EvalButtonConfigService;
 
 import com.iee.app.evaluationofflinecontrol.OfflineEvaluationControlController;
 import com.iee.app.evaluationofflinecontrol.config.KPIPageConfig;
@@ -18,12 +18,14 @@ import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
 // here the controller logic is implemented
 public class EvalAdmController extends OfflineEvaluationControlController {
     public final ApplicationManagerSpExtMinimal appManSpExt;
-    public final EvalButtonConfigService evalButtonConfigService;
+    //public final EvalButtonConfigService evalButtonConfigService;
+	public final EvalButtonConfigServiceProvider evalButtonConfigServiceProvider;
 
 	public EvalAdmController(ApplicationManager appMan, EvalAdmApp evaluationOCApp) {
 		super(appMan, evaluationOCApp, null, new PageConfig(false, false));
 		this.appManSpExt = evaluationOCApp.appManSpExt;
-		this.evalButtonConfigService = evaluationOCApp.evalButtonConfigService;
+		//this.evalButtonConfigService = evaluationOCApp.evalButtonConfigService;
+		this.evalButtonConfigServiceProvider = evaluationOCApp;
 		EvalButtonConfigServiceExpl.eac = this;
 	}
     

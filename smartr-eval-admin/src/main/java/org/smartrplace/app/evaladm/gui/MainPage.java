@@ -1,6 +1,5 @@
 package org.smartrplace.app.evaladm.gui;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,29 +8,19 @@ import java.util.stream.Collectors;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.ResourceNotFoundException;
-import org.ogema.externalviewer.extensions.IntervalConfiguration;
-import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
-import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.externalviewer.extensions.SmartEffEditOpenButton;
 import org.ogema.model.jsonresult.MultiKPIEvalConfiguration;
 import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.smartrplace.app.evaladm.EvalAdmController;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
-import org.smartrplace.smarteff.access.api.EvalButtonConfig;
 
-import com.iee.app.evaluationofflinecontrol.util.ScheduleViewerConfigProvEvalOff;
 import com.iee.app.evaluationofflinecontrol.util.SmartEffPageConfigProvEvalOff;
 
-import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.api.configuration.Configuration;
 import de.iwes.timeseries.eval.api.configuration.ConfigurationInstance;
 import de.iwes.timeseries.eval.api.configuration.ConfigurationInstance.GenericObjectConfiguration;
-import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
-import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
-import de.iwes.util.timer.AbsoluteTimeHelper;
-import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.extended.WidgetData;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
@@ -43,7 +32,6 @@ import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
-import de.iwes.widgets.reswidget.scheduleviewer.utils.ScheduleViewerUtil;
 
 
 /**
@@ -226,7 +214,12 @@ public class MainPage {
 		page.append(table).linebreak();	
 		
 		StaticTable evalButtonRow = new StaticTable(1, 4);
-		int col = 0;
+		for(int col=0; col<4; col++) {
+			EvalButtonConfigured openScheduleViewer = new EvalButtonConfigured(page, "openScheduleViewer"+col, controller.evalButtonConfigServiceProvider, col, controller.appMan);
+			evalButtonRow.setContent(0, col, openScheduleViewer);
+		}
+		
+		/*int col = 0;
 		for(EvalButtonConfig bc: controller.evalButtonConfigService.configurations()) {
 			ScheduleViewerOpenButton openScheduleViewer = new ScheduleViewerOpenButtonEval(page, "openScheduleViewer"+col,
 					bc.buttonText(), ScheduleViewerConfigProvEvalOff.PROVIDER_ID,
@@ -273,7 +266,7 @@ public class MainPage {
 			};
 			evalButtonRow.setContent(0, col, openScheduleViewer);
 			col++;
-		}
+		}*/
 		page.append(evalButtonRow);
 	}
 	

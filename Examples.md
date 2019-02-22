@@ -1,16 +1,10 @@
-package org.smartrplace.commontypes;
+# SmartrEfficiency Examples and Snippets
+Platform for planning building energy efficiency and upgrade projects and for managing building-related data
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+## A simple data entry mask
+A simple data entry mask can be generated with the following code:
 
-import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
-
-import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
-import extensionmodel.smarteff.api.common.BuildingData;
-import extensionmodel.smarteff.api.common.BuildingUnit;
-
+```java
 public class RoomRegistration {
 	public static final Class<? extends SmartEffResource> TYPE_CLASS = BuildingUnit.class; //RoomData.class;
 	
@@ -79,15 +73,17 @@ public class RoomRegistration {
 			setLabel(sr.heatRadiator(), EN, "Radiators in the room", DE, "Heizköper im Raum verwalten");
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
 		protected Class<BuildingUnit> primaryEntryTypeClass() {
 			return (Class<BuildingUnit>) TYPE_CLASS;
 		}
-		
-		@Override
-		protected String getMaintainer() {
-			return "test1";
-		}
 	}
 }
+```
+
+The result looks like this:
+
+![SmartrEff_RoomEditExpl_960_x_204](wikiFiles/SmartrEffEditRoom.png)<br>
+
+## Adding widgets in setData
+...

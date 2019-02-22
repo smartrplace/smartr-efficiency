@@ -14,6 +14,7 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.util.jsonresult.management.api.EvalResultManagement;
+import org.smartrplace.app.evaladm.gui.EvalButtonConfigServiceProvider;
 import org.smartrplace.app.evaladm.gui.MainPage;
 import org.smartrplace.extensionservice.ApplicationManagerSpExtMinimal;
 import org.smartrplace.smarteff.access.api.EvalButtonConfigService;
@@ -52,7 +53,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 })
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)
-public class EvalAdmApp implements Application, OfflineEvalServiceAccessBase {
+public class EvalAdmApp implements Application, OfflineEvalServiceAccessBase, EvalButtonConfigServiceProvider {
 	public static final String urlPath = "/com/example/app/smartrevaladm";
 
     private OgemaLogger log;
@@ -189,5 +190,9 @@ public class EvalAdmApp implements Application, OfflineEvalServiceAccessBase {
 
 	public MessagingService messageService() {
 		return guiService.getMessagingService();
+	}
+	@Override
+	public EvalButtonConfigService getService() {
+		return evalButtonConfigService;
 	}
 }
