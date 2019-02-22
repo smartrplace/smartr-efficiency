@@ -16,6 +16,7 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.smartrplace.app.evaladm.gui.MainPage;
 import org.smartrplace.extensionservice.ApplicationManagerSpExtMinimal;
+import org.smartrplace.smarteff.access.api.EvalButtonConfigService;
 
 import com.iee.app.evaluationofflinecontrol.OfflineEvalServiceAccessBase;
 
@@ -71,6 +72,9 @@ public class EvalAdmApp implements Application, OfflineEvalServiceAccessBase {
 	public ApplicationManagerSpExtMinimal appManSpExt;
 	//private volatile boolean initDone = false;
 	//List<GaRoSingleEvalProvider> earlyProviders = new ArrayList<>();
+	
+	@Reference(cardinality=ReferenceCardinality.OPTIONAL_UNARY)
+	public EvalButtonConfigService evalButtonConfigService;
 	
 	public MainPage mainPage;
 	

@@ -48,7 +48,7 @@ public class SmartEffGaRoProviderTS extends GaRoMultiEvalDataProvider<SmartEffGa
 	}
 
 	@Override
-	protected List<SelectionItem> getOptions(int level, SmartEffGaRoSelectionItemTS superItem) {
+	public List<SelectionItem> getOptions(int level, SmartEffGaRoSelectionItemTS superItem) {
 		switch(level) {
 		case GaRoMultiEvalDataProvider.GW_LEVEL:
 			if(gwSelectionItems == null) {

@@ -73,7 +73,7 @@ public class DataDriverGaroJAXB implements DriverProvider {
 		return new GaRoMultiEvalDataProvider<GaRoSelectionItemJAXB>() {
 
 			@Override
-			protected List<SelectionItem> getOptions(int level, GaRoSelectionItemJAXB superItem) {
+			public List<SelectionItem> getOptions(int level, GaRoSelectionItemJAXB superItem) {
 				//List<String> gwsAllowed = Arrays.asList(gwsAllowedRes.gwIdsAllowed().getValues());
 				if(level == GaRoMultiEvalDataProvider.GW_LEVEL) {
 					List<SelectionItem> available = jaxbProvider.getOptions(level, superItem);
