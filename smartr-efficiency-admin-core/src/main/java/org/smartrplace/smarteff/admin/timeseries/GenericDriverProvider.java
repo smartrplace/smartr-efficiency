@@ -132,7 +132,7 @@ public class GenericDriverProvider implements DriverProvider {
 						return csvImport.parseCsv(Paths.get(paths[0]), csvConfig);
 					FloatTreeTimeSeries result = new FloatTreeTimeSeries();
 					for(int i=0; i<paths.length; i++) {
-						ReadOnlyTimeSeries add = csvImport.parseCsv(Paths.get(paths[1]), csvConfig);
+						ReadOnlyTimeSeries add = csvImport.parseCsv(Paths.get(paths[i]), csvConfig);
 						result.addValues(add.getValues(0));
 					}
 					return result;

@@ -10,6 +10,7 @@ import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.model.prototypes.Data;
 import org.smartrplace.smarteff.model.syste.GenericTSDPTimeSeries;
 
+import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvaluationInput;
 
 /** This is a base resource for all value resources containing time series. The mode is more flexible
@@ -45,6 +46,8 @@ public interface SmartEffTimeSeries extends Data {
 	 * of another evaluation (which is a pre-evaluation for another evaluation) and here currently
 	 * only the JSON file reading pre-evaluation mechanism is supported, no other time series injection
 	 * as input.<br>
+	 * To support evaluation of non-standard time series provided by DataProviders the data provider now
+	 * can override {@link GaRoMultiEvalDataProvider#provideMultiEvaluationInput(de.iwes.timeseries.eval.api.DataProviderType, de.iwes.timeseries.eval.api.DataProvider, de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI, java.util.List, String)}.
 	 */
 	StringResource dataTypeId();
 	
