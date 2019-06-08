@@ -33,15 +33,25 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 	private final boolean isWithTable;
 	
 	public EditPageGenericWithTable() {
-		this(true);
+		this(new Boolean(true));
+	}
+	public EditPageGenericWithTable(Boolean forceSubResName) {
+		this(true, forceSubResName);
 	}
 	public EditPageGenericWithTable(boolean isWithTable) {
-		super();
+		this(isWithTable, new Boolean(true));
+	}
+	public EditPageGenericWithTable(boolean isWithTable, Boolean forceSubResName) {
+		super(forceSubResName);
 		this.isWithTable = isWithTable;
 	}
 	public EditPageGenericWithTable(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
 			boolean isWithTable) {
-		super(additionalWidgetProviders);
+		this(additionalWidgetProviders, isWithTable, new Boolean(true));
+	}
+	public EditPageGenericWithTable(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
+			boolean isWithTable, Boolean forceSubResName) {
+		super(additionalWidgetProviders, forceSubResName);
 		this.isWithTable =isWithTable;
 	}
 	

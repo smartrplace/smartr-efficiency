@@ -8,12 +8,18 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.smarteff.util.CapabilityHelper;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import extensionmodel.smarteff.api.base.SmartEffUserData;
 
 public class TopConfigTablePage extends ResourceTablePage {
+	@Override
+	protected Resource getFixedParentResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+		return appData.userData();
+	}
+	
 	public TopConfigTablePage() {
 		super();
 	}
@@ -32,6 +38,14 @@ public class TopConfigTablePage extends ResourceTablePage {
 		for(Resource r: resultAll) {
 			if(!((r instanceof ValueResource) || (r instanceof ResourceList))) result.add(r);
 		}
+		
+		//Also add virtual resources for global resources
+		List<Resource> globals = appManExt.globalData().getSubResources(false);
+		for(Resource glob: globals) {
+			Resource r = CapabilityHelper.getForUserVirtual(glob, appData.userData());
+			if(!((r instanceof ValueResource) || (r instanceof ResourceList))) result.add(r);
+		}
+		
 		return result;
 	}
 	

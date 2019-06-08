@@ -27,7 +27,9 @@ public interface HeatRadiatorType extends SmartEffResource {
 	
 	/** If the single rooms of a building are not represented in the database or
 	 * the radiators (or their types) are not modeled per room the total number of radiators
-	 * of a type can be stored in this value for the entire building.
+	 * of a type can be stored in this value for the entire building. If only some radiators
+	 * of the type are represented in rooms this number should only give the radiators not
+	 * modeled in rooms.
 	 */
 	IntegerResource numberOfRadiators();
 	/** TODO: No support for this in EditPageGeneric yet*/

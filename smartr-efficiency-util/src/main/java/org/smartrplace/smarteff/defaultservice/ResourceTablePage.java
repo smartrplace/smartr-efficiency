@@ -19,7 +19,6 @@ import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
-import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
@@ -56,6 +55,8 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 	protected boolean isInherited() { return false;}
 	protected final boolean hasAddResourceColumn;
 	
+	protected Resource getFixedParentResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {return null;}
+
 	protected void addWidgetsAboveTable(Class<? extends Resource> resourceType) {
 		tabButton = new TabButton(page, "tabButton", pid());
 		
@@ -131,7 +132,7 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 		@Override
 		public void addWidgets(Resource object, ResourceGUIHelper<Resource> vh, String id,
 				OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-			ResourceTablePage.addWidgets(object, vh, id, req, row, appMan, pid(), appManExt, exPage,
+			addWidgetsInternal(object, vh, id, req, row, appMan, pid(), appManExt, exPage,
 					(tabButton!=null)?tabButton.control:null, hasAddResourceColumn);
 		}
 
@@ -211,7 +212,7 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 		return resource.getName();
 	}
 
-	public static void addWidgets(Resource object, ResourceGUIHelper<Resource> vh, String id,
+	public void addWidgetsInternal(Resource object, ResourceGUIHelper<Resource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan,
 			String pid, ApplicationManagerSPExt appManExt,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
@@ -243,7 +244,9 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 				ExtensionResourceTypeDeclaration<? extends Resource> typeDecl = appManExt.getTypeDeclaration(object.getResourceType());
 				if(hasAddResourceColumn) {
 					if(SPPageUtil.isMulti(typeDecl.cardinality())) {
-						AddEntryButton addButton = new AddEntryButton(vh.getParent(), id, pid, "Add Sub Resource",  object.getResourceType(), exPage, tabController, req);
+						Resource res = getFixedParentResource(appData, req);
+						AddEntryButton addButton = new AddEntryButton(vh.getParent(), id, pid, "Add Sub Resource",  object.getResourceType(), exPage, tabController,
+								res, req);
 						row.addCell("AddResource", addButton);					
 					} else {
 						vh.stringLabel("AddResource", id, "SingleResource", row);
@@ -268,7 +271,9 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 			vh.registerHeaderEntry("Evaluations");
 			vh.registerHeaderEntry("Delete");
 			if(hasAddResourceColumn) {if(req != null) {
-					AddEntryButton addButton = new AddEntryButton(vh.getParent(), id, pid, "Add Sub Resource", object.getResourceType(), exPage, tabController, req);
+					Resource res = getFixedParentResource(appData, req);
+					AddEntryButton addButton = new AddEntryButton(vh.getParent(), id, pid, "Add Sub Resource", object.getResourceType(), exPage, tabController,
+							res, req);
 					row.addCell("AddResource", addButton);
 				} else vh.registerHeaderEntry("AddResource");
 			}

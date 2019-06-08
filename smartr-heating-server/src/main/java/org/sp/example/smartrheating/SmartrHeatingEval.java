@@ -7,9 +7,13 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProjectProviderBase;
+import org.sp.example.smartrheating.util.BaseInits;
+import org.sp.example.smartrheating.util.BasicCalculations;
+import org.sp.example.smartrheating.util.BasicCalculations.YearlyConsumption;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import extensionmodel.smarteff.api.base.SmartEffPriceData;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParams;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingData;
@@ -45,13 +49,17 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 		MyParam<DefaultProviderParams> paramHelperB = CapabilityHelper.getMyParams(DefaultProviderParams.class, data.userData(), appManExt);
 		DefaultProviderParams myParB = paramHelperB.get();
 		float kwHpSQM = myParB.defaultKwhPerSQM().getValue();
-	
+		
 		float yearlykWh;
 		float yearlyCost;
 		BuildingData building = input.getParent();
 		if(building.heatCostBillingInfo().isActive()) {
 			//Calculate yearly energy consumption based on billing info
-			throw new UnsupportedOperationException("BillingInfo usage not implemented yet");
+			//throw new UnsupportedOperationException("BillingInfo usage not implemented yet");
+			YearlyConsumption avData = BasicCalculations.getYearlyConsumption(
+					building.heatCostBillingInfo(), 3);
+			yearlykWh = avData.avKWh;
+			yearlyCost = avData.avCostTotal;
 		} else {
 			yearlykWh = building.heatedLivingSpace().getValue() * kwHpSQM;
 			yearlyCost = yearlykWh * 0.06f;
@@ -61,9 +69,16 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 		result.yearlySavings().create();
 		result.yearlySavings().setValue(0.05f*yearlyCost);
 		
-		float customerCost = input.numberOfRooms().getValue() * customerCostPerRoom;
-		float vendorCost = input.numberOfRadiators().getValue() * costPerRad +
-				input.numberOfRooms().getValue() * costPerRoom + baseCost;
+		Integer roomNum = BasicCalculations.getNumberOfRooms(building);
+		if(roomNum == 0) {
+			MyParam<SmartEffPriceData> paramHelperPrice = CapabilityHelper.getMyParams(SmartEffPriceData.class, data.userData(), appManExt);
+			SmartEffPriceData myParPrice = paramHelperPrice.get();
+			roomNum = myParPrice.standardRoomNum().getValue(); 
+		}
+		float customerCost = roomNum * customerCostPerRoom;
+		int radNum = BasicCalculations.getNumberOfRadiators(building);
+		float vendorCost = radNum * costPerRad +
+				roomNum * costPerRoom + baseCost;
 		/*float customerCost = building.roomNum().getValue() * customerCostPerRoom;
 		float vendorCost = input.numberOfRadiators().getValue() * costPerRad +
 				building.roomNum().getValue() * costPerRoom + baseCost;*/
@@ -91,6 +106,7 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 	
 	@Override
 	protected boolean initParams(SmartEffResource paramsIn) {
+		BaseInits.initSmartrEffPriceData(appManExt, this.getClass().getName());
 		SmartrHeatingParams params = (SmartrHeatingParams)paramsIn;
 		if(ValueResourceHelper.setIfNew(params.costOfCustomerPerRoom(), 20)) {
 			return true;

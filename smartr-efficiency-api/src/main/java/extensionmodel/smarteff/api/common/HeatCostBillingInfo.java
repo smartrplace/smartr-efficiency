@@ -14,6 +14,10 @@ public interface HeatCostBillingInfo extends SmartEffResource {
 	 */
 	IntegerResource unit();
 	
+	/** Especially for gas, potentially for oil the energy content should be given on the bill
+	 * content in kWh/m3 oder kWh/l*/
+	FloatResource energyContentAccordingToBill();
+	
 	/** Only to be provided if different from current building heat source
 	 * see {@link BuildingData#heatSource()}
 	 * Negative or zero values indicate that not used.
@@ -23,5 +27,8 @@ public interface HeatCostBillingInfo extends SmartEffResource {
 	TimeResource beginningOfBillingPeriodDay();
 	TimeResource endOfBillingPeriodDay();
 	FloatResource billedConsumption();
+	/** Total cost of bill including variable and fixed cost*/
 	FloatResource cost();
+	/** Variable cost per kWh, note that this may not be available for all bills*/
+	FloatResource costPerKWhVar();
 }

@@ -27,14 +27,14 @@ import de.iwes.widgets.html.form.label.Label;
  */
 public abstract class EditPageGenericParams<T extends Resource> extends EditPageGenericWithTable<T> {
 	public EditPageGenericParams() {
-		super(false);
+		super(true, false);
 	}
 	public EditPageGenericParams(boolean isWithTable) {
-		super(isWithTable);
+		super(isWithTable, false);
 	}
 	public EditPageGenericParams(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
 			boolean isWithTable) {
-		super(additionalWidgetProviders, isWithTable);
+		super(additionalWidgetProviders, isWithTable, false);
 	}
 	
 	protected class EditElementParams extends EditElement {
@@ -159,7 +159,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 						res.create();
 						Resource global = ResourceHelper.getSubResource(getReqDataGlobal(req), sub);
 						if(global != null)
-							OGEMAResourceCopyHelper.copySubResourceIntoDestination(global, res, null, true);
+							OGEMAResourceCopyHelper.copySubResourceIntoDestination(global, res, null, false);
 					}
 					res.activate(false);
 				} else {

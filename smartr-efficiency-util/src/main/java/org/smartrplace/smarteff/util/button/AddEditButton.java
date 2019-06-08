@@ -56,7 +56,7 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
-		super(parent, id, pid, "", exPage, PageType.EDIT_PAGE, false, controlProvider, req);
+		super(parent, id, pid, "", exPage, PageType.EDIT_PAGE, false, controlProvider, null, req);
 		//this.type = type;
 		setDefaultOpenInNewTab(false);
 	}

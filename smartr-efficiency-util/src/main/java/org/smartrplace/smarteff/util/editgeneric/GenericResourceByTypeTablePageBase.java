@@ -100,6 +100,12 @@ public class GenericResourceByTypeTablePageBase extends ResourceTablePage {
 
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
+		Class<? extends Resource> type = typeSelected(req);
+		if(type == null) {
+			ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+			ResourceOfTypeContext param = (ResourceOfTypeContext)appData.getConfigInfo().context;
+			return "Resources of type "+param+" in "+ResourceUtils.getHumanReadableName(getReqData(req));
+		}
 		return "Resources of type "+typeSelected(req).getSimpleName()+" in "+ResourceUtils.getHumanReadableName(getReqData(req));
 	}
 	

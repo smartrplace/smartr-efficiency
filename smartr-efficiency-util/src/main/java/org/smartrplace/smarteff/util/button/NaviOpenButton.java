@@ -27,6 +27,7 @@ public class NaviOpenButton extends RedirectButton {
 	//doCreate only relevant for pageType EDIT
 	protected final boolean doCreate;
 	protected final boolean isBackButton;
+	private final Resource fixedParentResource;
 	
 	/** Overwrite this to provide a context object to the page opened*/
 	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object, OgemaHttpRequest req) {
@@ -67,17 +68,20 @@ public class NaviOpenButton extends RedirectButton {
 		this.doCreate = doCreate;
 		this.isBackButton = isBackButton;
 		this.controlProvider = controlProvider;
+		this.fixedParentResource = null;
 	}
 	public NaviOpenButton(OgemaWidget parent, String id, String pid, String text,
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
-			PageType pageType, boolean doCreate, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+			PageType pageType, boolean doCreate, ButtonControlProvider controlProvider, 
+			Resource parentResource, OgemaHttpRequest req) {
 		super(parent, id, text, "", req);
 		this.exPage = exPage;
 		this.pageType = pageType;
 		this.doCreate = doCreate;
 		this.controlProvider = controlProvider;
 		this.isBackButton = false;
+		this.fixedParentResource = parentResource;
 	}
 	@Override
 	public void onGET(OgemaHttpRequest req) {
@@ -119,6 +123,10 @@ public class NaviOpenButton extends RedirectButton {
 		}
 		final String configId = getConfigId(pageType, object, appData.systemAccessForPageOpening(),
 				pageData, doCreate, type, getContext(appData, object, req)); //type(appData, req)
+		if(configId == null) {
+			setUrl(url, req);
+			return;
+		}
 		if(configId.startsWith(CapabilityHelper.ERROR_START)) {
 			setUrl("error/"+configId, req);
 			return;
@@ -141,8 +149,12 @@ public class NaviOpenButton extends RedirectButton {
 			NavigationPublicPageData pageData, boolean doCreate,
 			Class<? extends Resource> type, Object context) {
 		if((this instanceof CreateButtonI) && doCreate) { //if((pageType == PageType.EDIT_PAGE) && doCreate) {
+			Resource parent;
+			if(fixedParentResource != null)
+				parent = fixedParentResource;
+			else parent = object;
 			return ((ExtensionPageSystemAccessForCreate)systemAccess).accessCreatePage(pageData, SPPageUtil.getEntryIdx(pageData, type),
-				object);
+				parent);
 		} else {
 			if(object == null)  {
 				return systemAccess.accessPage(pageData, -1, null, context, isBackButton);			

@@ -32,9 +32,12 @@ public interface BuildingData extends SmartEffResource {
 	/** Only shown when unit type is not SFH*/
 	IntegerResource numberOfUnitsInBuilding();
 	
-	/**Number of rooms in building or unit*/
+	/**Number of rooms in building or unit. If detailed room data is specified in {@link #buildingUnit()} then
+	 * this value should be larger or equal to the number of rooms specified in the list. If not
+	 * for all rooms is given detailed data the total number shall be indicated here. If this value
+	 * is zero or negative this indicates that the number of rooms shall be obtained from the
+	 * details list.*/
 	IntegerResource roomNum();
-
 	
 	/**Usually only country and postal code is used*/
 	LocationExtended address();
@@ -69,6 +72,7 @@ public interface BuildingData extends SmartEffResource {
 
 	ResourceList<HeatCostBillingInfo> heatCostBillingInfo();
 	
+	/** Information or rooms or sub-units like flats (usually rooms)*/
 	ResourceList<BuildingUnit> buildingUnit();
 	//TODO: add further elements
 	

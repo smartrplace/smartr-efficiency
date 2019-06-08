@@ -24,7 +24,7 @@ public class ElectricityProfileEval extends LogicEvalProviderBase<BuildingData, 
 	
 	@Override
 	public String label(OgemaLocale locale) {
-		if(locale == OgemaLocale.GERMAN) return "Anwesenheitsanalyse für ein Gebäude";
+		if(locale == OgemaLocale.GERMAN) return "Stromprofilanalyse";
 		return "Electricity profile analysis for building";
 	}
 	@Override

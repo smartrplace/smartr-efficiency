@@ -18,12 +18,15 @@ import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCrea
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
+import org.smartrplace.smarteff.util.button.BackButton;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
+import org.smartrplace.smarteff.util.button.TabButton;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -32,6 +35,7 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class LogicProvTablePage extends NaviPageBase<Resource> {
 	protected TablePage tablePage;
+	protected TabButton tabButton;
 	
 	/** Providers that take a resource type as input that is a direct sub type of the resource
 	 * opened and has cardinality single can also be displayed and the respective sub resources
@@ -54,8 +58,9 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 		private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
 		
 		public TablePage(ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage, ApplicationManagerMinimal appManMin) {
-			super(exPage.getPage(), null, null);
+			super(exPage.getPage(), null, null, false);
 			this.exPage = exPage;
+			triggerPageBuild();
 		}
 
 		@Override
@@ -66,7 +71,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 
 				ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 				SPPageUtil.addParameterEditOpenButton("Parameters", object, appManExt.globalData(),
-						vh, id, row, appData, null, req);
+						vh, id, row, appData, tabButton.control, req);
 				
 				Resource entryResource = getReqData(req);
 				List<Class<? extends Resource>> types = new ArrayList<>();
@@ -76,7 +81,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 				if(!types.contains(entryResource.getResourceType())) {
 					subRes = CapabilityHelper.getSubResourceOfTypeSingle(entryResource,
 							primarySubType);
-					SPPageUtil.addResEditOrCreateOpenButton("Input Data", subRes, vh, id, row, appData, null, req,
+					SPPageUtil.addResEditOrCreateOpenButton("Input Data", subRes, vh, id, row, appData, tabButton.control, req,
 							exPage);
 				} else {
 					if(!primarySubType.equals(entryResource.getResourceType())) {
@@ -103,7 +108,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 					row.addCell("Calculate", calculateButton);					
 				}
 				for(EntryType o: object.getEntryTypes()) if(o.getType() instanceof GaRoDataTypeI) {
-					SPPageUtil.addKPITableOpenButton("KPIs", getReqData(req), vh, id, row, appData, null,
+					SPPageUtil.addKPITableOpenButton("KPIs", getReqData(req), vh, id, row, appData, tabButton.control,
 							object, req);
 					break;
 				}
@@ -111,7 +116,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 				//}
 				if(!ProjectProposal.class.isAssignableFrom(object.resultTypes().get(0).resourceType())) {
 					ResourceOfTypeTableOpenButton resultButton = new ResourceOfTypeTableOpenButton(vh.getParent(),
-							"resultButton"+id, pid(), exPage, null, req) {
+							"resultButton"+id, pid(), exPage, tabButton.control, req) {
 						private static final long serialVersionUID = 1L;
 
 						@Override
@@ -126,7 +131,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 					row.addCell("Results", resultButton);
 					
 				} else
-					SPPageUtil.addProjectResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, null, req);
+					SPPageUtil.addProjectResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, tabButton.control, req);
 				
 			} else {
 				vh.registerHeaderEntry("Name");
@@ -140,6 +145,11 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 
 		@Override
 		public void addWidgetsAboveTable() {
+			tabButton = new TabButton(page, "tabButton", pid());
+			BackButton backButton = new BackButton(page, "backButtopn", pid(), exPage, tabButton.control);
+			StaticTable topTable = new StaticTable(1, 3, new int[]{8,2, 2});
+			topTable.setContent(0, 0, backButton).setContent(0, 1, "").setContent(0, 2, tabButton);
+			page.append(topTable);
 		}
 		
 		@Override

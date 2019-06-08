@@ -14,6 +14,7 @@ import org.smartrplace.smarteff.admin.UserAdmin;
 import org.smartrplace.smarteff.admin.object.SmartrEffExtResourceTypeData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.util.SPPageUtil;
+import org.smartrplace.smarteff.util.editgeneric.GenericResourceByTypeTablePageBase.ResourceOfTypeContext;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -77,9 +78,11 @@ public class ResTypePage extends ObjectGUITablePage<SmartrEffExtResourceTypeData
 			
 			NavigationPublicPageData pageData = appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESBYTYPE_PROVIDER));
 			String context = object.resType.getName();
+			ResourceOfTypeContext resTypPageContext = new ResourceOfTypeContext();
+			resTypPageContext.dataTypeName = context;
 			SPPageUtil.addOpenButton("Data Explorer", null, vh, id, row, pageData ,
 					appData.systemAccessForPageOpening(), "Resources", "No ResPage", true, PageType.TABLE_PAGE,
-					null, context, req);
+					null, resTypPageContext, req);
 		} else {
 			vh.registerHeaderEntry("Public");
 			vh.registerHeaderEntry("ReadOnly");

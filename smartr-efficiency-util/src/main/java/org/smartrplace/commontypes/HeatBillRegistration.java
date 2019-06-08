@@ -87,6 +87,7 @@ public class HeatBillRegistration {
 			setTableHeader(sr.billedConsumption(), EN, "Consumption", DE, "Verbrauch");
 			setLabel(sr.cost(), EN, "Price of bill (EUR)", DE, "Rechnungsbetrag (EUR)");
 			setTableHeader(sr.cost(), EN, "Price", DE, "Betrag");
+			setLabel(sr.costPerKWhVar(), EN, "Price per kWh (optional)", DE, "Preis pro kWh (optional)");
 		}
 		
 		@Override

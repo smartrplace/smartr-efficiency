@@ -38,6 +38,7 @@ import extensionmodel.smarteff.api.common.HeatRadiator;
 import extensionmodel.smarteff.api.common.HeatRadiatorType;
 import extensionmodel.smarteff.defaultproposal.BuildingExampleAnalysis;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParamsPage;
+import extensionmodel.smarteff.defaultproposal.PriceDataParamsPage;
 
 @Service(SmartEffExtensionService.class)
 @Component
@@ -146,7 +147,8 @@ public class BaseDataService implements SmartEffExtensionService {
 				BILLEDIT.provider, BILLTABLE.provider, ACCESS_EDIT.provider,
 				CROSSUSERBUILDING_TABLE.provider,
 				TSMAN_EDIT,
-				RADIATOR_PAGE.provider, RADIATOR_TABLE.provider, ROOMRAD_PAGE.provider, ROOMRAD_TABLE.provider});
+				RADIATOR_PAGE.provider, RADIATOR_TABLE.provider, ROOMRAD_PAGE.provider, ROOMRAD_TABLE.provider,
+				new PriceDataParamsPage().provider});
 	}
 
 	@Override

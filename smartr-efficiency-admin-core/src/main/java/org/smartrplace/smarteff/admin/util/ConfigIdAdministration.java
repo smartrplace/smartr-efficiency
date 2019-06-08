@@ -25,15 +25,15 @@ public class ConfigIdAdministration {
 			//TODO: We assume that we are processing a BackButton at this point, but
 			//maybe this condition also applies for other cases
 			ConfigInfo currentConfig = getConfigInfo(currentConfigId);
-			return currentConfig.lastConfigId;
-		} else {
-			//TODO: It has not been tested if these values are still required when going back is
-			//implemented by using the ConfigInfo of the page to which we go back.
-			newConfig.lastPage = currentPage;
-			newConfig.lastPrimaryResource = currentPrimaryResource;
-			newConfig.lastContext = lastContext;
-			newConfig.lastConfigId = currentConfigId;
+			if(currentConfig != null)
+				return currentConfig.lastConfigId;
 		}
+		//TODO: It has not been tested if these values are still required when going back is
+		//implemented by using the ConfigInfo of the page to which we go back.
+		newConfig.lastPage = currentPage;
+		newConfig.lastPrimaryResource = currentPrimaryResource;
+		newConfig.lastContext = lastContext;
+		newConfig.lastConfigId = currentConfigId;
 		newConfig.context = context;
 		resourcesLocked.put(result, newConfig );
 		return result;

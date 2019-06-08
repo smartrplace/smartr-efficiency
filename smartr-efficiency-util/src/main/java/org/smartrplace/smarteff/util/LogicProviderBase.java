@@ -11,10 +11,10 @@ import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
-import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.LogicProvider;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.smarteff.defaultservice.LogicProvTablePage;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericParams;
 
 import de.iwes.timeseries.eval.api.ResultType;
@@ -52,9 +52,29 @@ import extensionmodel.smarteff.api.common.AccessControl;
 public abstract class LogicProviderBase<T extends SmartEffResource>  implements LogicProvider {
 	protected abstract void calculateProposal(T input, CalculatedData result, ExtensionResourceAccessInitData data);
 	protected abstract Class<? extends CalculatedData> getResultType();
+	
+	/** Resource type providing the anchor for the input data to the evaluation. This typically is
+	 * a sub resource in the tree below a building. By navigating through the data of the building
+	 * also other data of this building can be accessed.<br>
+	 * Note that general data not specific to the building evaluated shall be part of the parameter
+	 * resource (see {@link #getParamType()}).
+	 */
 	protected abstract Class<T> typeClass();
 	
-	/** If no own parameters need to be initialized this can be null. Otherwise a parameter resource is
+	/** Documentation of super method in interface: The LogicProvider shall put all its primary specific parameters into a
+	 * single type. The type may also be used by other LogicProviders. Parameters
+	 * from other sources may be used, but value initialization should not be
+	 * required from the provider. As parameters are not linked to the input resource they can be
+	 * accessed via {@link CapabilityHelper#getMyParams(Class, org.smartrplace.extensionservice.ExtensionUserData, ApplicationManagerSPExt)},
+	 * which can be done for any parameter resource type required and for an arbitrary number of parameter
+	 * resource types. In the {@link LogicProvTablePage} only the parameter type declared can be
+	 * edited, though. So for each parameter type used somehow has to be made sure that a navigation to
+	 * creating and editing the resource type is provided. Initializing can be done in the method
+	 * {@link #initParams(SmartEffResource)} as it is shown in the example SmartrHeatingEval. Editing
+	 * can be done via the "Top Level config resources for master" page, which is a start page that
+	 * e.g. can be opened via the Navigation page overview. It should probably by default be
+	 * added to the standard pages offered in the navigation bar.<br>
+	 * If no own parameters need to be initialized this can be null. Otherwise a parameter resource is
 	 * created in the {@link #init(ApplicationManagerSPExt)} method of this module and the implementation
 	 * of {@link #initParams(SmartEffResource)} is called so that the resource can be filled with
 	 * values. By default parameter resources are created in the global space, user specific
@@ -131,15 +151,8 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 			SmartEffResource params = CapabilityHelper.getSubResourceSingle(userData.editableData(), getInternalParamType(), appManExt);
 			params.create();
 			if(initInternalParams(params)) params.activate(true);
-			AccessControl sub = params.getSubResource("accessControl", AccessControl.class);
 			String moduleCl = this.getClass().getName();
-			if(!sub.isActive()) {
-				sub.modules().create();
-				ValueResourceUtils.appendValue(sub.modules(), moduleCl);
-				sub.activate(true);
-			} else if(!ValueResourceUtils.contains(sub.modules(), moduleCl)) {
-				ValueResourceUtils.appendValue(sub.modules(), moduleCl);
-			}
+			addAccessControlResource(params, moduleCl);
 		}
 
 	}
@@ -260,5 +273,18 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 	public ExtensionResourceTypeDeclaration<SmartEffResource> getInternalParamTypeDeclaration() {
 		if(registerInternalParamType) return paramTypeDeclarationInternal;
 		return null;
+	}
+	
+	/** Add user access control to a parameter resource. This is still an experimental
+	 * concept and will need more development in the future.*/
+	public static void addAccessControlResource(Resource params, String moduleClassName) {
+		AccessControl sub = params.getSubResource("accessControl", AccessControl.class);
+		if(!sub.isActive()) {
+			sub.modules().create();
+			ValueResourceUtils.appendValue(sub.modules(), moduleClassName);
+			sub.activate(true);
+		} else if(!ValueResourceUtils.contains(sub.modules(), moduleClassName)) {
+			ValueResourceUtils.appendValue(sub.modules(), moduleClassName);
+		}
 	}
 }

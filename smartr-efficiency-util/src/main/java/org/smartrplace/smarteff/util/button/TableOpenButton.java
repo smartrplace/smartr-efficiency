@@ -30,6 +30,6 @@ public class TableOpenButton extends NaviOpenButton{
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
-		super(parent, id, pid, text, exPage, PageType.TABLE_PAGE, false, controlProvider, req);
+		super(parent, id, pid, text, exPage, PageType.TABLE_PAGE, false, controlProvider, null, req);
 	}
 }

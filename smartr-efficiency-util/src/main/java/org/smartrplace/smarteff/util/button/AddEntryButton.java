@@ -33,7 +33,13 @@ public class AddEntryButton extends NaviOpenButton implements CreateButtonI {
 			Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			ButtonControlProvider tabButton, OgemaHttpRequest req) {
-		super(parent, id, pid, text, exPage, PageType.EDIT_PAGE, true, tabButton, req);
+		this(parent, id, pid, text, type, exPage, tabButton, null, req);
+	}
+	public AddEntryButton(OgemaWidget parent, String id, String pid, String text,
+			Class<? extends Resource> type,
+			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
+			ButtonControlProvider tabButton, Resource parentResource, OgemaHttpRequest req) {
+		super(parent, id, pid, text, exPage, PageType.EDIT_PAGE, true, tabButton, parentResource, req);
 		this.type = type;
 	}
 }

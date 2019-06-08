@@ -59,6 +59,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 
 	private T sampleResource;
 	private int sampleResourceLength;
+	private final boolean forceSubResName;
 	
 	/** In this method the page data shall be provided with methods like getLabel
 	 * @param sr virtual resource that shall be used to provide paths
@@ -83,9 +84,17 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	public EditPageGeneric() {
 		this(null);
 	}
+	public EditPageGeneric(boolean forceSubResName) {
+		this(null, forceSubResName);
+	}
 	public EditPageGeneric(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders) {
+		this(additionalWidgetProviders, true);
+	}
+	public EditPageGeneric(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
+			boolean forceSubResName) {
 		super();
 		this.additionalWidgetProviders = additionalWidgetProviders;
+		this.forceSubResName = forceSubResName;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -318,9 +327,11 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	public boolean checkResource(T res) {
 		if(!checkResourceBase(res, false)) return false;
 		String newName = CapabilityHelper.getnewDecoratorName(primaryEntryTypeClass().getSimpleName(), res.getParent());
-		Resource name = res.getSubResource("name");
-		if ((name != null) && (name instanceof StringResource)) {
-			ValueResourceHelper.setIfNew((StringResource)name, newName);
+		if(forceSubResName) {
+			Resource name = res.getSubResource("name");
+			if ((name != null) && (name instanceof StringResource)) {
+				ValueResourceHelper.setIfNew((StringResource)name, newName);
+			}
 		}
 		//Map<String, Class<? extends Resource>> types = getTypes();
 		for(String sub: labels.keySet()) {

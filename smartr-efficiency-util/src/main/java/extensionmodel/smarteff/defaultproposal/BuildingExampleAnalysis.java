@@ -17,7 +17,7 @@ public class BuildingExampleAnalysis extends ProjectProviderBase<BuildingData> {
 	
 	@Override
 	public String label(OgemaLocale locale) {
-		return "Energy consumption analysis and consulting of users";
+		return "Energy consumption analysis and consulting for users";
 	}
 	@Override
 	protected void calculateProposal(BuildingData input, ProjectProposal result, ExtensionResourceAccessInitData data) {

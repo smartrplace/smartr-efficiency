@@ -44,14 +44,14 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 	@Override
 	public void setData(SmartrHeatingData sr) {
 		setLabel(sr.name(), EN, "name", DE, "Name");
-		setLabel(sr.numberOfRadiators(), EN, "Number of thermostats", DE, "Zahl Termostate");
-		setLabel(sr.numberOfRooms(), EN, "Number of rooms", DE, "Zahl Räume");
+		//setLabel(sr.numberOfRadiators(), EN, "Number of thermostats", DE, "Zahl Termostate");
+		//setLabel(sr.numberOfRooms(), EN, "Number of rooms", DE, "Zahl Räume");
 		setLabel(sr.gasMeterHasPulseOutput(), EN, "Does gas meter provide magnetic pulse output?", DE, "Besitzt der Gaszähler einen magnetischen Impulsausgang?");
 		setLabel(sr.problemsWithFungusOrMould(), EN, "Does the building have problems with fungus or mould?", DE, "Bestehen Probleme mit Schimmelbildung?");
 		setDisplayOptions(sr.problemsWithFungusOrMould(), EN, FUNGUSMAP_EN);
 		setDisplayOptions(sr.problemsWithFungusOrMould(), DE, FUNGUSMAP_DE);
-		setLabel(sr.typeOfThermostats(), EN, "Type of thermostats", DE, "Art Heizkörperthermostate");
-		setDisplayOptions(sr.typeOfThermostats(), EN, RadiatorTypeRegistration.THTMAP_EN);
+		//setLabel(sr.typeOfThermostats(), EN, "Type of thermostats", DE, "Art Heizkörperthermostate");
+		//setDisplayOptions(sr.typeOfThermostats(), EN, RadiatorTypeRegistration.THTMAP_EN);
 	}
 
 	/*@Override
