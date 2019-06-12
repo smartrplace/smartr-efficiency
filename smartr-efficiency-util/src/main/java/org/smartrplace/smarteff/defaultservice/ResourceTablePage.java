@@ -258,7 +258,7 @@ public class ResourceTablePage extends NaviPageBase<Resource> {
 			vh.registerHeaderEntry("Edit");
 			ExtensionResourceTypeDeclaration<? extends Resource> decl = appManExt.getTypeDeclaration(object.getResourceType());
 			if(req != null && decl != null && SPPageUtil.isMulti(decl.cardinality())) {
-				ResourceOfTypeTableOpenButton openButton = new ResourceOfTypeTableOpenButton(vh.getParent(), "ResourceOfTypeTableButton", pid, exPage, tabController, req) {
+				ResourceOfTypeTableOpenButton openButton = new ResourceOfTypeTableOpenButton(vh.getParent(), "ResourceOfTypeTableButton"+id, pid, exPage, tabController, req) {
 					private static final long serialVersionUID = 1L;
 
 					@Override

@@ -62,7 +62,7 @@ public class NaviOpenButton extends RedirectButton {
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			PageType pageType, boolean doCreate, boolean isBackButton,
 			ButtonControlProvider controlProvider) {
-		super(page, id, text);
+		super(page, id+pid, text);
 		this.exPage = exPage;
 		this.pageType = pageType;
 		this.doCreate = doCreate;
@@ -75,7 +75,7 @@ public class NaviOpenButton extends RedirectButton {
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			PageType pageType, boolean doCreate, ButtonControlProvider controlProvider, 
 			Resource parentResource, OgemaHttpRequest req) {
-		super(parent, id, text, "", req);
+		super(parent, id+pid, text, "", req);
 		this.exPage = exPage;
 		this.pageType = pageType;
 		this.doCreate = doCreate;

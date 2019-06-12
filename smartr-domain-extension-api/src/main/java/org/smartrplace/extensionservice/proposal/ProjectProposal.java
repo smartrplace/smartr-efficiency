@@ -18,7 +18,16 @@ public interface ProjectProposal extends CalculatedData {
 	 * specified by the planner. 
 	 */
 	FloatResource costOfProjectIncludingInternal();
+	/** Absolute operating costs for building energy supply after the measure took place. For
+	 * small measures it is possible to give just a value for {@link #yearlySavings()}.
+	 * The cost shall include heat and electricity.
+	 */
+	FloatResource yearlyOperatingCosts();
+	/** Savings in yearly operating costs compared to a reference case that does not change
+	 * the building energy supply situation.
+	 */
 	FloatResource yearlySavings();
+	
 	/** Number of working hours estimated for the client if the project is
 	 * done as planned. For private customers this is the number of hours done as
 	 * Do-it-Yourself (DIY), for commercial customers this is the number of hours
