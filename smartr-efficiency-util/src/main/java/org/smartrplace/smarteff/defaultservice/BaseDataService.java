@@ -15,6 +15,8 @@ import org.smartrplace.commontypes.MasterUserRegistration;
 import org.smartrplace.commontypes.RadiatorTypeRegistration;
 import org.smartrplace.commontypes.RoomRadiatorRegistration;
 import org.smartrplace.commontypes.RoomRegistration;
+import org.smartrplace.commontypes.RoomWindowRegistration;
+import org.smartrplace.commontypes.WindowTypeRegistration;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
@@ -36,6 +38,8 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.api.common.HeatCostBillingInfo;
 import extensionmodel.smarteff.api.common.HeatRadiator;
 import extensionmodel.smarteff.api.common.HeatRadiatorType;
+import extensionmodel.smarteff.api.common.Window;
+import extensionmodel.smarteff.api.common.WindowType;
 import extensionmodel.smarteff.defaultproposal.BuildingExampleAnalysis;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParamsPage;
 import extensionmodel.smarteff.defaultproposal.PriceDataParamsPage;
@@ -93,6 +97,11 @@ public class BaseDataService implements SmartEffExtensionService {
 	public final static RoomRegistration.TypeDeclaration ROOM_TYPE = new RoomRegistration.TypeDeclaration();
 	public final static RadiatorTypeRegistration.TypeDeclaration RADIATOR_TYPE = new RadiatorTypeRegistration.TypeDeclaration();
 	public final static RoomRadiatorRegistration.TypeDeclaration ROOMRAD_TYPE = new RoomRadiatorRegistration.TypeDeclaration();
+
+	public final static WindowTypeRegistration.TypeDeclaration WINDOW_TYPE_REGISTRATION
+			= new WindowTypeRegistration.TypeDeclaration();
+	public final static RoomWindowRegistration.TypeDeclaration ROOM_WINDOW_TYPE_REGISTRATION
+			= new RoomWindowRegistration.TypeDeclaration();
 	
 	/*public final static org.smartrplace.smarteff.defaultservice.BuildingTablePage.Provider BUILDING_NAVI_PROVIDER = new BuildingTablePage().provider;
 	public final static org.smartrplace.smarteff.defaultservice.BuildingEditPage.Provider BUILDING_EDIT_PROVIDER = new BuildingEditPage().provider;
@@ -118,6 +127,15 @@ public class BaseDataService implements SmartEffExtensionService {
 	private final static GenericResourceByTypeTablePageBase RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
 	private final static EditPageGenericWithTable<HeatRadiator> ROOMRAD_PAGE = new RoomRadiatorRegistration.EditPage();
 	private final static GenericResourceByTypeTablePageBase ROOMRAD_TABLE = ROOMRAD_PAGE.getTablePage();
+
+	private final static EditPageGenericWithTable<WindowType> WINDOW_PAGE =
+			new WindowTypeRegistration.EditPage();
+	private final static GenericResourceByTypeTablePageBase WINDOW_TABLE =
+			WINDOW_PAGE.getTablePage();
+	private final static EditPageGenericWithTable<Window> ROOM_WINDOW_PAGE =
+			new RoomWindowRegistration.EditPage();
+	private final static GenericResourceByTypeTablePageBase ROOM_WINDOW_TABLE =
+			ROOM_WINDOW_PAGE.getTablePage();
 
 	//public final static NaviPageBase<DefaultProviderParams>.Provider BA_PARAMSEDIT_PROVIDER = new DefaultProviderParamsPage().provider;
 	//public final static NaviPageBase<Resource>.Provider TOPCONFIG_NAVI_PROVIDER = new TopConfigTablePage().provider;
@@ -148,6 +166,7 @@ public class BaseDataService implements SmartEffExtensionService {
 				CROSSUSERBUILDING_TABLE.provider,
 				TSMAN_EDIT,
 				RADIATOR_PAGE.provider, RADIATOR_TABLE.provider, ROOMRAD_PAGE.provider, ROOMRAD_TABLE.provider,
+				WINDOW_PAGE.provider, WINDOW_TABLE.provider, ROOM_WINDOW_PAGE.provider, ROOM_WINDOW_TABLE.provider,
 				new PriceDataParamsPage().provider});
 	}
 
@@ -164,6 +183,8 @@ public class BaseDataService implements SmartEffExtensionService {
 		result.add(new HeatBillRegistration.TypeDeclaration());
 		result.add(RADIATOR_TYPE);
 		result.add(ROOMRAD_TYPE);
+		result.add(WINDOW_TYPE_REGISTRATION);
+		result.add(ROOM_WINDOW_TYPE_REGISTRATION);
 		result.add(new AccessControlRegistration.TypeDeclaration());
 		return result ;
 	}

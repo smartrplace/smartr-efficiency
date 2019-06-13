@@ -1,13 +1,10 @@
 package org.sp.calculator.hpadapt;
 
-import java.util.HashMap;
-import java.util.Map;
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.hpadapt.HPAdaptData;
-import extensionmodel.smarteff.smartrheating.SmartrHeatingData;
 
 public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 	@Override

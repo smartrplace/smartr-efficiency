@@ -77,6 +77,7 @@ public class RoomRegistration {
 			setDisplayOptions(sr.roomTemperatureQualityRating(), DE, TEMPFB_MAP_DE);
 			
 			setLabel(sr.heatRadiator(), EN, "Radiators in the room", DE, "Heizköper im Raum verwalten");
+			setLabel(sr.window(), EN, "Windows in the room", DE, "Fenster im Raum verwalten");
 		}
 
 		@SuppressWarnings("unchecked")
