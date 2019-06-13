@@ -20,21 +20,66 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		return HPAdaptData.class;
 	}
 
-	public static final Map<String, String> FUNGUSMAP_EN = new HashMap<>();
-	public static final Map<String, String> FUNGUSMAP_DE = new HashMap<>();
-
-	static {
-		FUNGUSMAP_EN.put("1", "None");
-		FUNGUSMAP_EN.put("2", "Relevant");
-		FUNGUSMAP_EN.put("3", "Important Issue");
-		FUNGUSMAP_DE.put("1", "Keine");
-		FUNGUSMAP_DE.put("2", "Relevant");
-		FUNGUSMAP_DE.put("3", "Ernsthaftes Problem");
-	}
-	
 	@Override
-	public void setData(HPAdaptData sr) {
-		setLabel(sr.name(), EN, "name", DE, "Name");
-		setLabel(sr.estimatedSavingsBuildingEnvelope(), EN, "Estimated savings via building envelope measures");
+	public void setData(HPAdaptData data) {
+		setLabel(data.name(), EN, "name", DE, "Name");
+
+		setLabel(data.savingsAfterBasicRenovation(), true,
+				EN, "Estimated savings after basic renovation",
+				DE, "");
+
+		setLabel(data.wwConsumption(), true,
+				EN, "Known or estimated warm drinking water consumption",
+				DE, "");
+
+		setLabel(data.wwLossHeatedAreas(), true,
+				EN, "Estimated warm water energy loss from storage, circulation at current temperature in heated areas",
+				DE, "");
+
+		setLabel(data.wwLossUnheatedAreas(), true,
+				EN, "Warm water energy loss in unheated areas",
+				DE, "");
+
+		setLabel(data.wwTemp(), true,
+				EN, "Warm water temperature",
+				DE, "");
+
+		setLabel(data.wwTempMin(), true,
+				EN, "Warm water temperature can be lowered to",
+				DE, "");
+
+		setLabel(data.heatingLimitTemp(), true,
+				EN, "Heating limit temperature",
+				DE, "");
+
+		setLabel(data.outsideDesignTemp(), true,
+				EN, "Outside design temperature",
+				DE, "");
+
+		setLabel(data.savingsFromCDBoiler(), true,
+				EN, "Estimated savings from condensing boiler",
+				DE, "");
+
+		setLabel(data.designedForPriceType(), true,
+				EN, "Designed for price type",
+				DE, "");
+
+		setLabel(data.uValueBasementFacade(), true,
+				EN, "U-Value basement → facade",
+				DE, "");
+
+		setLabel(data.uValueRoofFacade(), true,
+				EN, "U-Value roof → facade",
+				DE, "");
+
+		setLabel(data.innerWallThickness(), true,
+				EN, "Thickness of inner walls",
+				DE, "");
+
+		setLabel(data.basementTempHeatingSeason(), true,
+				EN, "Basement temperature during heating season",
+				DE, "");
+
+
 	}
 }
