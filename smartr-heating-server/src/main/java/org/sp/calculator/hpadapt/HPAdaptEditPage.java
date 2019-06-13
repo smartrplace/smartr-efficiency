@@ -23,59 +23,60 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 
 		setLabel(data.savingsAfterBasicRenovation(), true,
 				EN, "Estimated savings after basic renovation",
-				DE, "");
+				DE, "Geschätzte Einsparung durch einfache Sanierung");
 
 		setLabel(data.wwConsumption(), true,
 				EN, "Known or estimated warm drinking water consumption",
-				DE, "");
+				DE, "Bekannter oder geschätzter Trinkwarmwasserverbrauch");
 
 		setLabel(data.wwLossHeatedAreas(), true,
 				EN, "Estimated warm water energy loss from storage, circulation at current temperature in heated areas",
-				DE, "");
+				DE, "Geschätzter Warmwasser-Energieverlost duch Speicher, Zirkulation"
+						+ "bei aktueller Temperatur in beheizten Bereichen");
 
 		setLabel(data.wwLossUnheatedAreas(), true,
 				EN, "Warm water energy loss in unheated areas",
-				DE, "");
+				DE, "Warmwasser-Energieverlust in unbeheizten Bereichen");
 
 		setLabel(data.wwTemp(), true,
-				EN, "Warm water temperature",
-				DE, "");
+				EN, "Warm water temperature (°C)",
+				DE, "Warmwassertemperatur (°C)");
 
 		setLabel(data.wwTempMin(), true,
-				EN, "Warm water temperature can be lowered to",
-				DE, "");
+				EN, "Warm water temperature can be lowered to (°C)",
+				DE, "Warmwassertemperatur kann gesenkt werden auf (°C)");
 
 		setLabel(data.heatingLimitTemp(), true,
 				EN, "Heating limit temperature",
-				DE, "");
+				DE, "Heizgrenztemperatur");
 
 		setLabel(data.outsideDesignTemp(), true,
 				EN, "Outside design temperature",
-				DE, "");
+				DE, "Außentemperatur-Auslegung");
 
 		setLabel(data.savingsFromCDBoiler(), true,
 				EN, "Estimated savings from condensing boiler",
-				DE, "");
+				DE, "Geschätzte Einsparung durch Brennwertkessel");
 
 		setLabel(data.designedForPriceType(), true,
 				EN, "Designed for price type",
-				DE, "");
+				DE, "Auslegung auf Preistyp");
 
 		setLabel(data.uValueBasementFacade(), true,
 				EN, "U-Value basement → facade",
-				DE, "");
+				DE, "U-Wert Keller → Fassade");
 
 		setLabel(data.uValueRoofFacade(), true,
 				EN, "U-Value roof → facade",
-				DE, "");
+				DE, "U-Wert Dach → Fassade");
 
 		setLabel(data.innerWallThickness(), true,
 				EN, "Thickness of inner walls",
-				DE, "");
+				DE, "Dicke der Innenwände");
 
 		setLabel(data.basementTempHeatingSeason(), true,
 				EN, "Basement temperature during heating season",
-				DE, "");
+				DE, "Kellertemperatur in der Heizperiode");
 
 
 	}
