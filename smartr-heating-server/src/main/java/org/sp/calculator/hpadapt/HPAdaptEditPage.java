@@ -77,6 +77,14 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLabel(data.basementTempHeatingSeason(), true,
 				EN, "Basement temperature during heating season",
 				DE, "Kellertemperatur in der Heizperiode");
+		
+		setLabel(data.boilerPowerBoilerOnly(), true,
+				EN, "Designed boiler power (boiler only)",
+				DE, "Auslegung Kessel alleine");
+		
+		setLabel(data.hpPowerBivalentHP(), true,
+				EN, "Designed heat pump power (bivalent heat pump)",
+				DE, "Auslegung Wärmepumpe bivalent");
 
 
 	}

@@ -4,6 +4,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.LengthResource;
 import org.ogema.core.model.units.PercentageResource;
+import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.model.units.VolumeResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -48,5 +49,12 @@ public interface HPAdaptData extends SmartEffResource {
 	LengthResource innerWallThickness();
 	/** Basement temperature during heating season */
 	TemperatureResource basementTempHeatingSeason();
+	
+	/** Designed boiler power (boiler only) */
+	PowerResource boilerPowerBoilerOnly();
+	/** Designed boiler power (bivalent heat pump) */
+	PowerResource boilerPowerBivalentHP();
+	/** Designed heat pump power (bivalent heat pump) */
+	PowerResource hpPowerBivalentHP();
 	
 }
