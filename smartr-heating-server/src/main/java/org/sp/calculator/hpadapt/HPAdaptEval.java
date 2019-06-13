@@ -87,7 +87,26 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	protected boolean initParams(SmartEffResource paramsIn) {
 		BaseInits.initSmartrEffPriceData(appManExt, this.getClass().getName());
 		HPAdaptParams params = (HPAdaptParams)paramsIn;
-		if(ValueResourceHelper.setIfNew(params.electrictiyPrice100EEPerkWh(), 0.249f)) {
+
+		// Perhaps move to properties?
+		if(
+				ValueResourceHelper.setIfNew(params.electrictiyPriceCO2neutralPerkWh(), 0.259f) |
+				ValueResourceHelper.setIfNew(params.electrictiyPrice100EEPerkWh(), 0.249f) |
+				ValueResourceHelper.setIfNew(params.electrictiyPriceHeatBase(), 112) |
+				ValueResourceHelper.setIfNew(params.electrictiyPriceHeatPerkWh(), 0.191f) |
+				ValueResourceHelper.setIfNew(params.electrictiyPriceHeatCO2neutralPerkWh(), 0.201f) |
+				ValueResourceHelper.setIfNew(params.electrictiyPriceHeat100EEPerkWh(), 0.201f) |
+				ValueResourceHelper.setIfNew(params.gasPriceCO2neutralPerkWh(), 0.099f) |
+				ValueResourceHelper.setIfNew(params.gasPrice100EEPerkWh(), 0.15f) |
+				ValueResourceHelper.setIfNew(params.boilerChangeCDtoCD(), 4000) |
+				ValueResourceHelper.setIfNew(params.boilerChangeLTtoCD(), 7000) |
+				ValueResourceHelper.setIfNew(params.boilerChangeCDtoCDAdditionalPerkW(), 100) |
+				ValueResourceHelper.setIfNew(params.boilerChangeLTtoCDAdditionalPerkW(), 200) |
+				ValueResourceHelper.setIfNew(params.additionalBivalentHPBase(), 5000) |
+				ValueResourceHelper.setIfNew(params.additionalBivalentHPPerkW(), 100) |
+				ValueResourceHelper.setIfNew(params.boilerPowerReductionLTtoCD(), 10) |
+				ValueResourceHelper.setIfNew(params.wwSupplyTemp(), (273.15f + 8.0f))
+		) {
 			return true;
 		}
 		return false;
