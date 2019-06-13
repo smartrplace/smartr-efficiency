@@ -248,14 +248,10 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected void setLabel(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
 		setLabel(getSubPath(res), locale, text, locale2, text2);		
 	}
-	protected void setLabel(Resource res, boolean includeUnit,
-			OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
+	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
 		String unit = "";
-		if(includeUnit) {
-			if(res instanceof PhysicalUnitResource) {
-				unit = " (" + ((PhysicalUnitResource) res).getUnit().name() + ")";
-			}
-		}
+		if(res instanceof PhysicalUnitResource)
+			unit = " (" + ((PhysicalUnitResource) res).getUnit().name() + ")";
 		setLabel(res, locale, text+unit, locale2, text2+unit);
 	}
 	protected void setLabel(String resourceName, OgemaLocale locale, String text,
