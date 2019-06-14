@@ -18,14 +18,14 @@ public interface HPAdaptResult extends ProjectProposal100EE {
 	
 	/** Warm water energy (losses during heating season in heated areas are included) */
 	EnergyResource wwEnergy();
-	/** Heating energy org */
-	EnergyResource heatingEnergyOrg();
-	/** New warm water energy */
-	EnergyResource wwEnergyNew();
-	/** New heating energy */
-	EnergyResource heatingEnergyNew();
-	/** New total energy */
-	EnergyResource totalEnergyNew();
+	/** Heating energy (pre-renovation) */
+	EnergyResource heatingEnergPreRenovation();
+	/** Warm water energy (post-renovation) */
+	EnergyResource wwEnergyPostRenovation();
+	/** Heating energy (post-renovation) */
+	EnergyResource heatingEnergyPostRenovation();
+	/** Total energy (post-renovation) */
+	EnergyResource totalEnergyPostRenovation();
 	
 	
 	/* HEATING CHARACTERISTICS */

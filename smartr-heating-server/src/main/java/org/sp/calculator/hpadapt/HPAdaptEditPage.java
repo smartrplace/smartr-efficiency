@@ -59,7 +59,7 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				DE, "Geschätzte Einsparung durch Brennwertkessel");
 
 		setLabelWithUnit(data.designedForPriceType(),
-				EN, "Designed for price type",
+				EN, "Dimensioning for price type",
 				DE, "Auslegung auf Preistyp");
 
 		setLabelWithUnit(data.uValueBasementFacade(),
@@ -79,12 +79,16 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				DE, "Kellertemperatur in der Heizperiode");
 		
 		setLabelWithUnit(data.boilerPowerBoilerOnly(),
-				EN, "Designed boiler power (boiler only)",
-				DE, "Auslegung Kessel alleine");
+				EN, "Boiler power (boiler only)",
+				DE, "Leistung Kessel alleine");
+		
+		setLabelWithUnit(data.boilerPowerBivalentHP(),
+				EN, "Boiler power (bivalent heat pump)",
+				DE, "Leistung Kessel (bivalente Wärmepumpe)");
 		
 		setLabelWithUnit(data.hpPowerBivalentHP(),
-				EN, "Designed heat pump power (bivalent heat pump)",
-				DE, "Auslegung Wärmepumpe bivalent");
+				EN, "Heat pump power (bivalent heat pump)",
+				DE, "Leistung Wärmepumpe bivalent");
 
 
 	}
