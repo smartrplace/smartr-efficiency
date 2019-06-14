@@ -103,7 +103,7 @@ public class SPPageUtil {
 				return vh.stringLabel(columnName, id, alternativeText, row);						
 			}
 		} else {
-			return vh.stringLabel(columnName, id, alternativeText+"*", row);
+			return vh.stringLabel(columnName, id, alternativeText+" (No Data)", row);
 		}
 	}
 	public static OgemaWidget addResEditOpenButton(String columnName, Resource object,

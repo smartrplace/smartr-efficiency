@@ -28,7 +28,21 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	}
 
 	@Override
-	protected void calculateProposal(HPAdaptData input, ProjectProposal result, ExtensionResourceAccessInitData data) {
+	protected void calculateProposal(HPAdaptData input, ProjectProposal resultProposal, ExtensionResourceAccessInitData data) {
+		
+		if(!(resultProposal instanceof HPAdaptResult)) {
+			// TODO Log error and throw exception
+			System.out.println("Wrong Result type!");
+			return;
+		}
+		else {
+			HPAdaptResult result = (HPAdaptResult) resultProposal;
+			calculateHPAdapt(input, result, data);
+		}
+	}
+	
+	protected void calculateHPAdapt(HPAdaptData input, HPAdaptResult result, ExtensionResourceAccessInitData data) {
+		
 		MyParam<HPAdaptParams> paramHelper = CapabilityHelper.getMyParams(HPAdaptParams.class, data.userData(), appManExt);
 		HPAdaptParams myPar = paramHelper.get();
 		
@@ -67,6 +81,10 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		
 		result.costOfProjectIncludingInternal().create();
 		result.costOfProjectIncludingInternal().setValue(9999);
+		
+		result.wwEnergy().create();
+		result.wwEnergy().setValue(473.5f);
+		
 		paramHelper.close();
 	}
 	
