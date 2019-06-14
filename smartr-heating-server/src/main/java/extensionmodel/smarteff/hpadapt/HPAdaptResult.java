@@ -8,7 +8,7 @@ import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 /**
- * Result of HPAdapt.
+ * Results of HPAdapt.
  * Yellow cells in "Letzte Rechnung" spread sheet.
  * @author jruckel
  * */
@@ -17,7 +17,7 @@ public interface HPAdaptResult extends ProjectProposal100EE {
 	/* DESIGN 1 */
 	
 	/** Warm water energy (losses during heating season in heated areas are included) */
-	EnergyResource wwEnergy();
+	EnergyResource wwEnergyPreRenovation();
 	/** Heating energy (pre-renovation) */
 	EnergyResource heatingEnergPreRenovation();
 	/** Warm water energy (post-renovation) */

@@ -254,7 +254,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		if(res instanceof TemperatureResource)
 			unit = "°C";
 		else if(res instanceof PhysicalUnitResource)
-			unit = ((PhysicalUnitResource) res).getUnit().name();
+			unit = ((PhysicalUnitResource) res).getUnit().toString();
 		
 		String unitAppend = "";
 		if(!unit.isEmpty())

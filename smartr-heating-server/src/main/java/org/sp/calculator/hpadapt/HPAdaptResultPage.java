@@ -22,9 +22,11 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 	public void setData(HPAdaptResult result) {
 		setLabel(result.name(), EN, "name", DE, "Name");
 
-		setLabelWithUnit(result.wwEnergy(),
-				EN, "Warm water energy (losses during heating season in heated areas are included)",
-				DE, "");
+		setLabelWithUnit(result.wwEnergyPreRenovation(),
+				EN, "Warm water energy (pre-renovation) "
+						+ "(losses during heating season in heated areas are attributed to heater)",
+				DE, "TWW-Energie (vor Sanierung)"
+						+ "(während Heizperiode werden Verluste TWW im beheizten Bereich der Heizung zugerechnet)");
 
 		setLabelWithUnit(result.heatingEnergPreRenovation(),
 				EN, "Heating energy (pre-renovation)",

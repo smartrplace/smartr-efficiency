@@ -9,8 +9,8 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 	public void setData(HPAdaptParams params) {
 		
 		setLabelWithUnit(params.electrictiyPriceCO2neutralPerkWh(),
-				EN, "Price of CO2-neutral electricity (EUR/kWh)",
-				DE, "Preis für CO2-neutralem Strom (EUR/kWh)");
+				EN, "Price of CO₂-neutral electricity (EUR/kWh)",
+				DE, "Preis für CO₂-neutralem Strom (EUR/kWh)");
 
 		setLabelWithUnit(params.electrictiyPrice100EEPerkWh(),
 				EN, "Price of 100EE electricity (EUR/kWh)",
@@ -25,16 +25,16 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 				DE, "Preis für Wärmepumpenstrom (EUR/kWh)");
 
 		setLabelWithUnit(params.electrictiyPriceHeatCO2neutralPerkWh(),
-				EN, "Price of CO2-neutral heat pump electricity (EUR/kWh)",
-				DE, "Preis für CO2-neutralen Wärmepumpenstrom (EUR/kWh)");
+				EN, "Price of CO₂-neutral heat pump electricity (EUR/kWh)",
+				DE, "Preis für CO₂-neutralen Wärmepumpenstrom (EUR/kWh)");
 
 		setLabelWithUnit(params.electrictiyPriceHeat100EEPerkWh(),
 				EN, "Price of 100EE heat pump electricity (EUR/kWh)",
 				DE, "Preis für 100EE-Wärmepumpenstrom (EUR/kWh)");
 
 		setLabelWithUnit(params.gasPriceCO2neutralPerkWh(),
-				EN, "Price of CO2-neutral gas (EUR/kWh)",
-				DE, "Preis für CO2-neutrales Gas (EUR/kWh)");
+				EN, "Price of CO₂-neutral gas (EUR/kWh)",
+				DE, "Preis für CO₂-neutrales Gas (EUR/kWh)");
 
 		setLabelWithUnit(params.gasPrice100EEPerkWh(),
 				EN, "Price of 100EE gas (EUR/kWh)",
@@ -71,8 +71,6 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 		setLabelWithUnit(params.wwSupplyTemp(),
 				EN, "Warm water supply temperature",
 				DE, "Trinkwarmwasser Vorlauftemperatur");
-
-	
 		
 	}
 	@Override

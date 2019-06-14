@@ -82,8 +82,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		result.costOfProjectIncludingInternal().create();
 		result.costOfProjectIncludingInternal().setValue(9999);
 		
-		result.wwEnergy().create();
-		result.wwEnergy().setValue(473.5f);
+		result.wwEnergyPreRenovation().create();
+		result.wwEnergyPreRenovation().setValue(473.5f);
 		
 		paramHelper.close();
 	}
