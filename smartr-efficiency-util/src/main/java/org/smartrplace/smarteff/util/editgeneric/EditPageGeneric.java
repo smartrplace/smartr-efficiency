@@ -17,6 +17,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.PhysicalUnit;
 import org.ogema.core.model.units.PhysicalUnitResource;
+import org.ogema.core.model.units.TemperatureResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
@@ -250,9 +251,16 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	}
 	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
 		String unit = "";
-		if(res instanceof PhysicalUnitResource)
-			unit = " (" + ((PhysicalUnitResource) res).getUnit().name() + ")";
-		setLabel(res, locale, text+unit, locale2, text2+unit);
+		if(res instanceof TemperatureResource)
+			unit = "°C";
+		else if(res instanceof PhysicalUnitResource)
+			unit = ((PhysicalUnitResource) res).getUnit().name();
+		
+		String unitAppend = "";
+		if(!unit.isEmpty())
+			unitAppend = " (" + unit + ")";
+
+		setLabel(res, locale, text + unitAppend, locale2, text2 + unitAppend);
 	}
 	protected void setLabel(String resourceName, OgemaLocale locale, String text,
 			OgemaLocale locale2, String text2, float min, float max) {

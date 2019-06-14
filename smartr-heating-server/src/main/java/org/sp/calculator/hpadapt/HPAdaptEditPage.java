@@ -39,12 +39,12 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				DE, "Warmwasser-Energieverlust in unbeheizten Bereichen");
 
 		setLabelWithUnit(data.wwTemp(),
-				EN, "Warm water temperature (°C)",
-				DE, "Warmwassertemperatur (°C)");
+				EN, "Warm water temperature",
+				DE, "Warmwassertemperatur");
 
 		setLabelWithUnit(data.wwTempMin(),
-				EN, "Warm water temperature can be lowered to (°C)",
-				DE, "Warmwassertemperatur kann gesenkt werden auf (°C)");
+				EN, "Warm water temperature can be lowered to",
+				DE, "Warmwassertemperatur kann gesenkt werden auf");
 
 		setLabelWithUnit(data.heatingLimitTemp(),
 				EN, "Heating limit temperature",

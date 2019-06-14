@@ -69,8 +69,8 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 				DE, "Energieeinsparung bei Umstellung NT→BW");
 
 		setLabelWithUnit(params.wwSupplyTemp(),
-				EN, "Warm water supply temperature (°C)",
-				DE, "Trinkwarmwasser Vorlauftemperatur (°C)");
+				EN, "Warm water supply temperature",
+				DE, "Trinkwarmwasser Vorlauftemperatur");
 
 	
 		
