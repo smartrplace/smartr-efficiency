@@ -8,6 +8,7 @@ import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.model.units.VolumeResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
 /**
  * Data for HPAdapt.
@@ -37,7 +38,7 @@ public interface HPAdaptData extends SmartEffResource {
 	/** Estimated savings from condensing boiler */
 	FloatResource savingsFromCDBoiler();
 	/** Dimensioning for price type */
-	IntegerResource designedForPriceType();
+	IntegerResource dimensioningForPriceType();
 	
 	/* U-VALUE DATA */
 	
@@ -56,5 +57,8 @@ public interface HPAdaptData extends SmartEffResource {
 	PowerResource boilerPowerBivalentHP();
 	/** Heat pump power (bivalent heat pump) */
 	PowerResource hpPowerBivalentHP();
+	
+	/** Historical Temperature Data to be imported via CSV */
+	SmartEffTimeSeries temperatureHistory();
 	
 }

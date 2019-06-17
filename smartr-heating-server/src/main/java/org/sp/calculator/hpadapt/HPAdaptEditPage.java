@@ -58,7 +58,7 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				EN, "Estimated savings from condensing boiler",
 				DE, "Geschätzte Einsparung durch Brennwertkessel");
 
-		setLabelWithUnit(data.designedForPriceType(),
+		setLabelWithUnit(data.dimensioningForPriceType(),
 				EN, "Dimensioning for price type",
 				DE, "Auslegung auf Preistyp");
 
@@ -90,6 +90,9 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				EN, "Heat pump power (bivalent heat pump)",
 				DE, "Leistung Wärmepumpe bivalent");
 
+		setLabel(data.temperatureHistory(),
+				EN, "Historical Temperature Data to be imported via CSV",
+				DE, "Temperaturewerte, die per CSV importiert werden können");
 
 	}
 }
