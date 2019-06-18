@@ -59,7 +59,9 @@ public class WindowTypeRegistration {
 					DE, "Zahl der Fenster des Typs im Gebäude");
 			setTableHeader(type.count(), EN, "# in building", DE, "# im Gebäude");
 			
-			setLabelWithUnit(type.height(), EN, "Height of windows of the type", DE, "Höhe der Fenster des Typs");
+			setLabelWithUnit(type.uValue(), EN, "U-Value of windows of this type", DE, "U-Wert der Fenster des Typs");
+			
+			setLabelWithUnit(type.height(), EN, "Height of windows of this type", DE, "Höhe der Fenster des Typs");
 
 			setLabel(type.id(), EN, "Window Type", DE, "Art des Fensters");
 			setDisplayOptions(type.id(), EN, WINDOW_TYPEMAP_EN); // TODO add TYPEMAP_DE

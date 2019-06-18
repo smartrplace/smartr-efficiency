@@ -42,8 +42,8 @@ public interface HPAdaptResult extends ProjectProposal100EE {
 	FloatResource fullLoadHoursExclWW();
 	/** Full load hours incl. warm water (h/a) */
 	FloatResource fullLoadHoursInclWW();
-	/** Median heating outside temperature */
-	TemperatureResource medianHeatingOutsideTemp();
+	/** Mean heating outside temperature */
+	TemperatureResource meanHeatingOutsideTemp();
 	
 	
 	/* BIVALENT SYSTEM DESIGN */

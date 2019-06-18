@@ -68,8 +68,8 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 				EN, "Full load hours incl. warm water (h/a)",
 				DE, "Vollaststrunden mit TWW (h/a)");
 
-		setLabelWithUnit(result.medianHeatingOutsideTemp(),
-				EN, "Median heating outside temperature",
+		setLabelWithUnit(result.meanHeatingOutsideTemp(),
+				EN, "Mean heating outside temperature",
 				DE, "Mittlere Heit-Außentemperatur");
 
 		setLabelWithUnit(result.maxPowerHPfromBadRoom(),

@@ -37,6 +37,16 @@ public interface HPAdaptData extends SmartEffResource {
 	TemperatureResource outsideDesignTemp();
 	/** Estimated savings from condensing boiler */
 	FloatResource savingsFromCDBoiler();
+	/** Given as price type when the value of {{@link #dimensioningForPriceType()} is to be used. */
+	final static int USE_USER_DEFINED_PRICE_TYPE = -1;
+	/** Conventional pricing */
+	final static int PRICE_TYPE_CONVENTIONAL = 0;
+	/** CO2-neutral pricing */
+	final static int PRICE_TYPE_CO2_NEUTRAL = 1;
+	/** 100EE pricing */
+	final static int PRICE_TYPE_100EE = 2;
+	/** Number of price type ids. If all types are to be calculated for, iterate from 0 to this. */
+	final static int PRICE_TYPES_COUNT = 2;
 	/** Dimensioning for price type */
 	IntegerResource dimensioningForPriceType();
 	
