@@ -249,7 +249,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected void setLabel(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
 		setLabel(getSubPath(res), locale, text, locale2, text2);		
 	}
-	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
+	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text) {
 		String unit = "";
 		if(res instanceof TemperatureResource)
 			unit = "°C";
@@ -259,8 +259,21 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		String unitAppend = "";
 		if(!unit.isEmpty())
 			unitAppend = " (" + unit + ")";
-
-		setLabel(res, locale, text + unitAppend, locale2, text2 + unitAppend);
+		setLabel(res, locale, text + unitAppend);
+	}
+	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
+		setLabelWithUnit(res, locale, text);
+		setLabelWithUnit(res, locale2, text2);
+	}
+	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, float min, float max) {
+		setLabelWithUnit(res, locale, text);
+		setLimits(res, min, max);
+	}
+	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2,
+			float min, float max) {
+		setLabelWithUnit(res, locale, text);
+		setLabelWithUnit(res, locale2, text2);
+		setLimits(res, min, max);
 	}
 	protected void setLabel(String resourceName, OgemaLocale locale, String text,
 			OgemaLocale locale2, String text2, float min, float max) {
