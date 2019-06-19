@@ -1,7 +1,12 @@
 package org.sp.calculator.hpadapt;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
+import org.ogema.core.channelmanager.measurements.SampledValue;
+import org.ogema.core.model.schedule.AbsoluteSchedule;
 import org.slf4j.LoggerFactory;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
@@ -70,31 +75,43 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		/* Calculate: Heating days, Heating degree days on daily and hourly basis */
 		int heatingDegreeDays = 0;
 		int numberOfHeatingDays = 0;
-		//	For each day of the year { // TODO let user upload CSV
-				float mean_outside_daytime_temperature = 0f; // TODO read from CSV
-				if (mean_outside_daytime_temperature < heatingLimitTemp) {
-					numberOfHeatingDays += 1;
-					heatingDegreeDays += heatingLimitTemp - mean_outside_daytime_temperature;
-				}
-		//}
+
+		Map<Integer, Integer> temperatureShares = new HashMap<>();
+		
+		AbsoluteSchedule temperaturesHistory = hpData.temperatureHistory().recordedDataParent().program();
+		Iterator<SampledValue> iter = temperaturesHistory.iterator();
+		while(iter.hasNext()) {
+			float meanOutsideDaytimeTemperature = iter.next().getValue().getFloatValue();
+			if (meanOutsideDaytimeTemperature < heatingLimitTemp) {
+				numberOfHeatingDays += 1;
+				heatingDegreeDays += heatingLimitTemp - meanOutsideDaytimeTemperature;
+			}
+
+			int tempRounded = Math.round(meanOutsideDaytimeTemperature);
+			int n = 1;
+			if(temperatureShares.containsKey(tempRounded))
+				n = temperatureShares.get(tempRounded) + 1;
+			temperatureShares.put(tempRounded, n);
+		}
 		ValueResourceHelper.setCreate(result.heatingDegreeDays(), heatingDegreeDays);
 		ValueResourceHelper.setCreate(result.numberOfHeatingDays(), numberOfHeatingDays);
 		
 		int heatingDegreeDaysHourly = 0;
 		int numberOfHeatingDaysHourly = 0;
 		// For each recorded hour of the year { // TODO
-				float outside_temperature = 0f; // TODO
+		/*	float outside_temperature = 0f; // TODO
 				if (outside_temperature < heatingLimitTemp) {
 					numberOfHeatingDaysHourly += 1;
 					heatingDegreeDaysHourly += heatingLimitTemp - outside_temperature;
 				}
+		*/
 		// }
-		ValueResourceHelper.setCreate(result.heatingDegreeDaysHourly(), heatingDegreeDaysHourly);
-		ValueResourceHelper.setCreate(result.numberOfHeatingDaysHourly(), numberOfHeatingDaysHourly);
+		//ValueResourceHelper.setCreate(result.heatingDegreeDaysHourly(), heatingDegreeDaysHourly);
+		//ValueResourceHelper.setCreate(result.numberOfHeatingDaysHourly(), numberOfHeatingDaysHourly);
 		
-		/* Calculate Temperature Shares */
+		/* Perform calculations on temperature Shares */
 		for(int i = LOWEST_TEMP; i <= HIGHEST_TEMP; i++) {
-			// TODO
+			// TODO?
 		}
 		
 		/* U-VALUE AND ROOM VALUE BASED DEMAND */
@@ -150,12 +167,12 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		ValueResourceHelper.setCreate(result.facadeWallArea(), totalFacadeWallArea);
 		
 
+		/** Temperature -> COP for worst room at that temperature. */
+		Map<Integer, Float> badRoomCops = new HashMap<>();
 
-		
-		BuildingUnit badRoom = null; // Most critical room for temperature
-		
 		for(int temp = Math.round(heatingLimitTemp); temp >= Math.round(minTemp); temp--) {
 			
+			BuildingUnit badRoom = null; // Most critical room for temperature
 			float deltaT = heatingLimitTemp - temp;
 			
 			for(BuildingUnit room : rooms) {
@@ -208,19 +225,20 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 					pMax = pLoc;
 					badRoom = room;
 				}
-				
-				if(badRoom == null) {
-					LoggerFactory.getLogger(HPAdaptEval.class).warn("No BadRoom was determined!");
-					continue;
-				}
-				
 			}
-			// TODO store these:
+				
+			if(badRoom == null) {
+				LoggerFactory.getLogger(HPAdaptEval.class).warn("No BadRoom was determined!");
+				continue;
+			}
+
+			// TODO store these?
 			// temp
 			// String badRoomName = badRoom.name().getValue();
 			// pMax
 			// vLMax
-			
+
+				
 			/* Finally get COP and related data */
 			float firstCol = -1f;
 			float firstRow = -1f;
@@ -231,8 +249,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			float factor = (float) (Math.sqrt(deltaRow * deltaRow + deltaCol * deltaCol) / Math.sqrt(2.0));
 			float firstVal;
 			float deltaVal;
-			float cop; // TODO calc and store
+			float cop = 1.0f; // TODO! calc and store
 			
+			badRoomCops.put(temp, cop);
 			
 		}
 		/* End RoomEval2 */
@@ -243,14 +262,17 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		
 		boolean control_fixed_price_type = false; // TODO? add
 		
-		calcPriceLevel(HPAdaptData.USE_USER_DEFINED_PRICE_TYPE, hpData, result, resultProposal, hpParams); // Do we need this?
+		calcPriceLevel(HPAdaptData.USE_USER_DEFINED_PRICE_TYPE, hpData, result, resultProposal, hpParams,
+				temperatureShares, badRoomCops); // Do we need this?
 		
 		if(control_fixed_price_type) {
-			calcPriceLevel(HPAdaptData.USE_USER_DEFINED_PRICE_TYPE, hpData, result, resultProposal, hpParams);
+			calcPriceLevel(HPAdaptData.USE_USER_DEFINED_PRICE_TYPE, hpData, result, resultProposal, hpParams,
+					temperatureShares, badRoomCops);
 		}
 		else {
 			for(int i = 0; i <= HPAdaptData.PRICE_TYPES_COUNT; i++) {
-				calcPriceLevel(i, hpData, result, resultProposal, hpParams);
+				calcPriceLevel(i, hpData, result, resultProposal, hpParams,
+						temperatureShares, badRoomCops);
 			}
 		}
 		
@@ -265,7 +287,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	 * Perform COP evaluation / RoomEval3
 	 */
 	protected void calcPriceLevel(int priceType, HPAdaptData hpData, HPAdaptResult result,
-			ProjectProposal resultProposal, HPAdaptParams hpParams) {
+			ProjectProposal resultProposal, HPAdaptParams hpParams,
+			Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops) {
 		
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
@@ -303,8 +326,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 
 		/** Calculate powerLossBasementHeating and otherPowerLoss */
 		for(int temp = Math.round(heatingLimitTemp); temp >= Math.round(LOWEST_TEMP); temp--) {
-			float cop = 1.0f; // TODO get from BadRoom at this temperature
-			int nShares = 10; // TODO get from Temperature Shares
+			float cop = badRoomCops.getOrDefault(temp, 0.0f);
+			int nShares = temperatureShares.getOrDefault(temp, 0);
 			
 			float meanHeatingOutsideTemp = heatingLimitTemp - heatingDegreeDays / numberOfHeatingDays;
 			result.meanHeatingOutsideTemp().create();

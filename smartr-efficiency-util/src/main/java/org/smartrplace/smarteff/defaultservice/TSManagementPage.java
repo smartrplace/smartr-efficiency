@@ -119,7 +119,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			        else
 			        	csvButton.setWidgetVisibility(false, req);
 					//svButton.enable(req);
-					csvImportButton.setWidgetVisibility(false, req);
+					csvImportButton.setWidgetVisibility(true, req);
 					//csvImportButton.disable(req);					
 				} else {
 					csvButton.setWidgetVisibility(false, req);
