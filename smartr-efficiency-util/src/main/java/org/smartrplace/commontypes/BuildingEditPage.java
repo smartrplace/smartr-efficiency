@@ -172,6 +172,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		});
 		
 		setLabel(sr.heatedLivingSpace(), EN, "Heated Ground Floor in sqm", DE, "Beheizte Fläche m2");
+		setLabel(sr.heatedAreaNotInRooms(), EN, "Heated Ground Floor not in Rooms in sqm", DE, "Beheizte Fläche nicht in Räumen m2");
 		setLabel(sr.heatSource(), EN, "Type of Heating", DE, "Art der Heizung");
 		setDisplayOptions(sr.heatSource(), EN, HEATTYPEMAP_EN);
 		setDisplayOptions(sr.heatSource(), DE, HEATTYPEMAP_DE);
@@ -179,6 +180,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel(sr.heatCostBillingInfo(), EN, "Edit Bills", DE, "Heizkostenabrechnungen");
 		setLabel(sr.buildingUnit(), EN, "Rooms / Sub Units", DE, "Räume / Gebäudeteile");
 		setLabel(sr.heatRadiatorType(), EN, "Different types of thermostats in building", DE, "Verschiedene Arten von Heizkörperthermostaten im Gebäude");
+		setLabel(sr.windowType(), EN, "Different types of windows in building", DE, "Verschiedene Arten von Fenstern im Gebäude");
 		setLabel(sr.electricityMeterCountValue(), EN, "Meter count with time of measuerment", DE, "Aktueller Zählerstand");
 	}
 

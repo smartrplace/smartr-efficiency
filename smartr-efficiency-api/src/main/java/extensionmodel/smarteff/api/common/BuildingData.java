@@ -5,7 +5,9 @@ import org.ogema.core.model.ModelModifiers.NonPersistent;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.units.AreaResource;
 import org.ogema.core.model.units.EnergyResource;
+import org.ogema.core.model.units.LengthResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
@@ -85,7 +87,14 @@ public interface BuildingData extends SmartEffResource {
 	/** Radiator types in the building*/
 	public ResourceList<HeatRadiatorType> heatRadiatorType();
 	
+	/** Window types in the building*/
+	public ResourceList<WindowType> windowType();
+
 	/** Usually one value per day should be given here with hours where
 	 * heating is generally required in the building*/
 	SmartEffTimeSeries estimatedHoursWithPresence();
+	
+	/** Heated area not in rooms */
+	AreaResource heatedAreaNotInRooms();
+	
 }

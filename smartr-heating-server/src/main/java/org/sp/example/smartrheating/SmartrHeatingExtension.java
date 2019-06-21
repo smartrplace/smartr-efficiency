@@ -16,6 +16,7 @@ import org.smartrplace.smarteff.util.NaviPageBase;
 import org.sp.calculator.hpadapt.HPAdaptEditPage;
 import org.sp.calculator.hpadapt.HPAdaptEval;
 import org.sp.calculator.hpadapt.HPAdaptParamsPage;
+import org.sp.calculator.hpadapt.HPAdaptResultPage;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.BuildingData;
@@ -47,6 +48,7 @@ public class SmartrHeatingExtension implements SmartEffExtensionService {
 	private final static SmartrHeatingParamsPage PARAM_PAGE = new SmartrHeatingParamsPage();
 	private final static SmartrHeatingInternalParamsPage PARAMINTERNAL_PAGE = new SmartrHeatingInternalParamsPage();
 	private final static HPAdaptParamsPage PARAM_PAGE_HPA = new HPAdaptParamsPage();
+	private final static HPAdaptResultPage RESULT_PAGE_HPADAPT = new HPAdaptResultPage();
 	@Override
 	public Collection<ExtensionCapability> getCapabilities() {
 		return Arrays.asList(new ExtensionCapability[] {EDIT_PROVIDER,
@@ -54,7 +56,8 @@ public class SmartrHeatingExtension implements SmartEffExtensionService {
 				//RADIATOR_TABLE.provider,
 				PARAMINTERNAL_PAGE.provider,
 				EDIT_PROVIDER_HPA,
-				PROPOSAL_PROV_HPADAPT, PARAM_PAGE_HPA.provider});
+				PROPOSAL_PROV_HPADAPT, PARAM_PAGE_HPA.provider, RESULT_PAGE_HPADAPT.provider
+				});
 	}
 	//RADIATOR_PAGE.provider
 	
