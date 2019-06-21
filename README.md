@@ -57,6 +57,12 @@ Information on timeseries uploaded is stored in the top-level resource genericTS
 ### LogicProviders and Evaluations for Timeseries
 LogicProviders that use time series as input are usually based on [LogicEvalProviderBase](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-efficiency-util/src/main/java/org/smartrplace/smarteff/util/LogicProviderBase.java) as template. The respective evaluation provider will get the parameter resource and the input resource(s) (if required) as configurations. Usually the configuration resource is specified in  MultiEvalStartConfiguration#configurationResource(). An EvaluationProvider requesting a configuration resource as input should request it with an ConfigurationInstance being the first element returned
 by EvaluationProvider#getConfigurations(). The ConfigurationInstance should be generated via ConfigurationUtil#getConfiguration(String, ResultType ,	Class<? extends Resource> configType) .
+<br>
+This allows for integrating modules of [DataProviders of the OGEMA evaluation framework](https://community.ogema-source.net/xwiki/bin/view/Tutorial%20Collection/SDK%20Tutorial%20Overview%20Experimental/GaRoMultiEvalDataProvider:%20Integrate%20external%20data%20sources%20into%20the%20OGEMA%20evaluation%20framework/) into SmartrEfficiency calculations. There are two examples available for this:
+* [Smartr-efficiency-electricity-example](https://github.com/smartrplace/smartr-efficiency/tree/master/smartr-efficiency-electricity-example), which typically uses load profiles uploaded via CSV
+* [BuildingPresenceEval](https://github.com/smartrplace/smartr-efficiency/tree/master/smartr-efficiency-evals/src/main/java/org/sp/example/smarteff/eval), which typically uses sensor data collected via data logging from a smart home system for presence detection.
+
+Both examples of LogicEvalProviderBase contain code to access the time series provided by the DataProviders directly for evaluation as well as examples how to process them via evaluation modules of the [OGEMA evaluation framework](https://community.ogema-source.net/xwiki/bin/view/Tutorial%20Collection/SDK%20Tutorial%20Overview%20Experimental/Evaluation%20Offline%20Control%20App/). 
 
 ### Parameter management
 As mentioned before LogicProviders need parameters. An introduction to parameters and input resources to a LogicProvider is given in [LogicProviderBase#getParamType()](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-efficiency-util/src/main/java/org/smartrplace/smarteff/util/LogicProviderBase.java#L76).
