@@ -14,6 +14,14 @@ import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
  * */
 public interface HPAdaptResult extends ProjectProposal100EE {
 	
+	/** Main results from LastBuilding worksheet*/
+	/** Boiler power (boiler only) */
+	PowerResource boilerPowerBoilerOnly();
+	/** Boiler power (bivalent heat pump) */
+	PowerResource boilerPowerBivalentHP();
+	/** Heat pump power (bivalent heat pump) */
+	PowerResource hpPowerBivalentHP();
+	
 	/* DESIGN 1 */
 	
 	/** Warm water energy (losses during heating season in heated areas are included) */

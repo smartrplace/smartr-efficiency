@@ -32,11 +32,11 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLabelWithUnit(data.wwLossHeatedAreas(),
 				EN, "Estimated warm water energy loss from storage, circulation at current temperature in heated areas",
 				DE, "Geschätzter Warmwasser-Energieverlost duch Speicher, Zirkulation"
-						+ "bei aktueller Temperatur in beheizten Bereichen");
+						+ "bei aktueller Temperatur im beheizten Bereichen");
 
 		setLabelWithUnit(data.wwLossUnheatedAreas(),
 				EN, "Warm water energy loss in unheated areas",
-				DE, "Warmwasser-Energieverlust in unbeheizten Bereichen");
+				DE, "Warmwasser-Energieverlust im unbeheizten Bereichen");
 
 		setLabelWithUnit(data.wwTemp(),
 				EN, "Warm water temperature",
@@ -64,12 +64,12 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				DE, "Auslegung auf Preistyp");
 
 		setLabelWithUnit(data.uValueBasementFacade(),
-				EN, "U-Value basement → facade",
-				DE, "U-Wert Keller → Fassade");
+				EN, "U-Value basement in relation to U-Value facade (equal = 1.0)",
+				DE, "U-Wert Keller im Verhältnis zum U-Wert Fassade (gleich = 1.0)");
 
 		setLabelWithUnit(data.uValueRoofFacade(),
-				EN, "U-Value roof → facade",
-				DE, "U-Wert Dach → Fassade");
+				EN, "U-Value roof in relation to U-Value facade (equal = 1.0)",
+				DE, "U-Wert Dach im Verhältnis zum U-Wert Fassade (gleich = 1.0)");
 
 		setLabelWithUnit(data.innerWallThickness(),
 				EN, "Thickness of inner walls",
@@ -79,18 +79,6 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				EN, "Basement temperature during heating season",
 				DE, "Kellertemperatur in der Heizperiode");
 		
-		setLabelWithUnit(data.boilerPowerBoilerOnly(),
-				EN, "Boiler power (boiler only)",
-				DE, "Leistung Kessel alleine");
-		
-		setLabelWithUnit(data.boilerPowerBivalentHP(),
-				EN, "Boiler power (bivalent heat pump)",
-				DE, "Leistung Kessel (bivalente Wärmepumpe)");
-		
-		setLabelWithUnit(data.hpPowerBivalentHP(),
-				EN, "Heat pump power (bivalent heat pump)",
-				DE, "Leistung Wärmepumpe bivalent");
-
 		setLabel(data.temperatureHistory(),
 				EN, "Historical Temperature Data to be imported via CSV",
 				DE, "Temperaturewerte, die per CSV importiert werden können");

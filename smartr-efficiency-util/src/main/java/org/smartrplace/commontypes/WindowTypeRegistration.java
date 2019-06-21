@@ -1,8 +1,5 @@
 package org.smartrplace.commontypes;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
@@ -16,7 +13,7 @@ public class WindowTypeRegistration {
 
 	public static final Class<? extends SmartEffResource> TYPE_CLASS = WindowType.class;
 	
-	public static final Map<String, String> WINDOW_TYPEMAP_EN = new HashMap<>();
+	/*public static final Map<String, String> WINDOW_TYPEMAP_EN = new HashMap<>();
 	public static final Map<String, String> WINDOW_TYPEMAP_DE = new HashMap<>();
 	static {
 		WINDOW_TYPEMAP_EN.put(Integer.toString(WindowType.WINDOW_NORMAL), "Normal window");
@@ -25,7 +22,7 @@ public class WindowTypeRegistration {
 		WINDOW_TYPEMAP_DE.put(Integer.toString(WindowType.WINDOW_DOOR), "");
 		WINDOW_TYPEMAP_EN.put(Integer.toString(WindowType.WINDOW_DEFECTIVE), "Old or defective window");
 		WINDOW_TYPEMAP_DE.put(Integer.toString(WindowType.WINDOW_DEFECTIVE), "");
-	}
+	}*/
 	
 	public static class TypeDeclaration implements ExtensionResourceTypeDeclaration<SmartEffResource> {
 
@@ -55,6 +52,9 @@ public class WindowTypeRegistration {
 		public void setData(WindowType type) {
 			setHeaderLabel(EN, "Window Type Data", DE, "Daten Fenstertypen im Gebäude");
 
+			setLabel(type.name(), EN, "Name of window type", DE, "Name des Fenstertyps");
+			setTableHeader(type.name(), EN, "Name");
+			
 			setLabel(type.count(), EN, "Number of windows of this type in building",
 					DE, "Zahl der Fenster des Typs im Gebäude");
 			setTableHeader(type.count(), EN, "# in building", DE, "# im Gebäude");
@@ -63,8 +63,8 @@ public class WindowTypeRegistration {
 			
 			setLabelWithUnit(type.height(), EN, "Height of windows of this type", DE, "Höhe der Fenster des Typs");
 
-			setLabel(type.id(), EN, "Window Type", DE, "Art des Fensters");
-			setDisplayOptions(type.id(), EN, WINDOW_TYPEMAP_EN); // TODO add TYPEMAP_DE
+			//setLabel(type.id(), EN, "Window Type", DE, "Art des Fensters");
+			//setDisplayOptions(type.id(), EN, WINDOW_TYPEMAP_EN); // TODO add TYPEMAP_DE
 		}
 		
 		@SuppressWarnings("unchecked")

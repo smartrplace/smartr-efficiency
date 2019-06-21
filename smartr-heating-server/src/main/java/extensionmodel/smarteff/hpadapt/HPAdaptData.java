@@ -36,7 +36,7 @@ public interface HPAdaptData extends SmartEffResource {
 	/** Outside design temperature */
 	TemperatureResource outsideDesignTemp();
 	/** Estimated savings from condensing boiler */
-	FloatResource savingsFromCDBoiler();
+	PercentageResource savingsFromCDBoiler();
 	/** Given as price type when the value of {{@link #dimensioningForPriceType()} is to be used. */
 	final static int USE_USER_DEFINED_PRICE_TYPE = -1;
 	/** Conventional pricing */
@@ -62,13 +62,6 @@ public interface HPAdaptData extends SmartEffResource {
 	LengthResource innerWallThickness();
 	/** Basement temperature during heating season */
 	TemperatureResource basementTempHeatingSeason();
-	
-	/** Boiler power (boiler only) */
-	PowerResource boilerPowerBoilerOnly();
-	/** Boiler power (bivalent heat pump) */
-	PowerResource boilerPowerBivalentHP();
-	/** Heat pump power (bivalent heat pump) */
-	PowerResource hpPowerBivalentHP();
 	
 	/** Historical Temperature Data to be imported via CSV */
 	SmartEffTimeSeries temperatureHistory();

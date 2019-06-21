@@ -39,8 +39,9 @@ public class RoomWindowRegistration {
 		public void setData(Window sr) {
 			setLabel(sr.type(), EN, "Window type",
 					DE, "Fenstertyp");
-			setLabel(sr.width(), EN, "Window width",
-					DE, "Fensterbreite");
+			setLabel(sr.type().name(), EN, "Name of window type", DE, "Name des Fenstertyps");
+			setTableHeader(sr.type().name(), EN, "Name");
+			setLabel(sr.width(), EN, "Window width", DE, "Fensterbreite");
 		}
 
 		@SuppressWarnings("unchecked")

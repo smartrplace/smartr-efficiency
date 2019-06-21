@@ -22,6 +22,18 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 	public void setData(HPAdaptResult result) {
 		setLabel(result.name(), EN, "name", DE, "Name");
 
+		setLabelWithUnit(result.boilerPowerBoilerOnly(),
+				EN, "Boiler power (boiler only)",
+				DE, "Leistung Kessel alleine");
+		
+		setLabelWithUnit(result.boilerPowerBivalentHP(),
+				EN, "Boiler power (bivalent heat pump)",
+				DE, "Leistung Kessel (bivalente Wärmepumpe)");
+		
+		setLabelWithUnit(result.hpPowerBivalentHP(),
+				EN, "Heat pump power (bivalent heat pump)",
+				DE, "Leistung Wärmepumpe bivalent");
+
 		setLabelWithUnit(result.wwEnergyPreRenovation(),
 				EN, "Warm water energy (pre-renovation) "
 						+ "(losses during heating season in heated areas are attributed to heater)",
@@ -131,6 +143,6 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 		setLabelWithUnit(result.powerLossAtOutsideDesignTemp(),
 				EN, "Power loss at outside design temperature",
 				DE, "Verlust bei Ausgelegter Außentemperatur");
-
+		
 	}
 }
