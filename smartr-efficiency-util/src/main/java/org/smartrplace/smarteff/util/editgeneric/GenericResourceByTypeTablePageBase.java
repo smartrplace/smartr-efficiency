@@ -81,6 +81,11 @@ public class GenericResourceByTypeTablePageBase extends ResourceTablePage {
 	@Override
 	protected List<Resource> provideResourcesInTable(OgemaHttpRequest req) {
 		List<? extends Resource> resultAll = getReqData(req).getSubResources(typeSelected(req), true);
+		List<Resource> toRemove = new ArrayList<>();
+		for(Resource o: resultAll) {
+			if(o.isReference(false)) toRemove.add(o);
+		}
+		resultAll.removeAll(toRemove);
 		List<Resource> result = new ArrayList<>();
 		for(Resource r: resultAll) {
 			result.add(r);
