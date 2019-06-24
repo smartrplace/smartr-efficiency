@@ -96,9 +96,9 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				EN, "Basement temperature during heating season",
 				DE, "Kellertemperatur in der Heizperiode");
 		
-		setLabel(data.temperatureHistory(),
-				EN, "Historical Temperature Data to be imported via CSV",
-				DE, "Temperaturewerte, die per CSV importiert werden können");
-
+		setLabel(data.outsideTempOffset(),
+				EN, "Offset for adapting to historical outside temperature data (K)",
+				DE, "Offset für Adaption der Außentemperaturdaten (K)");
+		
 	}
 }

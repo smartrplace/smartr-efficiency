@@ -4,6 +4,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.units.PercentageResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
 /**
  * Parameters for HPAdapt.
@@ -61,4 +62,10 @@ public interface HPAdaptParams extends SmartEffResource {
 
 	/** Warm water supply temperature (°C) */
 	TemperatureResource wwSupplyTemp();
+	
+	/* OTHER */
+	/**
+	 * Historical Temperature Data to be imported via CSV
+	 */
+	SmartEffTimeSeries temperatureHistory();
 }

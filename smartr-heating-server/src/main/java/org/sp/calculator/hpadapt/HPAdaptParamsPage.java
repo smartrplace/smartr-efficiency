@@ -72,6 +72,10 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 				EN, "Warm water supply temperature",
 				DE, "Trinkwarmwasser Vorlauftemperatur");
 		
+		setLabel(params.temperatureHistory(),
+				EN, "Historical Temperature Data to be imported via CSV",
+				DE, "Temperaturewerte, die per CSV importiert werden können");
+
 	}
 	@Override
 	protected Class<HPAdaptParams> primaryEntryTypeClass() {

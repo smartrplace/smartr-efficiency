@@ -54,6 +54,8 @@ public interface HPAdaptData extends SmartEffResource {
 	final static String[] PRICE_TYPE_NAMES_DE = {"Konventionell", "CO2-neutral", "100EE"};
 	/** Dimensioning for price type */
 	IntegerResource dimensioningForPriceType();
+	/** Offset for adapting to historical outside temperature data */
+	FloatResource outsideTempOffset();
 	
 	/* U-VALUE DATA */
 	
@@ -65,8 +67,5 @@ public interface HPAdaptData extends SmartEffResource {
 	LengthResource innerWallThickness();
 	/** Basement temperature during heating season */
 	TemperatureResource basementTempHeatingSeason();
-	
-	/** Historical Temperature Data to be imported via CSV */
-	SmartEffTimeSeries temperatureHistory();
 	
 }

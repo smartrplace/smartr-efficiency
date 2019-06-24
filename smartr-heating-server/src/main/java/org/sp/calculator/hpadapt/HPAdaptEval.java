@@ -80,10 +80,11 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 
 		Map<Integer, Integer> temperatureShares = new HashMap<>();
 		
-		AbsoluteSchedule temperaturesHistory = hpData.temperatureHistory().recordedDataParent().program();
-		Iterator<SampledValue> iter = temperaturesHistory.iterator();
+		float temperatureOffset = hpData.outsideTempOffset().getValue();
+		AbsoluteSchedule temperatureHistory = hpParams.temperatureHistory().recordedDataParent().program();
+		Iterator<SampledValue> iter = temperatureHistory.iterator();
 		while(iter.hasNext()) {
-			float meanOutsideDaytimeTemperature = iter.next().getValue().getFloatValue();
+			float meanOutsideDaytimeTemperature = iter.next().getValue().getFloatValue() + temperatureOffset;
 			if (meanOutsideDaytimeTemperature < heatingLimitTemp) {
 				numberOfHeatingDays += 1;
 				heatingDegreeDays += heatingLimitTemp - meanOutsideDaytimeTemperature;
@@ -279,7 +280,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 					temperatureShares, badRoomCops);
 		}
 		else {
-			for(int i = 0; i <= HPAdaptData.PRICE_TYPES_COUNT; i++) {
+			for(int i = 0; i <= HPAdaptData.PRICE_TYPE_NAMES_EN.length; i++) {
 				calcPriceLevel(i, hpData, result, resultProposal, hpParams,
 						temperatureShares, badRoomCops);
 			}
