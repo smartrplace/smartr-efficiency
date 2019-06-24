@@ -7,10 +7,13 @@ import java.util.Map;
 
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.array.FloatArrayResource;
 import org.ogema.core.model.schedule.AbsoluteSchedule;
 import org.slf4j.LoggerFactory;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.SmartEff2DMap;
+import org.smartrplace.extensionservice.SmartEffMapHelper;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
@@ -253,19 +256,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			// pMax
 			// vLMax
 
-				
-			/* Finally get COP and related data */
-			float firstCol = -1f;
-			float firstRow = -1f;
-			float deltaCol = -1f;
-			float deltaRow = -1f;
-			
 			/* TODO from VBA: This is a oversimplied interpolation, but should work for now */
-			float factor = (float) (Math.sqrt(deltaRow * deltaRow + deltaCol * deltaCol) / Math.sqrt(2.0));
-			float firstVal;
-			float deltaVal;
-			float cop = 5.0f; // TODO! calc and store
-			
+			float cop = SmartEffMapHelper.getInterpolated(hpParams.copCharacteristics(), (float) temp, vLMax);
 			badRoomCops.put(temp, cop);
 			
 		}
@@ -284,7 +276,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 					temperatureShares, badRoomCops);
 		}
 		else {
-			for(int i = 0; i <= HPAdaptData.PRICE_TYPE_NAMES_EN.length; i++) {
+			for(int i = 0; i < HPAdaptData.PRICE_TYPE_NAMES_EN.length; i++) {
 				calcPriceLevel(i, hpData, result, resultProposal, hpParams,
 						temperatureShares, badRoomCops);
 			}
@@ -458,8 +450,31 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	@Override
 	protected boolean initParams(SmartEffResource paramsIn) {
 		BaseInits.initSmartrEffPriceData(appManExt, this.getClass().getName());
-		HPAdaptParams params = (HPAdaptParams)paramsIn;
 
+		HPAdaptParams params = (HPAdaptParams) paramsIn;
+
+		if (!params.copCharacteristics().exists() && params.copCharacteristics().isActive()) {
+			SmartEff2DMap cop = params.copCharacteristics().create();
+			FloatArrayResource outsideTemp = cop.primaryKeys().create();
+			FloatArrayResource supplyTemp = cop.secondaryKeys().create();
+			outsideTemp.setValues(new float[] {-5f, 0f, 5f, 10f, 15f});
+			supplyTemp.setValues(new float[] {30, 40, 50, 60});
+			cop.characteristics().create();
+			final float[][] copField = {
+					/* out/supply	 30°C	40°C	50°C	60°C	*/
+					/* -5°C */ {	 1.9f,	1.0f,	1.0f,	1.0f,	},
+					/*  0°C */ {	 6.0f,	3.5f,	2.0f,	1.0f,	},
+					/*  5°C */ {	 9.0f,	5.0f,	3.0f,	1.5f,	},
+					/* 10°C */ {	 12.0f,	7.5f,	4.5f,	2.0f,	},
+					/* 15°C */ {	 15.0f,	10.0f,	6.0f,	3.0f,	}
+			};
+			for (int i = 0; i < copField.length; i++) {
+				FloatArrayResource f = cop.characteristics().add();
+				f.setValues(copField[i]);
+			}
+			cop.activate(true);
+		}
+		
 		// Perhaps move to properties?
 		if(
 				ValueResourceHelper.setIfNew(params.electrictiyPriceCO2neutralPerkWh(), 0.259f) |
@@ -478,6 +493,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				ValueResourceHelper.setIfNew(params.additionalBivalentHPPerkW(), 100) |
 				ValueResourceHelper.setIfNew(params.boilerPowerReductionLTtoCD(), 10) |
 				ValueResourceHelper.setIfNew(params.wwSupplyTemp(), (8.0f - ABSOLUTE_ZERO))
+				
 		) {
 			return true;
 		}

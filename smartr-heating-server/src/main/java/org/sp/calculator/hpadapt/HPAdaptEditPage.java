@@ -98,7 +98,8 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		
 		setLabel(data.outsideTempOffset(),
 				EN, "Offset for adapting to historical outside temperature data (K)",
-				DE, "Offset für Adaption der Außentemperaturdaten (K)");
+				DE, "Offset für Adaption der Außentemperaturdaten (K)",
+				-30, 30);
 		
 	}
 }
