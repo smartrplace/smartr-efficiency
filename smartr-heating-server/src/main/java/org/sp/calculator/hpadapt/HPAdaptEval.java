@@ -190,7 +190,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				int radType = 0;
 				List<HeatRadiator> radiators = room.heatRadiator().getAllElements();
 				if(radiators.size() > 0) {
-					radType = radiators.get(0).radiatorType().radiatorType().getValue();
+					radType = radiators.get(0).type().radiatorType().getValue();
 				}
 				float radPower = 1200.0f / 35.0f; // TODO use actual value; = Pth bei Nenn-DeltaT (kW) / Nenn-DeltaT
 				

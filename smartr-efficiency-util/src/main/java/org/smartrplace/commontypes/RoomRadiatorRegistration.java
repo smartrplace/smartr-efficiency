@@ -37,9 +37,9 @@ public class RoomRadiatorRegistration {
 	public static class EditPage extends EditPageGenericWithTable<HeatRadiator> {
 		@Override
 		public void setData(HeatRadiator sr) {
-			setLabel(sr.radiatorType(), EN, "Radiator type",
+			setLabel(sr.type(), EN, "Radiator type",
 					DE, "Heizkörpertyp");
-			setTableHeader(sr.radiatorType().name(), EN, "Name");
+			setTableHeader(sr.type().name(), EN, "Name");
 			setLabel(sr.radiatorLength(), EN, "Length (m)", DE, "Länge (m)");
 			setLabel(sr.hasHeatCostAllocator(), EN, "Heat cost allocator available", DE ,"Heizkostenverteiler installiert");
 			setLabel(sr.heatCostAllocatorReadings(), EN, "Read Heat cost allocator", DE, "Heizkostenverteiler ablesen (aktueller Wert)");

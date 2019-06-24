@@ -42,6 +42,7 @@ import org.smartrplace.util.format.WidgetHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
+import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -54,9 +55,11 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.multiselect.extended.MultiSelectStringArrayFreeText;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
+import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
+import extensionmodel.smarteff.api.common.BuildingData;
 
 /** Default and example implementation of {@link EditPageGenericTableWidgetProvider}<br>
  * Supported special IDs not related to a certain sub-resource:
@@ -460,6 +463,49 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			} else return mhLoc.stringLabel(sub);
 		} else if(SmartEffResource.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
+				if(sub.equals("type")) {
+					ResourceDropdown<Resource> valueWidget = new ResourceDropdown<Resource>(page, "resDrop_"+sub+pid) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+							T entryResource = mhLoc.getGatewayInfo(req);
+							Resource destResource = CapabilityHelper.getOrcreateResource(entryResource,
+									sub, appData.systemAccess(), appManExt, type2.type);
+							BuildingData building = ResourceHelper.getFirstParentOfType(
+									destResource, BuildingData.class);
+							List<? extends Resource> options = building.getSubResources(type2.type, true);
+							List<Resource> toRemove = new ArrayList<>();
+							Resource select = null;
+							for(Resource o: options) {
+								if(o.isReference(false)) toRemove.add(o);
+								else if(destResource.equalsLocation(o)) select = o;
+							}
+							options.removeAll(toRemove);
+ 							update(options, select, req);
+						}
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+							T entryResource = mhLoc.getGatewayInfo(req);
+							Resource destResource = CapabilityHelper.getOrcreateResource(entryResource,
+									sub, appData.systemAccess(), appManExt, type2.type);
+							Resource selection = getSelectedItem(req);
+							if(selection == null) destResource.delete();
+							else
+								destResource.setAsReference(selection);
+						}
+					};
+					DefaultResourceTemplate<Resource> displayTemplate = new DefaultResourceTemplate<Resource>() {
+						@Override
+						public String getLabel(Resource object, OgemaLocale locale) {
+							return ResourceUtils.getHumanReadableName(object);
+						}
+					};
+					valueWidget.setTemplate(displayTemplate);
+					valueWidget.setDefaultAddEmptyOption(true, "(not set)");
+					return valueWidget;
+				}
 				AddEditButtonForCreate valueWidget = new AddEditButtonForCreate(page, "open_"+sub, pid, type2.type, exPage, null) {
 					private static final long serialVersionUID = 1L;
 					
@@ -471,7 +517,23 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						//Resource destResource = ResourceHelper.getSubResource(entryResource, sub, type2.type);
 						return destResource;
 					}
+					
+					@Override
+					protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						Resource destResource = getResource(appData, req);
+						StringResource nameRes = destResource.getSubResource("name", StringResource.class);
+						if(nameRes.isActive()) {
+							Map<OgemaLocale, String> res = new HashMap<>();
+							res.put(EditPageBase.EN, "Edit "+ nameRes.getValue());
+							res.put(EditPageBase.FR, "Édite "+ nameRes.getValue());
+							res.put(EditPageBase.DE, nameRes.getValue()+" bearbeiten");
+							return res;
+						}
+						return super.getButtonTexts(req);
+					}
 				};
+				//valueWidget.setButtonTexts(buttonTexts);
 				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 				return valueWidget;
 			} else return new Label(page, "noEdit_"+sub, "Not Allowed");

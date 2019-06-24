@@ -55,8 +55,8 @@ public class WindowTypeRegistration {
 			setLabel(type.name(), EN, "Name of window type", DE, "Name des Fenstertyps");
 			setTableHeader(type.name(), EN, "Name");
 			
-			setLabel(type.count(), EN, "Number of windows of this type in building",
-					DE, "Zahl der Fenster des Typs im Gebäude");
+			setLabel(type.count(), EN, "Number of windows of this type in building that are not modeled in rooms",
+					DE, "Zahl der Fenster des Typs im Gebäude, die nicht in Räumen modelliert sind");
 			setTableHeader(type.count(), EN, "# in building", DE, "# im Gebäude");
 			
 			setLabelWithUnit(type.uValue(), EN, "U-Value of windows of this type", DE, "U-Wert der Fenster des Typs");

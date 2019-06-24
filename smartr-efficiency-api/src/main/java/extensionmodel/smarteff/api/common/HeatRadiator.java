@@ -11,7 +11,7 @@ public interface HeatRadiator extends SmartEffResource {
 	/** Usually this should be a reference to a type modeled for a building or 
 	 * provided as global data
 	 */
-	HeatRadiatorType radiatorType();
+	HeatRadiatorType type();
 	
 	/** Length of radiators, usually height and depth should be given by the type*/
 	LengthResource radiatorLength();

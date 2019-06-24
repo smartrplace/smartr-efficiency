@@ -56,8 +56,10 @@ public class RadiatorTypeRegistration {
 		@Override
 		public void setData(HeatRadiatorType sr) {
 			setHeaderLabel(EN, "Radiator Type Data", DE, "Daten Thermostattype im Gebäude");
-			setLabel(sr.numberOfRadiators(), EN, "Number of radiators of this type in building (only relevant if not modeled in rooms)",
-					DE, "Zahl der Thermostate des Typs im Gebäude (nur relevant, wenn Radiatoren nicht in Räumen modelliert werden)");
+			setLabel(sr.name(), EN, "Name of radiator type", DE, "Name des Fenstertyps");
+			setTableHeader(sr.name(), EN, "Name");
+			setLabel(sr.numberOfRadiators(), EN, "Number of radiators of this type in building NOT modeled in rooms",
+					DE, "Zahl der Thermostate des Typs im Gebäude, die NICHT in Räumen angelegt wurden");
 			setTableHeader(sr.numberOfRadiators(), EN, "# in building",
 					DE, "# im Gebäude");
 			setLabel(sr.radiatorDescription(), EN, "Radiator description");
