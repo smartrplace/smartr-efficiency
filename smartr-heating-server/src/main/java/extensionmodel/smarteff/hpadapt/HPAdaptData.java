@@ -46,9 +46,12 @@ public interface HPAdaptData extends SmartEffResource {
 	/** 100EE pricing */
 	final static int PRICE_TYPE_100EE = 2;
 	/** Number of price type ids. If all types are to be calculated for, iterate from 0 to this. */
+	@Deprecated
 	final static int PRICE_TYPES_COUNT = 2;
 	/** English names for price types */
 	final static String[] PRICE_TYPE_NAMES_EN = {"Conventional", "CO2-neutral", "100EE"};
+	/** German names for price types */
+	final static String[] PRICE_TYPE_NAMES_DE = {"Konventionell", "CO2-neutral", "100EE"};
 	/** Dimensioning for price type */
 	IntegerResource dimensioningForPriceType();
 	
