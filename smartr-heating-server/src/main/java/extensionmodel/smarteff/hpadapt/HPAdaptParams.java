@@ -4,6 +4,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.units.PercentageResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
+import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 
 /**
@@ -68,4 +69,9 @@ public interface HPAdaptParams extends SmartEffResource {
 	 * Historical Temperature Data to be imported via CSV
 	 */
 	SmartEffTimeSeries temperatureHistory();
+	
+	/**COP characteristics of heat pump. The outside temperature is used as primary key,
+	 * the supply temperature is used as secondary key, the values are COP values.
+	 */
+	SmartEff2DMap copCharacteristics();
 }
