@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.channelmanager.measurements.SampledValue;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.schedule.AbsoluteSchedule;
 import org.slf4j.LoggerFactory;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -16,11 +17,14 @@ import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProjectProviderBase;
 import org.sp.example.smartrheating.util.BaseInits;
+import org.sp.example.smartrheating.util.BasicCalculations;
+import org.sp.example.smartrheating.util.BasicCalculations.YearlyConsumption;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
+import extensionmodel.smarteff.api.common.HeatCostBillingInfo;
 import extensionmodel.smarteff.api.common.HeatRadiator;
 import extensionmodel.smarteff.api.common.Window;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParams;
@@ -360,11 +364,15 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			result.meanHeatingOutsideTemp().create();
 			result.meanHeatingOutsideTemp().setCelsius(meanHeatingOutsideTemp);
 
-			float yearly_heating_energy_consumption = 20000; // kWh, TODO add
+			BuildingData building = hpData.getParent();
+			ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
+			YearlyConsumption yearlyConsumption =
+					BasicCalculations.getYearlyConsumption(heatCostBillingInfo, 3);
+			float yearlyHeatingEnergyConsumption = yearlyConsumption.avKWh;
 			float b_is_LT_to_CD = 1f; // TODO
 			float boilerPowerReductionLTtoCD = hpParams.boilerPowerReductionLTtoCD().getValue() * 0.01f;
 			float activePowerWhileHeating =
-					yearly_heating_energy_consumption * (1 - b_is_LT_to_CD * boilerPowerReductionLTtoCD)
+					yearlyHeatingEnergyConsumption * (1 - b_is_LT_to_CD * boilerPowerReductionLTtoCD)
 					/ numberOfHeatingDays / 24 * 1000;
 			ValueResourceHelper.setCreate(result.activePowerWhileHeating(), activePowerWhileHeating);
 			
