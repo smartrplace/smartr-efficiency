@@ -64,13 +64,14 @@ public interface HPAdaptParams extends SmartEffResource {
 	/** Warm water supply temperature (°C) */
 	TemperatureResource wwSupplyTemp();
 	
+
 	/* OTHER */
-	/**
-	 * Historical Temperature Data to be imported via CSV
-	 */
+
+	/** Historical Temperature Data to be imported via CSV. Daily mean temperatures over one year. */
 	SmartEffTimeSeries temperatureHistory();
 	
-	/**COP characteristics of heat pump. The outside temperature is used as primary key,
+	/**
+	 * COP characteristics of heat pump. The outside temperature is used as primary key,
 	 * the supply temperature is used as secondary key, the values are COP values.
 	 */
 	SmartEff2DMap copCharacteristics();

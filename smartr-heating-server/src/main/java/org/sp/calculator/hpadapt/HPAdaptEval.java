@@ -44,9 +44,10 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	}
 
 	@Override
-	protected void calculateProposal(HPAdaptData hpData, ProjectProposal resultProposal, ExtensionResourceAccessInitData data) {
+	protected void calculateProposal(HPAdaptData hpData, ProjectProposal resultProposal,
+			ExtensionResourceAccessInitData data) {
 		
-		if(!(resultProposal instanceof HPAdaptResult)) {
+		if (!(resultProposal instanceof HPAdaptResult)) {
 			LoggerFactory.getLogger(HPAdaptEval.class).error("Wrong Result type. Can't evaluate.");
 			return;
 		}
@@ -57,19 +58,24 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	}
 	
 
-	/* Constants */
-	final static int LOWEST_TEMP = -20;
-	final static int HIGHEST_TEMP = 40;
-
+	public static final float ABSOLUTE_ZERO = -273.15f;
+	/* Range of typical temperatures to evaluate for */
+	public static final int LOWEST_TEMP = -20;
+	public static final int HIGHEST_TEMP = 40;
 
 	/**
-	 * Calculate HPAdapt-specific Result
+	 * Calculate HPAdapt-specific result. Main evaluation function.
 	 * Note: variables named_with_underscores indicate values that have yet to be added to their respective data models.
+	 * @param hpData
+	 * @param result
+	 * @param resultProposal
+	 * @param data
 	 */
 	protected void calculateHPAdapt(HPAdaptData hpData, HPAdaptResult result, ProjectProposal resultProposal,
 			ExtensionResourceAccessInitData data) {
 		
-		/* Setup */
+		/* SETUP */
+
 		MyParam<HPAdaptParams> hpParamHelper =
 				CapabilityHelper.getMyParams(HPAdaptParams.class, data.userData(), appManExt);
 		HPAdaptParams hpParams = hpParamHelper.get();
@@ -79,19 +85,80 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		DefaultProviderParams defParams = defParamHelper.get();
 		
 		BuildingData building = hpData.getParent();
+		
 
-		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
-		/* Calculate: Heating days, Heating degree days on daily and hourly basis */
+		/* CALCULATION */
+
+		/* Calculate heating days, Heating degree days on daily and hourly basis as well as temperature shares. */
+		Map<Integer, Integer> temperatureShares = calcHeatingDaysAndTempShares(result, hpData, hpParams);
+
+		/* Calculate window-related data */
+		List<Window> allWindows = building.getSubResources(Window.class, true);
+		calcWindows(result, allWindows);
+		
+		/* Find most critical room for each temperature */
+		List<BuildingUnit> rooms = building.getSubResources(BuildingUnit.class, true);
+		Map<Integer, Float> badRoomCops = calcBadRoomCOP(result, hpData, hpParams, rooms);
+		
+		/* Perform calculations of TODO for all price levels */
+		for (int priceTypeIdx = 0; priceTypeIdx < HPAdaptData.PRICE_TYPE_NAMES_EN.length; priceTypeIdx++) {
+			calcPriceLevel(result, resultProposal, hpData, hpParams, temperatureShares, badRoomCops, priceTypeIdx);
+		}
+
+		/* Calculate remaining results */
+		calcRemaining(result, hpData);
+		
+		/* Cleanup */
+		hpParamHelper.close();
+		defParamHelper.close();
+	}
+
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * *
+	 *   AUXILIARY FUNCTIONS FOR CALCULATION     *
+	 * * * * * * * * * * * * * * * * * * * * * * */
+
+	private static final long MS_IN_A_DAY = (long) 24 * 60 * 60 * 1000;
+	private static final int DAYS_IN_A_YEAR = 365;
+	/**
+	 * Calculate heating days, Heating degree days on daily and hourly basis as well as temperature shares.
+	 * @param result Sets the following result resources:
+	 * heatingDegreeDays, numberOfHeatingDays
+	 * @param hpData
+	 * @param hpParams
+	 * @return temperatureShares: Over a range of possible outside temperatures, the number of days with that outside
+	 * temperature. Used for further evaluation.
+	 */
+	private Map<Integer, Integer> calcHeatingDaysAndTempShares(
+			HPAdaptResult result, HPAdaptData hpData, HPAdaptParams hpParams) {
+		
+		Map<Integer, Integer> temperatureShares = new HashMap<>();
 		int heatingDegreeDays = 0;
 		int numberOfHeatingDays = 0;
+		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
-		Map<Integer, Integer> temperatureShares = new HashMap<>();
-		
 		float temperatureOffset = hpData.outsideTempOffset().getValue();
 		AbsoluteSchedule temperatureHistory = hpParams.temperatureHistory().recordedDataParent().program();
+		
+		if (temperatureHistory.size() != DAYS_IN_A_YEAR) {
+			LoggerFactory.getLogger(HPAdaptEval.class).warn("Temperature history has {} data points. Expected {}",
+					temperatureHistory.size(), DAYS_IN_A_YEAR);
+		}
+		
 		Iterator<SampledValue> iter = temperatureHistory.iterator();
-		while(iter.hasNext()) {
-			float meanOutsideDaytimeTemperature = iter.next().getValue().getFloatValue() + temperatureOffset;
+		long prevTimestamp = 0;
+		/** Number of data points that are not offset by 24 hours */
+		int wrongDataPoints = 0;
+		while (iter.hasNext()) {
+			SampledValue val = iter.next();
+			/* Basic sanity checks of the data we've got */
+			long timestamp = val.getTimestamp();
+			if (prevTimestamp != 0 && Math.round((timestamp - prevTimestamp) / 1000) * 1000 != MS_IN_A_DAY)
+				wrongDataPoints++;
+			
+			
+			float meanOutsideDaytimeTemperature = val.getValue().getFloatValue() + temperatureOffset;
 			if (meanOutsideDaytimeTemperature < heatingLimitTemp) {
 				numberOfHeatingDays += 1;
 				heatingDegreeDays += heatingLimitTemp - meanOutsideDaytimeTemperature;
@@ -102,46 +169,63 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			if(temperatureShares.containsKey(tempRounded))
 				n = temperatureShares.get(tempRounded) + 1;
 			temperatureShares.put(tempRounded, n);
+			prevTimestamp = timestamp;
 		}
 		ValueResourceHelper.setCreate(result.heatingDegreeDays(), heatingDegreeDays);
 		ValueResourceHelper.setCreate(result.numberOfHeatingDays(), numberOfHeatingDays);
+
+		if(wrongDataPoints > 10)
+			LoggerFactory.getLogger(HPAdaptEval.class).warn("{} data points in temperature history are not daily!",
+					wrongDataPoints);
 		
+		/* TODO?: Allow user to upload hourly data
 		int heatingDegreeDaysHourly = 0;
 		int numberOfHeatingDaysHourly = 0;
-		/*
-		 * TODO: Allow user to upload hourly data
-		 */
+		
 		// For each recorded hour of the year {
-		/*	float outside_temperature = 0f;
+			float outside_temperature = 0f;
 				if (outside_temperature < heatingLimitTemp) {
 					numberOfHeatingDaysHourly += 1;
 					heatingDegreeDaysHourly += heatingLimitTemp - outside_temperature;
 				}
-		*/
 		// }
-		//ValueResourceHelper.setCreate(result.heatingDegreeDaysHourly(), heatingDegreeDaysHourly);
-		//ValueResourceHelper.setCreate(result.numberOfHeatingDaysHourly(), numberOfHeatingDaysHourly);
+		ValueResourceHelper.setCreate(result.heatingDegreeDaysHourly(), heatingDegreeDaysHourly);
+		ValueResourceHelper.setCreate(result.numberOfHeatingDaysHourly(), numberOfHeatingDaysHourly);
+		*/
 		
 		/* Perform calculations on temperature Shares */
 		for(int i = LOWEST_TEMP; i <= HIGHEST_TEMP; i++) {
-			// TODO
+			// TODO?
 		}
 		
-		/* U-VALUE AND ROOM VALUE BASED DEMAND */
+		return temperatureShares;
+	}
 
-		/* Calculate total window area and window losses / RoomEval1 */
-		List<Window> allWindows = building.getSubResources(Window.class, true);
-		
+
+	private final static float DEFAULT_WINDOW_UVALUE = 1.8f;
+	private final static float DEFAULT_WINDOW_HEIGHT = 1.05f;
+	private final static float DEFAULT_WINDOW_WIDTH = 1.5f;
+	/**
+	 * Calculate window-related data.
+	 * If parts of the window data are missing, it will assume defaults:
+	 * U-Value: {@value #DEFAULT_WINDOW_UVALUE} W/(m²*K),
+	 * Height: {@value #DEFAULT_WINDOW_HEIGHT} m,
+	 * Width: {@value #DEFAULT_WINDOW_WIDTH} m
+	 * @param result Sets the following result resources:
+	 * windowArea, pLossWindow
+	 * @param allWindows List of all windows in the building
+	 */
+	private void calcWindows(HPAdaptResult result, List<Window> allWindows) {
 		float totalWindowArea = 0.0f; // m²
 		float totalPLossWindow = 0.0f; // W/K
 		
 		for(Window window : allWindows) {
 			float uValue = window.type().uValue().getValue(); // W/(m²*K)
-			if(Float.isNaN(uValue)) uValue = 1.8f;
+			if (Float.isNaN(uValue)) uValue = DEFAULT_WINDOW_UVALUE;
 			float height = window.type().height().getValue(); // m
-			if(Float.isNaN(height)) height = 1.05f;
+			if (Float.isNaN(height)) height = DEFAULT_WINDOW_HEIGHT;
 			float width = window.width().getValue(); // m
-			if(Float.isNaN(height)) width = 1.5f;
+			if (Float.isNaN(height)) width = DEFAULT_WINDOW_WIDTH;
 			float area = height * width; // m²
 			totalWindowArea += area;
 			totalPLossWindow += uValue * area;
@@ -149,26 +233,39 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		
 		ValueResourceHelper.setCreate(result.windowArea(), totalWindowArea);
 		ValueResourceHelper.setCreate(result.pLossWindow(), totalPLossWindow);
-		
-		/* End RoomEval1 */
-		
-		/* Find most critical room for each temperature / RoomEval2 */
+	}
+
+
+	/**
+	 * Find most critical room for each temperature / RoomEval2.
+	 * Over a range of outside temperatures, determine the room losing the most energy ("Bad Room") at that temperature
+	 * and store its COP value.
+	 * @param result Sets the following result resources:
+	 * roofArea, basementArea, facadeWallArea, numberOfRoomsFacingOutside,
+	 * uValueFacade (NOTE: Currently assumes 1.0 as a starting point, later calculations will overwrite this),
+	 * @param hpData
+	 * @param hpParams
+	 * @param rooms List of all rooms in the building.
+	 * @return Outside Temperature --> COP of most critical room
+	 */
+	private Map<Integer, Float> calcBadRoomCOP(HPAdaptResult result,
+			HPAdaptData hpData, HPAdaptParams hpParams, List<BuildingUnit> rooms) {
 		
 		float vLMax = - Float.MAX_VALUE;
 		float pMax = - Float.MAX_VALUE;
 		
 		float minTemp = hpData.outsideDesignTemp().getCelsius();
+		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 		
-		List<BuildingUnit> rooms = building.getSubResources(BuildingUnit.class, true);
-		if(rooms.isEmpty())
-			LoggerFactory.getLogger(HPAdaptEval.class).error("No rooms found in {}!", building.name().getValue());
+		if (rooms.isEmpty())
+			LoggerFactory.getLogger(HPAdaptEval.class).error("No rooms found!");
 
 		/* Values needed for RoomEval3 */
 		float totalRoofArea = 0f;
 		float totalBasementArea = 0f;
 		float totalFacadeWallArea = 0f;
 		int numberOfRoomsFacingOutside = 0;
-		for(BuildingUnit room : rooms) {
+		for (BuildingUnit room : rooms) {
 			float wall_height = 2.8f; // TODO add to BuildingUnit
 			float roof_share = 1.0f; // TODO add to BuildingUnit
 			float basement_share = 1.0f; // TODO add to BuildingUnit
@@ -177,7 +274,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			totalFacadeWallArea += room.totalOutsideWallArea().getValue() 
 					+ wall_height * hpData.innerWallThickness().getValue() * 0.01
 					- room.outsideWindowArea().getValue();
-			if(room.window().size() > 0) numberOfRoomsFacingOutside++;
+			if (room.window().size() > 0) numberOfRoomsFacingOutside++;
 		}
 		ValueResourceHelper.setCreate(result.roofArea(), totalRoofArea);
 		ValueResourceHelper.setCreate(result.basementArea(), totalBasementArea);
@@ -188,12 +285,12 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		/** Temperature -> COP for worst room at that temperature. */
 		Map<Integer, Float> badRoomCops = new HashMap<>();
 
-		for(int temp = Math.round(heatingLimitTemp); temp >= Math.round(minTemp); temp--) {
+		for (int temp = Math.round(heatingLimitTemp); temp >= Math.round(minTemp); temp--) {
 			
 			BuildingUnit badRoom = null; // Most critical room for temperature
 			float deltaT = heatingLimitTemp - temp;
 			
-			for(BuildingUnit room : rooms) {
+			for (BuildingUnit room : rooms) {
 				/* Get radiator data */
 				int radType = 0;
 				List<HeatRadiator> radiators = room.heatRadiator().getAllElements();
@@ -204,11 +301,11 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				
 				/* Window loss */
 				List<Window> windows = room.getSubResources(Window.class, true);
-				if(windows.isEmpty())
-					LoggerFactory.getLogger(HPAdaptEval.class).warn("No windows found in {}!", room.name().getValue());
+				if (windows.isEmpty())
+					LoggerFactory.getLogger(HPAdaptEval.class).info("No windows found in {}!", room.name().getValue());
 				float windowLoss = 0.0f;
 				float windowArea = 0.0f;
-				for(Window window : windows) {
+				for (Window window : windows) {
 					float uValue = window.type().uValue().getValue(); // W/(m²*K)
 					float height = window.type().height().getValue(); // m
 					float width = window.width().getValue(); // m
@@ -216,7 +313,6 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 					
 					windowArea += area;
 					windowLoss += area * uValue;
-					
 				}
 				
 				/* Wall, ceiling and basement loss */
@@ -238,14 +334,14 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				
 				float vLLoc = pLoc / radPower + comfort_temp;
 				
-				if(vLLoc > vLMax) {
+				if (vLLoc > vLMax) {
 					vLMax = vLLoc;
 					pMax = pLoc;
 					badRoom = room;
 				}
 			}
 				
-			if(badRoom == null) {
+			if (badRoom == null) {
 				LoggerFactory.getLogger(HPAdaptEval.class).warn("No BadRoom was determined!");
 				continue;
 			}
@@ -261,55 +357,53 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			badRoomCops.put(temp, cop);
 			
 		}
-		/* End RoomEval2 */
-		
-		
-		/* Bivalent optimization */
-		
-		boolean control_fixed_price_type = false; // TODO? add
-		
-		calcPriceLevel(HPAdaptData.USE_USER_DEFINED_PRICE_TYPE, hpData, result, resultProposal, hpParams,
-				temperatureShares, badRoomCops); // TODO: Do we need to run calcPriceLevel here?
-		
-		if(control_fixed_price_type) {
-			calcPriceLevel(HPAdaptData.USE_USER_DEFINED_PRICE_TYPE, hpData, result, resultProposal, hpParams,
-					temperatureShares, badRoomCops);
-		}
-		else {
-			for(int i = 0; i < HPAdaptData.PRICE_TYPE_NAMES_EN.length; i++) {
-				calcPriceLevel(i, hpData, result, resultProposal, hpParams,
-						temperatureShares, badRoomCops);
-			}
-		}
-		
+		return badRoomCops;
+	}
 
-		/* Calculate remaining results */
-		
-		float powerLossBasementHeating = result.powerLossBasementHeating().getValue();
+
+	/**
+	 * Calculate remaining simple results that depend on other results.
+	 * @param result Sets the following result resources:
+	 * powerLossAtFreezing, powerLossAtOutsideDesignTemp.
+	 * Assumes that all but these resources have already been calculated.
+	 * @param hpData
+	 */
+	private void calcRemaining(HPAdaptResult result, HPAdaptData hpData) {
+
+		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 		float otherPowerLoss = result.otherPowerLoss().getValue();
+		float outsideDesignTemp = hpData.outsideDesignTemp().getCelsius();
+		float powerLossBasementHeating = result.powerLossBasementHeating().getValue();
 
 		float powerLossAtFreezing = powerLossBasementHeating + otherPowerLoss * heatingLimitTemp;
 		ValueResourceHelper.setCreate(result.powerLossAtFreezing(), powerLossAtFreezing);
 		
-		float outsideDesignTemp = hpData.outsideDesignTemp().getCelsius();
 		float powerLossAtOutsideDesignTemp = powerLossBasementHeating
 				+ otherPowerLoss * (heatingLimitTemp - outsideDesignTemp);
 		ValueResourceHelper.setCreate(result.powerLossAtOutsideDesignTemp(), powerLossAtOutsideDesignTemp);
 		
-		
-		hpParamHelper.close();
-		defParamHelper.close();
 	}
-	
-	
 
+	
 	/**
-	 * Perform COP evaluation / RoomEval3
+	 * Perform COP evaluation / RoomEval3.
+	 * TODO: Parts of these calculations are independent of the price level and don't need to be re-calculated each
+	 * time.
+	 * @param result Sets the following result resources:
+	 * meanHeatingOutsideTemp, activePowerWhileHeating, totalPowerLoss, weightedExtSurfaceAreaExclWindows,
+	 * uValueFacade, powerLossBasementHeating, powerLossBasementHeating, powerLossBasementHeating,
+	 * maxPowerHPfromBadRoom
+	 * @param resultProposal Sets the following resultProposal resources: TODO
+	 * @param hpData
+	 * @param hpParams
+	 * @param temperatureShares calculated by {@link #calcHeatingDaysAndTempShares}
+	 * @param badRoomCops calculated by {@link #calcBadRoomCOP}
+	 * @param priceType defined in HPAdaptData
 	 */
-	protected void calcPriceLevel(int priceType, HPAdaptData hpData, HPAdaptResult result,
-			ProjectProposal resultProposal, HPAdaptParams hpParams,
-			Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops) {
-		
+	private void calcPriceLevel(HPAdaptResult result, ProjectProposal resultProposal, HPAdaptData hpData,
+			HPAdaptParams hpParams, Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops,
+			int priceType) {
+		// TODO Auto-generated method stub
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
 		float heatingDegreeDays = result.heatingDegreeDays().getValue();
@@ -325,11 +419,11 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		if(priceType == HPAdaptData.USE_USER_DEFINED_PRICE_TYPE)
 			priceType = hpData.dimensioningForPriceType().getValue();
 
-		if(priceType == HPAdaptData.PRICE_TYPE_100EE) {
+		if (priceType == HPAdaptData.PRICE_TYPE_100EE) {
 			priceVarHeatPower = hpParams.electrictiyPriceHeat100EEPerkWh().getValue();
 			priceVarGas = hpParams.gasPrice100EEPerkWh().getValue();
 		}
-		else if(priceType == HPAdaptData.PRICE_TYPE_CO2_NEUTRAL) {
+		else if (priceType == HPAdaptData.PRICE_TYPE_CO2_NEUTRAL) {
 			priceVarHeatPower = hpParams.electrictiyPriceHeatCO2neutralPerkWh().getValue();
 			priceVarGas = hpParams.electrictiyPriceHeatCO2neutralPerkWh().getValue();
 		}
@@ -345,7 +439,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		float maxPowerHp = 0;
 
 		/** Calculate powerLossBasementHeating and otherPowerLoss */
-		for(int temp = Math.round(heatingLimitTemp); temp >= Math.round(LOWEST_TEMP); temp--) {
+		for (int temp = Math.round(heatingLimitTemp); temp >= Math.round(LOWEST_TEMP); temp--) {
 			
 			/* Calculate required values */
 
@@ -401,7 +495,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			float pLoc;
 			float wElPerkWh;
 			float wGas;
-			if(cop >= copMin) {
+			if (cop >= copMin) {
 				pLoc = nShares * p * 24f / 1000f / cop;
 				sumHp += pLoc;
 				wElPerkWh = pLoc;
@@ -433,6 +527,11 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		/* END RoomEval3 */
 	}
 	
+
+
+	/* * * * * * * * * * * * * * * * * * * * * * *
+	 *   PROJECT PROVIDER FUNCTIONS              *
+	 * * * * * * * * * * * * * * * * * * * * * * */
 
 	@Override
 	protected Class<? extends ProjectProposal> getResultType() {
@@ -509,5 +608,4 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		return "master";
 	}
 
-	public static final float ABSOLUTE_ZERO = -273.15f;
 }
