@@ -101,5 +101,9 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				DE, "Offset für Adaption der Außentemperaturdaten (K)",
 				-30, 30);
 		
+		setLabelWithUnit(data.comfortTemp(),
+				EN, "Comfort temperature",
+				DE, "Komfort-Temperatur");
+		
 	}
 }

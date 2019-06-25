@@ -330,9 +330,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				float basementLoss = room.groundArea().getValue() * basement_share; // TODO what about U-Value?
 				pLoc += basementLoss * (heatingLimitTemp - hpData.basementTempHeatingSeason().getCelsius());
 				
-				float comfort_temp = 20.0f; // TODO add to hpData
+				float comfortTemp = hpData.comfortTemp().getCelsius();
 				
-				float vLLoc = pLoc / radPower + comfort_temp;
+				float vLLoc = pLoc / radPower + comfortTemp;
 				
 				if (vLLoc > vLMax) {
 					vLMax = vLLoc;

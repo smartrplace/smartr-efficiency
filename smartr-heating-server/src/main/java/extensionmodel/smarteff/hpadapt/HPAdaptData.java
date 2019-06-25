@@ -56,7 +56,8 @@ public interface HPAdaptData extends SmartEffResource {
 	IntegerResource dimensioningForPriceType();
 	/** Offset for adapting to historical outside temperature data */
 	FloatResource outsideTempOffset();
-	
+	/** Comfort temperature */
+	TemperatureResource comfortTemp();
 	/* U-VALUE DATA */
 	
 	/** U-Value basement → facade */
