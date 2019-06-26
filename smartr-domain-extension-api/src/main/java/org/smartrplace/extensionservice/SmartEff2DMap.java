@@ -12,6 +12,10 @@ public interface SmartEff2DMap extends Data {
 	must be the size of {@link #secondaryKeys()}.
 	*/
 	ResourceList<FloatArrayResource> characteristics();
+	
+	/** Primary keys of the map. Must from lowest to highest. */
 	FloatArrayResource primaryKeys();
+	/** Secondary keys of the map. Must from lowest to highest. */
 	FloatArrayResource secondaryKeys();
+	
 }
