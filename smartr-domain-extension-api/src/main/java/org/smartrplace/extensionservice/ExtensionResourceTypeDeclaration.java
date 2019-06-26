@@ -18,7 +18,7 @@ public interface ExtensionResourceTypeDeclaration<T extends Resource> {
 	
 	/**Super type to which new resource or resource list shall be applied. The element shall be 
 	 * created as decorator if not (yet) defined as regular element. If the extension element is
-	 * accepted as standard extension the respective element should be added in the parent tpye
+	 * accepted as standard extension the respective element should be added in the parent type
 	 * definition.
 	 */
 	Class<? extends T> parentType();

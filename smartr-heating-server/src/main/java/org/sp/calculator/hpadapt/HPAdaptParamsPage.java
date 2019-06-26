@@ -75,6 +75,9 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 		setLabel(params.temperatureHistory(),
 				EN, "Historical Temperature Data to be imported via CSV",
 				DE, "Temperaturewerte, die per CSV importiert werden können");
+		setLabel(params.copCharacteristics(),
+				EN, "Heat pump COP characteristics",
+				DE, "COP-Kennfeld der Wärmepumpe");
 
 	}
 	@Override

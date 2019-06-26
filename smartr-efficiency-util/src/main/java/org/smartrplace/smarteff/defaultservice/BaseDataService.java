@@ -102,6 +102,7 @@ public class BaseDataService implements SmartEffExtensionService {
 			= new WindowTypeRegistration.TypeDeclaration();
 	public final static RoomWindowRegistration.TypeDeclaration ROOM_WINDOW_TYPE_REGISTRATION
 			= new RoomWindowRegistration.TypeDeclaration();
+	public static final SmartEff2DMapPage SMARTEFF2DMAP_REGISTRATION = new SmartEff2DMapPage(1, 1, 1);
 	
 	/*public final static org.smartrplace.smarteff.defaultservice.BuildingTablePage.Provider BUILDING_NAVI_PROVIDER = new BuildingTablePage().provider;
 	public final static org.smartrplace.smarteff.defaultservice.BuildingEditPage.Provider BUILDING_EDIT_PROVIDER = new BuildingEditPage().provider;
@@ -167,7 +168,8 @@ public class BaseDataService implements SmartEffExtensionService {
 				TSMAN_EDIT,
 				RADIATOR_PAGE.provider, RADIATOR_TABLE.provider, ROOMRAD_PAGE.provider, ROOMRAD_TABLE.provider,
 				WINDOW_PAGE.provider, WINDOW_TABLE.provider, ROOM_WINDOW_PAGE.provider, ROOM_WINDOW_TABLE.provider,
-				new PriceDataParamsPage().provider});
+				new PriceDataParamsPage().provider, SMARTEFF2DMAP_REGISTRATION.provider}
+				);
 	}
 
 	@Override

@@ -20,8 +20,10 @@ import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.omg.CosNaming.IstringHelper;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
+import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
@@ -461,6 +463,39 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						multi.multiSelect, multi.newValue, multi.submit);
 				return valueWidget;
 			} else return mhLoc.stringLabel(sub);
+		} else if(SmartEff2DMap.class.isAssignableFrom(type2.type)) {
+			if(isEditable) {
+				AddEditButton valueWidget = new AddEditButton(page, "open_"+sub, pid, exPage, null) {
+					private static final long serialVersionUID = 1L;
+					
+					@Override
+					protected Resource getResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						SmartEff2DMap destResource = (SmartEff2DMap) CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, type2.type);
+						//Resource destResource = ResourceHelper.getSubResource(entryResource, sub, type2.type);
+						return destResource;
+					}
+					
+					@Override
+					protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						Resource destResource = getResource(appData, req);
+						StringResource nameRes = destResource.getSubResource("name", StringResource.class);
+						if(nameRes.isActive()) {
+							Map<OgemaLocale, String> res = new HashMap<>();
+							res.put(EditPageBase.EN, "Edit "+ nameRes.getValue());
+							res.put(EditPageBase.FR, "Édite "+ nameRes.getValue());
+							res.put(EditPageBase.DE, nameRes.getValue()+" bearbeiten");
+							return res;
+						}
+						return super.getButtonTexts(req);
+					}
+				};
+				//valueWidget.setButtonTexts(buttonTexts);
+				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
+				return valueWidget;
+			} else return new Label(page, "noEdit_"+sub, "r/o for 2Dmap not supported");
 		} else if(SmartEffResource.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
 				if(sub.equals("type")) {
