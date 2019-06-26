@@ -575,16 +575,22 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			SmartEff2DMap cop = params.copCharacteristics().create();
 			FloatArrayResource outsideTemp = cop.primaryKeys().create();
 			FloatArrayResource supplyTemp = cop.secondaryKeys().create();
-			outsideTemp.setValues(new float[] {-5f, 0f, 5f, 10f, 15f});
-			supplyTemp.setValues(new float[] {30, 40, 50, 60});
+			outsideTemp.setValues(new float[] {-20f, -15f, -10f, -5f, 0f, 5f, 10f, 15f, 20f, 25f, 30f});
+			supplyTemp.setValues(new float[] {35, 50, 65});
 			cop.characteristics().create();
 			final float[][] copField = {
-					/* out/supply	 30°C	40°C	50°C	60°C	*/
-					/* -5°C */ {	 1.9f,	1.0f,	1.0f,	1.0f,	},
-					/*  0°C */ {	 6.0f,	3.5f,	2.0f,	1.0f,	},
-					/*  5°C */ {	 9.0f,	5.0f,	3.0f,	1.5f,	},
-					/* 10°C */ {	 12.0f,	7.5f,	4.5f,	2.0f,	},
-					/* 15°C */ {	 15.0f,	10.0f,	6.0f,	3.0f,	}
+					/* out/supply	 35°C	50°C	65°C	*/
+					/* -20°C */ {	1.90f,	1.90f,	0.00f,	},
+					/* -15°C */ {	2.50f,	2.20f,	0.00f,	},
+					/* -10°C */ {	2.60f,	2.25f,	1.90f,	},
+					/* - 5°C */ {	2.80f,	2.35f,	1.90f,	},
+					/*   0°C */ {	3.15f,	2.50f,	2.00f,	},
+					/*   5°C */ {	3.50f,	2.65f,	2.10f,	},
+					/*  10°C */ {	3.90f,	2.95f,	2.40f,	},
+					/*  15°C */ {	4.25f,	3.40f,	2.70f,	},
+					/*  20°C */ {	4.60f,	3.60f,	2.80f,	},
+					/*  25°C */ {	4.75f,	3.80f,	2.90f,	},
+					/*  30°C */ {	4.85f,	4.00f,	3.10f,	}
 			};
 			for (int i = 0; i < copField.length; i++) {
 				FloatArrayResource f = cop.characteristics().add();
