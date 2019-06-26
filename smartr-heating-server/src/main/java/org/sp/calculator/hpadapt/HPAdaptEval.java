@@ -292,13 +292,17 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			
 			for (BuildingUnit room : rooms) {
 				/* Get radiator data */
-				int radType = 0;
 				List<HeatRadiator> radiators = room.heatRadiator().getAllElements();
+				float radPower = 0;
 				if(radiators.size() > 0) {
-					radType = radiators.get(0).type().radiatorType().getValue();
+					Iterator<HeatRadiator> iter = radiators.iterator();
+					while(iter.hasNext()) {
+						HeatRadiator rad = iter.next();
+						float nominalPower = rad.radiatorLength().getValue() * rad.type().powerPerLength().getValue();
+						float nominalDeltaT = rad.type().nominalTemperatureDifference().getValue();
+						radPower += nominalPower / nominalDeltaT;
+					}
 				}
-				float radPower = 1200.0f / 35.0f; // TODO use actual value; = Pth bei Nenn-DeltaT (kW) / Nenn-DeltaT
-				
 				/* Window loss */
 				List<Window> windows = room.getSubResources(Window.class, true);
 				if (windows.isEmpty())
