@@ -134,7 +134,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			HPAdaptResult result, HPAdaptData hpData, HPAdaptParams hpParams) {
 		
 		Map<Integer, Integer> temperatureShares = new HashMap<>();
-		int heatingDegreeDays = 0;
+		float heatingDegreeDays = 0;
 		int numberOfHeatingDays = 0;
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
@@ -179,7 +179,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 					wrongDataPoints);
 		
 		/* TODO?: Allow user to upload hourly data
-		int heatingDegreeDaysHourly = 0;
+		float heatingDegreeDaysHourly = 0;
 		int numberOfHeatingDaysHourly = 0;
 		
 		// For each recorded hour of the year {
