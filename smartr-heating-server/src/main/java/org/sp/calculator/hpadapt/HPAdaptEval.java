@@ -322,12 +322,15 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				float wallLoss = (room.totalOutsideWallArea().getValue() - windowArea) * uValueFacade;
 
 				float ceil_share = 1.0f; // TODO add to BuildingUnit
-				float ceilLoss = (room.groundArea().getValue() * ceil_share); // TODO what about U-Value?
+				float uValueRoofFacade = hpData.uValueRoofFacade().getValue();
+				float ceilLoss = (room.groundArea().getValue() * ceil_share) * uValueRoofFacade * uValueFacade;
 				
 				float pLoc = (windowLoss + wallLoss + ceilLoss) * deltaT;
 				
 				float basement_share = 1.0f; // TODO add to BuildingUnit
-				float basementLoss = room.groundArea().getValue() * basement_share; // TODO what about U-Value?
+				float uValueBasementFacade = hpData.uValueBasementFacade().getValue();
+				float basementLoss = room.groundArea().getValue() * basement_share
+						* uValueBasementFacade * uValueFacade;
 				pLoc += basementLoss * (heatingLimitTemp - hpData.basementTempHeatingSeason().getCelsius());
 				
 				float comfortTemp = hpData.comfortTemp().getCelsius();
