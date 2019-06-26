@@ -419,9 +419,20 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		/* Get copMin */
 		float priceVarHeatPower;
 		float priceVarGas;
-		if(priceType == HPAdaptData.USE_USER_DEFINED_PRICE_TYPE)
-			priceType = hpData.dimensioningForPriceType().getValue();
+		/**
+		 * The following result resources are only set in calcPriceLevel runs evaluating the user-defined price type
+		 * ("dimensioning for price type"):
+		 * maxPowerHPfromBadRoom
+		 * TODO: All other result resources set by calcPriceLevel are independent of the price type, which means there
+		 * is no need to re-calculate them for each price level. In the future, calcPriceLevel should be split up.
+		 */
+		boolean usingUserDefinedPriceType = false;
+		if(priceType == hpData.dimensioningForPriceType().getValue())
+			usingUserDefinedPriceType = true;
 
+		if(priceType == HPAdaptData.USE_USER_DEFINED_PRICE_TYPE) {
+			priceType = hpData.dimensioningForPriceType().getValue();
+		}
 		if (priceType == HPAdaptData.PRICE_TYPE_100EE) {
 			priceVarHeatPower = hpParams.electrictiyPriceHeat100EEPerkWh().getValue();
 			priceVarGas = hpParams.gasPrice100EEPerkWh().getValue();
@@ -518,7 +529,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		// TODO save these?
 		/** maxPowerHPfromBadRoom / maxPowerHp */
 		float maxPowerHPfromBadRoom = maxPowerHp;
-		ValueResourceHelper.setCreate(result.maxPowerHPfromBadRoom(), maxPowerHPfromBadRoom);
+		if (usingUserDefinedPriceType)
+			ValueResourceHelper.setCreate(result.maxPowerHPfromBadRoom(), maxPowerHPfromBadRoom);
 		
 		// TODO save these to ProjectProposal100EE?
 		// sumHp
