@@ -20,7 +20,6 @@ import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
-import org.omg.CosNaming.IstringHelper;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEff2DMap;
