@@ -570,8 +570,11 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		BaseInits.initSmartrEffPriceData(appManExt, this.getClass().getName());
 
 		HPAdaptParams params = (HPAdaptParams) paramsIn;
+		
+		if (!params.exists() || !params.isActive())
+			params.create();
 
-		if (!params.copCharacteristics().exists() && params.copCharacteristics().isActive()) {
+		if (!params.copCharacteristics().exists() || !params.copCharacteristics().isActive()) {
 			SmartEff2DMap cop = params.copCharacteristics().create();
 			FloatArrayResource outsideTemp = cop.primaryKeys().create();
 			FloatArrayResource supplyTemp = cop.secondaryKeys().create();
