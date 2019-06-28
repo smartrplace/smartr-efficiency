@@ -94,6 +94,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 
 		/* Calculate window-related data */
 		List<Window> allWindows = building.getSubResources(Window.class, true);
+		if (allWindows.isEmpty())
+			LoggerFactory.getLogger(HPAdaptEval.class).warn("No windows configured!");
 		calcWindows(result, allWindows);
 		
 		/* Find most critical room for each temperature */
@@ -251,9 +253,6 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	private Map<Integer, Float> calcBadRoomCOP(HPAdaptResult result,
 			HPAdaptData hpData, HPAdaptParams hpParams, List<BuildingUnit> rooms) {
 		
-		float vLMax = - Float.MAX_VALUE;
-		float pMax = - Float.MAX_VALUE;
-		
 		float minTemp = hpData.outsideDesignTemp().getCelsius();
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 		
@@ -287,6 +286,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 
 		for (int temp = Math.round(heatingLimitTemp); temp >= Math.round(minTemp); temp--) {
 			
+			float vLMax = - Float.MAX_VALUE;
+			float pMax = - Float.MAX_VALUE;
+
 			BuildingUnit badRoom = null; // Most critical room for temperature
 			float deltaT = heatingLimitTemp - temp;
 			
@@ -305,8 +307,6 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				}
 				/* Window loss */
 				List<Window> windows = room.getSubResources(Window.class, true);
-				if (windows.isEmpty())
-					LoggerFactory.getLogger(HPAdaptEval.class).info("No windows found in {}!", room.name().getValue());
 				float windowLoss = 0.0f;
 				float windowArea = 0.0f;
 				for (Window window : windows) {
@@ -341,7 +341,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				
 				float vLLoc = pLoc / radPower + comfortTemp;
 				
-				if (vLLoc > vLMax) {
+				if (vLLoc > vLMax && !Float.isInfinite(vLLoc)) {
 					vLMax = vLLoc;
 					pMax = pLoc;
 					badRoom = room;
@@ -364,6 +364,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			badRoomCops.put(temp, cop);
 			
 		}
+		
+	
 		return badRoomCops;
 	}
 
@@ -443,7 +445,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		}
 		else if (priceType == HPAdaptData.PRICE_TYPE_CO2_NEUTRAL) {
 			priceVarHeatPower = hpParams.electrictiyPriceHeatCO2neutralPerkWh().getValue();
-			priceVarGas = hpParams.electrictiyPriceHeatCO2neutralPerkWh().getValue();
+			priceVarGas = hpParams.gasPriceCO2neutralPerkWh().getValue();
 		}
 		else { // Assume conventional
 			priceVarHeatPower = hpParams.electrictiyPriceHeatPerkWh().getValue();
@@ -542,6 +544,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		System.out.println("Price Type is " + HPAdaptData.PRICE_TYPE_NAMES_EN[priceType] + " (" + priceType + ")");
 		System.out.println("sumHp is " + sumHp);
 		System.out.println("sumBurn is " + sumBurn);
+		System.out.println("maxPowerHPfromBadRoom is " + maxPowerHPfromBadRoom);
+		System.out.println("copMin is " + copMin);
+
 		
 		/* END RoomEval3 */
 	}
