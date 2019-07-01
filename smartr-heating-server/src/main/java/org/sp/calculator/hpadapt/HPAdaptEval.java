@@ -588,8 +588,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			cop.characteristics().create();
 			final float[][] copField = {
 					/* out/supply	 35°C	50°C	65°C	*/
-					/* -20°C */ {	1.90f,	1.90f,	0.00f,	},
-					/* -15°C */ {	2.50f,	2.20f,	0.00f,	},
+					/* -20°C */ {	1.90f,	1.90f,	1.00f,	},
+					/* -15°C */ {	2.50f,	2.20f,	1.00f,	},
 					/* -10°C */ {	2.60f,	2.25f,	1.90f,	},
 					/* - 5°C */ {	2.80f,	2.35f,	1.90f,	},
 					/*   0°C */ {	3.15f,	2.50f,	2.00f,	},
