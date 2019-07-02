@@ -605,10 +605,13 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 
 		HPAdaptParams params = (HPAdaptParams) paramsIn;
 		
+		if (Boolean.getBoolean("org.sp.calculator.hpadapt.HPAdaptEval.forceOverwriteCOPField"))
+			params.copCharacteristics().delete();
+		
 		if (!params.exists() || !params.isActive())
 			params.create();
 
-		if (!params.copCharacteristics().exists() || !params.copCharacteristics().isActive()) {
+		if (!params.copCharacteristics().exists()) {
 			SmartEff2DMap cop = params.copCharacteristics().create();
 			FloatArrayResource outsideTemp = cop.primaryKeys().create();
 			FloatArrayResource supplyTemp = cop.secondaryKeys().create();
