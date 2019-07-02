@@ -127,7 +127,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	/**
 	 * Calculate heating days, Heating degree days on daily and hourly basis as well as temperature shares.
 	 * @param result Sets the following result resources:
-	 * heatingDegreeDays, numberOfHeatingDays
+	 * heatingDegreeDays, numberOfHeatingDays, meanHeatingOutsideTemp.
 	 * @param hpData
 	 * @param hpParams
 	 * @return temperatureShares: Over a range of possible outside temperatures, the number of days with that outside
@@ -200,6 +200,11 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		for(int i = LOWEST_TEMP; i <= HIGHEST_TEMP; i++) {
 			// TODO?
 		}
+
+				
+		float meanHeatingOutsideTemp = heatingLimitTemp - heatingDegreeDays / numberOfHeatingDays;
+		result.meanHeatingOutsideTemp().create();
+		result.meanHeatingOutsideTemp().setCelsius(meanHeatingOutsideTemp);
 		
 		return temperatureShares;
 	}
@@ -245,7 +250,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	 * and store its COP value.
 	 * @param result Sets the following result resources:
 	 * roofArea, basementArea, facadeWallArea, numberOfRoomsFacingOutside,
-	 * uValueFacade (NOTE: Currently assumes 1.0 as a starting point, later calculations will overwrite this),
+	 * uValueFacade, weightedExtSurfaceAreaExclWindows.
+	 * Expects the following result resources to be set:
+	 * meanHeatingOutsideTemp.
 	 * @param hpData
 	 * @param hpParams
 	 * @param rooms List of all rooms in the building.
@@ -321,9 +328,26 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 				}
 				
 				/* Wall, ceiling and basement loss */
-				float uValueFacade = 1.0f;
-				//float uValueFacade = (totalPowerLoss - totalPLossWindow) / weightedExtSurfaceAreaExclWindows;
-				ValueResourceHelper.setCreate(result.uValueFacade(), uValueFacade);
+
+				float basementTempHeatingSeason = hpData.basementTempHeatingSeason().getCelsius();
+
+				float meanHeatingOutsideTemp = result.meanHeatingOutsideTemp().getCelsius();
+				float facadeWallArea = result.facadeWallArea().getValue();
+				float roofArea = result.roofArea().getValue();
+				float basementArea = result.basementArea().getValue();
+
+				float weightedExtSurfaceAreaExclWindows =
+						facadeWallArea
+						+ roofArea * hpData.uValueRoofFacade().getValue()
+						+ basementArea * hpData.uValueBasementFacade().getValue()
+						* (heatingLimitTemp - basementTempHeatingSeason) / (heatingLimitTemp - meanHeatingOutsideTemp);
+				ValueResourceHelper.setCreate(result.weightedExtSurfaceAreaExclWindows(),
+						weightedExtSurfaceAreaExclWindows);
+				
+				float totalPowerLoss = result.totalPowerLoss().getValue();
+				float totalPLossWindow = result.pLossWindow().getValue();
+				float uValueFacade = (totalPowerLoss - totalPLossWindow) / weightedExtSurfaceAreaExclWindows;
+				result.uValueFacade().setValue(uValueFacade);
 				float wallLoss = (room.totalOutsideWallArea().getValue() - windowArea) * uValueFacade;
 
 				float ceil_share = 1.0f; // TODO add to BuildingUnit
@@ -397,10 +421,10 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	/**
 	 * Calculates priceLevel-independent prerequisites for {@link #calcPriceLevel()}
 	 * @param result Sets the following result resources:
-	 * meanHeatingOutsideTemp, activePowerWhileHeating, totalPowerLoss, weightedExtSurfaceAreaExclWindows,
+	 * activePowerWhileHeating, totalPowerLoss,
 	 * uValueFacade, powerLossBasementHeating, otherPowerLoss.
 	 * Expects the following result resources to be set:
-	 * heatingDegreeDays, numberOfHeatingDays, facadeWallArea, roofArea, basementArea, pLossWindow.
+	 * numberOfHeatingDays, facadeWallArea, roofArea, basementArea, pLossWindow, uValueFacade, meanHeatingOutsideTemp.
 	 * @param resultProposal Sets the following resultProposal resources: TODO
 	 * @param hpData
 	 * @param hpParams
@@ -410,17 +434,14 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
-		float heatingDegreeDays = result.heatingDegreeDays().getValue();
 		float numberOfHeatingDays = result.numberOfHeatingDays().getValue();
 		float facadeWallArea = result.facadeWallArea().getValue();
 		float roofArea = result.roofArea().getValue();
 		float basementArea = result.basementArea().getValue();
 		float pLossWindow = result.pLossWindow().getValue();
+		float uValueFacade = result.uValueFacade().getValue();
+		float meanHeatingOutsideTemp = result.meanHeatingOutsideTemp().getValue();
 		
-		float meanHeatingOutsideTemp = heatingLimitTemp - heatingDegreeDays / numberOfHeatingDays;
-		result.meanHeatingOutsideTemp().create();
-		result.meanHeatingOutsideTemp().setCelsius(meanHeatingOutsideTemp);
-
 
 		BuildingData building = hpData.getParent();
 		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
@@ -437,19 +458,6 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		float totalPowerloss = activePowerWhileHeating / (heatingLimitTemp - meanHeatingOutsideTemp);
 		ValueResourceHelper.setCreate(result.totalPowerLoss(), totalPowerloss);
 
-		float basementTempHeatingSeason = hpData.basementTempHeatingSeason().getCelsius();
-
-		float weightedExtSurfaceAreaExclWindows =
-				facadeWallArea
-				+ roofArea * hpData.uValueRoofFacade().getValue()
-				+ basementArea * hpData.uValueBasementFacade().getValue()
-				* (heatingLimitTemp - basementTempHeatingSeason) / (heatingLimitTemp - meanHeatingOutsideTemp);
-		ValueResourceHelper.setCreate(result.weightedExtSurfaceAreaExclWindows(),
-				weightedExtSurfaceAreaExclWindows);
-		
-		float uValueFacade = (totalPowerloss - pLossWindow) / weightedExtSurfaceAreaExclWindows;
-		ValueResourceHelper.setCreate(result.uValueFacade(), uValueFacade);
-		
 		float powerLossBasementHeating = uValueFacade * hpData.uValueBasementFacade().getValue()
 				* (heatingLimitTemp - hpData.basementTempHeatingSeason().getCelsius()) * basementArea;
 		ValueResourceHelper.setCreate(result.powerLossBasementHeating(), powerLossBasementHeating);
