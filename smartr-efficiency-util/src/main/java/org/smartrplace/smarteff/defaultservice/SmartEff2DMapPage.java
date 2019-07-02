@@ -12,6 +12,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.SmartEff2DMap;
+import org.smartrplace.extensionservice.SmartEff2DMapPrimaryValue;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -158,9 +159,17 @@ public class SmartEff2DMapPage extends NaviPageBase<SmartEff2DMap> {
 					lines.add(entryRes.secondaryKeys());
 					for(int idx=0; idx<entryRes.primaryKeys().size(); idx++) {
 						if(entryRes.characteristics().size() <= idx) {
-							lines.add(entryRes.characteristics().add());
-						} else
-							lines.add(entryRes.characteristics().getAllElements().get(idx));
+							SmartEff2DMapPrimaryValue p = entryRes.characteristics().add();
+							p.index().create();
+							p.val().create();
+							p.index().setValue(idx);
+							lines.add(p.val());
+						} else {
+							for (SmartEff2DMapPrimaryValue p : entryRes.characteristics().getAllElements()) {
+								if (p.index().getValue() == idx)
+									lines.add(p.val());
+							}
+						}
 					}
 					updateRows(lines, req);
 				}
@@ -180,19 +189,29 @@ public class SmartEff2DMapPage extends NaviPageBase<SmartEff2DMap> {
 		if(arr.getName().equals("secondaryKeys"))
 			map = arr.getParent();
 		else
-			map = arr.getParent().getParent();
+			map = arr.getParent().getParent().getParent();
 		LineInfo res = new LineInfo();
 		res.columnNum = map.secondaryKeys().getValues().length;
 		res.isHeaderLine = arr.equalsLocation(map.secondaryKeys());
 		if(res.isHeaderLine) return res;
-		List<FloatArrayResource> lists = map.characteristics().getAllElements();
+		List<SmartEff2DMapPrimaryValue> lists = map.characteristics().getAllElements();
 		for(int idx = 0; idx < map.primaryKeys().size(); idx++) {
-			final FloatArrayResource primaryArr;
-			if(lists.size() <= idx)
-				primaryArr = map.characteristics().add();
-			else
-				primaryArr = lists.get(idx);
-			if(primaryArr.equalsLocation(arr)) {
+			FloatArrayResource primaryArr = null;
+			if(lists.size() <= idx) {
+				SmartEff2DMapPrimaryValue p = map.characteristics().add();
+				p.index().create();
+				p.val().create();
+				p.index().setValue(idx);
+				primaryArr = p.val();
+			} else {
+				for(SmartEff2DMapPrimaryValue p : lists) {
+					if (p.index().getValue() == idx) {
+						primaryArr = p.val();
+						break;
+					}
+				}
+			}
+			if(primaryArr != null && primaryArr.equalsLocation(arr)) {
 				res.lineHeader = map.primaryKeys();
 				res.lineIndex = idx;
 				break;
@@ -299,6 +318,8 @@ public class SmartEff2DMapPage extends NaviPageBase<SmartEff2DMap> {
 	
 	/** TODO: This should be moved into the respective application, only for testing here*/
 	public static void initRes(SmartEff2DMap entryRes) {
+		return;
+		/*
 		entryRes.primaryKeys().create();
 		entryRes.secondaryKeys().create();
 		entryRes.characteristics().create();
@@ -308,7 +329,7 @@ public class SmartEff2DMapPage extends NaviPageBase<SmartEff2DMap> {
 		arr.setValues(new float[]{-1, 1});
 		arr = entryRes.characteristics().add();
 		arr.setValues(new float[]{2, 5});
-		entryRes.activate(true);
+		entryRes.activate(true);*/
 	}
 
 }

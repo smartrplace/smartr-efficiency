@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEff2DMap;
+import org.smartrplace.extensionservice.SmartEff2DMapPrimaryValue;
 import org.smartrplace.extensionservice.SmartEffMapHelper;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -384,8 +385,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			// pMax
 			// vLMax
 
-			/* TODO from VBA: This is a oversimplied interpolation, but should work for now */
-			float cop = SmartEffMapHelper.getInterpolated(hpParams.copCharacteristics(), (float) temp, vLMax);
+			float cop = (float) SmartEffMapHelper.getInterpolated(temp, vLMax, hpParams.copCharacteristics());
 			badRoomCops.put(temp, cop);
 			
 		}
@@ -615,7 +615,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			SmartEff2DMap cop = params.copCharacteristics().create();
 			FloatArrayResource outsideTemp = cop.primaryKeys().create();
 			FloatArrayResource supplyTemp = cop.secondaryKeys().create();
-			outsideTemp.setValues(new float[] {-20f, -15f, -10f, -5f, 0f, 5f, 10f, 15f, 20f, 25f, 30f});
+			float[] outsideTemps = {-20f, -15f, -10f, -5f, 0f, 5f, 10f, 15f, 20f, 25f, 30f};
+			outsideTemp.setValues(outsideTemps);
 			supplyTemp.setValues(new float[] {35, 50, 65});
 			cop.characteristics().create();
 			final float[][] copField = {
@@ -633,10 +634,14 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 					/*  30°C */ {	4.85f,	4.00f,	3.10f,	}
 			};
 			for (int i = 0; i < copField.length; i++) {
-				FloatArrayResource f = cop.characteristics().add();
-				f.setValues(copField[i]);
+				SmartEff2DMapPrimaryValue val = cop.characteristics().add();
+				val.index().create();
+				val.index().setValue(i);
+				val.val().create();
+				val.val().setValues(copField[i]);
 			}
 			cop.activate(true);
+
 		}
 		
 		// Perhaps move to properties?
