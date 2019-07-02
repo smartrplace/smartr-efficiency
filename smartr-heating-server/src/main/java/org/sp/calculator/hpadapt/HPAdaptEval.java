@@ -102,7 +102,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		List<BuildingUnit> rooms = building.getSubResources(BuildingUnit.class, true);
 		Map<Integer, Float> badRoomCops = calcBadRoomCOP(result, hpData, hpParams, rooms);
 		
-		/* Perform calculations of TODO for all price levels */
+		/* Perform calculations for all price levels */
+		calcPriceLevelPrereq(result, resultProposal, hpData, hpParams);
 		for (int priceTypeIdx = 0; priceTypeIdx < HPAdaptData.PRICE_TYPE_NAMES_EN.length; priceTypeIdx++) {
 			calcPriceLevel(result, resultProposal, hpData, hpParams, temperatureShares, badRoomCops, priceTypeIdx);
 		}
@@ -393,14 +394,76 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		
 	}
 
+	/**
+	 * Calculates priceLevel-independent prerequisites for {@link #calcPriceLevel()}
+	 * @param result Sets the following result resources:
+	 * meanHeatingOutsideTemp, activePowerWhileHeating, totalPowerLoss, weightedExtSurfaceAreaExclWindows,
+	 * uValueFacade, powerLossBasementHeating, otherPowerLoss.
+	 * Expects the following result resources to be set:
+	 * heatingDegreeDays, numberOfHeatingDays, facadeWallArea, roofArea, basementArea, pLossWindow.
+	 * @param resultProposal Sets the following resultProposal resources: TODO
+	 * @param hpData
+	 * @param hpParams
+	 */
+	private void calcPriceLevelPrereq(HPAdaptResult result, ProjectProposal resultProposal, HPAdaptData hpData,
+			HPAdaptParams hpParams) {
+		
+		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
+
+		float heatingDegreeDays = result.heatingDegreeDays().getValue();
+		float numberOfHeatingDays = result.numberOfHeatingDays().getValue();
+		float facadeWallArea = result.facadeWallArea().getValue();
+		float roofArea = result.roofArea().getValue();
+		float basementArea = result.basementArea().getValue();
+		float pLossWindow = result.pLossWindow().getValue();
+		
+		float meanHeatingOutsideTemp = heatingLimitTemp - heatingDegreeDays / numberOfHeatingDays;
+		result.meanHeatingOutsideTemp().create();
+		result.meanHeatingOutsideTemp().setCelsius(meanHeatingOutsideTemp);
+
+
+		BuildingData building = hpData.getParent();
+		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
+		YearlyConsumption yearlyConsumption =
+				BasicCalculations.getYearlyConsumption(heatCostBillingInfo, 3);
+		float yearlyHeatingEnergyConsumption = yearlyConsumption.avKWh;
+		float b_is_LT_to_CD = 1f; // TODO
+		float boilerPowerReductionLTtoCD = hpParams.boilerPowerReductionLTtoCD().getValue() * 0.01f;
+		float activePowerWhileHeating =
+				yearlyHeatingEnergyConsumption * (1 - b_is_LT_to_CD * boilerPowerReductionLTtoCD)
+				/ numberOfHeatingDays / 24 * 1000;
+		ValueResourceHelper.setCreate(result.activePowerWhileHeating(), activePowerWhileHeating);
+		
+		float totalPowerloss = activePowerWhileHeating / (heatingLimitTemp - meanHeatingOutsideTemp);
+		ValueResourceHelper.setCreate(result.totalPowerLoss(), totalPowerloss);
+
+		float basementTempHeatingSeason = hpData.basementTempHeatingSeason().getCelsius();
+
+		float weightedExtSurfaceAreaExclWindows =
+				facadeWallArea
+				+ roofArea * hpData.uValueRoofFacade().getValue()
+				+ basementArea * hpData.uValueBasementFacade().getValue()
+				* (heatingLimitTemp - basementTempHeatingSeason) / (heatingLimitTemp - meanHeatingOutsideTemp);
+		ValueResourceHelper.setCreate(result.weightedExtSurfaceAreaExclWindows(),
+				weightedExtSurfaceAreaExclWindows);
+		
+		float uValueFacade = (totalPowerloss - pLossWindow) / weightedExtSurfaceAreaExclWindows;
+		ValueResourceHelper.setCreate(result.uValueFacade(), uValueFacade);
+		
+		float powerLossBasementHeating = uValueFacade * hpData.uValueBasementFacade().getValue()
+				* (heatingLimitTemp - hpData.basementTempHeatingSeason().getCelsius()) * basementArea;
+		ValueResourceHelper.setCreate(result.powerLossBasementHeating(), powerLossBasementHeating);
+		
+		float otherPowerLoss = pLossWindow
+				+ facadeWallArea * uValueFacade
+				+ roofArea * uValueFacade * hpData.uValueRoofFacade().getValue();
+		ValueResourceHelper.setCreate(result.otherPowerLoss(), otherPowerLoss);
+
+	}
 	
 	/**
 	 * Perform COP evaluation / RoomEval3.
-	 * TODO: Parts of these calculations are independent of the price level and don't need to be re-calculated each
-	 * time.
 	 * @param result Sets the following result resources:
-	 * meanHeatingOutsideTemp, activePowerWhileHeating, totalPowerLoss, weightedExtSurfaceAreaExclWindows,
-	 * uValueFacade, powerLossBasementHeating, powerLossBasementHeating, powerLossBasementHeating,
 	 * maxPowerHPfromBadRoom
 	 * @param resultProposal Sets the following resultProposal resources: TODO
 	 * @param hpData
@@ -412,15 +475,11 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	private void calcPriceLevel(HPAdaptResult result, ProjectProposal resultProposal, HPAdaptData hpData,
 			HPAdaptParams hpParams, Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops,
 			int priceType) {
-		// TODO Auto-generated method stub
+		
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
-		float heatingDegreeDays = result.heatingDegreeDays().getValue();
-		float numberOfHeatingDays = result.numberOfHeatingDays().getValue();
-		float facadeWallArea = result.facadeWallArea().getValue();
-		float roofArea = result.roofArea().getValue();
-		float basementArea = result.basementArea().getValue();
-		float pLossWindow = result.pLossWindow().getValue();
+		float powerLossBasementHeating = result.powerLossBasementHeating().getValue();
+		float otherPowerLoss = result.otherPowerLoss().getValue();
 		
 		/* Get copMin */
 		float priceVarHeatPower;
@@ -466,46 +525,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 			float cop = badRoomCops.getOrDefault(temp, 0.0f);
 			int nShares = temperatureShares.getOrDefault(temp, 0);
 			
-			float meanHeatingOutsideTemp = heatingLimitTemp - heatingDegreeDays / numberOfHeatingDays;
-			result.meanHeatingOutsideTemp().create();
-			result.meanHeatingOutsideTemp().setCelsius(meanHeatingOutsideTemp);
 
-			BuildingData building = hpData.getParent();
-			ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
-			YearlyConsumption yearlyConsumption =
-					BasicCalculations.getYearlyConsumption(heatCostBillingInfo, 3);
-			float yearlyHeatingEnergyConsumption = yearlyConsumption.avKWh;
-			float b_is_LT_to_CD = 1f; // TODO
-			float boilerPowerReductionLTtoCD = hpParams.boilerPowerReductionLTtoCD().getValue() * 0.01f;
-			float activePowerWhileHeating =
-					yearlyHeatingEnergyConsumption * (1 - b_is_LT_to_CD * boilerPowerReductionLTtoCD)
-					/ numberOfHeatingDays / 24 * 1000;
-			ValueResourceHelper.setCreate(result.activePowerWhileHeating(), activePowerWhileHeating);
-			
-			float totalPowerloss = activePowerWhileHeating / (heatingLimitTemp - meanHeatingOutsideTemp);
-			ValueResourceHelper.setCreate(result.totalPowerLoss(), totalPowerloss);
 
-			float basementTempHeatingSeason = hpData.basementTempHeatingSeason().getCelsius();
-
-			float weightedExtSurfaceAreaExclWindows =
-					facadeWallArea
-					+ roofArea * hpData.uValueRoofFacade().getValue()
-					+ basementArea * hpData.uValueBasementFacade().getValue()
-					* (heatingLimitTemp - basementTempHeatingSeason) / (heatingLimitTemp - meanHeatingOutsideTemp);
-			ValueResourceHelper.setCreate(result.weightedExtSurfaceAreaExclWindows(),
-					weightedExtSurfaceAreaExclWindows);
-			
-			float uValueFacade = (totalPowerloss - pLossWindow) / weightedExtSurfaceAreaExclWindows;
-			ValueResourceHelper.setCreate(result.uValueFacade(), uValueFacade);
-			
-			float powerLossBasementHeating = uValueFacade * hpData.uValueBasementFacade().getValue()
-					* (heatingLimitTemp - hpData.basementTempHeatingSeason().getCelsius()) * basementArea;
-			ValueResourceHelper.setCreate(result.powerLossBasementHeating(), powerLossBasementHeating);
-			
-			float otherPowerLoss = pLossWindow
-					+ facadeWallArea * uValueFacade
-					+ roofArea * uValueFacade * hpData.uValueRoofFacade().getValue();
-			ValueResourceHelper.setCreate(result.otherPowerLoss(), otherPowerLoss);
 			
 			/* * */
 
