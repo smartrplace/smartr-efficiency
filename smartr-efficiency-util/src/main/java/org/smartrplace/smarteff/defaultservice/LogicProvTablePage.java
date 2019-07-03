@@ -162,11 +162,18 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 		public List<LogicProviderPublicData> getObjectsInTable(OgemaHttpRequest req) {
 			ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 			Class<? extends Resource> type =  getReqData(req).getResourceType();
+			List<LogicProviderPublicData> logicProviders = new ArrayList<>();
+			for(LogicProviderPublicData provider : appData.systemAccessForPageOpening().getLogicProviders(type)) {
+				if (!Boolean.getBoolean(provider.id() + ".hide")) logicProviders.add(provider);
+			}
 			if(!includeSubProviders)
-				return appData.systemAccessForPageOpening().getLogicProviders(type);
-			List<LogicProviderPublicData> result = appData.systemAccessForPageOpening().getLogicProviders(type);
+				return logicProviders;
+			List<LogicProviderPublicData> result = logicProviders;
 			for(Class<? extends Resource> subtype: appManExt.getSubTypes(type)) {
-				List<LogicProviderPublicData> subres = appData.systemAccessForPageOpening().getLogicProviders(subtype);
+				List<LogicProviderPublicData> subres = new ArrayList<>();
+				for(LogicProviderPublicData sub : appData.systemAccessForPageOpening().getLogicProviders(subtype)) {
+					if (!Boolean.getBoolean(sub.id() + ".hide")) subres.add(sub);
+				}
 				result.addAll(subres);
 			}
 			return result;

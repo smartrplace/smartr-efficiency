@@ -63,7 +63,10 @@ public class SmartrEffExtResourceTypeData {
 	public static ServiceCapabilities getServiceCaps(SmartEffExtensionService service) {
 		ServiceCapabilities result = new ServiceCapabilities();
     	for(ExtensionCapability c: service.getCapabilities()) {
-    		if(c instanceof LogicProvider) result.logicProviders.add((LogicProvider) c);
+    		if (c instanceof LogicProvider) {
+    			if (!Boolean.getBoolean(c.getClass().getName()+".disable"))
+					result.logicProviders.add((LogicProvider) c);
+    		}
     		//else if(c instanceof SmartEffRecommendationProvider) result.recommendationProviders.add((SmartEffRecommendationProvider) c);
     		else if(c instanceof NavigationGUIProvider) result.naviProviders.add((NavigationGUIProvider) c);
     		else if(c instanceof DriverProvider)
