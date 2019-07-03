@@ -31,6 +31,13 @@ public class ProposalResTableOpenButton extends TableOpenButton {
 		BUTTON_TEXTS.put(OgemaLocale.FRENCH, "Résultats");
 	}
 
+	public static final Map<OgemaLocale, String> BUTTON_TEXTS_100EE = new HashMap<>();
+	static {
+		BUTTON_TEXTS_100EE.put(OgemaLocale.ENGLISH, "100EE Results");
+		BUTTON_TEXTS_100EE.put(OgemaLocale.GERMAN, "100EE-Ergebnisse");
+		BUTTON_TEXTS_100EE.put(OgemaLocale.FRENCH, "Résultats 100EE");
+	}
+
 	public ProposalResTableOpenButton(WidgetPage<?> page, String id, String pid,
 			//Class<? extends Resource> type,
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,

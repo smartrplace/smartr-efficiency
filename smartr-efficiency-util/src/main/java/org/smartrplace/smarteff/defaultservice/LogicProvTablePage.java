@@ -12,6 +12,8 @@ import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
+import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
@@ -114,7 +116,8 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 				}
 				//if(object.getEntryTypes() != null && object.getEntryTypes().size() > 1) {
 				//}
-				if(!ProjectProposal.class.isAssignableFrom(object.resultTypes().get(0).resourceType())) {
+				Class<? extends CalculatedData> resultType = object.resultTypes().get(0).resourceType();
+				if(!ProjectProposal.class.isAssignableFrom(resultType)) {
 					ResourceOfTypeTableOpenButton resultButton = new ResourceOfTypeTableOpenButton(vh.getParent(),
 							"resultButton"+id, pid(), exPage, tabButton.control, req) {
 						private static final long serialVersionUID = 1L;
@@ -130,7 +133,10 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 					resultButton.openResSub(true);
 					row.addCell("Results", resultButton);
 					
-				} else
+				} else if (ProjectProposal100EE.class.isAssignableFrom(resultType)) {
+					SPPageUtil.addProjectResultTableOpenButton100EE("Results", getReqData(req), vh, id, row, appData, tabButton.control, req);
+				}
+				else
 					SPPageUtil.addProjectResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, tabButton.control, req);
 				
 			} else {

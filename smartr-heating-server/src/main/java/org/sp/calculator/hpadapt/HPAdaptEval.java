@@ -9,17 +9,18 @@ import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.array.FloatArrayResource;
 import org.ogema.core.model.schedule.AbsoluteSchedule;
+import org.ogema.core.model.simple.FloatResource;
 import org.slf4j.LoggerFactory;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEff2DMapPrimaryValue;
 import org.smartrplace.extensionservice.SmartEffMapHelper;
-import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
-import org.smartrplace.smarteff.util.ProjectProviderBase;
+import org.smartrplace.smarteff.util.ProjectProviderBase100EE;
 import org.sp.example.smartrheating.util.BaseInits;
 import org.sp.example.smartrheating.util.BasicCalculations;
 import org.sp.example.smartrheating.util.BasicCalculations.YearlyConsumption;
@@ -37,7 +38,7 @@ import extensionmodel.smarteff.hpadapt.HPAdaptParams;
 import extensionmodel.smarteff.hpadapt.HPAdaptResult;
 
 
-public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
+public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	
 	@Override
 	public String label(OgemaLocale locale) {
@@ -45,7 +46,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	}
 
 	@Override
-	protected void calculateProposal(HPAdaptData hpData, ProjectProposal resultProposal,
+	protected void calculateProposal(HPAdaptData hpData, ProjectProposal100EE resultProposal,
 			ExtensionResourceAccessInitData data) {
 		
 		if (!(resultProposal instanceof HPAdaptResult)) {
@@ -54,8 +55,8 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		}
 
 		HPAdaptResult result = (HPAdaptResult) resultProposal;
-		calculateHPAdapt(hpData, result, resultProposal, data);
-
+		calculateHPAdapt(hpData, result, data);
+		
 	}
 	
 
@@ -69,10 +70,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	 * Note: variables named_with_underscores indicate values that have yet to be added to their respective data models.
 	 * @param hpData
 	 * @param result
-	 * @param resultProposal
 	 * @param data
 	 */
-	protected void calculateHPAdapt(HPAdaptData hpData, HPAdaptResult result, ProjectProposal resultProposal,
+	protected void calculateHPAdapt(HPAdaptData hpData, HPAdaptResult result,
 			ExtensionResourceAccessInitData data) {
 		
 		/* SETUP */
@@ -104,9 +104,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		Map<Integer, Float> badRoomCops = calcBadRoomCOP(result, hpData, hpParams, rooms);
 		
 		/* Perform calculations for all price levels */
-		calcPriceLevelPrereq(result, resultProposal, hpData, hpParams);
+		calcPriceLevelPrereq(result, hpData, hpParams);
 		for (int priceTypeIdx = 0; priceTypeIdx < HPAdaptData.PRICE_TYPE_NAMES_EN.length; priceTypeIdx++) {
-			calcPriceLevel(result, resultProposal, hpData, hpParams, temperatureShares, badRoomCops, priceTypeIdx);
+			calcPriceLevel(result, hpData, hpParams, temperatureShares, badRoomCops, priceTypeIdx);
 		}
 
 		/* Calculate remaining results */
@@ -429,8 +429,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	 * @param hpData
 	 * @param hpParams
 	 */
-	private void calcPriceLevelPrereq(HPAdaptResult result, ProjectProposal resultProposal, HPAdaptData hpData,
-			HPAdaptParams hpParams) {
+	private void calcPriceLevelPrereq(HPAdaptResult result, HPAdaptData hpData, HPAdaptParams hpParams) {
 		
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
@@ -472,18 +471,16 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	/**
 	 * Perform COP evaluation / RoomEval3.
 	 * @param result Sets the following result resources:
-	 * maxPowerHPfromBadRoom
-	 * @param resultProposal Sets the following resultProposal resources: TODO
+	 * maxPowerHPfromBadRoom, yearlyOperatingCosts, yearlyOperatingCostsCO2Neutral, yearlyOperatingCosts100EE, 
 	 * @param hpData
 	 * @param hpParams
 	 * @param temperatureShares calculated by {@link #calcHeatingDaysAndTempShares}
 	 * @param badRoomCops calculated by {@link #calcBadRoomCOP}
 	 * @param priceType defined in HPAdaptData
 	 */
-	private void calcPriceLevel(HPAdaptResult result, ProjectProposal resultProposal, HPAdaptData hpData,
-			HPAdaptParams hpParams, Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops,
-			int priceType) {
-		
+	private void calcPriceLevel(HPAdaptResult result, HPAdaptData hpData, HPAdaptParams hpParams,
+			Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops, int priceType) {
+
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
 		float powerLossBasementHeating = result.powerLossBasementHeating().getValue();
@@ -503,20 +500,24 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		if(priceType == hpData.dimensioningForPriceType().getValue())
 			usingUserDefinedPriceType = true;
 
+		FloatResource yearlyOperatingCost;
 		if(priceType == HPAdaptData.USE_USER_DEFINED_PRICE_TYPE) {
 			priceType = hpData.dimensioningForPriceType().getValue();
 		}
 		if (priceType == HPAdaptData.PRICE_TYPE_100EE) {
 			priceVarHeatPower = hpParams.electrictiyPriceHeat100EEPerkWh().getValue();
 			priceVarGas = hpParams.gasPrice100EEPerkWh().getValue();
+			yearlyOperatingCost = result.yearlyOperatingCosts100EE();
 		}
 		else if (priceType == HPAdaptData.PRICE_TYPE_CO2_NEUTRAL) {
 			priceVarHeatPower = hpParams.electrictiyPriceHeatCO2neutralPerkWh().getValue();
 			priceVarGas = hpParams.gasPriceCO2neutralPerkWh().getValue();
+			yearlyOperatingCost = result.yearlyOperatingCostsCO2Neutral();
 		}
 		else { // Assume conventional
 			priceVarHeatPower = hpParams.electrictiyPriceHeatPerkWh().getValue();
 			priceVarGas = 0.0532f; // TODO use globally defined parameter
+			yearlyOperatingCost = result.yearlyOperatingCosts();
 		}
 		float copMin = priceVarHeatPower / priceVarGas;
 
@@ -575,6 +576,9 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 		System.out.println("sumBurn is " + sumBurn);
 		System.out.println("maxPowerHPfromBadRoom is " + maxPowerHPfromBadRoom);
 		System.out.println("copMin is " + copMin);
+		
+		float cost = sumHp * priceVarHeatPower + sumBurn + priceVarGas;
+		ValueResourceHelper.setCreate(yearlyOperatingCost, cost);
 
 		
 		/* END RoomEval3 */
@@ -587,7 +591,7 @@ public class HPAdaptEval extends ProjectProviderBase<HPAdaptData> {
 	 * * * * * * * * * * * * * * * * * * * * * * */
 
 	@Override
-	protected Class<? extends ProjectProposal> getResultType() {
+	protected Class<? extends ProjectProposal100EE> getResultType() {
 		return HPAdaptResult.class;
 	}
 	@Override
