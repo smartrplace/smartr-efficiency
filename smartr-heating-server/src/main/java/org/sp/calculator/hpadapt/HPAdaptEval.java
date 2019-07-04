@@ -55,6 +55,12 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		}
 
 		HPAdaptResult result = (HPAdaptResult) resultProposal;
+		
+		// Completely clear result
+		result.delete();
+		result.create();
+		result.activate(true);
+		
 		calculateHPAdapt(hpData, result, data);
 		
 	}
@@ -110,7 +116,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		}
 
 		/* Calculate remaining results */
-		calcRemaining(result, hpData);
+		calcRemaining(result, hpData, hpParams);
 		
 		/* Cleanup */
 		hpParamHelper.close();
@@ -555,7 +561,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		System.out.println("maxPowerHPfromBadRoom is " + maxPowerHPfromBadRoom);
 		System.out.println("copMin is " + copMin);
 		
-		float cost = sumHp * priceVarHeatPower + sumBurn + priceVarGas;
+		float cost = sumHp * priceVarHeatPower + sumBurn * priceVarGas;
 		ValueResourceHelper.setCreate(yearlyOperatingCost, cost);
 
 		
@@ -566,16 +572,44 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	/**
 	 * Calculate remaining simple results that depend on other results.
 	 * @param result Sets the following result resources:
-	 * powerLossAtFreezing, powerLossAtOutsideDesignTemp.
-	 * Assumes that all but these resources have already been calculated.
+	 * powerLossAtFreezing, powerLossAtOutsideDesignTemp, boilerPowerBoilerOnly, boilerPowerBivalentHP,
+	 * hpPowerBivalentHP and TODO others
 	 * @param hpData
 	 */
-	private void calcRemaining(HPAdaptResult result, HPAdaptData hpData) {
+	private void calcRemaining(HPAdaptResult result, HPAdaptData hpData, HPAdaptParams hpParams) {
+
+		/* GET VALUES */
+		
+		float otherPowerLoss = result.otherPowerLoss().getValue();
+		float powerLossBasementHeating = result.powerLossBasementHeating().getValue();
+		float numberOfHeatingDays = result.numberOfHeatingDays().getValue();
+		float heatingDegreeDays = result.heatingDegreeDays().getValue();
+		float maxPowerHPfromBadRoom = result.maxPowerHPfromBadRoom().getValue();
 
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
-		float otherPowerLoss = result.otherPowerLoss().getValue();
 		float outsideDesignTemp = hpData.outsideDesignTemp().getCelsius();
-		float powerLossBasementHeating = result.powerLossBasementHeating().getValue();
+		float wwConsumption = hpData.wwConsumption().getValue();
+		float wwTemp = hpData.wwTemp().getCelsius();
+		float wwLossUnheatedAreas = hpData.wwLossUnheatedAreas().getValue() / 100f;
+		float wwLossHeatedAreas = hpData.wwLossHeatedAreas().getValue() / 100f;
+		
+		float wwSupplyTemp = hpParams.wwSupplyTemp().getCelsius();
+		float boilerChangeCDtoCD = hpParams.boilerChangeCDtoCD().getValue();
+		float boilerChangeLTtoCD = hpParams.boilerChangeLTtoCD().getValue();
+		float boilerChangeCDtoCDAdditionalPerkW = hpParams.boilerChangeCDtoCDAdditionalPerkW().getValue();
+		float boilerChangeLTtoCDAdditionalPerkW = hpParams.boilerChangeLTtoCDAdditionalPerkW().getValue();
+		float additionalBivalentHPBase = hpParams.additionalBivalentHPBase().getValue();
+		float additionalBivalentHPPerkW = hpParams.additionalBivalentHPPerkW().getValue();
+		
+
+		BuildingData building = hpData.getParent();
+		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
+		YearlyConsumption yearlyConsumption =
+				BasicCalculations.getYearlyConsumption(heatCostBillingInfo, 3);
+		float yearlyHeatingEnergyConsumption = yearlyConsumption.avKWh;
+
+
+		/* CALCULATE VALUES */
 
 		float powerLossAtFreezing = powerLossBasementHeating + otherPowerLoss * heatingLimitTemp;
 		ValueResourceHelper.setCreate(result.powerLossAtFreezing(), powerLossAtFreezing);
@@ -583,6 +617,69 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		float powerLossAtOutsideDesignTemp = powerLossBasementHeating
 				+ otherPowerLoss * (heatingLimitTemp - outsideDesignTemp);
 		ValueResourceHelper.setCreate(result.powerLossAtOutsideDesignTemp(), powerLossAtOutsideDesignTemp);
+		
+		
+		
+		
+		
+		float base_energy = wwConsumption * 4.19f / 3.6f * (wwTemp - wwSupplyTemp);
+		float base_energy_winter =
+				base_energy * numberOfHeatingDays / 365 / (1 - wwLossUnheatedAreas);
+		float base_energy_summer =
+				base_energy * (365 - numberOfHeatingDays) / 365 / (1 - wwLossHeatedAreas - wwLossUnheatedAreas);
+		
+		boolean b_isInclTWW = true;
+		float wwEnergyPreRenovation;
+		if (!b_isInclTWW) wwEnergyPreRenovation = 0f;
+		else {
+			wwEnergyPreRenovation = base_energy_summer + base_energy_winter;
+		}
+		ValueResourceHelper.setCreate(result.wwEnergyPreRenovation(), wwEnergyPreRenovation);
+		
+		float faktor_brennwert = 0.9f;
+		float wwEnergyPostRenovation = wwEnergyPreRenovation * faktor_brennwert;
+		ValueResourceHelper.setCreate(result.wwEnergyPostRenovation(), wwEnergyPostRenovation);
+
+
+		float heatingEnergyPreRenovation = yearlyHeatingEnergyConsumption - wwEnergyPreRenovation;
+		ValueResourceHelper.setCreate(result.heatingEnergyPreRenovation(), heatingEnergyPreRenovation);
+
+		float faktor_sanierung = 0.85f;
+		float heatingEnergyPostRenovation = heatingEnergyPreRenovation * faktor_sanierung * faktor_brennwert;
+		ValueResourceHelper.setCreate(result.heatingEnergyPostRenovation(), heatingEnergyPostRenovation);
+		
+		float totalEnergyPostRenovation = wwEnergyPostRenovation + heatingEnergyPostRenovation;
+		ValueResourceHelper.setCreate(result.totalEnergyPostRenovation(), totalEnergyPostRenovation);
+
+		float fullLoadHoursExclWW = 24 * heatingDegreeDays / (heatingLimitTemp - outsideDesignTemp);
+		float fullLoadHoursInclWW = fullLoadHoursExclWW; // TODO ???
+		ValueResourceHelper.setCreate(result.fullLoadHoursInclWW(), fullLoadHoursInclWW);
+		ValueResourceHelper.setCreate(result.fullLoadHoursExclWW(), fullLoadHoursExclWW);
+		
+		float usage_hours;
+		if (b_isInclTWW) usage_hours = fullLoadHoursInclWW;
+		else usage_hours = fullLoadHoursExclWW;
+		
+		float boilerPowerBoilerOnly = totalEnergyPostRenovation / usage_hours;
+		ValueResourceHelper.setCreate(result.boilerPowerBoilerOnly(), boilerPowerBoilerOnly * 1000);
+
+		float hpPowerBivalentHP = maxPowerHPfromBadRoom * boilerPowerBoilerOnly / powerLossAtOutsideDesignTemp;
+		ValueResourceHelper.setCreate(result.hpPowerBivalentHP(), hpPowerBivalentHP * 1000);
+
+		float boilerPowerBivalentHP = boilerPowerBoilerOnly - hpPowerBivalentHP;
+		ValueResourceHelper.setCreate(result.boilerPowerBivalentHP(), boilerPowerBivalentHP * 1000);
+
+		boolean is_condensing_boilder = false; // TODO
+
+		float boilerChangeCost;
+		if (is_condensing_boilder)
+			boilerChangeCost = boilerChangeLTtoCD + boilerChangeLTtoCDAdditionalPerkW * boilerPowerBivalentHP;
+		else
+			boilerChangeCost = boilerChangeCDtoCD + boilerChangeCDtoCDAdditionalPerkW * boilerPowerBivalentHP;
+		float costOfInstallingBivalentSystem = boilerChangeCost + additionalBivalentHPBase
+				+ additionalBivalentHPPerkW * hpPowerBivalentHP;
+		
+		ValueResourceHelper.setCreate(result.costOfProject(), costOfInstallingBivalentSystem);
 		
 	}
 

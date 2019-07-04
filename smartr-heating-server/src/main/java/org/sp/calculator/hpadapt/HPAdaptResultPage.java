@@ -34,27 +34,27 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 				EN, "Heat pump power (bivalent heat pump)",
 				DE, "Leistung Wärmepumpe bivalent");
 
-		setLabelWithUnit(result.wwEnergyPreRenovation(),
-				EN, "Warm water energy (pre-renovation) "
+		setLabel(result.wwEnergyPreRenovation(),
+				EN, "Warm water energy (pre-renovation) (kWh) "
 						+ "(losses during heating season in heated areas are attributed to heater)",
-				DE, "TWW-Energie (vor Sanierung)"
+				DE, "TWW-Energie (vor Sanierung) (kWh) "
 						+ "(während Heizperiode werden Verluste TWW im beheizten Bereich der Heizung zugerechnet)");
 
-		setLabelWithUnit(result.heatingEnergPreRenovation(),
-				EN, "Heating energy (pre-renovation)",
-				DE, "Heizenergie (vor Sanierung)");
+		setLabel(result.heatingEnergyPreRenovation(),
+				EN, "Heating energy (pre-renovation) (kWh)",
+				DE, "Heizenergie (vor Sanierung) (kWh)");
 
-		setLabelWithUnit(result.wwEnergyPostRenovation(),
-				EN, "Warm water energy (post-renovation)",
-				DE, "TWW-Energie (nach Sanierung)");
+		setLabel(result.wwEnergyPostRenovation(),
+				EN, "Warm water energy (post-renovation) (kWh)",
+				DE, "TWW-Energie (nach Sanierung) (kWh)");
 
-		setLabelWithUnit(result.heatingEnergyPostRenovation(),
-				EN, "Heating energy (post-renovation)",
-				DE, "Heizenergie (nach Sanierung)");
+		setLabel(result.heatingEnergyPostRenovation(),
+				EN, "Heating energy (post-renovation) (kWh)",
+				DE, "Heizenergie (nach Sanierung) (kWh)");
 
-		setLabelWithUnit(result.totalEnergyPostRenovation(),
-				EN, "Total energy (post-renovation)",
-				DE, "Gesamtenergie (nach Sanierung)");
+		setLabel(result.totalEnergyPostRenovation(),
+				EN, "Total energy (post-renovation) (kWh)",
+				DE, "Gesamtenergie (nach Sanierung) (kWh)");
 
 		setLabelWithUnit(result.heatingDegreeDays(),
 				EN, "Heating degree days",
@@ -64,13 +64,13 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 				EN, "Number of heating days",
 				DE, "Zahl der Heiztage");
 
-		setLabelWithUnit(result.heatingDegreeDaysHourly(),
+		/* setLabelWithUnit(result.heatingDegreeDaysHourly(),
 				EN, "Heating degree days (hourly basis)",
-				DE, "Heizgradtage (Stundenbasis)");
+				DE, "Heizgradtage (Stundenbasis)"); */
 
-		setLabelWithUnit(result.numberOfHeatingDaysHourly(),
+		/* setLabelWithUnit(result.numberOfHeatingDaysHourly(),
 				EN, "Number of heating days (hourly basis)",
-				DE, "Zahl der Heiztage (Stundenbasis)");
+				DE, "Zahl der Heiztage (Stundenbasis)"); */
 
 		setLabelWithUnit(result.fullLoadHoursExclWW(),
 				EN, "Full load hours excl. warm water (h/a)",

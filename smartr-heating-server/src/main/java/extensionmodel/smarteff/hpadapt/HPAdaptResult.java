@@ -3,7 +3,6 @@ package extensionmodel.smarteff.hpadapt;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.AreaResource;
-import org.ogema.core.model.units.EnergyResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
@@ -24,16 +23,16 @@ public interface HPAdaptResult extends ProjectProposal100EE {
 	
 	/* DESIGN 1 */
 	
-	/** Warm water energy (losses during heating season in heated areas are included) */
-	EnergyResource wwEnergyPreRenovation();
-	/** Heating energy (pre-renovation) */
-	EnergyResource heatingEnergPreRenovation();
-	/** Warm water energy (post-renovation) */
-	EnergyResource wwEnergyPostRenovation();
-	/** Heating energy (post-renovation) */
-	EnergyResource heatingEnergyPostRenovation();
-	/** Total energy (post-renovation) */
-	EnergyResource totalEnergyPostRenovation();
+	/** Warm water energy (losses during heating season in heated areas are included) (kWh) */
+	FloatResource wwEnergyPreRenovation();
+	/** Heating energy (pre-renovation) (kWh) */
+	FloatResource heatingEnergyPreRenovation();
+	/** Warm water energy (post-renovation) (kWh) */
+	FloatResource wwEnergyPostRenovation();
+	/** Heating energy (post-renovation) (kWh) */
+	FloatResource heatingEnergyPostRenovation();
+	/** Total energy (post-renovation) (kWh) */
+	FloatResource totalEnergyPostRenovation();
 	
 	
 	/* HEATING CHARACTERISTICS */
