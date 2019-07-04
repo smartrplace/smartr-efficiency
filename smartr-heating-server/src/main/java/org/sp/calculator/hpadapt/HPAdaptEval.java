@@ -744,8 +744,9 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				val.val().setValues(copField[i]);
 			}
 			cop.activate(true);
-
 		}
+		if (!params.temperatureHistory().exists())
+			params.temperatureHistory().create();
 		
 		// Perhaps move to properties?
 		if(
