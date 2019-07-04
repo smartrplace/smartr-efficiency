@@ -8,6 +8,14 @@
 (org.osgi.framework.PackagePermission "org.ogema.tools.*" "import")
 (org.osgi.framework.PackagePermission "de.iwes.widgets.*" "import")
 (org.osgi.framework.PackagePermission "de.iwes.util.*" "import")
+(org.osgi.framework.PackagePermission "de.iwes.timeseries.*" "import")
+(org.osgi.framework.PackagePermission "extensionmodel.smarteff.*" "import")
+(org.osgi.framework.PackagePermission "org.smartrplace.efficiency.*" "import")
+(org.osgi.framework.PackagePermission "org.smartrplace.extensionservice" "import")
+(org.osgi.framework.PackagePermission "org.smartrplace.extensionservice.*" "import")
+(org.osgi.framework.PackagePermission "org.smartrplace.smarteff.util" "import")
+(org.osgi.framework.PackagePermission "org.smartrplace.smarteff.util.*" "import")
+
 
 (org.osgi.framework.PackagePermission "org.slf4j" "import")
 
@@ -29,5 +37,7 @@
 (org.osgi.framework.PackagePermission "de.iwes.timeseries.eval.base.provider"  "import")
 
 # export/custom type permissions
+(org.osgi.framework.PackagePermission "extensionmodel.smarteff.*" "exportonly")
 
 # resource permissions
+(org.ogema.accesscontrol.ResourcePermission "extensionmodel.smarteff.electricity.example.ElectricityProfileEvalConfig" "read,write,addsub,create")
