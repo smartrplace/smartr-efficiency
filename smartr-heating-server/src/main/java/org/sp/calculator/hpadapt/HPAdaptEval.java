@@ -49,10 +49,8 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	protected void calculateProposal(HPAdaptData hpData, ProjectProposal100EE resultProposal,
 			ExtensionResourceAccessInitData data) {
 		
-		if (!(resultProposal instanceof HPAdaptResult)) {
-			LoggerFactory.getLogger(HPAdaptEval.class).error("Wrong Result type. Can't evaluate.");
-			return;
-		}
+		if (!(resultProposal instanceof HPAdaptResult))
+			throw new RuntimeException("Wrong Result type. Can't evaluate.");
 
 		HPAdaptResult result = (HPAdaptResult) resultProposal;
 		
@@ -156,6 +154,8 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 			LoggerFactory.getLogger(HPAdaptEval.class).warn("Temperature history has {} data points. Expected {}",
 					temperatureHistory.size(), DAYS_IN_A_YEAR);
 		}
+		if (temperatureHistory.size() == 0)
+			throw new RuntimeException("No temperature history found!");
 		
 		Iterator<SampledValue> iter = temperatureHistory.iterator();
 		long prevTimestamp = 0;
@@ -319,6 +319,8 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
 		YearlyConsumption yearlyConsumption =
 				BasicCalculations.getYearlyConsumption(heatCostBillingInfo, 3);
+		if (yearlyConsumption == null)
+			throw new RuntimeException("No yearly power consumption data provided!");
 		float yearlyHeatingEnergyConsumption = yearlyConsumption.avKWh;
 		float b_is_LT_to_CD = 1f; // TODO
 		float boilerPowerReductionLTtoCD = hpParams.boilerPowerReductionLTtoCD().getValue() * 0.01f;
