@@ -368,7 +368,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			if(FloatResource.class.isAssignableFrom(type.type)) {
 				Float low = lowerLimits.get(sub);
 				Float up = upperLimits.get(sub);
-				float lowv = (low!=null)?up:0;
+				float lowv = (low!=null)?low:0;
 				float upv = (up!=null)?up:999999f;
 				FloatResource valRes = res.getSubResource(sub);
 				float val = valRes.getValue();
