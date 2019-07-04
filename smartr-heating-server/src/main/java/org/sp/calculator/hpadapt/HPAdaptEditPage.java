@@ -68,7 +68,7 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLabelWithUnit(data.outsideDesignTemp(),
 				EN, "Outside design temperature",
 				DE, "Außentemperatur-Auslegung",
-				-40, 50);
+				-40 - HPAdaptEval.ABSOLUTE_ZERO, 50 - HPAdaptEval.ABSOLUTE_ZERO);
 
 		setLabelWithUnit(data.savingsFromCDBoiler(),
 				EN, "Estimated savings from condensing boiler",
