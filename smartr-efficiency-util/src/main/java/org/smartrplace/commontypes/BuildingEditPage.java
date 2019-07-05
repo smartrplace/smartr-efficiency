@@ -14,6 +14,7 @@ import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.textfield.TextField;
+import extensionmodel.smarteff.api.common.AccessControl;
 import extensionmodel.smarteff.api.common.BuildingData;
 
 public class BuildingEditPage extends EditPageGeneric<BuildingData> {
@@ -182,6 +183,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel(sr.heatRadiatorType(), EN, "Different types of thermostats in building", DE, "Verschiedene Arten von Heizkörperthermostaten im Gebäude");
 		setLabel(sr.windowType(), EN, "Different types of windows in building", DE, "Verschiedene Arten von Fenstern im Gebäude");
 		setLabel(sr.electricityMeterCountValue(), EN, "Meter count with time of measuerment", DE, "Aktueller Zählerstand");
+		setLabel(sr.getSubResource("accessControl", AccessControl.class), EN, "Configure other user access control");
 	}
 
 	@Override

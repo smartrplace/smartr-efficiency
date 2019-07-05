@@ -43,6 +43,7 @@ public class AccessControlRegistration {
 			//setHeaderLink(EN, "https://en.wikipedia.org/wiki/Master_data");
 			setLabel(sr.modules(), EN, "Module Full Classnames",
 					DE, "Module (Klassennamen)");
+			setEditable(sr.modules(), false);
 			setLabel(sr.users(), EN, "User names",
 					DE, "Nutzernamen");
 		}
