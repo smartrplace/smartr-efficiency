@@ -39,6 +39,7 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLabelWithUnit(data.savingsAfterBasicRenovation(),
 				EN, "Estimated savings after basic renovation",
 				DE, "Geschätzte Einsparung durch einfache Sanierung");
+		setLink(data.savingsAfterBasicRenovation(), EN, "https://github.com/smartrplace/smartr-efficiency/blob/master/HPAdapt.md#estimated-savings-after-basic-renovation");
 
 		setLabelWithUnit(data.wwConsumption(),
 				EN, "Known or estimated warm drinking water consumption",

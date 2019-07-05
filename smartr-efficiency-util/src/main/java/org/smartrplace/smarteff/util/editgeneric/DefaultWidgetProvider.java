@@ -37,6 +37,7 @@ import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.AddEditButtonForCreate;
 import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.TypeResult;
+import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
 import org.smartrplace.util.format.ValueConverter;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -461,7 +462,21 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				Flexbox valueWidget = EditPageBase.getHorizontalFlexBox(page, "flexbox"+sub+pid,
 						multi.multiSelect, multi.newValue, multi.submit);
 				return valueWidget;
-			} else return mhLoc.stringLabel(sub);
+			} else {
+				Label valueWidget = new Label(page, "array_"+sub+pid) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						StringArrayResource tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+								sub, appData.systemAccess(), appManExt, StringArrayResource.class);
+						String text = ValueResourceHelperSP.getAsString(tsResource.getValues());
+						setText(text, req);
+					}
+				};
+				return valueWidget;
+			}
 		} else if(SmartEff2DMap.class.isAssignableFrom(type2.type)) {
 			if(isEditable) {
 				AddEditButton valueWidget = new AddEditButton(page, "open_"+sub, pid, exPage, null) {
