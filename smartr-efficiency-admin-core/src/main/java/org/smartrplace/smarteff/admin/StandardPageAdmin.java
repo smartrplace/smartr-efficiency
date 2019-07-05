@@ -125,7 +125,7 @@ public class StandardPageAdmin {
 	
 	public String getStartPageURL() {
 		if(controller.appManExt.globalData().startPageId().isActive())
-			return controller.appManExt.globalData().startPageId().getValue()+".html";
+			return controller.appManExt.globalData().startPageId().getValue().replace(".", "_") + ".html";
 		return null;
 	}
 	
