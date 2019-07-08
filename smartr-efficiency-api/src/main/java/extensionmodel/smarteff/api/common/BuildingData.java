@@ -70,6 +70,11 @@ public interface BuildingData extends SmartEffResource {
 	 * 32: direct electric heating
 	 */
 	IntegerResource heatSource();
+	/** Only relevant if {@link #heatSource()} is based on burning hydrocarbon hydrogen. If true the
+	 * resulting exhaust temperature is well below 373,15 K and the steam in the exhaust gas is
+	 * partially condensing. If false the exhaust temperature is assumed above 373,15 K.
+	 */
+	BooleanResource condensingBurner();
 	BooleanResource coGeneration();
 
 	ResourceList<HeatCostBillingInfo> heatCostBillingInfo();

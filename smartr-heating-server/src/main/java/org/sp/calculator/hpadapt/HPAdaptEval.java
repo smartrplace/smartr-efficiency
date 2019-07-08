@@ -36,6 +36,7 @@ import extensionmodel.smarteff.defaultproposal.DefaultProviderParams;
 import extensionmodel.smarteff.hpadapt.HPAdaptData;
 import extensionmodel.smarteff.hpadapt.HPAdaptParams;
 import extensionmodel.smarteff.hpadapt.HPAdaptResult;
+import extensionmodel.smarteff.hpadapt.PriceScenarioData;
 
 
 public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
@@ -285,7 +286,11 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		float totalFacadeWallArea = 0f;
 		int numberOfRoomsFacingOutside = 0;
 		for (BuildingUnit room : rooms) {
-			float wall_height = 2.8f; // TODO add to BuildingUnit
+			float wall_height;
+			if(room.roomHeight().isActive() && room.roomHeight().getValue() > 0)
+				wall_height = room.roomHeight().getValue();
+			else
+				wall_height = hpData.roomHeight().getValue();
 			float roof_share = 1.0f; // TODO add to BuildingUnit
 			float basement_share = 1.0f; // TODO add to BuildingUnit
 			totalRoofArea += room.groundArea().getValue() * roof_share;
@@ -490,21 +495,22 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		if(priceType == HPAdaptData.USE_USER_DEFINED_PRICE_TYPE) {
 			priceType = hpData.dimensioningForPriceType().getValue();
 		}
+		final PriceScenarioData scenario;
 		if (priceType == HPAdaptData.PRICE_TYPE_100EE) {
-			priceVarHeatPower = hpParams.electrictiyPriceHeat100EEPerkWh().getValue();
-			priceVarGas = hpParams.gasPrice100EEPerkWh().getValue();
+			scenario = hpParams.prices100EE();
 			yearlyOperatingCost = result.yearlyOperatingCosts100EE();
 		}
 		else if (priceType == HPAdaptData.PRICE_TYPE_CO2_NEUTRAL) {
-			priceVarHeatPower = hpParams.electrictiyPriceHeatCO2neutralPerkWh().getValue();
-			priceVarGas = hpParams.gasPriceCO2neutralPerkWh().getValue();
+			scenario = hpParams.pricesCO2neutral();
 			yearlyOperatingCost = result.yearlyOperatingCostsCO2Neutral();
 		}
 		else { // Assume conventional
-			priceVarHeatPower = hpParams.electrictiyPriceHeatPerkWh().getValue();
-			priceVarGas = 0.0532f; // TODO use globally defined parameter
+			scenario = hpParams.pricesConventional();
 			yearlyOperatingCost = result.yearlyOperatingCosts();
 		}
+		priceVarHeatPower = scenario.electrictiyPriceHeatPerkWh().getValue();
+		priceVarGas = scenario.gasPricePerkWh().getValue();
+		yearlyOperatingCost = result.yearlyOperatingCostsCO2Neutral();
 		float copMin = priceVarHeatPower / priceVarGas;
 
 		// float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
@@ -671,7 +677,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		float boilerPowerBivalentHP = boilerPowerBoilerOnly - hpPowerBivalentHP;
 		ValueResourceHelper.setCreate(result.boilerPowerBivalentHP(), boilerPowerBivalentHP * 1000);
 
-		boolean is_condensing_boilder = false; // TODO
+		boolean is_condensing_boilder = building.condensingBurner().getValue();
 
 		float boilerChangeCost;
 		if (is_condensing_boilder)
@@ -750,14 +756,20 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		
 		// Perhaps move to properties?
 		if(
-				ValueResourceHelper.setIfNew(params.electrictiyPriceCO2neutralPerkWh(), 0.259f) |
-				ValueResourceHelper.setIfNew(params.electrictiyPrice100EEPerkWh(), 0.249f) |
-				ValueResourceHelper.setIfNew(params.electrictiyPriceHeatBase(), 112) |
-				ValueResourceHelper.setIfNew(params.electrictiyPriceHeatPerkWh(), 0.191f) |
-				ValueResourceHelper.setIfNew(params.electrictiyPriceHeatCO2neutralPerkWh(), 0.201f) |
-				ValueResourceHelper.setIfNew(params.electrictiyPriceHeat100EEPerkWh(), 0.201f) |
-				ValueResourceHelper.setIfNew(params.gasPriceCO2neutralPerkWh(), 0.099f) |
-				ValueResourceHelper.setIfNew(params.gasPrice100EEPerkWh(), 0.15f) |
+				ValueResourceHelper.setIfNew(params.pricesCO2neutral().electrictiyPricePerkWh(), 0.259f) |
+				ValueResourceHelper.setIfNew(params.prices100EE().electrictiyPricePerkWh(), 0.249f) |
+				ValueResourceHelper.setIfNew(params.pricesConventional().electricityPriceHeatBase(), 112) |
+				ValueResourceHelper.setIfNew(params.pricesCO2neutral().electricityPriceHeatBase(), 112) |
+				ValueResourceHelper.setIfNew(params.prices100EE().electricityPriceHeatBase(), 112) |
+				ValueResourceHelper.setIfNew(params.pricesConventional().electricityPriceBase(), 184) |
+				ValueResourceHelper.setIfNew(params.pricesCO2neutral().electricityPriceBase(), 184) |
+				ValueResourceHelper.setIfNew(params.prices100EE().electricityPriceBase(), 184) |
+				ValueResourceHelper.setIfNew(params.pricesConventional().electrictiyPriceHeatPerkWh(), 0.191f) |
+				ValueResourceHelper.setIfNew(params.pricesCO2neutral().electrictiyPriceHeatPerkWh(), 0.201f) |
+				ValueResourceHelper.setIfNew(params.prices100EE().electrictiyPriceHeatPerkWh(), 0.201f) |
+				ValueResourceHelper.setIfNew(params.pricesCO2neutral().gasPricePerkWh(), 0.099f) |
+				ValueResourceHelper.setIfNew(params.prices100EE().gasPricePerkWh(), 0.15f) |
+				ValueResourceHelper.setIfNew(params.pricesConventional().gasPricePerkWh(), 0.0532f) |
 				ValueResourceHelper.setIfNew(params.boilerChangeCDtoCD(), 4000) |
 				ValueResourceHelper.setIfNew(params.boilerChangeLTtoCD(), 7000) |
 				ValueResourceHelper.setIfNew(params.boilerChangeCDtoCDAdditionalPerkW(), 100) |

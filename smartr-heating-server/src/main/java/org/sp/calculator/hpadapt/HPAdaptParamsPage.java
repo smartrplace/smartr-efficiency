@@ -8,35 +8,39 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 	@Override
 	public void setData(HPAdaptParams params) {
 		
-		setLabelWithUnit(params.electrictiyPriceCO2neutralPerkWh(),
+		setLabelWithUnit(params.pricesCO2neutral().electrictiyPricePerkWh(),
 				EN, "Price of CO₂-neutral electricity (EUR/kWh)",
 				DE, "Preis für CO₂-neutralem Strom (EUR/kWh)");
 
-		setLabelWithUnit(params.electrictiyPrice100EEPerkWh(),
+		setLabelWithUnit(params.prices100EE().electrictiyPricePerkWh(),
 				EN, "Price of 100EE electricity (EUR/kWh)",
 				DE, "Preis für 100EE-Strom (EUR/kWh)");
 
-		setLabelWithUnit(params.electrictiyPriceHeatBase(),
-				EN, "Base price of heat pump electricity",
-				DE, "Grundpreis von Wärmepumpenstrom");
+		//setLabelWithUnit(params.electrictiyPriceHeatBase(),
+		//		EN, "Base price of heat pump electricity",
+		//		DE, "Grundpreis von Wärmepumpenstrom");
 
-		setLabelWithUnit(params.electrictiyPriceHeatPerkWh(),
+		setLabelWithUnit(params.pricesConventional().electrictiyPriceHeatPerkWh(),
 				EN, "Price of heat pump electricity (EUR/kWh)",
 				DE, "Preis für Wärmepumpenstrom (EUR/kWh)");
 
-		setLabelWithUnit(params.electrictiyPriceHeatCO2neutralPerkWh(),
+		setLabelWithUnit(params.pricesCO2neutral().electrictiyPriceHeatPerkWh(),
 				EN, "Price of CO₂-neutral heat pump electricity (EUR/kWh)",
 				DE, "Preis für CO₂-neutralen Wärmepumpenstrom (EUR/kWh)");
 
-		setLabelWithUnit(params.electrictiyPriceHeat100EEPerkWh(),
+		setLabelWithUnit(params.prices100EE().electrictiyPriceHeatPerkWh(),
 				EN, "Price of 100EE heat pump electricity (EUR/kWh)",
 				DE, "Preis für 100EE-Wärmepumpenstrom (EUR/kWh)");
 
-		setLabelWithUnit(params.gasPriceCO2neutralPerkWh(),
+		setLabelWithUnit(params.pricesConventional().gasPricePerkWh(),
+				EN, "Price of conventional natural gas (EUR/kWh)",
+				DE, "Preis für konventionelles Erdgas (EUR/kWh)");
+
+		setLabelWithUnit(params.pricesCO2neutral().gasPricePerkWh(),
 				EN, "Price of CO₂-neutral gas (EUR/kWh)",
 				DE, "Preis für CO₂-neutrales Gas (EUR/kWh)");
 
-		setLabelWithUnit(params.gasPrice100EEPerkWh(),
+		setLabelWithUnit(params.prices100EE().gasPricePerkWh(),
 				EN, "Price of 100EE gas (EUR/kWh)",
 				DE, "Preis für 100EE-Gas (EUR/kWh)");
 

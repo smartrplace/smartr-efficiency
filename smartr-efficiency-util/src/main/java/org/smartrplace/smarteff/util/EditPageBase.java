@@ -53,6 +53,11 @@ import de.iwes.widgets.html.html5.flexbox.JustifyContent;
  */
 public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 	protected abstract void getEditTableLines(EditTableBuilder etb);
+	/**  During this method resource elements may be initialized and checked
+	 * @param data
+	 * @return if true the resource is ok for usage and can be activated. If false activation
+	 * 		is blocked.
+	 */
 	public abstract boolean checkResource(T data);
 	protected void registerWidgetsAboveTable() {};
 

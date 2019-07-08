@@ -19,6 +19,9 @@ public interface HPAdaptData extends SmartEffResource {
 
 	/* GENERAL DATA */
 
+	/** Height of rooms (default value if no specific value for a room is given)*/
+	LengthResource roomHeight();
+	
 	/** Estimated savings after basic renovation */
 	PercentageResource savingsAfterBasicRenovation();
 	/** Known or estimated warm drinking water consumption */
@@ -56,7 +59,9 @@ public interface HPAdaptData extends SmartEffResource {
 	IntegerResource dimensioningForPriceType();
 	/** Offset for adapting to historical outside temperature data */
 	FloatResource outsideTempOffset();
-	/** Comfort temperature */
+	/** Comfort temperature 
+	 * TODO: Perform same modeling regarding room-specific values as for roomHeight,
+	 * align with spreadsheet*/
 	TemperatureResource comfortTemp();
 	/* U-VALUE DATA */
 	

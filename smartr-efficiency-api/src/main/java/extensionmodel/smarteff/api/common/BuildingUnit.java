@@ -2,6 +2,7 @@ package extensionmodel.smarteff.api.common;
 
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.units.AreaResource;
+import org.ogema.core.model.units.LengthResource;
 import org.ogema.core.model.units.PercentageResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.model.units.VolumeResource;
@@ -23,6 +24,14 @@ public interface BuildingUnit extends SmartEffResource {
 	/**Including window area*/
 	AreaResource totalOutsideWallArea();
 	
+	/** Height of room (a value of zero, negative or inactive resource indicates that the
+	 * default room height of the building shall be used)*/
+	LengthResource roomHeight();
+	/** Share of room ceiling that connects to the upper building envelope*/
+	PercentageResource ceilingShare();
+	/** Share of room floor that connects to the lower building envelope*/
+	PercentageResource basementShare();
+
 	ResourceList<HeatRadiator> heatRadiator();
 	ResourceList<Window> window();
 	

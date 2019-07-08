@@ -177,6 +177,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel(sr.heatSource(), EN, "Type of Heating", DE, "Art der Heizung");
 		setDisplayOptions(sr.heatSource(), EN, HEATTYPEMAP_EN);
 		setDisplayOptions(sr.heatSource(), DE, HEATTYPEMAP_DE);
+		setLabel(sr.condensingBurner(), EN, "Has condensing burner or congeneration", DE, "Brenner/KWK mit Brennwert");
 		setLabel(sr.coGeneration(), EN, "Cogeneration Device", DE, "KWK-Anlage");
 		setLabel(sr.heatCostBillingInfo(), EN, "Edit Bills", DE, "Heizkostenabrechnungen");
 		setLabel(sr.buildingUnit(), EN, "Rooms / Sub Units", DE, "Räume / Gebäudeteile");

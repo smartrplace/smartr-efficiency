@@ -16,26 +16,29 @@ import org.smartrplace.extensionservice.SmartEffTimeSeries;
 public interface HPAdaptParams extends SmartEffResource {
 
 	/* ENERGY COSTS */
-
+	
+	PriceScenarioData pricesConventional();
+	PriceScenarioData pricesCO2neutral();
+	PriceScenarioData prices100EE();
+	
 	/** Price of CO2-neutral electricity (EUR/kWh) */
-	FloatResource electrictiyPriceCO2neutralPerkWh();
+	//FloatResource electrictiyPriceCO2neutralPerkWh();
 	/** Price of 100EE neutral electricity (EUR/kWh) */
-	FloatResource electrictiyPrice100EEPerkWh();
+	//FloatResource electrictiyPrice100EEPerkWh();
 
 	/** Base price for heat pump electricity */
-	FloatResource electrictiyPriceHeatBase();
+	//FloatResource electrictiyPriceHeatBase();
 	/** Price for heat pump electricity (EUR/kWh) */
-	FloatResource electrictiyPriceHeatPerkWh();
+	//FloatResource electrictiyPriceHeatPerkWh();
 	/** Price for CO2-neutral heat pump electricity (EUR/kWh) */
-	FloatResource electrictiyPriceHeatCO2neutralPerkWh();
+	//FloatResource electrictiyPriceHeatCO2neutralPerkWh();
 	/** Price for 100EE heat pump electricity (EUR/kWh) */
-	FloatResource electrictiyPriceHeat100EEPerkWh();
+	//FloatResource electrictiyPriceHeat100EEPerkWh();
 
 	/** Price for CO2-neutral gas (EUR/kWh) */
-	FloatResource gasPriceCO2neutralPerkWh();
+	//FloatResource gasPriceCO2neutralPerkWh();
 	/** Price for 100EE gas (EUR/kWh) */
-	FloatResource gasPrice100EEPerkWh();
-
+	//FloatResource gasPrice100EEPerkWh();
 
 	/* MISC COSTS */
 

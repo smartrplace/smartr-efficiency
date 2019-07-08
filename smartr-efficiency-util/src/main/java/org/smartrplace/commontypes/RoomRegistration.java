@@ -7,6 +7,7 @@ import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
@@ -69,6 +70,9 @@ public class RoomRegistration {
 			setTableHeader(sr.groundArea(), EN, "Ground Area (m2)", DE, "Nutzfläche (m2)");
 			setLabel(sr.totalOutsideWallArea(), EN, "Total area of outside walls (m2)", DE ,"Gesamtfläche Außenwände (m2)");
 			setLabel(sr.outsideWindowArea(), EN, "Total area of windows in outside walls (m2)", DE, "Gesamt-Fensterfläche (nur Außenwände) in m2");
+			setLabel(sr.roomHeight(), EN, "Special height of room if not standard height in building", DE, "Raumhöhe falls abweichend von der Standardhöhe im Gebäude");
+			
+			
 			setLabel(sr.manualTemperatureReading(), EN, "Manual temperature reading (°C)");
 			setLabel(sr.manualHumidityReading(), EN, "Manual humidity reading (%)");
 			setLabel(sr.roomTemperatureQualityRating(), EN, "Room temperature comfort level user feedback",
@@ -89,6 +93,12 @@ public class RoomRegistration {
 		@Override
 		protected String getMaintainer() {
 			return "test1";
+		}
+		
+		@Override
+		public boolean checkResource(BuildingUnit res) {
+			return (ValueResourceHelper.setIfNew(res.roomHeight(), 2.8f))
+				| super.checkResource(res);
 		}
 	}
 }

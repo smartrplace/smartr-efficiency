@@ -33,8 +33,12 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 	}
 	@Override
 	public void setData(HPAdaptData data) {
-		
+		setHeaderLink(EN, "https://github.com/smartrplace/smartr-efficiency/blob/master/HPAdapt.md");
 		setLabel(data.name(), EN, "name", DE, "Name");
+
+		setLabelWithUnit(data.roomHeight(),
+				EN, "Default room height in building",
+				DE, "Standard-Raumhöhe im Gebäude");
 
 		setLabelWithUnit(data.savingsAfterBasicRenovation(),
 				EN, "Estimated savings after basic renovation",
