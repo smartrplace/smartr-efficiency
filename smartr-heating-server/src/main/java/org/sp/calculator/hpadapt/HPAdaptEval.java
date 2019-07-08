@@ -286,17 +286,17 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		float totalFacadeWallArea = 0f;
 		int numberOfRoomsFacingOutside = 0;
 		for (BuildingUnit room : rooms) {
-			float wall_height;
+			float roomHeight;
 			if(room.roomHeight().isActive() && room.roomHeight().getValue() > 0)
-				wall_height = room.roomHeight().getValue();
+				roomHeight = room.roomHeight().getValue();
 			else
-				wall_height = hpData.roomHeight().getValue();
+				roomHeight = hpData.roomHeight().getValue();
 			float roof_share = 1.0f; // TODO add to BuildingUnit
 			float basement_share = 1.0f; // TODO add to BuildingUnit
 			totalRoofArea += room.groundArea().getValue() * roof_share;
 			totalBasementArea += room.groundArea().getValue() * basement_share;
 			totalFacadeWallArea += room.totalOutsideWallArea().getValue() 
-					+ wall_height * hpData.innerWallThickness().getValue() * 0.01
+					+ roomHeight * hpData.innerWallThickness().getValue() * 0.01
 					- room.outsideWindowArea().getValue();
 			if (room.window().size() > 0) numberOfRoomsFacingOutside++;
 		}
@@ -677,10 +677,10 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		float boilerPowerBivalentHP = boilerPowerBoilerOnly - hpPowerBivalentHP;
 		ValueResourceHelper.setCreate(result.boilerPowerBivalentHP(), boilerPowerBivalentHP * 1000);
 
-		boolean is_condensing_boilder = building.condensingBurner().getValue();
+		boolean isCondensingBurner = building.condensingBurner().getValue();
 
 		float boilerChangeCost;
-		if (is_condensing_boilder)
+		if (isCondensingBurner)
 			boilerChangeCost = boilerChangeLTtoCD + boilerChangeLTtoCDAdditionalPerkW * boilerPowerBivalentHP;
 		else
 			boilerChangeCost = boilerChangeCDtoCD + boilerChangeCDtoCDAdditionalPerkW * boilerPowerBivalentHP;
