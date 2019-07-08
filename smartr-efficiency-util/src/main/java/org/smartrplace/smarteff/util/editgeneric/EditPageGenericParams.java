@@ -134,7 +134,8 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 		};
 
 		OgemaWidget globalValueWidget = createValueWidget(sub, type, (Label)label, mhGlob, false);
-		Button control = new Button(page, "control_"+sub+pid()) {
+		String buttonId = "control_" + sub.replace("/",  "_") + pid();
+		Button control = new Button(page, buttonId) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
