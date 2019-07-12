@@ -248,6 +248,8 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected void setLabel(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
 		setLabel(getSubPath(res), locale, text, locale2, text2);		
 	}
+
+	/** If a unit for res is found, append it to the label, otherwise just set normal label. */
 	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text) {
 		String unit = "";
 		if(res instanceof TemperatureResource)
@@ -260,14 +262,17 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			unitAppend = " (" + unit + ")";
 		setLabel(res, locale, text + unitAppend);
 	}
+	/** If a unit for res is found, append it to the label, otherwise just set normal label. */
 	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2) {
 		setLabelWithUnit(res, locale, text);
 		setLabelWithUnit(res, locale2, text2);
 	}
+	/** If a unit for res is found, append it to the label, otherwise just set normal label. */
 	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, float min, float max) {
 		setLabelWithUnit(res, locale, text);
 		setLimits(res, min, max);
 	}
+	/** If a unit for res is found, append it to the label, otherwise just set normal label. */
 	protected void setLabelWithUnit(Resource res, OgemaLocale locale, String text, OgemaLocale locale2, String text2,
 			float min, float max) {
 		setLabelWithUnit(res, locale, text);
