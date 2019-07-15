@@ -76,6 +76,13 @@ public class RoomRegistration {
 			setLabelWithUnit(sr.comfortTemperature(),
 					EN, "Room specific comfort temperature. Set to 0 to use buidling default.",
 					DE, "Komfort-Temperature falls abweichend von der Standardtemperature im Gebäude");
+			setLabelWithUnit(sr.basementShare(),
+					EN, "Share of room floor that connects to the lower building envelope",
+					DE, "Anteil des Bodens am Keller");
+			setLabelWithUnit(sr.ceilingShare(),
+					EN, "Share of room ceiling that connects to the upper building envelope",
+					DE, "Anteil der Decke am Dach");
+			
 			
 			setLabel(sr.manualTemperatureReading(), EN, "Manual temperature reading (°C)");
 			setLabel(sr.manualHumidityReading(), EN, "Manual humidity reading (%)");

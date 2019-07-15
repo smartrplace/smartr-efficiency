@@ -288,10 +288,10 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		int numberOfRoomsFacingOutside = 0;
 		for (BuildingUnit room : rooms) {
 			float roomHeight = SmartEffResourceHelper.getOrDefault(room.roomHeight(), hpData.roomHeight()).getValue();
-			float roof_share = 1.0f; // TODO add to BuildingUnit
-			float basement_share = 1.0f; // TODO add to BuildingUnit
-			totalRoofArea += room.groundArea().getValue() * roof_share;
-			totalBasementArea += room.groundArea().getValue() * basement_share;
+			float ceilingShare = room.ceilingShare().getValue() / 100f;
+			float basementShare = room.basementShare().getValue() / 100f;
+			totalRoofArea += room.groundArea().getValue() * ceilingShare;
+			totalBasementArea += room.groundArea().getValue() * basementShare;
 			totalFacadeWallArea += room.totalOutsideWallArea().getValue() 
 					+ roomHeight * hpData.innerWallThickness().getValue() * 0.01
 					- room.outsideWindowArea().getValue();
@@ -377,15 +377,15 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				
 				float wallLoss = (room.totalOutsideWallArea().getValue() - windowArea) * uValueFacade;
 
-				float ceil_share = 1.0f; // TODO add to BuildingUnit
+				float ceilShare = room.ceilingShare().getValue() / 100f;
 				float uValueRoofFacade = hpData.uValueRoofFacade().getValue();
-				float ceilLoss = (room.groundArea().getValue() * ceil_share) * uValueRoofFacade * uValueFacade;
+				float ceilLoss = (room.groundArea().getValue() * ceilShare) * uValueRoofFacade * uValueFacade;
 				
 				float pLoc = (windowLoss + wallLoss + ceilLoss) * deltaT;
 				
-				float basement_share = 1.0f; // TODO add to BuildingUnit
+				float basementShare = room.basementShare().getValue() / 100f;
 				float uValueBasementFacade = hpData.uValueBasementFacade().getValue();
-				float basementLoss = room.groundArea().getValue() * basement_share
+				float basementLoss = room.groundArea().getValue() * basementShare
 						* uValueBasementFacade * uValueFacade;
 				pLoc += basementLoss * (heatingLimitTemp - hpData.basementTempHeatingSeason().getCelsius());
 				
