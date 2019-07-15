@@ -70,8 +70,12 @@ public class RoomRegistration {
 			setTableHeader(sr.groundArea(), EN, "Ground Area (m2)", DE, "Nutzfläche (m2)");
 			setLabel(sr.totalOutsideWallArea(), EN, "Total area of outside walls (m2)", DE ,"Gesamtfläche Außenwände (m2)");
 			setLabel(sr.outsideWindowArea(), EN, "Total area of windows in outside walls (m2)", DE, "Gesamt-Fensterfläche (nur Außenwände) in m2");
-			setLabel(sr.roomHeight(), EN, "Special height of room if not standard height in building", DE, "Raumhöhe falls abweichend von der Standardhöhe im Gebäude");
-			
+			setLabel(sr.roomHeight(),
+					EN, "Room specific height. Set to 0 to use buidling default.",
+					DE, "Raumhöhe falls abweichend von der Standardhöhe im Gebäude");
+			setLabelWithUnit(sr.comfortTemperature(),
+					EN, "Room specific comfort temperature. Set to 0 to use buidling default.",
+					DE, "Komfort-Temperature falls abweichend von der Standardtemperature im Gebäude");
 			
 			setLabel(sr.manualTemperatureReading(), EN, "Manual temperature reading (°C)");
 			setLabel(sr.manualHumidityReading(), EN, "Manual humidity reading (%)");

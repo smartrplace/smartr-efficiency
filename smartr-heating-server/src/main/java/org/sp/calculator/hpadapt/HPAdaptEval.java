@@ -21,6 +21,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProjectProviderBase100EE;
+import org.smartrplace.smarteff.util.SmartEffResourceHelper;
 import org.sp.example.smartrheating.util.BaseInits;
 import org.sp.example.smartrheating.util.BasicCalculations;
 import org.sp.example.smartrheating.util.BasicCalculations.YearlyConsumption;
@@ -286,11 +287,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		float totalFacadeWallArea = 0f;
 		int numberOfRoomsFacingOutside = 0;
 		for (BuildingUnit room : rooms) {
-			float roomHeight;
-			if(room.roomHeight().isActive() && room.roomHeight().getValue() > 0)
-				roomHeight = room.roomHeight().getValue();
-			else
-				roomHeight = hpData.roomHeight().getValue();
+			float roomHeight = SmartEffResourceHelper.getOrDefault(room.roomHeight(), hpData.roomHeight()).getValue();
 			float roof_share = 1.0f; // TODO add to BuildingUnit
 			float basement_share = 1.0f; // TODO add to BuildingUnit
 			totalRoofArea += room.groundArea().getValue() * roof_share;
@@ -393,8 +390,9 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				pLoc += basementLoss * (heatingLimitTemp - hpData.basementTempHeatingSeason().getCelsius());
 				
 
-				float comfortTemp = hpData.comfortTemp().getCelsius();
-				
+				float comfortTemp = SmartEffResourceHelper
+						.getOrDefault(room.comfortTemperature(), hpData.comfortTemp()).getValue();
+
 				float vLLoc = pLoc / radPower + comfortTemp;
 				
 				if (vLLoc > vLMax && !Float.isInfinite(vLLoc)) {

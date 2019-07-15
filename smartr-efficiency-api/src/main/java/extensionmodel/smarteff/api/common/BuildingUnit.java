@@ -24,9 +24,12 @@ public interface BuildingUnit extends SmartEffResource {
 	/**Including window area*/
 	AreaResource totalOutsideWallArea();
 	
-	/** Height of room (a value of zero, negative or inactive resource indicates that the
-	 * default room height of the building shall be used)*/
+	/** Height of room.  A value <= 0 indicates that the
+	 * default room height of the building shall be used. */
 	LengthResource roomHeight();
+	/** Comfort temperature.  A value <= 0°C indicates that the
+	 * default comfort temperature of the building shall be used. */
+	TemperatureResource comfortTemperature();
 	/** Share of room ceiling that connects to the upper building envelope*/
 	PercentageResource ceilingShare();
 	/** Share of room floor that connects to the lower building envelope*/

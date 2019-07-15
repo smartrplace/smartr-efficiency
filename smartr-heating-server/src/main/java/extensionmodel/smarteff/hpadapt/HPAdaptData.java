@@ -59,9 +59,7 @@ public interface HPAdaptData extends SmartEffResource {
 	IntegerResource dimensioningForPriceType();
 	/** Offset for adapting to historical outside temperature data */
 	FloatResource outsideTempOffset();
-	/** Comfort temperature 
-	 * TODO: Perform same modeling regarding room-specific values as for roomHeight,
-	 * align with spreadsheet*/
+	/** Comfort temperature (default value if no specific value for a room is given) */
 	TemperatureResource comfortTemp();
 	/* U-VALUE DATA */
 	
