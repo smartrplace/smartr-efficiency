@@ -2,6 +2,7 @@ package extensionmodel.smarteff.hpadapt;
 
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.units.AreaResource;
 import org.ogema.core.model.units.LengthResource;
 import org.ogema.core.model.units.PercentageResource;
 import org.ogema.core.model.units.PowerResource;
@@ -71,5 +72,8 @@ public interface HPAdaptData extends SmartEffResource {
 	LengthResource innerWallThickness();
 	/** Basement temperature during heating season */
 	TemperatureResource basementTempHeatingSeason();
+	
+	/** Roof area (not north) for PV */
+	AreaResource roofAreaForPV();
 	
 }

@@ -110,5 +110,9 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 				EN, "Comfort temperature",
 				DE, "Komfort-Temperatur");
 		
+		setLabelWithUnit(data.roofAreaForPV(),
+				EN, "Roof area (not north) for PV",
+				DE, "Dachfläche nicht-Nord für PV");
+		
 	}
 }
