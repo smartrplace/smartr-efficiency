@@ -9,6 +9,7 @@ import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.smarteff.accesscontrol.CrossUserBuildingTablePage;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
@@ -78,11 +79,27 @@ public class BuildingTablePage extends NaviPageBase<BuildingData> {
 					return appData.userData();
 				}
 			};
+			
+			String crossUserUrl = 
+					"/org/sp/smarteff/admin/" + CrossUserBuildingTablePage.class.getName().replace(".", "_") + ".html";
+			RedirectButton crossUser = new RedirectButton(page, "crossUser", "View shared resources", crossUserUrl) {
+				private static final long serialVersionUID = 1L;
+				public void onGET(OgemaHttpRequest req) {
+					super.onGET(req);
+					ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+					boolean canAccessShared = !appData.getCrossuserAccess().getAccess(BuildingData.class).isEmpty();
+					this.setWidgetVisibility(canAccessShared, req);
+				}
+			};
+			crossUser.setDefaultOpenInNewTab(false);
 
 			Button registerUser = new RegisterAsUserButton(page, "registerUser", pid(), exPage, tabButton.control);
 
-			StaticTable topTable = new StaticTable(1, 3, new int[]{8,2, 2});
-			topTable.setContent(0, 0, addEntry).setContent(0, 1, registerUser).setContent(0, 2, tabButton);
+			StaticTable topTable = new StaticTable(1, 4, new int[]{6, 2, 2, 2});
+			topTable.setContent(0, 0, addEntry)
+					.setContent(0, 1, registerUser)
+					.setContent(0, 2, crossUser)
+					.setContent(0, 3, tabButton);
 			page.append(topTable);
 			exPage.registerDependentWidgetOnInit(mainTable);
 		}

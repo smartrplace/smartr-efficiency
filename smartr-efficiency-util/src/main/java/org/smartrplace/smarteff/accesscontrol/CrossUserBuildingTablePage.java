@@ -5,6 +5,7 @@ import java.util.List;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.commontypes.BuildingTablePage;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
@@ -80,10 +81,17 @@ public class CrossUserBuildingTablePage extends NaviPageBase<BuildingData> {
 				}
 			};
 
+			RedirectButton crossUser = new RedirectButton(page, "crossUser", "View own resources", 
+					"/org/sp/smarteff/admin/" + BuildingTablePage.class.getName().replace(".", "_") + ".html");
+			crossUser.setDefaultOpenInNewTab(false);
+
 			Button registerUser = new RegisterAsUserButton(page, "registerUser", pid(), exPage, tabButton.control);
 
-			StaticTable topTable = new StaticTable(1, 3, new int[]{8,2, 2});
-			topTable.setContent(0, 0, addEntry).setContent(0, 1, registerUser).setContent(0, 2, tabButton);
+			StaticTable topTable = new StaticTable(1, 4, new int[]{6, 2, 2, 2});
+			topTable.setContent(0, 0, addEntry)
+					.setContent(0, 1, registerUser)
+					.setContent(0, 2, crossUser)
+					.setContent(0, 3, tabButton);
 			page.append(topTable);
 			exPage.registerDependentWidgetOnInit(mainTable);
 		}
