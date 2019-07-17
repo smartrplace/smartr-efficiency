@@ -13,6 +13,12 @@ import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
  * */
 public interface HPAdaptResult extends ProjectProposal100EE {
 	
+	/* PROPOSALS */
+	/** Renew boiler to a condensing boiler */
+	ProjectProposal100EE condensing();
+	/** Switching to a bivalent System w/o changing radiators */
+	ProjectProposal100EE bivalent();
+	
 	/** Main results from LastBuilding worksheet*/
 	/** Boiler power (boiler only) */
 	PowerResource boilerPowerBoilerOnly();
