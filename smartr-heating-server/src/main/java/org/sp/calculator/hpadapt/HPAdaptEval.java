@@ -42,6 +42,11 @@ import extensionmodel.smarteff.hpadapt.PriceScenarioData;
 
 public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	
+	/** Yearly operation cost at chosen price scenario */
+	private float yearlyCostBivalent;
+	/** Yearly operation cost at chosen price scenario */
+	private float yearlyCostCondensing;
+	
 	@Override
 	public String label(OgemaLocale locale) {
 		return "Bivalent heat pump refurbishment";
@@ -625,14 +630,18 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		System.out.println("sumBurn is " + sumBurn);
 		System.out.println("maxPowerHPfromBadRoom is " + maxPowerHPfromBadRoom);
 		System.out.println("copMin is " + copMin);
-		
-		float costBivalent = sumHp * priceVarHeatPower + sumBurn * priceVarGas;
-		ValueResourceHelper.setCreate(yearlyOperatingCostBivalent, costBivalent);
-		
-		float costCondensing = totalEnergyPostRenovation * priceVarGas;
-		ValueResourceHelper.setCreate(yearlyOperatingCostCondensing, costCondensing);
-		
 
+		float yearlyCostBivalent = sumHp * priceVarHeatPower + sumBurn * priceVarGas;
+		ValueResourceHelper.setCreate(yearlyOperatingCostBivalent, yearlyCostBivalent);
+		
+		float yearlyCostCondensing = totalEnergyPostRenovation * priceVarGas;
+		ValueResourceHelper.setCreate(yearlyOperatingCostCondensing, yearlyCostCondensing);
+
+		// Save cost at chosen level for amortization calculation.
+		if (usingUserDefinedPriceType) {
+			this.yearlyCostBivalent = yearlyCostBivalent;
+			this.yearlyCostCondensing = yearlyCostCondensing;
+		}
 		
 		/* END RoomEval3 */
 	}
@@ -716,7 +725,12 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		
 		ValueResourceHelper.setCreate(result.bivalent().costOfProject(), costOfInstallingBivalentSystem);
 		ValueResourceHelper.setCreate(result.condensing().costOfProject(), costOfInstallingCondensingBoiler);
-		
+				
+
+		float amortization = (costOfInstallingBivalentSystem - costOfInstallingCondensingBoiler)
+				/ (yearlyCostCondensing - yearlyCostBivalent);
+		ValueResourceHelper.setCreate(result.bivalent().amortization(), amortization);
+
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * *

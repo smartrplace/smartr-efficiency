@@ -63,7 +63,7 @@ public class ResultTablePage100EE extends NaviPageBase<Resource> {
 			SPPageUtil.addResEditOpenButton("Open", proposal, vh, id, row, appData, null, req);
 
 			/* ProjectProposal-specific */
-			vh.floatLabel("Total Cost (EUR)", id, proposal.costOfProject(), row, "%.0f");
+			vh.floatLabel("Total Cost (EUR)", id, proposal.costOfProject(), row, "%.2f");
 			// vh.floatLabel("+ Work (h)", id, proposal.ownHours(), row, "%.1f");
 			//vh.floatLabel("Savings/a (EUR)", id, proposal.yearlySavings(), row, "%.2f");
 			// vh.floatLabel("CO2-Saved/a (kg)", id, proposal.yearlyCO2savings(), row, "%.2f");
@@ -72,6 +72,7 @@ public class ResultTablePage100EE extends NaviPageBase<Resource> {
 			/* ProjectProposal100EE-specific */
 			vh.floatLabel("Yearly operating cost (CO2-Neutral)", id, proposal.yearlyOperatingCostsCO2Neutral(), row, "%.2f");
 			vh.floatLabel("Yearly operating cost (100EE)", id, proposal.yearlyOperatingCosts100EE(), row, "%.2f");
+			vh.floatLabel("Amortization for chosen price scenario (years)", id, proposal.amortization(), row, "%.1f");
 			
 
 		}
