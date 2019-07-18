@@ -708,9 +708,9 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 
 		float boilerChangeCostHP;
 		if (isCondensingBurner)
-			boilerChangeCostHP = boilerChangeLTtoCD + boilerChangeLTtoCDAdditionalPerkW * boilerPowerBivalentHP;
-		else
 			boilerChangeCostHP = boilerChangeCDtoCD + boilerChangeCDtoCDAdditionalPerkW * boilerPowerBivalentHP;
+		else
+			boilerChangeCostHP = boilerChangeLTtoCD + boilerChangeLTtoCDAdditionalPerkW * boilerPowerBivalentHP;
 		float costOfInstallingBivalentSystem = boilerChangeCostHP + additionalBivalentHPBase
 				+ additionalBivalentHPPerkW * hpPowerBivalentHP;
 		
