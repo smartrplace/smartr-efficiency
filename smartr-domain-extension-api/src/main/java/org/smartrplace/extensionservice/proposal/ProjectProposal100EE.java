@@ -4,7 +4,7 @@ import org.ogema.core.model.simple.FloatResource;
 
 /** A ProjectProposal is a special CalculatedData that provides some information on a
  * project planned. ProjectProposal100EE is intended for project calculations based on 100EE.
- * Check the <a href="https://gitlab.com/100ee-space/buildings-100ee/wikis/home">Buildings-100EE wiki</a>
+ * Check the <a href="https://gitlab.com/100ee-space/buildings-100ee/wikis/home">Buildings-100EE Wiki</a>
  * for more information.
  */
 public interface ProjectProposal100EE extends ProjectProposal {
@@ -13,8 +13,8 @@ public interface ProjectProposal100EE extends ProjectProposal {
 	FloatResource yearlyOperatingCostsCO2Neutral();
 
 	/** Like {@link #yearlyOperatingCosts()}, but for 100EE-energy supply
-	 * according to <a href="https://gitlab.com/100ee-space/buildings-100ee/wikis/Geb%C3%A4udeenergiewende_100EE/Preisstruktur_100EE">
-	 * the 100EE price structure</a>.
+	 * according to the 100EE price structure.
+	 * <a href="https://gitlab.com/100ee-space/buildings-100ee/wikis/Geb%C3%A4udeenergiewende_100EE/Preisstruktur_100EE">Wiki Link</a>.
 	 */
 	FloatResource yearlyOperatingCosts100EE();
 	

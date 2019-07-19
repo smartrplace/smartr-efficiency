@@ -128,8 +128,8 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		
 		/* Perform calculations for all price levels */
 		calcPriceLevelPrereq(result, hpData, hpParams);
-		for (int priceTypeIdx = 0; priceTypeIdx < HPAdaptData.PRICE_TYPE_NAMES_EN.length; priceTypeIdx++) {
-			calcPriceLevel(result, hpData, hpParams, temperatureShares, badRoomCops, priceTypeIdx);
+		for (int i = 0; i < HPAdaptData.PRICE_TYPE_NAMES_EN.length; i++) {
+			calcPriceLevel(result, hpData, hpParams, temperatureShares, badRoomCops, i);
 		}
 
 		/* Calculate remaining results */
@@ -520,17 +520,17 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	/**
 	 * Perform COP evaluation / RoomEval3.
 	 * @param result Sets the following result resources:
-	 * maxPowerHPfromBadRoom, yearlyOperatingCosts, yearlyOperatingCostsCO2Neutral, yearlyOperatingCosts100EE.
+	 * maxPowerHPfromBadRoom, yearlyOperatingCosts for each scenario
 	 * Requires the following result resources to be set:
 	 * powerLossBasementHeating, otherPowerLoss, totalEnergyPostRenovation.
 	 * @param hpData
 	 * @param hpParams
 	 * @param temperatureShares calculated by {@link #calcHeatingDaysAndTempShares}
 	 * @param badRoomCops calculated by {@link #calcBadRoomCOP}
-	 * @param priceType defined in HPAdaptData
+	 * @param priceScenario defined in HPAdaptData
 	 */
 	private void calcPriceLevel(HPAdaptResult result, HPAdaptData hpData, HPAdaptParams hpParams,
-			Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops, int priceType) {
+			Map<Integer, Integer> temperatureShares, Map<Integer, Float> badRoomCops, int priceScenario) {
 
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 
@@ -547,22 +547,22 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		 * maxPowerHPfromBadRoom
 		 */
 		boolean usingUserDefinedPriceType = false;
-		if(priceType == hpData.dimensioningForPriceType().getValue())
+		if(priceScenario == hpData.dimensioningForPriceType().getValue())
 			usingUserDefinedPriceType = true;
 
 		FloatResource yearlyOperatingCostBivalent;
 		FloatResource yearlyOperatingCostCondensing;
 
-		if(priceType == HPAdaptData.USE_USER_DEFINED_PRICE_TYPE) {
-			priceType = hpData.dimensioningForPriceType().getValue();
+		if(priceScenario == HPAdaptData.USE_USER_DEFINED_PRICE_TYPE) {
+			priceScenario = hpData.dimensioningForPriceType().getValue();
 		}
 		final PriceScenarioData scenario;
-		if (priceType == HPAdaptData.PRICE_TYPE_100EE) {
+		if (priceScenario == HPAdaptData.PRICE_TYPE_100EE) {
 			scenario = hpParams.prices100EE();
 			yearlyOperatingCostBivalent = result.bivalent().yearlyOperatingCosts100EE();
 			yearlyOperatingCostCondensing = result.condensing().yearlyOperatingCosts100EE();
 		}
-		else if (priceType == HPAdaptData.PRICE_TYPE_CO2_NEUTRAL) {
+		else if (priceScenario == HPAdaptData.PRICE_TYPE_CO2_NEUTRAL) {
 			scenario = hpParams.pricesCO2neutral();
 			yearlyOperatingCostBivalent = result.bivalent().yearlyOperatingCostsCO2Neutral();
 			yearlyOperatingCostCondensing = result.condensing().yearlyOperatingCostsCO2Neutral();
@@ -627,7 +627,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		// TODO save these to ProjectProposal100EE?
 		// sumHp
 		// sumBurn
-		System.out.println("Price Type is " + HPAdaptData.PRICE_TYPE_NAMES_EN[priceType] + " (" + priceType + ")");
+		System.out.println("Price Type is " + HPAdaptData.PRICE_TYPE_NAMES_EN[priceScenario] + " (" + priceScenario + ")");
 		System.out.println("sumHp is " + sumHp);
 		System.out.println("sumBurn is " + sumBurn);
 		System.out.println("maxPowerHPfromBadRoom is " + maxPowerHPfromBadRoom);
@@ -652,7 +652,10 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	/**
 	 * Calculate remaining simple results that depend on other results.
 	 * @param result Sets the following result resources:
-	 * TODO DOCME
+	 * powerLossAtFreezing, powerLossAtOutsideDesignTemp, fullLoadHoursInclWW,
+	 * fullLoadHoursExclWW, boilerPowerBoilerOnly, hpPowerBivalentHP,
+	 * boilerPowerBivalentHP, bivalent.costOfProject, condensing.costOfProject,
+	 * bivalent.amortization.
 	 * @param hpData
 	 */
 	private void calcRemaining(HPAdaptResult result, HPAdaptData hpData, HPAdaptParams hpParams) {
@@ -734,6 +737,8 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		ValueResourceHelper.setCreate(result.bivalent().amortization(), amortization);
 
 	}
+	
+	
 
 	/* * * * * * * * * * * * * * * * * * * * * * *
 	 *   PROJECT PROVIDER FUNCTIONS              *

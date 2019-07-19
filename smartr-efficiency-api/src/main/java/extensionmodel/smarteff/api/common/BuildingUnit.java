@@ -11,7 +11,7 @@ import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
 
-/** A bulding unit can be a room or any part of a building. Building units defined for a building can overlap*/
+/** A building unit can be a room or any part of a building. Building units defined for a building can overlap*/
 public interface BuildingUnit extends SmartEffResource {
 	ResourceList<BuildingUnit> subUnits();
 	

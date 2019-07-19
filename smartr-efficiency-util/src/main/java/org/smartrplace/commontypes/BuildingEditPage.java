@@ -172,8 +172,8 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 			}
 		});
 		
-		setLabel(sr.heatedLivingSpace(), EN, "Heated Ground Floor in sqm", DE, "Beheizte Fläche m2");
-		setLabel(sr.heatedAreaNotInRooms(), EN, "Heated Ground Floor not in Rooms in sqm", DE, "Beheizte Fläche nicht in Räumen m2");
+		setLabel(sr.heatedLivingSpace(), EN, "Heated Ground Floor in sqm", DE, "Beheizte Fläche m²");
+		setLabel(sr.heatedAreaNotInRooms(), EN, "Heated Ground Floor not in Rooms in sqm", DE, "Beheizte Fläche nicht in Räumen m²");
 		setLabel(sr.heatSource(), EN, "Type of Heating", DE, "Art der Heizung");
 		setDisplayOptions(sr.heatSource(), EN, HEATTYPEMAP_EN);
 		setDisplayOptions(sr.heatSource(), DE, HEATTYPEMAP_DE);

@@ -25,13 +25,13 @@ public class HeatBillRegistration {
 	public static final Map<String, String> HEATTYPEMAP_DE = new HashMap<>(BuildingEditPage.HEATTYPEMAP_DE);
 
 	static {
-		UNITTYPEMAP_EN.put("1", "gas in m3");
+		UNITTYPEMAP_EN.put("1", "gas in m³");
 		UNITTYPEMAP_EN.put("2", "oil in l");
 		UNITTYPEMAP_EN.put("3", "solid fuel in kg");
 		UNITTYPEMAP_EN.put("4", "kWh (input, for heat pump this would be electricity)");
 		UNITTYPEMAP_EN.put("5", "kWh heat measured for heat pump");
 		
-		UNITTYPEMAP_DE.put("1", "Gas in m3");
+		UNITTYPEMAP_DE.put("1", "Gas in m³");
 		UNITTYPEMAP_DE.put("2", "Öl in l");
 		UNITTYPEMAP_DE.put("3", "Festbrennstoff in kg");
 		UNITTYPEMAP_DE.put("4", "kWh (System-Input, für Wärmepumpe/KWK: Strom)");

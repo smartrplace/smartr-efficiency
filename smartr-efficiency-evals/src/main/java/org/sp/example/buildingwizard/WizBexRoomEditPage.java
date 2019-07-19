@@ -104,7 +104,7 @@ public class WizBexRoomEditPage extends EditPageGenericWithTable<BuildingUnit> {
 		setLabel(WizBexWidgetProvider.ROOM_TABLE_LABEL_ID, EN, "Wizard Room Overview", DE, "Wizard-Überblick Räume");
 		
 		setTableHeader(sr.name(), EN, "Name");
-		setTableHeader(sr.groundArea(), EN, "Ground Area (m2)", DE, "Nutzfläche (m2)");
+		setTableHeader(sr.groundArea(), EN, "Ground Area (m²)", DE, "Nutzfläche (m²)");
 		IntegerResource subPos = sr.getSubResource("wizardPosition", IntegerResource.class);
 		setTableHeader(subPos, EN, "Wizard Position", DE, "Position in Wizard-Abfolge");
 		setTableHeader(subPos, CN, "edit");

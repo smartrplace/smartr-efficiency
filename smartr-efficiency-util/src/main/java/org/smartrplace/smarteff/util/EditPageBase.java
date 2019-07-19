@@ -39,15 +39,15 @@ import de.iwes.widgets.html.html5.flexbox.JustifyContent;
  * and an arbitrary number of lines. Usually one line for each sub resource to be edited is
  * foreseen, but the lines can be defined as required via {@link EditTableBuilder#addEditLine(String, String)}
  * and its derivatives.<br>
- * The first columnn is usually foreseen for a description. The description can either be the title
+ * The first column is usually foreseen for a description. The description can either be the title
  * set via addEditLine or you can give alternative titles for languages via {@link EditTableBuilder#setLabel(String, OgemaLocale, String)}
- * and create a dynamic label with {@link #getLabel(String, Visibility)} and a dynmic link button (if required) with
+ * and create a dynamic label with {@link #getLabel(String, Visibility)} and a dynamic link button (if required) with
  * {@link #getLinkButton(String, Visibility)} .<br>
  * In the second column, the widget column, several widgets can be placed in a row using
  * {@link #getHorizontalFlexBox(WidgetPage, String, OgemaWidget...)}.<br>
- * Note that {@link EditPageGeneric} also can be used in a very flexible way. In this page you can add any widget to the second
- * column overwriting {@link EditLineProvider#valueColumn()}. You can also add lines that do not directly corrspond with
- * subresources by just using a unique resourceName as id in {@link EditPageGeneric#setLabel} etc.
+ * Note that {@link EditPageGeneric} also can be used in a very flexible way. In this page you can add any widget to the
+ * second column overwriting {@link EditLineProvider#valueColumn()}. You can also add lines that do not directly
+ * correspond with subresources by just using a unique resourceName as id in {@link EditPageGeneric#setLabel} etc.
  *
  * @param <T> resource type to be edited
  */

@@ -60,9 +60,9 @@ public class RoomRegistration {
 			setTableHeader(sr.name(), EN, "Name");
 			setLabel(sr.groundArea(), EN, "Ground Area",
 					DE, "Nutzfläche");
-			setTableHeader(sr.groundArea(), EN, "Ground Area (m2)", DE, "Nutzfläche (m2)");
-			setLabel(sr.totalOutsideWallArea(), EN, "Total area of outside walls (m2)", DE ,"Gesamtfläche Außenwände (m2)");
-			setLabel(sr.outsideWindowArea(), EN, "Total area of windows in outside walls (m2)", DE, "Gesamt-Fensterfläche (nur Außenwände) in m2");
+			setTableHeader(sr.groundArea(), EN, "Ground Area (m²)", DE, "Nutzfläche (m²)");
+			setLabel(sr.totalOutsideWallArea(), EN, "Total area of outside walls (m²)", DE ,"Gesamtfläche Außenwände (m²)");
+			setLabel(sr.outsideWindowArea(), EN, "Total area of windows in outside walls (m²)", DE, "Gesamt-Fensterfläche (nur Außenwände) in m²");
 			setLabel(sr.manualTemperatureReading(), EN, "Manual temperature reading (°C)");
 			setLabel(sr.manualHumidityReading(), EN, "Manual humidity reading (%)");
 			setLabel(sr.roomTemperatureQualityRating(), EN, "Room temperature comfort level user feedback",

@@ -7,11 +7,11 @@ import org.ogema.core.model.Resource;
 public interface ExtensionPageSystemAccessForCrossuserAccess {
 	/** This methods allows modules to get access to data from a certain user, usually the provider
 	 * of the module or provider of parameters that are not managed globally but by the module
-	 * provider. A typical case is the provision of internal project proposal caculcation parameters
+	 * provider. A typical case is the provision of internal project proposal calculation parameters
 	 * (e.g. cost parameters) by a vendor that are required to provide cost information for a project
 	 * proposal planning but that shall not be made public to the users receiving the proposals.
 	 * 
-	 * @param subUserPath path below the editable user data of the resource that shalp be accessed.
+	 * @param subUserPath path below the editable user data of the resource that shall be accessed.
 	 * 		Note that currently only resources in the editable space can be accessed cross-user with
 	 * 		this method.
 	 * @param userName userName of user providing the data that shall be accessed

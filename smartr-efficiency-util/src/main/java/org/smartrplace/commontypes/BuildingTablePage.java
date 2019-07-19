@@ -56,7 +56,7 @@ public class BuildingTablePage extends NaviPageBase<BuildingData> {
 			if(req != null) appData = exPage.getAccessData(req);
 
 			vh.stringLabel("Name", id, ResourceUtils.getHumanReadableName(object), row);
-			vh.floatLabel("Heated Area", id, object.heatedLivingSpace(), row, "%.0f m2");
+			vh.floatLabel("Heated Area", id, object.heatedLivingSpace(), row, "%.0f m²");
 			SPPageUtil.addResEditOpenButton("Edit", object, vh, id, row, appData, (tabButton!=null)?tabButton.control:null, req);
 			SPPageUtil.addResTableOpenButton("Open", object, vh, id, row, appData, (tabButton!=null)?tabButton.control:null, req);
 			if(object.isActive()) {

@@ -8,7 +8,7 @@ public class DefaultProviderParamsPage extends EditPageGenericParams<DefaultProv
 		setLabel(sr.basePriceBuildingAnalysis(), EN, "Price component per building independently of size",
 				DE, "Grundpreis pro Gebäude");
 		setLabel(sr.pricePerSQMBuildingAnalysis(), EN, "Additional price per square meter",
-				DE, "Zusätzliche Preiskomponente in EUR/m2");
+				DE, "Zusätzliche Preiskomponente in EUR/m²");
 		setLabel(sr.costOfCustomerHour(), DE, "Stundensatz Kunde", EN, "Customer EUR/h", 0, 9999);
 		setLabel(sr.defaultKwhPerSQM(), EN, "base assumption for consumption kWh/sqm/a");
 	}

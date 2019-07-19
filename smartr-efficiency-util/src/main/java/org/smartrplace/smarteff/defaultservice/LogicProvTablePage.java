@@ -87,7 +87,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 							exPage);
 				} else {
 					if(!primarySubType.equals(entryResource.getResourceType())) {
-						vh.stringLabel("Input Data", id, "2nd plus", row);						
+						vh.stringLabel("Input Data", id, "2nd plus", row);
 					} else {
 						vh.stringLabel("Input Data", id, "--", row);
 					}

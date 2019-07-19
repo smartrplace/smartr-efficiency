@@ -638,10 +638,25 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected static <K extends Resource, V> boolean setIfNew(K res, V val) {
 		if(!res.exists()) {
 			res.create();
-			return setOverwrite(res, val);
+			return setAndActivate(res, val);
 		} else {
 			return false;
 		}
+	}
+	
+	/**
+	 * (Attempt to) set the value for a generic resource and
+	 * activates the resource if a value was written.
+	 * @param res
+	 * @param val
+	 * @return true if value was written
+	 */
+	protected static <K extends Resource, V> boolean setAndActivate(K res, V val) {
+		boolean valueWritten;
+		valueWritten = setOverwrite(res, val);
+		if (valueWritten)
+			res.activate(true);
+		return valueWritten;
 	}
 	
 	/**
@@ -652,11 +667,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	 */
 	protected static <K extends Resource, V> boolean setOverwrite(K res, V val) {
 		if (res instanceof TemperatureResource && val instanceof Float) {
-			if (!res.exists()) {
-				res.create();
-				((TemperatureResource) res).setCelsius((Float) val);
-				return true;
-			}
+			return ((TemperatureResource) res).setCelsius((Float) val);
 		} else if (res instanceof FloatResource && val instanceof Float)
 			return ((FloatResource) res).setValue((Float) val);
 		else if (res instanceof IntegerResource && val instanceof Integer)

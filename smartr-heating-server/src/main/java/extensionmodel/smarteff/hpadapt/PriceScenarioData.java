@@ -4,10 +4,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 
 /**
- * Parameters for HPAdapt.
- * Yellow cells in "Parameter" spread sheet.
- * @author jruckel
- *
+ * Data, e.g. energy costs, for a certain price scenario.
  */
 public interface PriceScenarioData extends SmartEffResource {
 

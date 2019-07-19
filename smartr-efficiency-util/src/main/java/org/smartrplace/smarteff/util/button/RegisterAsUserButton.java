@@ -20,8 +20,8 @@ public class RegisterAsUserButton extends TableOpenButton {
 	public static final Map<OgemaLocale, String> BUTTON_TEXTS = new HashMap<>();
 	public static final Map<OgemaLocale, String> UPBUTTON_TEXTS = new HashMap<>();
 	static {
-		BUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Register");
-		BUTTON_TEXTS.put(OgemaLocale.GERMAN, "Registrieren");
+		BUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Register as User");
+		BUTTON_TEXTS.put(OgemaLocale.GERMAN, "Als Nutzer Registrieren");
 		BUTTON_TEXTS.put(OgemaLocale.FRENCH, "Enregistrez");
 	}
 
