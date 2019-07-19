@@ -48,12 +48,16 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	private float yearlyCostBivalent;
 	/** Yearly operation cost at chosen price scenario */
 	private float yearlyCostCondensing;
+	private MyParam<HPAdaptParams> hpParamHelper;
+	private MyParam<DefaultProviderParams> defParamHelper;
 	
 	@Override
 	public String label(OgemaLocale locale) {
 		return "Bivalent heat pump refurbishment";
 	}
 
+	private ProjectProposal100EE result;
+	
 	@Override
 	protected void calculateProposal(HPAdaptData hpData, ProjectProposal100EE resultProposal,
 			ExtensionResourceAccessInitData data) {
@@ -62,6 +66,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 			throw new RuntimeException("Wrong Result type. Can't evaluate.");
 
 		HPAdaptResult result = (HPAdaptResult) resultProposal;
+		this.result = result;
 		
 		// Completely clear result
 		result.delete();
@@ -100,12 +105,10 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		
 		/* SETUP */
 
-		MyParam<HPAdaptParams> hpParamHelper =
-				CapabilityHelper.getMyParams(HPAdaptParams.class, data.userData(), appManExt);
+		hpParamHelper = CapabilityHelper.getMyParams(HPAdaptParams.class, data.userData(), appManExt);
 		HPAdaptParams hpParams = hpParamHelper.get();
 		
-		MyParam<DefaultProviderParams> defParamHelper =
-				CapabilityHelper.getMyParams(DefaultProviderParams.class, data.userData(), appManExt);
+		defParamHelper = CapabilityHelper.getMyParams(DefaultProviderParams.class, data.userData(), appManExt);
 		DefaultProviderParams defParams = defParamHelper.get();
 		
 		BuildingData building = hpData.getParent();
@@ -135,9 +138,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		/* Calculate remaining results */
 		calcRemaining(result, hpData, hpParams);
 		
-		/* Cleanup */
-		hpParamHelper.close();
-		defParamHelper.close();
+		cleanup();
 	}
 
 
@@ -174,7 +175,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 					temperatureHistory.size(), DAYS_IN_A_YEAR);
 		}
 		if (temperatureHistory.size() == 0)
-			throw new RuntimeException("No temperature history found!");
+			fail("No temperature history found!");
 		
 		Iterator<SampledValue> iter = temperatureHistory.iterator();
 		long prevTimestamp = 0;
@@ -735,6 +736,18 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	 *      HELPER FUNCTIONS           *
 	 * * * * * * * * * * * * * * * * * */
 
+	private void cleanup() {
+		hpParamHelper.close();
+		defParamHelper.close();
+	}
+	
+	/** Perform cleanup and throw an exception */
+	private void fail(String msg) {
+		result.delete();
+		cleanup();
+		throw new RuntimeException("Calculation failed: " + msg);
+	}
+
 	final private static int HEATING_NO_YEARS_MAX = 3;
 	/**
 	 * Get yearly heating energy consumption for a building.
@@ -743,12 +756,12 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	 * @return yearly heating consumption in kWh, over the past
 	 * {@value #HEATING_NO_YEARS_MAX} years.
 	 */
-	public static float getYearlyHeating(BuildingData building) {
+	protected float getYearlyHeating(BuildingData building) {
 		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
 		YearlyConsumption yearlyConsumption =
 				BasicCalculations.getYearlyConsumption(heatCostBillingInfo, HEATING_NO_YEARS_MAX);
 		if (yearlyConsumption == null)
-			throw new RuntimeException("No yearly power consumption data provided!");
+			fail("No yearly power consumption data provided!");
 		return yearlyConsumption.avKWh;
 	}
 
