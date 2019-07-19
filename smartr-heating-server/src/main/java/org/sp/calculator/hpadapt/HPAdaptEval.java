@@ -335,12 +335,8 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				weightedExtSurfaceAreaExclWindows);
 		
 		BuildingData building = hpData.getParent();
-		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
-		YearlyConsumption yearlyConsumption =
-				BasicCalculations.getYearlyConsumption(heatCostBillingInfo, 3);
-		if (yearlyConsumption == null)
-			throw new RuntimeException("No yearly power consumption data provided!");
-		float yearlyHeatingEnergyConsumption = yearlyConsumption.avKWh;
+		float yearlyHeatingEnergyConsumption = getYearlyHeating(building);
+		
 		float b_is_LT_to_CD = 1f; // TODO
 		float boilerPowerReductionLTtoCD = hpParams.boilerPowerReductionLTtoCD().getValue() * 0.01f;
 		float activePowerWhileHeating =
@@ -481,11 +477,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		
 		float wwSupplyTemp = hpParams.wwSupplyTemp().getCelsius();
 
-		BuildingData building = hpData.getParent();
-		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
-		YearlyConsumption yearlyConsumption =
-				BasicCalculations.getYearlyConsumption(heatCostBillingInfo, 3);
-		float yearlyHeatingEnergyConsumption = yearlyConsumption.avKWh;	
+		float yearlyHeatingEnergyConsumption = getYearlyHeating(hpData.getParent());
 		
 		float base_energy = wwConsumption * 4.19f / 3.6f * (wwTemp - wwSupplyTemp);
 		float base_energy_winter =
@@ -737,8 +729,27 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		ValueResourceHelper.setCreate(result.bivalent().amortization(), amortization);
 
 	}
-	
-	
+
+	/* * * * * * * * * * * * * * * * * *
+	 *      HELPER FUNCTIONS           *
+	 * * * * * * * * * * * * * * * * * */
+
+	final private static int HEATING_NO_YEARS_MAX = 3;
+	/**
+	 * Get yearly heating energy consumption for a building.
+	 * Throws an exception if data not found.
+	 * @param building
+	 * @return yearly heating consumption in kWh, over the past
+	 * {@value #HEATING_NO_YEARS_MAX} years.
+	 */
+	public static float getYearlyHeating(BuildingData building) {
+		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
+		YearlyConsumption yearlyConsumption =
+				BasicCalculations.getYearlyConsumption(heatCostBillingInfo, HEATING_NO_YEARS_MAX);
+		if (yearlyConsumption == null)
+			throw new RuntimeException("No yearly power consumption data provided!");
+		return yearlyConsumption.avKWh;
+	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * *
 	 *   PROJECT PROVIDER FUNCTIONS              *
