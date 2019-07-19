@@ -82,6 +82,27 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 		setLabel(params.copCharacteristics(),
 				EN, "Heat pump COP characteristics",
 				DE, "COP-Kennfeld der Wärmepumpe");
+		
+		
+		/* Documentation Links */
+		setHeaderLink(EN, HPAdaptEval.WIKI_LINK + "#parameters");
+		//setLink(params.pricesCO2neutral().electrictiyPricePerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-co₂-neutral-electricity-(eur/kwh)");
+		//setLink(params.prices100EE().electrictiyPricePerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-100ee-electricity-(eur/kwh)");
+		//setLink(params.pricesConventional().electrictiyPriceHeatPerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-heat-pump-electricity-(eur/kwh)");
+		//setLink(params.pricesCO2neutral().electrictiyPriceHeatPerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-co₂-neutral-heat-pump-electricity-(eur/kwh)");
+		//setLink(params.prices100EE().electrictiyPriceHeatPerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-100ee-heat-pump-electricity-(eur/kwh)");
+		//setLink(params.pricesConventional().gasPricePerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-conventional-natural-gas-(eur/kwh)");
+		//setLink(params.pricesCO2neutral().gasPricePerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-co₂-neutral-gas-(eur/kwh)");
+		//setLink(params.prices100EE().gasPricePerkWh(), EN, HPAdaptEval.WIKI_LINK +  "#price-of-100ee-gas-(eur/kwh)");
+		//setLink(params.boilerChangeCDtoCD(), EN, HPAdaptEval.WIKI_LINK +  "#condensing-boiler-→-condensing-boiler-(cd→cd),-base-price-(eur)");
+		//setLink(params.boilerChangeLTtoCD(), EN, HPAdaptEval.WIKI_LINK +  "#low-temperature-boiler-→-condensing-boiler-(lt→cd),-base-price-(eur)");
+		//setLink(params.boilerChangeCDtoCDAdditionalPerkW(), EN, HPAdaptEval.WIKI_LINK +  "#additional-cd→cd-(eur/kw)");
+		//setLink(params.boilerChangeLTtoCDAdditionalPerkW(), EN, HPAdaptEval.WIKI_LINK +  "#additional-lt→cd-(eur/kw)");
+		//setLink(params.additionalBivalentHPBase(), EN, HPAdaptEval.WIKI_LINK +  "#additional-base-cost-of-bivalent-heat-pump-(eur)");
+		//setLink(params.additionalBivalentHPPerkW(), EN, HPAdaptEval.WIKI_LINK +  "#additional-base-cost-of-bivalent-heat-pump-(eur/kw)");
+		//setLink(params.boilerPowerReductionLTtoCD(), EN, HPAdaptEval.WIKI_LINK +  "#boiler-power-reduction-switching-from-lt→cd");
+		//setLink(params.wwSupplyTemp(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-supply-temperature");
+		setLink(params.temperatureHistory(), EN, HPAdaptEval.WIKI_LINK +  "#historical-temperature-data-to-be-imported-via-csv");
 
 	}
 	@Override

@@ -42,6 +42,8 @@ import extensionmodel.smarteff.hpadapt.PriceScenarioData;
 
 public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	
+	public static final String WIKI_LINK =
+			"https://github.com/smartrplace/smartr-efficiency/blob/master/HPAdapt.md";
 	/** Yearly operation cost at chosen price scenario */
 	private float yearlyCostBivalent;
 	/** Yearly operation cost at chosen price scenario */

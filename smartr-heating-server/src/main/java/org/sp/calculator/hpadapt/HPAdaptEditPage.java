@@ -33,7 +33,6 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 	}
 	@Override
 	public void setData(HPAdaptData data) {
-		setHeaderLink(EN, "https://github.com/smartrplace/smartr-efficiency/blob/master/HPAdapt.md");
 		setLabel(data.name(), EN, "name", DE, "Name");
 
 		setLabelWithUnit(data.roomHeight(),
@@ -43,7 +42,6 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLabelWithUnit(data.savingsAfterBasicRenovation(),
 				EN, "Estimated savings after basic renovation",
 				DE, "Geschätzte Einsparung durch einfache Sanierung");
-		setLink(data.savingsAfterBasicRenovation(), EN, "https://github.com/smartrplace/smartr-efficiency/blob/master/HPAdapt.md#estimated-savings-after-basic-renovation");
 
 		setLabelWithUnit(data.wwConsumption(),
 				EN, "Known or estimated warm drinking water consumption",
@@ -113,6 +111,25 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLabelWithUnit(data.roofAreaForPV(),
 				EN, "Roof area (not north) for PV",
 				DE, "Dachfläche nicht-Nord für PV");
+		
+		/* Documentation Links */
+		setHeaderLink(EN, HPAdaptEval.WIKI_LINK + "#data");
+		setLink(data.roomHeight(), EN, HPAdaptEval.WIKI_LINK +  "#default-room-height-in-building");
+		setLink(data.savingsAfterBasicRenovation(), EN, HPAdaptEval.WIKI_LINK +  "#estimated-savings-after-basic-renovation");
+		setLink(data.wwConsumption(), EN, HPAdaptEval.WIKI_LINK +  "#known-or-estimated-warm-drinking-water-consumption");
+		//setLink(data.wwLossHeatedAreas(), EN, HPAdaptEval.WIKI_LINK +  "#estimated-warm-water-energy-loss-from-storage,-circulation-at-current-temperature-in-heated-areas");
+		//setLink(data.wwLossUnheatedAreas(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-energy-loss-in-unheated-areas");
+		//setLink(data.wwTemp(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-temperature");
+		//setLink(data.wwTempMin(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-temperature-can-be-lowered-to");
+		setLink(data.heatingLimitTemp(), EN, HPAdaptEval.WIKI_LINK +  "#heating-limit-temperature");
+		//setLink(data.outsideDesignTemp(), EN, HPAdaptEval.WIKI_LINK +  "#outside-design-temperature");
+		//setLink(data.savingsFromCDBoiler(), EN, HPAdaptEval.WIKI_LINK +  "#estimated-savings-from-condensing-boiler");
+		//setLink(data.dimensioningForPriceType(), EN, HPAdaptEval.WIKI_LINK +  "#dimensioning-for-price-type");
+		//setLink(data.uValueBasementFacade(), EN, HPAdaptEval.WIKI_LINK +  "#u-value-basement-in-relation-to-u-value-facade-(equal-=-1.0)");
+		//setLink(data.uValueRoofFacade(), EN, HPAdaptEval.WIKI_LINK +  "#u-value-roof-in-relation-to-u-value-facade-(equal-=-1.0)");
+		//setLink(data.innerWallThickness(), EN, HPAdaptEval.WIKI_LINK +  "#thickness-of-inner-walls");
+		//setLink(data.basementTempHeatingSeason(), EN, HPAdaptEval.WIKI_LINK +  "#basement-temperature-during-heating-season");
+		setLink(data.outsideTempOffset(), EN, HPAdaptEval.WIKI_LINK +  "#offset-for-adapting-to-historical-outside-temperature-data-(k)");
 		
 	}
 }

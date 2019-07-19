@@ -144,5 +144,38 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 				EN, "Power loss at outside design temperature",
 				DE, "Verlust bei Ausgelegter Außentemperatur");
 		
+
+		/* Documentation Links */
+		setHeaderLink(EN, HPAdaptEval.WIKI_LINK + "#results");
+		//setLink(result.boilerPowerBoilerOnly(), EN, HPAdaptEval.WIKI_LINK +  "#boiler-power-(boiler-only)");
+		//setLink(result.boilerPowerBivalentHP(), EN, HPAdaptEval.WIKI_LINK +  "#boiler-power-(bivalent-heat-pump)");
+		//setLink(result.hpPowerBivalentHP(), EN, HPAdaptEval.WIKI_LINK +  "#heat-pump-power-(bivalent-heat-pump)");
+		//setLink(result.wwEnergyPreRenovation(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-energy-(pre-renovation)-(kwh)-");
+		//setLink(result.heatingEnergyPreRenovation(), EN, HPAdaptEval.WIKI_LINK +  "#heating-energy-(pre-renovation)-(kwh)");
+		//setLink(result.wwEnergyPostRenovation(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-energy-(post-renovation)-(kwh)");
+		//setLink(result.heatingEnergyPostRenovation(), EN, HPAdaptEval.WIKI_LINK +  "#heating-energy-(post-renovation)-(kwh)");
+		//setLink(result.totalEnergyPostRenovation(), EN, HPAdaptEval.WIKI_LINK +  "#total-energy-(post-renovation)-(kwh)");
+		//setLink(result.heatingDegreeDays(), EN, HPAdaptEval.WIKI_LINK +  "#heating-degree-days");
+		//setLink(result.numberOfHeatingDays(), EN, HPAdaptEval.WIKI_LINK +  "#number-of-heating-days");
+		//setLink(result.heatingDegreeDaysHourly(), EN, HPAdaptEval.WIKI_LINK +  "#heating-degree-days-(hourly-basis)");
+		//setLink(result.numberOfHeatingDaysHourly(), EN, HPAdaptEval.WIKI_LINK +  "#number-of-heating-days-(hourly-basis)");
+		//setLink(result.fullLoadHoursExclWW(), EN, HPAdaptEval.WIKI_LINK +  "#full-load-hours-excl.-warm-water-(h/a)");
+		//setLink(result.fullLoadHoursInclWW(), EN, HPAdaptEval.WIKI_LINK +  "#full-load-hours-incl.-warm-water-(h/a)");
+		//setLink(result.meanHeatingOutsideTemp(), EN, HPAdaptEval.WIKI_LINK +  "#mean-heating-outside-temperature");
+		//setLink(result.maxPowerHPfromBadRoom(), EN, HPAdaptEval.WIKI_LINK +  "#maximum-power-of-heat-pump-from-badroom");
+		//setLink(result.windowArea(), EN, HPAdaptEval.WIKI_LINK +  "#window-area");
+		//setLink(result.pLossWindow(), EN, HPAdaptEval.WIKI_LINK +  "#window-power-loss-(w/k)");
+		//setLink(result.numberOfRoomsFacingOutside(), EN, HPAdaptEval.WIKI_LINK +  "#number-of-rooms-facing-outside");
+		//setLink(result.facadeWallArea(), EN, HPAdaptEval.WIKI_LINK +  "#facade-wall-area");
+		//setLink(result.basementArea(), EN, HPAdaptEval.WIKI_LINK +  "#basement-area");
+		//setLink(result.roofArea(), EN, HPAdaptEval.WIKI_LINK +  "#roof-area");
+		//setLink(result.weightedExtSurfaceAreaExclWindows(), EN, HPAdaptEval.WIKI_LINK +  "#weighted-exterior-surface-area-excl.-windows");
+		//setLink(result.activePowerWhileHeating(), EN, HPAdaptEval.WIKI_LINK +  "#active-power-while-heating");
+		//setLink(result.totalPowerLoss(), EN, HPAdaptEval.WIKI_LINK +  "#total-power-loss-(w/k)");
+		//setLink(result.uValueFacade(), EN, HPAdaptEval.WIKI_LINK +  "#u-value-of-facade");
+		//setLink(result.powerLossBasementHeating(), EN, HPAdaptEval.WIKI_LINK +  "#basement-heating-power-loss");
+		//setLink(result.otherPowerLoss(), EN, HPAdaptEval.WIKI_LINK +  "#other-power-loss-(w/k)");
+		//setLink(result.powerLossAtFreezing(), EN, HPAdaptEval.WIKI_LINK +  "#power-loss-at-0°c");
+		
 	}
 }
