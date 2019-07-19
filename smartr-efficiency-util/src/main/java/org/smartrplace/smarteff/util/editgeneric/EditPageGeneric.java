@@ -379,7 +379,11 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				float lowv = (low!=null)?low:0;
 				float upv = (up!=null)?up:999999f;
 				FloatResource valRes = ResourceHelper.getSubResource(res, sub);
-				float val = valRes.getValue();
+				float val;
+				if (valRes instanceof TemperatureResource)
+					val = ((TemperatureResource) valRes).getCelsius();
+				else
+					val = valRes.getValue();
 				if(Float.isNaN(val) || (val < lowv)||(val > upv)) {
 					return false;
 				}
