@@ -76,6 +76,9 @@ public interface BuildingData extends SmartEffResource {
 	 */
 	BooleanResource condensingBurner();
 	BooleanResource coGeneration();
+	
+	/** Set to true if the heater also heats warm drinking water */
+	BooleanResource wwViaHeatingBurner();
 
 	ResourceList<HeatCostBillingInfo> heatCostBillingInfo();
 	

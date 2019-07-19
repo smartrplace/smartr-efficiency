@@ -337,7 +337,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		BuildingData building = hpData.getParent();
 		float yearlyHeatingEnergyConsumption = getYearlyHeating(building);
 		
-		float b_is_LT_to_CD = 1f; // TODO
+		float b_is_LT_to_CD = building.condensingBurner().getValue() ? 0f : 1f;
 		float boilerPowerReductionLTtoCD = hpParams.boilerPowerReductionLTtoCD().getValue() * 0.01f;
 		float activePowerWhileHeating =
 				yearlyHeatingEnergyConsumption * (1 - b_is_LT_to_CD * boilerPowerReductionLTtoCD)
@@ -688,9 +688,10 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		ValueResourceHelper.setCreate(result.fullLoadHoursExclWW(), fullLoadHoursExclWW);
 		
 		float usage_hours;
-		boolean b_isInclTWW = true; // TODO
-		if (b_isInclTWW) usage_hours = fullLoadHoursInclWW;
-		else usage_hours = fullLoadHoursExclWW;
+		if (building.wwViaHeatingBurner().getValue())
+			usage_hours = fullLoadHoursInclWW;
+		else
+			usage_hours = fullLoadHoursExclWW;
 		
 		float boilerPowerBoilerOnly = totalEnergyPostRenovation / usage_hours;
 		ValueResourceHelper.setCreate(result.boilerPowerBoilerOnly(), boilerPowerBoilerOnly * 1000);
