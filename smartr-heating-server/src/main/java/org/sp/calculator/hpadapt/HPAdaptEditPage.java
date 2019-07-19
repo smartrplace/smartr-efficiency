@@ -7,6 +7,7 @@ import java.util.Map;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import de.iwes.widgets.html.form.button.Button;
 import extensionmodel.smarteff.hpadapt.HPAdaptData;
 
 public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
@@ -31,6 +32,14 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 			PRICE_TYPE_MAP_DE.put(Integer.toString(i), HPAdaptData.PRICE_TYPE_NAMES_DE[i]);
 		}
 	}
+	
+	@Override
+	protected void addWidgets() {
+		super.addWidgets();
+		Button setDefaults = createDefaultsButton(DefaultSetModes.SET_IF_NEW, "Fill empty resources");
+		page.append(setDefaults);
+	}
+	
 	@Override
 	public void setData(HPAdaptData data) {
 		setLabel(data.name(), EN, "name", DE, "Name");
@@ -132,4 +141,29 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLink(data.outsideTempOffset(), EN, HPAdaptEval.WIKI_LINK +  "#offset-for-adapting-to-historical-outside-temperature-data-(k)");
 		
 	}
+	
+
+	@Override
+	protected void defaultValues(HPAdaptData data, DefaultSetModes mode) {
+		setDefault(data.roomHeight(), 2.8f, mode);
+		setDefault(data.savingsAfterBasicRenovation(), 15f, mode);
+		setDefault(data.wwConsumption(), 21f, mode);
+		setDefault(data.wwLossHeatedAreas(), 35f, mode);
+		setDefault(data.wwLossUnheatedAreas(), 25f, mode);
+		setDefault(data.wwTemp(), 40f, mode);
+		setDefault(data.wwTempMin(), 40f, mode);
+		setDefault(data.heatingLimitTemp(), 12f, mode);
+		setDefault(data.outsideDesignTemp(), -20f, mode);
+		setDefault(data.savingsFromCDBoiler(), 10f, mode);
+		setDefault(data.dimensioningForPriceType(), HPAdaptData.PRICE_TYPE_CO2_NEUTRAL, mode);
+		setDefault(data.uValueBasementFacade(), 3f, mode);
+		setDefault(data.uValueRoofFacade(), .9f, mode);
+		setDefault(data.innerWallThickness(), .25f, mode);
+		setDefault(data.basementTempHeatingSeason(), 8f, mode);
+		setDefault(data.outsideTempOffset(), 0f, mode);
+		setDefault(data.comfortTemp(), 20f, mode);
+		setDefault(data.roofAreaForPV(), 40f, mode);
+	}
+
+
 }

@@ -13,7 +13,9 @@ import java.util.Map.Entry;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
@@ -35,6 +37,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.emptywidget.EmptyWidget;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Label;
 
@@ -614,4 +617,112 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 					isEditable(sub), pid());
 		}
 	}
+	
+	/** Modes/settings for how defaults are set */
+	protected enum DefaultSetModes {
+		/** Only set defaults if the parent resource fails checkResource() */
+		PARENT_CHECK,
+		/** Set defaults for empty/non-existent resources even if parent passes checks */
+		SET_IF_NEW,
+		/** Set defaults for all resources, overwriting them. */
+		OVERWRITE,
+	}
+	/**
+	 * Set a single default value.  Essentially a generic version of
+	 * ValueResourceHelper.setIfNew().
+	 * @param res Temperature-, Float-, Integer-, Boolean-, or StringResource.
+	 * @param val Value of the resource. Celsius for TemperatureResources.
+	 * @return true if resource was created and value was written, false also
+	 * for invalid types.
+	 */
+	protected static <K extends Resource, V> boolean setIfNew(K res, V val) {
+		if(!res.exists()) {
+			res.create();
+			return setOverwrite(res, val);
+		} else {
+			return false;
+		}
+	}
+	
+	/**
+	 * (Attempt to) set the value for a generic resource
+	 * @param res
+	 * @param val
+	 * @return true if value was written
+	 */
+	protected static <K extends Resource, V> boolean setOverwrite(K res, V val) {
+		if (res instanceof TemperatureResource && val instanceof Float) {
+			if (!res.exists()) {
+				res.create();
+				((TemperatureResource) res).setCelsius((Float) val);
+				return true;
+			}
+		} else if (res instanceof FloatResource && val instanceof Float)
+			return ((FloatResource) res).setValue((Float) val);
+		else if (res instanceof IntegerResource && val instanceof Integer)
+			return ((IntegerResource) res).setValue((Integer) val);
+		else if (res instanceof BooleanResource && val instanceof Boolean)
+			return ((BooleanResource) res).setValue((Boolean) val);
+		else if (res instanceof StringResource && val instanceof String)
+			return ((StringResource) res).setValue((String) val);
+		return false;
+	}
+	
+	/**
+	 * Set default values according to mode.
+	 * @param res
+	 * @param mode
+	 */
+	protected void setDefaults(T res, DefaultSetModes mode) {
+		if (mode == DefaultSetModes.PARENT_CHECK) {
+			if (res.isActive() == checkResource(res))
+				return;
+		}
+		defaultValues(res, mode);
+	}
+	
+	/**
+	 * Override this in the specific edit page and call
+	 * {@link #setDefault(Resource, Object, DefaultSetModes)}
+	 * on each of the resources you want to set defaults for.
+	 * @param res
+	 * @param mode
+	 */
+	protected void defaultValues(T res, DefaultSetModes mode) {}
+	
+	/**
+	 * Set a single default value according to the mode.
+	 * Set value if its new, unless mode is OVERWRITE.
+	 * @param res
+	 * @param val
+	 * @param mode
+	 * @return true if value was written
+	 */
+	protected static <K extends Resource, V> boolean setDefault(K res, V val, DefaultSetModes mode) {
+		if (mode == DefaultSetModes.OVERWRITE)
+			return setOverwrite(res, val);
+		else
+			return setIfNew(res, val);
+	}
+	
+	/**
+	 * Create a "Set Defaults" button that can be appended to the specific edit page
+	 * @param mode
+	 * @param label
+	 * @return
+	 */
+	protected Button createDefaultsButton(DefaultSetModes mode, String label) {
+		Button btn = new Button(page, "setDefaultsButton_" + mode.toString(), label) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				T res = getReqData(req);
+				setDefaults(res, mode);
+				// TODO trigger refresh!
+			};
+		};
+		return btn;
+	}
+	
 }
