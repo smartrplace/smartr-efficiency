@@ -5,6 +5,9 @@ import java.util.List;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 
+import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.html.filedownload.FileDownload;
+
 public interface ApplicationManagerSPExt extends ApplicationManagerSpExtMinimal {
 	public ExtensionGeneralData globalData();
 	
@@ -19,6 +22,9 @@ public interface ApplicationManagerSPExt extends ApplicationManagerSpExtMinimal 
 	public List<Class<? extends Resource>> getSystemTypes();
 	
 	public OgemaLogger log();
+	
+	/** A FileDownload requires access to to the WebAccessManager, so this has to be put into a special method*/
+	public FileDownload getFileDownload(WidgetPage<?> page, String widgetId);
 	
 	/**
 	 * 

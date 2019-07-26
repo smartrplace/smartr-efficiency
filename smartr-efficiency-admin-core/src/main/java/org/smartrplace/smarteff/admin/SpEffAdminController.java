@@ -39,6 +39,7 @@ import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
+import de.iwes.widgets.html.filedownload.FileDownload;
 
 public class SpEffAdminController {
 	public final static String APPCONFIGDATA_LOCATION = ValueFormat.firstLowerCase(SmartEffAdminData.class.getSimpleName());
@@ -137,6 +138,11 @@ public class SpEffAdminController {
 				PageType pageType) {
 			return NavigationPageSystemAccessForPageOpening.getMaximumPriorityPageStatic(type, pageType,
 					guiPageAdmin.navigationPublicData);
+		}
+
+		@Override
+		public FileDownload getFileDownload(WidgetPage<?> page, String widgetId)  {
+			return new FileDownload(page, widgetId, appMan.getWebAccessManager(), true);		
 		}
 	};
 	

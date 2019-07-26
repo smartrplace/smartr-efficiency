@@ -1,5 +1,6 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,9 +48,13 @@ import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.filedownload.FileDownload;
+import de.iwes.widgets.html.filedownload.FileDownloadData;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Label;
@@ -105,6 +110,25 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			boolean isEditableSpecific, String pid) {
 		String subId = WidgetHelper.getValidWidgetId(sub);
 		if(type2.type == null) {
+			if(sub.equals("#exportCSV")) {
+				final FileDownload download;
+				final Button buttonDownload;
+			    download = appManExt.getFileDownload(page, "download");
+			    download.triggerAction(download, TriggeringAction.GET_REQUEST, FileDownloadData.STARTDOWNLOAD);
+			    page.append(download);
+			    buttonDownload = new Button(page, "buttonDownloadProgram", "Download Backup") {
+			    	private static final long serialVersionUID = 1L;
+
+			    	@Override
+			    	public void onPrePOST(String data, OgemaHttpRequest req) {
+			    		download.setDeleteFileAfterDownload(true, req);
+			    		File csvFile = null;
+						download.setFile(csvFile, "csvImportTemp.csv", req);
+			    	}
+			    };
+			    buttonDownload.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
+				return buttonDownload;
+			}
 			Label specialLabel = new Label(page, "specialLabel"+subId) {
 				private static final long serialVersionUID = 1L;
 				@Override
