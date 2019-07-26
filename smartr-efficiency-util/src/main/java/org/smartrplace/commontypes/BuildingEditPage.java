@@ -185,6 +185,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel(sr.windowType(), EN, "Different types of windows in building", DE, "Verschiedene Arten von Fenstern im Gebäude");
 		setLabel(sr.electricityMeterCountValue(), EN, "Meter count with time of measuerment", DE, "Aktueller Zählerstand");
 		setLabel(sr.getSubResource("accessControl", AccessControl.class), EN, "Configure other user access control");
+		setLabel("#exportCSV", EN, "Export Building as CSV", DE, "Gebäude als CSV exportieren");
 	}
 
 	@Override

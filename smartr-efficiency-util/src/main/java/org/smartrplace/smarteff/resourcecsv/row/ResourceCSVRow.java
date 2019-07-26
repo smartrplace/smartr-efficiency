@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.StringResource;
+import org.ogema.tools.resource.util.ResourceUtils;
 
-public class ResourceCSVRow<T extends Resource> {
+public abstract class ResourceCSVRow<T extends Resource> {
 
 	public Class<? extends Resource> getResourceType() {
 		if (res != null)
@@ -17,10 +17,11 @@ public class ResourceCSVRow<T extends Resource> {
 
 	protected T res = null;
 
-	protected String name;
-	protected String path;
-	protected String type;
-	protected String value = "";
+	final protected String name;
+	final protected String path;
+	final protected String type;
+	final protected String resource;
+	protected String value;
 	
 	/**
 	 * Empty constructor initializes with labels for fields.
@@ -30,6 +31,8 @@ public class ResourceCSVRow<T extends Resource> {
 		this.name = "Name";
 		this.path = "Path";
 		this.type = "Type";
+		this.resource = "Resource";
+		this.value = "Value";
 	}
 	
 	public ResourceCSVRow(T res) {
@@ -37,14 +40,9 @@ public class ResourceCSVRow<T extends Resource> {
 		this.type = res.getResourceType().getSimpleName();
 
 		// If a "name" sub-resource exists, use it for the name.
-		StringResource name = res.getSubResource("name", StringResource.class);
-		String humanFriendlyName = null;
-		if (name.exists()) {
-			humanFriendlyName = name.getValue();
-			if (! humanFriendlyName.isEmpty())
-				this.name = humanFriendlyName;
-		} 
-		this.name = (humanFriendlyName == null || humanFriendlyName.isEmpty()) ? res.getName() : humanFriendlyName;
+		this.name = ResourceUtils.getHumanReadableShortName(res);
+		this.resource = res.getName();
+		this.value = "";
 	}
 	
 	/** Returns columns as List */
@@ -55,10 +53,11 @@ public class ResourceCSVRow<T extends Resource> {
 	 * Returns values for columns in order.  Define the order here.
 	 * @return
 	 */
-	public String[] getCols() {
+	public abstract String[] getCols();
+	/*{
 		return new String[] {
 			this.path, this.name, this.value, this.type
 		};
-	}
+	}*/
 
 }

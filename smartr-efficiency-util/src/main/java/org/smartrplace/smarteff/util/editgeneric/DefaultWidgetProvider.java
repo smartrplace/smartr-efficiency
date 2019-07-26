@@ -31,6 +31,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ContextType;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.SubmitTSValueButton;
+import org.smartrplace.smarteff.resourcecsv.ResourceCSVExporter;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.ObjectResourceGUIHelperExtPublic;
@@ -122,8 +123,10 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			    	@Override
 			    	public void onPrePOST(String data, OgemaHttpRequest req) {
 			    		download.setDeleteFileAfterDownload(true, req);
-			    		File csvFile = null;
-						download.setFile(csvFile, "csvImportTemp.csv", req);
+						T entryResource = mhLoc.getGatewayInfo(req);
+			    		ResourceCSVExporter csvMan = new ResourceCSVExporter(entryResource, Locale.GERMANY);
+			    		File csvFile = new File(csvMan.exportToFile());
+						download.setFile(csvFile, ResourceUtils.getHumanReadableShortName(entryResource)+".csv", req);
 			    	}
 			    };
 			    buttonDownload.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start

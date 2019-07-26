@@ -1,16 +1,16 @@
 package org.smartrplace.smarteff.resourcecsv.util;
 
+import java.util.Locale;
+
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
-import org.smartrplace.smarteff.resourcecsv.row.BuildingUnitCSVRow;
+import org.ogema.core.model.units.TemperatureResource;
 import org.smartrplace.smarteff.resourcecsv.row.ResourceCSVRow;
 import org.smartrplace.smarteff.resourcecsv.row.SingleValueResourceCSVRow;
-
-import extensionmodel.smarteff.api.common.BuildingUnit;
 
 /**
  * General utility for ResourceCSV
@@ -26,11 +26,16 @@ public class ResourceCSVUtil {
 	 * Returns the value of a SingleValueResource as a String.
 	 * @return Value as string.  Null if value could not be retrieved.
 	 */
-	public static String getValueAsString(SingleValueResource res) {
+	public static String getValueAsString(SingleValueResource res, Locale locale) {
 		if (res instanceof StringResource) {
 			return ((StringResource) res).getValue();
+		} else if (res instanceof TemperatureResource) {
+			if(locale != null) return String.format(locale, "%.2f", ((TemperatureResource) res).getCelsius());
+			else return String.format("%.2f", ((TemperatureResource) res).getCelsius());
 		} else if (res instanceof FloatResource) {
-			return Float.toString(((FloatResource) res).getValue());
+			if(locale != null) return String.format(locale, "%.3f", ((FloatResource) res).getValue());
+			else return String.format("%.3f", ((FloatResource) res).getValue());
+			//return Float.toString(((FloatResource) res).getValue());
 		} else if (res instanceof IntegerResource) {
 			return Integer.toString(((IntegerResource) res).getValue());
 		} else if (res instanceof BooleanResource) {
@@ -54,22 +59,25 @@ public class ResourceCSVUtil {
 	 * @param res
 	 * @return
 	 */
-	public static ResourceCSVRow<? extends Resource> getRow(Resource res) {
-		if (res instanceof SingleValueResource)
-			return new SingleValueResourceCSVRow((SingleValueResource) res);
+	public static ResourceCSVRow<? extends Resource> getRow(Resource res, Locale locale) {
+		//TODO: Process lists
+		return new SingleValueResourceCSVRow();
+		/*if (res instanceof SingleValueResource)
+			return new SingleValueResourceCSVRow((SingleValueResource) res, locale);
 		else if (res instanceof BuildingUnit)
 			return new BuildingUnitCSVRow((BuildingUnit) res);
 		else
-			return new ResourceCSVRow<Resource>(res);
+			return new ResourceCSVRow<Resource>(res);*/
 	}
 	
 	public static ResourceCSVRow<? extends Resource> getHeaderRow(Class<? extends Resource> clazz) {
-		if (SingleValueResource.class.isAssignableFrom(clazz))
+		return new SingleValueResourceCSVRow();
+		/*if (SingleValueResource.class.isAssignableFrom(clazz))
 			return new SingleValueResourceCSVRow();
 		else if (BuildingUnit.class.isAssignableFrom(clazz))
 			return new BuildingUnitCSVRow();
 		else
-			return new ResourceCSVRow<Resource>();
+			return new ResourceCSVRow<Resource>();*/
 	}
 
 }

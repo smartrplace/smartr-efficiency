@@ -3,9 +3,9 @@ package org.smartrplace.smarteff.resourcecsv;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.ogema.core.model.Resource;
@@ -14,11 +14,10 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartrplace.extensionservice.SmartEff2DMap;
-import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
 import org.smartrplace.smarteff.resourcecsv.row.ResourceCSVRow;
+import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
 
 import extensionmodel.smarteff.api.common.BuildingUnit;
-import extensionmodel.smarteff.api.csvconfig.ResourceCSVConfig;
 
 
 /**
@@ -35,10 +34,15 @@ public class ResourceCSVExporter extends CSVConfiguration {
 			BuildingUnit.class,
 			SmartEff2DMap.class
 	};
+	protected final Locale locale;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public ResourceCSVExporter(Resource targetResource) {
+		this(targetResource, null);
+	}
+	public ResourceCSVExporter(Resource targetResource, Locale locale) {
+		this.locale = locale;
 		if (targetResource == null) 
 			throw new RuntimeException("Target resource may not be null.");
 		initDefaults(targetResource, targetResource.getParent());
@@ -93,7 +97,7 @@ public class ResourceCSVExporter extends CSVConfiguration {
 	 * Export all resource of a type.
 	 */
 	private <T extends Resource> void exportResources(CSVPrinter p, List<T> resources,
-			List<? extends SingleValueResource> svr) throws IOException {
+			List<? extends SingleValueResource> svrx) throws IOException {
 
 		resourceCount += resources.size();
 		if (resourceCount >= maxResourceCount) {
@@ -111,7 +115,7 @@ public class ResourceCSVExporter extends CSVConfiguration {
 			Resource res = iter.next();
 			if (exportUnknown || !res.isDecorator() || res.getParent() instanceof ResourceList) {
 				@SuppressWarnings("unchecked")
-				ResourceCSVRow<T> row = (ResourceCSVRow<T>) ResourceCSVUtil.getRow(res);
+				ResourceCSVRow<T> row = (ResourceCSVRow<T>) ResourceCSVUtil.getRow(res, locale);
 				p.printRecord(row.values());
 			}
 		}

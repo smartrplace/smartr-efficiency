@@ -1,5 +1,7 @@
 package org.smartrplace.smarteff.resourcecsv.row;
 
+import java.util.Locale;
+
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
@@ -15,20 +17,31 @@ public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResourc
 
 	protected String value;
 	protected String unit;
+	protected String link;
+	protected String versionSpread;
+	protected String versionDone;
 
 	public SingleValueResourceCSVRow() {
 		super();
 		this.value = "Value";
 		this.unit = "Unit";
+		this.unit = "Link";
+		this.versionSpread = "versionSpread";
+		this.versionDone = "versionDone";
 	}
 	
-	public SingleValueResourceCSVRow(SingleValueResource res) {
+	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale) {
+		this(res, locale, 1);
+	}
+	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale, int versionSpread) {
 		super(res);
-		this.value = ResourceCSVUtil.getValueAsString(res);
+		this.value = ResourceCSVUtil.getValueAsString(res, locale);
 		if (res instanceof PhysicalUnitResource)
 			this.unit = ((PhysicalUnitResource) res).getUnit().toString();
 		else
 			this.unit = "";
+		this.versionSpread = ""+versionSpread;
+		this.versionDone = "";
 	}
 	
 	@Override
@@ -39,7 +52,8 @@ public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResourc
 	@Override
 	public String[] getCols() {
 		return new String[] {
-				this.path, this.name, this.value, this.unit, this.type
+				this.name, this.value, this.unit, this.resource, this.link, "", this.versionSpread,
+				this.versionDone, this.type, this.path
 		};
 	}
 	

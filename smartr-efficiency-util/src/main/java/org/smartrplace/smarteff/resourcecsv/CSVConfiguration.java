@@ -68,7 +68,7 @@ public class CSVConfiguration {
 	/**
 	 * CSV Format to use.
 	 */
-	public final static CSVFormat CSV_FORMAT = CSVFormat.RFC4180.withCommentMarker('#');
+	public final static CSVFormat CSV_FORMAT = CSVFormat.RFC4180.withCommentMarker('#').withDelimiter(';');
 	
 	/**
 	 * This UTF-8 byte order mark should be added to all files for Excel

@@ -195,13 +195,13 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 		for(EditPageBase<T>.EditElement etl: etb.editElements) {
 			if((etl.title != null)&&(etl.widget != null)) {
 				table.setContent(c, 1, etl.title).setContent(c,2, etl.widget);
-				if(activateButton != null) etl.widget.registerDependentWidget(activateButton);
+				if(activateButton != null && (!(etl.widget instanceof Button))) etl.widget.registerDependentWidget(activateButton);
 			} else if((etl.title != null)&&(etl.stringForWidget != null))
 				table.setContent(c, 1, etl.title).setContent(c,2, etl.stringForWidget);
 			else if((etl.widgetForTitle != null)&&(etl.widget != null)) {
 				table.setContent(c, 1, etl.widgetForTitle).setContent(c,2, etl.widget);
 				if(etl.descriptionLink != null) table.setContent(c, 3, etl.descriptionLink);
-				if(activateButton != null) etl.widget.registerDependentWidget(activateButton);
+				if(activateButton != null&& (!(etl.widget instanceof Button))) etl.widget.registerDependentWidget(activateButton);
 			}
 			else
 				throw new IllegalStateException("Something went wrong with building the edit line "+c+" Obj:"+etl);

@@ -1,16 +1,12 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.StringResource;
-import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
-import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForTimeseries;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.smarteff.resourcecsv.ResourceCSVImporter;
 
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -24,7 +20,7 @@ public abstract class CSVBackupUploaderWidgets {
 	public interface CSVBackupUploadListener {
 		public void fileUploaded(Resource newResource, String filePath, OgemaHttpRequest req);
 	}
-	protected abstract Resource getResource(OgemaHttpRequest req);
+	protected abstract Resource getParentResource(OgemaHttpRequest req);
 	
 	/** Bundled provision of upload Button and FileUpload
 	 * @param tsListener if null the default upload procedure is done and the file is registered for access via a
@@ -42,18 +38,17 @@ public abstract class CSVBackupUploaderWidgets {
 			
 			@Override
 			public void fileUploaded(String filePath, OgemaHttpRequest req) {
+				ResourceCSVImporter csvMan = new ResourceCSVImporter();
+				Resource targetParentResource = getParentResource(req);
+				Resource newRes = csvMan.importFromFile(filePath, targetParentResource);
 				if(tsListener != null) {
-					ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
-					Resource timeSeries = tsMan.readTimeSeriesFromFiles(fileType , new String[] {filePath});
-					tsListener.fileUploaded(timeSeries , filePath, req);
+					tsListener.fileUploaded(newRes , filePath, req);
 					return;
 				}
 				System.out.println("File uploaded to "+filePath);
-				ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
-				Resource tsResource = getResource(req);
-				if(!tsResource.isActive()) {
-					tsResource.activate(true);
-				}
+				//if(!tsResource.isActive()) {
+				//	tsResource.activate(true);
+				//}
 			}
 		};
 		uploader = exPage.getSpecialWidgetManagement().
@@ -62,7 +57,7 @@ public abstract class CSVBackupUploaderWidgets {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected Integer getSize(OgemaHttpRequest req) {
-				return -1;
+				return null;
 			}
 		};
 		csvButton.setDefaultText(uploadButtonText);

@@ -11,7 +11,7 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.accesscontrol.CrossUserBuildingTablePage;
-import org.smartrplace.smarteff.resourcecsv.gui.CSVImportExportPage;
+import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
@@ -29,6 +29,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
+import de.iwes.widgets.html.html5.Flexbox;
 import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
@@ -113,13 +114,17 @@ public class BuildingTablePage extends NaviPageBase<BuildingData> {
 			CSVBackupUploaderWidgets uploadCSV = new CSVBackupUploaderWidgets(exPage, page, alert, pid(), "Import Building as CSV", null) {
 				
 				@Override
-				protected Resource getResource(OgemaHttpRequest req) {
+				protected Resource getParentResource(OgemaHttpRequest req) {
 					ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 					@SuppressWarnings("unchecked")
 					ResourceList<BuildingData> buildList = appData.userData().getSubResource("buildingData", ResourceList.class);
 					return buildList.add();
 				}
 			};
+			uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+			Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
+					uploadCSV.csvButton, uploadCSV.uploader.getFileUpload());
+			page.append(flexLineCSV);
 		}
 		
 		@Override
