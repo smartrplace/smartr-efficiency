@@ -18,6 +18,7 @@ import org.smartrplace.extensionservice.SmartEff2DMapPrimaryValue;
 import org.smartrplace.extensionservice.SmartEffMapHelper;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.smarteff.resourcecsv.ResourceCSVExporter;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProjectProviderBase100EE;
@@ -84,6 +85,12 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				"Renew boiler to a condensing boiler");
 		
 		calculateHPAdapt(hpData, result, data);
+
+		// Testing CSV Export
+		BuildingData building = hpData.getParent();
+		ResourceCSVExporter exp = new ResourceCSVExporter(building);
+		System.out.println("Exported to " + exp.exportToFile());
+		
 		
 	}
 	
@@ -857,6 +864,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 			return true;
 		}
 		return false;
+		
 	}
 	
 	public HPAdaptEval(ApplicationManagerSPExt appManExt) {

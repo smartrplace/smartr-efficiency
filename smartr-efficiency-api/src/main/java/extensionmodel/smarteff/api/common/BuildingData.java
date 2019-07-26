@@ -2,6 +2,7 @@ package extensionmodel.smarteff.api.common;
 
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ModelModifiers.NonPersistent;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -11,6 +12,8 @@ import org.ogema.core.model.units.LengthResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
+
+import extensionmodel.smarteff.api.csvconfig.ResourceCSVConfig;
 
 public interface BuildingData extends SmartEffResource {
 	/** 1: single family home (SFH)<br>
@@ -104,5 +107,7 @@ public interface BuildingData extends SmartEffResource {
 	
 	/** Heated area not in rooms */
 	AreaResource heatedAreaNotInRooms();
+	
+	ResourceCSVConfig csvConfig();
 	
 }
