@@ -395,7 +395,8 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	@Override
 	protected void getEditTableLines(EditTableBuilder etb) {
 		//Map<String, Class<? extends Resource>> types = getTypes();
-		mh.setDoRegisterDependentWidgets(false);
+		//TODO: Not clear why this is set to false => we change for testing. This may cause trouble with upload buttons
+		mh.setDoRegisterDependentWidgets(true);
 		for(String sub: labels.keySet()) {
 			if(sub.equals(HEADER_LABEL_ID) || sub.equals(HEADER_LINK_ID)) continue;
 			OgemaWidget valueWidget = null;

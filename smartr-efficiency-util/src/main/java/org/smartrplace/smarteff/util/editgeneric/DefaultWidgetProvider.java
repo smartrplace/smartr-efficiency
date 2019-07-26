@@ -132,7 +132,8 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 		}
 		if(StringResource.class.isAssignableFrom(type2.type)) {
 			//if(isEditableSpecific)
-			if(isEditable)	return mhLoc.stringEdit(sub, alert);
+			if(isEditable)
+				return mhLoc.stringEdit(sub, alert);
 			else return mhLoc.stringLabel(sub);
 		} else if(FloatResource.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
