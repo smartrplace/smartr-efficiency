@@ -15,19 +15,21 @@ import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
  */
 public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResource> {
 
-	protected String value;
-	protected String unit;
-	protected String link;
-	protected String versionSpread;
-	protected String versionDone;
+	final protected String value;
+	final protected String unit;
+	final protected String link;
+	final protected String versionSpread;
+	final protected String versionDone;
+	final protected String activeStatus;
 
 	public SingleValueResourceCSVRow() {
 		super();
 		this.value = "Value";
 		this.unit = "Unit";
-		this.unit = "Link";
+		this.link = "Link";
 		this.versionSpread = "versionSpread";
 		this.versionDone = "versionDone";
+		this.activeStatus = "isActive";
 	}
 	
 	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale) {
@@ -42,6 +44,8 @@ public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResourc
 			this.unit = "";
 		this.versionSpread = ""+versionSpread;
 		this.versionDone = "";
+		this.activeStatus = "true";
+		this.link = "";
 	}
 	
 	@Override
@@ -53,7 +57,7 @@ public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResourc
 	public String[] getCols() {
 		return new String[] {
 				this.name, this.value, this.unit, this.resource, this.link, "", this.versionSpread,
-				this.versionDone, this.type, this.path
+				this.versionDone, this.type, this.path, this.activeStatus
 		};
 	}
 	
