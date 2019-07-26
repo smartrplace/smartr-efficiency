@@ -11,6 +11,7 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.accesscontrol.CrossUserBuildingTablePage;
+import org.smartrplace.smarteff.resourcecsv.gui.CSVImportExportPage;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
@@ -68,6 +69,7 @@ public class BuildingTablePage extends NaviPageBase<BuildingData> {
 			} else
 				vh.stringLabel("Evaluations", id, "Inactive", row);
 			GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);
+			//CSVImportExportPage.addOpenButton("CSV Import/Export", object, vh, id, row, appMan, req);
 			//vh.linkingButton("Delete", id, object, row, "Delete", "delete.html");
 		}
 
