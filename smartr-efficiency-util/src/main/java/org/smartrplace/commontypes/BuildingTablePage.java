@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
@@ -15,6 +16,7 @@ import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
 import org.smartrplace.smarteff.util.button.RegisterAsUserButton;
 import org.smartrplace.smarteff.util.button.TabButton;
+import org.smartrplace.smarteff.util.editgeneric.CSVBackupUploaderWidgets;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
@@ -102,6 +104,20 @@ public class BuildingTablePage extends NaviPageBase<BuildingData> {
 					.setContent(0, 3, tabButton);
 			page.append(topTable);
 			exPage.registerDependentWidgetOnInit(mainTable);
+		}
+		
+		@Override
+		protected void addWidgetsBelowTable() {
+			CSVBackupUploaderWidgets uploadCSV = new CSVBackupUploaderWidgets(exPage, page, alert, pid(), "Import Building as CSV", null) {
+				
+				@Override
+				protected Resource getResource(OgemaHttpRequest req) {
+					ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+					@SuppressWarnings("unchecked")
+					ResourceList<BuildingData> buildList = appData.userData().getSubResource("buildingData", ResourceList.class);
+					return buildList.add();
+				}
+			};
 		}
 		
 		@Override
