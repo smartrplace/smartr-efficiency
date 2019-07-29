@@ -30,10 +30,7 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 public class ResourceCSVExporter extends CSVConfiguration {
 	
 	protected int resourceCount = 0;
-	protected static final Class<?>[] SPECIAL_RESOURCE_TYPES = new Class[] {
-			BuildingUnit.class,
-			SmartEff2DMap.class
-	};
+
 	protected final Locale locale;
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -75,8 +72,6 @@ public class ResourceCSVExporter extends CSVConfiguration {
 
 		try {
 			List<? extends SingleValueResource> svr = parent.getSubResources(SingleValueResource.class, true);
-
-			getAndExport(BuildingUnit.class, p, svr);
 			getAndExport(SingleValueResource.class, p, null);
 
 		} finally {
