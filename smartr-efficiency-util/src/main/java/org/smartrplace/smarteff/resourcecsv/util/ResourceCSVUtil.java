@@ -61,13 +61,9 @@ public class ResourceCSVUtil {
 	 */
 	public static ResourceCSVRow<? extends Resource> getRow(Resource res, Locale locale) {
 		//TODO: Process lists
-		return new SingleValueResourceCSVRow();
-		/*if (res instanceof SingleValueResource)
+		if (res instanceof SingleValueResource)
 			return new SingleValueResourceCSVRow((SingleValueResource) res, locale);
-		else if (res instanceof BuildingUnit)
-			return new BuildingUnitCSVRow((BuildingUnit) res);
-		else
-			return new ResourceCSVRow<Resource>(res);*/
+		return null;
 	}
 	
 	public static ResourceCSVRow<? extends Resource> getHeaderRow(Class<? extends Resource> clazz) {
