@@ -5,13 +5,14 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.AreaResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 /**
  * Results of HPAdapt.
  * Yellow cells in "Letzte Rechnung" spread sheet.
  * @author jruckel
  * */
-public interface HPAdaptResult extends ProjectProposal100EE {
+public interface HPAdaptResult extends ProjectProposal100EE, SmartEffResource {
 	
 	/* PROPOSALS */
 	/** Renew boiler to a condensing boiler */

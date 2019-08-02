@@ -12,7 +12,7 @@ public class SmartrHeatingInternalParamsPage extends EditPageGenericParams<Smart
 		setLabel(sr.costPerThermostat(), EN, "Additional cost per thermostat (EUR)");
 	}
 	@Override
-	protected Class<SmartrHeatingInternalParams> primaryEntryTypeClass() {
+	public Class<SmartrHeatingInternalParams> primaryEntryTypeClass() {
 		return SmartrHeatingInternalParams.class;
 	}
 }

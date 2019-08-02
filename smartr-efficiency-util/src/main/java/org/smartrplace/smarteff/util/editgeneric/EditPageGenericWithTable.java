@@ -97,9 +97,27 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 		return genericTablePageWrapper;
 	}
 	
-	/** Usually this method is not relevant and needs not to be overwritten. The method
-	 * primaryEntryTypeClass is not public, which is required for the table page creation.*/
-	public Class<? extends Resource> primaryEntryTypeClassPublic() {
-		return primaryEntryTypeClass();
+	@Override
+	protected void checkSetData() {
+		boolean isIDinTable = tableHeaders.containsKey("name");
+		if(!isIDinTable) {
+			for(Map<OgemaLocale, String> innerMap: tableHeaders.values()) {
+				String enval = innerMap.get(EN);
+				if(enval != null && enval.toLowerCase().equals("name")) {
+					isIDinTable = true;
+					break;
+				}
+			}
+		}
+		if(!isIDinTable) {
+			Map<String, Map<OgemaLocale, String>> oldMap = tableHeaders;
+			Map<OgemaLocale, String> innerMap = new HashMap<>();
+			tableHeaders = new LinkedHashMap<>();
+			tableHeaders.put("name", innerMap);
+			tableHeaders.putAll(oldMap);
+			innerMap.put(EN, "Name");
+
+			//setTableHeader("name", EN, "Name");
+		}
 	}
 }

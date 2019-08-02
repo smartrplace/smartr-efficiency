@@ -69,7 +69,7 @@ public class WindowTypeRegistration {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<WindowType> primaryEntryTypeClass() {
+		public Class<WindowType> primaryEntryTypeClass() {
 			return (Class<WindowType>) TYPE_CLASS;
 		}
 		

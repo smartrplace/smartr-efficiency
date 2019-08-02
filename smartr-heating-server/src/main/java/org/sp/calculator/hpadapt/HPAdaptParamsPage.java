@@ -106,7 +106,7 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 
 	}
 	@Override
-	protected Class<HPAdaptParams> primaryEntryTypeClass() {
+	public Class<HPAdaptParams> primaryEntryTypeClass() {
 		return HPAdaptParams.class;
 	}
 }

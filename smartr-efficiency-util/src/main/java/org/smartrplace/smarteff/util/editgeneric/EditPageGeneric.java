@@ -19,7 +19,9 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
+import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
@@ -65,11 +67,17 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	private T sampleResource;
 	private int sampleResourceLength;
 	private final boolean forceSubResName;
-	
+	private final boolean setDefaults;
+
 	/** In this method the page data shall be provided with methods like getLabel
 	 * @param sr virtual resource that shall be used to provide paths
 	 */
 	public abstract void setData(T sr);
+	/** If the {@link #primaryEntryTypeClass()} has a different super type from BuildingData and the
+	 * primary type registration shall be done automatically overwrite this. The primary type
+	 * will be registered as {@link Cardinality.MULTIPLE_OPTIONAL}.
+	 */
+	public Class<? extends SmartEffResource> getPrimarySuperType() {return null;};
 	
 	Map<String, Float> lowerLimits = new HashMap<>();
 	Map<String, Float> upperLimits = new HashMap<>();
@@ -86,21 +94,34 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	Map<String, Boolean> isEditable = new HashMap<>();
 	final List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders;
 	
+	/**Overwrite in inherited classes to check / add to settings made by the implementing classes
+	 * via {@link #setData(Resource)}
+	 */
+	protected void checkSetData() {}
+
 	public EditPageGeneric() {
 		this(null);
 	}
 	public EditPageGeneric(boolean forceSubResName) {
-		this(null, forceSubResName);
+		this(null, forceSubResName, true);
 	}
 	public EditPageGeneric(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders) {
-		this(additionalWidgetProviders, true);
+		this(additionalWidgetProviders, true, true);
 	}
 	public EditPageGeneric(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
 			boolean forceSubResName) {
+		this(additionalWidgetProviders, forceSubResName, true);
+	}
+	public EditPageGeneric(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
+			boolean forceSubResName, boolean setDefaults) {
 		super();
 		this.additionalWidgetProviders = additionalWidgetProviders;
 		this.forceSubResName = forceSubResName;
+		this.setDefaults = setDefaults;
 	}
+
+	@Override //make public
+	public abstract Class<? extends Resource> primaryEntryTypeClass();
 
 	@SuppressWarnings("unchecked")
 	private void fillMap(Map<String, Class<? extends Resource>> typeMap, Class<? extends Resource> resType) {
@@ -369,6 +390,8 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 				ValueResourceHelper.setIfNew((StringResource)name, newName);
 			}
 		}
+		if(setDefaults)
+			setDefaults(res, DefaultSetModes.SET_IF_NEW);
 		//Map<String, Class<? extends Resource>> types = getTypes();
 		for(String sub: labels.keySet()) {
 			TypeResult type = getType(sub);
@@ -462,7 +485,10 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		sampleResourceLength = sampleResource.getPath().length()+1;
 		alert = new Alert(page, "alert"+pid(), "");
 		setData(sampleResource);
+		checkSetData();
 		super.addWidgets();
+		Button setDefaults = createDefaultsButton(DefaultSetModes.SET_IF_NEW, "Fill empty resources");
+		page.append(setDefaults);
 	}
 	
 	protected OgemaWidget alert2;

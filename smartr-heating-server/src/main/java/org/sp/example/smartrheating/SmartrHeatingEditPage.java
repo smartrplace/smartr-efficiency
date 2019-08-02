@@ -3,7 +3,6 @@ package org.sp.example.smartrheating;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.smartrplace.commontypes.RadiatorTypeRegistration;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -25,7 +24,7 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 	}*/
 
 	@Override
-	protected Class<SmartrHeatingData> primaryEntryTypeClass() {
+	public Class<SmartrHeatingData> primaryEntryTypeClass() {
 		return SmartrHeatingData.class;
 	}
 

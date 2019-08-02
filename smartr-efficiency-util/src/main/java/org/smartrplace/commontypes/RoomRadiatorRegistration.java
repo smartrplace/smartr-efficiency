@@ -47,7 +47,7 @@ public class RoomRadiatorRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<HeatRadiator> primaryEntryTypeClass() {
+		public Class<HeatRadiator> primaryEntryTypeClass() {
 			return (Class<HeatRadiator>) TYPE_CLASS;
 		}
 		

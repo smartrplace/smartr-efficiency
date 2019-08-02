@@ -11,7 +11,7 @@ public class SmartrHeatingParamsPage extends EditPageGenericParams<SmartrHeating
 				DE, "Eigene Kosten des Kunden pro Raum bei Unterstützung von Installation und Inbetriebname");
 	}
 	@Override
-	protected Class<SmartrHeatingParams> primaryEntryTypeClass() {
+	public Class<SmartrHeatingParams> primaryEntryTypeClass() {
 		return SmartrHeatingParams.class;
 	}
 }

@@ -69,7 +69,7 @@ public class RoomLightingRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<RoomLightingData> primaryEntryTypeClass() {
+		public Class<RoomLightingData> primaryEntryTypeClass() {
 			return (Class<RoomLightingData>) TYPE_CLASS;
 		}
 		

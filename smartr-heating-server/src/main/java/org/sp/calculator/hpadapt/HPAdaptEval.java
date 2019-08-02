@@ -116,7 +116,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		HPAdaptParams hpParams = hpParamHelper.get();
 		
 		defParamHelper = CapabilityHelper.getMyParams(DefaultProviderParams.class, data.userData(), appManExt);
-		DefaultProviderParams defParams = defParamHelper.get();
+		//DefaultProviderParams defParams = defParamHelper.get();
 		
 		BuildingData building = hpData.getParent();
 		
@@ -364,7 +364,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		for (int temp = Math.round(heatingLimitTemp); temp >= Math.round(minTemp); temp--) {
 			
 			float vLMax = - Float.MAX_VALUE;
-			float pMax = - Float.MAX_VALUE;
+			//float pMax = - Float.MAX_VALUE;
 
 			BuildingUnit badRoom = null; // Most critical room for temperature
 			float deltaT = heatingLimitTemp - temp;
@@ -418,7 +418,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				
 				if (vLLoc > vLMax && !Float.isInfinite(vLLoc)) {
 					vLMax = vLLoc;
-					pMax = pLoc;
+					//pMax = pLoc;
 					badRoom = room;
 				}
 			}
@@ -597,23 +597,23 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 
 			float p = powerLossBasementHeating + otherPowerLoss * (heatingLimitTemp - temp);
 			// TODO save these?
-			float pTotperkW = p / 1000f;
+			//float pTotperkW = p / 1000f;
 			float pLoc;
-			float wElPerkWh;
-			float wGas;
+			//float wElPerkWh;
+			//float wGas;
 			if (cop >= copMin) {
 				pLoc = nShares * p * 24f / 1000f / cop;
 				sumHp += pLoc;
-				wElPerkWh = pLoc;
-				wGas = 0;
+				//wElPerkWh = pLoc;
+				//wGas = 0;
 				if(maxPowerHp < p)
 					maxPowerHp = p;
 			}
 			else {
 				pLoc = nShares * p * 24f / 1000f;
 				sumBurn += pLoc;
-				wElPerkWh = 0;
-				wGas = pLoc;
+				//wElPerkWh = 0;
+				//wGas = pLoc;
 			}
 		}
 		

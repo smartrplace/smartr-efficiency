@@ -11,7 +11,7 @@ public class BuildingEvalParamsPage extends EditPageGenericParams<BuildingEvalDa
 				DE, "Minimale Abwesenheit: Kürzere Abwesenheiten werden durch Anwesenheit ersetzt.");
 	}
 	@Override
-	protected Class<BuildingEvalData> primaryEntryTypeClass() {
+	public Class<BuildingEvalData> primaryEntryTypeClass() {
 		return BuildingEvalData.class;
 	}
 }

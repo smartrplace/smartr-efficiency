@@ -94,7 +94,7 @@ public class WizBexEntryPage extends EditPageGeneric<SmartEffResource> {
 	}
 
 	@Override
-	protected Class<SmartEffResource> primaryEntryTypeClass() {
+	public Class<SmartEffResource> primaryEntryTypeClass() {
 		return SmartEffResource.class;
 	}
 	@Override

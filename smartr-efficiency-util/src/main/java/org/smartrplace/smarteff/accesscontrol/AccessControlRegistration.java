@@ -55,7 +55,7 @@ public class AccessControlRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<AccessControl> primaryEntryTypeClass() {
+		public Class<AccessControl> primaryEntryTypeClass() {
 			return (Class<AccessControl>) TYPE_CLASS;
 		}
 		

@@ -50,7 +50,7 @@ public class RoomWizardRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<BuildingUnit> primaryEntryTypeClass() {
+		public Class<BuildingUnit> primaryEntryTypeClass() {
 			return (Class<BuildingUnit>) TYPE_CLASS;
 		}
 		

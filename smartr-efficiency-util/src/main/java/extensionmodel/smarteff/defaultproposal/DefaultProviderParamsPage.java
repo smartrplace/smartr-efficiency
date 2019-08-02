@@ -13,7 +13,7 @@ public class DefaultProviderParamsPage extends EditPageGenericParams<DefaultProv
 		setLabel(sr.defaultKwhPerSQM(), EN, "base assumption for consumption kWh/sqm/a");
 	}
 	@Override
-	protected Class<DefaultProviderParams> primaryEntryTypeClass() {
+	public Class<DefaultProviderParams> primaryEntryTypeClass() {
 		return DefaultProviderParams.class;
 	}
 }

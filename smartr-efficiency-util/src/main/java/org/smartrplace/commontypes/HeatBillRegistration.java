@@ -102,7 +102,7 @@ public class HeatBillRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<HeatCostBillingInfo> primaryEntryTypeClass() {
+		public Class<HeatCostBillingInfo> primaryEntryTypeClass() {
 			return (Class<HeatCostBillingInfo>) TYPE_CLASS;
 		}
 		

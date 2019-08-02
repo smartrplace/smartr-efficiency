@@ -15,7 +15,7 @@ public class ElectricityProfileParamsPage extends EditPageGenericParams<Electric
 				DE, "Basis-Leistung, die zu allen Werten des Profils hinzugefügt werden soll (W)");
 	}
 	@Override
-	protected Class<ElectricityProfileEvalConfig> primaryEntryTypeClass() {
+	public Class<ElectricityProfileEvalConfig> primaryEntryTypeClass() {
 		return ElectricityProfileEvalConfig.class;
 	}
 }

@@ -97,7 +97,7 @@ public class MasterUserRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<MasterUserData> primaryEntryTypeClass() {
+		public Class<MasterUserData> primaryEntryTypeClass() {
 			return (Class<MasterUserData>) TYPE_CLASS;
 		}
 		

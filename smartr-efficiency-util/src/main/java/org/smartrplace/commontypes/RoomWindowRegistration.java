@@ -46,7 +46,7 @@ public class RoomWindowRegistration {
 
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<Window> primaryEntryTypeClass() {
+		public Class<Window> primaryEntryTypeClass() {
 			return (Class<Window>) TYPE_CLASS;
 		}
 		

@@ -80,7 +80,7 @@ public class RadiatorTypeRegistration {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		protected Class<HeatRadiatorType> primaryEntryTypeClass() {
+		public Class<HeatRadiatorType> primaryEntryTypeClass() {
 			return (Class<HeatRadiatorType>) TYPE_CLASS;
 		}
 		

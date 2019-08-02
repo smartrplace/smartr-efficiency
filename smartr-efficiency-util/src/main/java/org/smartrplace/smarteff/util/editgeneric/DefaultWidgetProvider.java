@@ -66,6 +66,8 @@ import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
+import extensionmodel.smarteff.api.base.SmartEffGeneralData;
+import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
 
@@ -540,7 +542,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			} else return new Label(page, "noEdit_"+sub, "r/o for 2Dmap not supported");
 		} else if(SmartEffResource.class.isAssignableFrom(type2.type)) {
 			if(isEditable)	{
-				if(sub.equals("type")) {
+				if(sub.equals("type")||sub.equals("paramType")) {
 					ResourceDropdown<Resource> valueWidget = new ResourceDropdown<Resource>(page, "resDrop_"+sub+pid) {
 						private static final long serialVersionUID = 1L;
 						@Override
@@ -549,8 +551,19 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 							T entryResource = mhLoc.getGatewayInfo(req);
 							Resource destResource = CapabilityHelper.getOrcreateResource(entryResource,
 									sub, appData.systemAccess(), appManExt, type2.type);
-							BuildingData building = ResourceHelper.getFirstParentOfType(
+							//TODO: Make the list of quasi-toplevel resources more flexible
+							Resource building = null;
+							if(!sub.equals("paramType")) {
+								building = ResourceHelper.getFirstParentOfType(
 									destResource, BuildingData.class);
+								if(building == null)
+									building = ResourceHelper.getFirstParentOfType(destResource, SmartEffUserData.class);
+								if(building == null)
+									building = ResourceHelper.getFirstParentOfType(destResource, SmartEffUserDataNonEdit.class);
+							}
+							if(building == null)
+								building = appManExt.globalData();
+								//building = ResourceHelper.getFirstParentOfType(destResource, SmartEffGeneralData.class);
 							List<? extends Resource> options = building.getSubResources(type2.type, true);
 							List<Resource> toRemove = new ArrayList<>();
 							Resource select = null;

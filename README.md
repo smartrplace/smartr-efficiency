@@ -93,5 +93,9 @@ There are also some standard buttons defined in [package button](https://github.
 Wizards are a set of special interlinked pages intended to make data entry by users for a special application as simple as possible. In contrast to usual configuration pages that usually show all elements of the respective data model the wizard pages only show the elements that are relevant in the context of the wizard. A typical application of a wizard is the daily manual entry of time series data - such a wizard usually will only show the SmartEffTimeSeries resources and potentially some configuration resources that may have to be changed by the user. Such a wizard may still link to full resource pages.
 The data entry pages are just special edit pages, e.g. [WizBexBuildingEditPage](https://github.com/smartrplace/smartr-efficiency/tree/master/smartr-efficiency-evals/src/main/java/org/sp/example/buildingwizard/WizBexBuildingEditPage.java). The wizard usually has an entry page that organizes going through the data entry pages. An example is given in [WizBexEntryPage](https://github.com/smartrplace/smartr-efficiency/tree/master/smartr-efficiency-evals/src/main/java/org/sp/example/buildingwizard/WizBexEntryPage.java). Usually a special EditPageGenericTableWidgetProvider is required. The example class [WizBexWidgetProvider](https://github.com/smartrplace/smartr-efficiency/tree/master/smartr-efficiency-evals/src/main/java/org/sp/example/buildingwizard/WizBexWidgetProvider.java) should be converted into a general template in the future as a very similar class would fit most other wizards. The most important widgets provided here are for the navigation into and between rooms.
 
+## Links
+* Based on the SmartrEfficiency Portal the concept of [Spreadsheet2Portal](Spreadsheet2Portal.md) is developed
+* Examples for page definitions are given on a [Examples page](Examples.md)
+
 ## License
 [GPL v3](https://www.gnu.org/licenses/gpl-3.0.en.html)

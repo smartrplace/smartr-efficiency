@@ -189,7 +189,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 	}
 
 	@Override
-	protected Class<BuildingData> primaryEntryTypeClass() {
+	public Class<BuildingData> primaryEntryTypeClass() {
 		return BuildingData.class;
 	}
 	

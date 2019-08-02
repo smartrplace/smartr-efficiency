@@ -5,15 +5,15 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.AreaResource;
 import org.ogema.core.model.units.LengthResource;
 import org.ogema.core.model.units.PercentageResource;
-import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.model.units.VolumeResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.smartrplace.extensionservice.SmartEffTimeSeries;
+import org.sp.calculator.hpadapt.HPAdaptEditPage;
 
 /**
  * Data for HPAdapt.
  * Yellow cells in "LastBuilding" spread sheet.
+ * For links to detailed documentation see {@link HPAdaptEditPage}
  * @author jruckel
  * */
 public interface HPAdaptData extends SmartEffResource {

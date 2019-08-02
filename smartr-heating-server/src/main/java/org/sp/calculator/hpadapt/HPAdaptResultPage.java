@@ -14,7 +14,7 @@ public class HPAdaptResultPage extends EditPageGeneric<HPAdaptResult> {
 	}
 
 	@Override
-	protected Class<HPAdaptResult> primaryEntryTypeClass() {
+	public Class<HPAdaptResult> primaryEntryTypeClass() {
 		return HPAdaptResult.class;
 	}
 

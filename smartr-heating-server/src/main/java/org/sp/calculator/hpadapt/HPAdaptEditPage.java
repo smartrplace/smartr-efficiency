@@ -7,17 +7,16 @@ import java.util.Map;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
-import de.iwes.widgets.html.form.button.Button;
 import extensionmodel.smarteff.hpadapt.HPAdaptData;
 
 public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 	@Override
 	public String label(OgemaLocale locale) {
-		return "Bivalent heat pumpt calculator edit page";
+		return "Bivalent heat pump calculator edit page";
 	}
 
 	@Override
-	protected Class<HPAdaptData> primaryEntryTypeClass() {
+	public Class<HPAdaptData> primaryEntryTypeClass() {
 		return HPAdaptData.class;
 	}
 
@@ -36,8 +35,6 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 	@Override
 	protected void addWidgets() {
 		super.addWidgets();
-		Button setDefaults = createDefaultsButton(DefaultSetModes.SET_IF_NEW, "Fill empty resources");
-		page.append(setDefaults);
 	}
 	
 	@Override
@@ -126,7 +123,7 @@ public class HPAdaptEditPage extends EditPageGeneric<HPAdaptData> {
 		setLink(data.roomHeight(), EN, HPAdaptEval.WIKI_LINK +  "#default-room-height-in-building");
 		setLink(data.savingsAfterBasicRenovation(), EN, HPAdaptEval.WIKI_LINK +  "#estimated-savings-after-basic-renovation");
 		setLink(data.wwConsumption(), EN, HPAdaptEval.WIKI_LINK +  "#known-or-estimated-warm-drinking-water-consumption");
-		//setLink(data.wwLossHeatedAreas(), EN, HPAdaptEval.WIKI_LINK +  "#estimated-warm-water-energy-loss-from-storage,-circulation-at-current-temperature-in-heated-areas");
+		setLink(data.wwLossHeatedAreas(), EN, HPAdaptEval.WIKI_LINK +  "#estimated-warm-water-energy-loss-from-storage,-circulation-at-current-temperature-in-heated-areas");
 		//setLink(data.wwLossUnheatedAreas(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-energy-loss-in-unheated-areas");
 		//setLink(data.wwTemp(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-temperature");
 		//setLink(data.wwTempMin(), EN, HPAdaptEval.WIKI_LINK +  "#warm-water-temperature-can-be-lowered-to");

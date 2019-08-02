@@ -25,7 +25,7 @@ public class PriceDataParamsPage extends EditPageGenericParams<SmartEffPriceData
 				DE, "Standard Zahl von Räumen für Gebäude ohne Raumdaten");
 	}
 	@Override
-	protected Class<SmartEffPriceData> primaryEntryTypeClass() {
+	public Class<SmartEffPriceData> primaryEntryTypeClass() {
 		return SmartEffPriceData.class;
 	}
 }

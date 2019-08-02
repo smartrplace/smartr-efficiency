@@ -113,7 +113,7 @@ public class WizBexRoomEditPage extends EditPageGenericWithTable<BuildingUnit> {
 	}
 
 	@Override
-	protected Class<BuildingUnit> primaryEntryTypeClass() {
+	public Class<BuildingUnit> primaryEntryTypeClass() {
 		return BuildingUnit.class;
 	}
 	

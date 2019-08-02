@@ -410,7 +410,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	}
 	
 	@Override
-	protected Class<SmartEffTimeSeries> primaryEntryTypeClass() {
+	public Class<SmartEffTimeSeries> primaryEntryTypeClass() {
 		return SmartEffTimeSeries.class;
 	}
 	
