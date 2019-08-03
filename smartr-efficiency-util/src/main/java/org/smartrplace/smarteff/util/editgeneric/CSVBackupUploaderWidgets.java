@@ -1,6 +1,7 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
 import org.ogema.core.model.Resource;
+import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploadListenerToFile;
 import org.smartrplace.extensionservice.gui.WidgetProvider.FileUploaderProtected;
@@ -33,12 +34,13 @@ public abstract class CSVBackupUploaderWidgets {
 			WidgetPage<?> page, Alert alert,
 			String pid,
 			String uploadButtonText,
-			CSVBackupUploadListener tsListener) {
+			CSVBackupUploadListener tsListener,
+			ApplicationManagerSPExt appManExt) {
 		listenerToFile = new FileUploadListenerToFile() {
 			
 			@Override
 			public void fileUploaded(String filePath, OgemaHttpRequest req) {
-				ResourceCSVImporter csvMan = new ResourceCSVImporter();
+				ResourceCSVImporter csvMan = new ResourceCSVImporter(true, appManExt);
 				Resource targetParentResource = getParentResource(req);
 				Resource newRes = csvMan.importFromFile(filePath, targetParentResource);
 				if(tsListener != null) {

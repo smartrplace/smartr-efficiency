@@ -1,16 +1,18 @@
 package org.smartrplace.smarteff.resourcecsv.util;
 
+import java.io.IOException;
 import java.util.Locale;
 
+import org.apache.commons.csv.CSVPrinter;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.TemperatureResource;
-import org.smartrplace.smarteff.resourcecsv.row.ResourceCSVRow;
-import org.smartrplace.smarteff.resourcecsv.row.SingleValueResourceCSVRow;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 
 /**
  * General utility for ResourceCSV
@@ -24,6 +26,7 @@ public class ResourceCSVUtil {
 
 	/**
 	 * Returns the value of a SingleValueResource as a String.
+	 * For a simpler version see {@link ValueResourceUtils#getValue(SingleValueResource)}
 	 * @return Value as string.  Null if value could not be retrieved.
 	 */
 	public static String getValueAsString(SingleValueResource res, Locale locale) {
@@ -54,20 +57,26 @@ public class ResourceCSVUtil {
 		return in;
 	}
 
-	/**
+	/** Print one ore more rows that represent the respective resource type
 	 * Get an appropriate row type for a resource.
 	 * @param res
 	 * @return
+	 * @throws IOException 
 	 */
-	public static ResourceCSVRow<? extends Resource> getRow(Resource res, Locale locale) {
+	public static void printRows(Resource res, Locale locale, CSVPrinter p) throws IOException {
 		//TODO: Process lists
-		if (res instanceof SingleValueResource)
-			return new SingleValueResourceCSVRow((SingleValueResource) res, locale);
-		return null;
+		if (res instanceof SingleValueResource) {
+			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, locale);
+			p.printRecord(row.values());
+		} else if(res instanceof ResourceList) {
+			//TODO: Write three lines that represent resource list header
+			//Also write lines to represent elements
+		}
 	}
 	
-	public static ResourceCSVRow<? extends Resource> getHeaderRow(Class<? extends Resource> clazz) {
-		return new SingleValueResourceCSVRow();
+	public static void printMainHeaderRow(CSVPrinter p) throws IOException {
+		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow();
+		p.printRecord(header.values());
 		/*if (SingleValueResource.class.isAssignableFrom(clazz))
 			return new SingleValueResourceCSVRow();
 		else if (BuildingUnit.class.isAssignableFrom(clazz))

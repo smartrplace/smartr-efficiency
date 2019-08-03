@@ -6,6 +6,7 @@ import java.util.List;
 import org.ogema.core.model.Resource;
 import org.ogema.tools.resource.util.ResourceUtils;
 
+@Deprecated //moved into SingleValueResourceCSVRow
 public abstract class ResourceCSVRow<T extends Resource> {
 
 	public Class<? extends Resource> getResourceType() {

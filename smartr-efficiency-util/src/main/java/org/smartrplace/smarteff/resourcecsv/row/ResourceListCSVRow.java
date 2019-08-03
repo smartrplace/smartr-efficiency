@@ -13,6 +13,7 @@ import org.ogema.core.model.simple.SingleValueResource;
  * @param <T>
  *
  */
+@Deprecated //Will this still be used?
 public class ResourceListCSVRow extends ResourceCSVRow<ResourceList<? extends SingleValueResource>> {
 	
 	public ResourceListCSVRow() {

@@ -111,7 +111,8 @@ public class BuildingTablePage extends NaviPageBase<BuildingData> {
 		
 		@Override
 		protected void addWidgetsBelowTable() {
-			CSVBackupUploaderWidgets uploadCSV = new CSVBackupUploaderWidgets(exPage, page, alert, pid(), "Import Building as CSV", null) {
+			CSVBackupUploaderWidgets uploadCSV = new CSVBackupUploaderWidgets(exPage, page, alert, pid(),
+					"Import Building as CSV", null, appManExt) {
 				
 				@Override
 				protected Resource getParentResource(OgemaHttpRequest req) {

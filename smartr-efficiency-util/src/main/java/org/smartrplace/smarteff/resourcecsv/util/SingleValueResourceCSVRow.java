@@ -1,11 +1,12 @@
-package org.smartrplace.smarteff.resourcecsv.row;
+package org.smartrplace.smarteff.resourcecsv.util;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
-import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
+import org.ogema.tools.resource.util.ResourceUtils;
 
 /**
  * Contains attributes (e.g. path, value, type…) of a resource that is
@@ -13,8 +14,12 @@ import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
  * @author jruckel
  *
  */
-public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResource> {
+public class SingleValueResourceCSVRow {
 
+	final protected String name;
+	final protected String path;
+	final protected String type;
+	final protected String resource;
 	final protected String value;
 	final protected String unit;
 	final protected String link;
@@ -23,7 +28,10 @@ public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResourc
 	final protected String activeStatus;
 
 	public SingleValueResourceCSVRow() {
-		super();
+		this.name = "Name";
+		this.path = "Path";
+		this.type = "Type";
+		this.resource = "Resource";
 		this.value = "Value";
 		this.unit = "Unit";
 		this.link = "Link";
@@ -36,7 +44,12 @@ public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResourc
 		this(res, locale, 1);
 	}
 	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale, int versionSpread) {
-		super(res);
+		this.path = res.getPath();
+		this.type = res.getResourceType().getSimpleName();
+
+		// If a "name" sub-resource exists, use it for the name.
+		this.name = ResourceUtils.getHumanReadableShortName(res);
+		this.resource = res.getName();
 		this.value = ResourceCSVUtil.getValueAsString(res, locale);
 		if (res instanceof PhysicalUnitResource)
 			this.unit = ((PhysicalUnitResource) res).getUnit().toString();
@@ -48,17 +61,16 @@ public class SingleValueResourceCSVRow extends ResourceCSVRow<SingleValueResourc
 		this.link = "";
 	}
 	
-	@Override
-	public Class<? extends Resource> getResourceType() {
-		return SingleValueResource.class;
-	}
-
-	@Override
 	public String[] getCols() {
 		return new String[] {
 				this.name, this.value, this.unit, this.resource, this.link, "", this.versionSpread,
 				this.versionDone, this.type, this.path, this.activeStatus
 		};
 	}
-	
+
+	/** Returns columns as List */
+	public List<String> values() {
+		return Arrays.asList(getCols());
+	}
+
 }

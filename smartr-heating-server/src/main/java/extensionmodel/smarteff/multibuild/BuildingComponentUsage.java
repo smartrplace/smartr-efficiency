@@ -1,6 +1,7 @@
 package extensionmodel.smarteff.multibuild;
 
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.StringResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 
 /**
@@ -11,4 +12,7 @@ public interface BuildingComponentUsage extends SmartEffResource {
 	BuildingComponent paramType();
 	/** Number of the selected items to be used per building in the project*/
 	IntegerResource number();
+	
+	/** optional*/
+	StringResource comment();
 }

@@ -1,8 +1,5 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,7 +9,6 @@ import java.util.Map.Entry;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
-import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -20,11 +16,9 @@ import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
-import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.ColumnType;
 import org.smartrplace.smarteff.util.editgeneric.EditLineProvider.Visibility;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericTableWidgetProvider.CapabilityDeclaration;
@@ -94,6 +88,8 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	Map<String, Boolean> isEditable = new HashMap<>();
 	final List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders;
 	
+	private SubTypeHandler typeHandler;
+	
 	/**Overwrite in inherited classes to check / add to settings made by the implementing classes
 	 * via {@link #setData(Resource)}
 	 */
@@ -123,7 +119,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	@Override //make public
 	public abstract Class<? extends Resource> primaryEntryTypeClass();
 
-	@SuppressWarnings("unchecked")
+	/*@SuppressWarnings("unchecked")
 	private void fillMap(Map<String, Class<? extends Resource>> typeMap, Class<? extends Resource> resType) {
 		//typeMap.put("name", StringResource.class);
 		for(Method m: resType.getMethods()) {
@@ -160,7 +156,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			fillMap(subTypeMap, parentType);
 		}
 		return subTypeMap;
-	}
+	}*/
 	public static class TypeResult {
 		/** Only one of type or typeString shall be non-null. Usually typeString should start with
 		 * a hash (#).
@@ -180,7 +176,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		public Class<? extends Resource> elementType = null;
 	}
 
-	protected TypeResult getType(String subPath) {
+	/*protected TypeResult getType(String subPath) {
 		if(subPath.startsWith("#")) {
 			return new TypeResult(subPath);
 		}
@@ -245,7 +241,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		}
 		return null;
 		
-	}
+	}*/
 	
 	protected void setLabel(String resourceName, OgemaLocale locale, String text) {
 		Map<OgemaLocale, String> innerMap = labels.get(resourceName);
@@ -394,7 +390,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			setDefaults(res, DefaultSetModes.SET_IF_NEW);
 		//Map<String, Class<? extends Resource>> types = getTypes();
 		for(String sub: labels.keySet()) {
-			TypeResult type = getType(sub);
+			TypeResult type = typeHandler.getType(sub);
 			if(type == null || type.type == null) continue;
 			if(FloatResource.class.isAssignableFrom(type.type)) {
 				Float low = lowerLimits.get(sub);
@@ -427,7 +423,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			OgemaWidget linkButton = null;
 			TypeResult type = null;
 			try {
-				type = getType(sub);
+				type = typeHandler.getType(sub);
 			} catch(NullPointerException e) {
 				throw new IllegalStateException("Could not process sub "+sub+"! Note that ResourceList names must fit the elementType name.\r\nPlease check if the resource type has been registed in resourcesDefined as dependency.", e);
 			}
@@ -481,6 +477,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void addWidgets() {
+		typeHandler = new SubTypeHandler(primaryEntryTypeClass(), appManExt);
 		sampleResource = (T) ResourceHelper.getSampleResource(primaryEntryTypeClass());
 		sampleResourceLength = sampleResource.getPath().length()+1;
 		alert = new Alert(page, "alert"+pid(), "");

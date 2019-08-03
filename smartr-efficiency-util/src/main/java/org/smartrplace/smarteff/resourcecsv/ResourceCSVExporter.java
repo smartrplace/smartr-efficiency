@@ -13,11 +13,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.smartrplace.extensionservice.SmartEff2DMap;
-import org.smartrplace.smarteff.resourcecsv.row.ResourceCSVRow;
 import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
-
-import extensionmodel.smarteff.api.common.BuildingUnit;
 
 
 /**
@@ -71,7 +67,6 @@ public class ResourceCSVExporter extends CSVConfiguration {
 		out.write(BOM);
 
 		try {
-			List<? extends SingleValueResource> svr = parent.getSubResources(SingleValueResource.class, true);
 			getAndExport(SingleValueResource.class, p, null);
 
 		} finally {
@@ -101,17 +96,13 @@ public class ResourceCSVExporter extends CSVConfiguration {
 		
 		p.printComment(resources.get(0).getClass().toString());
 		
-		@SuppressWarnings("unchecked")
-		ResourceCSVRow<T> header = (ResourceCSVRow<T>) ResourceCSVUtil.getHeaderRow(resources.get(0).getClass());
-		p.printRecord(header.values());
+		ResourceCSVUtil.printMainHeaderRow(p);
 		
 		Iterator<? extends Resource> iter = resources.iterator();
 		while (iter.hasNext()) {
 			Resource res = iter.next();
 			if (exportUnknown || !res.isDecorator() || res.getParent() instanceof ResourceList) {
-				@SuppressWarnings("unchecked")
-				ResourceCSVRow<T> row = (ResourceCSVRow<T>) ResourceCSVUtil.getRow(res, locale);
-				p.printRecord(row.values());
+				ResourceCSVUtil.printRows(res, locale, p);
 			}
 		}
 		
