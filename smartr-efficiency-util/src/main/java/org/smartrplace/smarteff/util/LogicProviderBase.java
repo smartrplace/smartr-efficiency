@@ -95,7 +95,13 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 	@Override
 	public abstract Class<? extends SmartEffResource> getParamType();
 	
-	/**Override this if an internal parameter type that is not visible publicly shall be declared*/
+	/**Override this if an internal parameter type that is not visible publicly shall be declared.
+	 * The elements of this resouce can be added via the page "Top Level Config Overview Table",
+	 * which can be accessed as global page from the "Navigation Page Overview" page. This page is
+	 * only relevant for the master user and for users owning internalParamType pages. In
+	 * the {@link #init(ApplicationManagerSPExt, ExtensionUserDataNonEdit)} method an
+	 * AccessControl sub resource will be added allowing the logic provider to access the
+	 * resource for all users.*/
 	public Class<? extends SmartEffResource> getInternalParamType() { return null;}
 	
 	/** Return true if resource shall be activated*/

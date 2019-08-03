@@ -4,9 +4,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.ogema.core.model.Resource;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
-import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
 import org.smartrplace.smarteff.admin.gui.ResTypePage;
 import org.smartrplace.smarteff.admin.gui.ServiceDetailPage;
 import org.smartrplace.smarteff.admin.gui.ServicePage;
@@ -14,6 +14,7 @@ import org.smartrplace.smarteff.admin.object.NavigationPageData;
 import org.smartrplace.smarteff.admin.object.SmartrEffExtResourceTypeData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.util.SPPageUtil;
+import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -27,7 +28,7 @@ public class StandardPageAdmin {
 	public final ServiceDetailPage offlineEvalPage;
 	public final ResTypePage resTypePage;
 	//public final DataExplorerPage dataExPage;
-	public final NaviOverviewPage naviPage;
+	public final ObjectGUITablePage<NavigationPageData, Resource> naviPage;
 	public NavigationMenu menu;
 
 	private final WidgetPage<?> pageServices;
@@ -76,9 +77,11 @@ public class StandardPageAdmin {
 	
 	private void updatePageMenus() {
 		menu = new NavigationMenu("Select Page");
-		menu.addEntry("Services Overview Page", pageServices);
-		//menu.addEntry("Services Details Page", pageServiceDetails);
-		menu.addEntry("Data Types", pageResTypes);
+		if(controller.registerExtendedNaviMenuPages()) {
+			menu.addEntry("Services Overview Page", pageServices);
+			//menu.addEntry("Services Details Page", pageServiceDetails);
+			menu.addEntry("Data Types", pageResTypes);
+		}
 		//menu.addEntry("Data Explorer", page3);
 		menu.addEntry("Navigation Pages", pageNavis);
 		

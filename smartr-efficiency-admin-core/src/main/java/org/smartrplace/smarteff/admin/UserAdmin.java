@@ -129,6 +129,7 @@ public class UserAdmin {
 	protected void initTestData() {
 		SmartEffUserDataNonEdit data = userDataNE.create();
 		ValueResourceHelper.setIfNew(data.ogemaUserName(), "master");
+		ValueResourceHelper.setIfNew(data.userType(), 100);
 		data.editableData().create();
 		data.activate(true);
 	}

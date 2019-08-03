@@ -33,6 +33,7 @@ import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
 import org.smartrplace.smarteff.admin.util.GUIPageAdministation;
 import org.smartrplace.smarteff.admin.util.ResourceLockAdministration;
 import org.smartrplace.smarteff.admin.util.TypeAdministration;
+import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.format.ValueFormat;
 
 import de.iwes.util.timer.AbsoluteTiming;
@@ -221,11 +222,15 @@ public class SpEffAdminController {
 		return userAdmin;
 	}
 
-	public NaviOverviewPage getNaviPage(WidgetPage<?> pageNavis, NavigationPageData navi) {
-		return new NaviOverviewPage(pageNavis, this, navi);
+	public ObjectGUITablePage<NavigationPageData, Resource> getNaviPage(WidgetPage<?> pageNavis, NavigationPageData navi) {
+		return new NaviOverviewPage(pageNavis, this, navi, true);
 	}
 	public ResTypePage getResTypePage(WidgetPage<?> pageNavis, SmartrEffExtResourceTypeData initData) {
 		return new ResTypePage(pageNavis, this, initData);
+	}
+
+	public boolean registerExtendedNaviMenuPages() {
+		return true;
 	}
 
 }

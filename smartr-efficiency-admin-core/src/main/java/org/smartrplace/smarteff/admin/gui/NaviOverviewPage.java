@@ -4,7 +4,6 @@ import java.util.Collection;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.TimeResource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.smarteff.admin.SpEffAdminController;
@@ -20,24 +19,21 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.TemplateRedirectButton;
 import de.iwes.widgets.html.form.label.Header;
-import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 /** Page that shows all Navi-pages in the system and allows to open top-level pages directly*/
 public class NaviOverviewPage extends ObjectGUITablePage<NavigationPageData, Resource> {
 	private final SpEffAdminController app;
 	
-	ValueResourceTextField<TimeResource> updateInterval;
-
 	public NaviOverviewPage(final WidgetPage<?> page, final SpEffAdminController app,
-			NavigationPageData initData) {
-		super(page, app.appMan, initData);
+			NavigationPageData initData, boolean autoBuildPage) {
+		super(page, app.appMan, initData, autoBuildPage);
 		this.app = app;
 		//retardationOnGET = 1000;
 	}
 	
 	@Override
 	public void addWidgetsAboveTable() {
-		Header header = new Header(page, "header", "Navigation Page Overview");
+		Header header = new Header(page, "header", "Navigation Page Overview Administration");
 		header.addDefaultStyle(WidgetData.TEXT_ALIGNMENT_LEFT);
 		page.append(header);
 	}
