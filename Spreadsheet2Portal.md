@@ -38,3 +38,14 @@ The development of the calculator usually comprises several steps:
 * Initialize parameters with the values provided in the spreadsheet document.
 
 Note: The example spreadsheets HPAdapt.ods and HPAdapt.xlsm will be provided soon.
+
+# Modeling
+The development of the data models as parameters, individual data and results is a decisive step for the development of calculator modules. In principle similar challenges arise as for the modelling of normal OGEMA resources, a process for which some information is collected by the [OGEMA Alliance on the modeling process page](https://community.ogema-source.net/xwiki/bin/view/OGEMA%20Alliance%20Pages/Model%20Extension%20Process/).
+A summary of the SmartrEfficiency modeling concept:
+* The parameter models are not linked to any resource such as a building etc outside each single parameter table/resource. The meaning of each parameter value must be understandable via the documentation and via the internal structure of the single parameter model. For this reason parameters that are defined in another calculator can be accessed by copying the parameter sheet from the respective calculator or by a cross-document access (to be developed)
+* The specific data models are linked to a major resource type such as BuildingData. The parent type shall be documented below each table together with CSVImportExportStructure and CSVImportExportTop via the line CSVImportExportParent. In order to use data from another calculator it must be made sure that the data belongs to the same parent resorce, e.g. the same building. Substructures like apartments, rooms and devices shall use common subtable names. The first room structure is defined in HPAdapt.
+* For projects a separate start page like the building page is required (TODO). Also a structure for PersonalData comprising information attached to a person or the user logged in will most likely be required in the future.
+* Wheres downward compatibility of new models is an important demand on the OGEMA modeling process this is not always the case for SmartrEfficiency models. It is assumed that all calculators for a certain portal are managed in a way that corrections to an existing model can be applied to all calculators using it.
+* Each value shall only be modeled once and cross-calculator model usage and access shall be done whenever the same data is used in different calculators. If this was not identified in the first place model corrections with appropriate documentation shall take place.
+* Dependencies between calculators may occur not only due to a common usage of values but also due to a common usage of logic - e.g. one calculator may use another one. In this case the logic may be used via calling the calculation method as a util or via providing the full input data model for the calculator used. When more complex calculators are used usually the latter approach has to be implemented.
+ 
