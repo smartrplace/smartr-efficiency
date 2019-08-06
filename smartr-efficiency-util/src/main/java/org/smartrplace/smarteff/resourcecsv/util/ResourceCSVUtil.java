@@ -11,7 +11,9 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
@@ -49,37 +51,7 @@ public class ResourceCSVUtil {
 			return null;
 		}
 	}
-	
-	/**
-	 * TODO: Remove quote chars?
-	 * @param in
-	 * @return
-	 */
-	public static String getStringFromString(String in) {
-		return in;
-	}
 
-	/** Print one ore more rows that represent the respective resource type
-	 * Get an appropriate row type for a resource.
-	 * @param res
-	 * @return
-	 * @throws IOException 
-	 */
-	public static void printRows(Resource res, Locale locale, CSVPrinter p) throws IOException {
-		//TODO: Process lists and special data
-		if (res instanceof SingleValueResource) {
-			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, locale);
-			p.printRecord(row.values());
-		} else if(res instanceof ResourceList) {
-			//TODO: Write three lines that represent resource list header
-			//Also write lines to represent elements
-		} else if(res instanceof SmartEff2DMap) {
-			//TODO
-		} else if(res instanceof SmartEffTimeSeries) {
-			//TODO
-		}
-			
-	}
 	
 	public static void printMainHeaderRow(CSVPrinter p) throws IOException {
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow();
@@ -90,6 +62,14 @@ public class ResourceCSVUtil {
 			return new BuildingUnitCSVRow();
 		else
 			return new ResourceCSVRow<Resource>();*/
+	}
+
+	public static String getUnit(Resource res) {
+		if (res instanceof TemperatureResource)
+			return "°C";
+		else if (res instanceof PhysicalUnitResource)
+			return ((PhysicalUnitResource) res).getUnit().toString();
+		return "";
 	}
 
 }
