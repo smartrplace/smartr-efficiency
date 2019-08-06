@@ -48,4 +48,8 @@ A summary of the SmartrEfficiency modeling concept:
 * Wheres downward compatibility of new models is an important demand on the OGEMA modeling process this is not always the case for SmartrEfficiency models. It is assumed that all calculators for a certain portal are managed in a way that corrections to an existing model can be applied to all calculators using it.
 * Each value shall only be modeled once and cross-calculator model usage and access shall be done whenever the same data is used in different calculators. If this was not identified in the first place model corrections with appropriate documentation shall take place.
 * Dependencies between calculators may occur not only due to a common usage of values but also due to a common usage of logic - e.g. one calculator may use another one. In this case the logic may be used via calling the calculation method as a util or via providing the full input data model for the calculator used. When more complex calculators are used usually the latter approach has to be implemented.
- 
+  
+## Open Issues
+ * The ResourceList structure has no line for a unit definition for the element fields. This can only be coded into the field names.
+ * Comment column in Spreadsheet (currently link column is used)
+ * SubResourceList and additional line for human readable name / description in ResourceLists in Spreadsheet
