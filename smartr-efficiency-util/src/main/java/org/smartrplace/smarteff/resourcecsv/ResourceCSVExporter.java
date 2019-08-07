@@ -18,6 +18,7 @@ import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
 import org.smartrplace.smarteff.resourcecsv.util.ResourceListCSVRows;
+import org.smartrplace.smarteff.resourcecsv.util.ScheduleCSVRows;
 import org.smartrplace.smarteff.resourcecsv.util.SingleValueResourceCSVRow;
 import org.smartrplace.smarteff.resourcecsv.util.SmartEff2DMapCSVRows;
 
@@ -153,7 +154,17 @@ public class ResourceCSVExporter {
 		} else if(res instanceof SmartEffTimeSeries) {
 			p.println();
 			p.printComment("TS: " + name);
-			//TODO
+			SmartEffTimeSeries ts = (SmartEffTimeSeries) res;
+			if (!ts.schedule().exists()) {
+				p.printComment("Time series could not be exported because only schedule-based SmartEffTimeSeries are"
+						+ " currently supported.");
+			} else {
+				ScheduleCSVRows rows = new ScheduleCSVRows(ts.schedule(), conf.exportUnknown);
+				List<List<String>> r = rows.getRows(locale);
+				for (List<String> row : r) {
+					p.printRecord(row);
+				}
+			}
 			p.println();
 			return true;
 		}
