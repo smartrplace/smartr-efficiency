@@ -110,7 +110,7 @@ public class BaseDataService implements SmartEffExtensionService {
 	public final static NaviPageBase<Resource>.Provider RESOURCE_NAVI_PROVIDER = new ResourceTablePage().provider;
 	public final static NaviPageBase<Resource>.Provider RESOURCEALL_NAVI_PROVIDER = new ResourceAllTablePage().provider;
 	public final static NaviPageBase<Resource>.Provider PROPOSALTABLE_PROVIDER = new LogicProvTablePage().provider;
-	public final static NaviPageBase<Resource>.Provider RESULTTABLE_PROVIDER = new ResultTablePage().provider;
+	public final static NaviPageBase<Resource>.Provider RESULTTABLE_PROVIDER = new ResultTablePageEff().provider;
 	public final static NaviPageBase<Resource>.Provider RESULTTABLE100EE_PROVIDER = new ResultTablePage100EE().provider;
 	//This one opens as start page (shows alls resources of type in UserData)
 	public final static NaviPageBase<Resource>.Provider RESBYTYPE_PROVIDER = new ResourceByTypeTablePage().provider;

@@ -11,7 +11,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
-import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
@@ -117,7 +117,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 				//if(object.getEntryTypes() != null && object.getEntryTypes().size() > 1) {
 				//}
 				Class<? extends CalculatedData> resultType = object.resultTypes().get(0).resourceType();
-				if(!ProjectProposal.class.isAssignableFrom(resultType)) {
+				if(!ProjectProposalEfficiency.class.isAssignableFrom(resultType)) {
 					ResourceOfTypeTableOpenButton resultButton = new ResourceOfTypeTableOpenButton(vh.getParent(),
 							"resultButton"+id, pid(), exPage, tabButton.control, req) {
 						private static final long serialVersionUID = 1L;

@@ -8,7 +8,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
-import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.util.CapabilityHelper;
@@ -28,28 +28,28 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import extensionmodel.smarteff.api.base.SmartEffGeneralData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
-public class ResultTablePage extends NaviPageBase<Resource> {
-	public final static Class<ProjectProposal> TYPE_SHOWN = ProjectProposal.class;
+public class ResultTablePageEff extends NaviPageBase<Resource> {
+	public final static Class<ProjectProposalEfficiency> TYPE_SHOWN = ProjectProposalEfficiency.class;
 	
 	protected TablePage tablePage;
 	
-	public ResultTablePage() {
+	public ResultTablePageEff() {
 		super();
 	}
 
-	public class TablePage extends ResourceGUITablePage<ProjectProposal> {
+	public class TablePage extends ResourceGUITablePage<ProjectProposalEfficiency> {
 		//private final ApplicationManagerMinimal appManMin;
 		private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
 		
 		public TablePage(ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage, ApplicationManagerMinimal appManMin) {
-			super(exPage.getPage(), null, appManMin, ProjectProposal.class, false);
+			super(exPage.getPage(), null, appManMin, ProjectProposalEfficiency.class, false);
 			this.exPage = exPage;
 			//this.appManMin = appManMin;
 			triggerPageBuild();
 		}
 
 		@Override
-		public void addWidgets(ProjectProposal object, ResourceGUIHelper<ProjectProposal> vh, String id,
+		public void addWidgets(ProjectProposalEfficiency object, ResourceGUIHelper<ProjectProposalEfficiency> vh, String id,
 				OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 			ExtensionResourceAccessInitData appData = null;
 			if(req != null) appData = exPage.getAccessData(req);
@@ -58,6 +58,8 @@ public class ResultTablePage extends NaviPageBase<Resource> {
 			SPPageUtil.addResEditOpenButton("Open", object, vh, id, row, appData, null, req);
 			vh.floatLabel("Total Cost (EUR)", id, object.costOfProject(), row, "%.0f");
 			vh.floatLabel("+ Work (h)", id, object.ownHours(), row, "%.1f");
+			vh.floatLabel("Savings/a (EUR)", id, object.yearlySavings(), row, "%.2f");
+			vh.floatLabel("CO2-Saved/a (kg)", id, object.yearlyCO2savings(), row, "%.2f");
 			if(req != null) {
 			vh.floatLabel("Interest rate", id, CapabilityHelper.getForUser(
 					((SmartEffGeneralData)appManExt.globalData()).smartEffPriceData().yearlyInterestRate()
@@ -83,7 +85,7 @@ public class ResultTablePage extends NaviPageBase<Resource> {
 		}
 		
 		@Override
-		public List<ProjectProposal> getResourcesInTable(OgemaHttpRequest req) {
+		public List<ProjectProposalEfficiency> getResourcesInTable(OgemaHttpRequest req) {
 			return getReqData(req).getSubResources(TYPE_SHOWN, true);
 		}
 	}

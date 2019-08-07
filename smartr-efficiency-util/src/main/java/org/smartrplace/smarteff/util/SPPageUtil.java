@@ -15,13 +15,13 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
-import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
-import org.smartrplace.smarteff.defaultservice.ResultTablePage;
+import org.smartrplace.smarteff.defaultservice.ResultTablePageEff;
 import org.smartrplace.smarteff.defaultservice.ResultTablePage100EE;
 import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
@@ -198,14 +198,14 @@ public class SPPageUtil {
 			return null;
 		}
 
-		List<ProjectProposal> resultsAvail = object.getSubResources(ResultTablePage.TYPE_SHOWN, true);
+		List<ProjectProposalEfficiency> resultsAvail = object.getSubResources(ResultTablePageEff.TYPE_SHOWN, true);
 		if(resultsAvail.isEmpty()) {
 			return vh.stringLabel(columnName, id, "No Results", row);
 		} else {
 			NavigationPublicPageData pageData = appData.systemAccessForPageOpening()
 					.getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE_PROVIDER));
 			String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS);
-			int size = ProposalResTableOpenButton.getSize(object, appData, ProjectProposal.class);
+			int size = ProposalResTableOpenButton.getSize(object, appData, ProjectProposalEfficiency.class);
 			return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
 					text+"("+size+")", "No BaseResult", true, PageType.TABLE_PAGE, controlProvider, null, req);
 		}

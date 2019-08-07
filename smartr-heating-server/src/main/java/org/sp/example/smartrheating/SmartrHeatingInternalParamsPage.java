@@ -2,7 +2,7 @@ package org.sp.example.smartrheating;
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericParams;
 
-import extensionmodel.smarteff.smartrheating.SmartrHeatingInternalParams;
+import extensionmodel.smarteff.smartrheating.intern.SmartrHeatingInternalParams;
 
 public class SmartrHeatingInternalParamsPage extends EditPageGenericParams<SmartrHeatingInternalParams> {
 	@Override

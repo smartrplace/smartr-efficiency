@@ -21,6 +21,8 @@ import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
 import org.smartrplace.extensionservice.proposal.CalculatedEvalResult;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
+import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.smarteff.access.api.GenericPageConfigurationProvider;
 import org.smartrplace.smarteff.admin.config.SmartEffAdminData;
 import org.smartrplace.smarteff.admin.gui.NaviOverviewPage;
@@ -130,6 +132,8 @@ public class SpEffAdminController {
 			result.add(Resource.class);
 			result.add(CalculatedData.class);
 			result.add(ProjectProposal.class);
+			result.add(ProjectProposalEfficiency.class);
+			result.add(ProjectProposal100EE.class);
 			result.add(CalculatedEvalResult.class);
 			return result ;
 		}

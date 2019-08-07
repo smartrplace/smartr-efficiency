@@ -7,7 +7,7 @@ import org.ogema.core.model.simple.FloatResource;
  * Check the <a href="https://gitlab.com/100ee-space/buildings-100ee/wikis/home">Buildings-100EE Wiki</a>
  * for more information.
  */
-public interface ProjectProposal100EE extends ProjectProposal {
+public interface ProjectProposal100EE extends ProjectProposalEfficiency {
 	/** Like {@link #yearlyOperatingCosts()}, but for CO2-neutral energy supply
 	 */
 	FloatResource yearlyOperatingCostsCO2Neutral();

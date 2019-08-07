@@ -3,6 +3,7 @@ package org.sp.example.smartrheating;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
@@ -17,9 +18,9 @@ import extensionmodel.smarteff.api.base.SmartEffPriceData;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParams;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingData;
-import extensionmodel.smarteff.smartrheating.SmartrHeatingInternalParams;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingParams;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingResult;
+import extensionmodel.smarteff.smartrheating.intern.SmartrHeatingInternalParams;
 
 public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 	
@@ -29,9 +30,10 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 	}
 
 	@Override
-	protected void calculateProposal(SmartrHeatingData input, ProjectProposal result, ExtensionResourceAccessInitData data) {
+	protected void calculateProposal(SmartrHeatingData input, ProjectProposal resultIn, ExtensionResourceAccessInitData data) {
 		MyParam<SmartrHeatingParams> paramHelper = CapabilityHelper.getMyParams(SmartrHeatingParams.class, data.userData(), appManExt);
 		SmartrHeatingParams myPar = paramHelper.get();
+		SmartrHeatingResult result = (SmartrHeatingResult) resultIn;
 		
 		//TODO: Put vendor data also in resource
 		SmartrHeatingInternalParams internal = data.getCrossuserAccess().getAccess("smartrHeatingInternalParams", "master",
@@ -92,7 +94,7 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 	}
 	
 	@Override
-	protected Class<? extends ProjectProposal> getResultType() {
+	protected Class<? extends ProjectProposalEfficiency> getResultType() {
 		return SmartrHeatingResult.class;
 	}
 	@Override

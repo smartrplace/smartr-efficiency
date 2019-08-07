@@ -21,6 +21,8 @@ import org.sp.calculator.multibuild.MultiBuildEditPage;
 import org.sp.calculator.multibuild.MultiBuildEval;
 import org.sp.calculator.multibuild.MultiBuildParamsPage;
 import org.sp.calculator.multibuild.MultiBuildResultPage;
+import org.sp.calculator.smartrheating.intern.HPAdaptEvalInternal;
+import org.sp.calculator.smartrheating.intern.HPAdaptParamsInternalPage;
 import org.sp.example.smartrheating.SmartrHeatingEditPage;
 import org.sp.example.smartrheating.SmartrHeatingEval;
 import org.sp.example.smartrheating.SmartrHeatingInternalParamsPage;
@@ -35,15 +37,19 @@ import extensionmodel.smarteff.smartrheating.SmartrHeatingData;
 public class ExampleCalcExtService extends SmartEffExtServiceImpl {
 	//private ApplicationManagerSPExt appManExt;
 	
+	/* Usually only PROPOSAL_PROV_HPADAPTI would be registered, but to also show the complete open source example
+	 * here we register both versions.
+	*/
 	@Override
 	protected List<LogicProviderBase<?>> getProjectProviders() {
-		return Arrays.asList(new LogicProviderBase[] {PROPOSAL_PROV, PROPOSAL_PROV_HPADAPT, PROPOSAL_PROV_MULTIBUILD});
+		return Arrays.asList(new LogicProviderBase[] {PROPOSAL_PROV, PROPOSAL_PROV_HPADAPT, 
+				PROPOSAL_PROV_HPADAPTI, PROPOSAL_PROV_MULTIBUILD});
 	}
 	@Override
 	protected List<EditPageGeneric<?>> getEditPages() {
 		return Arrays.asList(new EditPageGeneric[] {
 				EDIT_PROVIDER, PARAM_PAGE, PARAMINTERNAL_PAGE,
-				EDIT_PROVIDER_HPA, PARAM_PAGE_HPA, RESULT_PAGE_HPADAPT,
+				EDIT_PROVIDER_HPA, PARAM_PAGE_HPA, PARAM_PAGE_HPAI, RESULT_PAGE_HPADAPT,
 				EDIT_PROVIDER_MULTIBUILD, PARAM_PAGE_MULTIBUILD, RESULT_PAGE_MULTIBUILD, PAGE_MULTIBUILD_1, PAGE_MULTIBUILD_2, PAGE_MULTIBUILD_3
 		});
 	}
@@ -53,6 +59,7 @@ public class ExampleCalcExtService extends SmartEffExtServiceImpl {
 		//this.appManExt = appManExt;
 		PROPOSAL_PROV = new SmartrHeatingEval(appManExt);
 		PROPOSAL_PROV_HPADAPT = new HPAdaptEval(appManExt);
+		PROPOSAL_PROV_HPADAPTI = new HPAdaptEvalInternal(appManExt);
 		PROPOSAL_PROV_MULTIBUILD = new MultiBuildEval(appManExt);
 	}
 
@@ -63,10 +70,12 @@ public class ExampleCalcExtService extends SmartEffExtServiceImpl {
 	//private final static GenericResourceByTypeTablePageBase<SHeatRadiatorType> RADIATOR_TABLE = RADIATOR_PAGE.getTablePage();
 	private static SmartrHeatingEval PROPOSAL_PROV;
 	private static HPAdaptEval PROPOSAL_PROV_HPADAPT;
+	private static HPAdaptEvalInternal PROPOSAL_PROV_HPADAPTI;
 	private static MultiBuildEval PROPOSAL_PROV_MULTIBUILD;
 	private final static SmartrHeatingParamsPage PARAM_PAGE = new SmartrHeatingParamsPage();
 	private final static SmartrHeatingInternalParamsPage PARAMINTERNAL_PAGE = new SmartrHeatingInternalParamsPage();
 	private final static HPAdaptParamsPage PARAM_PAGE_HPA = new HPAdaptParamsPage();
+	private final static HPAdaptParamsInternalPage PARAM_PAGE_HPAI = new HPAdaptParamsInternalPage();
 	private final static HPAdaptResultPage RESULT_PAGE_HPADAPT = new HPAdaptResultPage();
 	private final static MultiBuildParamsPage PARAM_PAGE_MULTIBUILD = new MultiBuildParamsPage();
 	private final static MultiBuildResultPage RESULT_PAGE_MULTIBUILD = new MultiBuildResultPage();

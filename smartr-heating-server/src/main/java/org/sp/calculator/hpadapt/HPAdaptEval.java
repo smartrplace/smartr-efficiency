@@ -46,9 +46,9 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 	public static final String WIKI_LINK =
 			"https://github.com/smartrplace/smartr-efficiency/blob/master/HPAdapt.md";
 	/** Yearly operation cost at chosen price scenario */
-	private float yearlyCostBivalent;
+	protected float yearlyCostBivalent;
 	/** Yearly operation cost at chosen price scenario */
-	private float yearlyCostCondensing;
+	protected float yearlyCostCondensing;
 	private MyParam<HPAdaptParams> hpParamHelper;
 	private MyParam<DefaultProviderParams> defParamHelper;
 	
@@ -119,8 +119,12 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		//DefaultProviderParams defParams = defParamHelper.get();
 		
 		BuildingData building = hpData.getParent();
-		
-
+		calculateHPAdapt(hpData, result, data, building, hpParams);
+	}		
+	
+	/** Override this method for extensions*/
+	protected void calculateHPAdapt(HPAdaptData hpData, HPAdaptResult result, ExtensionResourceAccessInitData data,
+			BuildingData building, HPAdaptParams hpParams) {
 		/* CALCULATION */
 
 		/* Calculate heating days, Heating degree days on daily and hourly basis as well as temperature shares. */
@@ -671,13 +675,6 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 		float heatingLimitTemp = hpData.heatingLimitTemp().getCelsius();
 		float outsideDesignTemp = hpData.outsideDesignTemp().getCelsius();
 		
-		float boilerChangeCDtoCD = hpParams.boilerChangeCDtoCD().getValue();
-		float boilerChangeLTtoCD = hpParams.boilerChangeLTtoCD().getValue();
-		float boilerChangeCDtoCDAdditionalPerkW = hpParams.boilerChangeCDtoCDAdditionalPerkW().getValue();
-		float boilerChangeLTtoCDAdditionalPerkW = hpParams.boilerChangeLTtoCDAdditionalPerkW().getValue();
-		float additionalBivalentHPBase = hpParams.additionalBivalentHPBase().getValue();
-		float additionalBivalentHPPerkW = hpParams.additionalBivalentHPPerkW().getValue();
-		
 		BuildingData building = hpData.getParent();
 
 
@@ -709,34 +706,6 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 
 		float boilerPowerBivalentHP = boilerPowerBoilerOnly - hpPowerBivalentHP;
 		ValueResourceHelper.setCreate(result.boilerPowerBivalentHP(), boilerPowerBivalentHP * 1000);
-
-		boolean isCondensingBurner = building.condensingBurner().getValue();
-
-		float boilerChangeCostHP;
-		if (isCondensingBurner)
-			boilerChangeCostHP = boilerChangeCDtoCD + boilerChangeCDtoCDAdditionalPerkW * boilerPowerBivalentHP;
-		else
-			boilerChangeCostHP = boilerChangeLTtoCD + boilerChangeLTtoCDAdditionalPerkW * boilerPowerBivalentHP;
-		float costOfInstallingBivalentSystem = boilerChangeCostHP + additionalBivalentHPBase
-				+ additionalBivalentHPPerkW * hpPowerBivalentHP;
-		
-		float costOfInstallingCondensingBoiler;
-		if(isCondensingBurner) {
-			costOfInstallingCondensingBoiler =
-					boilerChangeCDtoCD + boilerChangeCDtoCDAdditionalPerkW * boilerPowerBoilerOnly;
-		} else {
-			costOfInstallingCondensingBoiler =
-					boilerChangeLTtoCD + boilerChangeLTtoCDAdditionalPerkW * boilerPowerBoilerOnly;
-		}
-		
-		ValueResourceHelper.setCreate(result.bivalent().costOfProject(), costOfInstallingBivalentSystem);
-		ValueResourceHelper.setCreate(result.condensing().costOfProject(), costOfInstallingCondensingBoiler);
-				
-
-		float amortization = (costOfInstallingBivalentSystem - costOfInstallingCondensingBoiler)
-				/ (yearlyCostCondensing - yearlyCostBivalent);
-		ValueResourceHelper.setCreate(result.bivalent().amortization(), amortization);
-
 	}
 
 	/* * * * * * * * * * * * * * * * * *
@@ -851,13 +820,8 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				ValueResourceHelper.setIfNew(params.pricesCO2neutral().gasPricePerkWh(), 0.099f) |
 				ValueResourceHelper.setIfNew(params.prices100EE().gasPricePerkWh(), 0.15f) |
 				ValueResourceHelper.setIfNew(params.pricesConventional().gasPricePerkWh(), 0.0532f) |
-				ValueResourceHelper.setIfNew(params.boilerChangeCDtoCD(), 4000) |
-				ValueResourceHelper.setIfNew(params.boilerChangeLTtoCD(), 7000) |
-				ValueResourceHelper.setIfNew(params.boilerChangeCDtoCDAdditionalPerkW(), 100) |
-				ValueResourceHelper.setIfNew(params.boilerChangeLTtoCDAdditionalPerkW(), 200) |
-				ValueResourceHelper.setIfNew(params.additionalBivalentHPBase(), 5000) |
-				ValueResourceHelper.setIfNew(params.additionalBivalentHPPerkW(), 100) |
 				ValueResourceHelper.setIfNew(params.boilerPowerReductionLTtoCD(), 10) |
+				ValueResourceHelper.setIfNew(params.internalParamProvider(), "master") |
 				ValueResourceHelper.setIfNew(params.wwSupplyTemp(), (8.0f - ABSOLUTE_ZERO))
 				
 		) {

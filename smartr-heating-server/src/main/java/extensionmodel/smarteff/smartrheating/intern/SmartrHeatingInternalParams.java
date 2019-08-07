@@ -1,4 +1,4 @@
-package extensionmodel.smarteff.smartrheating;
+package extensionmodel.smarteff.smartrheating.intern;
 
 import org.ogema.core.model.simple.FloatResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;

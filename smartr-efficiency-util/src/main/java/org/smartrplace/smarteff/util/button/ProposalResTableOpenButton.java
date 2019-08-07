@@ -9,7 +9,7 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.CalculatedData;
-import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
 import org.smartrplace.smarteff.util.SPPageUtil;
@@ -60,7 +60,7 @@ public class ProposalResTableOpenButton extends TableOpenButton {
 	@Override
 	protected NavigationPublicPageData getPageData(ExtensionResourceAccessInitData appData,
 			Class<? extends Resource> type, PageType typeRequested, OgemaHttpRequest req) {
-		if(resultType == null || (ProjectProposal.class.isAssignableFrom(resultType)))
+		if(resultType == null || (ProjectProposalEfficiency.class.isAssignableFrom(resultType)))
 			return appData.systemAccessForPageOpening().getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE_PROVIDER));//super.getPageData(appData, type, typeRequested);
 		else
 			throw new IllegalStateException("Only ProjectProposals supported so far!");
@@ -81,7 +81,7 @@ public class ProposalResTableOpenButton extends TableOpenButton {
 			Class<? extends CalculatedData> resultType) {
 		List<? extends CalculatedData> data;
 		if(resultType == null)
-			data = myResource.getSubResources(ProjectProposal.class, true);
+			data = myResource.getSubResources(ProjectProposalEfficiency.class, true);
 		else
 			data = myResource.getSubResources(resultType, true);
 		return data.size();

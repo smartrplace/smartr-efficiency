@@ -3,6 +3,7 @@ package extensionmodel.smarteff.defaultproposal;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
+import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
@@ -20,10 +21,11 @@ public class BuildingExampleAnalysis extends ProjectProviderBase<BuildingData> {
 		return "Energy consumption analysis and consulting for users";
 	}
 	@Override
-	protected void calculateProposal(BuildingData input, ProjectProposal result, ExtensionResourceAccessInitData data) {
+	protected void calculateProposal(BuildingData input, ProjectProposal resultIn, ExtensionResourceAccessInitData data) {
 		//DefaultProviderParams params = CapabilityHelper.getSubResourceSingle(appManExt.globalData(), DefaultProviderParams.class);
 		MyParam<DefaultProviderParams> paramHelper = CapabilityHelper.getMyParams(DefaultProviderParams.class, data.userData(), appManExt);
 		DefaultProviderParams myPar = paramHelper.get();
+		BuildingExampleAnalysisResult result = (BuildingExampleAnalysisResult) resultIn;
 		float baseCost = myPar.basePriceBuildingAnalysis().getValue();
 		float varCost = myPar.pricePerSQMBuildingAnalysis().getValue();
 		float customerHourCost = myPar.costOfCustomerHour().getValue();
@@ -61,7 +63,7 @@ public class BuildingExampleAnalysis extends ProjectProviderBase<BuildingData> {
 	}
 	
 	@Override
-	protected Class<? extends ProjectProposal> getResultType() {
+	protected Class<? extends ProjectProposalEfficiency> getResultType() {
 		return BuildingExampleAnalysisResult.class;
 	}
 	@Override
