@@ -2,6 +2,7 @@ package org.smartrplace.extensionservice;
 
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.array.FloatArrayResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.prototypes.Data;
 
 public interface SmartEff2DMap extends Data {
@@ -15,7 +16,11 @@ public interface SmartEff2DMap extends Data {
 	
 	/** Primary keys of the map. Must from lowest to highest. */
 	FloatArrayResource primaryKeys();
+	/** Label for primary keys */
+	StringResource primaryKeyLabel();
 	/** Secondary keys of the map. Must from lowest to highest. */
 	FloatArrayResource secondaryKeys();
+	/** Label for secondary keys */
+	StringResource secondaryKeyLabel();
 	
 }

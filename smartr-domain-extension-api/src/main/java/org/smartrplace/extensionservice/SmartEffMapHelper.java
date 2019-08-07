@@ -138,7 +138,7 @@ public class SmartEffMapHelper {
 	 * @param map
 	 * @return
 	 */
-	static float getValue(double x, double y, SmartEff2DMap map) {
+	public static float getValue(double x, double y, SmartEff2DMap map) {
 
 		Keys keys = getKeys(map);
 		int xIdx = Arrays.asList(keys.x).indexOf((float) x);
@@ -150,9 +150,13 @@ public class SmartEffMapHelper {
 	/** Primary and secondary keys of a map */
 	public static class Keys {
 		/** Primary keys */
-		Float[] x;
+		public Float[] x;
 		/** Secondary keys */
-		Float[] y;
+		public Float[] y;
+		/** Label for primary keys */
+		public String xLabel = "Primary";
+		/** Label for secondary keys */
+		public String yLabel = "Secondary";
 	}
 
 	/**
@@ -165,6 +169,16 @@ public class SmartEffMapHelper {
 		Keys keys = new Keys();
 		keys.x = ArrayUtils.toObject(map.primaryKeys().getValues());
 		keys.y = ArrayUtils.toObject(map.secondaryKeys().getValues());
+		if(map.primaryKeyLabel().exists()) {
+			String label = map.primaryKeyLabel().getValue();
+			if (!label.isEmpty())
+				keys.xLabel = label;
+		}
+		if(map.secondaryKeyLabel().exists()) {
+			String label = map.secondaryKeyLabel().getValue();
+			if (!label.isEmpty())
+				keys.yLabel = label;
+		}
 		return keys;
 	}
 }

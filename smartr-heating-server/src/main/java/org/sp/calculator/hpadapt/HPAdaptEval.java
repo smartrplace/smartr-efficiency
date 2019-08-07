@@ -803,7 +803,9 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 
 		if (!params.copCharacteristics().exists()) {
 			SmartEff2DMap cop = params.copCharacteristics().create();
-			FloatArrayResource outsideTemp = cop.primaryKeys().create();
+			ValueResourceHelper.setCreate(cop.primaryKeyLabel(), "Outside Temperature °C");
+			ValueResourceHelper.setCreate(cop.secondaryKeyLabel(), "Supply Temperature °C");
+			FloatArrayResource outsideTemp = cop.secondaryKeys().create();
 			FloatArrayResource supplyTemp = cop.secondaryKeys().create();
 			float[] outsideTemps = {-20f, -15f, -10f, -5f, 0f, 5f, 10f, 15f, 20f, 25f, 30f};
 			outsideTemp.setValues(outsideTemps);

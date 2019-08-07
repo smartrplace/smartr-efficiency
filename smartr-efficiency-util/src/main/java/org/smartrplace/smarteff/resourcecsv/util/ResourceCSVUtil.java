@@ -72,4 +72,8 @@ public class ResourceCSVUtil {
 		return "";
 	}
 
+	public static String format(Locale locale, float f) {
+		return String.format(locale, "%.3f", f);
+	}
+
 }
