@@ -11,9 +11,16 @@ import org.apache.commons.csv.CSVPrinter;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartrplace.extensionservice.SmartEff2DMap;
+import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
+import org.smartrplace.smarteff.resourcecsv.util.ResourceListCSVRows;
+import org.smartrplace.smarteff.resourcecsv.util.ScheduleCSVRows;
+import org.smartrplace.smarteff.resourcecsv.util.SingleValueResourceCSVRow;
+import org.smartrplace.smarteff.resourcecsv.util.SmartEff2DMapCSVRows;
 
 
 /**
@@ -23,12 +30,12 @@ import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
  * @author jruckel
  *
  */
-public class ResourceCSVExporter extends CSVConfiguration {
+public class ResourceCSVExporter {
 	
 	protected int resourceCount = 0;
 
 	protected final Locale locale;
-	
+	protected final CSVConfiguration conf;
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public ResourceCSVExporter(Resource targetResource) {
@@ -38,7 +45,8 @@ public class ResourceCSVExporter extends CSVConfiguration {
 		this.locale = locale;
 		if (targetResource == null) 
 			throw new RuntimeException("Target resource may not be null.");
-		initDefaults(targetResource, targetResource.getParent());
+		this.conf = new CSVConfiguration();
+		conf.initDefaults(targetResource, targetResource.getParent());
 	}
 	
 	/**
@@ -62,13 +70,12 @@ public class ResourceCSVExporter extends CSVConfiguration {
 	
 	protected void exportToFile(File file) throws IOException {
 		FileWriter out = new FileWriter(file);
-		CSVPrinter p = new CSVPrinter(out, CSV_FORMAT);
+		CSVPrinter p = new CSVPrinter(out, CSVConfiguration.CSV_FORMAT);
 		
-		out.write(BOM);
+		out.write(CSVConfiguration.BOM);
 
 		try {
-			getAndExport(SingleValueResource.class, p, null);
-
+			getAndExport(p);
 		} finally {
 			p.close();
 			out.close();
@@ -76,37 +83,91 @@ public class ResourceCSVExporter extends CSVConfiguration {
 	}
 	
 	
-	protected <T extends Resource> void getAndExport(Class<T> clazz, CSVPrinter p,
-			List<? extends SingleValueResource> svr) throws IOException {
-		
-		List<? extends Resource> resources = parent.getSubResources(clazz, true);
-		exportResources(p, resources, svr);
+	protected <T extends Resource> void getAndExport(CSVPrinter p) throws IOException {
+		List<? extends Resource> resources = conf.parent.getSubResources(false);
+		ResourceCSVUtil.printMainHeaderRow(p);
+		p.printComment(ResourceUtils.getHumanReadableShortName(conf.parent));
+		exportResources(p, resources);
+		p.printComment("TODO: Metadata, e.g. configuration"); // TODO
 	}
 
 	/**
 	 * Export all resource of a type.
 	 */
-	private <T extends Resource> void exportResources(CSVPrinter p, List<T> resources,
-			List<? extends SingleValueResource> svrx) throws IOException {
+	private <T extends Resource> void exportResources(CSVPrinter p, List<T> resources) throws IOException {
 
 		resourceCount += resources.size();
-		if (resourceCount >= maxResourceCount) {
+		if (resourceCount >= conf.maxResourceCount) {
 			throw new RuntimeException("Export failed: Maximum number of resources reached or exceeded.");
 		}
-		
-		p.printComment(resources.get(0).getClass().toString());
-		
-		ResourceCSVUtil.printMainHeaderRow(p);
 		
 		Iterator<? extends Resource> iter = resources.iterator();
 		while (iter.hasNext()) {
 			Resource res = iter.next();
-			if (exportUnknown || !res.isDecorator() || res.getParent() instanceof ResourceList) {
-				ResourceCSVUtil.printRows(res, locale, p);
+			if (conf.exportUnknown || !res.isDecorator() /*|| res.getParent() instanceof ResourceList*/) {
+				boolean printed = printRows(res, p);
+				if (!printed) {
+					List<Resource> subResources = res.getSubResources(false);
+					p.println();
+					p.printComment(ResourceUtils.getHumanReadableShortName(res));
+					exportResources(p, subResources);
+				}
 			}
 		}
-		
+		p.println();
 	}
 
 
+	/** Print one ore more rows that represent the respective resource type
+	 * Get an appropriate row type for a resource.
+	 * @param res
+	 * @return
+	 * @throws IOException 
+	 */
+	public boolean printRows(Resource res, CSVPrinter p) throws IOException {
+		//TODO: Process lists and special data
+		String name = ResourceUtils.getHumanReadableName(res);
+		if (res instanceof SingleValueResource) {
+			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, locale);
+			p.printRecord(row.values());
+			return true;
+		} else if(res instanceof ResourceList) {
+			p.println();
+			p.printComment("List: " + name);
+			@SuppressWarnings({ "rawtypes", "unchecked" }) // XXX
+			ResourceListCSVRows<?> rows = new ResourceListCSVRows((ResourceList<?>) res, conf.exportUnknown);
+			List<List<String>> r = rows.getRows(locale);
+			for (List<String> row : r) {
+				p.printRecord(row);
+			}
+			return true;
+		} else if(res instanceof SmartEff2DMap) {
+			p.println();
+			p.printComment("2DMap: " + name);
+			SmartEff2DMapCSVRows rows = new SmartEff2DMapCSVRows((SmartEff2DMap) res, conf.exportUnknown);
+			List<List<String>> r = rows.getRows(locale);
+			for (List<String> row : r) {
+				p.printRecord(row);
+			}
+			p.println();
+			return true;
+		} else if(res instanceof SmartEffTimeSeries) {
+			p.println();
+			p.printComment("TS: " + name);
+			SmartEffTimeSeries ts = (SmartEffTimeSeries) res;
+			if (!ts.schedule().exists()) {
+				p.printComment("Time series could not be exported because only schedule-based SmartEffTimeSeries are"
+						+ " currently supported.");
+			} else {
+				ScheduleCSVRows rows = new ScheduleCSVRows(ts.schedule(), conf.exportUnknown);
+				List<List<String>> r = rows.getRows(locale);
+				for (List<String> row : r) {
+					p.printRecord(row);
+				}
+			}
+			p.println();
+			return true;
+		}
+		return false;
+	}
 }

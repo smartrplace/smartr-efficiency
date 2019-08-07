@@ -83,7 +83,7 @@ public class CSVConfiguration {
 		activeStatus = ActiveStatus.PRESERVE;
 		exportReferences = ExportReferences.SUBTREE_ONLY;
 		maxResourceCount = 1000;
-		exportUnknown = false;
+		exportUnknown = true;
 	}
 
 }
