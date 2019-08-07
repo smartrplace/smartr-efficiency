@@ -66,7 +66,6 @@ import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
-import extensionmodel.smarteff.api.base.SmartEffGeneralData;
 import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
@@ -110,7 +109,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 	@Override
 	public OgemaWidget createValueWidget(String sub, TypeResult type2, Label labelWidgetForValue,
 			ObjectResourceGUIHelperExtPublic<T> mhLoc, boolean isEditable,
-			boolean isEditableSpecific, String pid) {
+			boolean isEditableSpecific, String pid, Map<String, Map<OgemaLocale, String>> labels) {
 		String subId = WidgetHelper.getValidWidgetId(sub);
 		if(type2.type == null) {
 			if(sub.equals("#exportCSV")) {
@@ -126,7 +125,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			    	public void onPrePOST(String data, OgemaHttpRequest req) {
 			    		download.setDeleteFileAfterDownload(true, req);
 						T entryResource = mhLoc.getGatewayInfo(req);
-			    		ResourceCSVExporter csvMan = new ResourceCSVExporter(entryResource, Locale.GERMANY);
+			    		ResourceCSVExporter csvMan = new ResourceCSVExporter(entryResource, Locale.GERMANY, labels);
 			    		File csvFile = new File(csvMan.exportToFile());
 						download.setFile(csvFile, ResourceUtils.getHumanReadableShortName(entryResource)+".csv", req);
 			    	}

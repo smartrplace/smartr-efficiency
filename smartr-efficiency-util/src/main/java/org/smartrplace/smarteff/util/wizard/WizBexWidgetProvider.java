@@ -120,7 +120,7 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 	@Override
 	public OgemaWidget createValueWidget(String sub, TypeResult type2, Label labelWidgetForValue,
 			ObjectResourceGUIHelperExtPublic<T> mhLoc, boolean isEditable,
-			boolean isEditableSpecific, String pid) {
+			boolean isEditableSpecific, String pid, Map<String, Map<OgemaLocale, String>> labels) {
 		String subId = WidgetHelper.getValidWidgetId(sub);
 		if(sub.equals(ROOM_TABLE_LABEL_ID)) {
 			ResourceOfTypeTableOpenButton valueWidget = new ResourceOfTypeTableOpenButton(page, "open_"+subId, pid, exPage, null) {

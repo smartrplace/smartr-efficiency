@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.ogema.core.model.Resource;
@@ -22,6 +23,8 @@ import org.smartrplace.smarteff.resourcecsv.util.ScheduleCSVRows;
 import org.smartrplace.smarteff.resourcecsv.util.SingleValueResourceCSVRow;
 import org.smartrplace.smarteff.resourcecsv.util.SmartEff2DMapCSVRows;
 
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+
 
 /**
  * Allows the export of resources to CSV. First, export any resources
@@ -35,18 +38,26 @@ public class ResourceCSVExporter {
 	protected int resourceCount = 0;
 
 	protected final Locale locale;
+	protected final Map<String, Map<OgemaLocale, String>> labels;
 	protected final CSVConfiguration conf;
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public ResourceCSVExporter(Resource targetResource) {
-		this(targetResource, null);
+		this(targetResource, null, null);
 	}
-	public ResourceCSVExporter(Resource targetResource, Locale locale) {
+	/**
+	 * 
+	 * @param targetResource
+	 * @param locale if null use English
+	 * @param labels may be null
+	 */
+	public ResourceCSVExporter(Resource targetResource, Locale locale, Map<String, Map<OgemaLocale, String>> labels) {
 		this.locale = locale;
 		if (targetResource == null) 
 			throw new RuntimeException("Target resource may not be null.");
 		this.conf = new CSVConfiguration();
 		conf.initDefaults(targetResource, targetResource.getParent());
+		this.labels = labels;
 	}
 	
 	/**

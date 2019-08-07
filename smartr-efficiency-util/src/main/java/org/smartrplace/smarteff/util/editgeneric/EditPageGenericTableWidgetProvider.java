@@ -54,12 +54,13 @@ public interface EditPageGenericTableWidgetProvider<T extends Resource> {
 	 * @param isEditable
 	 * @param isEditableSpecific most likely not required at all, should not be used
 	 * @param pid
+	 * @param labels 
 	 * @return
 	 */
 	OgemaWidget createValueWidget(String sub, TypeResult type2,
 			Label labelWidgetForValue, ObjectResourceGUIHelperExtPublic<T> mhLoc,
 			boolean isEditable,
-			boolean isEditableSpecific, String pid);
+			boolean isEditableSpecific, String pid, Map<String, Map<OgemaLocale, String>> labels);
 	
 	void setGlobalData(ObjectResourceGUIHelperExtPublic<T> mh, Alert alert, Map<String, Float> lowerLimits, Map<String, Float> upperLimits,
 			Map<String, Map<OgemaLocale, Map<String, String>>> displayOptions,
