@@ -17,9 +17,11 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	protected List<String> versionRow = new ArrayList<>();;
 	protected List<String> unitRow = new ArrayList<>();;
 	protected final ResourceList<T> resList;
+	protected final String label;
 	
-	public ResourceListCSVRows(ResourceList<T> resList, boolean exportUnknown) {
+	public ResourceListCSVRows(ResourceList<T> resList, boolean exportUnknown, String label) {
 		this.resList = resList;
+		this.label = label;
 		setHeaderRows(exportUnknown);
 	}
 
@@ -60,7 +62,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		ArrayList<List<String>> rows = new ArrayList<>();
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
-		header.name = ResourceUtils.getHumanReadableShortName(resList);
+		header.name = label;
 		header.value = "ResourceList";
 		header.resource = resList.getName();
 		header.path = resList.getPath();

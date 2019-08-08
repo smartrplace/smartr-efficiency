@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffMapHelper;
 import org.smartrplace.extensionservice.SmartEffMapHelper.Keys;
@@ -17,16 +16,18 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 	protected List<String> versionRow = new ArrayList<>();;
 	protected List<String> unitRow = new ArrayList<>();;
 	protected final SmartEff2DMap map;
+	protected final String label;
 	
-	public SmartEff2DMapCSVRows(SmartEff2DMap map, boolean exportUnknown) {
+	public SmartEff2DMapCSVRows(SmartEff2DMap map, boolean exportUnknown, String label) {
 		this.map = map;
+		this.label = label;
 	}
 
 	public List<List<String>> getRows(Locale locale) {
 		ArrayList<List<String>> rows = new ArrayList<>();
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
-		header.name = ResourceUtils.getHumanReadableShortName(map);
+		header.name = label;
 		header.value = "ResourceList";
 		header.resource = map.getName();
 		header.path = map.getPath();

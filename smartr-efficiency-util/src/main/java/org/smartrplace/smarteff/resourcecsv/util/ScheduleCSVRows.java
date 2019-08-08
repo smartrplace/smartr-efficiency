@@ -21,9 +21,11 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 	protected List<String> versionRow = new ArrayList<>();;
 	protected List<String> unitRow = new ArrayList<>();;
 	protected final Schedule sched;
+	protected final String label;
 	
-	public ScheduleCSVRows(Schedule sched, boolean exportUnknown) {
+	public ScheduleCSVRows(Schedule sched, boolean exportUnknown, String label) {
 		this.sched = sched;
+		this.label = label;
 	}
 
 	public List<List<String>> getRows(Locale locale) {

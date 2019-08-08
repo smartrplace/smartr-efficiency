@@ -51,15 +51,14 @@ public class SingleValueResourceCSVRow {
 		this(init.HEADER);
 	}
 	
-	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale) {
-		this(res, locale, 1);
+	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale, String label) {
+		this(res, locale, label, 1);
 	}
-	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale, int versionSpread) {
+	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale, String label, int versionSpread) {
 		this.path = res.getPath();
 		this.type = res.getResourceType().getSimpleName();
 
-		// If a "name" sub-resource exists, use it for the name.
-		this.name = ResourceUtils.getHumanReadableShortName(res);
+		this.name = label;
 		this.resource = res.getName();
 		this.value = ResourceCSVUtil.getValueAsString(res, locale);
 		this.unit = ResourceCSVUtil.getUnit(res);
