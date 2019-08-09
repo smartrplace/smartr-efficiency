@@ -28,7 +28,7 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
 		header.name = label;
-		header.value = "ResourceList";
+		header.value = "SmartEff2DMap";
 		header.resource = map.getName();
 		header.path = map.getPath();
 		//header.elementType = resList.getElementType().getSimpleName();

@@ -84,9 +84,15 @@ public class SmartEffMapHelper {
 		
 		for (int i = 0; i < keys.length; i++) {
 			float knownVal = keys[i];
-			if (givenVal == knownVal || givenVal < keys[0] || givenVal > keys[keys.length - 1]) {
+			if (givenVal == knownVal || givenVal < keys[0]) {
 				nearest.loIdx = i;
 				nearest.hiIdx = i;
+				nearest.exact = true;
+				break;
+			}
+			else if (givenVal > keys[keys.length - 1]) {
+				nearest.loIdx = keys.length - 1;
+				nearest.hiIdx = keys.length - 1;
 				nearest.exact = true;
 				break;
 			}
