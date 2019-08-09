@@ -26,12 +26,16 @@ public interface HPAdaptData extends SmartEffResource {
 	/** Estimated savings after basic renovation */
 	PercentageResource savingsAfterBasicRenovation();
 	/** Known or estimated warm drinking water consumption */
+	@Deprecated //moved to SmartrHeatingData
 	VolumeResource wwConsumption();
 	/** Estimated warm water energy loss from storage, circulation at current temperature in heated areas */
+	@Deprecated //moved to SmartrHeatingData
 	PercentageResource wwLossHeatedAreas();
 	/** Warm water energy loss in unheated areas */
+	@Deprecated //moved to SmartrHeatingData
 	PercentageResource wwLossUnheatedAreas();
 	/** Warm water temperature */
+	@Deprecated //moved to SmartrHeatingData
 	TemperatureResource wwTemp();
 	/** Warm water temperature can be lowered to */
 	TemperatureResource wwTempMin();

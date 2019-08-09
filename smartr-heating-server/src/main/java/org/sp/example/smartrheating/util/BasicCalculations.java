@@ -9,6 +9,7 @@ import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.api.common.HeatCostBillingInfo;
 import extensionmodel.smarteff.api.common.HeatRadiatorType;
+import extensionmodel.smarteff.defaultproposal.DefaultProviderParams;
 
 public class BasicCalculations {
 	//TODO
@@ -28,6 +29,22 @@ public class BasicCalculations {
 	 * 		of them are quite old e.g. because of a gap. This could be improved in the future.
 	 * @return
 	 */
+	public static YearlyConsumption getYearlyConsumption(BuildingData building,
+			Integer numberOfYearsMax, DefaultProviderParams myParB) {
+		ResourceList<HeatCostBillingInfo> heatCostBillingInfo = building.heatCostBillingInfo();
+		float kwHpSQM = myParB.defaultKwhPerSQM().getValue();
+
+		if(heatCostBillingInfo == null | (!heatCostBillingInfo.isActive())) {
+			YearlyConsumption result = new YearlyConsumption();
+			result.avKWh = building.heatedLivingSpace().getValue() * kwHpSQM;
+			result.avCostTotal = Float.NaN;
+			result.avPriceperKWh = null;
+			//TODO: use price data and calculate CO2
+			return result;
+		}
+		return getYearlyConsumption(heatCostBillingInfo, numberOfYearsMax);
+	}
+	
 	public static YearlyConsumption getYearlyConsumption(ResourceList<HeatCostBillingInfo> heatCostBillingInfo,
 			Integer numberOfYearsMax) {
 		int count = 0;

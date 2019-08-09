@@ -135,6 +135,8 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 					
 				} else if (ProjectProposal100EE.class.isAssignableFrom(resultType)) {
 					SPPageUtil.addProjectResultTableOpenButton100EE("Results", getReqData(req), vh, id, row, appData, tabButton.control, req);
+				} else if (ProjectProposalEfficiency.class.isAssignableFrom(resultType)) {
+					SPPageUtil.addProjectResultTableOpenButtonEfficiency("Results", getReqData(req), vh, id, row, appData, tabButton.control, req);
 				}
 				else
 					SPPageUtil.addProjectResultTableOpenButton("Results", getReqData(req), vh, id, row, appData, tabButton.control, req);

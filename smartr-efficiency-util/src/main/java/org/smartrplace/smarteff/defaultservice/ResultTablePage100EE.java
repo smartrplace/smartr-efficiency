@@ -74,10 +74,12 @@ public class ResultTablePage100EE extends NaviPageBase<Resource> {
 			vh.floatLabel("Yearly operating cost (CO2-Neutral)", id, proposal.yearlyOperatingCostsCO2Neutral(), row, "%.2f");
 			vh.floatLabel("Yearly operating cost (100EE)", id, proposal.yearlyOperatingCosts100EE(), row, "%.2f");
 			vh.floatLabel("Amortization for chosen price scenario (years)", id, proposal.amortization(), row, "%.1f");
+			if(req != null) {
 			Map<String, String> valuesToSet = ResultTablePage.STATUS_VALUES.get(req.getLocale());
 			if(valuesToSet == null) valuesToSet = ResultTablePage.STATUS_VALUES.get(EditPageBase.EN);
-			
-			vh.dropdown("Interes status", id, proposal.projectStatus(), row, valuesToSet);
+			vh.dropdown("Interest status", id, proposal.projectStatus(), row, valuesToSet);
+			} else
+				vh.registerHeaderEntry("Interest status");
 
 		}
 
@@ -112,7 +114,7 @@ public class ResultTablePage100EE extends NaviPageBase<Resource> {
 	
 	@Override
 	protected String label(OgemaLocale locale) {
-		return "Results for Resource Recursive";
+		return "100EE-Results for Resource Recursive";
 	}
 
 	@Override
@@ -122,7 +124,7 @@ public class ResultTablePage100EE extends NaviPageBase<Resource> {
 
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
-		return "Results for "+ResourceUtils.getHumanReadableName(getReqData(req))+" (+Subtree)";
+		return "100EE Results for "+ResourceUtils.getHumanReadableName(getReqData(req))+" (+Subtree)";
 	}
 	
 	@Override

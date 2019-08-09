@@ -1,9 +1,11 @@
 package org.sp.calculator.multibuild;
 
 
+import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.multibuild.MultiBuildData;
 
 public class MultiBuildEditPage extends EditPageGeneric<MultiBuildData> {
@@ -34,5 +36,11 @@ public class MultiBuildEditPage extends EditPageGeneric<MultiBuildData> {
 	protected void defaultValues(MultiBuildData data, DefaultSetModes mode) {
 		setDefault(data.buildingNum(), 1, mode);
 		setDefault(data.operationalCost(), 0, mode);
+	}
+	
+	/** TODO: This may change to null in the future like BuildingData*/
+	@Override
+	public Class<? extends SmartEffResource> getPrimarySuperType() {
+		return BuildingData.class;
 	}
 }

@@ -8,8 +8,8 @@ public class SmartrHeatingInternalParamsPage extends EditPageGenericParams<Smart
 	@Override
 	public void setData(SmartrHeatingInternalParams sr) {
 		setLabel(sr.baseCost(), EN, "Base project cost (EUR)");
-		setLabel(sr.costPerRoom(), EN, "Additional cost per room (EUR)");
-		setLabel(sr.costPerThermostat(), EN, "Additional cost per thermostat (EUR)");
+		setLabel(sr.costPerRoom(), EN, "Additional cost per room for configuration (EUR)");
+		setLabel(sr.costPerThermostat(), EN, "Additional cost per thermostat for configuration (EUR)");
 	}
 	@Override
 	public Class<SmartrHeatingInternalParams> primaryEntryTypeClass() {

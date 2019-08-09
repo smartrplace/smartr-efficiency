@@ -1,6 +1,6 @@
 package org.smartrplace.smarteff.defaultservice;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,9 +32,9 @@ import extensionmodel.smarteff.api.base.SmartEffGeneralData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class ResultTablePage extends NaviPageBase<Resource> {
-	public static final Map<OgemaLocale, Map<String, String>> STATUS_VALUES = new HashMap<>();
-	public static final Map<String, String> STATUS_VALUES_DE = new HashMap<>();
-	public static final Map<String, String> STATUS_VALUES_EN = new HashMap<>();
+	public static final Map<OgemaLocale, Map<String, String>> STATUS_VALUES = new LinkedHashMap<>();
+	public static final Map<String, String> STATUS_VALUES_DE = new LinkedHashMap<>();
+	public static final Map<String, String> STATUS_VALUES_EN = new LinkedHashMap<>();
 	static {
 		STATUS_VALUES_EN.put("0", "not rated");
 		STATUS_VALUES_EN.put("1", "Interested");

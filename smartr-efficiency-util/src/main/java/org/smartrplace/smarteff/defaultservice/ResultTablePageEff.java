@@ -98,7 +98,7 @@ public class ResultTablePageEff extends NaviPageBase<Resource> {
 	
 	@Override
 	protected String label(OgemaLocale locale) {
-		return "Results for Resource Recursive";
+		return "Efficiency Results for Resource Recursive";
 	}
 
 	@Override
@@ -108,7 +108,7 @@ public class ResultTablePageEff extends NaviPageBase<Resource> {
 
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
-		return "Results for "+ResourceUtils.getHumanReadableName(getReqData(req))+" (+Subtree)";
+		return "Efficiency Results for "+ResourceUtils.getHumanReadableName(getReqData(req))+" (+Subtree)";
 	}
 	
 	@Override

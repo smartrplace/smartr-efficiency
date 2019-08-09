@@ -18,8 +18,6 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 		if(!checkResourceBase(data, false)) return false;
 		String newName = CapabilityHelper.getnewDecoratorName("SmartrHeatingProject", data.getParent());
 		ValueResourceHelper.setIfNew(data.name(), newName);
-		if(data.numberOfRadiators().getValue() <= 0) return false;
-		if(data.numberOfRooms().getValue() <= 0) return false;
 		return true;
 	}*/
 
@@ -43,20 +41,35 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 	@Override
 	public void setData(SmartrHeatingData sr) {
 		setLabel(sr.name(), EN, "name", DE, "Name");
-		//setLabel(sr.numberOfRadiators(), EN, "Number of thermostats", DE, "Zahl Termostate");
-		//setLabel(sr.numberOfRooms(), EN, "Number of rooms", DE, "Zahl Räume");
+		setLabel(sr.wwIsContained(), EN, "Is gas consumption for drinking warm water contained in yearly energy consumption?");
+		setLabelWithUnit(sr.wwConsumption(),
+				EN, "Known or estimated warm drinking water consumption",
+				DE, "Bekannter oder geschätzter Trinkwarmwasserverbrauch");
+
+		setLabelWithUnit(sr.wwLossHeatedAreas(),
+				EN, "Estimated warm water energy loss from storage, circulation at current temperature in heated areas",
+				DE, "Geschätzter Warmwasser-Energieverlost duch Speicher, Zirkulation"
+						+ "bei aktueller Temperatur im beheizten Bereichen");
+
+		setLabelWithUnit(sr.wwLossUnheatedAreas(),
+				EN, "Warm water energy loss in unheated areas",
+				DE, "Warmwasser-Energieverlust im unbeheizten Bereichen");
+
+		setLabelWithUnit(sr.wwTemp(),
+				EN, "Warm water temperature",
+				DE, "Warmwassertemperatur");
+		setLabel(sr.heatingDegreeDaysManual(), EN, "Heating degree days per year");
+		setLabel(sr.heatingDaysManual(), EN, "Average number of heating days per year");
+		setLabel(sr.gasPricePerkWh(), EN, "Price for heating energy source per kWh set for building without fixed base fee (EUR/kWh)");
+		setLabel(sr.usageTimePerWeek(), EN, "Average usage time of building hours per week");
+		setLabel(sr.usageBlocksPerWeek(), EN, "Average number of blocks of usage time per week");
+		setLabel(sr.coolingDownHours(), EN, "Average duration for cooling down of the building to temperature with low loss (hours)");
+		setLabel(sr.heatingUpHours(), EN, "Average duration for heating up of the building from temperature with low loss (hours)");
+		setLabel(sr.heatingReductionHoursBefore(), EN, "Number of hours the building was cooled per week down before introduction of SmartrHeating");
+		setLabel(sr.heatingReductionBlocksBefore(), EN, "Number of heating reduction blocks per week performed before introduction of SmartrHeating");
 		setLabel(sr.gasMeterHasPulseOutput(), EN, "Does gas meter provide magnetic pulse output?", DE, "Besitzt der Gaszähler einen magnetischen Impulsausgang?");
 		setLabel(sr.problemsWithFungusOrMould(), EN, "Does the building have problems with fungus or mould?", DE, "Bestehen Probleme mit Schimmelbildung?");
 		setDisplayOptions(sr.problemsWithFungusOrMould(), EN, FUNGUSMAP_EN);
 		setDisplayOptions(sr.problemsWithFungusOrMould(), DE, FUNGUSMAP_DE);
-		//setLabel(sr.typeOfThermostats(), EN, "Type of thermostats", DE, "Art Heizkörperthermostate");
-		//setDisplayOptions(sr.typeOfThermostats(), EN, RadiatorTypeRegistration.THTMAP_EN);
 	}
-
-	/*@Override
-	protected void getEditTableLines(EditPageBase<SmartrHeatingData>.EditTableBuilder etb) {
-		etb.addEditLine("Name", mh.stringEdit("name", alert));
-		etb.addEditLine("Zahl Termostate", mh.integerEdit("numberOfRadiators", alert, 1, 999999, "Value outside range!"));
-		etb.addEditLine("Zahl Räume", mh.integerEdit("numberOfRooms", alert, 1, 999999, "Value outside range!"));
-	}*/
 }

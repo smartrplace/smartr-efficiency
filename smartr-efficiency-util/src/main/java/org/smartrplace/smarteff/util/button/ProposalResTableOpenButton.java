@@ -37,6 +37,13 @@ public class ProposalResTableOpenButton extends TableOpenButton {
 		BUTTON_TEXTS_100EE.put(OgemaLocale.GERMAN, "100EE-Ergebnisse");
 		BUTTON_TEXTS_100EE.put(OgemaLocale.FRENCH, "Résultats 100EE");
 	}
+	
+	public static final Map<OgemaLocale, String> BUTTON_TEXTS_Eff = new HashMap<>();
+	static {
+		BUTTON_TEXTS_Eff.put(OgemaLocale.ENGLISH, "Efficiency Results");
+		BUTTON_TEXTS_Eff.put(OgemaLocale.GERMAN, "Effizienz-Ergebnisse");
+		BUTTON_TEXTS_Eff.put(OgemaLocale.FRENCH, "Résultats Eff");
+	}
 
 	public ProposalResTableOpenButton(WidgetPage<?> page, String id, String pid,
 			//Class<? extends Resource> type,

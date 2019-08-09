@@ -15,12 +15,14 @@ import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
 import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
+import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.defaultservice.BaseDataService;
+import org.smartrplace.smarteff.defaultservice.ResultTablePage;
 import org.smartrplace.smarteff.defaultservice.ResultTablePageEff;
 import org.smartrplace.smarteff.defaultservice.ResultTablePage100EE;
 import org.smartrplace.smarteff.util.button.AddEditButton;
@@ -105,7 +107,7 @@ public class SPPageUtil {
 				return vh.stringLabel(columnName, id, alternativeText, row);						
 			}
 		} else {
-			return vh.stringLabel(columnName, id, alternativeText+" (No Data)", row);
+			return vh.stringLabel(columnName, id, alternativeText+" (No Page)", row);
 		}
 	}
 	public static OgemaWidget addResEditOpenButton(String columnName, Resource object,
@@ -198,20 +200,19 @@ public class SPPageUtil {
 			return null;
 		}
 
-		List<ProjectProposalEfficiency> resultsAvail = object.getSubResources(ResultTablePageEff.TYPE_SHOWN, true);
+		List<ProjectProposal> resultsAvail = object.getSubResources(ResultTablePage.TYPE_SHOWN, true);
 		if(resultsAvail.isEmpty()) {
 			return vh.stringLabel(columnName, id, "No Results", row);
 		} else {
 			NavigationPublicPageData pageData = appData.systemAccessForPageOpening()
 					.getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE_PROVIDER));
 			String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS);
-			int size = ProposalResTableOpenButton.getSize(object, appData, ProjectProposalEfficiency.class);
+			int size = ProposalResTableOpenButton.getSize(object, appData, ProjectProposal.class);
 			return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
 					text+"("+size+")", "No BaseResult", true, PageType.TABLE_PAGE, controlProvider, null, req);
 		}
 
 	}
-
 
 	public static OgemaWidget addProjectResultTableOpenButton100EE(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
@@ -230,6 +231,29 @@ public class SPPageUtil {
 					.getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLE100EE_PROVIDER));
 			String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS_100EE);
 			int size = ProposalResTableOpenButton.getSize(object, appData, ProjectProposal100EE.class);
+			return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
+					text+"("+size+")", "No BaseResult", true, PageType.TABLE_PAGE, controlProvider, null, req);
+		}
+
+	}
+
+	public static OgemaWidget addProjectResultTableOpenButtonEfficiency(String columnName, Resource object,
+			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
+			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+
+		if(appData == null) {
+			vh.registerHeaderEntry(columnName);
+			return null;
+		}
+
+		List<ProjectProposalEfficiency> resultsAvail = object.getSubResources(ResultTablePageEff.TYPE_SHOWN, true);
+		if(resultsAvail.isEmpty()) {
+			return vh.stringLabel(columnName, id, "No Results", row);
+		} else {
+			NavigationPublicPageData pageData = appData.systemAccessForPageOpening()
+					.getPageByProvider(SPPageUtil.getProviderURL(BaseDataService.RESULTTABLEEFF_PROVIDER));
+			String text = ValueFormat.getLocaleString(req, ProposalResTableOpenButton.BUTTON_TEXTS_Eff);
+			int size = ProposalResTableOpenButton.getSize(object, appData, ProjectProposalEfficiency.class);
 			return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
 					text+"("+size+")", "No BaseResult", true, PageType.TABLE_PAGE, controlProvider, null, req);
 		}

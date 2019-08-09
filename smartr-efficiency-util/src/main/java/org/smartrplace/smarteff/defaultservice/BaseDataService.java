@@ -110,7 +110,8 @@ public class BaseDataService implements SmartEffExtensionService {
 	public final static NaviPageBase<Resource>.Provider RESOURCE_NAVI_PROVIDER = new ResourceTablePage().provider;
 	public final static NaviPageBase<Resource>.Provider RESOURCEALL_NAVI_PROVIDER = new ResourceAllTablePage().provider;
 	public final static NaviPageBase<Resource>.Provider PROPOSALTABLE_PROVIDER = new LogicProvTablePage().provider;
-	public final static NaviPageBase<Resource>.Provider RESULTTABLE_PROVIDER = new ResultTablePageEff().provider;
+	public final static NaviPageBase<Resource>.Provider RESULTTABLE_PROVIDER = new ResultTablePage().provider;
+	public final static NaviPageBase<Resource>.Provider RESULTTABLEEFF_PROVIDER = new ResultTablePageEff().provider;
 	public final static NaviPageBase<Resource>.Provider RESULTTABLE100EE_PROVIDER = new ResultTablePage100EE().provider;
 	//This one opens as start page (shows alls resources of type in UserData)
 	public final static NaviPageBase<Resource>.Provider RESBYTYPE_PROVIDER = new ResourceByTypeTablePage().provider;
@@ -158,7 +159,7 @@ public class BaseDataService implements SmartEffExtensionService {
 	@Override
 	public Collection<ExtensionCapability> getCapabilities() {
 		return Arrays.asList(new ExtensionCapability[] {new BuildingTablePage().provider, new BuildingEditPage().provider, RESOURCE_NAVI_PROVIDER, RESOURCEALL_NAVI_PROVIDER,
-				PROPOSALTABLE_PROVIDER, RESULTTABLE_PROVIDER, RESULTTABLE100EE_PROVIDER,
+				PROPOSALTABLE_PROVIDER, RESULTTABLE_PROVIDER, RESULTTABLEEFF_PROVIDER, RESULTTABLE100EE_PROVIDER,
 				new TopConfigTablePage().provider,
 				BUILDINGANALYSIS_PROVIDER, new DefaultProviderParamsPage().provider,
 				new MasterUserRegistration.EditPage().provider,

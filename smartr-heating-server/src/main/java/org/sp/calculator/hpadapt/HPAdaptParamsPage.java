@@ -58,7 +58,7 @@ public class HPAdaptParamsPage extends EditPageGenericParams<HPAdaptParams> {
 		setLabel(params.copCharacteristics(),
 				EN, "Heat pump COP characteristics",
 				DE, "COP-Kennfeld der Wärmepumpe");
-		
+		setLabel(params.internalParamProvider(), EN, "Internal Parameter user provider");
 		
 		/* Documentation Links */
 		setHeaderLink(EN, HPAdaptEval.WIKI_LINK + "#parameters");
