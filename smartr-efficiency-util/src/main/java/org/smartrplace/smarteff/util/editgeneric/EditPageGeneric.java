@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -54,6 +55,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	public static OgemaLocale DE = OgemaLocale.GERMAN;
 	public static OgemaLocale FR = OgemaLocale.FRENCH;
 	public static OgemaLocale CN = OgemaLocale.CHINESE;
+	public static OgemaLocale FORMAT = new OgemaLocale(Locale.TRADITIONAL_CHINESE);
 
 	protected static final String HEADER_LABEL_ID = "#L";
 	protected static final String HEADER_LINK_ID = "#H";

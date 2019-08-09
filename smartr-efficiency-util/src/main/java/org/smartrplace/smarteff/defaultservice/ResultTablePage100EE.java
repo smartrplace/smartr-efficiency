@@ -1,6 +1,7 @@
 package org.smartrplace.smarteff.defaultservice;
 
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -12,6 +13,7 @@ import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.util.CapabilityHelper;
+import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
@@ -25,7 +27,6 @@ import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
-import extensionmodel.smarteff.api.base.SmartEffGeneralData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 /**
@@ -73,7 +74,10 @@ public class ResultTablePage100EE extends NaviPageBase<Resource> {
 			vh.floatLabel("Yearly operating cost (CO2-Neutral)", id, proposal.yearlyOperatingCostsCO2Neutral(), row, "%.2f");
 			vh.floatLabel("Yearly operating cost (100EE)", id, proposal.yearlyOperatingCosts100EE(), row, "%.2f");
 			vh.floatLabel("Amortization for chosen price scenario (years)", id, proposal.amortization(), row, "%.1f");
+			Map<String, String> valuesToSet = ResultTablePage.STATUS_VALUES.get(req.getLocale());
+			if(valuesToSet == null) valuesToSet = ResultTablePage.STATUS_VALUES.get(EditPageBase.EN);
 			
+			vh.dropdown("Interes status", id, proposal.projectStatus(), row, valuesToSet);
 
 		}
 

@@ -2,6 +2,7 @@ package org.smartrplace.smarteff.util.editgeneric;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -31,6 +32,8 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class GenericResourceByTypeTablePage<T extends Resource> extends GenericResourceByTypeTablePageBase {
+	public static final OgemaLocale FORMAT = new OgemaLocale(Locale.TRADITIONAL_CHINESE);
+
 	private final EditPageGenericWithTable<T> creatingPage;
 	private final String id;
 	
@@ -138,7 +141,7 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				String text = ValueFormat.getLocaleString(OgemaLocale.ENGLISH, locMap.get(sub));
 				
 				//TODO: Provide different way of setting this
-				String ed = entry.getValue().get(OgemaLocale.CHINESE);
+				String ed = entry.getValue().get(FORMAT);
 				boolean doEdit = (ed != null)&&(ed.contains("edit"));
 				
 				if(cellObject == null)

@@ -1,6 +1,7 @@
 package org.smartrplace.extensionservice.proposal;
 
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 
 /** A ProjectProposal is a special CalculatedData that provides some information on a
@@ -38,4 +39,20 @@ public interface ProjectProposal extends CalculatedData {
 	 * e.g. monetary and/or environmental benefits an additinal description may not be necessary here
 	 */
 	StringResource benefitDescription();
+	
+	/** 0: Not evaluated
+	 *  1: Interested
+	 *  2: Too expensive
+	 *  3: Price/Value offer not accepted
+	 *  4: Not feasible
+	 *  5: Not a real building (test building)
+	 *  6: Rejected for other reasons
+	 *  7: Pre-registration for ordering
+	 *  8: Please send me an offer
+	 *  9: Ordered
+	 * 10: Order accepted
+	 * 11: Project started
+	 * 12: Project finished
+	 */
+	IntegerResource projectStatus();
 }

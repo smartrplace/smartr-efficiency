@@ -1,6 +1,8 @@
 package org.smartrplace.smarteff.defaultservice;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -12,6 +14,7 @@ import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.util.CapabilityHelper;
+import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.NaviPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
@@ -29,6 +32,42 @@ import extensionmodel.smarteff.api.base.SmartEffGeneralData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class ResultTablePage extends NaviPageBase<Resource> {
+	public static final Map<OgemaLocale, Map<String, String>> STATUS_VALUES = new HashMap<>();
+	public static final Map<String, String> STATUS_VALUES_DE = new HashMap<>();
+	public static final Map<String, String> STATUS_VALUES_EN = new HashMap<>();
+	static {
+		STATUS_VALUES_EN.put("0", "not rated");
+		STATUS_VALUES_EN.put("1", "Interested");
+		STATUS_VALUES_EN.put("2", "Too expensive");
+		STATUS_VALUES_EN.put("3", "Price/Value offer not accepted");
+		STATUS_VALUES_EN.put("4", "Not feasible");
+		STATUS_VALUES_EN.put("5", "Not a real building (test building)");
+		STATUS_VALUES_EN.put("6", "Rejected for other reasons");
+		STATUS_VALUES_EN.put("7", "Pre-registration for ordering");
+		STATUS_VALUES_EN.put("8", "Please send me an offer");
+		STATUS_VALUES_EN.put("9", "Ordered");
+		/*STATUS_VALUES_EN.put("10", "Order accepted");
+		STATUS_VALUES_EN.put("11", "Project started");
+		STATUS_VALUES_EN.put("12", "Project finished");
+		*/
+		STATUS_VALUES_DE.put("0", "nicht bewertet");
+		STATUS_VALUES_DE.put("1", "Interessiert");
+		STATUS_VALUES_DE.put("2", "Zu teuer");
+		STATUS_VALUES_DE.put("3", "Preis/Leistungsverhältnis nicht akzeptiert");
+		STATUS_VALUES_DE.put("4", "Nicht umsetzbar");
+		STATUS_VALUES_DE.put("5", "Kein reales Gebäude (Eingabe zu Testzwecken)");
+		STATUS_VALUES_DE.put("6", "Abgelehnt aus sonstigen Gründen");
+		STATUS_VALUES_DE.put("7", "Registrierung für eine Bestellung, wenn möglich");
+		STATUS_VALUES_DE.put("8", "Bitte senden Sie mir ein Angebot");
+		STATUS_VALUES_DE.put("9", "Bestellt");
+		/*STATUS_VALUES_DE.put("10", "Bestellung angenommen");
+		STATUS_VALUES_DE.put("11", "Projekt gestartet");
+		STATUS_VALUES_DE.put("12", "Projekt beendet");
+		*/
+		STATUS_VALUES.put(EditPageBase.EN, STATUS_VALUES_EN);
+		STATUS_VALUES.put(EditPageBase.DE, STATUS_VALUES_DE);
+	}
+
 	public final static Class<ProjectProposal> TYPE_SHOWN = ProjectProposal.class;
 	
 	protected TablePage tablePage;
