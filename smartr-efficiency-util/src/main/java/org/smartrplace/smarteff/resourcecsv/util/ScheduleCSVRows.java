@@ -34,7 +34,7 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
 		header.name = ResourceUtils.getHumanReadableShortName(sched.getParent());
 		header.value = "SmartEffTimeSeries";
-		header.resource = sched.getName();
+		header.resource = sched.getParent().getName();
 		header.path = sched.getPath();
 		//header.elementType = resList.getElementType().getSimpleName();
 		rows.add(header.values());
