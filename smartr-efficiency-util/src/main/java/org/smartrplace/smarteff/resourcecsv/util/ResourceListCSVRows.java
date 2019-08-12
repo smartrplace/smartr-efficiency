@@ -24,9 +24,11 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	protected final String label;
 	protected final boolean exportUnknown;
 	protected boolean isAggregated;
+	/** Human-friendlier names in the "Resource" column.  E.g. E_1 -> "Arbeitszimmer" */
+	protected final Map<String, String> nestedListNameRepl;
 	
 	public ResourceListCSVRows(ResourceList<T> resList, boolean exportUnknown, String label) {
-		this(resList, exportUnknown, label, null);
+		this(resList, exportUnknown, label, null, null);
 	}
 
 	/**
@@ -36,7 +38,8 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	 * @param label
 	 * @param subResources elements aggregated from multiple ResourceLists within the parent list
 	 */
-	public ResourceListCSVRows(ResourceList<T> resList, boolean exportUnknown, String label, List<T> subResources) {
+	public ResourceListCSVRows(ResourceList<T> resList, boolean exportUnknown, String label, List<T> subResources,
+			Map<String, String> nestedListNameRepl) {
 		this.resList = resList;
 		this.label = label;
 		this.exportUnknown = exportUnknown;
@@ -46,6 +49,11 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		} else {
 			this.subResources = resList.getAllElements();
 			isAggregated = false;
+		}
+		if (nestedListNameRepl == null) {
+			this.nestedListNameRepl = new HashMap<>();
+		} else {
+			this.nestedListNameRepl = nestedListNameRepl;
 		}
 		setHeaderRows();
 	}
@@ -133,9 +141,14 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 				if (col == "Resource") {
 					if (!isAggregated) {
 						row.add(subRes.getName());
+						nestedListNameRepl.put(subRes.getName(),
+								"\"" + ResourceUtils.getHumanReadableShortName(subRes) + "\"");
 					} else {
 						// Just the name is not sufficient for aggregated resource lists.
-						row.add(getRelativePath(subRes));
+						String relPath = getRelativePath(subRes);
+						String humanPath = getHumanPath(getRelativePath(subRes));
+						row.add(humanPath);
+
 					}
 					continue;
 				}
@@ -146,7 +159,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 					List<String> elemNames = new ArrayList<>();
 					for (Object elem : ((ResourceList<?>) colRes).getAllElements()) {
 						if (elem instanceof Resource)
-							elemNames.add(getRelativePath((Resource) elem));
+							elemNames.add(getHumanPath(getRelativePath((Resource) elem)));
 					}
 					Class<? extends Resource> elemType = ((ResourceList<?>) colRes).getElementType();
 					if (nestedLists.containsKey(elemType)) {
@@ -167,13 +180,28 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		rows.add(Arrays.asList(new String[] {""}));
 		for (Class<? extends Resource> clazz : nestedLists.keySet()) {
 			@SuppressWarnings({ "unchecked", "rawtypes" }) // XXX
-			ResourceListCSVRows<?> r = new ResourceListCSVRows(resList, exportUnknown, label, nestedLists.get(clazz));
+			ResourceListCSVRows<?> r = new ResourceListCSVRows(resList, exportUnknown, label,
+					nestedLists.get(clazz), nestedListNameRepl);
 			rows.addAll(r.getRows(locale));
 		}
 
 		return rows;
 	}
 	
+	/**
+	 * Replace the first occurrence of a resource name stored in {@link
+	 * #nestedListNameRepl} with a human-friendly name.
+	 * @param path
+	 * @return
+	 */
+	private String getHumanPath(String path) {
+		String parentResName = path.split("/")[0];
+		String parentHumanName = nestedListNameRepl.get(parentResName);
+		if (parentHumanName != null)
+			return path.replaceFirst(parentResName, parentHumanName);
+		return path;
+	}
+
 	/** Get a path relative to {@link #resList}.  Returns absolute path if not a subresource of {@link #resList}. */
 	protected String getRelativePath(Resource res) {
 		String listPath = resList.getPath();
