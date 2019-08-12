@@ -80,7 +80,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 						String humanName = ResourceUtils.getHumanReadableShortName(subSubRes);
 						nameRow.add(humanName);
 						if (subSubRes instanceof ResourceList)
-							unitRow.add("(agg)");
+							unitRow.add("_agg_" + ((ResourceList<?>) subSubRes).getElementType().getSimpleName());
 						else
 							unitRow.add(ResourceCSVUtil.getUnit(subSubRes));
 						versionRow.add("1| "); // TODO
