@@ -10,6 +10,7 @@ import java.util.Locale;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
 
 public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 	
@@ -30,9 +31,10 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 	protected final Schedule sched;
 	protected final String label;
 	
-	public ScheduleCSVRows(Schedule sched, boolean exportUnknown, String label) {
+	public ScheduleCSVRows(Schedule sched, CSVConfiguration conf, String label) {
 		this.sched = sched;
 		this.label = label;
+		this.conf = conf;
 	}
 
 	public List<List<String>> getRows(Locale locale) {
@@ -42,7 +44,7 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 		header.name = ResourceUtils.getHumanReadableShortName(sched.getParent());
 		header.value = "SmartEffTimeSeries";
 		header.resource = sched.getParent().getName();
-		header.path = sched.getPath();
+		header.path = getPath(sched);
 		//header.elementType = resList.getElementType().getSimpleName();
 		rows.add(header.values());
 		
