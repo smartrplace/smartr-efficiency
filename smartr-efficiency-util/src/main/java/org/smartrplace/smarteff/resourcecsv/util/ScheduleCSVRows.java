@@ -13,7 +13,14 @@ import org.ogema.tools.resource.util.ResourceUtils;
 
 public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 	
-	public final static String[] DEFAULT_EXPORT_FORMAT = {"yyyy-MM-dd'T'HH:mm:ss.SSSX"};
+	//public final static String[] DEFAULT_EXPORT_FORMAT = {"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"};
+	/**
+	 * Note: Leading zeroes will not be preserved by Excel/Calc and should be
+	 * avoided.  A month exported with 'MM' correctly exports as '02' to the
+	 * csv, but when opened and re-saved it'll become '2' and incompatible with
+	 * 'MM'.
+	 */
+	public final static String[] DEFAULT_EXPORT_FORMAT = {"yyyy", "M", "d", "H", "m", "s.SSS"};
 	public final static String EXPORT_FORMAT_PREFIX = "TS:";
 
 	protected List<String> resourceRow = new ArrayList<>();;
