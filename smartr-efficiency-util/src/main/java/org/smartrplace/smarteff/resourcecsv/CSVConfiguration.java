@@ -26,7 +26,7 @@ public class CSVConfiguration {
 		private ActiveStatus(int i) { this.i = i; }
 		public int toInt() { return i; }
 	}
-	public ActiveStatus activeStatus;
+	// public ActiveStatus activeStatus; TODO
 	
 	/** Settings for how references should be dealt with */
 	public enum ExportReferences {
@@ -39,7 +39,7 @@ public class CSVConfiguration {
 		private ExportReferences(int i) { this.i = i; }
 		public int toInt() { return i; }
 	}
-	public ExportReferences exportReferences;
+	// public ExportReferences exportReferences; TODO
 	
 	/** The resource to be exported, along with all of its sub-resources. */
 	public Resource parent;
@@ -80,8 +80,8 @@ public class CSVConfiguration {
 		this.parent = parent;
 		this.root = root;
 		
-		activeStatus = ActiveStatus.PRESERVE;
-		exportReferences = ExportReferences.SUBTREE_ONLY;
+		//activeStatus = ActiveStatus.PRESERVE;
+		//exportReferences = ExportReferences.SUBTREE_ONLY;
 		maxResourceCount = 1000;
 		exportUnknown = true;
 	}
