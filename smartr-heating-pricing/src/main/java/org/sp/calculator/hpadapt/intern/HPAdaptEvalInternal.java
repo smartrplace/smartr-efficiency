@@ -1,11 +1,11 @@
-package org.sp.calculator.smartrheating.intern;
+package org.sp.calculator.hpadapt.intern;
 
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.smarteff.util.BaseInits;
 import org.sp.calculator.hpadapt.HPAdaptEval;
-import org.sp.example.smartrheating.util.BaseInits;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;

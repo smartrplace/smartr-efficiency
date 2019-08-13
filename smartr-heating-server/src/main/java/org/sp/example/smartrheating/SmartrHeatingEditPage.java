@@ -78,7 +78,7 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 		setDefault(data.wwIsContained(), true, mode);
 		setDefault(data.wwLossHeatedAreas(), 0.35f, mode);
 		setDefault(data.wwLossUnheatedAreas(), 0.25f, mode);
-		setDefault(data.wwTemp(), 50+273.15f, mode);
+		setDefault(data.wwTemp(), 50, mode);
 		setDefault(data.heatingDegreeDaysManual(), 2050, mode);
 		setDefault(data.heatingDaysManual(), 250, mode);
 		setDefault(data.gasPricePerkWh(), 0.06f, mode);

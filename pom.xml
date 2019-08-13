@@ -44,11 +44,13 @@
 		<module>smartr-efficiency-util</module>
 		<module>smartr-efficiency-admin-core</module>
 		<module>smartr-efficiency-admin</module>
-		<module>smartr-heating-server</module>
 		<module>smartr-efficiency-evals</module>
 		<module>smartr-efficiency-driver</module>
 		<module>smartr-efficiency-electricity-example</module>
 		<module>smartr-eval-admin</module>
+		<module>smartr-efficiency-multibuild</module>
+		<module>smartr-heating-server</module>
+		<module>smartr-heating-pricing</module>
     </modules>
 
     <build>

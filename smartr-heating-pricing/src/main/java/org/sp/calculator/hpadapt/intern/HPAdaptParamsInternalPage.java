@@ -1,4 +1,4 @@
-package org.sp.calculator.smartrheating.intern;
+package org.sp.calculator.hpadapt.intern;
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericParams;
 import org.sp.calculator.hpadapt.HPAdaptEval;

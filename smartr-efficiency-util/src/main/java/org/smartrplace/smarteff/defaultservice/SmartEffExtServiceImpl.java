@@ -2,7 +2,9 @@ package org.smartrplace.smarteff.defaultservice;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.ogema.core.application.Application.AppStopReason;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
@@ -56,13 +58,23 @@ public abstract class SmartEffExtServiceImpl implements SmartEffExtensionService
 	public Collection<ExtensionResourceTypeDeclaration<? extends SmartEffResource>> resourcesDefined() {
 		if(resourcesDefined == null) {
 			resourcesDefined = new ArrayList<>();
+			Set<Class<? extends SmartEffResource>> done = new HashSet<>();
 			for(LogicProviderBase<?> projProv: getProjectProviders()) {
 				resourcesDefined.add(projProv.getResultTypeDeclaration());
-				if(projProv.getParamTypeDeclaration() != null) resourcesDefined.add(projProv.getParamTypeDeclaration());
-				if(projProv.getInternalParamTypeDeclaration() != null) resourcesDefined.add(projProv.getInternalParamTypeDeclaration());
+				if(projProv.getParamTypeDeclaration() != null) {
+					done.add(projProv.getParamTypeDeclaration().dataType());
+					resourcesDefined.add(projProv.getParamTypeDeclaration());
+				}
+				if(projProv.getInternalParamTypeDeclaration() != null) {
+					done.add(projProv.getInternalParamTypeDeclaration().dataType());
+					resourcesDefined.add(projProv.getInternalParamTypeDeclaration());
+				}
 			}
 			for(EditPageGeneric<?> editP: getEditPages()) {
 				if(SmartEffResource.class.isAssignableFrom(editP.primaryEntryTypeClass())) {
+					if(done.contains(editP.primaryEntryTypeClass())) {
+						continue;
+					}
 					if(editP.getPrimarySuperType() != null) {
 						addDataType(resourcesDefined, (Class<? extends SmartEffResource>) editP.primaryEntryTypeClass(),
 								Cardinality.MULTIPLE_OPTIONAL, editP.getPrimarySuperType());

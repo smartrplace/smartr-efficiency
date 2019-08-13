@@ -1,4 +1,4 @@
-package org.sp.example.smartrheating;
+package org.sp.calculator.smartrheating.intern;
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGenericParams;
 

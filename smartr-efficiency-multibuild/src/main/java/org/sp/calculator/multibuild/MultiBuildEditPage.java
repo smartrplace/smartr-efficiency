@@ -2,13 +2,13 @@ package org.sp.calculator.multibuild;
 
 
 import org.smartrplace.efficiency.api.base.SmartEffResource;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGenericWithTable;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.multibuild.MultiBuildData;
 
-public class MultiBuildEditPage extends EditPageGeneric<MultiBuildData> {
+public class MultiBuildEditPage extends EditPageGenericWithTable<MultiBuildData> {
 	@Override
 	public String label(OgemaLocale locale) {
 		return "Multi-building IoT project calculator edit page";

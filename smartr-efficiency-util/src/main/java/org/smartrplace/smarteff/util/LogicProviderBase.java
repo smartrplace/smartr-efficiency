@@ -222,7 +222,7 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 		
 		Class<? extends SmartEffResource> paramTypeInternal = getInternalParamType();
 		if(paramTypeInternal != null) {
-			paramTypeDeclarationInternal = appManExt.getTypeDeclaration(paramType);
+			paramTypeDeclarationInternal = appManExt.getTypeDeclaration(paramTypeInternal);
 			if(paramTypeDeclarationInternal== null) {
 				paramTypeDeclarationInternal = new ExtensionResourceTypeDeclaration<SmartEffResource>() {
 

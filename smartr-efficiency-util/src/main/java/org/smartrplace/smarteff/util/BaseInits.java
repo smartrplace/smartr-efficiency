@@ -1,4 +1,4 @@
-package org.sp.example.smartrheating.util;
+package org.smartrplace.smarteff.util;
 
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.smarteff.util.CapabilityHelper;

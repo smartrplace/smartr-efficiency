@@ -19,11 +19,11 @@ import org.smartrplace.extensionservice.SmartEffMapHelper;
 import org.smartrplace.extensionservice.proposal.ProjectProposal100EE;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.resourcecsv.ResourceCSVExporter;
+import org.smartrplace.smarteff.util.BaseInits;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProjectProviderBase100EE;
 import org.smartrplace.smarteff.util.SmartEffResourceHelper;
-import org.sp.example.smartrheating.util.BaseInits;
 import org.sp.example.smartrheating.util.BasicCalculations;
 import org.sp.example.smartrheating.util.BasicCalculations.YearlyConsumption;
 

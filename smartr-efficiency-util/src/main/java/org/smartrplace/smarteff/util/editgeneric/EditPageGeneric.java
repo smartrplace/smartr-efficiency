@@ -1,6 +1,7 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -8,14 +9,27 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.array.BooleanArrayResource;
+import org.ogema.core.model.array.ByteArrayResource;
+import org.ogema.core.model.array.FloatArrayResource;
+import org.ogema.core.model.array.IntegerArrayResource;
+import org.ogema.core.model.array.StringArrayResource;
+import org.ogema.core.model.array.TimeArrayResource;
+import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
 import org.smartrplace.smarteff.util.CapabilityHelper;
@@ -683,31 +697,84 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	 */
 	protected static <K extends Resource, V> boolean setAndActivate(K res, V val) {
 		boolean valueWritten;
-		valueWritten = setOverwrite(res, val);
+		if(res instanceof ValueResource)
+			valueWritten = setValue((ValueResource) res, val); //ValueResourceUtils.setValue((ValueResource) res, val);
+		else valueWritten = false;
 		if (valueWritten)
 			res.activate(true);
 		return valueWritten;
 	}
 	
-	/**
+	/** TODO: Remove this as soon as {@link ValueResourceUtils#setValue(ValueResource, Object)} provides
+	 * return value
 	 * (Attempt to) set the value for a generic resource
 	 * @param res
 	 * @param val
 	 * @return true if value was written
 	 */
-	protected static <K extends Resource, V> boolean setOverwrite(K res, V val) {
-		if (res instanceof TemperatureResource && val instanceof Float) {
-			return ((TemperatureResource) res).setCelsius((Float) val);
-		} else if (res instanceof FloatResource && val instanceof Float)
-			return ((FloatResource) res).setValue((Float) val);
-		else if (res instanceof IntegerResource && val instanceof Integer)
-			return ((IntegerResource) res).setValue((Integer) val);
-		else if (res instanceof BooleanResource && val instanceof Boolean)
-			return ((BooleanResource) res).setValue((Boolean) val);
-		else if (res instanceof StringResource && val instanceof String)
-			return ((StringResource) res).setValue((String) val);
+	@SuppressWarnings("unchecked")
+	public static boolean setValue(ValueResource resource, Object value) throws ClassCastException, NumberFormatException {
+		if (resource instanceof SingleValueResource) 
+			return setValue((SingleValueResource) resource, value.toString());
+		else if (resource instanceof Schedule) {
+			Collection<SampledValue> values;
+			if (value instanceof ReadOnlyTimeSeries)
+				values = ((ReadOnlyTimeSeries) value).getValues(Long.MIN_VALUE);
+			else if (value instanceof List) 
+				values = (Collection<SampledValue>) value;
+			else 
+				throw new IllegalArgumentException("Schedule value must be either a time series or a collection of SampledValue objects");
+			((Schedule) resource).replaceValues(Long.MIN_VALUE, Long.MAX_VALUE, values);
+			return true;
+		}
+		else if (resource instanceof IntegerArrayResource) 
+			return ((IntegerArrayResource) resource).setValues((int[]) value);
+		else if (resource instanceof FloatArrayResource) 
+			return ((FloatArrayResource) resource).setValues((float[]) value);
+		else if (resource instanceof TimeArrayResource)
+			return ((TimeArrayResource) resource).setValues((long[]) value);
+		else if (resource instanceof BooleanArrayResource)
+			return ((BooleanArrayResource) resource).setValues((boolean[]) value);
+		else if (resource instanceof StringArrayResource)
+			return ((StringArrayResource) resource).setValues((String[]) value);
+		else if (resource instanceof ByteArrayResource)
+			return ((ByteArrayResource) resource).setValues((byte[]) value);
+		else if (resource instanceof org.ogema.core.model.simple.OpaqueResource)
+			return ((org.ogema.core.model.simple.OpaqueResource) resource).setValue((byte[]) value);
 		return false;
 	}
+	protected static boolean setValue(SingleValueResource resource, String value) throws NumberFormatException {
+		if (resource instanceof StringResource) {
+			return ((StringResource) resource).setValue(value);
+		}
+		else if (resource instanceof FloatResource) {
+			return ((FloatResource) resource).setValue(Float.parseFloat(value));
+		}
+		else if (resource instanceof IntegerResource) {
+			return ((IntegerResource) resource).setValue(Integer.parseInt(value));
+		}
+		else if (resource instanceof BooleanResource) {
+			return ((BooleanResource) resource).setValue(Boolean.parseBoolean(value));
+		}
+		else if (resource instanceof TimeResource) {
+			return ((TimeResource) resource).setValue(Long.parseLong(value));
+		}
+		return false;
+	}
+
+	/*protected static <K extends Resource, V> boolean setOverwrite(K res, V val) {
+		if (res instanceof TemperatureResource) {
+			return ((TemperatureResource) res).setCelsius((float) val);
+		} else if (res instanceof FloatResource)
+			return ((FloatResource) res).setValue((float) val);
+		else if (res instanceof IntegerResource)
+			return ((IntegerResource) res).setValue((int) val);
+		else if (res instanceof BooleanResource)
+			return ((BooleanResource) res).setValue((boolean) val);
+		else if (res instanceof StringResource)
+			return ((StringResource) res).setValue((String) val);
+		return false;
+	}*/
 	
 	/**
 	 * Set default values according to mode.
@@ -741,7 +808,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	 */
 	protected static <K extends Resource, V> boolean setDefault(K res, V val, DefaultSetModes mode) {
 		if (mode == DefaultSetModes.OVERWRITE)
-			return setOverwrite(res, val);
+			return setValue((ValueResource) res, val);
 		else
 			return setIfNew(res, val);
 	}
