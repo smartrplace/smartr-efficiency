@@ -4,10 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
+
+import de.iwes.util.resource.ResourceHelper;
 
 /**
  * Contains attributes (e.g. path, value, type…) of a resource that is
@@ -29,9 +33,12 @@ public class SingleValueResourceCSVRow {
 	protected String versionDone;
 	protected String activeStatus;
 	
+	protected CSVConfiguration conf;
+	
 	enum init { EMPTY, HEADER }
 
 	public SingleValueResourceCSVRow(init initMode) {
+		this.conf = null;
 		if (initMode == init.EMPTY) return;
 
 		this.name = "Name";
@@ -51,11 +58,13 @@ public class SingleValueResourceCSVRow {
 		this(init.HEADER);
 	}
 	
-	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale, String label) {
-		this(res, locale, label, 1);
+	public SingleValueResourceCSVRow(SingleValueResource res, CSVConfiguration conf, Locale locale, String label) {
+		this(res, conf, locale, label, 1);
 	}
-	public SingleValueResourceCSVRow(SingleValueResource res, Locale locale, String label, int versionSpread) {
-		this.path = res.getPath();
+	public SingleValueResourceCSVRow(SingleValueResource res, CSVConfiguration conf, Locale locale, String label,
+			int versionSpread) {
+		this.conf = conf;
+		this.path = getPath(res);
 		this.type = res.getResourceType().getSimpleName();
 
 		this.name = label;
@@ -79,6 +88,13 @@ public class SingleValueResourceCSVRow {
 	/** Returns columns as List */
 	public List<String> values() {
 		return Arrays.asList(getCols());
+	}
+	
+	/** Get path relative to root. */
+	public String getPath(Resource res) {
+		String resPath = res.getPath();
+		String rootPath = conf.root.getPath();
+		return resPath.replaceFirst("^" + rootPath + "/", "");
 	}
 
 }

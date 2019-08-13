@@ -8,6 +8,7 @@ import java.util.Locale;
 import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffMapHelper;
 import org.smartrplace.extensionservice.SmartEffMapHelper.Keys;
+import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
 
 public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 
@@ -18,9 +19,10 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 	protected final SmartEff2DMap map;
 	protected final String label;
 	
-	public SmartEff2DMapCSVRows(SmartEff2DMap map, boolean exportUnknown, String label) {
+	public SmartEff2DMapCSVRows(SmartEff2DMap map, CSVConfiguration conf, String label) {
 		this.map = map;
 		this.label = label;
+		this.conf = conf;
 	}
 
 	public List<List<String>> getRows(Locale locale) {
@@ -30,7 +32,7 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 		header.name = label;
 		header.value = "SmartEff2DMap";
 		header.resource = map.getName();
-		header.path = map.getPath();
+		header.path = getPath(map);
 		//header.elementType = resList.getElementType().getSimpleName();
 		rows.add(header.values());
 		

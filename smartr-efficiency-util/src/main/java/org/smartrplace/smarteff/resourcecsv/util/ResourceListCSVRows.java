@@ -11,6 +11,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
 
 public class ResourceListCSVRows<T extends Resource> extends SingleValueResourceCSVRow {
 
@@ -22,13 +23,12 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	protected final ResourceList<T> resList;
 	protected List<T> subResources;
 	protected final String label;
-	protected final boolean exportUnknown;
 	protected boolean isAggregated;
 	/** Human-friendlier names in the "Resource" column.  E.g. E_1 -> "Arbeitszimmer" */
 	protected final Map<String, String> nestedListNameRepl;
 	
-	public ResourceListCSVRows(ResourceList<T> resList, boolean exportUnknown, String label) {
-		this(resList, exportUnknown, label, null, null);
+	public ResourceListCSVRows(ResourceList<T> resList, CSVConfiguration conf, String label) {
+		this(resList, conf, label, null, null);
 	}
 
 	/**
@@ -38,11 +38,11 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	 * @param label
 	 * @param subResources elements aggregated from multiple ResourceLists within the parent list
 	 */
-	public ResourceListCSVRows(ResourceList<T> resList, boolean exportUnknown, String label, List<T> subResources,
+	public ResourceListCSVRows(ResourceList<T> resList, CSVConfiguration conf, String label, List<T> subResources,
 			Map<String, String> nestedListNameRepl) {
 		this.resList = resList;
 		this.label = label;
-		this.exportUnknown = exportUnknown;
+		this.conf = conf;
 		if (subResources != null) {
 			this.subResources = subResources;
 			isAggregated = true;
@@ -65,7 +65,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		unitRow.add("Unit");
 		
 		List<T> subResourcesForHeaders;
-		if(!exportUnknown)
+		if(!conf.exportUnknown)
 			subResourcesForHeaders = Arrays.asList(subResources.get(0));
 		else
 			subResourcesForHeaders = subResources;
@@ -73,7 +73,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		for (T subRes : subResourcesForHeaders) {
 			List<Resource> subSubResources = subRes.getSubResources(false);
 			for (Resource subSubRes : subSubResources) {
-				if (exportUnknown || !subSubRes.isDecorator()) {
+				if (conf.exportUnknown || !subSubRes.isDecorator()) {
 					String name = subSubRes.getName();
 					if (!resourceRow.contains(name)) {
 						resourceRow.add(name);
@@ -112,7 +112,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 			header.resource = resList.getName();
 			header.elementType = resList.getElementType().getSimpleName();
 		}
-		header.path = resList.getPath();
+		header.path = getPath(resList);
 		headerRow = header.values();
 
 	}
@@ -145,8 +145,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 								"\"" + ResourceUtils.getHumanReadableShortName(subRes) + "\"");
 					} else {
 						// Just the name is not sufficient for aggregated resource lists.
-						String relPath = getRelativePath(subRes);
-						String humanPath = getHumanPath(getRelativePath(subRes));
+						String humanPath = getHumanPath(getRelativeToParentListPath(subRes));
 						row.add(humanPath);
 
 					}
@@ -159,7 +158,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 					List<String> elemNames = new ArrayList<>();
 					for (Object elem : ((ResourceList<?>) colRes).getAllElements()) {
 						if (elem instanceof Resource)
-							elemNames.add(getHumanPath(getRelativePath((Resource) elem)));
+							elemNames.add(getHumanPath(getRelativeToParentListPath((Resource) elem)));
 					}
 					Class<? extends Resource> elemType = ((ResourceList<?>) colRes).getElementType();
 					if (nestedLists.containsKey(elemType)) {
@@ -180,7 +179,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		rows.add(Arrays.asList(new String[] {""}));
 		for (Class<? extends Resource> clazz : nestedLists.keySet()) {
 			@SuppressWarnings({ "unchecked", "rawtypes" }) // XXX
-			ResourceListCSVRows<?> r = new ResourceListCSVRows(resList, exportUnknown, label,
+			ResourceListCSVRows<?> r = new ResourceListCSVRows(resList, conf, label,
 					nestedLists.get(clazz), nestedListNameRepl);
 			rows.addAll(r.getRows(locale));
 		}
@@ -203,11 +202,11 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	}
 
 	/** Get a path relative to {@link #resList}.  Returns absolute path if not a subresource of {@link #resList}. */
-	protected String getRelativePath(Resource res) {
+	protected String getRelativeToParentListPath(Resource res) {
 		String listPath = resList.getPath();
 		String resPath = res.getPath();
 		if (!resPath.startsWith(listPath))
-			return resPath;
+			return getPath(res);
 		else
 			return resPath.substring(listPath.length() + 1);
 	}

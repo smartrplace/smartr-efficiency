@@ -140,14 +140,15 @@ public class ResourceCSVExporter {
 		String name = ResourceUtils.getHumanReadableName(res);
 		String label = getLabel(res);
 		if (res instanceof SingleValueResource) {
-			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, locale, label);
+			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, conf, 
+					locale, label);
 			p.printRecord(row.values());
 			return true;
 		} else if(res instanceof ResourceList) {
 			p.println();
 			p.printComment("List: " + name);
 			@SuppressWarnings({ "rawtypes", "unchecked" }) // XXX
-			ResourceListCSVRows<?> rows = new ResourceListCSVRows((ResourceList<?>) res, conf.exportUnknown, label);
+			ResourceListCSVRows<?> rows = new ResourceListCSVRows((ResourceList<?>) res, conf, label);
 			List<List<String>> r = rows.getRows(locale);
 			for (List<String> row : r) {
 				p.printRecord(row);
@@ -156,7 +157,7 @@ public class ResourceCSVExporter {
 		} else if(res instanceof SmartEff2DMap) {
 			p.println();
 			p.printComment("2DMap: " + name);
-			SmartEff2DMapCSVRows rows = new SmartEff2DMapCSVRows((SmartEff2DMap) res, conf.exportUnknown, label);
+			SmartEff2DMapCSVRows rows = new SmartEff2DMapCSVRows((SmartEff2DMap) res, conf, label);
 			List<List<String>> r = rows.getRows(locale);
 			for (List<String> row : r) {
 				p.printRecord(row);
@@ -171,7 +172,7 @@ public class ResourceCSVExporter {
 				p.printComment("Time series could not be exported because only schedule-based SmartEffTimeSeries are"
 						+ " currently supported.");
 			} else {
-				ScheduleCSVRows rows = new ScheduleCSVRows(ts.schedule(), conf.exportUnknown, label);
+				ScheduleCSVRows rows = new ScheduleCSVRows(ts.schedule(), conf, label);
 				List<List<String>> r = rows.getRows(locale);
 				for (List<String> row : r) {
 					p.printRecord(row);
