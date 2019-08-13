@@ -72,4 +72,19 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 		setDisplayOptions(sr.problemsWithFungusOrMould(), EN, FUNGUSMAP_EN);
 		setDisplayOptions(sr.problemsWithFungusOrMould(), DE, FUNGUSMAP_DE);
 	}
+	
+	@Override
+	protected void defaultValues(SmartrHeatingData data, DefaultSetModes mode) {
+		setDefault(data.wwIsContained(), true, mode);
+		setDefault(data.wwLossHeatedAreas(), 0.35f, mode);
+		setDefault(data.wwLossUnheatedAreas(), 0.25f, mode);
+		setDefault(data.wwTemp(), 50+273.15f, mode);
+		setDefault(data.heatingDegreeDaysManual(), 2050, mode);
+		setDefault(data.heatingDaysManual(), 250, mode);
+		setDefault(data.gasPricePerkWh(), 0.06f, mode);
+		setDefault(data.problemsWithFungusOrMould(), 1, mode);
+		setDefault(data.gasMeterHasPulseOutput(), false, mode);
+		setDefault(data.coolingDownHours(), 3, mode);
+		setDefault(data.heatingUpHours(), 1, mode);
+	}
 }

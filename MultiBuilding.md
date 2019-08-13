@@ -14,7 +14,7 @@ Note that in the first version only a single hardware setup is supported that is
 [Software background](#software-background)  
 
 ## Parameters
-[`HPAdaptParams`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/multibuild/MultiBuildParams.java) 
+[`MultiBuildParams`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/multibuild/MultiBuildParams.java) 
 
 ### Cost of SmartrplaceBox per Building (EUR)
 `costSPBox`  
@@ -58,7 +58,7 @@ These are hardware components like those in [Hardware components for buildings](
 
 
 ## Data
-[`MultiBuildingData`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/multibuild/MultiBuildDat.java)  
+[`MultiBuildingData`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/multibuild/MultiBuildData.java)  
 
 ### Number of Buildings
 `buildingNum`  

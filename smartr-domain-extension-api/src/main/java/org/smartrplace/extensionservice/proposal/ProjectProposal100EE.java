@@ -17,7 +17,4 @@ public interface ProjectProposal100EE extends ProjectProposalEfficiency {
 	 * <a href="https://gitlab.com/100ee-space/buildings-100ee/wikis/Geb%C3%A4udeenergiewende_100EE/Preisstruktur_100EE">Wiki Link</a>.
 	 */
 	FloatResource yearlyOperatingCosts100EE();
-	
-	/** Amortization for chosen price scenario (years) */
-	FloatResource amortization();
 }

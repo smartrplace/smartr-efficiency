@@ -1,5 +1,6 @@
 package org.smartrplace.extensionservice.proposal;
 
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.StringResource;
 
 /** A ProjectProposal is a special CalculatedData that provides some information on a
@@ -12,4 +13,7 @@ public interface ProjectProposalEfficiency extends ProjectProposal, MeasureEffic
 	 */
 	@Override
 	StringResource benefitDescription();
+	
+	/** Amortization for chosen price scenario (years) */
+	FloatResource amortization();	
 }

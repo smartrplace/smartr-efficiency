@@ -166,7 +166,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 						List<? extends Resource> l = nestedLists.get(elemType);
 						l.addAll(((ResourceList) colRes).getAllElements());
 					} else {
-						nestedLists.put(elemType, ((ResourceList) colRes).getAllElements());
+						nestedLists.put(elemType, ((ResourceList<?>) colRes).getAllElements());
 					}
 					nestedLists.put(colRes.getResourceType(), ((ResourceList<?>) colRes).getAllElements());
 					row.add(String.join(",", elemNames));

@@ -27,6 +27,7 @@ import org.sp.example.smartrheating.SmartrHeatingEditPage;
 import org.sp.example.smartrheating.SmartrHeatingEval;
 import org.sp.example.smartrheating.SmartrHeatingInternalParamsPage;
 import org.sp.example.smartrheating.SmartrHeatingParamsPage;
+import org.sp.example.smartrheating.SmartrHeatingResultPage;
 
 import extensionmodel.smarteff.hpadapt.HPAdaptData;
 import extensionmodel.smarteff.multibuild.MultiBuildData;
@@ -48,7 +49,7 @@ public class ExampleCalcExtService extends SmartEffExtServiceImpl {
 	@Override
 	protected List<EditPageGeneric<?>> getEditPages() {
 		return Arrays.asList(new EditPageGeneric[] {
-				EDIT_PROVIDER, PARAM_PAGE, PARAMINTERNAL_PAGE,
+				EDIT_PROVIDER, PARAM_PAGE, PARAMINTERNAL_PAGE, RESULT_PAGE_SH,
 				EDIT_PROVIDER_HPA, PARAM_PAGE_HPA, PARAM_PAGE_HPAI, RESULT_PAGE_HPADAPT,
 				EDIT_PROVIDER_MULTIBUILD, PARAM_PAGE_MULTIBUILD, RESULT_PAGE_MULTIBUILD, PAGE_MULTIBUILD_1, PAGE_MULTIBUILD_2, PAGE_MULTIBUILD_3
 		});
@@ -74,6 +75,7 @@ public class ExampleCalcExtService extends SmartEffExtServiceImpl {
 	private static MultiBuildEval PROPOSAL_PROV_MULTIBUILD;
 	private final static SmartrHeatingParamsPage PARAM_PAGE = new SmartrHeatingParamsPage();
 	private final static SmartrHeatingInternalParamsPage PARAMINTERNAL_PAGE = new SmartrHeatingInternalParamsPage();
+	private final static SmartrHeatingResultPage RESULT_PAGE_SH = new SmartrHeatingResultPage();
 	private final static HPAdaptParamsPage PARAM_PAGE_HPA = new HPAdaptParamsPage();
 	private final static HPAdaptParamsInternalPage PARAM_PAGE_HPAI = new HPAdaptParamsInternalPage();
 	private final static HPAdaptResultPage RESULT_PAGE_HPADAPT = new HPAdaptResultPage();

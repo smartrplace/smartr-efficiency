@@ -31,8 +31,10 @@ public interface HPAdaptResult extends ProjectProposal100EE, SmartEffResource {
 	/* DESIGN 1 */
 	
 	/** Warm water energy (losses during heating season in heated areas are included) (kWh) */
+	@Deprecated //moved to SmartrHeating
 	FloatResource wwEnergyPreRenovation();
 	/** Heating energy (pre-renovation) (kWh) */
+	@Deprecated //moved to SmartrHeating
 	FloatResource heatingEnergyPreRenovation();
 	/** Warm water energy (post-renovation) (kWh) */
 	FloatResource wwEnergyPostRenovation();

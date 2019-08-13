@@ -1,17 +1,12 @@
 package extensionmodel.smarteff.api.common;
 
 import org.ogema.core.model.ResourceList;
-import org.ogema.core.model.ModelModifiers.NonPersistent;
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.AreaResource;
-import org.ogema.core.model.units.EnergyResource;
-import org.ogema.core.model.units.LengthResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
-import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
 
 import extensionmodel.smarteff.api.csvconfig.ResourceCSVConfig;
 
@@ -43,6 +38,11 @@ public interface BuildingData extends SmartEffResource {
 	 * is zero or negative this indicates that the number of rooms shall be obtained from the
 	 * details list.*/
 	IntegerResource roomNum();
+	
+	/** Number of unheated rooms including those modeled in detail. If negative then value shall be obtained from
+	 * details list.
+	 */
+	IntegerResource unheatedRoomNum();
 	
 	/**Usually only country and postal code is used*/
 	LocationExtended address();

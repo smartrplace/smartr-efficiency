@@ -1,5 +1,6 @@
 package org.sp.example.smartrheating;
 
+import org.ogema.core.model.ResourceList;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
@@ -8,16 +9,16 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.MyParam;
 import org.smartrplace.smarteff.util.ProjectProviderBase;
+import org.sp.calculator.multibuild.MultiBuildEval;
 import org.sp.example.smartrheating.util.BaseInits;
 import org.sp.example.smartrheating.util.BasicCalculations;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
-import extensionmodel.smarteff.api.base.SmartEffPriceData;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParams;
+import extensionmodel.smarteff.multibuild.BuildingComponentUsage;
 import extensionmodel.smarteff.multibuild.MultiBuildData;
-import extensionmodel.smarteff.multibuild.MultiBuildParams;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingData;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingParams;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingResult;
@@ -25,46 +26,87 @@ import extensionmodel.smarteff.smartrheating.intern.SmartrHeatingInternalParams;
 
 public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 	
+	public static final String WIKI_LINK =
+			"https://github.com/smartrplace/smartr-efficiency/blob/master/SmartrHeating.md";
+
 	@Override
 	public String label(OgemaLocale locale) {
 		return "SmartrHeating Recommendations";
 	}
 
 	@Override
-	protected void calculateProposal(SmartrHeatingData input, ProjectProposal resultIn, ExtensionResourceAccessInitData data) {
-		MyParam<SmartrHeatingParams> paramHelper = CapabilityHelper.getMyParams(SmartrHeatingParams.class, data.userData(), appManExt);
-		SmartrHeatingParams myPar = paramHelper.get();
+	protected void calculateProposal(SmartrHeatingData data, ProjectProposal resultIn, ExtensionResourceAccessInitData dataExt) {
+		MyParam<SmartrHeatingParams> paramHelper = CapabilityHelper.getMyParams(SmartrHeatingParams.class, dataExt.userData(), appManExt);
+		SmartrHeatingParams param = paramHelper.get();
 		SmartrHeatingResult result = (SmartrHeatingResult) resultIn;
 		
-		String internalUser = myPar.internalParamProvider().getValue();
-		SmartrHeatingInternalParams internal = data.getCrossuserAccess().getAccess("smartrHeatingInternalParams", internalUser,
+		String internalUser = param.internalParamProvider().getValue();
+		SmartrHeatingInternalParams internal = dataExt.getCrossuserAccess().getAccess("smartrHeatingInternalParams", internalUser,
 				SmartrHeatingInternalParams.class, this);
 		
-		MyParam<DefaultProviderParams> paramHelperB = CapabilityHelper.getMyParams(DefaultProviderParams.class, data.userData(), appManExt);
+		MyParam<DefaultProviderParams> paramHelperB = CapabilityHelper.getMyParams(DefaultProviderParams.class, dataExt.userData(), appManExt);
 		DefaultProviderParams myParB = paramHelperB.get();
-		BuildingData building = input.getParent();
+		BuildingData building = data.getParent();
 		
-		MyParam<MultiBuildParams> paramHelperMB = CapabilityHelper.getMyParams(MultiBuildParams.class, data.userData(), appManExt);
-		MultiBuildParams myParMB = paramHelperMB.get();
+		//MyParam<MultiBuildParams> paramHelperMB = CapabilityHelper.getMyParams(MultiBuildParams.class, data.userData(), appManExt);
+		//MultiBuildParams myParMB = paramHelperMB.get();
 		MultiBuildData multiBuild = CapabilityHelper.addMultiTypeToList(building, null, MultiBuildData.class);
 		
-		float kwHpSQM = myParB.defaultKwhPerSQM().getValue();
+		////////////
+		// LastCalc
+		////////////
 		
+		//Heat energy consumption
+		float wwEnergyPre;
+		if(data.wwIsContained().getValue()) {
+			float wwBase = data.wwConsumption().getValue()*(4.19f/3.6f)*
+					(data.wwTemp().getValue() - param.wwSupplyTemp().getValue());
+			float wwWinter = 0;
+			float wwSummer = 0;
+			wwEnergyPre = wwWinter + wwSummer;
+		} else
+			wwEnergyPre = 0;
 		float yearlykWh = BasicCalculations.getYearlyConsumption(building, 3, myParB).avKWh;
+		float heatEnergyPre = yearlykWh - wwEnergyPre;
 
+		//Radiators
+		int[] thermNum = BasicCalculations.getNumberOfRadiators(building);
+		ValueResourceHelper.setCreate(result.thermostatNum(), thermNum[0]);
+		ValueResourceHelper.setCreate(result.roomNumInBuilding(), BasicCalculations.getNumberOfRooms(building));
+		ValueResourceHelper.setCreate(result.roomNumWithThermostats(), thermNum[1]);
 		
-		result.yearlySavings().create();
-		//result.yearlySavings().setValue(0.05f*yearlyCost);
+		float heatDownUpPerBlock = (data.coolingDownHours().getValue() + data.heatingUpHours().getValue())*0.5f;
+		float hrWithout = data.usageTimePerWeek().getValue() +
+				data.usageBlocksPerWeek().getValue() * heatDownUpPerBlock;
+		float hrBefore = data.heatingReductionHoursBefore().getValue() -
+				data.heatingReductionBlocksBefore().getValue() * heatDownUpPerBlock;
+		//Savings
+		ValueResourceHelper.setCreate(result.hoursWithoutLowering(), hrWithout);
+		ValueResourceHelper.setCreate(result.hoursLoweringEffectiveBefore(), hrBefore);
+		ValueResourceHelper.setCreate(result.savingsRelative(), (168-hrWithout-hrBefore)/(168-hrBefore));
+		ValueResourceHelper.setCreate(result.savingsAbsolute(), heatEnergyPre * result.savingsRelative().getValue());
 		
-		Integer roomNum = BasicCalculations.getNumberOfRooms(building);
-		if(roomNum == 0) {
-			MyParam<SmartEffPriceData> paramHelperPrice = CapabilityHelper.getMyParams(SmartEffPriceData.class, data.userData(), appManExt);
-			SmartEffPriceData myParPrice = paramHelperPrice.get();
-			roomNum = myParPrice.standardRoomNum().getValue(); 
-		}
+		//First perform sub calculation
+		MultiBuildEval mbe = new MultiBuildEval(appManExt);
+		ValueResourceHelper.setCreate(multiBuild.buildingNum(), 1);
+		ValueResourceHelper.setCreate(multiBuild.operationalCost(), 20);
+		ResourceList<BuildingComponentUsage> hw = multiBuild.buildingComponentUsage().create();
+		BuildingComponentUsage thermo = hw.add();
+		ValueResourceHelper.setCreate(thermo.name(), "Homematic Thermostat");
+		ValueResourceHelper.setCreate(thermo.number(), thermNum[0]);		
+		mbe.calculateMultiBuild(multiBuild, result.multiBuildResult(), dataExt);
 		
-		//result.costOfProjectIncludingInternal().create();
-		//result.costOfProjectIncludingInternal().setValue(vendorCost + customerCost);
+		float costOfProject;
+		float yearlyCost;
+		float yearlySavings;
+		float yearlyCO2Savings;
+		/*ValueResourceHelper.setCreate(result.costOfProject(), costOfProject);
+		ValueResourceHelper.setCreate(result.yearlyOperatingCosts(), yearlyCost);
+		ValueResourceHelper.setCreate(result.yearlySavings(), yearlySavings);
+		ValueResourceHelper.setCreate(result.yearlyCO2savings(), yearlyCO2Savings);
+		float amortization = costOfProject / (yearlyCost - yearlySavings);
+		ValueResourceHelper.setCreate(result.amortization(), amortization);
+		*/
 		paramHelper.close();
 	}
 	
@@ -97,7 +139,7 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 	@Override
 	protected boolean initInternalParams(SmartEffResource paramsIn) {
 		SmartrHeatingInternalParams params = (SmartrHeatingInternalParams)paramsIn;
-		if(ValueResourceHelper.setIfNew(params.baseCost(), 2000) |
+		if(//ValueResourceHelper.setIfNew(params.baseCost(), 2000) |
 				ValueResourceHelper.setIfNew(params.costPerThermostat(), 70) |
 				ValueResourceHelper.setIfNew(params.costPerRoom(), 30)) {
 			return true;

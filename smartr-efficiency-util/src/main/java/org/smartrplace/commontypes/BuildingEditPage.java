@@ -149,6 +149,7 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		setLabel(sr.numberOfUnitsInBuilding(), EN, "Number of tenants/property units in building", DE, "Zahl der Wohnungen/Nutzereinheiten im Gebäude", 1, 99999);
 		
 		setLabel(sr.roomNum(), EN, "Number of rooms in building", DE, "Zahl der Räume im Gebäude");
+		setLabel(sr.unheatedRoomNum(), EN, "Number of rooms without radiator in building", DE, "Zahl der Räume ohne eigenen Heizkörper im Gebäude");
 		
 		setLabel(sr.address().street(), DE, "Straße und Hausnummer", EN, "Street / number");
 		setLabel(sr.address().postalCode(), EN, "Postal Code", DE, "Postleitzahl");

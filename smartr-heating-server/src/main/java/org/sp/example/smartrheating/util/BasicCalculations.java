@@ -124,16 +124,26 @@ public class BasicCalculations {
 		return null;
 	}
 	
-	public static Integer getNumberOfRadiators(BuildingData building) {
+	/** Get number of thermostats and rooms with thermostats
+	 * @return [0]: number of thermostats, [1]: rooms with thermostats*/
+	public static int[] getNumberOfRadiators(BuildingData building) {
 		int count = 0;
+		int countRooms = 0;
+		int roomNumUnheated;
+		if(building.unheatedRoomNum().isActive()) roomNumUnheated = building.unheatedRoomNum().getValue();
+		else roomNumUnheated = -1;
 		for(BuildingUnit room: building.buildingUnit().getAllElements()) {
-			count += room.heatRadiator().size();
+			if(room.heatRadiator().size() > 0) {
+				count += room.heatRadiator().size();
+				countRooms++;
+			}
 		}
 		if(count == 0 && (!building.heatRadiatorType().isActive()))
 			return null;
 		for(HeatRadiatorType rad: building.heatRadiatorType().getAllElements()) {
 			count += rad.numberOfRadiators().getValue();
 		}
-		return count;
+		if(roomNumUnheated > -1) countRooms = getNumberOfRooms(building) - roomNumUnheated;
+		return new int[] {count, countRooms};
 	}
 }

@@ -49,7 +49,16 @@ A summary of the SmartrEfficiency modeling concept:
 * Each value shall only be modeled once and cross-calculator model usage and access shall be done whenever the same data is used in different calculators. If this was not identified in the first place model corrections with appropriate documentation shall take place.
 * Dependencies between calculators may occur not only due to a common usage of values but also due to a common usage of logic - e.g. one calculator may use another one. In this case the logic may be used via calling the calculation method as a util or via providing the full input data model for the calculator used. When more complex calculators are used usually the latter approach has to be implemented.
   
+# Create or update portal calculator based on Spreadsheet
+* Add all relevant data elements from parameters, data and lastCalc to the calculator models. For each data type perform the following steps:
+** Add data elements to the OGEMA resource type
+** Add entries into the respective EditPage
+** Add initialization: In calculator for parameters, in EditPage#defaultValues() for data
+* Add the documentation markdown file and set link to WIKI in the calculator WIKI_LINK constant.
+* Implement first subcalculators, then lastCalc sheet, the standard results that are usually at the bottom of the data sheet:
+** Note that parameters of sub calculators are not doubled as they are global, but data sheets of sub-calculators
+** Implement calculation backward: Start to with setting the results and collect the required data according to the spreadsheet until you have calculated everything based on the input data.
+  
 ## Open Issues
- * The ResourceList structure has no line for a unit definition for the element fields. This can only be coded into the field names.
  * Comment column in Spreadsheet (currently link column is used)
- * SubResourceList and additional line for human readable name / description in ResourceLists in Spreadsheet
+ * 

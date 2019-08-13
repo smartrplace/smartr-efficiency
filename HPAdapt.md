@@ -15,6 +15,71 @@ highly adaptive supply temperature of the heat pump.  [...]
 [Results](#results)  
 [Software background](#software-background)  
 
+## Parameters
+[`HPAdaptParams`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/hpadapt/HPAdaptParams.java)  
+<!--
+### Price of CO₂-neutral electricity (EUR/kWh)
+`pricesCO2neutral.electrictiyPricePerkWh`  
+
+### Price of 100EE electricity (EUR/kWh)
+`prices100EE.electrictiyPricePerkWh`  
+
+### Price of heat pump electricity (EUR/kWh)
+`pricesConventional.electrictiyPriceHeatPerkWh`  
+
+### Price of CO₂-neutral heat pump electricity (EUR/kWh)
+`pricesCO2neutral.electrictiyPriceHeatPerkWh`  
+
+### Price of 100EE heat pump electricity (EUR/kWh)
+`prices100EE.electrictiyPriceHeatPerkWh`  
+
+### Price of conventional natural gas (EUR/kWh)
+`pricesConventional.gasPricePerkWh`  
+
+### Price of CO₂-neutral gas (EUR/kWh)
+`pricesCO2neutral.gasPricePerkWh`  
+
+### Price of 100EE gas (EUR/kWh)
+`prices100EE.gasPricePerkWh`  
+
+### Condensing Boiler → Condensing Boiler (CD→CD), base price (EUR)
+`boilerChangeCDtoCD`  
+
+### Low-Temperature Boiler → Condensing Boiler (LT→CD), base price (EUR)
+`boilerChangeLTtoCD`  
+
+### Additional CD→CD (EUR/kW)
+`boilerChangeCDtoCDAdditionalPerkW`  
+
+### Additional LT→CD (EUR/kW)
+`boilerChangeLTtoCDAdditionalPerkW`  
+
+### Additional Base Cost of Bivalent Heat Pump (EUR)
+`additionalBivalentHPBase`  
+
+### Additional Base Cost of Bivalent Heat Pump (EUR/kW)
+`additionalBivalentHPPerkW`  
+
+### Boiler Power Reduction switching from LT→CD
+`boilerPowerReductionLTtoCD`  
+
+-->
+
+### Historical Temperature Data to be imported via CSV
+`temperatureHistory`  
+
+One year of daily mean outside temperatures.  You can use the default
+value and set an
+[offset](#offset-for-adapting-to-historical-outside-temperature-data-k)
+or upload your own data in the following format:
+```
+Tag;Mitteltemperatur
+01.01.2018 00:00;-3,512
+02.01.2018 00:00;-4,728
+[...]
+31.12.2018 00:00;-5,952
+```
+
 ## Data
 [`HPAdaptData`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/hpadapt/HPAdaptData.java)  
 
@@ -81,75 +146,6 @@ Outside temperature below which heating is required.
 `outsideTempOffset`  
 Offset that can optionally be applied to
 [historical temperature data](#historical-temperature-data-to-be-imported-via-csv).
-
-
-## Parameters
-[`HPAdaptParams`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/hpadapt/HPAdaptParams.java)  
-<!--
-### Price of CO₂-neutral electricity (EUR/kWh)
-`pricesCO2neutral.electrictiyPricePerkWh`  
-
-### Price of 100EE electricity (EUR/kWh)
-`prices100EE.electrictiyPricePerkWh`  
-
-### Price of heat pump electricity (EUR/kWh)
-`pricesConventional.electrictiyPriceHeatPerkWh`  
-
-### Price of CO₂-neutral heat pump electricity (EUR/kWh)
-`pricesCO2neutral.electrictiyPriceHeatPerkWh`  
-
-### Price of 100EE heat pump electricity (EUR/kWh)
-`prices100EE.electrictiyPriceHeatPerkWh`  
-
-### Price of conventional natural gas (EUR/kWh)
-`pricesConventional.gasPricePerkWh`  
-
-### Price of CO₂-neutral gas (EUR/kWh)
-`pricesCO2neutral.gasPricePerkWh`  
-
-### Price of 100EE gas (EUR/kWh)
-`prices100EE.gasPricePerkWh`  
-
-### Condensing Boiler → Condensing Boiler (CD→CD), base price (EUR)
-`boilerChangeCDtoCD`  
-
-### Low-Temperature Boiler → Condensing Boiler (LT→CD), base price (EUR)
-`boilerChangeLTtoCD`  
-
-### Additional CD→CD (EUR/kW)
-`boilerChangeCDtoCDAdditionalPerkW`  
-
-### Additional LT→CD (EUR/kW)
-`boilerChangeLTtoCDAdditionalPerkW`  
-
-### Additional Base Cost of Bivalent Heat Pump (EUR)
-`additionalBivalentHPBase`  
-
-### Additional Base Cost of Bivalent Heat Pump (EUR/kW)
-`additionalBivalentHPPerkW`  
-
-### Boiler Power Reduction switching from LT→CD
-`boilerPowerReductionLTtoCD`  
-
-### Warm water supply temperature
-`wwSupplyTemp`  
-
--->
-
-### Historical Temperature Data to be imported via CSV
-`temperatureHistory`  
-
-One year of daily mean outside temperatures.  You can use the default
-value and set an
-[offset](#offset-for-adapting-to-historical-outside-temperature-data-k)
-or upload your own data in the following format:
-```
-Tag;Mitteltemperatur
-01.01.2018 00:00;-3,512
-02.01.2018 00:00;-4,728
-[...]
-31.12.2018 00:00;-5,952
-```
 
 ## Results
 [`HPAdaptResult`](https://github.com/smartrplace/smartr-efficiency/blob/master/smartr-heating-server/src/main/java/extensionmodel/smarteff/hpadapt/HPAdaptResult.java)  

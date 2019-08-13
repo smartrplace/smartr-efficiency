@@ -60,6 +60,7 @@ public class ResultTablePageEff extends NaviPageBase<Resource> {
 			vh.floatLabel("+ Work (h)", id, object.ownHours(), row, "%.1f");
 			vh.floatLabel("Savings/a (EUR)", id, object.yearlySavings(), row, "%.2f");
 			vh.floatLabel("CO2-Saved/a (kg)", id, object.yearlyCO2savings(), row, "%.2f");
+			vh.floatLabel("Amortization for chosen price scenario (years)", id, object.amortization(), row, "%.1f");
 			if(req != null) {
 			vh.floatLabel("Interest rate", id, CapabilityHelper.getForUser(
 					((SmartEffGeneralData)appManExt.globalData()).smartEffPriceData().yearlyInterestRate()

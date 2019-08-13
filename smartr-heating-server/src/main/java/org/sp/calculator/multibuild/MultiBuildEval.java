@@ -28,7 +28,6 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 	
 	public static final String WIKI_LINK =
 			"https://github.com/smartrplace/smartr-efficiency/blob/master/MultiBuilding.md";
-	private MyParam<MultiBuildParams> hpParamHelper;
 	
 	@Override
 	public String label(OgemaLocale locale) {
@@ -63,12 +62,13 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 	 * @param result
 	 * @param data
 	 */
-	protected void calculateMultiBuild(MultiBuildData hpData, MultiBuildResult result,
+	public void calculateMultiBuild(MultiBuildData hpData, MultiBuildResult result,
 			ExtensionResourceAccessInitData data) {
 		
 		/* SETUP */
 
-		hpParamHelper = CapabilityHelper.getMyParams(MultiBuildParams.class, data.userData(), appManExt);
+		MyParam<MultiBuildParams> hpParamHelper =
+				CapabilityHelper.getMyParams(MultiBuildParams.class, data.userData(), appManExt);
 		MultiBuildParams hpParams = hpParamHelper.get();
 		
 		float costPerBuilding = hpParams.costSPBox().getValue();
@@ -121,15 +121,15 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		// Perhaps move to properties?
 		if (!params.communicationBusType().exists()) {
 			params.communicationBusType().create();
-			CommunicationBusType hm = addCommAdapter(params, "homematic", 50, 0,0, "https://www.elv.de/");
-			CommunicationBusType wmbus = addCommAdapter(params, "wmbus", 40, 0, 5000, null);
-			addCommAdapter(params, "rexo", 60, 0,0, null);
-			addCommAdapter(params, "wlan", 50, 0,0, null);
+			CommunicationBusType hm = initAddCommAdapter(params, "homematic", 50, 0,0, "https://www.elv.de/");
+			CommunicationBusType wmbus = initAddCommAdapter(params, "wmbus", 40, 0, 5000, null);
+			initAddCommAdapter(params, "rexo", 60, 0,0, null);
+			initAddCommAdapter(params, "wlan", 50, 0,0, null);
 			if (!params.buildingComponent().exists()) {
 				params.buildingComponent().create();
-				addBuildingComponent(params, "Inside temp/humidity sensor", 30, 0, hm, "https://www.elv.de/homematic-ip-temperatur-und-luftfeuchtigkeitssensor-innen.html");
-				addBuildingComponent(params, "Outside temp/humidity sensor", 50, 0, hm, null);
-				addBuildingComponent(params, "FlowMeter 1,5m3/h", 210, 0, wmbus, "https://www.energie-zaehler.com/epages/61422236.sf/de_DE/?ObjectPath=/Shops/61422236/Products/WMZ15F-CMF-IST");
+				initAddBuildingComponent(params, "Inside temp/humidity sensor", 30, 0, hm, "https://www.elv.de/homematic-ip-temperatur-und-luftfeuchtigkeitssensor-innen.html");
+				initAddBuildingComponent(params, "Outside temp/humidity sensor", 50, 0, hm, null);
+				initAddBuildingComponent(params, "FlowMeter 1,5m3/h", 210, 0, wmbus, "https://www.energie-zaehler.com/epages/61422236.sf/de_DE/?ObjectPath=/Shops/61422236/Products/WMZ15F-CMF-IST");
 			}
 		}
 		if(
@@ -142,7 +142,7 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		return false;
 	}
 	
-	private CommunicationBusType addCommAdapter(MultiBuildParams params, String name, float cost,
+	private CommunicationBusType initAddCommAdapter(MultiBuildParams params, String name, float cost,
 			float yearlyCost, float development, String link) {
 		CommunicationBusType item = params.communicationBusType().add();
 		ValueResourceHelper.setCreate(item.name(), name);
@@ -152,7 +152,7 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		if(link != null) ValueResourceHelper.setCreate(item.link(), link);
 		return item;
 	}
-	private void addBuildingComponent(MultiBuildParams params, String name, float cost,
+	private void initAddBuildingComponent(MultiBuildParams params, String name, float cost,
 			float yearlyCost, CommunicationBusType comBus, String link) {
 		BuildingComponent item = params.buildingComponent().add();
 		ValueResourceHelper.setCreate(item.name(), name);
