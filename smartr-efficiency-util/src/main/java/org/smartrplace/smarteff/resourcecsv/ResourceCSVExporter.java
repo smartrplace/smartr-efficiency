@@ -3,6 +3,8 @@ package org.smartrplace.smarteff.resourcecsv;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -100,6 +102,15 @@ public class ResourceCSVExporter {
 		p.printComment(ResourceUtils.getHumanReadableShortName(conf.parent));
 		exportResources(p, resources);
 		p.printComment("TODO: Metadata, e.g. configuration"); // TODO
+		p.println();
+		p.printComment("Configuration:");
+		for (Field f : conf.getClass().getFields()) {
+			try {
+				p.printRecord(Arrays.asList(new String[] {f.getName(), f.get(conf).toString()}));
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	/**
