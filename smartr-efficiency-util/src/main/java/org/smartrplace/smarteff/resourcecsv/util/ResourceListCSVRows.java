@@ -59,10 +59,10 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	}
 
 	private void setHeaderRows() {
-		resourceRow.add("Resource");
-		nameRow.add("Name");
-		versionRow.add("Version");
-		unitRow.add("Unit");
+		resourceRow.add(CSVConfiguration.HEADERS.RESOURCE);
+		nameRow.add(CSVConfiguration.HEADERS.NAME);
+		versionRow.add(CSVConfiguration.HEADERS.VERSION);
+		unitRow.add(CSVConfiguration.HEADERS.UNIT);
 		
 		List<T> subResourcesForHeaders;
 		if(!conf.exportUnknown)
@@ -80,7 +80,8 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 						String humanName = ResourceUtils.getHumanReadableShortName(subSubRes);
 						nameRow.add(humanName);
 						if (subSubRes instanceof ResourceList)
-							unitRow.add("_agg_" + ((ResourceList<?>) subSubRes).getElementType().getSimpleName());
+							unitRow.add(CSVConfiguration.HEADERS.AGG +
+									((ResourceList<?>) subSubRes).getElementType().getSimpleName());
 						else
 							unitRow.add(ResourceCSVUtil.getUnit(subSubRes));
 						versionRow.add("1| "); // TODO
@@ -102,13 +103,13 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 			if (!subResources.isEmpty()) {
 				String elemType = subResources.get(0).getResourceType().getSimpleName();
 				header.name = elemType + " in " + label;
-				header.resource = resList.getName() + "_agg_" + elemType;
+				header.resource = resList.getName() + CSVConfiguration.HEADERS.AGG + elemType;
 				header.elementType = elemType;
 			}
-			header.value = "ResourceList (agg)";
+			header.value = CSVConfiguration.HEADERS.RESOURCELIST_AGG;
 		} else {
 			header.name = label;
-			header.value = "ResourceList";
+			header.value = CSVConfiguration.HEADERS.RESOURCELIST;
 			header.resource = resList.getName();
 			header.elementType = resList.getElementType().getSimpleName();
 		}

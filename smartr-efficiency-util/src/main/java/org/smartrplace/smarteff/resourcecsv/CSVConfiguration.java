@@ -76,6 +76,30 @@ public class CSVConfiguration {
 	 */
 	public final static char BOM = '\uFEFF';
 	
+	public static final class HEADERS {
+		/* First row headers */
+		public static final String NAME = "Name";
+		public static final String VALUE = "Value";
+		public static final String UNIT = "Unit";
+		public static final String RESOURCE = "Resource";
+		public static final String LINK = "Link";
+		public static final String ELEMENTTYPE = "ElementType";
+		public static final String VERSIONSPREAD = "versionSpread";
+		public static final String VERSIONDONE = "versionDone";
+		public static final String TYPE = "Type";
+		public static final String PATH = "Path";
+		public static final String ISACTIVE = "isActive";
+		/* Other headers */
+		public static final String DATA = "Data";
+		public static final String VERSION = "Version";
+		public static final String RESOURCELIST = "ResourceList";
+		public static final String RESOURCELIST_AGG = RESOURCELIST + " (agg)";
+		public static final String SMARTEFF2DMAP = "SmartEff2DMap";
+		public static final String SMARTEFFTIMESERIES = "SmartEffTimeSeries";
+		public static final String AGG = "_agg_";
+		public static final String AGG0 = "_agg0_";
+	}
+	
 	public void initDefaults(Resource parent, Resource root) {
 		this.parent = parent;
 		this.root = root;

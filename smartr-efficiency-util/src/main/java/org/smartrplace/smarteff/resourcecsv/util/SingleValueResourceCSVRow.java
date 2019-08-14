@@ -12,6 +12,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
 
 import de.iwes.util.resource.ResourceHelper;
+import extensionmodel.smarteff.api.csvconfig.ResourceCSVConfig;
 
 /**
  * Contains attributes (e.g. path, value, type…) of a resource that is
@@ -41,17 +42,17 @@ public class SingleValueResourceCSVRow {
 		this.conf = null;
 		if (initMode == init.EMPTY) return;
 
-		this.name = "Name";
-		this.path = "Path";
-		this.type = "Type";
-		this.resource = "Resource";
-		this.value = "Value";
-		this.unit = "Unit";
-		this.elementType = "ElementType";
-		this.link = "Link";
-		this.versionSpread = "versionSpread";
-		this.versionDone = "versionDone";
-		this.activeStatus = "isActive";
+		this.name = CSVConfiguration.HEADERS.NAME;
+		this.path = CSVConfiguration.HEADERS.PATH;
+		this.type = CSVConfiguration.HEADERS.TYPE;
+		this.resource = CSVConfiguration.HEADERS.RESOURCE;
+		this.value = CSVConfiguration.HEADERS.VALUE;
+		this.unit = CSVConfiguration.HEADERS.UNIT;
+		this.elementType = CSVConfiguration.HEADERS.ELEMENTTYPE;
+		this.link = CSVConfiguration.HEADERS.LINK;
+		this.versionSpread = CSVConfiguration.HEADERS.VERSIONSPREAD;
+		this.versionDone = CSVConfiguration.HEADERS.VERSIONDONE;
+		this.activeStatus = CSVConfiguration.HEADERS.ISACTIVE;
 	}
 	
 	public SingleValueResourceCSVRow() {
@@ -73,7 +74,7 @@ public class SingleValueResourceCSVRow {
 		this.unit = ResourceCSVUtil.getUnit(res);
 		this.versionSpread = ""+versionSpread;
 		this.versionDone = "";
-		this.activeStatus = "true";
+		this.activeStatus = "true"; // TODO
 		this.elementType = "";
 		this.link = "";
 	}

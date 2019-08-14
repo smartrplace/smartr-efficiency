@@ -42,7 +42,7 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
 		header.name = ResourceUtils.getHumanReadableShortName(sched.getParent());
-		header.value = "SmartEffTimeSeries";
+		header.value = CSVConfiguration.HEADERS.SMARTEFFTIMESERIES;
 		header.resource = sched.getParent().getName();
 		header.path = getPath(sched);
 		//header.elementType = resList.getElementType().getSimpleName();
@@ -63,13 +63,13 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 		tsHeader.add(header.resource); // TODO support export of multiple time series!
 		
 		List<String> versionHeader = new ArrayList<>();
-		versionHeader.add("Version:");
+		versionHeader.add(CSVConfiguration.HEADERS.VERSION);
 		for (int i = 1; i < nFmt; i++)
 			versionHeader.add("");
 		versionHeader.add("1|");
 
 		List<String> nameHeader = new ArrayList<>();
-		nameHeader.add("Name:");
+		nameHeader.add(CSVConfiguration.HEADERS.NAME);
 		for (int i = 1; i < nFmt; i++)
 			nameHeader.add("");
 		nameHeader.add(header.name);

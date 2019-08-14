@@ -30,7 +30,7 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
 		header.name = label;
-		header.value = "SmartEff2DMap";
+		header.value = CSVConfiguration.HEADERS.SMARTEFF2DMAP;
 		header.resource = map.getName();
 		header.path = getPath(map);
 		//header.elementType = resList.getElementType().getSimpleName();
@@ -41,7 +41,7 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 		rows.add(Arrays.asList(new String[] {keys.yLabel, keys.xLabel}));
 		
 		List<String> primKeyRow = new ArrayList<>();
-		primKeyRow.add("Data");
+		primKeyRow.add(CSVConfiguration.HEADERS.DATA);
 		for(float primKey : keys.x) {
 			primKeyRow.add(ResourceCSVUtil.format(locale, primKey));
 		}
