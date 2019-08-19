@@ -115,10 +115,10 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			if(sub.equals("#exportCSV")) {
 				final FileDownload download;
 				final Button buttonDownload;
-			    download = appManExt.getFileDownload(page, "download");
+			    download = appManExt.getFileDownload(page, "download"+pid);
 			    download.triggerAction(download, TriggeringAction.GET_REQUEST, FileDownloadData.STARTDOWNLOAD);
 			    page.append(download);
-			    buttonDownload = new Button(page, "buttonDownloadProgram", "Download Backup") {
+			    buttonDownload = new Button(page, "buttonDownloadProgram"+pid, "Download Backup") {
 			    	private static final long serialVersionUID = 1L;
 
 			    	@Override
@@ -133,7 +133,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			    buttonDownload.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
 				return buttonDownload;
 			}
-			Label specialLabel = new Label(page, "specialLabel"+subId) {
+			Label specialLabel = new Label(page, "specialLabel"+subId+pid) {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void onGET(OgemaHttpRequest req) {

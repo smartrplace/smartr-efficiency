@@ -463,9 +463,9 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			}
 			if(valueWidget == null) {
 				if(label instanceof Label)
-					valueWidget = createValueWidget(sub, type, (Label)label, mh, isEditable(sub));
+					valueWidget = createValueWidget(sub, type, (Label)label, mh, isEditable(sub), null);
 				else
-					valueWidget = createValueWidget(sub, type, null, mh, isEditable(sub));
+					valueWidget = createValueWidget(sub, type, null, mh, isEditable(sub), null);
 				if(valueWidget == null) continue;
 				if(widgetProvider != null) {
 					labelWidgets.put(sub, valueWidget);
@@ -628,7 +628,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected EditPageGenericTableWidgetProvider<T> defaultWP =
 			new DefaultWidgetProvider<T>();
 	protected OgemaWidget createValueWidget(String sub, TypeResult type2,
-			Label labelWidgetForValue, ObjectResourceGUIHelperExt mhLoc, boolean isEditable) {
+			Label labelWidgetForValue, ObjectResourceGUIHelperExt mhLoc, boolean isEditable, String pidColId) {
 		Map<Integer, EditPageGenericTableWidgetProvider<T>> fittingProvs = new HashMap<>();
 		if(additionalWidgetProviders != null) for(EditPageGenericTableWidgetProvider<T> wp: additionalWidgetProviders) {
 			for(CapabilityDeclaration cap: wp.capabilities()) {
@@ -651,7 +651,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			defaultWP.setGlobalData(mh, alert, lowerLimits, upperLimits, displayOptions, appManExt, exPage, page,
 					primaryEntryTypeClass(), widgetContexts);
 			return defaultWP.createValueWidget(sub, type2, labelWidgetForValue, mhLoc, isEditable,
-					isEditable(sub), pid(), labels);
+					isEditable(sub), pidColId==null?pid():pid()+pidColId, labels);
 		} else {
 			Integer maxPriority = Collections.max(fittingProvs.keySet());
 			EditPageGenericTableWidgetProvider<T> wp = fittingProvs.get(maxPriority);

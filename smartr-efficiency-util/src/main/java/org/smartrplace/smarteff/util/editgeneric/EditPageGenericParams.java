@@ -3,6 +3,7 @@ package org.smartrplace.smarteff.util.editgeneric;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
@@ -35,6 +36,11 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 	public EditPageGenericParams(List<EditPageGenericTableWidgetProvider<T>> additionalWidgetProviders,
 			boolean isWithTable) {
 		super(additionalWidgetProviders, isWithTable, false);
+	}
+	
+	@Override
+	protected String pid() {
+		return super.pid()+"pars";
 	}
 	
 	protected class EditElementParams extends EditElement {
@@ -119,6 +125,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 		EditLineProviderDisabling paramProvider = new EditLineProviderDisabling() {
 			@Override
 			protected boolean enable(OgemaHttpRequest req) {
+				if(sub.startsWith("#")) return true;
 				Resource res = ResourceHelper.getSubResource(getReqData(req), sub);
 				if((res == null) || (!res.isActive())) return false;
 				return true;
@@ -133,12 +140,17 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 			}
 		};
 
-		OgemaWidget globalValueWidget = createValueWidget(sub, type, (Label)label, mhGlob, false);
-		String buttonId = "control_" + sub.replace("/",  "_") + pid();
+		OgemaWidget globalValueWidget = createValueWidget(sub, type, (Label)label, mhGlob, false, "glob");
+		String buttonId = ResourceUtils.getValidResourceName("control_" + sub + pid()); //sub.replace("/",  "_")
 		Button control = new Button(page, buttonId) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
+				if(sub.startsWith("#")) {
+					valueWidget.disable(req);
+					setText("--", req);
+					return;
+				}
 				boolean enable = paramProvider.enable(req);
 				if(enable) {
 					valueWidget.enable(req);

@@ -15,6 +15,8 @@ public class SmartrHeatingParamsPage extends EditPageGenericParams<SmartrHeating
 		setLabelWithUnit(sr.co2factorGas(), EN, "CO2 emissions of burning natural gas (kg/kWh)");
 		
 		setLabel(sr.internalParamProvider(), EN, "Internal Parameter user provider");
+		
+		setLabel("#exportCSV", EN, "Export data");
 	}
 	@Override
 	public Class<SmartrHeatingParams> primaryEntryTypeClass() {
