@@ -37,7 +37,7 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 		this.conf = conf;
 	}
 
-	public List<List<String>> getRows(Locale locale) {
+	public List<List<String>> getRows() {
 		ArrayList<List<String>> rows = new ArrayList<>();
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
@@ -88,7 +88,7 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 				for (SimpleDateFormat fmt : dateFmts) {
 					row.add(fmt.format(date));
 				}
-				row.add(ResourceCSVUtil.format(locale, val.getValue().getFloatValue())); // TODO export of multiple ts!
+				row.add(ResourceCSVUtil.format(conf.locale, val.getValue().getFloatValue())); // TODO export of multiple ts!
 				rows.add(row);
 			}
 		} catch (Exception e) {

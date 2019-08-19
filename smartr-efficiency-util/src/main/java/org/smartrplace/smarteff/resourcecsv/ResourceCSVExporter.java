@@ -38,7 +38,6 @@ public class ResourceCSVExporter {
 	
 	protected int resourceCount = 0;
 
-	protected final Locale locale;
 	protected final Map<String, Map<OgemaLocale, String>> labels;
 	protected final CSVConfiguration conf;
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -53,11 +52,11 @@ public class ResourceCSVExporter {
 	 * @param labels may be null
 	 */
 	public ResourceCSVExporter(Resource targetResource, Locale locale, Map<String, Map<OgemaLocale, String>> labels) {
-		this.locale = locale;
 		if (targetResource == null) 
 			throw new RuntimeException("Target resource may not be null.");
 		this.conf = new CSVConfiguration();
 		conf.initDefaults(targetResource, targetResource.getParent());
+		this.conf.locale = locale;
 		this.labels = labels;
 	}
 	
@@ -164,8 +163,7 @@ public class ResourceCSVExporter {
 		String name = ResourceUtils.getHumanReadableName(res);
 		String label = getLabel(res);
 		if (res instanceof SingleValueResource) {
-			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, conf, 
-					locale, label);
+			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, conf, label);
 			p.printRecord(row.values());
 			return true;
 		} else if(res instanceof ResourceList) {
@@ -173,7 +171,7 @@ public class ResourceCSVExporter {
 			p.printComment("List: " + name);
 			@SuppressWarnings({ "rawtypes", "unchecked" }) // XXX
 			ResourceListCSVRows<?> rows = new ResourceListCSVRows((ResourceList<?>) res, conf, label);
-			List<List<String>> r = rows.getRows(locale);
+			List<List<String>> r = rows.getRows();
 			for (List<String> row : r) {
 				p.printRecord(row);
 			}
@@ -183,7 +181,7 @@ public class ResourceCSVExporter {
 			p.println();
 			p.printComment("2DMap: " + name);
 			SmartEff2DMapCSVRows rows = new SmartEff2DMapCSVRows((SmartEff2DMap) res, conf, label);
-			List<List<String>> r = rows.getRows(locale);
+			List<List<String>> r = rows.getRows();
 			for (List<String> row : r) {
 				p.printRecord(row);
 			}
@@ -198,7 +196,7 @@ public class ResourceCSVExporter {
 						+ " currently supported.");
 			} else {
 				ScheduleCSVRows rows = new ScheduleCSVRows(ts.schedule(), conf, label);
-				List<List<String>> r = rows.getRows(locale);
+				List<List<String>> r = rows.getRows();
 				for (List<String> row : r) {
 					p.printRecord(row);
 				}
@@ -206,7 +204,7 @@ public class ResourceCSVExporter {
 			p.println();
 			return true;
 		} else {
-			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow(res, conf, locale, label);
+			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow(res, conf, label);
 			p.printRecord(row.values());
 			return false;
 		}
@@ -224,7 +222,7 @@ public class ResourceCSVExporter {
 		String path = res.getName();
 		if (labels != null && labels.containsKey(path)) {
 			Map<OgemaLocale, String> resLabel = labels.get(path);
-			OgemaLocale l = new OgemaLocale(locale);
+			OgemaLocale l = new OgemaLocale(conf.locale);
 			if (resLabel.containsKey(l)) {
 				return resLabel.get(l);
 			} else if (resLabel.containsKey(OgemaLocale.ENGLISH)) {

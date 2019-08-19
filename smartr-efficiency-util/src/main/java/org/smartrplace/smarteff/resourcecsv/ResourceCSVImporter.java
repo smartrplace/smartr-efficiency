@@ -307,7 +307,7 @@ public class ResourceCSVImporter {
 								origListElemPath + DBConstants.PATH_SEPARATOR + header);
 					}
 					String unit = units.get(col);
-					if (unit.startsWith(CSVConfiguration.HEADERS.AGG)) {
+					if (unit != null && unit.startsWith(CSVConfiguration.HEADERS.AGG)) {
 						ResourceList<?> l = createResourceList(elem, header, null,
 								unit.split(CSVConfiguration.HEADERS.AGG)[1], null);
 						for (String listElemName : value.split(CSVConfiguration.HEADERS.AGG_LIST_SEP))

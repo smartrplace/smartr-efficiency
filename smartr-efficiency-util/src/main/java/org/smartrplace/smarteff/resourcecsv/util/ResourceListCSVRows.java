@@ -120,11 +120,11 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 
 	}
 
-	public List<List<String>> getRows(Locale locale) {
-		return getRows(locale, subResources);
+	public List<List<String>> getRows() {
+		return getRows(subResources);
 	}
 
-	public <U extends Resource> List<List<String>> getRows(Locale locale, List<U> resources) {
+	public <U extends Resource> List<List<String>> getRows(List<U> resources) {
 		
 		List<List<String>> rows = new ArrayList<>();
 		if (resources.isEmpty())
@@ -158,7 +158,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 				if (colRes == null) {
 					row.add("null");
 				} else if (colRes instanceof SingleValueResource) {
-					row.add(ResourceCSVUtil.getValueAsString((SingleValueResource) colRes, locale));
+					row.add(ResourceCSVUtil.getValueAsString((SingleValueResource) colRes, conf.locale));
 				} else if (colRes instanceof ResourceList) {
 					List<String> elemNames = new ArrayList<>();
 					for (Object elem : ((ResourceList<?>) colRes).getAllElements()) {
@@ -188,7 +188,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 			@SuppressWarnings({ "unchecked", "rawtypes" }) // XXX
 			ResourceListCSVRows<?> r = new ResourceListCSVRows(resList, conf, label,
 					nestedLists.get(clazz), nestedListNameRepl);
-			rows.addAll(r.getRows(locale));
+			rows.addAll(r.getRows());
 		}
 
 		return rows;

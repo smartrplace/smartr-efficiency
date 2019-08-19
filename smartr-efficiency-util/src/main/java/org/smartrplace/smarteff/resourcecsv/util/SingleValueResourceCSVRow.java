@@ -53,10 +53,10 @@ public class SingleValueResourceCSVRow {
 		this(init.HEADER);
 	}
 	
-	public SingleValueResourceCSVRow(Resource res, CSVConfiguration conf, Locale locale, String label) {
-		this(res, conf, locale, label, 1);
+	public SingleValueResourceCSVRow(Resource res, CSVConfiguration conf, String label) {
+		this(res, conf, label, 1);
 	}
-	public SingleValueResourceCSVRow(Resource res, CSVConfiguration conf, Locale locale, String label,
+	public SingleValueResourceCSVRow(Resource res, CSVConfiguration conf, String label,
 			int versionSpread) {
 		this.conf = conf;
 		this.path = getPath(res);
@@ -65,7 +65,7 @@ public class SingleValueResourceCSVRow {
 		this.name = label;
 		this.resource = res.getName();
 		if (res instanceof SingleValueResource)
-			this.value = ResourceCSVUtil.getValueAsString((SingleValueResource) res, locale);
+			this.value = ResourceCSVUtil.getValueAsString((SingleValueResource) res, conf.locale);
 		this.unit = ResourceCSVUtil.getUnit(res);
 		this.versionSpread = ""+versionSpread;
 		this.versionDone = "";
