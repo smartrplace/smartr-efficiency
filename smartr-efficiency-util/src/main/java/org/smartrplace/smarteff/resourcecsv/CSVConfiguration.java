@@ -1,5 +1,7 @@
 package org.smartrplace.smarteff.resourcecsv;
 
+import java.util.Locale;
+
 import org.apache.commons.csv.CSVFormat;
 import org.ogema.core.model.Resource;
 
@@ -48,10 +50,22 @@ public class CSVConfiguration {
 	 * This root node shall be a resource in the path above the parent resource.
 	 * The paths exported are shortened by the path of the rootNode, e.g if the
 	 * parent is userData1/buildings/MyHome and rootNode is userData1/buildings
-	 * then all paths exported start with MyHome.  If this parameter is null,
-	 * then the full paths shall be exported.
+	 * then all paths exported start with MyHome.  TODO: If this parameter is
+	 * null, then the full paths shall be exported.
 	 */
 	public Resource root;
+	
+	/**
+	 * Path of {@link #parent} that was extracted from configuration dump.
+	 * Only relevant when importing.
+	 */
+	public String origParentPath;
+
+	/**
+	 * Path of {@link #root} that was extracted from configuration dump.
+	 * Only relevant when importing.
+	 */
+	public String origRootPath;
 	
 	/**
 	 * Maximum number of resources to export or import before aborting the
@@ -61,20 +75,32 @@ public class CSVConfiguration {
 	
 	/*
 	 * If set to false, (sub-)resources that are present in the resource tree
-	 * but not in their parent resource's interface will not be exported.
+	 * but not in their parent resource's interface will not be exported or
+	 * imported.
 	 */
-	public boolean exportUnknown;
+	public boolean exportImportUnknown;
 	
 	/**
 	 * CSV Format to use.
 	 */
-	public final static CSVFormat CSV_FORMAT = CSVFormat.RFC4180.withCommentMarker('#').withDelimiter(';');
+	public final static CSVFormat CSV_FORMAT = CSVFormat.RFC4180
+			.withCommentMarker('#')
+			.withDelimiter(';')
+			.withIgnoreEmptyLines(false)
+			.withFirstRecordAsHeader()
+			;
 	
 	/**
 	 * This UTF-8 byte order mark should be added to all files for Excel
 	 * compatibility.
 	 */
 	public final static char BOM = '\uFEFF';
+	
+	/**
+	 * Locale.
+	 * TODO: Let exporter use this {@link #locale}.
+	 */
+	public Locale locale = Locale.GERMAN;
 	
 	public static final class HEADERS {
 		/* First row headers */
@@ -98,7 +124,33 @@ public class CSVConfiguration {
 		public static final String SMARTEFFTIMESERIES = "SmartEffTimeSeries";
 		public static final String AGG = "_agg_";
 		public static final String AGG0 = "_agg0_";
+		public static final String SINGLE_VALUE_RESOURCE = "SingleValueResource";
+		public static final String CONFIG = "CSV Configuration";
+		
+		public static final String[] REQUIRED = {
+				NAME, VALUE, RESOURCE, TYPE, PATH
+		};
+		public static final String AGG_LIST_SEP = ",";
+		public static final String REFERENCE = "Ref: ";
 	}
+
+	public static final String[] SUPPORTED_TYPES = {
+			HEADERS.RESOURCELIST,
+			HEADERS.RESOURCELIST_AGG,
+			HEADERS.SMARTEFF2DMAP,
+			HEADERS.SMARTEFFTIMESERIES,
+	};
+	/*public static final String[] SUPPORTED_SVR = {
+			"AreaResource",
+			"FloatResource",
+			"IntegerResource",
+			"LengthResource",
+			"PercentageResource",
+			"PowerResource",
+			"StringResource",
+			"TemperatureResource",
+			"VolumeResource",
+	};*/
 	
 	public void initDefaults(Resource parent, Resource root) {
 		this.parent = parent;
@@ -107,7 +159,7 @@ public class CSVConfiguration {
 		//activeStatus = ActiveStatus.PRESERVE;
 		//exportReferences = ExportReferences.SUBTREE_ONLY;
 		maxResourceCount = 1000;
-		exportUnknown = true;
+		exportImportUnknown = true;
 	}
 
 }

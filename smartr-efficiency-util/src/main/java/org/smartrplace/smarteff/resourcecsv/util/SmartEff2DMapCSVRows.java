@@ -33,6 +33,7 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 		header.value = CSVConfiguration.HEADERS.SMARTEFF2DMAP;
 		header.resource = map.getName();
 		header.path = getPath(map);
+		header.type = CSVConfiguration.HEADERS.SMARTEFF2DMAP;
 		//header.elementType = resList.getElementType().getSimpleName();
 		rows.add(header.values());
 		
