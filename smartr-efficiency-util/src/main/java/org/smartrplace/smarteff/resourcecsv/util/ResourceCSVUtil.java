@@ -84,10 +84,12 @@ public class ResourceCSVUtil {
 		return s.replace(grouping, "").replace(decimal, '.');
 	}
 
+	/** Get path relative to root. */
 	public static String getRelativePath(Resource res, CSVConfiguration conf) {
 		return getRelativePath(res, conf.root);
 	}
 	
+	/** Get path of one resource relative to another one. */
 	public static String getRelativePath(Resource res, Resource relativeTo) {
 		return getRelativePath(res.getPath(), relativeTo.getPath());
 	}
