@@ -119,15 +119,15 @@ public class ResourceCSVExporter {
 	protected <T extends Resource> void getAndExport(CSVPrinter p) throws IOException {
 		List<? extends Resource> resources = conf.parent.getSubResources(false);
 		ResourceCSVUtil.printMainHeaderRow(p);
+		p.println();
 		printConfig(p);
 		p.println();
-		p.printComment(ResourceUtils.getHumanReadableShortName(conf.parent));
+		p.printComment(getLabel(conf.parent));
 		exportResources(p, resources);
 
 	}
 
 	private void printConfig(CSVPrinter p) throws IOException {
-		p.println();
 		p.printRecords(CSVConfiguration.HEADERS.CONFIG);
 		for (Field f : conf.getClass().getFields()) {
 			try {
@@ -145,7 +145,6 @@ public class ResourceCSVExporter {
 				e.printStackTrace();
 			}
 		}
-		p.println();
 	}
 	/**
 	 * Export all resource of a type.
@@ -164,13 +163,10 @@ public class ResourceCSVExporter {
 				boolean fullyPrinted = printRows(res, p);
 				if (!fullyPrinted) {
 					List<Resource> subResources = res.getSubResources(false);
-					p.println();
-					p.printComment(getLabel(res));
 					exportResources(p, subResources);
 				}
 			}
 		}
-		p.println();
 	}
 
 
@@ -181,8 +177,7 @@ public class ResourceCSVExporter {
 	 * @throws IOException 
 	 */
 	public boolean printRows(Resource res, CSVPrinter p) throws IOException {
-		//TODO: Process lists and special data
-		String name = ResourceUtils.getHumanReadableName(res);
+		String name = getLabel(res);
 		String label = getLabel(res);
 		if (res instanceof SingleValueResource) {
 			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, conf, label);
@@ -197,7 +192,6 @@ public class ResourceCSVExporter {
 			for (List<String> row : r) {
 				p.printRecord(row);
 			}
-			p.println();
 			return true;
 		} else if(res instanceof SmartEff2DMap) {
 			p.println();
@@ -211,7 +205,7 @@ public class ResourceCSVExporter {
 			return true;
 		} else if(res instanceof SmartEffTimeSeries) {
 			p.println();
-			p.printComment("TS: " + name);
+			p.printComment("Time Series: " + name);
 			SmartEffTimeSeries ts = (SmartEffTimeSeries) res;
 			if (!ts.schedule().exists()) {
 				p.printComment("Time series could not be exported because only schedule-based SmartEffTimeSeries are"
@@ -230,7 +224,6 @@ public class ResourceCSVExporter {
 			p.printRecord(row.values());
 			return false;
 		}
-		//return false;
 	}
 	
 	/**

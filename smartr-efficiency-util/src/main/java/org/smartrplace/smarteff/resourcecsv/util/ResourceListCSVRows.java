@@ -101,8 +101,8 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
 		if (isAggregated) {
 			if (!subResources.isEmpty()) {
-				String elemType = subResources.get(0).getResourceType().getName(); //.getSimpleName();
-				header.name = elemType + " in " + label;
+				header.name = subResources.get(0).getResourceType().getSimpleName() + " in " + label;
+				String elemType = subResources.get(0).getResourceType().getName();
 				header.resource = resList.getName() + CSVConfiguration.HEADERS.AGG + elemType;
 				header.elementType = elemType;
 			}
