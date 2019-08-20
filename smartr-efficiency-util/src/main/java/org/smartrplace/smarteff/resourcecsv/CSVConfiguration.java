@@ -88,6 +88,7 @@ public class CSVConfiguration {
 			.withDelimiter(';')
 			.withIgnoreEmptyLines(false)
 			.withFirstRecordAsHeader()
+			.withAllowMissingColumnNames()
 			;
 	
 	/**
@@ -140,18 +141,7 @@ public class CSVConfiguration {
 			HEADERS.SMARTEFF2DMAP,
 			HEADERS.SMARTEFFTIMESERIES,
 	};
-	/*public static final String[] SUPPORTED_SVR = {
-			"AreaResource",
-			"FloatResource",
-			"IntegerResource",
-			"LengthResource",
-			"PercentageResource",
-			"PowerResource",
-			"StringResource",
-			"TemperatureResource",
-			"VolumeResource",
-	};*/
-	
+
 	public void initDefaults(Resource parent, Resource root) {
 		this.parent = parent;
 		this.root = root;

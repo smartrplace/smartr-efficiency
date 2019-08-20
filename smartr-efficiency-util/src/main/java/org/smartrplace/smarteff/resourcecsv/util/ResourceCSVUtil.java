@@ -101,7 +101,12 @@ public class ResourceCSVUtil {
 	}
 
 	public static Float parseFloat(Locale locale, String val) {
-		return Float.parseFloat(unFormat(locale, val));
+		if (val == null) return null;
+		try {
+			return Float.parseFloat(unFormat(locale, val));
+		} catch (NumberFormatException e) {
+			return Float.NaN;
+		}
 	}
 
 }
