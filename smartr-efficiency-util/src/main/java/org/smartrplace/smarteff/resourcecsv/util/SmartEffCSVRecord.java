@@ -17,7 +17,7 @@ public class SmartEffCSVRecord {
 	}
 	
 	public boolean isEmpty() {
-		return record.size() == 1 && record.get(0).isEmpty();
+		return String.join("", getValues()).isEmpty();
 	}
 
 	public boolean isSet(String name) {
@@ -122,9 +122,17 @@ public class SmartEffCSVRecord {
 	}
 	
 	public String[] getValues() {
-		String[] values = new String[record.size()];
-		for (int i = 0; i < values.length; i++)
-			values[i] = record.get(i);
+		String[] rawValues = new String[record.size()]; // May include trailing empty values
+		int n = 0;
+		for (int i = 0; i < rawValues.length; i++) {
+			String val = get(i);
+			if (val != null && !val.isEmpty()) {
+				rawValues[i] = record.get(i);
+				n++;
+			}
+		}
+		String[] values = new String[n];
+		System.arraycopy(rawValues, 0, values, 0, n);
 		return values;
 	}
 

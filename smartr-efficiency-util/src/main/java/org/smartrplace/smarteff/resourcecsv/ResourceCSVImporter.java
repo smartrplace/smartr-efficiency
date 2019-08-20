@@ -137,12 +137,15 @@ public class ResourceCSVImporter {
 
 			if (parsingConfig) {
 				if (record.isEmpty()) {
-					if (conf.origParentPath.isEmpty() || conf.origRootPath.isEmpty())
-						reportError("Could not read parent or root path.");
+					if (conf.origParentPath == null || conf.origParentPath.isEmpty()
+							|| conf.origRootPath == null || conf.origRootPath.isEmpty()) {
+						parser.close();
+						throw new IllegalStateException("Could not read parent or root path.  Unable to import.");
+					}
 					parsingConfig = false;
 					continue;
 				}
-				if (record.size() != 2) continue;
+				if (record.size() < 2) continue;
 				String key = record.get(0);
 				String val = record.get(1);
 				if (!exportConf.containsKey(key)) {
@@ -152,7 +155,7 @@ public class ResourceCSVImporter {
 						if (key.equals("root") ) conf.origRootPath = path;
 						else if (key.equals("parent")) conf.origParentPath = path;
 					} else if (key.equals("locale")) {
-						conf.locale = new Locale(val);
+						conf.locale = new Locale(val.split("_")[0]); // Codes like de_DE won't work
 					}
 				}
 				continue;
@@ -414,6 +417,8 @@ public class ResourceCSVImporter {
 				String typeName = null;
 				if (!parent && i == requiredParents.length - 1)
 					typeName = record.getType();
+				else if (record.getType().equals(CSVConfiguration.HEADERS.SMARTEFFTIMESERIES))
+					typeName = SmartEffTimeSeries.class.getName();
 				if (typeName == null || typeName.isEmpty()) {
 					reportError("Creation of '" + subResName + "' failed.  "
 							+ "No type found for record #" + record.getRecordNumber() + ".");
@@ -528,11 +533,16 @@ public class ResourceCSVImporter {
 	 */
 	protected ResourceList<?> createResourceList(Resource parent, String subResourceName,
 			String typeString, String elementTypeString, String origPath) {
-		// TODO support decorating resources
-		ResourceList<?> result = parent.getSubResource(subResourceName);
-		if (result == null) {
+		ResourceList<?> result;
+		Resource r = parent.getSubResource(subResourceName);
+		if (r == null) {
 			reportError("List is not part of " + parent.getName());
 			return null;
+		} else if (!(r instanceof ResourceList)) {
+			reportError("Resource already exists, but is '" + r.getResourceType().getSimpleName() + "', not a list.");
+			return null;
+		} else {
+			result = (ResourceList<?>) r;
 		}
 		result.create();
 		if (!result.getElementType().getName().endsWith(elementTypeString)) {
@@ -590,7 +600,7 @@ public class ResourceCSVImporter {
 	}
 	
 	protected void addScheduleValue(Schedule sched, long ts, String valueString) {
-		float value = Float.parseFloat(ResourceCSVUtil.unFormat(conf.locale, valueString));
+		float value = ResourceCSVUtil.parseFloat(conf.locale, valueString);
 		sched.addValue(ts, new FloatValue(value));
 	}
 	

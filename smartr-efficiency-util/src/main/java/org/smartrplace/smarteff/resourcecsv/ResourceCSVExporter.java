@@ -8,11 +8,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.persistence.DBConstants;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,6 +66,23 @@ public class ResourceCSVExporter {
 		conf.initDefaults(targetResource, targetResource.getParent());
 		this.conf.locale = locale;
 		this.labels = getLabels(targetResource.getResourceType());
+	}
+	
+	/**
+	 * Add the labels from the edit page of a particular resource to {@link #labels}.
+	 * @see #getLabel(Resource)
+	 */
+	protected void addToLabels(Resource res) {
+		Class<? extends Resource> type = res.getResourceType();
+		Map<String, Map<OgemaLocale, String>> typeLabels = getLabels(type);
+		String parentPath = ResourceCSVUtil.getRelativePath(res, conf.parent);
+		if (typeLabels != null) {
+			for (Entry<String, Map<OgemaLocale, String>> e : typeLabels.entrySet()) {
+				String path = parentPath + DBConstants.PATH_SEPARATOR + e.getKey();
+				Map<OgemaLocale, String> label = e.getValue();
+				labels.put(path, label);
+			}
+		}
 	}
 	
 	protected Map<String, Map<OgemaLocale, String>> getLabels(Class<? extends Resource> type) {
@@ -119,15 +138,15 @@ public class ResourceCSVExporter {
 	protected <T extends Resource> void getAndExport(CSVPrinter p) throws IOException {
 		List<? extends Resource> resources = conf.parent.getSubResources(false);
 		ResourceCSVUtil.printMainHeaderRow(p);
+		p.println();
 		printConfig(p);
 		p.println();
-		p.printComment(ResourceUtils.getHumanReadableShortName(conf.parent));
+		p.printComment(getLabel(conf.parent));
 		exportResources(p, resources);
 
 	}
 
 	private void printConfig(CSVPrinter p) throws IOException {
-		p.println();
 		p.printRecords(CSVConfiguration.HEADERS.CONFIG);
 		for (Field f : conf.getClass().getFields()) {
 			try {
@@ -136,6 +155,8 @@ public class ResourceCSVExporter {
 					String strVal = null;
 					if (val instanceof String[])
 						strVal = String.join(",", (String[]) val);
+					else if (val instanceof Locale)
+						strVal = ((Locale) val).getLanguage();
 					else
 						strVal = val.toString();
 					if (strVal != null && !strVal.isEmpty())
@@ -145,7 +166,6 @@ public class ResourceCSVExporter {
 				e.printStackTrace();
 			}
 		}
-		p.println();
 	}
 	/**
 	 * Export all resource of a type.
@@ -160,17 +180,15 @@ public class ResourceCSVExporter {
 		Iterator<? extends Resource> iter = resources.iterator();
 		while (iter.hasNext()) {
 			Resource res = iter.next();
+			addToLabels(res);
 			if (conf.exportImportUnknown || !res.isDecorator() /*|| res.getParent() instanceof ResourceList*/) {
 				boolean fullyPrinted = printRows(res, p);
 				if (!fullyPrinted) {
 					List<Resource> subResources = res.getSubResources(false);
-					p.println();
-					p.printComment(getLabel(res));
 					exportResources(p, subResources);
 				}
 			}
 		}
-		p.println();
 	}
 
 
@@ -181,8 +199,7 @@ public class ResourceCSVExporter {
 	 * @throws IOException 
 	 */
 	public boolean printRows(Resource res, CSVPrinter p) throws IOException {
-		//TODO: Process lists and special data
-		String name = ResourceUtils.getHumanReadableName(res);
+		String name = getLabel(res);
 		String label = getLabel(res);
 		if (res instanceof SingleValueResource) {
 			SingleValueResourceCSVRow row = new SingleValueResourceCSVRow((SingleValueResource) res, conf, label);
@@ -197,7 +214,6 @@ public class ResourceCSVExporter {
 			for (List<String> row : r) {
 				p.printRecord(row);
 			}
-			p.println();
 			return true;
 		} else if(res instanceof SmartEff2DMap) {
 			p.println();
@@ -211,7 +227,7 @@ public class ResourceCSVExporter {
 			return true;
 		} else if(res instanceof SmartEffTimeSeries) {
 			p.println();
-			p.printComment("TS: " + name);
+			p.printComment("Time Series: " + name);
 			SmartEffTimeSeries ts = (SmartEffTimeSeries) res;
 			if (!ts.schedule().exists()) {
 				p.printComment("Time series could not be exported because only schedule-based SmartEffTimeSeries are"
@@ -230,7 +246,6 @@ public class ResourceCSVExporter {
 			p.printRecord(row.values());
 			return false;
 		}
-		//return false;
 	}
 	
 	/**
@@ -241,7 +256,7 @@ public class ResourceCSVExporter {
 	 * these are available, <code>getName()</code> of the resource.
 	 */
 	private String getLabel(Resource res) {
-		String path = res.getName();
+		String path = ResourceCSVUtil.getRelativePath(res, conf.parent);
 		if (labels != null && labels.containsKey(path)) {
 			Map<OgemaLocale, String> resLabel = labels.get(path);
 			OgemaLocale l = new OgemaLocale(conf.locale);

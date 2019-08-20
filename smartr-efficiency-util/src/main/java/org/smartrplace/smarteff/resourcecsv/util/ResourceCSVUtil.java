@@ -84,10 +84,12 @@ public class ResourceCSVUtil {
 		return s.replace(grouping, "").replace(decimal, '.');
 	}
 
+	/** Get path relative to root. */
 	public static String getRelativePath(Resource res, CSVConfiguration conf) {
 		return getRelativePath(res, conf.root);
 	}
 	
+	/** Get path of one resource relative to another one. */
 	public static String getRelativePath(Resource res, Resource relativeTo) {
 		return getRelativePath(res.getPath(), relativeTo.getPath());
 	}
@@ -101,7 +103,12 @@ public class ResourceCSVUtil {
 	}
 
 	public static Float parseFloat(Locale locale, String val) {
-		return Float.parseFloat(unFormat(locale, val));
+		if (val == null) return null;
+		try {
+			return Float.parseFloat(unFormat(locale, val));
+		} catch (NumberFormatException e) {
+			return Float.NaN;
+		}
 	}
 
 }
