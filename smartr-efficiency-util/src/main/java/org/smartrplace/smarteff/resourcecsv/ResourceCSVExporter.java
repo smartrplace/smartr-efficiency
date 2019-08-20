@@ -63,13 +63,23 @@ public class ResourceCSVExporter {
 		this.conf = new CSVConfiguration();
 		conf.initDefaults(targetResource, targetResource.getParent());
 		this.conf.locale = locale;
+		this.labels = getLabels(targetResource.getResourceType());
+	}
+	
+	protected Map<String, Map<OgemaLocale, String>> getLabels(Class<? extends Resource> type) {
+		if(appManExt == null) {
+			return null;
+		}
 		NavigationPublicPageData editPage = appManExt.getMaximumPriorityPageStatic(
-				targetResource.getResourceType(), PageType.EDIT_PAGE);
+				type, PageType.EDIT_PAGE);
+		if(editPage == null) {
+			return null;
+		}
 		PageImplementationContext ctx = editPage.getPageContextData();
 		if(ctx == null) {
 			throw new IllegalStateException("Edit page without context!");
 		}
-		this.labels = ctx.getLabels();
+		return ctx.getLabels();
 	}
 	
 	/**
