@@ -1,8 +1,8 @@
 package org.smartrplace.smarteff.resourcecsv.util;
 
+import java.util.Map;
+
 import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
-import org.smartrplace.smarteff.resourcecsv.CSVConfiguration.ActiveStatus;
-import org.smartrplace.smarteff.resourcecsv.CSVConfiguration.ExportReferences;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import extensionmodel.smarteff.api.csvconfig.ResourceCSVConfig;
@@ -35,6 +35,14 @@ public class ResourceCSVConfigUtil {
 		res.root().setAsReference(conf.root);
 		res.activate(true);
 		return res;
+	}
+	
+	/** Get a path from config data dumped into CSV */
+	public static String getPath(Map<String, String> exportConfig, String key) {
+		if (!exportConfig.containsKey(key))
+			return null;
+		String value = exportConfig.get(key);
+		return value.split(":")[0];
 	}
 
 }

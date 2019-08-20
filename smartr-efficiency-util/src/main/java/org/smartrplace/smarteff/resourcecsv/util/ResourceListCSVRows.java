@@ -34,7 +34,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 	/**
 	 * Direct use of this constructor is intended for aggregated ResourceLists.
 	 * @param resList the <i>parent</i> resource list
-	 * @param exportUnknown
+	 * @param exportImportUnknown
 	 * @param label
 	 * @param subResources elements aggregated from multiple ResourceLists within the parent list
 	 */
@@ -65,7 +65,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		unitRow.add(CSVConfiguration.HEADERS.UNIT);
 		
 		List<T> subResourcesForHeaders;
-		if(!conf.exportUnknown)
+		if(!conf.exportImportUnknown)
 			subResourcesForHeaders = Arrays.asList(subResources.get(0));
 		else
 			subResourcesForHeaders = subResources;
@@ -73,7 +73,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		for (T subRes : subResourcesForHeaders) {
 			List<Resource> subSubResources = subRes.getSubResources(false);
 			for (Resource subSubRes : subSubResources) {
-				if (conf.exportUnknown || !subSubRes.isDecorator()) {
+				if (conf.exportImportUnknown || !subSubRes.isDecorator()) {
 					String name = subSubRes.getName();
 					if (!resourceRow.contains(name)) {
 						resourceRow.add(name);
@@ -101,28 +101,30 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
 		if (isAggregated) {
 			if (!subResources.isEmpty()) {
-				String elemType = subResources.get(0).getResourceType().getSimpleName();
+				String elemType = subResources.get(0).getResourceType().getName(); //.getSimpleName();
 				header.name = elemType + " in " + label;
 				header.resource = resList.getName() + CSVConfiguration.HEADERS.AGG + elemType;
 				header.elementType = elemType;
 			}
 			header.value = CSVConfiguration.HEADERS.RESOURCELIST_AGG;
+			header.type = CSVConfiguration.HEADERS.RESOURCELIST_AGG;
 		} else {
 			header.name = label;
 			header.value = CSVConfiguration.HEADERS.RESOURCELIST;
+			header.type = CSVConfiguration.HEADERS.RESOURCELIST;
 			header.resource = resList.getName();
-			header.elementType = resList.getElementType().getSimpleName();
+			header.elementType = resList.getElementType().getName(); //.getSimpleName();
 		}
 		header.path = getPath(resList);
 		headerRow = header.values();
 
 	}
 
-	public List<List<String>> getRows(Locale locale) {
-		return getRows(locale, subResources);
+	public List<List<String>> getRows() {
+		return getRows(subResources);
 	}
 
-	public <U extends Resource> List<List<String>> getRows(Locale locale, List<U> resources) {
+	public <U extends Resource> List<List<String>> getRows(List<U> resources) {
 		
 		List<List<String>> rows = new ArrayList<>();
 		if (resources.isEmpty())
@@ -139,7 +141,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 		for (U subRes : resources) {
 			List<String> row = new ArrayList<>();
 			for (String col: resourceRow) {
-				if (col == "Resource") {
+				if (col.equals(CSVConfiguration.HEADERS.RESOURCE)) {
 					if (!isAggregated) {
 						row.add(subRes.getName());
 						nestedListNameRepl.put(subRes.getName(),
@@ -153,8 +155,10 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 					continue;
 				}
 				Resource colRes = subRes.getSubResource(col);
-				if (colRes instanceof SingleValueResource) {
-					row.add(ResourceCSVUtil.getValueAsString((SingleValueResource) colRes, locale));
+				if (colRes == null) {
+					row.add("null");
+				} else if (colRes instanceof SingleValueResource) {
+					row.add(ResourceCSVUtil.getValueAsString((SingleValueResource) colRes, conf.locale));
 				} else if (colRes instanceof ResourceList) {
 					List<String> elemNames = new ArrayList<>();
 					for (Object elem : ((ResourceList<?>) colRes).getAllElements()) {
@@ -169,9 +173,11 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 						nestedLists.put(elemType, ((ResourceList<?>) colRes).getAllElements());
 					}
 					nestedLists.put(colRes.getResourceType(), ((ResourceList<?>) colRes).getAllElements());
-					row.add(String.join(",", elemNames));
+					row.add(String.join(CSVConfiguration.HEADERS.AGG_LIST_SEP, elemNames));
+				} else if (colRes.isReference(false)) {
+					row.add(CSVConfiguration.HEADERS.REFERENCE + getLocation(colRes));
 				} else {
-					row.add("");
+					row.add("N/A");
 				}
 			}
 			rows.add(row);
@@ -182,7 +188,7 @@ public class ResourceListCSVRows<T extends Resource> extends SingleValueResource
 			@SuppressWarnings({ "unchecked", "rawtypes" }) // XXX
 			ResourceListCSVRows<?> r = new ResourceListCSVRows(resList, conf, label,
 					nestedLists.get(clazz), nestedListNameRepl);
-			rows.addAll(r.getRows(locale));
+			rows.addAll(r.getRows());
 		}
 
 		return rows;

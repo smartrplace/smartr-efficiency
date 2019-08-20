@@ -6,13 +6,7 @@ import java.util.Locale;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
-import org.ogema.core.model.units.PhysicalUnitResource;
-import org.ogema.core.model.units.TemperatureResource;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
-
-import de.iwes.util.resource.ResourceHelper;
-import extensionmodel.smarteff.api.csvconfig.ResourceCSVConfig;
 
 /**
  * Contains attributes (e.g. path, value, type…) of a resource that is
@@ -36,7 +30,7 @@ public class SingleValueResourceCSVRow {
 	
 	protected CSVConfiguration conf;
 	
-	enum init { EMPTY, HEADER }
+	public enum init { EMPTY, HEADER }
 
 	public SingleValueResourceCSVRow(init initMode) {
 		this.conf = null;
@@ -59,18 +53,19 @@ public class SingleValueResourceCSVRow {
 		this(init.HEADER);
 	}
 	
-	public SingleValueResourceCSVRow(SingleValueResource res, CSVConfiguration conf, Locale locale, String label) {
-		this(res, conf, locale, label, 1);
+	public SingleValueResourceCSVRow(Resource res, CSVConfiguration conf, String label) {
+		this(res, conf, label, 1);
 	}
-	public SingleValueResourceCSVRow(SingleValueResource res, CSVConfiguration conf, Locale locale, String label,
+	public SingleValueResourceCSVRow(Resource res, CSVConfiguration conf, String label,
 			int versionSpread) {
 		this.conf = conf;
 		this.path = getPath(res);
-		this.type = res.getResourceType().getSimpleName();
+		this.type = res.getResourceType().getName();
 
 		this.name = label;
 		this.resource = res.getName();
-		this.value = ResourceCSVUtil.getValueAsString(res, locale);
+		if (res instanceof SingleValueResource)
+			this.value = ResourceCSVUtil.getValueAsString((SingleValueResource) res, conf.locale);
 		this.unit = ResourceCSVUtil.getUnit(res);
 		this.versionSpread = ""+versionSpread;
 		this.versionDone = "";
@@ -93,9 +88,12 @@ public class SingleValueResourceCSVRow {
 	
 	/** Get path relative to root. */
 	public String getPath(Resource res) {
-		String resPath = res.getPath();
-		String rootPath = conf.root.getPath();
-		return resPath.replaceFirst("^" + rootPath + "/", "");
+		return ResourceCSVUtil.getRelativePath(res, conf);
+	}
+	
+	/** Get location relative to root. */
+	public String getLocation(Resource res) {
+		return ResourceCSVUtil.getRelativeLocation(res, conf);
 	}
 
 }

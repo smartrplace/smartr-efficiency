@@ -1,11 +1,11 @@
 package org.smartrplace.smarteff.resourcecsv.util;
 
 import java.io.IOException;
+import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -13,10 +13,9 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
-import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.persistence.DBConstants;
 import org.ogema.tools.resource.util.ValueResourceUtils;
-import org.smartrplace.extensionservice.SmartEff2DMap;
-import org.smartrplace.extensionservice.SmartEffTimeSeries;
+import org.smartrplace.smarteff.resourcecsv.CSVConfiguration;
 
 /**
  * General utility for ResourceCSV
@@ -74,6 +73,35 @@ public class ResourceCSVUtil {
 
 	public static String format(Locale locale, float f) {
 		return String.format(locale, "%.3f", f);
+	}
+	
+	public static String unFormat(Locale locale, String s) {
+		if (s == null) return null;
+		if (s.isEmpty()) return "";
+		DecimalFormatSymbols d = new DecimalFormatSymbols(locale);
+		String grouping = Character.toString(d.getGroupingSeparator());
+		char decimal = d.getDecimalSeparator();
+		return s.replace(grouping, "").replace(decimal, '.');
+	}
+
+	public static String getRelativePath(Resource res, CSVConfiguration conf) {
+		return getRelativePath(res, conf.root);
+	}
+	
+	public static String getRelativePath(Resource res, Resource relativeTo) {
+		return getRelativePath(res.getPath(), relativeTo.getPath());
+	}
+	
+	public static String getRelativePath(String resPath, String relativeToPath) {
+		return resPath.replaceFirst("^" + relativeToPath + DBConstants.PATH_SEPARATOR, "");
+	}
+	
+	public static String getRelativeLocation(Resource res, CSVConfiguration conf) {
+		return getRelativePath(res.getLocation(), conf.root.getLocation());
+	}
+
+	public static Float parseFloat(Locale locale, String val) {
+		return Float.parseFloat(unFormat(locale, val));
 	}
 
 }

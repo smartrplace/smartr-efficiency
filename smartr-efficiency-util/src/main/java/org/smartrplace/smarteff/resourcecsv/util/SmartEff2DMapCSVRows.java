@@ -25,7 +25,7 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 		this.conf = conf;
 	}
 
-	public List<List<String>> getRows(Locale locale) {
+	public List<List<String>> getRows() {
 		ArrayList<List<String>> rows = new ArrayList<>();
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
@@ -33,6 +33,7 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 		header.value = CSVConfiguration.HEADERS.SMARTEFF2DMAP;
 		header.resource = map.getName();
 		header.path = getPath(map);
+		header.type = CSVConfiguration.HEADERS.SMARTEFF2DMAP;
 		//header.elementType = resList.getElementType().getSimpleName();
 		rows.add(header.values());
 		
@@ -43,16 +44,16 @@ public class SmartEff2DMapCSVRows extends SingleValueResourceCSVRow {
 		List<String> primKeyRow = new ArrayList<>();
 		primKeyRow.add(CSVConfiguration.HEADERS.DATA);
 		for(float primKey : keys.x) {
-			primKeyRow.add(ResourceCSVUtil.format(locale, primKey));
+			primKeyRow.add(ResourceCSVUtil.format(conf.locale, primKey));
 		}
 		rows.add(primKeyRow);
 
 		for(float secKey : keys.y) {
 			List<String> row = new ArrayList<>();
-			row.add(ResourceCSVUtil.format(locale, secKey));
+			row.add(ResourceCSVUtil.format(conf.locale, secKey));
 			for(float primKey : keys.x) {
 				float val = SmartEffMapHelper.getValue(primKey, secKey, map);
-				row.add(ResourceCSVUtil.format(locale, val));
+				row.add(ResourceCSVUtil.format(conf.locale, val));
 			}
 			rows.add(row);
 		}

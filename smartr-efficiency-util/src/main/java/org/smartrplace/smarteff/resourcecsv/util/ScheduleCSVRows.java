@@ -37,7 +37,7 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 		this.conf = conf;
 	}
 
-	public List<List<String>> getRows(Locale locale) {
+	public List<List<String>> getRows() {
 		ArrayList<List<String>> rows = new ArrayList<>();
 
 		SingleValueResourceCSVRow header = new SingleValueResourceCSVRow(SingleValueResourceCSVRow.init.EMPTY);
@@ -45,7 +45,7 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 		header.value = CSVConfiguration.HEADERS.SMARTEFFTIMESERIES;
 		header.resource = sched.getParent().getName();
 		header.path = getPath(sched);
-		//header.elementType = resList.getElementType().getSimpleName();
+		header.type = CSVConfiguration.HEADERS.SMARTEFFTIMESERIES;
 		rows.add(header.values());
 		
 		
@@ -77,19 +77,25 @@ public class ScheduleCSVRows extends SingleValueResourceCSVRow {
 		rows.add(versionHeader);
 		rows.add(nameHeader);
 		rows.add(tsHeader);
-
-		Iterator<SampledValue> iter = sched.iterator();
-		while(iter.hasNext() ) {
-			SampledValue val = iter.next();
-			long timestamp = val.getTimestamp();
-			Date date = new Date(timestamp);
-			List<String> row = new ArrayList<>();
-			for (SimpleDateFormat fmt : dateFmts) {
-				row.add(fmt.format(date));
+		
+		try {
+			Iterator<SampledValue> iter = sched.iterator();
+			while(iter.hasNext() ) {
+				SampledValue val = iter.next();
+				long timestamp = val.getTimestamp();
+				Date date = new Date(timestamp);
+				List<String> row = new ArrayList<>();
+				for (SimpleDateFormat fmt : dateFmts) {
+					row.add(fmt.format(date));
+				}
+				row.add(ResourceCSVUtil.format(conf.locale, val.getValue().getFloatValue())); // TODO export of multiple ts!
+				rows.add(row);
 			}
-			row.add(ResourceCSVUtil.format(locale, val.getValue().getFloatValue())); // TODO export of multiple ts!
-			rows.add(row);
+		} catch (Exception e) {
+			// XXX
+			System.out.println(e.getMessage());
 		}
+	
 		
 		return rows;
 	}
