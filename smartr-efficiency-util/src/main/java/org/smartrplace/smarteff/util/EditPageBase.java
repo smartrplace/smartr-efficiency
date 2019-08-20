@@ -10,6 +10,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.model.prototypes.Data;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
+import org.smartrplace.extensionservice.gui.PageImplementationContext;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI.InitListener;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -253,6 +254,20 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 		return PageType.EDIT_PAGE;
 	}
 	
+	protected PageImplementationContext pageImplContext = null;
+	@Override
+	protected PageImplementationContext getPageImplContext() {
+		if(pageImplContext == null) {
+			pageImplContext = new PageImplementationContext() {
+				@Override
+				public Map<String, Map<OgemaLocale, String>> getLabels() {
+					return labels;
+				}
+			};
+		}
+		return pageImplContext;
+	}
+		
 	protected <R extends Resource> boolean checkResourceBase(R resource, boolean nameRelevant) {
 		Data data;
 		String name = null;

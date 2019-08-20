@@ -13,10 +13,11 @@ import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
+import org.smartrplace.smarteff.admin.util.ResourceTypeToGUIInfo;
 import org.smartrplace.smarteff.admin.util.SmartrEffUtil;
 
 public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSystemAccessForPageOpening {
-	protected final Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo;
+	protected final Map<Class<? extends Resource>, ResourceTypeToGUIInfo> pageInfo;
 	private final List<NavigationPublicPageData> startPagesData;
 	protected final Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo;
 	protected final ConfigIdAdministration configIdAdmin;
@@ -26,13 +27,13 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 	private final String myConfigId;
 	
 	public NavigationPageSystemAccessForPageOpening(
-			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo,
+			Map<Class<? extends Resource>, ResourceTypeToGUIInfo> navigationPublicData,
 			List<NavigationPublicPageData> startPagesData,
 			ConfigIdAdministration configIdAdmin,
 			Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo,
 			Resource myPrimaryResource, Object myContext, String myUrl,
 			String myConfigId) {
-		this.pageInfo = pageInfo;
+		this.pageInfo = navigationPublicData;
 		this.startPagesData = startPagesData;
 		this.configIdAdmin = configIdAdmin;
 		this.proposalInfo = proposalInfo;
@@ -42,35 +43,64 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 		this.myConfigId = myConfigId;
 	}
 
+	/*public NavigationPublicPageData getStdPage(Class<? extends Resource> type, PageType pageType) {
+		ResourceTypeToGUIInfo l = navigationPublicData.get(type);
+	}*/
+	public static NavigationPublicPageData getStdPage(Class<? extends Resource> type, PageType pageType,
+			ResourceTypeToGUIInfo l) {
+		if(l == null) return null;
+		switch(pageType) {
+		case EDIT_PAGE:
+			return l.stdEditPage;
+		case TABLE_PAGE:
+			return l.stdTablePage;
+		}
+		throw new IllegalStateException("Unknown page type requested: "+pageType+" for "+type);
+	}
+	
 	@Override
 	public List<NavigationPublicPageData> getPages(Class<? extends Resource> type) {
-		return getPages(type, false);
+		return getPagesStatic(type, pageInfo);
+	}
+	public static List<NavigationPublicPageData> getPagesStatic(Class<? extends Resource> type,
+			Map<Class<? extends Resource>, ResourceTypeToGUIInfo> pageInfoLoc) {
+		return getPagesStatic(type, false, pageInfoLoc);
 	}
 
 	@Override
 	public List<NavigationPublicPageData> getPages(Class<? extends Resource> type, boolean includeHidden) {
+		return getPagesStatic(type, includeHidden, pageInfo);
+	}
+	public static List<NavigationPublicPageData> getPagesStatic(Class<? extends Resource> type, boolean includeHidden,
+			Map<Class<? extends Resource>, ResourceTypeToGUIInfo> pageInfoLoc) {
 		List<NavigationPublicPageData> result = new ArrayList<>();
 		if(includeHidden) {
-			List<NavigationPublicPageData> l = pageInfo.get(type);
-			if(l != null) result.addAll(l);
-			l = pageInfo.get(Resource.class);
-			if(l != null) result.addAll(l);
+			ResourceTypeToGUIInfo l = pageInfoLoc.get(type);
+			if(l != null) result.addAll(l.data);
+			l = pageInfoLoc.get(Resource.class);
+			if(l != null) result.addAll(l.data);
 		} else {
-			processResultType(result, pageInfo.get(type));
-			processResultType(result, pageInfo.get(Resource.class));
+			processResultType(result, pageInfoLoc.get(type));
+			processResultType(result, pageInfoLoc.get(Resource.class));
 		}
 		return result;
 	}
-	private void processResultType(List<NavigationPublicPageData> result, List<NavigationPublicPageData> resultAll) {
-		if(resultAll == null) return;
-		for(NavigationPublicPageData r: resultAll) {
+	private static void processResultType(List<NavigationPublicPageData> result, ResourceTypeToGUIInfo resourceTypeToGUIInfo) {
+		if(resourceTypeToGUIInfo == null) return;
+		for(NavigationPublicPageData r: resourceTypeToGUIInfo.data) {
 			if(r.getPriority() != PagePriority.HIDDEN) result.add(r);
 		}
 	}
 
 	@Override
 	public NavigationPublicPageData getMaximumPriorityPage(Class<? extends Resource> type, PageType pageType) {
-		List<NavigationPublicPageData> resultAll = getPages(type);
+		return getMaximumPriorityPageStatic(type, pageType, pageInfo);
+	}
+	public static NavigationPublicPageData getMaximumPriorityPageStatic(Class<? extends Resource> type, PageType pageType,
+			Map<Class<? extends Resource>, ResourceTypeToGUIInfo> pageInfoLoc) {
+		NavigationPublicPageData stdPage = getStdPage(type, pageType, pageInfoLoc.get(type));
+		if(stdPage != null) return stdPage;
+		List<NavigationPublicPageData> resultAll = getPagesStatic(type, pageInfoLoc);
 		if(resultAll == null || resultAll.isEmpty()) return null;
 		NavigationPublicPageData result = null;
 		for(NavigationPublicPageData r: resultAll) {
@@ -82,7 +112,7 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 		}
 		return result;
 	}
-
+	
 	@Override
 	public NavigationPublicPageData getMaximumPriorityTablePage(Class<? extends Resource> primaryType,
 			Class<? extends Resource> elementType) {
@@ -111,8 +141,8 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 	
 	@Override
 	public NavigationPublicPageData getPageByProvider(String url) {
-		for(List<NavigationPublicPageData> list: pageInfo.values()) {
-			for(NavigationPublicPageData navi: list) {
+		for(ResourceTypeToGUIInfo list: pageInfo.values()) {
+			for(NavigationPublicPageData navi: list.data) {
 				if(navi.getUrl().equals(url)) return navi;
 			}
 		}
@@ -157,9 +187,9 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 	}
 	
 	//TODO: Check if these methods make sense, otherwise remove them
-	public static NavigationPublicPageData getMaximumPriorityPageStatic(Class<? extends Resource> type, PageType pageType,
-			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo2) {
-		List<NavigationPublicPageData> resultAll = getPagesStatic(type, false, pageInfo2);
+	/*public static NavigationPublicPageData getMaximumPriorityPageStatic(Class<? extends Resource> type, PageType pageType,
+			Map<Class<? extends Resource>, ResourceTypeToGUIInfo> navigationPublicData) {
+		List<NavigationPublicPageData> resultAll = getPagesStatic(type, false, navigationPublicData);
 		if(resultAll == null || resultAll.isEmpty()) return null;
 		NavigationPublicPageData result = null;
 		for(NavigationPublicPageData r: resultAll) {
@@ -172,25 +202,25 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 		return result;
 	}
 	public static List<NavigationPublicPageData> getPagesStatic(Class<? extends Resource> type, boolean includeHidden,
-			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo2) {
+			Map<Class<? extends Resource>, ResourceTypeToGUIInfo> navigationPublicData) {
 		List<NavigationPublicPageData> result = new ArrayList<>();
 		if(includeHidden) {
-			List<NavigationPublicPageData> l = pageInfo2.get(type);
-			if(l != null) result.addAll(l);
-			l = pageInfo2.get(Resource.class);
-			if(l != null) result.addAll(l);
+			ResourceTypeToGUIInfo l = navigationPublicData.get(type);
+			if(l != null) result.addAll(l.data);
+			l = navigationPublicData.get(Resource.class);
+			if(l != null) result.addAll(l.data);
 		} else {
-			processResultTypeStatic(result, pageInfo2.get(type));
-			processResultTypeStatic(result, pageInfo2.get(Resource.class));
+			processResultTypeStatic(result, navigationPublicData.get(type));
+			processResultTypeStatic(result, navigationPublicData.get(Resource.class));
 		}
 		return result;
 	}
 
-	private static void processResultTypeStatic(List<NavigationPublicPageData> result, List<NavigationPublicPageData> resultAll) {
-		if(resultAll == null) return;
-		for(NavigationPublicPageData r: resultAll) {
+	private static void processResultTypeStatic(List<NavigationPublicPageData> result, ResourceTypeToGUIInfo resourceTypeToGUIInfo) {
+		if(resourceTypeToGUIInfo == null) return;
+		for(NavigationPublicPageData r: resourceTypeToGUIInfo.data) {
 			if(r.getPriority() != PagePriority.HIDDEN) result.add(r);
 		}
-	}
+	}*/
 
 }

@@ -1,8 +1,12 @@
 package org.smartrplace.smarteff.admin.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.ogema.core.model.Resource;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
@@ -14,6 +18,7 @@ import org.smartrplace.smarteff.util.SPPageUtil;
 
 public class TypeAdministration {
 	public Map<Class<? extends SmartEffResource>, SmartrEffExtResourceTypeData> resourceTypes = new HashMap<>();
+	public Map<Class<? extends SmartEffResource>, Set<Class<? extends SmartEffResource>>> inheritedTypes = new HashMap<>();
 	private final SpEffAdminController app;
 	
 	public TypeAdministration(SpEffAdminController app) {
@@ -29,6 +34,7 @@ public class TypeAdministration {
 		if(resDefList  != null) for(ExtensionResourceTypeDeclaration<? extends SmartEffResource> rtd: resDefList) {
     		try {
 	    		Class<? extends SmartEffResource> rt = rtd.dataType();
+	    		registerInherited(rt);
 	    		SmartrEffExtResourceTypeData data = resourceTypes.get(rt);
 	    		if(data == null) {
 	    			data = new SmartrEffExtResourceTypeData(rtd, service, app);
@@ -46,6 +52,7 @@ public class TypeAdministration {
 	public void unregisterService(SmartEffExtensionService service) {
 		if(service.resourcesDefined() != null) for(ExtensionResourceTypeDeclaration<? extends SmartEffResource> rtd: service.resourcesDefined()) {
     		Class<? extends SmartEffResource> rt = rtd.dataType();
+    		//TODO: Unregister inheritance
     		SmartrEffExtResourceTypeData data = resourceTypes.get(rt);
     		if(data == null) {
     			//should not occur
@@ -64,5 +71,33 @@ public class TypeAdministration {
 		SmartrEffExtResourceTypeData data = resourceTypes.get(res.getResourceType());
 		if(data == null) return;
 		data.unregisterElement(res);
+	}
+	
+	public void registerInherited(Class<? extends SmartEffResource> type) {
+		List<Class<? extends SmartEffResource>> parents = new ArrayList<>();
+		for(Class<? extends SmartEffResource> known: resourceTypes.keySet()) {
+			if(known.isAssignableFrom(type)) {
+				parents.add(known);
+			} else if(type.isAssignableFrom(known)) {
+				Set<Class<? extends SmartEffResource>> ls = inheritedTypes.get(known);
+				if(ls == null) {
+					ls = new HashSet<Class<? extends SmartEffResource>>();
+					inheritedTypes.put(known, ls);
+				}
+				ls.add(type);
+				app.guiPageAdmin.registerInheritanceForNewType(known, type);
+			}
+		}
+		if(!parents.isEmpty()) {
+			Set<Class<? extends SmartEffResource>> ls = inheritedTypes.get(type);
+			if(ls == null) {
+				ls = new HashSet<Class<? extends SmartEffResource>>();
+				inheritedTypes.put(type, ls);
+			}
+			ls.addAll(parents);
+			for(Class<? extends SmartEffResource> p: parents) {
+				app.guiPageAdmin.registerInheritanceForNewType(p, type);				
+			}
+		}
 	}
 }

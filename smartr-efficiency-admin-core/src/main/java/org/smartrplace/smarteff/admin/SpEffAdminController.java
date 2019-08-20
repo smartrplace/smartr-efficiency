@@ -1,6 +1,7 @@
 package org.smartrplace.smarteff.admin;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
@@ -104,6 +105,18 @@ public class SpEffAdminController {
 			List<ExtensionResourceTypeDeclaration<?>> result = new ArrayList<>();
 			for(SmartrEffExtResourceTypeData data: typeAdmin.resourceTypes.values()) {
 				result.add(data.typeDeclaration);
+			}
+			return result;
+		}
+		
+		/** Get declared types that are parents in the Java inheritance chain. Resource and prototypes are omitted*/
+		@Override
+		public List<ExtensionResourceTypeDeclaration<?>> getInheritedParentTypes(Class<? extends Resource> type) {
+			List<ExtensionResourceTypeDeclaration<?>> result = new ArrayList<>();
+			Set<Class<? extends SmartEffResource>> parents = typeAdmin.inheritedTypes.get(type);
+			if(parents == null) return Collections.emptyList();
+			for(Class<? extends SmartEffResource> parent: parents) {
+				result.add(typeAdmin.resourceTypes.get(parent).typeDeclaration);
 			}
 			return result;
 		}

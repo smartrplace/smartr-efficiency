@@ -18,6 +18,10 @@ public interface ApplicationManagerSPExt extends ApplicationManagerSpExtMinimal 
 	public List<Class<? extends Resource>> getSubTypes(Class<? extends Resource> parentType);
 	
 	public List<ExtensionResourceTypeDeclaration<?>> getAllTypeDeclarations();
+	
+	/** Get declared types that are parents in the Java inheritance chain. Resource and prototypes are omitted*/
+	public List<ExtensionResourceTypeDeclaration<?>> getInheritedParentTypes(Class<? extends Resource> type);
+
 	/** System types that do not have an ExtensionResourceTypeDeclaration*/
 	public List<Class<? extends Resource>> getSystemTypes();
 	

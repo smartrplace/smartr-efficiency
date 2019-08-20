@@ -14,4 +14,6 @@ public interface NavigationPublicPageData extends ProviderPublicDataForCreate {
 	
 	/** see {@link PageType}*/
 	PageType getPageType();
+	
+	PageImplementationContext getPageContextData();
 }

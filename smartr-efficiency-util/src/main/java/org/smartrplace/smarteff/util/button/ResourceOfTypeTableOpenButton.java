@@ -56,7 +56,7 @@ public abstract class ResourceOfTypeTableOpenButton extends ResourceTableOpenBut
 
 	@Override
 	protected NavigationPublicPageData getPageData(ExtensionResourceAccessInitData appData,
-			Class<? extends Resource> type, PageType typeRequested, OgemaHttpRequest req) {
+			Class<? extends Resource> type, PageType typeRequestedNotUsed, OgemaHttpRequest req) {
 		String url = null;
 		Resource object = getResource(appData, req);
 		Class<? extends Resource> entryType = object.getResourceType(); //primaryEntryTypeClass()

@@ -14,6 +14,7 @@ import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.smarteff.admin.util.ConfigIdAdministration;
 import org.smartrplace.smarteff.admin.util.ResourceLockAdministration;
+import org.smartrplace.smarteff.admin.util.ResourceTypeToGUIInfo;
 import org.smartrplace.smarteff.admin.util.TypeAdministration;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.SPPageUtil;
@@ -28,14 +29,14 @@ public class NavigationPageSystemAccess extends NavigationPageSystemAccessForPag
 	private final TypeAdministration typeAdmin;
 	
 	public NavigationPageSystemAccess(String userName, String applicationName,
-			Map<Class<? extends Resource>, List<NavigationPublicPageData>> pageInfo,
+			Map<Class<? extends Resource>, ResourceTypeToGUIInfo> navigationPublicData,
 			List<NavigationPublicPageData> startPagesData,
 			ResourceLockAdministration lockAdmin, ConfigIdAdministration configIdAdmin,
 			TypeAdministration typeAdmin,
 			ApplicationManagerSPExt appExt,
 			Map<Class<? extends Resource>, List<LogicProviderPublicData>> proposalInfo,
 			Resource myPrimaryResource, Object myContext, String myUrl, String myConfigId) {
-		super(pageInfo, startPagesData, configIdAdmin, proposalInfo, myPrimaryResource, myContext,
+		super(navigationPublicData, startPagesData, configIdAdmin, proposalInfo, myPrimaryResource, myContext,
 				myUrl, myConfigId);
 		this.userName = userName;
 		this.applicationName = applicationName;

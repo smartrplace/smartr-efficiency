@@ -10,6 +10,7 @@ import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
+import org.smartrplace.extensionservice.gui.PageImplementationContext;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.access.api.ConfigContextExternal;
@@ -60,6 +61,8 @@ public abstract class NaviPageBase<T extends Resource>  {
 	}
 	protected String getMaintainer() { return null;}
 	protected List<GenericDataTypeDeclaration> typesListedInTable() {return null;}
+	protected PageImplementationContext getPageImplContext() {return null;}
+
 
 	protected EditPage editOrTablePage;
 	public final Provider provider;	
@@ -156,6 +159,10 @@ public abstract class NaviPageBase<T extends Resource>  {
 		@Override
 		public List<GenericDataTypeDeclaration> typesListedInTable() {
 			return NaviPageBase.this.typesListedInTable();
+		}
+		
+		public PageImplementationContext getPageImplementationContext() {
+			return getPageImplContext();
 		}
 	}
 	

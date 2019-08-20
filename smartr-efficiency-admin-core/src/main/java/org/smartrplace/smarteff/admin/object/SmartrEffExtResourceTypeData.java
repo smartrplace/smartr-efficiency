@@ -76,29 +76,9 @@ public class SmartrEffExtResourceTypeData {
 		return result;
 	}
 
-	@SuppressWarnings("incomplete-switch")
 	public void registerElement(Resource res) {
-		/*numberTotal++;
-		switch(SmartrEffUtil.getAccessType(res)) {
-		case PUBLIC:
-			numberPublic++;
-			break;
-		case READONLY:
-			numberNonEdit++;
-			break;
-		}*/		
 	}
-	@SuppressWarnings("incomplete-switch")
 	public void unregisterElement(SmartEffResource res) {
-		/*numberTotal--;
-		switch(SmartrEffUtil.getAccessType(res)) {
-		case PUBLIC:
-			numberPublic--;
-			break;
-		case READONLY:
-			numberNonEdit--;
-			break;
-		}*/		
 	}
 	
 	@Override
