@@ -16,8 +16,12 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
+import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
+import org.smartrplace.extensionservice.gui.PageImplementationContext;
+import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
 import org.smartrplace.smarteff.resourcecsv.util.ResourceListCSVRows;
 import org.smartrplace.smarteff.resourcecsv.util.ScheduleCSVRows;
@@ -41,6 +45,7 @@ public class ResourceCSVExporter {
 	protected final Map<String, Map<OgemaLocale, String>> labels;
 	protected final CSVConfiguration conf;
 	private final Logger log = LoggerFactory.getLogger(getClass());
+	private final ApplicationManagerSPExt appManExt;
 	
 	public ResourceCSVExporter(Resource targetResource) {
 		this(targetResource, null, null);
@@ -51,13 +56,20 @@ public class ResourceCSVExporter {
 	 * @param locale if null use English
 	 * @param labels may be null
 	 */
-	public ResourceCSVExporter(Resource targetResource, Locale locale, Map<String, Map<OgemaLocale, String>> labels) {
+	public ResourceCSVExporter(Resource targetResource, Locale locale, ApplicationManagerSPExt appManExt) {
 		if (targetResource == null) 
 			throw new RuntimeException("Target resource may not be null.");
+		this.appManExt = appManExt;
 		this.conf = new CSVConfiguration();
 		conf.initDefaults(targetResource, targetResource.getParent());
 		this.conf.locale = locale;
-		this.labels = labels;
+		NavigationPublicPageData editPage = appManExt.getMaximumPriorityPageStatic(
+				targetResource.getResourceType(), PageType.EDIT_PAGE);
+		PageImplementationContext ctx = editPage.getPageContextData();
+		if(ctx == null) {
+			throw new IllegalStateException("Edit page without context!");
+		}
+		this.labels = ctx.getLabels();
 	}
 	
 	/**

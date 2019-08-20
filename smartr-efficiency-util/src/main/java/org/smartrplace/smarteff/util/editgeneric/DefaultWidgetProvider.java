@@ -125,7 +125,8 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			    	public void onPrePOST(String data, OgemaHttpRequest req) {
 			    		download.setDeleteFileAfterDownload(true, req);
 						T entryResource = mhLoc.getGatewayInfo(req);
-			    		ResourceCSVExporter csvMan = new ResourceCSVExporter(entryResource, Locale.GERMANY, labels);
+			    		//ResourceCSVExporter csvMan = new ResourceCSVExporter(entryResource, Locale.GERMANY, labels);
+			    		ResourceCSVExporter csvMan = new ResourceCSVExporter(entryResource, Locale.GERMANY, appManExt);
 			    		File csvFile = new File(csvMan.exportToFile());
 						download.setFile(csvFile, ResourceUtils.getHumanReadableShortName(entryResource)+".csv", req);
 			    	}
