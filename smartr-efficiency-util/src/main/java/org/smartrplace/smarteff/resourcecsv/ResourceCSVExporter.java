@@ -155,6 +155,8 @@ public class ResourceCSVExporter {
 					String strVal = null;
 					if (val instanceof String[])
 						strVal = String.join(",", (String[]) val);
+					else if (val instanceof Locale)
+						strVal = ((Locale) val).getLanguage();
 					else
 						strVal = val.toString();
 					if (strVal != null && !strVal.isEmpty())

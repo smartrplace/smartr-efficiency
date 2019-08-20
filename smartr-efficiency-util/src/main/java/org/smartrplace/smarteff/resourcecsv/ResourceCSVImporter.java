@@ -155,7 +155,7 @@ public class ResourceCSVImporter {
 						if (key.equals("root") ) conf.origRootPath = path;
 						else if (key.equals("parent")) conf.origParentPath = path;
 					} else if (key.equals("locale")) {
-						conf.locale = new Locale(val);
+						conf.locale = new Locale(val.split("_")[0]); // Codes like de_DE won't work
 					}
 				}
 				continue;
