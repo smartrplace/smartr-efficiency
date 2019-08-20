@@ -417,6 +417,8 @@ public class ResourceCSVImporter {
 				String typeName = null;
 				if (!parent && i == requiredParents.length - 1)
 					typeName = record.getType();
+				else if (record.getType().equals(CSVConfiguration.HEADERS.SMARTEFFTIMESERIES))
+					typeName = SmartEffTimeSeries.class.getName();
 				if (typeName == null || typeName.isEmpty()) {
 					reportError("Creation of '" + subResName + "' failed.  "
 							+ "No type found for record #" + record.getRecordNumber() + ".");
