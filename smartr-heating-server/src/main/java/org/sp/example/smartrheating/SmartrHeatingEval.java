@@ -64,7 +64,9 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 			wwEnergyPre = 0;
 		float yearlykWh = BasicCalculations.getYearlyConsumption(building, 3, myParB).avKWh;
 		float heatEnergyPre = yearlykWh - wwEnergyPre;
-
+		ValueResourceHelper.setCreate(result.wwEnergyPreRenovation(), wwEnergyPre);
+		ValueResourceHelper.setCreate(result.heatingEnergyPreRenovation(), heatEnergyPre);
+		
 		//Radiators
 		int[] thermNum = BasicCalculations.getNumberOfRadiators(building);
 		ValueResourceHelper.setCreate(result.thermostatNum(), thermNum[0]);

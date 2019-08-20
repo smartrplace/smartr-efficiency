@@ -19,6 +19,7 @@ import extensionmodel.smarteff.multibuild.BuildingComponentUsage;
 import extensionmodel.smarteff.multibuild.CommunicationBusType;
 import extensionmodel.smarteff.multibuild.MultiBuildData;
 import extensionmodel.smarteff.multibuild.MultiBuildParams;
+import extensionmodel.smarteff.multibuild.MultiBuildParamsUser;
 import extensionmodel.smarteff.multibuild.MultiBuildResult;
 
 /** Currently this calculator is opened via a building, although it is a multi-building calculator.
@@ -28,6 +29,7 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 	
 	public static final String WIKI_LINK =
 			"https://github.com/smartrplace/smartr-efficiency/blob/master/MultiBuilding.md";
+	private static final String PROVIDING_USER = "master";
 	
 	@Override
 	public String label(OgemaLocale locale) {
@@ -60,22 +62,25 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 	 * Note: variables named_with_underscores indicate values that have yet to be added to their respective data models.
 	 * @param hpData
 	 * @param result
-	 * @param data
+	 * @param dataExt
 	 */
 	public void calculateMultiBuild(MultiBuildData hpData, MultiBuildResult result,
-			ExtensionResourceAccessInitData data) {
+			ExtensionResourceAccessInitData dataExt) {
 		
 		/* SETUP */
 
-		MyParam<MultiBuildParams> hpParamHelper =
-				CapabilityHelper.getMyParams(MultiBuildParams.class, data.userData(), appManExt);
-		MultiBuildParams hpParams = hpParamHelper.get();
+		MyParam<MultiBuildParamsUser> hpParamHelperUser =
+				CapabilityHelper.getMyParams(MultiBuildParamsUser.class, dataExt.userData(), appManExt);
+		MultiBuildParamsUser hpParamsUser = hpParamHelperUser.get();
+		String internalUser = PROVIDING_USER;
+		MultiBuildParams params = dataExt.getCrossuserAccess().getAccess("multiBuildParams", internalUser,
+				MultiBuildParams.class, this);
 		
-		float costPerBuilding = hpParams.costSPBox().getValue();
+		float costPerBuilding = params.costSPBox().getValue();
 		
 		Set<CommunicationBusType> comAdapts = new HashSet<>();
 		for(BuildingComponentUsage cpusage:hpData.buildingComponentUsage().getAllElements()) {
-			BuildingComponent cp = cpusage.paramType();
+			BuildingComponent cp = setComponentType(cpusage, params); //cpusage.paramType();
 			costPerBuilding += cpusage.number().getValue() * cp.cost().getValue();
 			
 			//Not in Spreadsheet yet
@@ -86,10 +91,10 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		}
 		ValueResourceHelper.setCreate(result.costPerBuilding(), costPerBuilding);
 		float totalCost = hpData.buildingNum().getValue() * costPerBuilding +
-				hpParams.costProjectBase().getValue(); 
+				params.costProjectBase().getValue(); 
 		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
 		
-		hpParamHelper.close();
+		hpParamHelperUser.close();
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * *
@@ -106,13 +111,28 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 	}
 	@Override
 	public Class<? extends SmartEffResource> getParamType() {
+		return MultiBuildParamsUser.class;
+	}
+	@Override
+	public Class<? extends SmartEffResource> getInternalParamType() {
 		return MultiBuildParams.class;
 	}
 	
 	@Override
 	protected boolean initParams(SmartEffResource paramsIn) {
 		BaseInits.initSmartrEffPriceData(appManExt, this.getClass().getName());
-
+		MultiBuildParamsUser params = (MultiBuildParamsUser) paramsIn;
+		if (!params.communicationBusType().exists()) {
+			params.communicationBusType().create();
+		}
+		if (!params.buildingComponent().exists()) {
+			params.buildingComponent().create();
+		}
+		return false;
+	}
+	
+	@Override
+	protected boolean initInternalParams(SmartEffResource paramsIn) {
 		MultiBuildParams params = (MultiBuildParams) paramsIn;
 		
 		if (!params.exists() || !params.isActive())
@@ -171,4 +191,21 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		return "master";
 	}
 
+	/** If usage is not linked to building component identify the component and set link
+	 * TODO: Add support for user-specific components*/
+	public static BuildingComponent setComponentType(BuildingComponentUsage cpusage, MultiBuildParams params) {
+		if(cpusage.paramType().exists())
+			return cpusage.paramType();
+		String name;
+		if(cpusage.name().exists())
+			name = cpusage.name().getValue();
+		else name = cpusage.getName();
+		for(BuildingComponent comp: params.buildingComponent().getAllElements()) {
+			if(comp.name().getValue().equals(name)) {
+				cpusage.paramType().setAsReference(comp);
+				return comp;
+			}
+		}
+		return null;
+	}
 }

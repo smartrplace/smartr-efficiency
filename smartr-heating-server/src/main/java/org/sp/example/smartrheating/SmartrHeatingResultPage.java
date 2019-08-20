@@ -14,7 +14,7 @@ public class SmartrHeatingResultPage extends EditPageGeneric<SmartrHeatingResult
 	}
 
 	@Override
-	public Class<SmartrHeatingResult> primaryEntryTypeClass() {
+	public Class<? extends SmartrHeatingResult> primaryEntryTypeClass() {
 		return SmartrHeatingResult.class;
 	}
 

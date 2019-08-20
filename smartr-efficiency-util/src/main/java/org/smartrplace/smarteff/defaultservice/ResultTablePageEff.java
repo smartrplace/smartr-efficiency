@@ -25,7 +25,6 @@ import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
-import extensionmodel.smarteff.api.base.SmartEffGeneralData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class ResultTablePageEff extends NaviPageBase<Resource> {
@@ -61,11 +60,11 @@ public class ResultTablePageEff extends NaviPageBase<Resource> {
 			vh.floatLabel("Savings/a (EUR)", id, object.yearlySavings(), row, "%.2f");
 			vh.floatLabel("CO2-Saved/a (kg)", id, object.yearlyCO2savings(), row, "%.2f");
 			vh.floatLabel("Amortization for chosen price scenario (years)", id, object.amortization(), row, "%.1f");
-			if(req != null) {
+			/*if(req != null) {
 			vh.floatLabel("Interest rate", id, CapabilityHelper.getForUser(
 					((SmartEffGeneralData)appManExt.globalData()).smartEffPriceData().yearlyInterestRate()
 					, appData.userData()), row, "%.2f%%");
-			} else vh.registerHeaderEntry("Interest rate");
+			} else vh.registerHeaderEntry("Interest rate");*/
 		}
 
 		@Override

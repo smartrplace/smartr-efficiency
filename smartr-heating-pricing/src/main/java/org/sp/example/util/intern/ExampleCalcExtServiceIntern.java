@@ -14,6 +14,7 @@ import org.sp.calculator.hpadapt.intern.HPAdaptEvalInternal;
 import org.sp.calculator.hpadapt.intern.HPAdaptParamsInternalPage;
 import org.sp.calculator.smartrheating.intern.SmartrHeatingEvalInternal;
 import org.sp.calculator.smartrheating.intern.SmartrHeatingInternalParamsPage;
+import org.sp.calculator.smartrheating.intern.SmartrHeatingResultInternalPage;
 
 @Service(SmartEffExtensionService.class)
 @Component
@@ -32,6 +33,7 @@ public class ExampleCalcExtServiceIntern extends SmartEffExtServiceImpl {
 	protected List<EditPageGeneric<?>> getEditPages() {
 		return Arrays.asList(new EditPageGeneric[] {
 				PARAMINTERNAL_PAGE,
+				RESULTINTERNAL_PAGE,
 				PARAM_PAGE_HPAI,
 				
 		});
@@ -47,5 +49,6 @@ public class ExampleCalcExtServiceIntern extends SmartEffExtServiceImpl {
 	private static HPAdaptEvalInternal PROPOSAL_PROV_HPADAPTI;
 	private static SmartrHeatingEvalInternal PROPOSAL_PROV_SMARTRHEAT;
 	private final static SmartrHeatingInternalParamsPage PARAMINTERNAL_PAGE = new SmartrHeatingInternalParamsPage();
+	private final static SmartrHeatingResultInternalPage RESULTINTERNAL_PAGE = new SmartrHeatingResultInternalPage();
 	private final static HPAdaptParamsInternalPage PARAM_PAGE_HPAI = new HPAdaptParamsInternalPage();
 }

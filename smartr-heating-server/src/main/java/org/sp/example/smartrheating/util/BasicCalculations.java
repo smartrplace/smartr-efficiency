@@ -20,7 +20,8 @@ public class BasicCalculations {
 		public float avCostTotal; //total cost
 		public Float avPriceperKWh; //variable price per kWh (may not exist)
 	}
-	public static final double YEAR_MS = 365.25*24*3600*1000;
+	public static final double DAY_MS = 24.0*3600*1000;
+	public static final double YEAR_MS = 365.0*24*3600*1000; //more exact 365.25
 	/** Estimate yearly consumption based on yearly billing data. The bills are weighted according to
 	 * their duration, so a bill for a short time contributes less to the estimation
 	 * 
@@ -65,6 +66,8 @@ public class BasicCalculations {
 		});
 		for(HeatCostBillingInfo bill: bills) {
 			long duration = bill.endOfBillingPeriodDay().getValue() - bill.beginningOfBillingPeriodDay().getValue();
+			//each day is given at 00:00:00, but end day is included
+			//duration += DAY_MS;
 			sumCostTotal += bill.cost().getValue();
 			switch(bill.unit().getValue()) {
 			case 1:

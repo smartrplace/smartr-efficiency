@@ -93,7 +93,7 @@ public class HeatBillRegistration {
 		@Override
 		public boolean checkResource(HeatCostBillingInfo res) {
 			ValueResourceHelper.setIfNew(res.unit(), 1);
-			long endOfYear = AbsoluteTimeHelper.getIntervalStart(appManExt.getFrameworkTime(), AbsoluteTiming.YEAR) - 24*60*6000;
+			long endOfYear = AbsoluteTimeHelper.getIntervalStart(appManExt.getFrameworkTime(), AbsoluteTiming.YEAR)-1; // - 24*60*60000;
 			long startOfYear = AbsoluteTimeHelper.getIntervalStart(endOfYear, AbsoluteTiming.YEAR);
 			ValueResourceHelper.setIfNew(res.beginningOfBillingPeriodDay(), startOfYear);
 			ValueResourceHelper.setIfNew(res.endOfBillingPeriodDay(), endOfYear);

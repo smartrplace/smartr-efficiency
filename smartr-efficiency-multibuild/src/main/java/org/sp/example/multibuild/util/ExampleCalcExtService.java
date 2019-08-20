@@ -16,6 +16,7 @@ import org.sp.calculator.multibuild.CommunicationBusTypetParamsPage;
 import org.sp.calculator.multibuild.MultiBuildEditPage;
 import org.sp.calculator.multibuild.MultiBuildEval;
 import org.sp.calculator.multibuild.MultiBuildParamsPage;
+import org.sp.calculator.multibuild.MultiBuildParamsUserPage;
 import org.sp.calculator.multibuild.MultiBuildResultPage;
 
 import extensionmodel.smarteff.multibuild.MultiBuildData;
@@ -32,7 +33,8 @@ public class ExampleCalcExtService extends SmartEffExtServiceImpl {
 	@Override
 	protected List<EditPageGeneric<?>> getEditPages() {
 		return Arrays.asList(new EditPageGeneric[] {
-				EDIT_PROVIDER_MULTIBUILD, PARAM_PAGE_MULTIBUILD, RESULT_PAGE_MULTIBUILD, PAGE_MULTIBUILD_1, PAGE_MULTIBUILD_2, PAGE_MULTIBUILD_3
+				EDIT_PROVIDER_MULTIBUILD, PARAM_PAGE_MULTIBUILD, PARAM_PAGE_MULTIBUILDUSER,
+				RESULT_PAGE_MULTIBUILD, PAGE_MULTIBUILD_1, PAGE_MULTIBUILD_2, PAGE_MULTIBUILD_3
 		});
 	}
 	
@@ -45,6 +47,7 @@ public class ExampleCalcExtService extends SmartEffExtServiceImpl {
 	private final static EditPageGeneric<MultiBuildData> EDIT_PROVIDER_MULTIBUILD = new MultiBuildEditPage();
 	private static MultiBuildEval PROPOSAL_PROV_MULTIBUILD;
 	private final static MultiBuildParamsPage PARAM_PAGE_MULTIBUILD = new MultiBuildParamsPage();
+	private final static MultiBuildParamsUserPage PARAM_PAGE_MULTIBUILDUSER = new MultiBuildParamsUserPage();
 	private final static MultiBuildResultPage RESULT_PAGE_MULTIBUILD = new MultiBuildResultPage();
 	private final static BuildingComponentParamsPage PAGE_MULTIBUILD_1 = new BuildingComponentParamsPage();
 	private final static CommunicationBusTypetParamsPage PAGE_MULTIBUILD_2 = new CommunicationBusTypetParamsPage();
