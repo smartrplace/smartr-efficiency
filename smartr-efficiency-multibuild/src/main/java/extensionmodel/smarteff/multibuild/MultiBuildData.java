@@ -25,5 +25,5 @@ public interface MultiBuildData extends SmartEffResource {
 	@Deprecated
 	IntegerResource powerMeterNum();
 
-	ResourceList<BuildingComponentUsage> buildingComponentUsage();	
+	ResourceList<BuildingComponentUsage> buildingComponentUsage();
 }

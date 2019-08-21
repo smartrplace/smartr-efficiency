@@ -78,12 +78,17 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		
 		float costPerBuilding = params.costSPBox().getValue();
 		
+		//Build result table
+		result.offerLineInit().delete();
+		result.offerLineInit().create();
+		result.offerLineRecurrent().delete();
+		result.offerLineRecurrent().create();
+
 		Set<CommunicationBusType> comAdapts = new HashSet<>();
 		for(BuildingComponentUsage cpusage:hpData.buildingComponentUsage().getAllElements()) {
 			BuildingComponent cp = setComponentType(cpusage, params); //cpusage.paramType();
 			costPerBuilding += cpusage.number().getValue() * cp.cost().getValue();
 			
-			//Not in Spreadsheet yet
 			if(cpusage.number().getValue() > 0) comAdapts.add(cp.type().getLocationResource());
 		}
 		for(CommunicationBusType cbtype: comAdapts) {
@@ -94,7 +99,7 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 				params.costProjectBase().getValue(); 
 		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
 		
-		hpParamHelperUser.close();
+		hpParamHelperUser.close();		
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * *

@@ -33,6 +33,10 @@ public class BuildingComponentUsageEditPage extends EditPageGenericWithTable<Bui
 	public void setData(BuildingComponentUsage data) {
 		setLabel(data.paramType(), EN, "Building component type");
 		setLabel(data.number(), EN, "Number of the selected items to be used per building in the project");
+		setLabel(data.additionalCostPerItem(),
+				EN, "Cost for configuration, installation per item, project-specific (EUR)");
+		setLabel(data.additionalYearlyCost(), EN, "Additional yearly cost for maintenance (EUR)");
+		setLabel(data.alternativeOfferText(), EN, "Text to be used in offer");
 		setLabel(data.comment(), EN, "Comment (optional)");
 		setTableHeader(data.paramType().name(), EN, "Name");
 		setTableHeader(data.number(), EN, "#Num");

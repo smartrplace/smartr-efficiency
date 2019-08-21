@@ -1,5 +1,6 @@
 package extensionmodel.smarteff.multibuild;
 
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -15,4 +16,14 @@ public interface BuildingComponentUsage extends SmartEffResource {
 	
 	/** optional*/
 	StringResource comment();
+	
+	/** Cost for configuration, installation per item, project-specific (EUR)*/
+	FloatResource additionalCostPerItem();
+	
+	FloatResource additionalYearlyCost();
+	
+	/**If active this text will be used in the offer table
+	 * instead of the standard text of the component 
+	 */
+	StringResource alternativeOfferText();
 }

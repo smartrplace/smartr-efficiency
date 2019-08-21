@@ -26,7 +26,7 @@ public class MultiBuildEditPage extends EditPageGenericWithTable<MultiBuildData>
 		setLabel(data.buildingNum(), EN, "Number of buildings in project");
 		setLabelWithUnit(data.operationalCost(),
 				EN, "Project-specific operational cost per year in EUR. These cost are added to the yearly cost determined via parameters.");
-		
+
 		/* Documentation Links */
 		setHeaderLink(EN, MultiBuildEval.WIKI_LINK + "#data");
 		setLink(data.operationalCost(), EN, MultiBuildEval.WIKI_LINK +  "#operational-cost-overall-year");

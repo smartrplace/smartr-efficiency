@@ -2,6 +2,7 @@ package org.sp.example.smartrheating;
 
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGenericUtil;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingResult;
@@ -41,6 +42,8 @@ public class SmartrHeatingResultPage extends EditPageGeneric<SmartrHeatingResult
 		setLabel(result.savingsRelative(), EN, "Relative saving of heating energy input");
 		setLabel(result.hoursWithoutLowering(), EN, "Hours per week with effectively not lowered temperature");
 		setLabel(result.hoursLoweringEffectiveBefore(), EN, "Hours per week at which temperature was lowered before");
+		
+		EditPageGenericUtil.setDataProjectEff(result, this);
 		
 		/* Documentation Links */
 		setHeaderLink(EN, SmartrHeatingEval.WIKI_LINK + "#results");

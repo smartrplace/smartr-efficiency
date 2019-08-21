@@ -20,6 +20,7 @@ import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.ResourceTableOpenButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 import org.smartrplace.util.directobjectgui.ApplicationManagerMinimal;
 import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.ResourceGUITablePage;
@@ -97,11 +98,11 @@ public class ResultTablePage extends NaviPageBase<Resource> {
 			SPPageUtil.addResEditOpenButton("Open", object, vh, id, row, appData, null, req);
 			vh.floatLabel("Total Cost (EUR)", id, object.costOfProject(), row, "%.0f");
 			vh.floatLabel("+ Work (h)", id, object.ownHours(), row, "%.1f");
-			if(req != null) {
+			/*if(req != null) {
 			vh.floatLabel("Interest rate", id, CapabilityHelper.getForUser(
 					((SmartEffGeneralData)appManExt.globalData()).smartEffPriceData().yearlyInterestRate()
 					, appData.userData()), row, "%.2f%%");
-			} else vh.registerHeaderEntry("Interest rate");
+			} else vh.registerHeaderEntry("Interest rate");*/
 		}
 
 		@Override

@@ -2,6 +2,7 @@ package org.sp.calculator.multibuild;
 
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGenericUtil;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.multibuild.MultiBuildResult;
@@ -24,6 +25,12 @@ public class MultiBuildResultPage extends EditPageGeneric<MultiBuildResult> {
 
 		setLabel(result.costPerBuilding(), EN, "Variable cost per building (EUR)");
 
+		setLabel(result.hardwareCost(),
+				EN, "Hardware cost excluding VAT including delivery cost and custom charges");
+		setLabel(result.otherNonPersonalCost(), EN, "Other non-personal cost such as subcontractors");
+		
+		EditPageGenericUtil.setDataProject(result, this);
+		
 		/* Documentation Links */
 		setHeaderLink(EN, MultiBuildEval.WIKI_LINK + "#results");
 		setLink(result.costPerBuilding(), EN, MultiBuildEval.WIKI_LINK +  "#cost-per-building");
