@@ -20,6 +20,10 @@ public interface WindowType extends SmartEffResource {
 	 * also {@link HeatRadiatorType#numberOfRadiators()} */
 	IntegerResource count();
 	
+	/** Share of windows of the type that require a window sensor for optimized operation
+	 * TODO: This value may be shifted in the future as this is not a general physical value*/
+	FloatResource sensorInstallationShare();
+	
 	/** U-Value of this window type */
 	FloatResource uValue();
 	

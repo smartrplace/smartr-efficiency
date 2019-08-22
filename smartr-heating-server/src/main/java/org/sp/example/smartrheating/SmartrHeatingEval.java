@@ -73,6 +73,11 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 		ValueResourceHelper.setCreate(result.roomNumInBuilding(), BasicCalculations.getNumberOfRooms(building));
 		ValueResourceHelper.setCreate(result.roomNumWithThermostats(), thermNum[1]);
 		
+		//Windows
+		int[] winData = BasicCalculations.getNumberOfWindowSensors(building);
+		ValueResourceHelper.setCreate(result.windowNum(), winData[1]);
+		ValueResourceHelper.setCreate(result.windowSensorNum(), winData[0]);
+		
 		float heatDownUpPerBlock = (data.coolingDownHours().getValue() + data.heatingUpHours().getValue())*0.5f;
 		float hrWithout = data.usageTimePerWeek().getValue() +
 				data.usageBlocksPerWeek().getValue() * heatDownUpPerBlock;
@@ -91,6 +96,13 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 		float yearlyCO2Savings = result.savingsAbsolute().getValue() * param.co2factorGas().getValue();
 		ValueResourceHelper.setCreate(result.yearlySavings(), yearlySavings);
 		ValueResourceHelper.setCreate(result.yearlyCO2savings(), yearlyCO2Savings);
+		float ownHours = param.hoursOfCustomerBase().getValue() +
+				result.roomNumWithThermostats().getValue() * param.hoursOfCustomerPerRoom().getValue();
+		if(winData[0] > 0) {
+			ownHours += param.hoursOfCustomerWinSensBase().getValue() +
+					winData[0] * param.hoursOfCustomerPerWindowSensor().getValue();
+		}
+		ValueResourceHelper.setCreate(result.ownHours(), ownHours);
 	}
 	
 	@Override
@@ -111,8 +123,11 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 		BaseInits.initSmartrEffPriceData(appManExt, this.getClass().getName());
 		SmartrHeatingParams params = (SmartrHeatingParams)paramsIn;
 		if(ValueResourceHelper.setIfNew(params.wwSupplyTemp(), 8+273.15f) |
-				ValueResourceHelper.setIfNew(params.costOfCustomerPerRoom(), 20) |
-				ValueResourceHelper.setIfNew(params.internalParamProvider(), "master") |
+				ValueResourceHelper.setIfNew(params.hoursOfCustomerBase(), 12.0f) |
+				ValueResourceHelper.setIfNew(params.hoursOfCustomerPerRoom(), 0.15f) |
+				ValueResourceHelper.setIfNew(params.hoursOfCustomerWinSensBase(), 2.0f) |
+				ValueResourceHelper.setIfNew(params.hoursOfCustomerPerWindowSensor(), 0.15f) |
+				//ValueResourceHelper.setIfNew(params.internalParamProvider(), "master") |
 				ValueResourceHelper.setIfNew(params.co2factorGas(), 0.22f)) {
 			return true;
 		}

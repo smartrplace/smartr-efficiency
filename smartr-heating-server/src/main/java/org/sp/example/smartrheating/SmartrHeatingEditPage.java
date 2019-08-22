@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.sp.calculator.hpadapt.HPAdaptEval;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingData;
@@ -42,6 +43,7 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 	public void setData(SmartrHeatingData sr) {
 		setLabel(sr.name(), EN, "name", DE, "Name");
 		setLabel(sr.wwIsContained(), EN, "Is gas consumption for drinking warm water contained in yearly energy consumption?");
+		setLink(sr.wwIsContained(), EN,SmartrHeatingEval.WIKI_LINK +  "#warm-water-supply-included-boolean");
 		setLabelWithUnit(sr.wwConsumption(),
 				EN, "Known or estimated warm drinking water consumption",
 				DE, "Bekannter oder geschätzter Trinkwarmwasserverbrauch");
@@ -50,14 +52,18 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 				EN, "Estimated warm water energy loss from storage, circulation at current temperature in heated areas",
 				DE, "Geschätzter Warmwasser-Energieverlost duch Speicher, Zirkulation"
 						+ "bei aktueller Temperatur im beheizten Bereichen");
+		setLink(sr.wwLossHeatedAreas(), EN, SmartrHeatingEval.WIKI_LINK +  "#estimated-warm-water-energy-loss-from-storage,-circulation-at-current-temperature-in-heated-areas");
 
 		setLabelWithUnit(sr.wwLossUnheatedAreas(),
 				EN, "Warm water energy loss in unheated areas",
 				DE, "Warmwasser-Energieverlust im unbeheizten Bereichen");
+		setLink(sr.wwLossUnheatedAreas(), EN, SmartrHeatingEval.WIKI_LINK +  "#warm-water-energy-loss-in-unheated-areas");
 
 		setLabelWithUnit(sr.wwTemp(),
 				EN, "Warm water temperature",
 				DE, "Warmwassertemperatur");
+		setLink(sr.wwTemp(), EN, SmartrHeatingEval.WIKI_LINK +  "#warm-water-temperature");
+
 		setLabel(sr.heatingDegreeDaysManual(), EN, "Heating degree days per year");
 		setLabel(sr.heatingDaysManual(), EN, "Average number of heating days per year");
 		setLabel(sr.gasPricePerkWh(), EN, "Price for heating energy source per kWh set for building without fixed base fee (EUR/kWh)");
@@ -71,6 +77,9 @@ public class SmartrHeatingEditPage extends EditPageGeneric<SmartrHeatingData> {
 		setLabel(sr.problemsWithFungusOrMould(), EN, "Does the building have problems with fungus or mould?", DE, "Bestehen Probleme mit Schimmelbildung?");
 		setDisplayOptions(sr.problemsWithFungusOrMould(), EN, FUNGUSMAP_EN);
 		setDisplayOptions(sr.problemsWithFungusOrMould(), DE, FUNGUSMAP_DE);
+		
+		/* Additional Documentation Links */
+		setHeaderLink(EN, SmartrHeatingEval.WIKI_LINK + "#data");
 	}
 	
 	@Override

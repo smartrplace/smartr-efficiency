@@ -22,8 +22,12 @@ public class EditPageGenericUtil {
 				DE, "Eigene Arbeitsstunden des Auftraggebers");
 	}
 
-	public static <T extends Resource> void setDataProjectEff(ProjectProposalEfficiency result, EditPageGeneric<T> page) {
+	public static <T extends Resource> void setDataProjectEff(ProjectProposalEfficiency result, EditPageGeneric<T> page,
+			boolean addYearlyOperatingLine) {
 		setDataProject(result, page);
+		if(addYearlyOperatingLine)
+			page.setLabel(result.yearlyOperatingCosts(), EN, "Yearly operating cost conventional (EUR)",
+				DE, "Jährliche Betriebskosten konventionell (EUR)");
 		page.setLabel(result.yearlySavings(), EN, "Savings/a (EUR)",
 				DE, "Jährliche Kosteneinsparung (EUR)");
 		page.setLabel(result.yearlyCO2savings(), EN, "CO2-Saved/a (kg)",
@@ -32,7 +36,7 @@ public class EditPageGenericUtil {
 	}
 
 	public static <T extends Resource> void setDataProject100EE(ProjectProposal100EE result, EditPageGeneric<T> page) {
-		setDataProjectEff(result, page);
+		setDataProjectEff(result, page, false);
 		page.setLabel(result.yearlyOperatingCosts(), EN, "Yearly operating cost conventional (EUR)",
 				DE, "Jährliche Betriebskosten konventionell (EUR)");
 		page.setLabel(result.yearlyOperatingCostsCO2Neutral(), EN, "Yearly operating cost CO2-neutral (EUR)",

@@ -56,6 +56,7 @@ public class ResultTablePageEff extends NaviPageBase<Resource> {
 			vh.stringLabel("Name", id, ResourceTablePage.getSimpleName(object), row);
 			SPPageUtil.addResEditOpenButton("Open", object, vh, id, row, appData, null, req);
 			vh.floatLabel("Total Cost (EUR)", id, object.costOfProject(), row, "%.0f");
+			vh.floatLabel("Operation/a (EUR)", id, object.yearlyOperatingCosts(), row, "%.2f");
 			vh.floatLabel("+ Work (h)", id, object.ownHours(), row, "%.1f");
 			vh.floatLabel("Savings/a (EUR)", id, object.yearlySavings(), row, "%.2f");
 			vh.floatLabel("CO2-Saved/a (kg)", id, object.yearlyCO2savings(), row, "%.2f");

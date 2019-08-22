@@ -10,6 +10,8 @@ import org.smartrplace.extensionservice.proposal.ProjectProposal;
  */
 public interface MultiBuildResult extends ProjectProposal, SmartEffResource {
 	FloatResource costPerBuilding();
+	/** TODO: Required in spreadsheet, not very relevant here*/
+	FloatResource addYearlyPerBuilding();
 	
 	/** Initial investment list*/
 	ResourceList<OfferLineInit> offerLineInit();
@@ -17,9 +19,11 @@ public interface MultiBuildResult extends ProjectProposal, SmartEffResource {
 	/** Monthly or yearly cost*/
 	ResourceList<OfferLineRecurrent> offerLineRecurrent();
 	
-	/** Hardware cost excluding VAT including delivery cost and custom charges*/
+	/** Hardware cost excluding VAT including delivery cost and custom charges
+	 * TODO: Not in spreadsheet yet, not implemented yet*/
 	FloatResource hardwareCost();
 	
-	/** Other non-personal cost such as subcontractors*/
+	/** Other non-personal cost such as subcontractors
+	 * TODO: Not in spreadsheet yet, not implemented yet*/
 	FloatResource otherNonPersonalCost();
 }

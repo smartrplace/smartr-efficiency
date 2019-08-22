@@ -34,11 +34,11 @@ This ResourceList contains hardware components suitable for deployment in buidli
 
 #### Cost
 `cost`  
-The initial cost for the customer including hardware cost, configuration and installation support. A more flexible model for the cost including deductions for larger quantities shall be developed in the future.
+The initial cost for the customer including hardware cost, configuration and installation support. A more flexible model for the cost including deductions for larger quantities shall be developed in the future. Currently the cost includes hardware, provisioning and delivery to the customer site. Configuration and installation cost must be added via the project data configuration for the hardware item (additional cost for the item). 
 
 #### Yearly Cost
 `yearlyCost`  
-Components that require a cloud service or regular maintenance may have a direct yearly cost attached. Otherwise it is assumed that the lifetime of the hardware is sufficient for the project. A model suitable for modeling refurbishment and failure replacement cost may be added in the future. Also costs for energy consumption including battery replacement are not included yet.
+Components that require a cloud service or regular maintenance may have a direct yearly cost attached. Otherwise it is assumed that the lifetime of the hardware is sufficient for the project. A model suitable for modeling refurbishment and failure replacement cost may be added in the future. Also costs for energy consumption including battery replacement are not included yet. Currently this only includes cost for replacement and maintenance services provided to the customer by default. For most sensors battery replacement is not included by default as it is much more efficient if the customer buys and replaces batteries on his own.
 
 #### Communication Bus or hardware interface
 `comBus`  
@@ -67,6 +67,10 @@ Number of buildings using the hardware / software setup defined for each buildin
 ### Operational cost overall/year
 `operationalCost`  
 Project-specific operational cost per year in EUR. These cost are added to the yearly cost determined via parameters.
+
+### Other initial cost
+`otherInitialCost`
+Project-specific initial cost that shall be added to the general costProjectBase defined in the parameters. This can also summarize initial cost from buildings, hardware, software development etc. that cannot be represented elsewhere in this calculator. 
 
 ### Hardware components for buildings selected
 `buildingComponents`

@@ -9,6 +9,8 @@ import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.api.common.HeatCostBillingInfo;
 import extensionmodel.smarteff.api.common.HeatRadiatorType;
+import extensionmodel.smarteff.api.common.Window;
+import extensionmodel.smarteff.api.common.WindowType;
 import extensionmodel.smarteff.defaultproposal.DefaultProviderParams;
 
 public class BasicCalculations {
@@ -149,4 +151,33 @@ public class BasicCalculations {
 		if(roomNumUnheated > -1) countRooms = getNumberOfRooms(building) - roomNumUnheated;
 		return new int[] {count, countRooms};
 	}
+	
+	/** Get number of window sensors, windows and rooms with windows
+	 * @return [0]: number of window sensors, [1]: number of windows, 
+	 * [2]: rooms with windows. Note that number of rooms is only calculated based on data provided
+	 * by individual room modeling and the room number are currently not used at all.*/
+	public static int[] getNumberOfWindowSensors(BuildingData building) {
+		float countSens = 0;
+		int countWin = 0;
+		int countRoomsWin = 0;
+		for(BuildingUnit room: building.buildingUnit().getAllElements()) {
+			if(room.window().size() > 0) {
+				countWin += room.window().size();
+				countRoomsWin++;
+				float sensNum = 0;
+				for(Window win: room.window().getAllElements()) {
+					sensNum += win.type().sensorInstallationShare().getValue();
+				}
+				countSens += sensNum;
+			}
+		}
+		if(countWin == 0 && (!building.windowType().isActive()))
+			return null;
+		for(WindowType rad: building.windowType().getAllElements()) {
+			countWin += rad.count().getValue();
+			countSens += rad.count().getValue() * rad.sensorInstallationShare().getValue();
+		}
+		return new int[] {Math.round(countSens), countWin, countRoomsWin};
+	}
+
 }

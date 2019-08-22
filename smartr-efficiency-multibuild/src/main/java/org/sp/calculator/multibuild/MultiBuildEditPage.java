@@ -24,12 +24,17 @@ public class MultiBuildEditPage extends EditPageGenericWithTable<MultiBuildData>
 		setLabel(data.buildingComponentUsage(), EN, "Selected building components for project");
 		setLabel(data.name(), EN, "name", DE, "Name");
 		setLabel(data.buildingNum(), EN, "Number of buildings in project");
+
 		setLabelWithUnit(data.operationalCost(),
 				EN, "Project-specific operational cost per year in EUR. These cost are added to the yearly cost determined via parameters.");
-
+		setLink(data.operationalCost(), EN, MultiBuildEval.WIKI_LINK +  "#operational-cost-overall-year");
+		
+		setLabelWithUnit(data.otherInitialCost(),
+				EN, "Project-specific operational cost per year in EUR. These cost are added to the yearly cost determined via parameters.");
+		setLink(data.otherInitialCost(), EN, MultiBuildEval.WIKI_LINK +  "");
+		
 		/* Documentation Links */
 		setHeaderLink(EN, MultiBuildEval.WIKI_LINK + "#data");
-		setLink(data.operationalCost(), EN, MultiBuildEval.WIKI_LINK +  "#operational-cost-overall-year");
 	}
 
 	@Override

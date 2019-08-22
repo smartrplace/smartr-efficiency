@@ -43,7 +43,7 @@ public class SmartrHeatingResultPage extends EditPageGeneric<SmartrHeatingResult
 		setLabel(result.hoursWithoutLowering(), EN, "Hours per week with effectively not lowered temperature");
 		setLabel(result.hoursLoweringEffectiveBefore(), EN, "Hours per week at which temperature was lowered before");
 		
-		EditPageGenericUtil.setDataProjectEff(result, this);
+		EditPageGenericUtil.setDataProjectEff(result, this, true);
 		
 		/* Documentation Links */
 		setHeaderLink(EN, SmartrHeatingEval.WIKI_LINK + "#results");

@@ -15,6 +15,10 @@ public interface SmartrHeatingResult extends ProjectProposalEfficiency {
 	IntegerResource roomNumInBuilding();
 	IntegerResource roomNumWithThermostats();
 
+	//Windows
+	IntegerResource windowNum();
+	IntegerResource windowSensorNum();
+	
 	//Savings
 	FloatResource savingsAbsolute();
 	FloatResource savingsRelative();

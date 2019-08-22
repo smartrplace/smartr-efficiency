@@ -60,11 +60,11 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 	/**
 	 * Calculate MultiBuild-specific result. Main evaluation function.
 	 * Note: variables named_with_underscores indicate values that have yet to be added to their respective data models.
-	 * @param hpData
+	 * @param data
 	 * @param result
 	 * @param dataExt
 	 */
-	public void calculateMultiBuild(MultiBuildData hpData, MultiBuildResult result,
+	public void calculateMultiBuild(MultiBuildData data, MultiBuildResult result,
 			ExtensionResourceAccessInitData dataExt) {
 		
 		/* SETUP */
@@ -77,6 +77,7 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 				MultiBuildParams.class, this);
 		
 		float costPerBuilding = params.costSPBox().getValue();
+		float addYPerBuilding = 0;
 		
 		//Build result table
 		result.offerLineInit().delete();
@@ -85,9 +86,10 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		result.offerLineRecurrent().create();
 
 		Set<CommunicationBusType> comAdapts = new HashSet<>();
-		for(BuildingComponentUsage cpusage:hpData.buildingComponentUsage().getAllElements()) {
+		for(BuildingComponentUsage cpusage:data.buildingComponentUsage().getAllElements()) {
 			BuildingComponent cp = setComponentType(cpusage, params); //cpusage.paramType();
 			costPerBuilding += cpusage.number().getValue() * cp.cost().getValue();
+			addYPerBuilding += cpusage.number().getValue() * cpusage.additionalYearlyCost().getValue();
 			
 			if(cpusage.number().getValue() > 0) comAdapts.add(cp.type().getLocationResource());
 		}
@@ -95,8 +97,10 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 			costPerBuilding += cbtype.cost().getValue();
 		}
 		ValueResourceHelper.setCreate(result.costPerBuilding(), costPerBuilding);
-		float totalCost = hpData.buildingNum().getValue() * costPerBuilding +
-				params.costProjectBase().getValue(); 
+		ValueResourceHelper.setCreate(result.addYearlyPerBuilding(), addYPerBuilding);
+		float totalCost = data.buildingNum().getValue() * costPerBuilding +
+				params.costProjectBase().getValue() + data.otherInitialCost().getValue(); 
+		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
 		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
 		
 		hpParamHelperUser.close();		

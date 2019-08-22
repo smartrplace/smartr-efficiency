@@ -36,7 +36,7 @@ public class SmartrHeatingEvalInternal extends SmartrHeatingEval {
 			DefaultProviderParams myParB) {
 		super.calculateInternal(data, resultIn, dataExt, building, param, myParB);
 		SmartrHeatingResultPricing result = (SmartrHeatingResultPricing) resultIn;
-		String internalUser = param.internalParamProvider().getValue();
+		String internalUser = userName();
 		SmartrHeatingInternalParams internal = dataExt.getCrossuserAccess().getAccess("smartrHeatingInternalParams", internalUser,
 				SmartrHeatingInternalParams.class, this);
 		MultiBuildData multiBuild = CapabilityHelper.addMultiTypeToList(building, null, MultiBuildData.class);
@@ -45,16 +45,17 @@ public class SmartrHeatingEvalInternal extends SmartrHeatingEval {
 		MultiBuildEval mbe = new MultiBuildEval(appManExt);
 		ValueResourceHelper.setCreate(multiBuild.buildingNum(), 1);
 		ValueResourceHelper.setCreate(multiBuild.operationalCost(), 20);
+		ValueResourceHelper.setCreate(multiBuild.otherInitialCost(),
+				internal.costPerRoom().getValue() * result.roomNumWithThermostats().getValue());
 		ResourceList<BuildingComponentUsage> hw = multiBuild.buildingComponentUsage().create();
 		BuildingComponentUsage thermo = hw.add();
 		ValueResourceHelper.setCreate(thermo.name(), "Homematic Thermostat");
 		ValueResourceHelper.setCreate(thermo.number(), result.thermostatNum().getValue());		
+		ValueResourceHelper.setCreate(thermo.additionalCostPerItem(), internal.costPerThermostat().getValue());		
 		mbe.calculateMultiBuild(multiBuild, result.multiBuildResult(), dataExt);
 
 		//final result in sheet data
-		float costOfProject = result.multiBuildResult().costOfProject().getValue() +
-				internal.costPerRoom().getValue() * result.roomNumWithThermostats().getValue() +
-				internal.costPerThermostat().getValue() * result.thermostatNum().getValue();
+		float costOfProject = result.multiBuildResult().costOfProject().getValue();
 		float yearlyCost = result.multiBuildResult().yearlyOperatingCosts().getValue();
 		float yearlySavings = result.yearlySavings().getValue();
 		ValueResourceHelper.setCreate(result.costOfProject(), costOfProject);

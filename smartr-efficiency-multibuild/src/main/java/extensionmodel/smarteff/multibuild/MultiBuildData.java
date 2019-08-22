@@ -13,7 +13,8 @@ public interface MultiBuildData extends SmartEffResource {
 
 	IntegerResource buildingNum();
 	FloatResource operationalCost();
-
+	FloatResource otherInitialCost();
+	
 	@Deprecated
 	IntegerResource insideTempNum();
 	@Deprecated
