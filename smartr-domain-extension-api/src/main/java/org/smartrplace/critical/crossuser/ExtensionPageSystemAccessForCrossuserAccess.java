@@ -9,7 +9,9 @@ public interface ExtensionPageSystemAccessForCrossuserAccess {
 	 * of the module or provider of parameters that are not managed globally but by the module
 	 * provider. A typical case is the provision of internal project proposal calculation parameters
 	 * (e.g. cost parameters) by a vendor that are required to provide cost information for a project
-	 * proposal planning but that shall not be made public to the users receiving the proposals.
+	 * proposal planning but that shall not be made public to the users receiving the proposals.<br>
+	 * Note that this method only allows to access resources that are marked with the relevant
+	 * {@link AccessControl#modules()} entry. The user() entries are not relevant here.
 	 * 
 	 * @param subUserPath path below the editable user data of the resource that shall be accessed.
 	 * 		Note that currently only resources in the editable space can be accessed cross-user with
@@ -28,4 +30,19 @@ public interface ExtensionPageSystemAccessForCrossuserAccess {
 	 * @param type if null all cross-user resources are returned
 	 */
 	<T extends Resource> List<T> getAccess(Class<T> type);
+	
+	/** Copy resource into a suitable ResourceList of the destination user. The respective
+	 * ResourceList must be top-level in the user data and must contain a AccessControl.modules()
+	 * entry for "receiveResources".<br>
+	 * Note that in most cases the receiver should get information on the time and the source user
+	 * of the resource. So usually copyResourceIntoOffer should be used, although this may not be
+	 * general enough for all cases.
+	 * 
+	 * @param source
+	 * @param destinationUserName
+	 * @return
+	 */
+	public <T extends Resource> T copyResource(T source, String destinationUserName);
+	public <T extends Resource> T copyResourceIntoOffer(T source,
+			String destinationUserName, String sourceUserName);
 }

@@ -35,6 +35,11 @@ public class ProposalPublicDataImpl extends ProviderPublicDataForCreateImpl impl
 		return internalData.provider.getEvaluationResultTypes();
 	}
 	
+	//@Override
+	//public String userName() {
+	//	return internalData.provider.userName();
+	//}
+	
 	@Override
 	public String getProviderId() {
 		return internalData.provider.getProviderId();

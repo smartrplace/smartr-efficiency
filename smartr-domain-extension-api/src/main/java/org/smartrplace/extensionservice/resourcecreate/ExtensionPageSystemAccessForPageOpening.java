@@ -30,6 +30,12 @@ public interface ExtensionPageSystemAccessForPageOpening {
 	List<NavigationPublicPageData> getStartPages();
 	
 	NavigationPublicPageData getPageByProvider(String url);
+	
+	/** Get logic providers
+	 * 
+	 * @param type entry resource type; if null all logic provider are returned 
+	 * @return
+	 */
 	List<LogicProviderPublicData> getLogicProviders(Class<? extends Resource> type);
 	
 	/**Get configId to put as parameter into page request when opening new page*/

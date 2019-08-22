@@ -15,6 +15,7 @@ import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
@@ -406,5 +407,14 @@ public class CapabilityHelper {
 		if(resOfType.isEmpty()) {
 			return null;
 		} else return resOfType.get(0);		
+	}
+	
+	public static LogicProviderPublicData getLogicProviderByName(String moduleClassName, ExtensionResourceAccessInitData appData) {
+		for(LogicProviderPublicData provider : appData.systemAccessForPageOpening().getLogicProviders(null)) {
+			if(provider.getClass().getName().equals(moduleClassName)) {
+				return provider;
+			}
+		}
+		return null;		
 	}
 }

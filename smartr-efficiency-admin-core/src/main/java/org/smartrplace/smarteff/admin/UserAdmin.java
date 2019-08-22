@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
@@ -214,5 +215,13 @@ public class UserAdmin {
 		if(getAnonymousUserNames() == null) return false;
 		if(getAnonymousUserNames().contains(userName)) return true;
 		return false;
+	}
+	
+	public <T extends Resource> T copyResource(T source, String destinationUserName) {
+		return null;
+	}
+	public <T extends Resource> T copyResourceIntoOffer(T source,
+			String destinationUserName, String sourceUserName) {
+		return null;
 	}
 }

@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.ogema.core.model.Resource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
+import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForEvaluation;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -80,6 +81,9 @@ public interface LogicProviderPublicData extends ProviderPublicDataForCreate {
 	
 	/** If no evaluations are supported return null*/
 	default List<EvaluationResultTypes> getEvaluationResultTypes() {return null;}
+	
+	/** See {@link ExtensionCapability#userName()}*/
+	//String extensionCapabilityUserName();
 	
 	/** If the logic provider calculates KPIs the provider id returned here can be used to obtain
 	 * the KPI results via {@link ExtensionPageSystemAccessForEvaluation}.

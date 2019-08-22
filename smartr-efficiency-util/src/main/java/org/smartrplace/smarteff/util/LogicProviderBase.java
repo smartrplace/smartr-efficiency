@@ -19,6 +19,7 @@ import org.smartrplace.smarteff.util.editgeneric.EditPageGenericParams;
 
 import de.iwes.timeseries.eval.api.ResultType;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import extensionmodel.smarteff.api.common.AccessControl;
 
@@ -119,6 +120,8 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 	public List<Resource> calculate(ExtensionResourceAccessInitData data) {
 		T input = getReqData(data);
 		CalculatedData result = input.addDecorator(CapabilityHelper.getSingleResourceName(getResultType()), getResultType());
+		String moduleClassName = this.getClass().getName();
+		ValueResourceHelper.setCreate(result.sourceLogicProvider(), moduleClassName);
 		calculateProposal(input, result, data);
 		result.activate(true);
 		return Arrays.asList(new CalculatedData[] {result});

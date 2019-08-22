@@ -1,7 +1,9 @@
 package org.smartrplace.smarteff.admin.protect;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -175,9 +177,17 @@ public class NavigationPageSystemAccessForPageOpening implements ExtensionPageSy
 
 	@Override
 	public List<LogicProviderPublicData> getLogicProviders(Class<? extends Resource> type) {
-		List<LogicProviderPublicData> resultAll = proposalInfo.get(type);
-		List<LogicProviderPublicData> resultRes = proposalInfo.get(Resource.class);
-		if(resultRes != null) resultAll.addAll(resultRes);
+		Collection<LogicProviderPublicData> resultAll;
+		if(type == null) {
+			resultAll = new HashSet<>();
+			for(List<LogicProviderPublicData> logicList: proposalInfo.values()) {
+				logicList.addAll(logicList);
+			}
+		} else {
+			resultAll = proposalInfo.get(type);
+			List<LogicProviderPublicData> resultRes = proposalInfo.get(Resource.class);
+			if(resultRes != null) resultAll.addAll(resultRes);
+		}
 		if(resultAll == null) return Collections.emptyList();
 		List<LogicProviderPublicData> result = new ArrayList<>();
 		for(LogicProviderPublicData r: resultAll) {

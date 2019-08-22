@@ -19,5 +19,7 @@ public class SmartrHeatingResultInternalPage extends SmartrHeatingResultPage {
 		super.setData(result);
 		SmartrHeatingResultPricing resultP = (SmartrHeatingResultPricing) result;
 		setLabel(resultP.multiBuildResult(), EN, "base pricing results");
+		setLabel("#requestOffer", EN, "Request offer for the project proposal",
+				DE, "Angebot anfordern für den Projektentwurf");
 	}
 }

@@ -2,6 +2,7 @@ package org.smartrplace.extensionservice.proposal;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.prototypes.Data;
 
 public interface CalculatedData extends Data {
@@ -9,4 +10,6 @@ public interface CalculatedData extends Data {
 	 * also copies of the input resources at the time of calculation can be provided
 	 */
 	ResourceList<Resource> inputData();
+	
+	StringResource sourceLogicProvider();
 }

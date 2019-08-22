@@ -27,7 +27,11 @@ import org.smartrplace.extensionservice.SmartEff2DMap;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.SpartEffModelModifiers.DataType;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
+import org.smartrplace.extensionservice.proposal.LogicProvider;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
+import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
+import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData.PublicUserInfo;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ContextType;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.SubmitTSValueButton;
@@ -133,6 +137,54 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 			    };
 			    buttonDownload.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
 				return buttonDownload;
+			} else if(sub.equals("#requestOffer")) {
+				final Button buttonSend = new Button(page, "buttonSend"+pid, "Not processed by onGET") {
+			    	private static final long serialVersionUID = 1L;
+			    	@Override
+			    	public void onGET(OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						if(entryResource instanceof ProjectProposal) {
+							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+							PublicUserInfo userInfo = appData.getUserInfo();
+							if(userInfo.isAnonymousUser()) {
+								setText("Request Offer: Not for anonymous users", req);
+								disable(req);								
+							}
+							setText("Request Offer", req);
+							enable(req);
+						} else {
+							setText("No Project proposal!", req);
+							disable(req);
+						}
+			    	}
+			    	@Override
+			    	public void onPrePOST(String data, OgemaHttpRequest req) {
+						T entryResource = mhLoc.getGatewayInfo(req);
+						if(!(entryResource instanceof ProjectProposal)) {
+							throw new IllegalStateException(entryResource.getLocation()+" not instance of ProjectPropsal!");
+						}
+						ProjectProposal proj = (ProjectProposal) entryResource;
+						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+						PublicUserInfo userInfo = appData.getUserInfo();
+						if(userInfo.isAnonymousUser()) {
+							return;
+						}
+						String currentUser = userInfo.userName();
+						String sourceLogic = proj.sourceLogicProvider().getValue();
+						LogicProviderPublicData logic1 = CapabilityHelper.getLogicProviderByName(sourceLogic, appData);
+						if(!(logic1 instanceof LogicProvider))
+							return;
+						LogicProvider logic = (LogicProvider)logic1;
+						String destinationUser = logic.userName(); //.getProviderId(); //userInfo.userName();
+						ProjectProposal dest = (ProjectProposal) appData.getCrossuserAccess().copyResourceIntoOffer(entryResource, destinationUser,
+								currentUser);
+						if(dest.projectStatus().getValue() < 8)
+							dest.projectStatus().setValue(8);
+						if(proj.projectStatus().getValue() < 8)
+							proj.projectStatus().setValue(8);
+			    	}
+			    };
+				return buttonSend;
 			}
 			Label specialLabel = new Label(page, "specialLabel"+subId+pid) {
 				private static final long serialVersionUID = 1L;
