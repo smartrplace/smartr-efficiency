@@ -416,7 +416,7 @@ public class HPAdaptEval extends ProjectProviderBase100EE<HPAdaptData> {
 				
 
 				float comfortTemp = SmartEffResourceHelper
-						.getOrDefault(room.comfortTemperature(), hpData.comfortTemp()).getValue();
+						.getOrDefault(room.comfortTemperature(), hpData.comfortTemp()).getValue() + ABSOLUTE_ZERO;
 
 				float vLLoc = pLoc / radPower + comfortTemp;
 				
