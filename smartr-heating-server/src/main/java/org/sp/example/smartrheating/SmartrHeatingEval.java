@@ -39,12 +39,14 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 		DefaultProviderParams myParB = paramHelperB.get();
 		BuildingData building = data.getParent();
 		
-		calculateInternal(data, result, dataExt, building, param, myParB);
+		calculateInternal(data, result, dataExt, building, param, myParB,
+				paramHelper, paramHelperB);
 		paramHelper.close();
 	}
 	protected void calculateInternal(SmartrHeatingData data, SmartrHeatingResult result,
 			ExtensionResourceAccessInitData dataExt,
-			BuildingData building, SmartrHeatingParams param, DefaultProviderParams myParB) {
+			BuildingData building, SmartrHeatingParams param, DefaultProviderParams myParB,
+			MyParam<SmartrHeatingParams> paramHelper, MyParam<DefaultProviderParams> paramHelperB) {
 
 		////////////
 		// LastCalc
@@ -103,6 +105,8 @@ public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
 					winData[0] * param.hoursOfCustomerPerWindowSensor().getValue();
 		}
 		ValueResourceHelper.setCreate(result.ownHours(), ownHours);
+		addInputData(result, dataExt, paramHelper.getUserParameterResource(), data,
+				paramHelperB.getUserParameterResource());
 	}
 	
 	@Override

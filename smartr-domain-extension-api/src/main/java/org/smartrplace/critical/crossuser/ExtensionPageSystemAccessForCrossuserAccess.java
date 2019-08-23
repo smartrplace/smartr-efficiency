@@ -43,6 +43,14 @@ public interface ExtensionPageSystemAccessForCrossuserAccess {
 	 * @return
 	 */
 	public <T extends Resource> T copyResource(T source, String destinationUserName);
+	/** See {@link #copyResource(Resource, String)}
+	 * 
+	 * @param source
+	 * @param destinationUserName
+	 * @param sourceUserName
+	 * @param purpose 1: request offer, 2: review, 3: add your data, 4: request consulting
+	 * @return
+	 */
 	public <T extends Resource> T copyResourceIntoOffer(T source,
-			String destinationUserName, String sourceUserName);
+			String destinationUserName, String sourceUserName, int purpose);
 }

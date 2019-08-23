@@ -10,7 +10,7 @@ import extensionmodel.smarteff.api.base.SmartEffUserData;
 
 public class MyParam<T extends Resource> {
 	private final T globalResource;
-	//private final T myResource;
+	private final T myResource;
 	//private final boolean useMyResource;
 	private final Class<T> resourceType;
 	
@@ -21,7 +21,7 @@ public class MyParam<T extends Resource> {
 	@SuppressWarnings("unchecked")
 	public MyParam(T globalResource, T myResource, ExtensionUserData userData) {
 		this.globalResource = globalResource;
-		//this.myResource = myResource;
+		this.myResource = myResource;
 		if(!(userData instanceof SmartEffUserData)) throw new IllegalStateException("User Data must be from SmartEff!");
 		this.tempData = ((SmartEffUserData) userData).temporaryResources();
 		this.resourceType = (Class<T>) globalResource.getResourceType();
@@ -51,6 +51,10 @@ public class MyParam<T extends Resource> {
 	public T get() {
 		if(tempResource != null) return tempResource;
 		else return globalResource;
+	}
+	
+	public T getUserParameterResource() {
+		return myResource;
 	}
 
 	public void close() {

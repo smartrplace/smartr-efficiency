@@ -24,7 +24,6 @@ import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.ExtensionUserDataNonEdit;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.driver.DriverProvider;
-import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForCreate;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForEvaluation;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionPageSystemAccessForPageOpening;
@@ -410,9 +409,9 @@ public class ExtensionResourceAccessInitDataImpl implements ExtensionResourceAcc
 				return controller.getUserAdmin().copyResource(source, destinationUserName);
 			}
 			public <T extends Resource> T copyResourceIntoOffer(T source,
-					String destinationUserName, String sourceUserName) {
+					String destinationUserName, String sourceUserName, int purpose) {
 				return controller.getUserAdmin().copyResourceIntoOffer(source,
-						destinationUserName, sourceUserName);
+						destinationUserName, sourceUserName, purpose);
 			}
 		};
 	}

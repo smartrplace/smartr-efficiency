@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
@@ -21,6 +22,7 @@ import de.iwes.timeseries.eval.api.ResultType;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.common.AccessControl;
 
 /** Standard template for LogicProvider implementations. Note that LogicProviders that
@@ -122,6 +124,7 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 		CalculatedData result = input.addDecorator(CapabilityHelper.getSingleResourceName(getResultType()), getResultType());
 		String moduleClassName = this.getClass().getName();
 		ValueResourceHelper.setCreate(result.sourceLogicProvider(), moduleClassName);
+		result.inputData().delete();
 		calculateProposal(input, result, data);
 		result.activate(true);
 		return Arrays.asList(new CalculatedData[] {result});
@@ -282,6 +285,21 @@ public abstract class LogicProviderBase<T extends SmartEffResource>  implements 
 	public ExtensionResourceTypeDeclaration<SmartEffResource> getInternalParamTypeDeclaration() {
 		if(registerInternalParamType) return paramTypeDeclarationInternal;
 		return null;
+	}
+	
+	protected void addInputData(CalculatedData result, ExtensionResourceAccessInitData appData,
+			Resource... input) {
+		result.inputData().create();
+		for(Resource inp: input) {
+			if(inp == null) {
+				StringResource dummy = ((SmartEffUserData) appData.userData()).temporaryResources().
+						getSubResource("notAvail", StringResource.class);
+				result.inputData().add(dummy);			
+			} else
+			result.inputData().add(inp);			
+		}
+		if(!result.inputData().isActive()) 
+			result.inputData().activate(false);
 	}
 	
 	/** Add user access control to a parameter resource. This is still an experimental

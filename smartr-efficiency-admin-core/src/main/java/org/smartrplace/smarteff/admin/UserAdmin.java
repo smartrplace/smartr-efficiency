@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionUserData;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider;
@@ -220,8 +219,11 @@ public class UserAdmin {
 	public <T extends Resource> T copyResource(T source, String destinationUserName) {
 		return null;
 	}
+	
+	/** 
+	 */
 	public <T extends Resource> T copyResourceIntoOffer(T source,
-			String destinationUserName, String sourceUserName) {
+			String destinationUserName, String sourceUserName, int purpose) {
 		return null;
 	}
 }

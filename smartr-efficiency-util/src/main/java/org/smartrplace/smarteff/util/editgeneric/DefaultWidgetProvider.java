@@ -177,7 +177,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						LogicProvider logic = (LogicProvider)logic1;
 						String destinationUser = logic.userName(); //.getProviderId(); //userInfo.userName();
 						ProjectProposal dest = (ProjectProposal) appData.getCrossuserAccess().copyResourceIntoOffer(entryResource, destinationUser,
-								currentUser);
+								currentUser, 1);
 						if(dest.projectStatus().getValue() < 8)
 							dest.projectStatus().setValue(8);
 						if(proj.projectStatus().getValue() < 8)

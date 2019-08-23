@@ -103,6 +103,8 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
 		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
 		
+		addInputData(result, dataExt, hpParamHelperUser.getUserParameterResource(), data,
+				params);
 		hpParamHelperUser.close();		
 	}
 

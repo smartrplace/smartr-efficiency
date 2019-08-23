@@ -6,6 +6,7 @@ import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.proposal.ProjectProposalEfficiency;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
+import org.smartrplace.smarteff.util.MyParam;
 import org.sp.calculator.multibuild.MultiBuildEval;
 import org.sp.example.smartrheating.SmartrHeatingEval;
 
@@ -33,8 +34,10 @@ public class SmartrHeatingEvalInternal extends SmartrHeatingEval {
 	@Override
 	protected void calculateInternal(SmartrHeatingData data, SmartrHeatingResult resultIn,
 			ExtensionResourceAccessInitData dataExt, BuildingData building, SmartrHeatingParams param,
-			DefaultProviderParams myParB) {
-		super.calculateInternal(data, resultIn, dataExt, building, param, myParB);
+			DefaultProviderParams myParB,
+			MyParam<SmartrHeatingParams> paramHelper, MyParam<DefaultProviderParams> paramHelperB) {
+		super.calculateInternal(data, resultIn, dataExt, building, param, myParB,
+				paramHelper, paramHelperB);
 		SmartrHeatingResultPricing result = (SmartrHeatingResultPricing) resultIn;
 		String internalUser = userName();
 		SmartrHeatingInternalParams internal = dataExt.getCrossuserAccess().getAccess("smartrHeatingInternalParams", internalUser,
@@ -62,6 +65,8 @@ public class SmartrHeatingEvalInternal extends SmartrHeatingEval {
 		ValueResourceHelper.setCreate(result.yearlyOperatingCosts(), yearlyCost);
 		float amortization = costOfProject / (yearlyCost - yearlySavings);
 		ValueResourceHelper.setCreate(result.amortization(), amortization);
+		
+		addInputData(result, dataExt, internal);
 	}
 
 	/* * * * * * * * * * * * * * * * * * * * * * *
