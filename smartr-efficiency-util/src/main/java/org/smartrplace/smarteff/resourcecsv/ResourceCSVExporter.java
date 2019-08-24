@@ -29,6 +29,7 @@ import org.smartrplace.smarteff.resourcecsv.util.ResourceListCSVRows;
 import org.smartrplace.smarteff.resourcecsv.util.ScheduleCSVRows;
 import org.smartrplace.smarteff.resourcecsv.util.SingleValueResourceCSVRow;
 import org.smartrplace.smarteff.resourcecsv.util.SmartEff2DMapCSVRows;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
@@ -257,7 +258,8 @@ public class ResourceCSVExporter {
 	 */
 	private String getLabel(Resource res) {
 		String path = ResourceCSVUtil.getRelativePath(res, conf.parent);
-		if (labels != null && labels.containsKey(path)) {
+		return EditPageGeneric.getLabel(path, res, new OgemaLocale(conf.locale), labels);
+		/*if (labels != null && labels.containsKey(path)) {
 			Map<OgemaLocale, String> resLabel = labels.get(path);
 			OgemaLocale l = new OgemaLocale(conf.locale);
 			if (resLabel.containsKey(l)) {
@@ -266,6 +268,6 @@ public class ResourceCSVExporter {
 				return resLabel.get(OgemaLocale.ENGLISH);
 			}
 		}
-		return ResourceUtils.getHumanReadableShortName(res);
+		return ResourceUtils.getHumanReadableShortName(res);*/
 	}
 }

@@ -247,6 +247,8 @@ public class SpEffAdminController {
 	}
 
 	public boolean registerExtendedNaviMenuPages() {
+		if(Boolean.getBoolean("org.smartrplace.smarteff.admin.reducedStandardPages"))
+			return false;
 		return true;
 	}
 

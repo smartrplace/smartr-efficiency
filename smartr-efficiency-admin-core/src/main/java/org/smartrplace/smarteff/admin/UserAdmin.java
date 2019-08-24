@@ -168,7 +168,7 @@ public class UserAdmin {
 			if(userDataNonEdit != null) {
 				editableData = userDataNonEdit.editableData().getLocationResource();
 				systemAccess = new NavigationPageSystemAccess(userDataNonEdit.ogemaUserName().getValue(),
-						navi.label(req.getLocale()),
+						(navi==null)?null:navi.label(req.getLocale()),
 						app.guiPageAdmin.navigationPublicData, app.guiPageAdmin.startPagesData,
 						app.lockAdmin, app.configIdAdmin, app.typeAdmin, app.appManExt,
 						app.guiPageAdmin.proposalInfo, null, null, url, null);

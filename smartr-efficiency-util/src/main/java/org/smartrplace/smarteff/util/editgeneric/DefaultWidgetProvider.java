@@ -34,6 +34,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData.PublicUserInfo;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ContextType;
+import org.smartrplace.smarteff.defaultservice.TSManagementPage.ResourceInfo;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.SubmitTSValueButton;
 import org.smartrplace.smarteff.resourcecsv.ResourceCSVExporter;
 import org.smartrplace.smarteff.util.CapabilityHelper;
@@ -48,6 +49,7 @@ import org.smartrplace.util.format.ValueConverter;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
@@ -341,6 +343,10 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
 								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
+						if(!tsResource.name().isActive()) {
+							ValueResourceHelper.setCreate(tsResource.name(), EditPageGeneric.getLabel(
+									sub, tsResource, OgemaLocale.ENGLISH, labels));
+						}
 						return tsResource;
 					}
 				};
@@ -356,7 +362,8 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					 newValue = new TextField(page, "newValueSP"+subId+pid);
 				}		
 				newValue.setDefaultVisibility(false);
-
+				newValue.postponeLoading();
+				
 				newValueButton = new SubmitTSValueButton(page, "newValueButton"+subId+pid,
 						newValue, null, null, alert, appManExt) {
 					private static final long serialVersionUID = 1L;
@@ -367,12 +374,15 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					}
 					
 					@Override
-					protected SmartEffTimeSeries getResource(OgemaHttpRequest req) {
+					protected ResourceInfo getResource(OgemaHttpRequest req) {
 						T entryResource = mhLoc.getGatewayInfo(req);
 						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
+						ResourceInfo result = new ResourceInfo();
+						result.res = CapabilityHelper.getOrcreateResource(entryResource,
 								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
-						return tsResource;
+						result.min = lowerLimits.get(sub);
+						result.max = upperLimits.get(sub);
+						return result;
 					}
 					
 					@Override

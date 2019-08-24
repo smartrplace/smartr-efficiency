@@ -1,6 +1,5 @@
 package extensionmodel.smarteff.api.common;
 
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.units.AreaResource;
 import org.ogema.core.model.units.LengthResource;

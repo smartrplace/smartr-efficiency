@@ -29,6 +29,7 @@ import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration.Cardinality;
@@ -409,7 +410,14 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			TypeResult type = typeHandler.getType(sub);
 			if(type == null || type.type == null) continue;
 			if(FloatResource.class.isAssignableFrom(type.type)) {
-				Float low = lowerLimits.get(sub);
+				float val;
+				FloatResource valRes = ResourceHelper.getSubResource(res, sub);
+				if (valRes instanceof TemperatureResource)
+					val = ((TemperatureResource) valRes).getCelsius();
+				else
+					val = valRes.getValue();
+				return checkLimits(lowerLimits.get(sub), upperLimits.get(sub), val);
+				/*Float low = lowerLimits.get(sub);
 				Float up = upperLimits.get(sub);
 				float lowv = (low!=null)?low:0;
 				float upv = (up!=null)?up:999999f;
@@ -421,8 +429,17 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 					val = valRes.getValue();
 				if(Float.isNaN(val) || (val < lowv)||(val > upv)) {
 					return false;
-				}
+				}*/
 			}
+		}
+		return true;
+	}
+	
+	public static boolean checkLimits(Float low, Float up, float val) {
+		float lowv = (low!=null)?low:0;
+		float upv = (up!=null)?up:999999f;
+		if(Float.isNaN(val) || (val < lowv)||(val > upv)) {
+			return false;
 		}
 		return true;
 	}
@@ -833,4 +850,16 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		return btn;
 	}
 	
+	public static String getLabel(String sub, Resource res, OgemaLocale locale, Map<String, Map<OgemaLocale, String>>  labels) {
+		if (labels != null && labels.containsKey(sub)) {
+			Map<OgemaLocale, String> resLabel = labels.get(sub);
+			if (resLabel.containsKey(locale)) {
+				return resLabel.get(locale);
+			} else if (resLabel.containsKey(OgemaLocale.ENGLISH)) {
+				return resLabel.get(OgemaLocale.ENGLISH);
+			}
+		}
+		if(res != null) return ResourceUtils.getHumanReadableShortName(res);
+		return sub;
+	}
 }

@@ -97,11 +97,13 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	@SuppressWarnings("deprecation")
 	@Override
 	public void setData(SmartEffTimeSeries sr) {
-		setLabel("#humanreadable", EN, "Internal Name");
-		setLabel("#location", EN, "Resource Location", DE, "Interner Speicherort");
+		//setLabel("#humanreadable", EN, "Internal Name");
+		//setLabel("#location", EN, "Resource Location", DE, "Interner Speicherort");
 		//setLabel(sr.dataProviderId(), EN, "DataProvider");
 		//setLabel(sr.sourceId(), EN, "SourceId");		
-		setLabel(sr.allowNanValues(), EN, "Not-a-number values (NaN) allowed", DE, "Ungültige Werte (NaN) in Zeitreihe zulässig");
+		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvupload")) {
+			setLabel(sr.allowNanValues(), EN, "Not-a-number values (NaN) allowed", DE, "Ungültige Werte (NaN) in Zeitreihe zulässig");
+		}
 		//Label separatorLabel = new Label(page, "separatorLabel", "||");
 				
 		activateTimestampButton = new Button(page, "activateTimestampButton", OPEN_TS_MAP.get(OgemaLocale.ENGLISH)) {
@@ -114,14 +116,16 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			        HttpSession session = req.getReq().getSession();
 			        SessionAuth sauth = (SessionAuth) session.getAttribute(Constants.AUTH_ATTRIBUTE_NAME);
 			        final String user = sauth.getName();
-			        if(user.equals("supermaster"))
-			        	csvButton.setWidgetVisibility(true, req);
-			        else
-			        	csvButton.setWidgetVisibility(false, req);
-					//svButton.enable(req);
-					csvImportButton.setWidgetVisibility(true, req);
-					//csvImportButton.disable(req);					
-				} else {
+			        if(csvButton != null) {
+				        if(user.equals("supermaster"))
+				        	csvButton.setWidgetVisibility(true, req);
+				        else
+				        	csvButton.setWidgetVisibility(false, req);
+						//svButton.enable(req);
+						csvImportButton.setWidgetVisibility(true, req);
+						//csvImportButton.disable(req);
+			        }
+				} else if(csvButton != null) {
 					csvButton.setWidgetVisibility(false, req);
 					//csvButton.disable(req);
 					csvImportButton.setWidgetVisibility(true, req);
@@ -237,8 +241,10 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			}
 			
 			@Override
-			protected SmartEffTimeSeries getResource(OgemaHttpRequest req) {
-				return getReqData(req);
+			protected ResourceInfo getResource(OgemaHttpRequest req) {
+				ResourceInfo result = new ResourceInfo();
+				result.res = getReqData(req);
+				return result;
 			}
 			@Override
 			protected Class<? extends Resource> getType(OgemaHttpRequest req) {
@@ -292,58 +298,59 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		setLineProvider("#commentValue", commentProv);
 		setLabel("#commentValue", EN, "Add comment for new value", DE, "Kommentar zu dem neuen Wert");
 		
-		CSVUploadWidgets csvData = new CSVUploadWidgets(exPage, page, alert, pid(),
-				"Upload CSV file", null) {
+		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvupload")) {
+			CSVUploadWidgets csvData = new CSVUploadWidgets(exPage, page, alert, pid(),
+					"Upload CSV file", null) {
+				
+				@Override
+				protected SmartEffTimeSeries getTSResource(OgemaHttpRequest req) {
+					SmartEffTimeSeries res = getReqData(req);
+					return res;
+				}
+			};
+			csvData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+			csvButton = csvData.csvButton;
+			Flexbox flexLineCSV = getHorizontalFlexBox(page, "csvFlex"+pid(),
+					csvData.csvButton, csvData.uploader.getFileUpload());
+			EditLineProvider csvProv = new EditLineProvider() {
+				@Override
+				public OgemaWidget valueColumn() {
+					return flexLineCSV;
+				}
+			};
+			setLineProvider("#csv", csvProv);
+			setLabel("#csv", EN,"CSV Upload (Standard mode)", DE, "CSV-Datei hochladen (Standardmodus)");
 			
-			@Override
-			protected SmartEffTimeSeries getTSResource(OgemaHttpRequest req) {
-				SmartEffTimeSeries res = getReqData(req);
-				return res;
-			}
-		};
-		csvData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
-		csvButton = csvData.csvButton;
-		Flexbox flexLineCSV = getHorizontalFlexBox(page, "csvFlex"+pid(),
-				csvData.csvButton, csvData.uploader.getFileUpload());
-		EditLineProvider csvProv = new EditLineProvider() {
-			@Override
-			public OgemaWidget valueColumn() {
-				return flexLineCSV;
-			}
-		};
-		setLineProvider("#csv", csvProv);
-		setLabel("#csv", EN,"CSV Upload (Standard mode)", DE, "CSV-Datei hochladen (Standardmodus)");
-		
-		TimeseriesUploadListener tsListener = new TimeseriesUploadListener() {
-			@Override
-			public void fileUploaded(ReadOnlyTimeSeries timeSeries, String filePath, OgemaHttpRequest req) {
-				SmartEffTimeSeries res = getReqData(req);
-				List<SampledValue> values = timeSeries.getValues(0);
-				res.schedule().addValues(values);
-			}
-		};
-		CSVUploadWidgets csvImportData = new CSVUploadWidgets(exPage, page, alert, pid()+"Imp",
-				"Upload CSV file", tsListener ) {
-			
-			@Override
-			protected SmartEffTimeSeries getTSResource(OgemaHttpRequest req) {
-				SmartEffTimeSeries res = getReqData(req);
-				return res;
-			}
-		};
-		csvImportData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
-		csvImportButton = csvImportData.csvButton;
-		Flexbox flexLineCSVImport = getHorizontalFlexBox(page, "csvImportFlex"+pid(),
-				csvImportData.csvButton, csvImportData.uploader.getFileUpload());
-		EditLineProvider csvImportProv = new EditLineProvider() {
-			@Override
-			public OgemaWidget valueColumn() {
-				return flexLineCSVImport;
-			}
-		};
-		setLineProvider("#csvImport", csvImportProv);
-		setLabel("#csvImport", EN,"CSV Upload (Import mode - not for very large files)", DE, "CSV-Datei hochladen (Importmodus - nicht für sehr große Dateien)");
-
+			TimeseriesUploadListener tsListener = new TimeseriesUploadListener() {
+				@Override
+				public void fileUploaded(ReadOnlyTimeSeries timeSeries, String filePath, OgemaHttpRequest req) {
+					SmartEffTimeSeries res = getReqData(req);
+					List<SampledValue> values = timeSeries.getValues(0);
+					res.schedule().addValues(values);
+				}
+			};
+			CSVUploadWidgets csvImportData = new CSVUploadWidgets(exPage, page, alert, pid()+"Imp",
+					"Upload CSV file", tsListener ) {
+				
+				@Override
+				protected SmartEffTimeSeries getTSResource(OgemaHttpRequest req) {
+					SmartEffTimeSeries res = getReqData(req);
+					return res;
+				}
+			};
+			csvImportData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+			csvImportButton = csvImportData.csvButton;
+			Flexbox flexLineCSVImport = getHorizontalFlexBox(page, "csvImportFlex"+pid(),
+					csvImportData.csvButton, csvImportData.uploader.getFileUpload());
+			EditLineProvider csvImportProv = new EditLineProvider() {
+				@Override
+				public OgemaWidget valueColumn() {
+					return flexLineCSVImport;
+				}
+			};
+			setLineProvider("#csvImport", csvImportProv);
+			setLabel("#csvImport", EN,"CSV Upload (Import mode - not for very large files)", DE, "CSV-Datei hochladen (Importmodus - nicht für sehr große Dateien)");
+		}
 		ScheduleViewerOpenButtonEval schedOpenButton = new ScheduleViewerOpenButtonEval(page, "schedOpenButton"+pid(),
 				"Data Viewer",
 				ScheduleViewerConfigProvTSMan.PROVIDER_ID, new ScheduleViewerConfigProvTSMan()) {
@@ -397,8 +404,10 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		activateTimestampButton.registerDependentWidget(newTimestamp);
 		activateTimestampButton.registerDependentWidget(newValueButton);
 		activateTimestampButton.registerDependentWidget(newValue);
-		activateTimestampButton.registerDependentWidget(csvButton);
-		activateTimestampButton.registerDependentWidget(csvImportButton);
+		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvupload")) {
+			activateTimestampButton.registerDependentWidget(csvButton);
+			activateTimestampButton.registerDependentWidget(csvImportButton);
+		}
 		if(alert != null) newValueButton.registerDependentWidget(alert);
 		newValue.registerDependentWidget(newValueButton);
 		newValueDrop.registerDependentWidget(newValueButton);
@@ -441,13 +450,18 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		return res.schedule().isActive() || res.recordedDataParent().isActive() || res.fileType().isActive();
 	}
 	
+	public static class ResourceInfo {
+		public SmartEffTimeSeries res;
+		public Float min = null;
+		public Float max = null;
+	}
 	public static abstract class SubmitTSValueButton extends Button {
 		private static final long serialVersionUID = 1L;
 
 		/**If true the widget shall be disabled even if other criteria would enable it*/
 		protected abstract boolean disableForSure(OgemaHttpRequest req);
 		protected boolean checkValue(OgemaHttpRequest req) {return true;}
-		protected abstract SmartEffTimeSeries getResource(OgemaHttpRequest req);
+		protected abstract ResourceInfo getResource(OgemaHttpRequest req);
 		protected Class<? extends Resource> getType(OgemaHttpRequest req) {
 			return FloatResource.class;
 		}
@@ -509,19 +523,33 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				return;
 			}
 			//Dropdown has no invalid values
+			ResourceInfo res = null;
+			if(newValue2 != null) {
+				res = getResource(req);
+				if(res.res.getName().endsWith("Text")) {
+					//Comment time series
+					String val = newValue2.getValue(req);
+					if((!val.isEmpty()) && getValue(val, getType(req), req) == null) {
+						enable(req);
+					} else
+						disable(req);
+					return;				
+				}
+			}
 			if(newValue2 != null && checkValue(req)) { //newValue2.isVisible(req)) {
 				String val = newValue2.getValue(req);
 				if(val.toLowerCase().equals("nan")) {
-					SmartEffTimeSeries res = getResource(req);
-					if(res.allowNanValues().getValue()) {
+					if(res.res.allowNanValues().getValue()) {
 						enable(req);
 					} else disable(req);
 					return;
 				}
-				if(getValue(val, getType(req), req) == null) {
+				Float valf = getValue(val, getType(req), req); 
+				if((valf == null) || (!EditPageGeneric.checkLimits(res.min, res.max, valf))) {
 					disable(req);
 					return;				
 				}
+				
 			}
 			if(submitForNow(req)) {
 				setText(DefaultWidgetProvider.getLocalString(req.getLocale(), SUBMIT_NOW_MAP), req);
@@ -538,15 +566,31 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		public void onPOSTComplete(String data, OgemaHttpRequest req) {
 			String notAllowedMessageUsed = "Invalid value!";
 			String notAllowedMessageTS = "Invalid time series value!";
-			float maximumAllowed = 999999;
-			float minimumAllowed = 0;
 
 			Float value;
+			ResourceInfo resInfo = null;
+			if(newValue2 != null) {
+				resInfo = getResource(req);
+				if(resInfo.res.getName().endsWith("Text")) {
+					//Comment time series
+					final Long ts = getTimeStamp(notAllowedMessageTS, req);
+					if(ts == null) return;
+					String comment = newValue2.getValue(req);
+					comment = comment.trim();
+					if(!comment.isEmpty()) addComment(resInfo.res, comment, ts);
+					Schedule sched = getSchedule(resInfo.res, req);
+					setValue(sched , -99876, ts);
+					if(!sched.isActive()) {
+						sched.activate(false);
+					}
+					return;				
+				}
+			}
 			if((newValue2 != null)  && checkValue(req)) {
 				String val = newValue2.getValue(req);
 				if(val.toLowerCase().equals("nan")) {
-					SmartEffTimeSeries res = getResource(req);
-					if(res.allowNanValues().getValue()) {
+					//ResourceInfo res = getResource(req);
+					if(resInfo.res.allowNanValues().getValue()) {
 						value = Float.NaN;
 					} else  {
 						if(alert != null) alert.showAlert(notAllowedMessageUsed+" (NaN)", false, req);
@@ -559,20 +603,22 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 						return;					
 					}
 				}
-				if (value < minimumAllowed) {
+				//ResourceInfo res = getResource(req);
+				if (!EditPageGeneric.checkLimits(resInfo.min, resInfo.max, value)) { //value < minimumAllowed) {
 					if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
 					return;
 				}
-				if (value > maximumAllowed) {
+				/*if (value > maximumAllowed) {
 					if(alert != null) alert.showAlert(notAllowedMessageUsed, false, req);
 					return;
-				}
+				}*/
 			} else {
 				value = (float)newValueDrop.getSelectedItem(req);
 			}
-			long ts;
+			final Long ts = getTimeStamp(notAllowedMessageTS, req);
+			if(ts == null) return;
 			//String buttonText = activateTimestampButton.getText(req);
-			if(!submitForNow(req)) {
+			/*if(!submitForNow(req)) {
 				String val = newTimestamp.getValue(req);
 				try {
 					ts = TS_FORMAT.parse(val).getTime();
@@ -581,10 +627,10 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 					return;
 				}
 			} else
-				ts = appManExt.getFrameworkTime();
-			SmartEffTimeSeries res = getResource(req);
-			Schedule sched = res.schedule();
-			if(!sched.exists()) {
+				ts = appManExt.getFrameworkTime();*/
+			SmartEffTimeSeries res = getResource(req).res;
+			Schedule sched = getSchedule(res, req); //res.schedule();
+			/*if(!sched.exists()) {
 				Class<? extends Resource> type = getType(req);
 				if(!type.equals(FloatResource.class))
 					res.getSubResource("recordedDataParent", type);
@@ -592,7 +638,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 					res.recordedDataParent().create();
 				res.recordedDataParent().program().create();
 				sched.setAsReference(res.recordedDataParent().program());					
-			}
+			}*/
 			setValue(sched , value, ts);
 			if(newComment != null) {
 				String comment = newComment.getValue(req);
@@ -612,6 +658,34 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			ValueResourceUtils.appendValue(res.commmentTimeStamps(), timestamp);
 			if(!res.comments().isActive()) res.comments().activate(false);
 			if(!res.commmentTimeStamps().isActive()) res.commmentTimeStamps().activate(false);
+		}
+		private Long getTimeStamp(String notAllowedMessageTS, OgemaHttpRequest req) {
+			long ts;
+			//String buttonText = activateTimestampButton.getText(req);
+			if(!submitForNow(req)) {
+				String val = newTimestamp.getValue(req);
+				try {
+					ts = TS_FORMAT.parse(val).getTime();
+				} catch (ParseException e) {
+					alert.showAlert(notAllowedMessageTS+":"+val, false, req);
+					return null;
+				}
+			} else
+				ts = appManExt.getFrameworkTime();
+			return ts;
+		}
+		private Schedule getSchedule(SmartEffTimeSeries res, OgemaHttpRequest req) {
+			Schedule sched = res.schedule();
+			if(!sched.exists()) {
+				Class<? extends Resource> type = getType(req);
+				if(!type.equals(FloatResource.class))
+					res.getSubResource("recordedDataParent", type);
+				else
+					res.recordedDataParent().create();
+				res.recordedDataParent().program().create();
+				sched.setAsReference(res.recordedDataParent().program());					
+			}
+			return sched;
 		}
 	}
 	

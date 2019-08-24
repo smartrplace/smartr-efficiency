@@ -83,7 +83,8 @@ public class StandardPageAdmin {
 			menu.addEntry("Data Types", pageResTypes);
 		}
 		//menu.addEntry("Data Explorer", page3);
-		menu.addEntry("Navigation Pages", pageNavis);
+		if(!Boolean.getBoolean("org.smartrplace.smarteff.admin.excludeBaseStandardPages"))
+			menu.addEntry("Navigation Pages", pageNavis);
 		
 		for(AdditionalMenuEntry add: additionalEntries.values()) {
 			menu.addEntry(add.label, add.page);
