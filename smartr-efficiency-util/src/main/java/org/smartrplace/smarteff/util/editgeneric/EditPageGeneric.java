@@ -112,6 +112,13 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	 */
 	protected void checkSetData() {}
 
+	/** Overwrite in inherited classes to show button "Fill empty resources"
+	 */
+	protected boolean showFillEmptyResButton() {
+		return false;
+	}
+
+	
 	public EditPageGeneric() {
 		this(null);
 	}
@@ -517,8 +524,10 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 		setData(sampleResource);
 		checkSetData();
 		super.addWidgets();
-		Button setDefaults = createDefaultsButton(DefaultSetModes.SET_IF_NEW, "Fill empty resources");
-		page.append(setDefaults);
+		if(showFillEmptyResButton()) {
+			Button setDefaults = createDefaultsButton(DefaultSetModes.SET_IF_NEW, "Fill empty resources");
+			page.append(setDefaults);
+		}
 	}
 	
 	protected OgemaWidget alert2;

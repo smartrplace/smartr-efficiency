@@ -214,4 +214,9 @@ public class BuildingEditPage extends EditPageGeneric<BuildingData> {
 		
 		return super.checkResource(res);
 	}
+	
+	@Override
+	protected boolean showFillEmptyResButton() {
+		return true;
+	}
 }

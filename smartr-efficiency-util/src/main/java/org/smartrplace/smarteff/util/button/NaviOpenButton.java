@@ -175,13 +175,7 @@ public class NaviOpenButton extends RedirectButton {
 	
 	//This does not make sense for a RedirectButton. But we may have to register dependency (e.g. for SmartEffTimeseries data entry)
 	@Override
-	public void registerDependentWidget(OgemaWidget other) {
-		super.registerDependentWidget(other);
-		removeTriggerAction(other, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-	}
+	public void registerDependentWidget(OgemaWidget other) {}
 	@Override
-	public void registerDependentWidget(OgemaWidget other, OgemaHttpRequest req) {
-		super.registerDependentWidget(other, req);
-		removeTriggerAction(other, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-	}
+	public void registerDependentWidget(OgemaWidget other, OgemaHttpRequest req) {}
 }
