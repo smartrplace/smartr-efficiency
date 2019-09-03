@@ -533,7 +533,10 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 						enable(req);
 					} else
 						disable(req);
+					newValue2.setInputmode("text", req);
 					return;				
+				} else {
+				newValue2.setInputmode("decimal", req);
 				}
 			}
 			if(newValue2 != null && checkValue(req)) { //newValue2.isVisible(req)) {
