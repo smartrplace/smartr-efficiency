@@ -25,6 +25,7 @@ public class EvalButtonConfigured extends ScheduleViewerOpenButtonEval {
 	protected final EvalButtonConfigServiceProvider service;
 	protected final int evalConfigIdx;
 	protected final ApplicationManager appMan;
+	protected TimeSeriesNameProvider nameProvider = null;
 	
 	public EvalButtonConfigured(WidgetPage<?> page, String widgetId,
 			EvalButtonConfigServiceProvider service, int evalConfigIdx, ApplicationManager appMan) {
@@ -33,6 +34,10 @@ public class EvalButtonConfigured extends ScheduleViewerOpenButtonEval {
 		this.service = service;
 		this.evalConfigIdx = evalConfigIdx;
 		this.appMan = appMan;
+	}
+	
+	public void setNameProvider(TimeSeriesNameProvider nameProvider) {
+		this.nameProvider = nameProvider;
 	}
 	
 	@Override
