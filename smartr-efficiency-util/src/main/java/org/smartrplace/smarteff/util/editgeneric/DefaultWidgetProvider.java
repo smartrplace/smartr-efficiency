@@ -63,6 +63,7 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.filedownload.FileDownload;
 import de.iwes.widgets.html.filedownload.FileDownloadData;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
@@ -359,7 +360,34 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				if(innerMap != null) {
 					newValue = new TSManagementPage.AddValueDropdown(page, "newValueSP"+subId+pid, innerMap);
 				} else {				
-					 newValue = new TextField(page, "newValueSP"+subId+pid);
+					 newValue = new TextField(page, "newValueSP"+subId+pid) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							T entryResource = mhLoc.getGatewayInfo(req);
+							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+							SmartEffTimeSeries res = CapabilityHelper.getOrcreateResource(entryResource,
+									sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
+							long startOfDay = AbsoluteTimeHelper.getIntervalStart(
+									appManExt.getFrameworkTime(), AbsoluteTiming.DAY);
+							/*Object ctx = widgetContexts.get(sub);
+							if(ctx != null && (ctx instanceof SmartEffTimeSeriesWidgetContext)) {
+								SmartEffTimeSeriesWidgetContext sctx = (SmartEffTimeSeriesWidgetContext)ctx;
+								//TODO: Remove after testing
+								Long last = sctx.lastTimeStamp.get(res.getLocation());
+								if(last != null && (last >= startOfDay)) {
+									setValue("Value set", req);
+								}
+							}*/
+							//Cashing via context could make sense
+							if(res.schedule().isActive()) {
+								SampledValue lastv = res.schedule().getPreviousValue(Long.MAX_VALUE);
+								if(lastv != null && (lastv.getTimestamp() >= startOfDay)) {
+									setValue(lastv.getValue().getStringValue(), req);
+								}
+							}
+						}
+					 };
 				}		
 				newValue.setDefaultVisibility(false);
 				newValue.postponeLoading();
@@ -511,6 +539,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						return null;
 					}
 				};
+				openTSManButton.addDefaultStyle(ButtonData.BOOTSTRAP_LIGHT_BLUE);
 				
 				mhLoc.triggerOnPost(openTSManButton, csvData.csvButton);
 				mhLoc.triggerOnPost(openTSManButton, csvData.uploader.getFileUpload());

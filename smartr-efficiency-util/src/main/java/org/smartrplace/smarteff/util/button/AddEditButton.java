@@ -69,7 +69,8 @@ public class AddEditButton extends NaviOpenButton { //implements CreateButtonI {
 		if(text == null) text = getButtonTexts(req).get(OgemaLocale.ENGLISH);
 
 		Resource res = getResource(appData, req);
-		if(res != null) {
+		if(Boolean.getBoolean("org.smartrplace.smarteff.util.button.addSizesOnButtons")
+				&& (res != null)) {
 			Integer size = getSizeInternal(res, appData);
 			if(size != null) {
 				setText(text+"("+size+")", req);

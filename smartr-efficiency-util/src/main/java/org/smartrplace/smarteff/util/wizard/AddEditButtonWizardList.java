@@ -60,7 +60,7 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 	}
 
 	public enum BACKTYPE {
-		BACK, START, FORWARD
+		BACK, START, FORWARD, SECOND, THIRD
 	}
 	protected final BACKTYPE isBackButton;
 	
@@ -82,6 +82,10 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 		ResourceList<T> sub = entryResource.getSubResource(CapabilityHelper.getSingleResourceName(
 				getType()), ResourceList.class);
 		WizBexRoomContext wct = new WizBexRoomContext();
+		if(isBackButton == BACKTYPE.SECOND)
+			wct.currentIndex = 1;
+		else if(isBackButton == BACKTYPE.THIRD)
+			wct.currentIndex = 2;
 		wct.allResource = sub.getAllElements();
 		wct.allResource.sort(new Comparator<T>() {
 			@Override
@@ -92,9 +96,14 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 			}
 		});
 		Resource el = getElementResource(req);
-		if(el == null)
-			wct.currentIndex = 0;
-		else {
+		if(el == null) {
+			if(isBackButton == BACKTYPE.SECOND)
+				wct.currentIndex = 1;
+			else if(isBackButton == BACKTYPE.THIRD)
+				wct.currentIndex = 2;
+			else
+				wct.currentIndex = 0;
+		} else {
 			wct.currentIndex = wct.allResource.indexOf(el);
 			if(wct.currentIndex == -1) wct.currentIndex = 0;
 		}
@@ -152,7 +161,12 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 		WizBexRoomContext ct = getMyContext(true, req);
 		WizBexRoomContext newContext = new WizBexRoomContext();
 		newContext.allResource = ct.allResource;
-		newContext.currentIndex = ct.currentIndex;
+		if(isBackButton == BACKTYPE.SECOND)
+			newContext.currentIndex = 1;
+		else if(isBackButton == BACKTYPE.THIRD)
+			newContext.currentIndex = 2;
+		else
+			newContext.currentIndex = ct.currentIndex;
 		return newContext;
 	}
 	

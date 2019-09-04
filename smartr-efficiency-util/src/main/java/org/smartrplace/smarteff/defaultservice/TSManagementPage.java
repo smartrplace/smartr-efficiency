@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -85,8 +86,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	}
 	
 	static {
-		SUPERBUTTON_TEXTS.put(OgemaLocale.ENGLISH, "Timeseries Administration...");
-		SUPERBUTTON_TEXTS.put(OgemaLocale.GERMAN, "Verwaltung Zeitreihe...");
+		SUPERBUTTON_TEXTS.put(OgemaLocale.ENGLISH, System.getProperty("org.smartrplace.smarteff.defaultservice.SUPERBUTTON_TEXTS_EN", "Timeseries Administration..."));
+		SUPERBUTTON_TEXTS.put(OgemaLocale.GERMAN, System.getProperty("org.smartrplace.smarteff.defaultservice.SUPERBUTTON_TEXTS_DE", "Verwaltung Zeitreihe..."));
 	}
 	protected Button activateTimestampButton;
 	protected TextField newTimestamp;
@@ -285,7 +286,12 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 						}
 						String text = innerMap.get(req.getLocale());
 						if(text == null) text = innerMap.get(localeDefault);
-						if(text != null) setText(text+" ("+unit+")", req);
+						if(text != null) {
+							if(!unit.isEmpty())
+								setText(text+" ("+unit+")", req);
+							else
+								setText(text, req);
+						}
 						else setText("*"+"#addValue"+"*", req);
 					}
 				};
@@ -785,5 +791,17 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			if(inMapLoc == null) inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
 			return inMapLoc.get(""+object);
 		}
+	}
+	
+	public static final Map<OgemaLocale, String> HEADER_MAP = new LinkedHashMap<>();
+	static {
+		//TODO
+		HEADER_MAP.put(EN, "Zeitreihen Details: ");
+		HEADER_MAP.put(DE, "Zeitreihen Details: ");
+	}
+
+	@Override
+	protected String getHeader(OgemaHttpRequest req) {
+		return HEADER_MAP.get(req.getLocale())+ super.getHeader(req);
 	}
 }

@@ -55,8 +55,13 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 	protected Resource getTableResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
 		return appData.entryResources().get(0);
 	}
-
+	protected Map<OgemaLocale, String> getButtonTexts(String roomNaviID, OgemaHttpRequest req) {
+		return null;
+	}
+	
 	public static final String ROOM_FIRST_LABEL_ID = "#roomPageSeries";
+	public static final String ROOM_SECOND_LABEL_ID = "#roomPageSeries2";
+	public static final String ROOM_THIRD_LABEL_ID = "#roomPageSeries3";
 
 	public static final String ROOM_NEXT_LABEL_ID = "#roomNext";
 	public static final String ROOM_BACK_LABEL_ID = "#roomBack";
@@ -65,6 +70,8 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 	public static BACKTYPE getType(String labelId) {
 		if(labelId.equals(ROOM_BACK_LABEL_ID)) return BACKTYPE.BACK;
 		if(labelId.equals(ROOM_NEXT_LABEL_ID)) return BACKTYPE.FORWARD;
+		if(labelId.equals(ROOM_SECOND_LABEL_ID)) return BACKTYPE.SECOND;
+		if(labelId.equals(ROOM_THIRD_LABEL_ID)) return BACKTYPE.THIRD;
 		return BACKTYPE.START;
 	}
 	
@@ -110,6 +117,8 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 		List<CapabilityDeclaration> result = new ArrayList<>();
 		result.add(new CapabilityDeclaration(typeS()));
 		result.add(new CapabilityDeclaration(ROOM_FIRST_LABEL_ID));
+		result.add(new CapabilityDeclaration(ROOM_SECOND_LABEL_ID));
+		result.add(new CapabilityDeclaration(ROOM_THIRD_LABEL_ID));
 		result.add(new CapabilityDeclaration(ROOM_NEXT_LABEL_ID));
 		result.add(new CapabilityDeclaration(ROOM_BACK_LABEL_ID));
 		result.add(new CapabilityDeclaration(ROOM_ENTRY_LABEL_ID));
@@ -159,8 +168,14 @@ public abstract class WizBexWidgetProvider<T extends Resource, S extends Resourc
 
 				@Override
 				protected Map<OgemaLocale, String> getButtonTexts(OgemaHttpRequest req) {
+					Map<OgemaLocale, String> customMap = WizBexWidgetProvider.this.getButtonTexts(sub, req);
+					if(customMap != null) return customMap;
 					switch(sub) {
 					case ROOM_FIRST_LABEL_ID:
+						return ROOMFIRSTBUTTON_TEXTS;
+					case ROOM_SECOND_LABEL_ID:
+						return ROOMFIRSTBUTTON_TEXTS;
+					case ROOM_THIRD_LABEL_ID:
 						return ROOMFIRSTBUTTON_TEXTS;
 					case ROOM_NEXT_LABEL_ID:
 						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
