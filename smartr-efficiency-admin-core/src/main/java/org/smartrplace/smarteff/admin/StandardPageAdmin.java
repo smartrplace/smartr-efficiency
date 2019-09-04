@@ -113,7 +113,7 @@ public class StandardPageAdmin {
 		if(startId.equals(pageId)) return true;
 		return false;
 	}
-	public void registerPage(NavigationPageData data, WidgetPage<?> page) {
+	public MenuConfiguration registerPage(NavigationPageData data, WidgetPage<?> page) {
 		String id = SPPageUtil.buildId(data.provider);
 		allPages.put(id, page);
 		MenuConfiguration mc = page.getMenuConfiguration();
@@ -125,6 +125,7 @@ public class StandardPageAdmin {
 				break;
 			}
 		}
+		return mc;
 	}
 	
 	public String getStartPageURL() {

@@ -3,6 +3,8 @@ package org.smartrplace.extensionservice.gui;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionCapabilityForCreate;
 
+import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
+
 /** Extension Capability for all kinds of visualization extensions, especially table navigation
  * pages and detail edit/value presentation pages for single resources
  */
@@ -15,7 +17,8 @@ public interface NavigationGUIProvider extends ExtensionCapabilityForCreate {
 	 * 		accessible. This information should be handed over here.
 	 * @param appManMin
 	 */
-	void initPage(final ExtensionNavigationPageI<?, ?> page, ApplicationManagerSPExt appManExt);
+	void initPage(final ExtensionNavigationPageI<?, ?> page, MenuConfiguration menuConfiguration,
+			ApplicationManagerSPExt appManExt);
 	
 	public enum PageType {
 		EDIT_PAGE,

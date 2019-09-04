@@ -33,6 +33,7 @@ import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class GUIPageAdministation {
@@ -73,11 +74,11 @@ public class GUIPageAdministation {
     		}
   			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> dataExPage = app.getUserAdmin().
   					getNaviPage(page, url, "dataExplorer.html", id, navi);
-   			navi.initPage(dataExPage, app.appManExt);
+    		NavigationPageData data = new NavigationPageData(navi, service, url, dataExPage);
+    		MenuConfiguration mc = app.pageAdmin.registerPage(data, page);
+   			navi.initPage(dataExPage, mc, app.appManExt);
 
     		
-    		NavigationPageData data = new NavigationPageData(navi, service, url, dataExPage);
-    		app.pageAdmin.registerPage(data, page);
 			if(navi.getEntryTypes() == null) {
 				startPages.add(data);
 				startPagesData.add(new NavigationPublicPageDataImpl(data));

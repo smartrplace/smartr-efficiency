@@ -19,6 +19,7 @@ import org.smartrplace.smarteff.util.button.ResourceOfTypeTableOpenButton;
 import de.iwes.widgets.api.extended.WidgetData;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.label.Header;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
@@ -62,7 +63,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 	protected String getMaintainer() { return null;}
 	protected List<GenericDataTypeDeclaration> typesListedInTable() {return null;}
 	protected PageImplementationContext getPageImplContext() {return null;}
-
+	protected void changeMenuConfig(MenuConfiguration mc) {}
 
 	protected EditPage editOrTablePage;
 	public final Provider provider;	
@@ -124,7 +125,8 @@ public abstract class NaviPageBase<T extends Resource>  {
 		}
 	
 		@Override
-		public void initPage(ExtensionNavigationPageI<?, ?> pageIn, ApplicationManagerSPExt appManExt) {
+		public void initPage(ExtensionNavigationPageI<?, ?> pageIn, MenuConfiguration menuConfiguration,
+				ApplicationManagerSPExt appManExt) {
 			NaviPageBase.this.appManExt = appManExt;
 			//this.generalData = generalData;
 			@SuppressWarnings("unchecked")
@@ -132,6 +134,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 				(ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData>) pageIn;
 			//Label test = new Label(page.page, "test", "Hello World!");
 			//page.page.append(test);
+			changeMenuConfig(menuConfiguration);
 			editOrTablePage = new EditPage(page, appManExt);
 			providerInitDone = true;
 		}
