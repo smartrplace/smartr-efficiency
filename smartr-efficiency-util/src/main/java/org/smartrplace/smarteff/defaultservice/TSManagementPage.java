@@ -47,6 +47,7 @@ import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.button.Button;
@@ -806,5 +807,13 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
 		return HEADER_MAP.get(req.getLocale())+ super.getHeader(req);
+	}
+	
+	@Override
+	protected void changeMenuConfig(MenuConfiguration mc) {
+		if(Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.reducetopnavi")) {
+			mc.setLanguageSelectionVisible(false);
+			mc.setNavigationVisible(false);
+		}
 	}
 }

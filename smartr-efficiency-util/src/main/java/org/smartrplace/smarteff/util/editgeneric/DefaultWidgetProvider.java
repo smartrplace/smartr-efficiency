@@ -380,7 +380,17 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 								}
 							}*/
 							//Cashing via context could make sense
-							if(res.schedule().isActive()) {
+							if(sub.endsWith("Text")) {
+								if(res.commmentTimeStamps().isActive()) {
+									int len = res.commmentTimeStamps().size();
+									if(len > 0) {
+										long lastv = res.commmentTimeStamps().getElementValue(len-1);
+										if((lastv >= startOfDay)) {
+											setValue(res.comments().getElementValue(len-1), req);
+										}
+									}
+								}
+							} else if(res.schedule().isActive()) {
 								SampledValue lastv = res.schedule().getPreviousValue(Long.MAX_VALUE);
 								if(lastv != null && (lastv.getTimestamp() >= startOfDay)) {
 									setValue(lastv.getValue().getStringValue(), req);
