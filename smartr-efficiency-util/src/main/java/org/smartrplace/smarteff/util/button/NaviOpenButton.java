@@ -3,6 +3,7 @@ package org.smartrplace.smarteff.util.button;
 import java.util.Arrays;
 
 import org.ogema.core.model.Resource;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.gui.NavigationGUIProvider.PageType;
 import org.smartrplace.extensionservice.gui.NavigationPublicPageData;
@@ -62,7 +63,7 @@ public class NaviOpenButton extends RedirectButton {
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			PageType pageType, boolean doCreate, boolean isBackButton,
 			ButtonControlProvider controlProvider) {
-		super(page, id+pid, text);
+		super(page, ResourceUtils.getValidResourceName(id+pid), text);
 		this.exPage = exPage;
 		this.pageType = pageType;
 		this.doCreate = doCreate;

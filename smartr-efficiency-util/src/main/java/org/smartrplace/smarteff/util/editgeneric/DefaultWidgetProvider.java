@@ -312,7 +312,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 		} else if(TimeResource.class.isAssignableFrom(type2.type)) {
 			if(sub.contains("Duration")||sub.contains("Interval")) {
 				if(isEditable)	{
-					TextField valueWidget = mhLoc.timeEdit((String)sub, null, 0l, Long.MAX_VALUE, "Interval ragen invalid!", -1);
+					TextField valueWidget = mhLoc.timeEdit((String)sub, null, 0l, Long.MAX_VALUE, "Interval range invalid!", -1);
 					mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);
 					return valueWidget;
 				} else

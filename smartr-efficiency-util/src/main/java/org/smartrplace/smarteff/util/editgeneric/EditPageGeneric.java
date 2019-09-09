@@ -689,7 +689,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	}
 	
 	/** Modes/settings for how defaults are set */
-	protected enum DefaultSetModes {
+	public enum DefaultSetModes {
 		/** Only set defaults if the parent resource fails checkResource() */
 		PARENT_CHECK,
 		/** Set defaults for empty/non-existent resources even if parent passes checks */
@@ -833,9 +833,10 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	 * @return true if value was written
 	 */
 	protected static <K extends Resource, V> boolean setDefault(K res, V val, DefaultSetModes mode) {
-		if (mode == DefaultSetModes.OVERWRITE)
+		if (mode == DefaultSetModes.OVERWRITE) {
+			if(!res.exists()) res.create();
 			return setValue((ValueResource) res, val);
-		else
+		} else
 			return setIfNew(res, val);
 	}
 	
