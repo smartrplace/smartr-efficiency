@@ -34,9 +34,9 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 	
 	protected final ApplicationManagerMinimal appManMin;
 	
-	public class WizBexRoomContext {
-		List<T> allResource;
-		int currentIndex;
+	public static class WizBexRoomContext<T extends Resource> {
+		public List<T> allResource;
+		public int currentIndex;
 		boolean isShifted = false;
 	}
 	
@@ -64,12 +64,12 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 	}
 	protected final BACKTYPE isBackButton;
 	
-	protected WizBexRoomContext getMyContext(boolean inPOST, OgemaHttpRequest req) {
+	protected WizBexRoomContext<T> getMyContext(boolean inPOST, OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		Object ct = appData.getConfigInfo().context;
 		if((ct != null) && (ct instanceof AddEditButtonWizardList.WizBexRoomContext)) {
 			@SuppressWarnings("unchecked")
-			WizBexRoomContext wct = (WizBexRoomContext) ct;
+			WizBexRoomContext<T> wct = (WizBexRoomContext<T>) ct;
 			if(inPOST && (!wct.isShifted)) {
 				shiftContext(wct);
 				wct.isShifted = true;
@@ -81,7 +81,7 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 		@SuppressWarnings("unchecked")
 		ResourceList<T> sub = entryResource.getSubResource(CapabilityHelper.getSingleResourceName(
 				getType()), ResourceList.class);
-		WizBexRoomContext wct = new WizBexRoomContext();
+		WizBexRoomContext<T> wct = new WizBexRoomContext<T>();
 		if(isBackButton == BACKTYPE.SECOND)
 			wct.currentIndex = 1;
 		else if(isBackButton == BACKTYPE.THIRD)
@@ -119,7 +119,7 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 			else disable(req);
 			return;
 		}
-		WizBexRoomContext ct = getMyContext(false, req);
+		WizBexRoomContext<T> ct = getMyContext(false, req);
 		//List<T> resList = ct.allResource;
 		int idx = getShiftedIndex(ct);
 		//if((ct.currentIndex < 0) || (ct.currentIndex >= resList.size())) disable(req);
@@ -139,7 +139,7 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 	@Override
 	protected Resource getResource(ExtensionResourceAccessInitData appData,
 			OgemaHttpRequest req) {
-		WizBexRoomContext ct = getMyContext(false, req);
+		WizBexRoomContext<T> ct = getMyContext(false, req);
 		List<T> resList = ct.allResource;
 		int idx = getShiftedIndex(ct);
 		if((idx < 0) || (idx >= resList.size())) {
@@ -158,8 +158,8 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 	@Override
 	protected Object getContext(ExtensionResourceAccessInitData appData, Resource object,
 			OgemaHttpRequest req) {
-		WizBexRoomContext ct = getMyContext(true, req);
-		WizBexRoomContext newContext = new WizBexRoomContext();
+		WizBexRoomContext<T> ct = getMyContext(true, req);
+		WizBexRoomContext<T> newContext = new WizBexRoomContext<T>();
 		newContext.allResource = ct.allResource;
 		if(isBackButton == BACKTYPE.SECOND)
 			newContext.currentIndex = 1;
@@ -170,13 +170,13 @@ public abstract class AddEditButtonWizardList<T extends Resource> extends AddEdi
 		return newContext;
 	}
 	
-	private void shiftContext(WizBexRoomContext ct) {
+	private void shiftContext(WizBexRoomContext<T> ct) {
 		if(isBackButton==BACKTYPE.BACK)
 			ct.currentIndex = ct.currentIndex - 1;
 		else if(isBackButton == BACKTYPE.FORWARD)
 			ct.currentIndex = ct.currentIndex + 1;
 	}
-	protected int getShiftedIndex(WizBexRoomContext ct) {
+	protected int getShiftedIndex(WizBexRoomContext<T> ct) {
 		if(ct.isShifted) return ct.currentIndex;
 		if(isBackButton==BACKTYPE.BACK)
 			return ct.currentIndex - 1;

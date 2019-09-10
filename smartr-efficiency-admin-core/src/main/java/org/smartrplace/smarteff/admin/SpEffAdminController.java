@@ -162,6 +162,13 @@ public class SpEffAdminController {
 		public FileDownload getFileDownload(WidgetPage<?> page, String widgetId)  {
 			return new FileDownload(page, widgetId, appMan.getWebAccessManager(), true);		
 		}
+		
+		@Override
+		public String registerStaticConfigId(int entryIdx, List<Resource> entryResources,
+				Object context) {
+			return configIdAdmin.getConfigId(entryIdx, entryResources, null,
+					null, context, null, null);
+		}
 	};
 	
     public SpEffAdminController(ApplicationManager appMan, ServiceAccess evaluationOCApp, final WidgetApp widgetApp,

@@ -30,6 +30,17 @@ public interface ApplicationManagerSPExt extends ApplicationManagerSpExtMinimal 
 	/** A FileDownload requires access to to the WebAccessManager, so this has to be put into a special method*/
 	public FileDownload getFileDownload(WidgetPage<?> page, String widgetId);
 	
+	/** Register configId for external access that shall be availabel without creating the ID via
+	 * a HTTPRequest.<br>
+	 * It is recommended to check the right arguments in ConfigIdAdministration#getConfigId for the
+	 * respective opening button
+	 * @param entryIdx
+	 * @param entryResources
+	 * @param context
+	 * @return
+	 */
+	public String registerStaticConfigId(int entryIdx, List<Resource> entryResources,
+			Object context);
 	/**
 	 * 
 	 * @param eval
