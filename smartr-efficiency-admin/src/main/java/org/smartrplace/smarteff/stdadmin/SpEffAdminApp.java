@@ -150,13 +150,15 @@ public class SpEffAdminApp implements Application, ServiceAccess {
     
     protected void removeProvider(SmartEffExtensionService provider) {
     	evaluationProviders.remove(SPPageUtil.buildId(provider));
+		controller.unregisterService(provider);
     	// Execute in main application thread
-    	if(controller != null) new CountDownDelayedExecutionTimer(appMan, 1) {
+    	/*if(controller != null) new CountDownDelayedExecutionTimer(appMan, 1) {
 			
 			@Override
 			public void delayedExecution() {
-				controller.unregisterService(provider);			}
-		};
+				controller.unregisterService(provider);
+			}
+		};*/
     }
 
     private final Map<String,GenericPageConfigurationProvider> pageConfigProviders = Collections.synchronizedMap(new LinkedHashMap<String,GenericPageConfigurationProvider>());
@@ -176,13 +178,15 @@ public class SpEffAdminApp implements Application, ServiceAccess {
     
     protected void removePageConfigProvider(GenericPageConfigurationProvider provider) {
     	pageConfigProviders.remove(provider.id());
+		controller.unregisterPageProviderService(provider);
     	// Execute in main application thread
-    	if(controller != null) new CountDownDelayedExecutionTimer(appMan, 1) {
+    	/*if(controller != null) new CountDownDelayedExecutionTimer(appMan, 1) {
 			
 			@Override
 			public void delayedExecution() {
-				controller.unregisterPageProviderService(provider);			}
-		};
+				controller.unregisterPageProviderService(provider);
+			}
+		};*/
     }
 
 	@Override
