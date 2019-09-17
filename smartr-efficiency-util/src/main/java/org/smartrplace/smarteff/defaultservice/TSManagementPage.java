@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -57,6 +58,9 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.FlexWrap;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
+import de.iwes.widgets.reswidget.scheduleviewer.api.ScheduleViewerConfiguration;
+import de.iwes.widgets.reswidget.scheduleviewer.api.ScheduleViewerConfigurationBuilder;
+import de.iwes.widgets.reswidget.scheduleviewer.api.TimeSeriesFilter;
 import de.iwes.widgets.template.DisplayTemplate;
 
 public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
@@ -363,6 +367,18 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				ScheduleViewerConfigProvTSMan.PROVIDER_ID, new ScheduleViewerConfigProvTSMan()) {
 			private static final long serialVersionUID = 1L;
 
+			@Override
+			protected ScheduleViewerConfiguration getViewerConfiguration(long startTime, long endTime,
+					List<Collection<TimeSeriesFilter>> programs) {
+				final ScheduleViewerConfiguration viewerConfiguration =
+						ScheduleViewerConfigurationBuilder.newBuilder().setPrograms(programs).
+						setStartTime(startTime).setEndTime(endTime).setShowManipulator(true).
+						setShowCsvDownload(false).
+						setShowIndividualConfigBtn(false).
+						build();
+					return viewerConfiguration;
+			}
+			
 			@Override
 			protected List<TimeSeriesData> getTimeseries(OgemaHttpRequest req) {
 				SmartEffTimeSeries res = getReqData(req);

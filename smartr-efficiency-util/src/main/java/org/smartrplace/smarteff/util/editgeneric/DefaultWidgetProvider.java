@@ -3,6 +3,8 @@ package org.smartrplace.smarteff.util.editgeneric;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +21,8 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.externalviewer.extensions.IntervalConfiguration;
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
@@ -32,6 +36,7 @@ import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.proposal.ProjectProposal;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData.PublicUserInfo;
+import org.smartrplace.smarteff.defaultservice.ScheduleViewerConfigProvTSMan;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ContextType;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ResourceInfo;
@@ -48,6 +53,8 @@ import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
 import org.smartrplace.util.format.ValueConverter;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
@@ -73,6 +80,9 @@ import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
+import de.iwes.widgets.reswidget.scheduleviewer.api.ScheduleViewerConfiguration;
+import de.iwes.widgets.reswidget.scheduleviewer.api.ScheduleViewerConfigurationBuilder;
+import de.iwes.widgets.reswidget.scheduleviewer.api.TimeSeriesFilter;
 import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
@@ -551,6 +561,54 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				};
 				openTSManButton.addDefaultStyle(ButtonData.BOOTSTRAP_LIGHT_BLUE);
 				
+				ScheduleViewerOpenButtonEval schedOpenButton = null;
+				if(Boolean.getBoolean("org.smartrplace.smarteff.util.editgeneric.timeseries.adddirectchartbutton")) {
+					schedOpenButton = new ScheduleViewerOpenButtonEval(page, "schedOpenButton"+subId+pid,
+							"Chart",
+							ScheduleViewerConfigProvTSMan.PROVIDER_ID, new ScheduleViewerConfigProvTSMan()) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						protected ScheduleViewerConfiguration getViewerConfiguration(long startTime, long endTime,
+								List<Collection<TimeSeriesFilter>> programs) {
+							final ScheduleViewerConfiguration viewerConfiguration =
+									ScheduleViewerConfigurationBuilder.newBuilder().setPrograms(programs).
+									setStartTime(startTime).setEndTime(endTime).setShowManipulator(true).
+									setShowCsvDownload(false).
+									setShowIndividualConfigBtn(false).
+									build();
+								return viewerConfiguration;
+						}
+						
+						@Override
+						protected List<TimeSeriesData> getTimeseries(OgemaHttpRequest req) {
+							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+							T entryResource = mhLoc.getGatewayInfo(req);
+							SmartEffTimeSeries res = CapabilityHelper.getOrcreateResource(entryResource,
+									sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
+							ReadOnlyTimeSeries ts = appData.getTimeseriesManagement().getTimeSeries(res);
+							String label = res.getLocation();
+							return Arrays.asList(new TimeSeriesData[] {new TimeSeriesDataImpl(ts, label, label, null)});
+						}
+
+						@Override
+						protected String getEvaluationProviderId(OgemaHttpRequest req) {
+							return "Single time series from DWP";
+						}
+
+						@Override
+						protected IntervalConfiguration getITVConfiguration(OgemaHttpRequest req) {
+							IntervalConfiguration result = new IntervalConfiguration();
+							//TODO: Make start/end configurable with default options or other
+							result.start = 0;
+							result.end = appManExt.getFrameworkTime();
+							return result ;
+						}
+				
+					};
+					
+				}
+				
 				mhLoc.triggerOnPost(openTSManButton, csvData.csvButton);
 				mhLoc.triggerOnPost(openTSManButton, csvData.uploader.getFileUpload());
 				mhLoc.triggerOnPost(openTSManButton, newValue);
@@ -559,8 +617,15 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				
 				csvData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 				newValueButton.setDefaultPadding("1em", false, true, false, true);
-				Flexbox valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+subId+pid,
-						csvData.csvButton, newValue, csvData.uploader.getFileUpload(), newValueButton, openTSManButton);
+				Flexbox valueWidget;
+				if(Boolean.getBoolean("org.smartrplace.smarteff.util.editgeneric.timeseries.adddirectchartbutton")) {
+					valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+subId+pid,
+						csvData.csvButton, newValue, csvData.uploader.getFileUpload(), newValueButton,
+						openTSManButton, schedOpenButton);
+				} else {
+					valueWidget = TSManagementPage.getHorizontalFlexBox(page, "flexbox"+subId+pid,
+							csvData.csvButton, newValue, csvData.uploader.getFileUpload(), newValueButton, openTSManButton);
+				}
 				return valueWidget;
 			} else return new Label(page, "noEdit_"+sub, "No Upload Allowed");
 		} else if(ResourceList.class.isAssignableFrom(type2.type)) {
