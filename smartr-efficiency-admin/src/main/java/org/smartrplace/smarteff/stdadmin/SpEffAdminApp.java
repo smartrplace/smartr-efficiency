@@ -150,7 +150,7 @@ public class SpEffAdminApp implements Application, ServiceAccess {
     
     protected void removeProvider(SmartEffExtensionService provider) {
     	evaluationProviders.remove(SPPageUtil.buildId(provider));
-		controller.unregisterService(provider);
+    	if(controller != null) controller.unregisterService(provider);
     	// Execute in main application thread
     	/*if(controller != null) new CountDownDelayedExecutionTimer(appMan, 1) {
 			
@@ -178,7 +178,7 @@ public class SpEffAdminApp implements Application, ServiceAccess {
     
     protected void removePageConfigProvider(GenericPageConfigurationProvider provider) {
     	pageConfigProviders.remove(provider.id());
-		controller.unregisterPageProviderService(provider);
+    	if(controller != null) controller.unregisterPageProviderService(provider);
     	// Execute in main application thread
     	/*if(controller != null) new CountDownDelayedExecutionTimer(appMan, 1) {
 			
