@@ -14,6 +14,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -95,6 +96,8 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 			Map<String, Map<OgemaLocale, String>> locMap = creatingPage.tableHeaders;
 			for(Entry<String,Map<OgemaLocale,String>> entry: locMap.entrySet()) {
 				String sub = entry.getKey();
+				if(sub.startsWith("#"))
+					continue;
 				if(req == null) {
 					String headEntry = getHeaderEntry(object, sub);
 					if(headEntry != null) {
@@ -103,35 +106,6 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 					}
 				} else if(processWidgetByInheritedPage((T) object, sub, entry.getValue(), id, req, row))
 					continue;
-				/*if(sub.equals(WizBexWidgetProvider.ROOM_ENTRY_LABEL_ID)) {
-					if(req != null) {
-						AddEditButtonWizardList<T> openButton = new AddEditButtonWizardList<T>(
-								mainTable, sub, sub, exPage, null, registerDependentWidgets, req) {
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							protected Resource getEntryResource(OgemaHttpRequest req) {
-								return object;
-							}
-
-							@Override
-							protected Class<T> getType() {
-								return (Class<T>) creatingPage.primaryEntryTypeClassPublic();
-							}
-							
-							@Override
-							protected String getDestinationURL(ExtensionResourceAccessInitData appData,
-									Resource object, OgemaHttpRequest req) {
-								return SPPageUtil.getProviderURL();
-							}
-						};
-						row.addCell("Entry", openButton);
-						//SPPageUtil.addResEditOpenButton("Entry", object, vh, id, row, appData, tabButton.control, req);
-					} else {
-						vh.registerHeaderEntry("Entry");
-					}
-					continue;
-				}*/
 				
 				Resource cellObject = ResourceHelper.getSubResource(object, sub);
 				//Resource cellObject = CapabilityHelper.getOrcreateResource(object,
@@ -213,5 +187,12 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 	@Override
 	protected Map<OgemaLocale, String> getSuperEditButtonTexts() {
 		return creatingPage.getSuperEditButtonTexts();
+	}
+	
+	@Override
+	protected String getHeader(OgemaHttpRequest req) {
+		String head = creatingPage.tableHeaders.get("#TableHeader").get(EditPageGeneric.EN);
+		if(head != null) return head+ResourceUtils.getHumanReadableName(getReqData(req));
+		return super.getHeader(req);
 	}
 }

@@ -5,32 +5,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionResourceTypeDeclaration;
-import org.smartrplace.extensionservice.gui.ExtensionNavigationPageI;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.extensionservice.resourcecreate.ProviderPublicDataForCreate.PagePriority;
 import org.smartrplace.smarteff.defaultservice.ResourceTablePage;
-import org.smartrplace.smarteff.util.SPPageUtil;
 import org.smartrplace.smarteff.util.button.AddEditButton;
 import org.smartrplace.smarteff.util.button.AddEntryButton;
 import org.smartrplace.smarteff.util.button.BackButton;
-import org.smartrplace.smarteff.util.button.ButtonControlProvider;
 import org.smartrplace.smarteff.util.button.TabButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
-import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
-import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.RedirectButton;
-import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class GenericResourceByTypeTablePageBase extends ResourceTablePage {
 	public static final Map<OgemaLocale, String> SUPEREDITBUTTON_TEXTS = new HashMap<>();
