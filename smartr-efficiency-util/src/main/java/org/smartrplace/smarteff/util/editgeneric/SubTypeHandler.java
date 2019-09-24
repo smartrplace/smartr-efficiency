@@ -64,6 +64,19 @@ public class SubTypeHandler {
 	}
 	
 	public TypeResult getType(String subPath) {
+		if(subPath.startsWith("#$ResourceType:")) {
+			String requested = subPath.substring("#$ResourceType:".length());
+			Class<? extends Resource> type = null;
+			for(ExtensionResourceTypeDeclaration<?> known: appManExt.getAllTypeDeclarations()) {
+				if(known.dataType().getName().equals(requested)) {
+					type = known.dataType();
+					TypeResult result = new TypeResult(ResourceList.class);
+					result.elementType = type;
+					return result;
+				}
+			}
+			return null;
+		}
 		if(subPath.startsWith("#")) {
 			return new TypeResult(subPath);
 		}

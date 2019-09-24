@@ -193,21 +193,22 @@ public class CapabilityHelper {
 		String[] els = subPath.split("/", 2);
 		final String realSub;
 		int index = -1;
-		final Resource newRes;
+		Resource newRes;
 		if(els[0].contains("#$")) {
 			int inStringIdx = els[0].indexOf("#$");
 			String intString = els[0].substring(inStringIdx+2);
 			realSub = els[0].substring(0, inStringIdx);
-			index = Integer.parseInt(intString);
-			//cr = getElementClassOfResourceList(cr, realSub);
 			ResourceList<?> resList = parent.getSubResource(realSub, ResourceList.class);
-			//ExtensionResourceTypeDeclaration<?> type = CapabilityHelper.getTypeFromName(realSub, appManExt);
-			//NewResourceResult<?> newParent = extPageC.getNewResource(parent, realSub, type);
-			//newRes = newParent.newResource;
-			//if(!(newRes instanceof ResourceList)) return null;
-			//ResourceList<?> resList = (ResourceList<?>)newRes;
-			if(resList.size() <= index) return null;
-			newRes = resList.getAllElements().get(index);
+			try {
+				index = Integer.parseInt(intString);
+				if(resList.size() <= index) return null;
+				newRes = resList.getAllElements().get(index);
+			} catch(NumberFormatException e) {
+				newRes = resList.getSubResource(intString);
+				if(newRes == null) {
+					newRes = resList.getSubResource(intString, resList.getElementType());
+				}
+			}
 			if(!newRes.exists()) return null;
 			if(els.length == 1) return (T) newRes;
 		} else {

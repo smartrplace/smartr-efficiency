@@ -638,6 +638,20 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 							OgemaHttpRequest req) {
 						return type2.elementType;
 					}
+					
+					@Override
+					protected Resource getResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
+						//TODO: This may be the default behaviour in the future
+						if(sub.startsWith("#$ResourceType:"))
+							return super.getResource(appData, req);
+						if(sub.contains("#$")) {
+							T entryResource = mhLoc.getGatewayInfo(req);
+							ResourceList<?> resList = CapabilityHelper.getOrcreateResource(entryResource,
+									sub, appData.systemAccess(), appManExt, ResourceList.class);
+							return resList;	
+						}
+						return super.getResource(appData, req);
+					}
 				};
 				valueWidget.openResSub(true);
 				mh.triggerOnPost(valueWidget, valueWidget); //valueWidget.registerDependentWidget(valueWidget);

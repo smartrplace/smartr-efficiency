@@ -13,6 +13,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.SPPageUtil;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -63,7 +64,7 @@ public class NaviOpenButton extends RedirectButton {
 			ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage,
 			PageType pageType, boolean doCreate, boolean isBackButton,
 			ButtonControlProvider controlProvider) {
-		super(page, ResourceUtils.getValidResourceName(id+pid), text);
+		super(page, WidgetHelper.getValidWidgetId(id+pid), text);
 		this.exPage = exPage;
 		this.pageType = pageType;
 		this.doCreate = doCreate;

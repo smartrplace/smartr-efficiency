@@ -10,6 +10,7 @@ import org.smartrplace.smarteff.util.EditPageBase;
 import org.smartrplace.smarteff.util.button.BackButton;
 import org.smartrplace.smarteff.util.button.LogicProvTableOpenButton;
 import org.smartrplace.smarteff.util.button.TableOpenButton;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.OGEMAResourceCopyHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -141,7 +142,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 		};
 
 		OgemaWidget globalValueWidget = createValueWidget(sub, type, (Label)label, mhGlob, false, "glob");
-		String buttonId = ResourceUtils.getValidResourceName("control_" + sub + pid()); //sub.replace("/",  "_")
+		String buttonId = WidgetHelper.getValidWidgetId("control_" + sub + pid()); //sub.replace("/",  "_")
 		Button control = new Button(page, buttonId) {
 			private static final long serialVersionUID = 1L;
 			@Override

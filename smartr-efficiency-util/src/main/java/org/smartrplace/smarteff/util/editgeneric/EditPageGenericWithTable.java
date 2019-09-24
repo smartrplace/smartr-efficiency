@@ -7,7 +7,9 @@ import java.util.Map;
 
 import org.ogema.core.model.Resource;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
+import org.smartrplace.smarteff.defaultservice.ResourceTablePage;
 
+import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Use this template to create a table overview page together with an edit page for a
@@ -26,7 +28,21 @@ public abstract class EditPageGenericWithTable<T extends Resource> extends EditP
 	protected GenericResourceByTypeTablePageBase createTablePage() {
 		return new GenericResourceByTypeTablePage<T>(this, this.getClass().getName()+"_TablePage");
 	}
-	
+	/** Return true if the standard {@link ResourceTablePage#addWidgetsAboveTable} shall not be
+	 * executed to avoid standard navigation buttons
+	 * @param resourceType
+	 * @return
+	 */
+	public boolean addWidgetsAboveTable(Class<? extends Resource> resourceType,
+			WidgetPage<?> page,
+			GenericResourceByTypeTablePage<T> genericResourceByTypeTablePage) {
+		return false;
+	}
+	/** Set to false if table shall not add delete buttons to rows*/
+	public boolean offerDeleteInTable() {
+		return true;
+	}
+
 	Map<String, Map<OgemaLocale, String>> tableHeaders = new LinkedHashMap<>();
 	
 	private GenericResourceByTypeTablePageBase genericTablePageWrapper;

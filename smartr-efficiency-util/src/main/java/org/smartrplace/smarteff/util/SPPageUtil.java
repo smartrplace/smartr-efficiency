@@ -74,25 +74,7 @@ public class SPPageUtil {
 					Class<? extends Resource> type = object.getResourceType();
 					configId = systemAccess.accessPage(pageData, getEntryIdx(pageData, type),
 							Arrays.asList(new Resource[]{object}), context);
-				}/*String columnId = ResourceUtils.getValidResourceName(columnName);
-				ResourceRedirectButton<Resource> button = new ResourceRedirectButton<Resource>(vh.getParent(), columnId+id, text, pageData.getUrl(), req) { //pageData.getUrl()+"?configId="+configId
-					private static final long serialVersionUID = 1L;
-					@Override
-					protected String getConfigId(Resource object) {
-						return configId;
-					}
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						super.onGET(req);
-						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-						List<CalculatedData> data = object.getSubResources(CalculatedData.class, true);
-						String text = BUTTON_TEXTS.get(req.getLocale());
-						if(text == null) text = BUTTON_TEXTS.get(OgemaLocale.ENGLISH);
-						setText(text+"("+data.size()+")", req);
-					}
-					
-				};
-				row.addCell(columnId, button);*/
+				}
 				TemplateRedirectButton<?> button = vh.linkingButton(columnName, id, null, row, text, pageData.getUrl()+"?configId="+configId);
 				if(controlProvider != null) {
 					//This does not have much effect as the tabButton is used when the page is opened
@@ -114,23 +96,28 @@ public class SPPageUtil {
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
-		return addResEditOpenButton(columnName, object, vh, id, row, appData, controlProvider, req, null);
+		return addResEditOpenButton(columnName, object, vh, id, row, appData, controlProvider, req, null,
+				false);
 	}
 	public static OgemaWidget addResEditOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req,
-			String editPageURL) {
+			String editPageURL, boolean showSize) {
 		if(appData != null) {
 			final NavigationPublicPageData pageData;
 			if(editPageURL == null)
 				pageData = getPageData(appData, object.getResourceType(), PageType.EDIT_PAGE);
 			else
 				pageData = appData.systemAccessForPageOpening().getPageByProvider(editPageURL);
-			int size = AddEditButton.getSize(object, appData);
-			String text = ValueFormat.getLocaleString(req, AddEditButton.BUTTON_TEXTS);
+			String text;
+			if(showSize) {
+				int size = AddEditButton.getSize(object, appData);
+				text = ValueFormat.getLocaleString(req, AddEditButton.BUTTON_TEXTS)+"("+size+")";
+			} else
+				text = ValueFormat.getLocaleString(req, AddEditButton.BUTTON_TEXTS);
 			return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
-					text+"("+size+")", "Locked", false, PageType.EDIT_PAGE, controlProvider, null, req);
+					text, "Locked", false, PageType.EDIT_PAGE, controlProvider, null, req);
 		} else {
 			vh.registerHeaderEntry(columnName);
 			return null;

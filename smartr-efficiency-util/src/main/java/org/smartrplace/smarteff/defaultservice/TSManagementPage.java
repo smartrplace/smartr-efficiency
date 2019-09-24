@@ -51,6 +51,7 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.calendar.datepicker.Datepicker;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
@@ -95,7 +96,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		SUPERBUTTON_TEXTS.put(OgemaLocale.GERMAN, System.getProperty("org.smartrplace.smarteff.defaultservice.SUPERBUTTON_TEXTS_DE", "Verwaltung Zeitreihe..."));
 	}
 	protected Button activateTimestampButton;
-	protected TextField newTimestamp;
+	protected OgemaWidget newTimestamp;
 	protected CSVUploadButton csvButton;
 	protected CSVUploadButton csvImportButton;
 	//protected TextField newComment;
@@ -149,21 +150,35 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			}
 		};
 		
-		newTimestamp = new TextField(page, "newTimestamp"+pid()) {
+		if(Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagement.usedatepicker")) {
+			newTimestamp = new Datepicker(page, "newTimestampPicker"+pid()) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				String buttonText = activateTimestampButton.getText(req);
-				if(isTimeStampActive(buttonText) && (!activateTimestampButton.isDisabled(req))) {
-					enable(req);						
-				} else {
-					long now = appManExt.getFrameworkTime();
-					String text = TS_FORMAT.format(new Date(now));
-					setValue(text, req);
+				super.onGET(req);
+				setWidgetVisibility(true, req);
+				if(activateTimestampButton.isDisabled(req)) {
 					disable(req);
-				}
+				} else enable(req);
 			}
-		};
+			};
+		} else {
+			newTimestamp = new TextField(page, "newTimestamp"+pid()) {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					String buttonText = activateTimestampButton.getText(req);
+					if(isTimeStampActive(buttonText) && (!activateTimestampButton.isDisabled(req))) {
+						enable(req);						
+					} else {
+						long now = appManExt.getFrameworkTime();
+						String text = TS_FORMAT.format(new Date(now));
+						setValue(text, req);
+						disable(req);
+					}
+				}
+			};
+		}
 		activateTimestampButton.setDefaultPadding("1em", false, true, false, true);
 		
 		Flexbox flexLineTS = getHorizontalFlexBox(page, "flexLineTS"+pid(),
@@ -224,11 +239,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 						disable(req);
 					} else enable(req);
 				}
-				else setWidgetVisibility(false, req);
-				/*SmartEffTimeSeries res = getReqData(req);
-				if(res.schedule().isActive()) {
-					enable(req);
-				} else disable(req);*/
+				else
+					setWidgetVisibility(false, req);
 			}
 		};
 		Button newValueButton = new SubmitTSValueButton(page, "newValueButton",
@@ -498,8 +510,10 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 
 		private final TextField newValue2;
 		private final TemplateDropdown<Integer> newValueDrop;
+		//private final Datepicker newValueDrop;
 		/** if null submitForNow needs to be true always*/
-		private final TextField newTimestamp;
+		private final TextField newTimestampTF;
+		private final Datepicker newTimestampDP;
 		/** may be null*/
 		private final TextField newComment;
 		private final Alert alert;
@@ -516,12 +530,17 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			this(page, id,
 				(newValue instanceof TextField)?(TextField)newValue:null,
 				(newValue instanceof TemplateDropdown)?(TemplateDropdown<Integer>)newValue:null,
+				//(newValue instanceof Datepicker)?(Datepicker)newValue:null,
 				newTimestamp, newComment, alert, appManExt);
 		}
 	
 		public SubmitTSValueButton(WidgetPage<?> page, String id,
-				TextField newValue, TemplateDropdown<Integer> newValueDrop,
-				TextField newTimestamp, TextField newComment,
+				TextField newValue,
+				TemplateDropdown<Integer> newValueDrop,
+				//Datepicker newValueDrop,
+				//TextField newTimestamp,
+				OgemaWidget newTimestamp,
+				TextField newComment,
 				Alert alert, ApplicationManagerSPExt appManExt) {
 			super(page, id, "Submit");
 			/*if(newValue instanceof TextField) {
@@ -533,7 +552,13 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			} else throw new IllegalArgumentException("Unsupported widget type for newValue:"+newValue.getClass());*/
 			this.newValue2 = newValue;
 			this.newValueDrop = newValueDrop;
-			this.newTimestamp = newTimestamp;
+			if(newTimestamp instanceof TextField) {
+				this.newTimestampTF = (TextField) newTimestamp;
+				this.newTimestampDP = null;
+			} else {
+				this.newTimestampDP = (Datepicker) newTimestamp;
+				this.newTimestampTF = null;
+			}
 			this.newComment = newComment;
 			this.alert = alert;
 			this.appManExt = appManExt;
@@ -640,6 +665,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				}*/
 			} else {
 				value = (float)newValueDrop.getSelectedItem(req);
+				//value = (float)newValueDrop.getDateLong(req);
 			}
 			final Long ts = getTimeStamp(notAllowedMessageTS, req);
 			if(ts == null) return;
@@ -689,13 +715,16 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			long ts;
 			//String buttonText = activateTimestampButton.getText(req);
 			if(!submitForNow(req)) {
-				String val = newTimestamp.getValue(req);
-				try {
-					ts = TS_FORMAT.parse(val).getTime();
-				} catch (ParseException e) {
-					alert.showAlert(notAllowedMessageTS+":"+val, false, req);
-					return null;
-				}
+				if(newTimestampTF != null) {
+					String val = newTimestampTF.getValue(req);
+					try {
+						ts = TS_FORMAT.parse(val).getTime();
+					} catch (ParseException e) {
+						alert.showAlert(notAllowedMessageTS+":"+val, false, req);
+						return null;
+					}
+				}else
+					ts = newTimestampDP.getDateLong(req);
 			} else
 				ts = appManExt.getFrameworkTime();
 			return ts;

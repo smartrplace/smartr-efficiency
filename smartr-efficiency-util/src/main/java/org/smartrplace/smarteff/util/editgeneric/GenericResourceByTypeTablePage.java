@@ -2,7 +2,6 @@ package org.smartrplace.smarteff.util.editgeneric;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -33,7 +32,7 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class GenericResourceByTypeTablePage<T extends Resource> extends GenericResourceByTypeTablePageBase {
-	public static final OgemaLocale FORMAT = new OgemaLocale(Locale.TRADITIONAL_CHINESE);
+	//public static final OgemaLocale FORMAT = new OgemaLocale(Locale.TRADITIONAL_CHINESE);
 
 	private final EditPageGenericWithTable<T> creatingPage;
 	private final String id;
@@ -77,12 +76,13 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 			if(req != null) {
 				if(!(appData.getConfigInfo().context instanceof ResourceOfTypeContext)) throw new IllegalStateException("Type must be transmitted as ResourceOfTypeContext!");
 				ResourceOfTypeContext param = (ResourceOfTypeContext)appData.getConfigInfo().context;
-				SPPageUtil.addResEditOpenButton("Edit", object, vh, id, row, appData, tabButton.control, req,
-						param.editPageURL);
+				SPPageUtil.addResEditOpenButton("Edit", object, vh, id, row, appData, tabButton!=null?tabButton.control:null, req,
+						param.editPageURL, creatingPage.offerDeleteInTable());
 			} else {
 				vh.registerHeaderEntry("Edit");
 			}
-			GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);			
+			if(creatingPage.offerDeleteInTable())
+				GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);			
 		}
 		
 		@SuppressWarnings("unchecked")
@@ -115,13 +115,17 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				String text = ValueFormat.getLocaleString(OgemaLocale.ENGLISH, locMap.get(sub));
 				
 				//TODO: Provide different way of setting this
-				String ed = entry.getValue().get(FORMAT);
+				String ed = entry.getValue().get(EditPageGeneric.FORMAT);
 				boolean doEdit = (ed != null)&&(ed.contains("edit"));
 				
 				if(cellObject == null)
 					vh.stringLabel(text, id, "n/a", row);
-				else if(cellObject instanceof FloatResource)
-					vh.floatLabel(text, id, (FloatResource)cellObject, row, "%.2f");
+				else if(cellObject instanceof FloatResource) {
+					if(doEdit)
+						vh.floatEdit(text, id, (FloatResource)cellObject, row, null, Float.MIN_VALUE, Float.MAX_VALUE, null);
+					else
+						vh.floatLabel(text, id, (FloatResource)cellObject, row, "%.2f");
+				}
 				else if(cellObject instanceof IntegerResource) {
 					if(doEdit)
 						vh.integerEdit(text, id, (IntegerResource)cellObject, row, null, Integer.MIN_VALUE, Integer.MAX_VALUE, null);
@@ -129,7 +133,10 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 						vh.intLabel(text, id, (IntegerResource)cellObject, row, 0);
 				}
 				else if(cellObject instanceof BooleanResource)
-					vh.stringLabel(text, id, ""+((BooleanResource)cellObject).getValue(), row);
+					if(doEdit)
+						vh.booleanEdit(text, id, (BooleanResource)cellObject, row);
+					else
+						vh.stringLabel(text, id, ""+((BooleanResource)cellObject).getValue(), row);
 				else if(cellObject instanceof TimeResource) {
 					if(sub.contains("Day"))
 						vh.timeLabel(text, id, (TimeResource)cellObject, row, 4);
@@ -192,7 +199,19 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
 		String head = creatingPage.tableHeaders.get("#TableHeader").get(EditPageGeneric.EN);
-		if(head != null) return head+ResourceUtils.getHumanReadableName(getReqData(req));
+		if(head != null)  {
+			Resource thisres = getReqData(req);
+			if(thisres.getSubResource("name") == null)
+				return head+ResourceUtils.getHumanReadableName(thisres.getParent());
+			return head+ResourceUtils.getHumanReadableName(thisres);
+		}
 		return super.getHeader(req);
+	}
+	
+	@Override
+	protected void addWidgetsAboveTable(Class<? extends Resource> resourceType) {
+		if(creatingPage.addWidgetsAboveTable(resourceType, page, this))
+			return;
+		super.addWidgetsAboveTable(resourceType);
 	}
 }
