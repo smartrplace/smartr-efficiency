@@ -30,6 +30,7 @@ import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.ogema.util.extended.eval.widget.ConstantsUtilExtendedEval;
 import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
@@ -53,6 +54,8 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.calendar.datepicker.Datepicker;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.button.WindowCloseButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
@@ -110,6 +113,17 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		//setLabel(sr.sourceId(), EN, "SourceId");		
 		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvupload")) {
 			setLabel(sr.allowNanValues(), EN, "Not-a-number values (NaN) allowed", DE, "Ungültige Werte (NaN) in Zeitreihe zulässig");
+		} else {
+			WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButton", "Fertig");
+			closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
+			EditLineProvider tabProv = new EditLineProvider() {
+				@Override
+				public OgemaWidget valueColumn() {
+					return closeTabButton;
+				}
+			};
+			setLineProvider("#tabClose", tabProv);
+			setLabel("#tabClose", EN, "Tab schließen");			
 		}
 		//Label separatorLabel = new Label(page, "separatorLabel", "||");
 				
@@ -396,7 +410,16 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				SmartEffTimeSeries res = getReqData(req);
 				ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 				ReadOnlyTimeSeries ts = appData.getTimeseriesManagement().getTimeSeries(res);
-				String label = res.getLocation();
+				String label;
+				if(Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagement.usemanualdatatsquickhacklabel")) {
+					if(specialTSLabelProvider != null) {
+						label = specialTSLabelProvider.provideLabel(res);
+					} else
+						label = res.getLocation();					
+						
+				} else {
+					label = res.getLocation();					
+				}
 				return Arrays.asList(new TimeSeriesData[] {new TimeSeriesDataImpl(ts, label, label, null)});
 			}
 
@@ -542,7 +565,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				OgemaWidget newTimestamp,
 				TextField newComment,
 				Alert alert, ApplicationManagerSPExt appManExt) {
-			super(page, id, "Submit");
+			super(page, id, System.getProperty("org.smartrplace.smarteff.defaultservice.timeseries.submitbuttonlabel",
+					"Submit"));
 			/*if(newValue instanceof TextField) {
 				this.newValue2 = (TextField) newValue;
 				newValueDrop = null;
@@ -630,7 +654,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 					comment = comment.trim();
 					if(!comment.isEmpty()) addComment(resInfo.res, comment, ts);
 					Schedule sched = getSchedule(resInfo.res, req);
-					setValue(sched , -99876, ts);
+					setValue(sched , ConstantsUtilExtendedEval.COMMENT_ONLY_VALUE_TS, ts);
 					if(!sched.isActive()) {
 						sched.activate(false);
 					}
@@ -855,10 +879,15 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	}
 	
 	@Override
-	protected void changeMenuConfig(MenuConfiguration mc) {
+	public void changeMenuConfig(MenuConfiguration mc) {
 		if(Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.reducetopnavi")) {
 			mc.setLanguageSelectionVisible(false);
 			mc.setNavigationVisible(false);
 		}
 	}
+	
+	public static interface TSLabelProvider {
+		String provideLabel(SmartEffTimeSeries res);
+	}
+	public static TSLabelProvider specialTSLabelProvider = null;
 }

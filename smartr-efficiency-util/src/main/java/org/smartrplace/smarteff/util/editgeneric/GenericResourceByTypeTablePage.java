@@ -27,6 +27,7 @@ import org.smartrplace.util.format.ValueFormat;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
@@ -94,8 +95,10 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				appData = exPage.getAccessData(req); //creatingPage.getExPage().getAccessData(req);
 			}
 			Map<String, Map<OgemaLocale, String>> locMap = creatingPage.tableHeaders;
+System.out.println("Adding "+locMap.size()+" rows");
 			for(Entry<String,Map<OgemaLocale,String>> entry: locMap.entrySet()) {
 				String sub = entry.getKey();
+System.out.println("Adding line for sub "+sub);
 				if(sub.startsWith("#"))
 					continue;
 				if(req == null) {
@@ -214,4 +217,10 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 			return;
 		super.addWidgetsAboveTable(resourceType);
 	}
+	
+	@Override
+	public void changeMenuConfig(MenuConfiguration mc) {
+		creatingPage.changeMenuConfig(mc);
+	}
+
 }

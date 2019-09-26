@@ -63,7 +63,7 @@ public abstract class NaviPageBase<T extends Resource>  {
 	protected String getMaintainer() { return null;}
 	protected List<GenericDataTypeDeclaration> typesListedInTable() {return null;}
 	protected PageImplementationContext getPageImplContext() {return null;}
-	protected void changeMenuConfig(MenuConfiguration mc) {}
+	public void changeMenuConfig(MenuConfiguration mc) {}
 
 	protected EditPage editOrTablePage;
 	public final Provider provider;	
