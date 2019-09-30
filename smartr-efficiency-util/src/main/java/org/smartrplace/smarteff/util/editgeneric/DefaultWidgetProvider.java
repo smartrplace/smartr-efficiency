@@ -587,7 +587,18 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 							SmartEffTimeSeries res = CapabilityHelper.getOrcreateResource(entryResource,
 									sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
 							ReadOnlyTimeSeries ts = appData.getTimeseriesManagement().getTimeSeries(res);
-							String label = res.getLocation();
+							//String label = res.getLocation();
+							String label;
+							if(Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagement.usemanualdatatsquickhacklabel")) {
+								if(TSManagementPage.specialTSLabelProvider != null) {
+									label = TSManagementPage.specialTSLabelProvider.provideLabel(res);
+								} else
+									label = res.getLocation();					
+									
+							} else {
+								label = res.getLocation();					
+							}
+
 							return Arrays.asList(new TimeSeriesData[] {new TimeSeriesDataImpl(ts, label, label, null)});
 						}
 
