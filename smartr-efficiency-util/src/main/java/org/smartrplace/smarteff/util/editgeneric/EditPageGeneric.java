@@ -467,8 +467,12 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 			} catch(NullPointerException e) {
 				throw new IllegalStateException("Could not process sub "+sub+"! Note that ResourceList names must fit the elementType name.\r\nPlease check if the resource type has been registed in resourcesDefined as dependency.", e);
 			}
-			if(type == null)
-				continue;
+			if(type == null) {
+				Resource sampleDest = ResourceHelper.getSubResource(sampleResource, sub);
+				if(sampleDest == null)
+					continue;
+				type = new TypeResult(sampleDest.getResourceType());
+			}
 			
 			EditLineProvider widgetProvider = providers.get(sub);
 			if(widgetProvider != null) {

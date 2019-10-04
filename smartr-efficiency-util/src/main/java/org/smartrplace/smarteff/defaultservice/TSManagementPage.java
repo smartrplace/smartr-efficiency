@@ -46,6 +46,8 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -83,6 +85,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	private static final Map<OgemaLocale, String> CLOSE_TS_MAP = new HashMap<>();
 	private static final Map<OgemaLocale, String> SUBMIT_NOW_MAP = new HashMap<>();
 	private static final Map<OgemaLocale, String> SUBMIT_TS_MAP = new HashMap<>();
+	private static final Map<OgemaLocale, String> SUBMIT_DISABLED_MAP = new HashMap<>();
 	static {
 		OPEN_TS_MAP.put(OgemaLocale.ENGLISH, "Open Timestamp");
 		OPEN_TS_MAP.put(OgemaLocale.GERMAN, "Zeitstempel eingeben");
@@ -92,6 +95,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		SUBMIT_NOW_MAP.put(OgemaLocale.GERMAN, "Speichern (aktuell)");
 		SUBMIT_TS_MAP.put(OgemaLocale.ENGLISH, "Submit for Timestamp");
 		SUBMIT_TS_MAP.put(OgemaLocale.GERMAN, "Speichern (Zeitstempel)");
+		SUBMIT_DISABLED_MAP.put(OgemaLocale.ENGLISH, "Submit");
+		SUBMIT_DISABLED_MAP.put(OgemaLocale.GERMAN, "Speichern");
 	}
 	
 	static {
@@ -243,7 +248,39 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				return getInnerMapByReq(req);
 			}
 		};
-		TextField newValue = new TextField(page, "newValue"+pid()) {
+		TextField newValue = new NewValueTSTextField(page, "newValue"+pid()) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected boolean isFreeText(OgemaHttpRequest req) {
+				SmartEffTimeSeries res = getResource(req);
+				return (res.getName().endsWith("Text"));			
+			}
+			
+			@Override
+			protected SmartEffTimeSeries getResource(OgemaHttpRequest req) {
+				return getReqData(req);
+			}
+			
+			@Override
+			protected long getFrameworkTime() {
+				return appManExt.getFrameworkTime();
+			}
+
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				if(getInnerMapByReq(req) == null) {
+					super.onGET(req);
+					setWidgetVisibility(true, req);
+					if(activateTimestampButton.isDisabled(req)) {
+						disable(req);
+					} else enable(req);
+				}
+				else
+					setWidgetVisibility(false, req);
+			}
+		};
+		/*TextField newValue = new TextField(page, "newValue"+pid()) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -256,7 +293,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				else
 					setWidgetVisibility(false, req);
 			}
-		};
+		};*/
 		Button newValueButton = new SubmitTSValueButton(page, "newValueButton",
 				newValue, newValueDrop, newTimestamp, newComment, alert, appManExt) {
 			private static final long serialVersionUID = 1L;
@@ -590,6 +627,9 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		
 		@Override
 		public void onGET(OgemaHttpRequest req) {
+			//when disabled then text has to be set to Submit (not for now). If enabled we perform the check.
+			setText(DefaultWidgetProvider.getLocalString(req.getLocale(), SUBMIT_DISABLED_MAP), req);
+			
 			if(disableForSure(req)) {
 				disable(req);
 				return;
@@ -601,8 +641,9 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				if(res.res.getName().endsWith("Text")) {
 					//Comment time series
 					String val = newValue2.getValue(req);
-					if((!val.isEmpty()) && getValue(val, getType(req), req) == null) {
-						enable(req);
+					if((!val.isEmpty()) && getValue(val, getType(req), req) == null &&
+							(!val.startsWith("*"))) {
+						performEnable(req);
 					} else
 						disable(req);
 					newValue2.setInputmode("text", req);
@@ -613,9 +654,13 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			}
 			if(newValue2 != null && checkValue(req)) { //newValue2.isVisible(req)) {
 				String val = newValue2.getValue(req);
+				if(val.startsWith("*")) {
+					disable(req);
+					return;
+				}
 				if(val.toLowerCase().equals("nan")) {
 					if(res.res.allowNanValues().getValue()) {
-						enable(req);
+						performEnable(req);
 					} else disable(req);
 					return;
 				}
@@ -626,11 +671,15 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 				}
 				
 			}
+			performEnable(req);
+		}
+		private void performEnable(OgemaHttpRequest req) {
 			if(submitForNow(req)) {
 				setText(DefaultWidgetProvider.getLocalString(req.getLocale(), SUBMIT_NOW_MAP), req);
 			} else setText(DefaultWidgetProvider.getLocalString(req.getLocale(), SUBMIT_TS_MAP), req);
-			enable(req);
+			enable(req);			
 		}
+		
 		private void setValue(Schedule sched, float value, long timestamp) {
 			if((sched.getParent() != null)&&(sched.getParent() instanceof TemperatureResource)
 					&&(mode == 0))
@@ -658,6 +707,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 					if(!sched.isActive()) {
 						sched.activate(false);
 					}
+					newValue2.setValue("*"+comment, req);
 					return;				
 				}
 			}
@@ -723,6 +773,9 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			}
 			if(!sched.isActive()) {
 				sched.activate(false);
+			}
+			if(newValue2 != null) {
+				newValue2.setValue("*"+value, req);
 			}
 			
 			if(alert != null) alert.showAlert("New value: " + value + " for "+TimeUtils.getDateAndTimeString(ts), true, req);
@@ -864,6 +917,56 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			if(inMapLoc == null) inMapLoc = innerMap.get(OgemaLocale.ENGLISH);
 			return inMapLoc.get(""+object);
 		}
+	}
+	
+	public static abstract class NewValueTSTextField extends TextField {
+		private static final long serialVersionUID = 1L;
+		
+		public NewValueTSTextField(WidgetPage<?> page, String id) {
+			super(page, id);
+		}
+		
+		protected abstract boolean isFreeText(OgemaHttpRequest req);
+		protected abstract SmartEffTimeSeries getResource(OgemaHttpRequest req);
+		protected abstract long getFrameworkTime();
+		
+		@Override
+		public void onGET(OgemaHttpRequest req) {
+			SmartEffTimeSeries res = getResource(req);
+			long startOfDay = AbsoluteTimeHelper.getIntervalStart(
+					getFrameworkTime(), AbsoluteTiming.DAY);
+
+			String enteredValue = getValue(req);
+				if(enteredValue == null || enteredValue.isEmpty()) {
+				if(isFreeText(req)) {
+					if(res.commmentTimeStamps().isActive()) {
+						int len = res.commmentTimeStamps().size();
+						if(len > 0) {
+							Long lastv = null;
+							int lastvIdx = -1;
+							long[] tss = res.commmentTimeStamps().getValues();
+							int idx = 0;
+							for(long ts: tss) {
+								if(ts >= startOfDay && ((lastv == null)||(lastv<ts))) {
+									lastv = ts;
+									lastvIdx = idx;
+								}
+								idx++;
+							}
+							if(lastv != null) {
+								setValue("*"+res.comments().getElementValue(lastvIdx), req);
+							}
+						}
+					}
+				} else if(res.schedule().isActive()) {
+					SampledValue lastv = res.schedule().getPreviousValue(Long.MAX_VALUE);
+					if(lastv != null && (lastv.getTimestamp() >= startOfDay)) {
+						setValue("*"+lastv.getValue().getStringValue(), req);
+					}
+				}
+			}
+		}
+		
 	}
 	
 	public static final Map<OgemaLocale, String> HEADER_MAP = new LinkedHashMap<>();

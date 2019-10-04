@@ -39,6 +39,7 @@ import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessIn
 import org.smartrplace.smarteff.defaultservice.ScheduleViewerConfigProvTSMan;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ContextType;
+import org.smartrplace.smarteff.defaultservice.TSManagementPage.NewValueTSTextField;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.ResourceInfo;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage.SubmitTSValueButton;
 import org.smartrplace.smarteff.resourcecsv.ResourceCSVExporter;
@@ -369,8 +370,31 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				Map<OgemaLocale, Map<String, String>> innerMap = displayOptions.get(sub);
 				if(innerMap != null) {
 					newValue = new TSManagementPage.AddValueDropdown(page, "newValueSP"+subId+pid, innerMap);
-				} else {				
-					 newValue = new TextField(page, "newValueSP"+subId+pid) {
+				} else {
+					newValue = new NewValueTSTextField(page, "newValueSP"+subId+pid) {
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						protected boolean isFreeText(OgemaHttpRequest req) {
+							return sub.endsWith("Text");
+						}
+
+						@Override
+						protected SmartEffTimeSeries getResource(OgemaHttpRequest req) {
+							T entryResource = mhLoc.getGatewayInfo(req);
+							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+							SmartEffTimeSeries res = CapabilityHelper.getOrcreateResource(entryResource,
+									sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
+							return res;
+						}
+
+						@Override
+						protected long getFrameworkTime() {
+							return appManExt.getFrameworkTime();
+						}
+						
+					};
+					 /*newValue = new TextField(page, "newValueSP"+subId+pid) {
 						private static final long serialVersionUID = 1L;
 						@Override
 						public void onGET(OgemaHttpRequest req) {
@@ -380,34 +404,28 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 									sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
 							long startOfDay = AbsoluteTimeHelper.getIntervalStart(
 									appManExt.getFrameworkTime(), AbsoluteTiming.DAY);
-							/*Object ctx = widgetContexts.get(sub);
-							if(ctx != null && (ctx instanceof SmartEffTimeSeriesWidgetContext)) {
-								SmartEffTimeSeriesWidgetContext sctx = (SmartEffTimeSeriesWidgetContext)ctx;
-								//TODO: Remove after testing
-								Long last = sctx.lastTimeStamp.get(res.getLocation());
-								if(last != null && (last >= startOfDay)) {
-									setValue("Value set", req);
-								}
-							}*/
-							//Cashing via context could make sense
-							if(sub.endsWith("Text")) {
-								if(res.commmentTimeStamps().isActive()) {
-									int len = res.commmentTimeStamps().size();
-									if(len > 0) {
-										long lastv = res.commmentTimeStamps().getElementValue(len-1);
-										if((lastv >= startOfDay)) {
-											setValue(res.comments().getElementValue(len-1), req);
+
+							String enteredValue = getValue(req);
+								if(enteredValue == null || enteredValue.isEmpty()) {
+								if(sub.endsWith("Text")) {
+									if(res.commmentTimeStamps().isActive()) {
+										int len = res.commmentTimeStamps().size();
+										if(len > 0) {
+											long lastv = res.commmentTimeStamps().getElementValue(len-1);
+											if((lastv >= startOfDay)) {
+												setValue("*"+res.comments().getElementValue(len-1), req);
+											}
 										}
 									}
-								}
-							} else if(res.schedule().isActive()) {
-								SampledValue lastv = res.schedule().getPreviousValue(Long.MAX_VALUE);
-								if(lastv != null && (lastv.getTimestamp() >= startOfDay)) {
-									setValue(lastv.getValue().getStringValue(), req);
+								} else if(res.schedule().isActive()) {
+									SampledValue lastv = res.schedule().getPreviousValue(Long.MAX_VALUE);
+									if(lastv != null && (lastv.getTimestamp() >= startOfDay)) {
+										setValue("*"+lastv.getValue().getStringValue(), req);
+									}
 								}
 							}
 						}
-					 };
+					 };*/
 				}		
 				newValue.setDefaultVisibility(false);
 				newValue.postponeLoading();
@@ -624,6 +642,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 				mhLoc.triggerOnPost(openTSManButton, csvData.uploader.getFileUpload());
 				mhLoc.triggerOnPost(openTSManButton, newValue);
 				mhLoc.triggerOnPost(newValue, newValueButton);
+				mhLoc.triggerOnPost(newValueButton, newValue);
 				mhLoc.triggerOnPost(newValueButton, alert);
 				
 				csvData.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
@@ -844,6 +863,16 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 	}
 	
 	public static String getLocalString(OgemaLocale locale, Map<OgemaLocale, String> map) {
+		String fixed = System.getProperty("org.smartrplace.smarteff.util.editgeneric.fixedlanguage");
+		if(fixed != null) {
+			switch(fixed) {
+			case "german": return map.get(EditPageGeneric.DE);
+			case "english": return map.get(EditPageGeneric.EN);
+			case "french": return map.get(EditPageGeneric.FR);
+			case "chinese": return map.get(EditPageGeneric.CN);
+			default: throw new IllegalStateException("unknown fixed language in org.smartrplace.smarteff.util.editgeneric.fixedlanguage:"+fixed);
+			}
+		}
 		String result = map.get(locale);
 		if(result != null) return result;
 		return map.get(localeDefault);
