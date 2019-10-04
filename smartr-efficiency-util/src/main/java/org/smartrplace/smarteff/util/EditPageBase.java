@@ -61,7 +61,12 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 	 */
 	public abstract boolean checkResource(T data);
 	protected void registerWidgetsAboveTable() {};
-
+	
+	/** Override if required*/
+	protected int[] getColumnSizes() {
+		return new int[]{1,5,5,1};
+	}
+	
 	@Override
 	protected List<EntryType> getEntryTypes() {
 		return CapabilityHelper.getStandardEntryTypeList(primaryEntryTypeClass());
@@ -191,7 +196,7 @@ public abstract class EditPageBase<T extends Resource> extends NaviPageBase<T> {
 		EditTableBuilder etb = new EditTableBuilder();
 		getEditTableLines(etb);
 
-		StaticTable table = new StaticTable(etb.editElements.size()+1, 4, new int[]{1,5,5,1});
+		StaticTable table = new StaticTable(etb.editElements.size()+1, 4, getColumnSizes());
 		int c = 0;
 		for(EditPageBase<T>.EditElement etl: etb.editElements) {
 			if((etl.title != null)&&(etl.widget != null)) {

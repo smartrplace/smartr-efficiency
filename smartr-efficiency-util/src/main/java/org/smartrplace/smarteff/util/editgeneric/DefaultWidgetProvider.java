@@ -593,6 +593,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 									ScheduleViewerConfigurationBuilder.newBuilder().setPrograms(programs).
 									setStartTime(startTime).setEndTime(endTime).setShowManipulator(true).
 									setShowCsvDownload(false).
+									setShowPlotTypeSelector(true).
 									setShowIndividualConfigBtn(false).
 									build();
 								return viewerConfiguration;

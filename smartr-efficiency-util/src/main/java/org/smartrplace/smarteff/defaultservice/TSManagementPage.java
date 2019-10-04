@@ -438,6 +438,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 						setStartTime(startTime).setEndTime(endTime).setShowManipulator(true).
 						setShowCsvDownload(false).
 						setShowIndividualConfigBtn(false).
+						setShowPlotTypeSelector(true).
 						build();
 					return viewerConfiguration;
 			}
@@ -505,6 +506,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		}
 		if(alert != null) newValueButton.registerDependentWidget(alert);
 		newValue.registerDependentWidget(newValueButton);
+		newValueButton.registerDependentWidget(newValue);
 		newValueDrop.registerDependentWidget(newValueButton);
 	}
 
