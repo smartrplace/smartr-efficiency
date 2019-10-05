@@ -95,10 +95,8 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				appData = exPage.getAccessData(req); //creatingPage.getExPage().getAccessData(req);
 			}
 			Map<String, Map<OgemaLocale, String>> locMap = creatingPage.tableHeaders;
-System.out.println("Adding "+locMap.size()+" rows");
 			for(Entry<String,Map<OgemaLocale,String>> entry: locMap.entrySet()) {
 				String sub = entry.getKey();
-System.out.println("Adding line for sub "+sub);
 				if(sub.startsWith("#"))
 					continue;
 				if(req == null) {
