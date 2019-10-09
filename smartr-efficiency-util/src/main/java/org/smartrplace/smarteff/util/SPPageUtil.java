@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.ogema.core.model.Resource;
 import org.smartrplace.efficiency.api.base.SmartEffExtensionService;
+import org.smartrplace.extensionservice.ApplicationManagerSPExt;
 import org.smartrplace.extensionservice.ExtensionCapability;
 import org.smartrplace.extensionservice.ExtensionCapabilityPublicData.EntryType;
 import org.smartrplace.extensionservice.ExtensionGeneralData;
@@ -250,15 +251,20 @@ public class SPPageUtil {
 	public static OgemaWidget addParameterEditOpenButton(String columnName,
 			LogicProviderPublicData object, ExtensionGeneralData globalData,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
-			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider, OgemaHttpRequest req) {
+			ExtensionResourceAccessInitData appData, ButtonControlProvider controlProvider,
+			ApplicationManagerSPExt appManExt, OgemaHttpRequest req) {
 		if(appData != null) {
 			Resource param = null;
 			Class<? extends Resource> paramType = null;
 			paramType = object.getParamType();
 			List<? extends Resource> all = appData.userData().getSubResources(paramType, true);
 			if(all.isEmpty()) {
-				List<? extends Resource> all2 = globalData.getSubResources(paramType, true);
-				if(!all2.isEmpty()) param = all2.get(0);
+				/** see {@link CapabilityHelper#getMyParams(Class, org.smartrplace.extensionservice.ExtensionUserData, org.smartrplace.extensionservice.ApplicationManagerSPExt)}
+				 * */
+				Resource glob = CapabilityHelper.getSubResourceSingle(globalData, paramType, appManExt);
+				param = CapabilityHelper.getForUserVirtual(glob, appData.userData());
+				//List<? extends Resource> all2 = globalData.getSubResources(paramType, true);
+				//if(!all2.isEmpty()) param = all2.get(0);
 			}
 			else param = all.get(0);
 			if(param == null) {
@@ -269,7 +275,7 @@ public class SPPageUtil {
 				String text = ValueFormat.getLocaleString(req, BUTTON_PARAMS_TEXTS);
 				int size = AddEditButton.getSize(param, appData);
 				return addOpenButton(columnName, param, vh, id, row, pageData, appData.systemAccess(),
-						text+"("+size+")", "No ParamPage", true, PageType.EDIT_PAGE, controlProvider, null, req);
+						text+"("+size+")", "No ParamPage", true, PageType.EDIT_PAGE, controlProvider, object, req);
 			}
 		} else {
 			vh.registerHeaderEntry(columnName);

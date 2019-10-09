@@ -55,7 +55,7 @@ public class StandardPageAdmin {
 		this.controller = controller;
 		
 		//register a web page with dynamically generated HTML
-		if(!controller.appManExt.globalData().startPageId().isActive()) {
+		if(!controller.appManExt.globalData().startPageId().isActive() && (!Boolean.getBoolean("org.smartrplace.smarteff.admin.nodefaultstartpage"))) {
 			//otherwise do not register start page yet
 			pageServices = widgetApp.createStartPage();
 		} else

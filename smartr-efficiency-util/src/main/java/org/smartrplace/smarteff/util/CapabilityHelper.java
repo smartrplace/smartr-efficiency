@@ -31,7 +31,7 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class CapabilityHelper {
 	public static final String ERROR_START = "ERROR: ";
-	public static final String STD_LOCATION = "smartEffAdminData/generalData/";
+	public static final String STD_LOCATION = "smartEffAdminData/globalData/";
 	public static final int STD_LOCATION_LENGTH = STD_LOCATION.length();
 	
 	public static String getNewMultiElementResourceName(Class<? extends Resource> type, Resource parent) {

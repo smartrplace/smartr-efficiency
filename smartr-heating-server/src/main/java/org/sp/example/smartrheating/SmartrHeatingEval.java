@@ -20,13 +20,14 @@ import extensionmodel.smarteff.smartrheating.SmartrHeatingParams;
 import extensionmodel.smarteff.smartrheating.SmartrHeatingResult;
 
 public class SmartrHeatingEval extends ProjectProviderBase<SmartrHeatingData> {
+	public static final String label = "Single room heating optimization";
 	
 	public static final String WIKI_LINK =
 			"https://github.com/smartrplace/smartr-efficiency/blob/master/SmartrHeating.md";
 
 	@Override
 	public String label(OgemaLocale locale) {
-		return "Single room heating optimization calculator";
+		return label;
 	}
 
 	@Override

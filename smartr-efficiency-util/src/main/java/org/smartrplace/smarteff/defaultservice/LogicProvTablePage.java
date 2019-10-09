@@ -73,7 +73,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 
 				ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 				SPPageUtil.addParameterEditOpenButton("Parameters", object, appManExt.globalData(),
-						vh, id, row, appData, tabButton.control, req);
+						vh, id, row, appData, tabButton.control, appManExt, req);
 				
 				Resource entryResource = getReqData(req);
 				List<Class<? extends Resource>> types = new ArrayList<>();

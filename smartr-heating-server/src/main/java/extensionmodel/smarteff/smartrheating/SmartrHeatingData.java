@@ -22,7 +22,7 @@ public interface SmartrHeatingData extends SmartEffResource {
 	TemperatureResource wwTemp();
 
 	/**Heating degree days per year*/
-	FloatResource heatingDegreeDaysManual();
+	//FloatResource heatingDegreeDaysManual();
 	/** Average number of heating days per year*/
 	FloatResource heatingDaysManual();
 	

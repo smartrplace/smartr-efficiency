@@ -3,7 +3,7 @@ package org.smartrplace.smarteff.util.editgeneric;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.extensionservice.proposal.LogicProviderPublicData;
 import org.smartrplace.extensionservice.resourcecreate.ExtensionResourceAccessInitData;
 import org.smartrplace.smarteff.util.CapabilityHelper;
 import org.smartrplace.smarteff.util.EditPageBase;
@@ -173,7 +173,7 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 						res.create();
 						Resource global = ResourceHelper.getSubResource(getReqDataGlobal(req), sub);
 						if(global != null)
-							OGEMAResourceCopyHelper.copySubResourceIntoDestination(global, res, null, false);
+							OGEMAResourceCopyHelper.copySubResourceIntoDestination(res, global, null, false);
 					}
 					res.activate(false);
 				} else {
@@ -189,5 +189,22 @@ public abstract class EditPageGenericParams<T extends Resource> extends EditPage
 		if(etb instanceof EditPageGenericParams.EditTableBuilderParams) {
 			((EditTableBuilderParams)etb).addEditLine(label, valueWidget, linkButton, globalValueWidget, control);
 		} else etb.addEditLine(label, valueWidget, linkButton);
+	}
+	
+	@Override
+	protected String getHeader(OgemaHttpRequest req) {
+		LogicProviderPublicData prov = getProvider(req);
+		if(prov != null)
+			return "Parameters for "+prov.label(req.getLocale());
+		else
+			return "Parameters for "+super.getHeader(req);
+	}
+	
+	protected LogicProviderPublicData getProvider(OgemaHttpRequest req) {
+		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
+		Object ct = appData.getConfigInfo().context;
+		if(!(ct instanceof LogicProviderPublicData))
+			return null;
+		return (LogicProviderPublicData) ct;
 	}
 }
