@@ -1,5 +1,6 @@
 package extensionmodel.smarteff.api.base;
 
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.smartrplace.efficiency.api.base.SmartEffResource;
 
@@ -16,4 +17,9 @@ public interface SmartEffTopLevelData extends SmartEffResource {
 	
 	ResourceList<BuildingData> buildingData();
 	BuildingData defaultBuildingData();
+	
+	/** These resources shall be replaced my MemoryResources in the future. The list
+	 * entries are removed on every system startup
+	 */
+	ResourceList<Resource> temporaryResources();
 }

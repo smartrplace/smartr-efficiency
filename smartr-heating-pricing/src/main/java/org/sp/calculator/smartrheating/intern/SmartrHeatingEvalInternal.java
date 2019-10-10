@@ -42,7 +42,7 @@ public class SmartrHeatingEvalInternal extends SmartrHeatingEval {
 		String internalUser = userName();
 		SmartrHeatingInternalParams internal = dataExt.getCrossuserAccess().getAccess("smartrHeatingInternalParams", internalUser,
 				SmartrHeatingInternalParams.class, this);
-		MultiBuildData multiBuild = CapabilityHelper.addMultiTypeToList(building, null, MultiBuildData.class);
+		MultiBuildData multiBuild = CapabilityHelper.addOrGetMultiTypeToList(building, "SmartrHeating", MultiBuildData.class);
 
 		//First perform sub calculation MultiBuild
 		MultiBuildEval mbe = new MultiBuildEval(appManExt);
@@ -50,8 +50,8 @@ public class SmartrHeatingEvalInternal extends SmartrHeatingEval {
 		ValueResourceHelper.setCreate(multiBuild.operationalCost(), 20);
 		ValueResourceHelper.setCreate(multiBuild.otherInitialCost(),
 				internal.costPerRoom().getValue() * result.roomNumWithThermostats().getValue());
-		ResourceList<BuildingComponentUsage> hw = multiBuild.buildingComponentUsage().create();
-		BuildingComponentUsage thermo = hw.add();
+		//ResourceList<BuildingComponentUsage> hw = multiBuild.buildingComponentUsage().create();
+		BuildingComponentUsage thermo = CapabilityHelper.addOrGetMultiTypeToList(multiBuild, "Homematic Thermostat", BuildingComponentUsage.class);//hw.add();
 		ValueResourceHelper.setCreate(thermo.name(), "Homematic Thermostat");
 		ValueResourceHelper.setCreate(thermo.number(), result.thermostatNum().getValue());		
 		ValueResourceHelper.setCreate(thermo.additionalCostPerItem(), internal.costPerThermostat().getValue());		
@@ -63,7 +63,7 @@ public class SmartrHeatingEvalInternal extends SmartrHeatingEval {
 		float yearlySavings = result.yearlySavings().getValue();
 		ValueResourceHelper.setCreate(result.costOfProject(), costOfProject);
 		ValueResourceHelper.setCreate(result.yearlyOperatingCosts(), yearlyCost);
-		float amortization = costOfProject / (yearlyCost - yearlySavings);
+		float amortization = costOfProject / (yearlySavings - yearlyCost);
 		ValueResourceHelper.setCreate(result.amortization(), amortization);
 		
 		addInputData(result, dataExt, internal);

@@ -25,6 +25,7 @@ public class MultiBuildResultPage extends EditPageGeneric<MultiBuildResult> {
 
 		setLabel(result.costPerBuilding(), EN, "Variable cost per building (EUR)");
 		setLabel(result.addYearlyPerBuilding(), EN, "See spreadsheet: addYearlyPerBuilding (EUR)");
+		setLabel(result.yearlyOperatingCosts(), EN, "Total yearly operating cost (EUR)");
 
 		setLabel(result.hardwareCost(),
 				EN, "Hardware cost excluding VAT including delivery cost and custom charges");

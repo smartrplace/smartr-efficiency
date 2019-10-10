@@ -33,17 +33,25 @@ public class TopConfigTablePage extends ResourceTablePage {
 	protected List<Resource> provideResourcesInTable(OgemaHttpRequest req) {
 		ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 		List<Resource> resultAll = ((SmartEffUserData)appData.userData()).getSubResources(false);
+		//resultAll.addAll(((SmartEffUserData)appData.userData()).paramGlobalCopyForEdit().getSubResources(false));
 		//List<Resource> resultAll = getReqData(req).getSubResources(false);
 		List<Resource> result = new ArrayList<>();
+		List<String> done = new ArrayList<>();
 		for(Resource r: resultAll) {
-			if(!((r instanceof ValueResource) || (r instanceof ResourceList))) result.add(r);
+			if(!((r instanceof ValueResource) || (r instanceof ResourceList) || done.contains(r.getLocation()))) {
+				result.add(r);
+				done.add(r.getLocation());
+			}
 		}
 		
 		//Also add virtual resources for global resources
 		List<Resource> globals = appManExt.globalData().getSubResources(false);
 		for(Resource glob: globals) {
 			Resource r = CapabilityHelper.getForUserVirtual(glob, appData.userData());
-			if(!((r instanceof ValueResource) || (r instanceof ResourceList))) result.add(r);
+			if(!((r instanceof ValueResource) || (r instanceof ResourceList) || done.contains(r.getLocation()))) {
+				result.add(r);
+				done.add(r.getLocation());
+			}
 		}
 		
 		return result;

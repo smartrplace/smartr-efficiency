@@ -199,7 +199,10 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 	
 	@Override
 	protected String getHeader(OgemaHttpRequest req) {
-		String head = creatingPage.tableHeaders.get("#TableHeader").get(EditPageGeneric.EN);
+		String head = null;
+		Map<OgemaLocale, String> mp = creatingPage.tableHeaders.get("#TableHeader");
+		if(mp != null)
+			head = mp.get(EditPageGeneric.EN);
 		if(head != null)  {
 			Resource thisres = getReqData(req);
 			if(thisres.getSubResource("name") == null)

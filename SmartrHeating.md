@@ -35,6 +35,7 @@ Warm drinking water consumption in m3/year. In the future an estimation based on
 
 ### Warm water temperature
 `wwTemp`
+The temperature of warm water after leaving the heating system, which usually is a bit higher than the maximum temperature at the extraction point due to losses in the building pipes.
 
 ### Estimated warm water energy loss from storage, circulation at current temperature in heated areas
 `wwLossHeatedAreas`  

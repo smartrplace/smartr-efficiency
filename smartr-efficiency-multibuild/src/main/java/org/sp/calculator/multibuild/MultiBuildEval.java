@@ -89,7 +89,8 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		for(BuildingComponentUsage cpusage:data.buildingComponentUsage().getAllElements()) {
 			BuildingComponent cp = setComponentType(cpusage, params); //cpusage.paramType();
 			costPerBuilding += cpusage.number().getValue() * cp.cost().getValue();
-			addYPerBuilding += cpusage.number().getValue() * cpusage.additionalYearlyCost().getValue();
+			if(cpusage.additionalYearlyCost().isActive())
+				addYPerBuilding += cpusage.number().getValue() * cpusage.additionalYearlyCost().getValue();
 			
 			if(cpusage.number().getValue() > 0) comAdapts.add(cp.type().getLocationResource());
 		}
@@ -99,9 +100,16 @@ public class MultiBuildEval extends ProjectProviderBase<MultiBuildData> {
 		ValueResourceHelper.setCreate(result.costPerBuilding(), costPerBuilding);
 		ValueResourceHelper.setCreate(result.addYearlyPerBuilding(), addYPerBuilding);
 		float totalCost = data.buildingNum().getValue() * costPerBuilding +
-				params.costProjectBase().getValue() + data.otherInitialCost().getValue(); 
+				params.costProjectBase().getValue(); 
+		if(data.otherInitialCost().isActive())
+			totalCost += data.otherInitialCost().getValue();
 		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
 		ValueResourceHelper.setCreate(result.costOfProject(), totalCost);
+		float yearlyOperatingCost = addYPerBuilding*data.buildingNum().getValue();
+		if(data.operationalCost().isActive())
+			yearlyOperatingCost += data.operationalCost().getValue();
+		ValueResourceHelper.setCreate(result.yearlyOperatingCosts(),
+				yearlyOperatingCost);
 		
 		addInputData(result, dataExt, hpParamHelperUser.getUserParameterResource(), data,
 				params);

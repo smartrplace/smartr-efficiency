@@ -1,7 +1,6 @@
 package extensionmodel.smarteff.api.base;
 
-import org.ogema.core.model.Resource;
-import org.ogema.core.model.ResourceList;
+import org.smartrplace.efficiency.api.base.SmartEffResource;
 import org.smartrplace.extensionservice.ExtensionUserData;
 
 import extensionmodel.smarteff.api.common.MasterUserData;
@@ -15,8 +14,6 @@ import extensionmodel.smarteff.api.common.MasterUserData;
 public interface SmartEffUserData extends SmartEffTopLevelData, ExtensionUserData {
 	MasterUserData masterUserData();
 	
-	/** These resources shall be replaced my MemoryResources in the future. The list
-	 * entries are removed on every system startup
-	 */
-	ResourceList<Resource> temporaryResources();
+	/** Placehholder for all parameter resources*/
+	//SmartEffResource paramGlobalCopyForEdit();
 }

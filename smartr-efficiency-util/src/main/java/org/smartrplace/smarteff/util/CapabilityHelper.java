@@ -7,6 +7,7 @@ import java.util.List;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.generictype.GenericAttribute;
 import org.ogema.generictype.GenericDataTypeDeclaration;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -162,6 +163,24 @@ public class CapabilityHelper {
 		}
 		if(name == null) return resList.add();
 		return resList.addDecorator(ResourceUtils.getValidResourceName(name), elementType);
+	}
+	/** Like {@link #addMultiTypeToList(Resource, String, Class)}, but check if an element with the
+	 * name exists and return this if existing
+	 * @param parent
+	 * @param name
+	 * @param elementType
+	 * @return
+	 */
+	public static <T extends Resource> T addOrGetMultiTypeToList(Resource parent, String name,
+			Class<T> elementType) {
+		ResourceList<T> resList = getMultiTypeList(parent, elementType);
+		for(T exist: resList.getAllElements()) {
+			if(exist.getName().equals(name) ||
+					exist.getSubResource("name", StringResource.class).getValue().equals(name)) {
+				return exist;
+			}
+		}
+		return addMultiTypeToList(parent, name, elementType);
 	}
 	public static <T extends Resource> ResourceList<T> getMultiTypeList(Resource parent, Class<T> elementType) {
 		String listName = getSingleResourceName(elementType);
