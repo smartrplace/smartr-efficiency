@@ -394,38 +394,6 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						}
 						
 					};
-					 /*newValue = new TextField(page, "newValueSP"+subId+pid) {
-						private static final long serialVersionUID = 1L;
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							T entryResource = mhLoc.getGatewayInfo(req);
-							ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
-							SmartEffTimeSeries res = CapabilityHelper.getOrcreateResource(entryResource,
-									sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
-							long startOfDay = AbsoluteTimeHelper.getIntervalStart(
-									appManExt.getFrameworkTime(), AbsoluteTiming.DAY);
-
-							String enteredValue = getValue(req);
-								if(enteredValue == null || enteredValue.isEmpty()) {
-								if(sub.endsWith("Text")) {
-									if(res.commmentTimeStamps().isActive()) {
-										int len = res.commmentTimeStamps().size();
-										if(len > 0) {
-											long lastv = res.commmentTimeStamps().getElementValue(len-1);
-											if((lastv >= startOfDay)) {
-												setValue("*"+res.comments().getElementValue(len-1), req);
-											}
-										}
-									}
-								} else if(res.schedule().isActive()) {
-									SampledValue lastv = res.schedule().getPreviousValue(Long.MAX_VALUE);
-									if(lastv != null && (lastv.getTimestamp() >= startOfDay)) {
-										setValue("*"+lastv.getValue().getStringValue(), req);
-									}
-								}
-							}
-						}
-					 };*/
 				}		
 				newValue.setDefaultVisibility(false);
 				newValue.postponeLoading();
@@ -470,18 +438,7 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						return newValue.isDisabled(req);
 					}
 					
-					/*@Override
-					public void onGET(OgemaHttpRequest req) {
-						SmartEffTimeSeries tsResource = getResource(req);
-						if(tsResource == null || (!tsResource.schedule().isActive())) {
-							newValue.setWidgetVisibility(false, req);
-							return;
-						}
-						newValue.setWidgetVisibility(true, req);
-						super.onGET(req);
-					}*/
 				};
-				//newValueButton.setDefaultVisibility(false);
 				
 				RedirectButton openTSManButton = new AddEditButton(page, "openEvalButton"+subId, pid,
 						exPage, null) {
@@ -492,7 +449,6 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 						ExtensionResourceAccessInitData appData = exPage.getAccessData(req);
 						SmartEffTimeSeries tsResource = CapabilityHelper.getOrcreateResource(entryResource,
 								sub, appData.systemAccess(), appManExt, SmartEffTimeSeries.class);
-						//SmartEffTimeSeries tsResource = ResourceHelper.getSubResource(entryResource, sub, SmartEffTimeSeries.class);
 						if(tsResource == null) {
 							newValue.setWidgetVisibility(false, req);
 							newValueButton.setWidgetVisibility(false, req);

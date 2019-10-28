@@ -360,6 +360,29 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	protected void setLineProvider(Resource res, EditLineProvider lineProvider) {
 		setLineProvider(getSubPath(res), lineProvider);
 	}
+	protected void addValueWidget(Resource res, OgemaWidget valueWidget) {
+		EditLineProvider prov = new EditLineProvider() {
+			@Override
+			public OgemaWidget valueColumn() {
+				return valueWidget;
+			}
+		};
+		setLineProvider(getSubPath(res), prov);
+	}
+	protected void addLabelValueWidget(Resource res, OgemaWidget labelWidget, OgemaWidget valueWidget) {
+		EditLineProvider prov = new EditLineProvider() {
+			@Override
+			public OgemaWidget labelColumn() {
+				return labelWidget;
+			}
+			
+			@Override
+			public OgemaWidget valueColumn() {
+				return valueWidget;
+			}
+		};
+		setLineProvider(getSubPath(res), prov);
+	}
 	protected void setDisplayOptions(String resourceName, OgemaLocale locale, Map<String, String> options) {
 		Map<OgemaLocale, Map<String, String>> innerMap = displayOptions.get(resourceName);
 		if(innerMap == null) {
