@@ -22,7 +22,7 @@ public class EvalAdmController extends OfflineEvaluationControlController {
 	public final EvalButtonConfigServiceProvider evalButtonConfigServiceProvider;
 
 	public EvalAdmController(ApplicationManager appMan, EvalAdmApp evaluationOCApp) {
-		super(appMan, evaluationOCApp, null, new PageConfig(false, false));
+		super(appMan, evaluationOCApp, null, new PageConfig(false, false), true);
 		this.appManSpExt = evaluationOCApp.appManSpExt;
 		//this.evalButtonConfigService = evaluationOCApp.evalButtonConfigService;
 		this.evalButtonConfigServiceProvider = evaluationOCApp;
