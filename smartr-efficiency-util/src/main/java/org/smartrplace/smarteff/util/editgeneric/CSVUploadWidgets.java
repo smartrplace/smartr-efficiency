@@ -74,9 +74,10 @@ public abstract class CSVUploadWidgets {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected Integer getSize(OgemaHttpRequest req) {
-				ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
-				SmartEffTimeSeries tsResource = getTSResource(req);
-				return tsMan.getFileNum(tsResource, null);
+				return null;
+				//ExtensionPageSystemAccessForTimeseries tsMan = exPage.getAccessData(req).getTimeseriesManagement();
+				//SmartEffTimeSeries tsResource = getTSResource(req);
+				//return tsMan.getFileNum(tsResource, null);
 			}
 		};
 		csvButton.setDefaultText(uploadButtonText);

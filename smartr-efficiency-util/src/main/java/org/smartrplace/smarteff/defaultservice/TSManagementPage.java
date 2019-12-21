@@ -394,7 +394,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			};
 			setLineProvider("#csv", csvProv);
 			setLabel("#csv", EN,"CSV Upload (Standard mode)", DE, "CSV-Datei hochladen (Standardmodus)");
-			
+		}
+		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvimport")) {
 			TimeseriesUploadListener tsListener = new TimeseriesUploadListener() {
 				@Override
 				public void fileUploaded(ReadOnlyTimeSeries timeSeries, String filePath, OgemaHttpRequest req) {
@@ -502,6 +503,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		activateTimestampButton.registerDependentWidget(newValue);
 		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvupload")) {
 			activateTimestampButton.registerDependentWidget(csvButton);
+		}
+		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvimport")) {
 			activateTimestampButton.registerDependentWidget(csvImportButton);
 		}
 		if(alert != null) newValueButton.registerDependentWidget(alert);
@@ -782,14 +785,6 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			
 			if(alert != null) alert.showAlert("New value: " + value + " for "+TimeUtils.getDateAndTimeString(ts), true, req);
 		}
-		private void addComment(SmartEffTimeSeries res, String comment, long timestamp) {
-			res.comments().create();
-			res.commmentTimeStamps().create();
-			ValueResourceUtils.appendValue(res.comments(), comment);
-			ValueResourceUtils.appendValue(res.commmentTimeStamps(), timestamp);
-			if(!res.comments().isActive()) res.comments().activate(false);
-			if(!res.commmentTimeStamps().isActive()) res.commmentTimeStamps().activate(false);
-		}
 		private Long getTimeStamp(String notAllowedMessageTS, OgemaHttpRequest req) {
 			long ts;
 			//String buttonText = activateTimestampButton.getText(req);
@@ -823,6 +818,15 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		}
 	}
 	
+	public static void addComment(SmartEffTimeSeries res, String comment, long timestamp) {
+		res.comments().create();
+		res.commmentTimeStamps().create();
+		ValueResourceUtils.appendValue(res.comments(), comment);
+		ValueResourceUtils.appendValue(res.commmentTimeStamps(), timestamp);
+		if(!res.comments().isActive()) res.comments().activate(false);
+		if(!res.commmentTimeStamps().isActive()) res.commmentTimeStamps().activate(false);
+	}
+
 	/** Convert from a European human standard value into OGEMA value (e.g. °C to K)
 	 * 
 	 * @param euHumValue value as expected by most continental European humans
