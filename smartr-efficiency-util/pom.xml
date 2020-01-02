@@ -73,7 +73,7 @@
         <dependency>
             <groupId>org.ogema.widgets</groupId>
             <artifactId>widget-collection</artifactId>
-            <version>2.2.1-SNAPSHOT</version>
+            <version>2.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.ogema.widgets</groupId>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>org.ogema.tools</groupId>
             <artifactId>timeseries-import</artifactId>
-            <version>2.2.0</version>
+            <version>2.2.1</version>
         </dependency>  
  		<dependency>
             <groupId>org.ogema.eval</groupId>
