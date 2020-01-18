@@ -60,8 +60,7 @@ public class LogicProvTablePage extends NaviPageBase<Resource> {
 		private ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage;
 		
 		public TablePage(ExtensionNavigationPageI<SmartEffUserDataNonEdit, ExtensionResourceAccessInitData> exPage, ApplicationManagerMinimal appManMin) {
-			super(exPage.getPage(), null, (LogicProviderPublicData)null, false);
-			this.exPage = exPage;
+			super(exPage.getPage(), null, (Class<LogicProviderPublicData>) null, false);			this.exPage = exPage;
 			triggerPageBuild();
 		}
 
