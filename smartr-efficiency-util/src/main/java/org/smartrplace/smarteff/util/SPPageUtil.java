@@ -98,13 +98,13 @@ public class SPPageUtil {
 			ExtensionResourceAccessInitData appData,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req) {
 		return addResEditOpenButton(columnName, object, vh, id, row, appData, controlProvider, req, null,
-				false);
+				false, AddEditButton.BUTTON_TEXTS);
 	}
 	public static OgemaWidget addResEditOpenButton(String columnName, Resource object,
 			ObjectResourceGUIHelper<?,?> vh, String id, Row row,
 			ExtensionResourceAccessInitData appData,
 			ButtonControlProvider controlProvider, OgemaHttpRequest req,
-			String editPageURL, boolean showSize) {
+			String editPageURL, boolean showSize, Map<OgemaLocale, String> buttonTexts) {
 		if(appData != null) {
 			final NavigationPublicPageData pageData;
 			if(editPageURL == null)
@@ -114,9 +114,9 @@ public class SPPageUtil {
 			String text;
 			if(showSize) {
 				int size = AddEditButton.getSize(object, appData);
-				text = ValueFormat.getLocaleString(req, AddEditButton.BUTTON_TEXTS)+"("+size+")";
+				text = ValueFormat.getLocaleString(req, buttonTexts)+"("+size+")";
 			} else
-				text = ValueFormat.getLocaleString(req, AddEditButton.BUTTON_TEXTS);
+				text = ValueFormat.getLocaleString(req, buttonTexts);
 			return addOpenButton(columnName, object, vh, id, row, pageData, appData.systemAccess(),
 					text, "Locked", false, PageType.EDIT_PAGE, controlProvider, null, req);
 		} else {

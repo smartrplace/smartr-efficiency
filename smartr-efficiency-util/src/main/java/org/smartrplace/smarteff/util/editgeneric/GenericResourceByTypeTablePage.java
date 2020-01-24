@@ -1,6 +1,7 @@
 package org.smartrplace.smarteff.util.editgeneric;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,6 +35,12 @@ import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 public class GenericResourceByTypeTablePage<T extends Resource> extends GenericResourceByTypeTablePageBase {
 	//public static final OgemaLocale FORMAT = new OgemaLocale(Locale.TRADITIONAL_CHINESE);
+	public static final Map<OgemaLocale, String> BUTTON_TEXTS_MOREVALUES = new HashMap<>();
+	static {
+		BUTTON_TEXTS_MOREVALUES.put(OgemaLocale.ENGLISH, "More Values");
+		BUTTON_TEXTS_MOREVALUES.put(OgemaLocale.GERMAN, "Mehr Werte");
+		BUTTON_TEXTS_MOREVALUES.put(OgemaLocale.FRENCH, "Plus de Valeurs");
+	}
 
 	private final EditPageGenericWithTable<T> creatingPage;
 	private final String id;
@@ -78,7 +85,7 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				if(!(appData.getConfigInfo().context instanceof ResourceOfTypeContext)) throw new IllegalStateException("Type must be transmitted as ResourceOfTypeContext!");
 				ResourceOfTypeContext param = (ResourceOfTypeContext)appData.getConfigInfo().context;
 				SPPageUtil.addResEditOpenButton("Edit", object, vh, id, row, appData, tabButton!=null?tabButton.control:null, req,
-						param.editPageURL, creatingPage.offerDeleteInTable());
+						param.editPageURL, creatingPage.offerDeleteInTable(), BUTTON_TEXTS_MOREVALUES);
 			} else {
 				vh.registerHeaderEntry("Edit");
 			}
