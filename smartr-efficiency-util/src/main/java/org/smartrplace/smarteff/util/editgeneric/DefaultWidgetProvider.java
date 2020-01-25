@@ -629,8 +629,14 @@ public class DefaultWidgetProvider<T extends Resource> implements EditPageGeneri
 					@Override
 					protected Resource getResource(ExtensionResourceAccessInitData appData, OgemaHttpRequest req) {
 						//TODO: This may be the default behaviour in the future
-						if(sub.startsWith("#$ResourceType:"))
-							return super.getResource(appData, req);
+						if(sub.startsWith("#$ResourceType:")) {
+							Resource res = super.getResource(appData, req);
+							if(res == null) {
+								setDefaultWidth("100%");
+								return appData.userData();
+							}
+							else return res;
+						}
 						if(sub.contains("#$")) {
 							T entryResource = mhLoc.getGatewayInfo(req);
 							ResourceList<?> resList = CapabilityHelper.getOrcreateResource(entryResource,
