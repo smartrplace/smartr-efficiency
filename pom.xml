@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.ogema.apps</groupId>
 		<artifactId>apps-master</artifactId>
-		<version>2.2.0</version>
+		<version>2.2.2-SNAPSHOT</version>
 	</parent>
 	
 	<groupId>org.smartrplace.apps</groupId>
@@ -51,6 +51,7 @@
 		<module>smartr-efficiency-multibuild</module>
 		<module>smartr-heating-server</module>
 		<module>smartr-heating-pricing</module>
+		<module>monitoring-base</module>
     </modules>
 
     <build>
