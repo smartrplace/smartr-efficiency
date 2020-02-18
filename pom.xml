@@ -23,7 +23,7 @@
 	</scm> --> <!-- FIXME syntax -->
     
     
-    <repositories>
+    <!-- <repositories>
     	<repository>
 		    <id>ogema-release</id>
 		    <name>ogema-release</name>
@@ -34,7 +34,7 @@
             <name>Public Releases</name>
             <url>http://88.198.127.166:8081/artifactory/libs-release-local</url>
         </repository>
-    </repositories>
+    </repositories> -->
     
 
   <!-- Sub-projects -->
@@ -83,7 +83,7 @@
 			<dependency>
 				<groupId>org.ogema.widgets</groupId>
 				<artifactId>util-extended</artifactId>
-				<version>2.2.1</version>
+				<version>2.2.2-SNAPSHOT</version>
 			</dependency>
 			<dependency>
 				<groupId>org.ogema.model</groupId>

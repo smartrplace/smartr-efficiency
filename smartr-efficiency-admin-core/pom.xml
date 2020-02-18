@@ -15,14 +15,6 @@
     
     <packaging>bundle</packaging>
     
-    <repositories>
-    	<repository>
-		    <id>ogema-release</id>
-		    <name>ogema-release</name>
-		    <url>https://www.ogema-source.net/artifactory/libs-release</url>
-   		</repository>
-    </repositories>
-    
     <build>
         <plugins>
             <plugin>
