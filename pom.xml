@@ -22,19 +22,42 @@
 		<tag>smartrplace-2.1.1-SNAPSHOT</tag>
 	</scm> --> <!-- FIXME syntax -->
     
-    
-    <!-- <repositories>
-    	<repository>
-		    <id>ogema-release</id>
-		    <name>ogema-release</name>
-		    <url>https://www.ogema-source.net/artifactory/libs-release</url>
-   		</repository>
+
+    <repositories>
         <repository>
-            <id>smartrplace-releases</id>
-            <name>Public Releases</name>
-            <url>http://88.198.127.166:8081/artifactory/libs-release-local</url>
+            <id>sp-central</id>
+            <name>sp-central</name>
+            <url>https://repository.smartrplace.de/artifactory/libs-release</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
-    </repositories> -->
+        <repository>
+            <id>sp-snapshot</id>
+            <name>sp-snapshots</name>
+            <url>https://repository.smartrplace.de/artifactory/libs-snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>sp-central</id>
+            <name>Smartrplace Repository</name>
+            <url>https://repository.smartrplace.de/artifactory/libs-release</url>
+            <layout>default</layout>
+        </repository>
+        <snapshotRepository>
+            <uniqueVersion>true</uniqueVersion>
+            <id>sp-snapshots</id>
+            <name>Smartrplace Snapshots</name>
+            <url>https://repository.smartrplace.de/artifactory/libs-snapshot</url>
+            <layout>default</layout>
+        </snapshotRepository>
+    </distributionManagement>    
     
 
   <!-- Sub-projects -->
