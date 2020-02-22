@@ -252,8 +252,13 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 				Sensor sensor = ResourceHelper.getFirstParentOfType(reading, Sensor.class);
 				String room = getRoomLabel(rec.getPath(), null);
 				BuildingUnit bu = InitUtil.getBuildingUnitByRoom(room, user.editableData());
-				if(bu == null)
-					continue;
+				if(bu == null) {
+					if(room.toLowerCase().equals("gesamt"))
+						continue;
+					bu = InitUtil.getBuildingUnitByRoom("Gesamt", user.editableData());
+					if(bu == null)
+						continue;
+				}
 				List<String> buSensors = roomSensors.get(bu.getLocation());
 				if(buSensors == null) {
 					buSensors = new ArrayList<>();

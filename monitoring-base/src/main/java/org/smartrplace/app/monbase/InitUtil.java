@@ -76,10 +76,10 @@ public class InitUtil {
 					return buildUnit;				
 			}
 		}
-		return null;	
+		return null;
 	}
 
-	public static void initAlarmForSensor(Sensor dev, Room room, SmartEffUserDataNonEdit user,
+	/*public static void initAlarmForSensor(Sensor dev, Room room, SmartEffUserDataNonEdit user,
 			MonitoringController controller) {
 		BuildingUnit bu = controller.getBuildingUnitByRoom(dev, room, user.editableData());
 		if(bu == null) {
@@ -87,7 +87,7 @@ public class InitUtil {
 			return;
 		}
 		initAlarmForSensor(dev, bu, user, controller);
-	}
+	}*/
 	public static void initAlarmForSensor(Sensor dev, BuildingUnit bu, SmartEffUserDataNonEdit user,
 			MonitoringController controller) {
 		@SuppressWarnings("unchecked")
