@@ -13,6 +13,8 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.gateway.EvalCollection;
+import org.ogema.model.smartgriddata.Price;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.config.EnergyEvalInterval;
@@ -22,6 +24,7 @@ import org.smartrplace.app.monbase.power.EnergyEvaluationTableLine.SumType;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.logconfig.EvalHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -56,16 +59,34 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 		super(page, controller.appMan, new EnergyEvaluationTableLine((ElectricityConnection)null, "init", true, null, null, null, 0,
 				null), false);
 		this.controller = controller;
-		elPrice = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
+		FloatResource elPriceLoc;
+		elPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/electricityPrice", FloatResource.class);
+		if(elPriceLoc == null) {
+			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
+			elPriceLoc = evalCollection.getSubResource("elPrice", FloatResource.class);
+		}
+		elPrice = elPriceLoc;
 		elPrice.create();
 		if(!elPrice.isActive())
 			elPrice.activate(false);
-		gasPrice = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
+		FloatResource gasPriceLoc;
+		gasPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/gasPrice", FloatResource.class);
+		if(gasPriceLoc == null) {
+			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
+			gasPriceLoc = evalCollection.getSubResource("gasPrice", FloatResource.class);
+		}
+		gasPrice = gasPriceLoc;
 		gasPrice.create();
-		gasEff = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
+		FloatResource gasEffLoc;
+		gasEffLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/heatingEfficiency", FloatResource.class);
+		if(gasEffLoc == null) {
+			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
+			gasEffLoc = evalCollection.getSubResource("gasEff", FloatResource.class);
+		}
+		gasEff = gasEffLoc;
 		gasEff.create();
 		
 		startPicker = new Datepicker(page, "startPicker") {

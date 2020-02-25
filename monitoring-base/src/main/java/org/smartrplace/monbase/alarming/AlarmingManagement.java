@@ -102,7 +102,7 @@ public class AlarmingManagement {
 					vl.lastTimeOfNewData = now;
 				else
 					vl.lastTimeOfNewData = val.getTimestamp();
-				vl.listener = new AlarmValueListener(ac, vl);
+				vl.listener = new AlarmValueListener(ac, vl, controller);
 				scheduleConfigs.add(vl);
 				if(scheduleTimer == null) {
 					scheduleTimer = controller.appMan.createTimer(SCHEDULE_CHECK_RATE, new TimerListener() {
@@ -128,6 +128,16 @@ public class AlarmingManagement {
 					});
 				}
 			} else {
+				if(ac.supervisedSensor().reading() instanceof BooleanResource) {
+					BooleanResource res = (BooleanResource) ac.supervisedSensor().reading().getLocationResource();
+					ValueListenerData vl = new ValueListenerData(res);
+					vl.lastTimeOfNewData = now;
+					AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, controller);
+					vl.listener = mylistener;
+					valueListeners.add(vl);
+					res.addValueListener(mylistener, true);
+					continue;
+				}
 				if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
 					controller.log.warn("Sensor reading not of type FloatResource:"+
 							ac.supervisedSensor().reading().getLocation());
@@ -137,7 +147,7 @@ public class AlarmingManagement {
 					FloatResource res = (FloatResource) ac.supervisedSensor().reading().getLocationResource();
 					ValueListenerData vl = new ValueListenerData(res);
 					vl.lastTimeOfNewData = now;
-					AlarmValueListener mylistener = new AlarmValueListener(ac, vl);
+					AlarmValueListener mylistener = new AlarmValueListener(ac, vl, controller);
 					vl.listener = mylistener;
 					valueListeners.add(vl);
 					res.addValueListener(mylistener, true);
@@ -147,7 +157,7 @@ public class AlarmingManagement {
 				if(onOff != null) {
 					BooleanResource bres = onOff.stateFeedback().getLocationResource();
 					ValueListenerData vl = new ValueListenerData(bres);
-					AlarmValueListenerBoolean onOffListener = new AlarmValueListenerBoolean(1.0f, 1.0f, 60000, 600000, ac, vl) {
+					AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vl, controller) {
 						@Override
 						public void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower,
 								IntegerResource alarmStatus) {
@@ -195,7 +205,7 @@ public class AlarmingManagement {
 		}
 	}
 	
-	protected IntegerResource getAlarmStatus(ValueResource reading) {
+	protected static IntegerResource getAlarmStatus(ValueResource reading) {
 		Resource parent = reading.getParent();
 		IntegerResource alarmStatus = parent.getSubResource(AlarmingManagement.ALARMSTATUS_RES_NAME,
 				IntegerResource.class);
@@ -215,7 +225,64 @@ public class AlarmingManagement {
 		ResourceValueListener<?> getListener();
 		
 	}
-	protected class AlarmValueListener implements ResourceValueListener<FloatResource>, AlarmValueListenerI {
+	protected class AlarmValueListener extends AlarmValueListenerBase<FloatResource> {
+		public AlarmValueListener(AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(ac, vl, AlarmingManagement.this.alarmID, controller);
+		}
+		
+		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
+		public AlarmValueListener(float upper, float lower, int retard, int resendRetard,
+				AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManagement.this.alarmID, controller);
+		}
+
+		@Override
+		protected void releaseAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+				IntegerResource alarmStatus) {
+			AlarmingManagement.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
+		}
+
+		@Override
+		protected void sendMessage(String title, String message, MessagePriority prio)
+				throws RejectedExecutionException, IllegalStateException {
+			AlarmingManagement.this.sendMessage(title, message, prio);
+		}
+
+		@Override
+		protected float getHumanValue(FloatResource resource) {
+			return AlarmingManagement.getHumanValue(resource);
+		}
+	}
+	protected class AlarmValueListenerBoolean extends AlarmValueListenerBase<BooleanResource> {
+		public AlarmValueListenerBoolean(AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(ac, vl, AlarmingManagement.this.alarmID, controller);
+		}
+		
+		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
+		public AlarmValueListenerBoolean(float upper, float lower, int retard, int resendRetard,
+				AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManagement.this.alarmID, controller);
+		}
+
+		@Override
+		protected void releaseAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+				IntegerResource alarmStatus) {
+			AlarmingManagement.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
+		}
+
+		@Override
+		protected void sendMessage(String title, String message, MessagePriority prio)
+				throws RejectedExecutionException, IllegalStateException {
+			AlarmingManagement.this.sendMessage(title, message, prio);
+		}
+
+		@Override
+		protected float getHumanValue(BooleanResource resource) {
+			return resource.getValue()?1:0;
+		}
+	}
+
+	/*protected class AlarmValueListener implements ResourceValueListener<FloatResource>, AlarmValueListenerI {
 		final float upper;
 		final float lower;
 		final int retard;
@@ -223,7 +290,7 @@ public class AlarmingManagement {
 		final ValueListenerData vl;
 		final AlarmConfigBase ac;
 
-		/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
+		// This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes
 		public AlarmValueListener(AlarmConfigBase ac, ValueListenerData vl) {
 			upper = ac.upperLimit().getValue();
 			lower = ac.lowerLimit().getValue();
@@ -234,7 +301,7 @@ public class AlarmingManagement {
 			vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
 		}
 		
-		/** This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision*/
+		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListener(float upper, float lower, int retard, int resendRetard,
 				AlarmConfigBase ac, ValueListenerData vl) {
 			this.upper = upper;
@@ -271,7 +338,7 @@ public class AlarmingManagement {
 			}
 			
 			if(isViolated(value, lower, upper)) {
-				if(isNewAlarmRetardPhaseAllowed(vl)) {
+				if(isNewAlarmRetardPhaseAllowed(vl, controller)) {
 					vl.timer = new CountDownDelayedExecutionTimer(controller.appMan, 
 							retard) {
 						@Override
@@ -325,14 +392,15 @@ public class AlarmingManagement {
 		public ResourceValueListener<?> getListener() {
 			return this;
 		}
-	}
+	}*/
 	
-	protected class AlarmValueListenerBoolean
+	protected class AlarmValueListenerBooleanOnOff
 			implements ResourceValueListener<BooleanResource>, AlarmValueListenerI {
 		protected final AlarmValueListener alarmValListenerBase;
 		
-		public AlarmValueListenerBoolean(float upper, float lower, int retard, int resendRetard, AlarmConfigBase ac, ValueListenerData vl) {
-			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl);
+		public AlarmValueListenerBooleanOnOff(float upper, float lower, int retard, int resendRetard, AlarmConfigBase ac, ValueListenerData vl,
+				MonitoringController controller) {
+			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, controller);
 		}
 		@Override
 		public void resourceChanged(BooleanResource resource) {
@@ -361,13 +429,14 @@ public class AlarmingManagement {
 		}
 	}
 	
-	protected boolean isViolated(float value, float lower, float upper) {
+	protected static boolean isViolated(float value, float lower, float upper) {
 		if(value < lower) return true;
 		if(value > upper) return true;
 		return false;
 	}
 	
-	protected boolean isNewAlarmRetardPhaseAllowed(ValueListenerData vl) {
+	protected static boolean isNewAlarmRetardPhaseAllowed(ValueListenerData vl,
+			MonitoringController controller) {
 		if(vl.timer != null) return false;
 		if(vl.nextTimeAlarmAllowed <= 0) return true;
 		if(vl.nextTimeAlarmAllowed < controller.appMan.getFrameworkTime()) {

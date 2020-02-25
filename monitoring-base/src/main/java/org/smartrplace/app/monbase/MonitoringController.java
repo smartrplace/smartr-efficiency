@@ -109,7 +109,7 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	/** Method for OfflineControlGUI page, overwrite if additional buttons shall be added*/
 	public StaticTable provideButtonTable(OfflineControlGUI page, Button closeTabButton, Button messageButton) {
 		StaticTable buttonTable = new StaticTable(1,2);
-		buttonTable.setContent(0, 0, closeTabButton).setContent(0, 2, messageButton);
+		buttonTable.setContent(0, 0, closeTabButton).setContent(0, 1, messageButton);
 		return buttonTable;
 	}
 	

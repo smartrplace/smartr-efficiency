@@ -66,7 +66,7 @@ import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)*/
 public class MonitoringApp implements Application, OfflineEvalServiceAccess {
-	public static final String urlPath = "/com/example/app/monapp";
+	public static final String urlPath = "/org/sp/app/monapp";
 	public static WidgetPageFormatter STANDARD_PAGE_FORMATTER = new WidgetPageFormatter();
 
     private OgemaLogger log;
