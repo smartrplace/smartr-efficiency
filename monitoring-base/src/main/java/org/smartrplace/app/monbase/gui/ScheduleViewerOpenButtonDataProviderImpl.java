@@ -7,17 +7,20 @@ import java.util.List;
 import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.MonitoringController;
+import org.smartrplace.app.monbase.gui.TimeSeriesServlet.AggregationMode;
 
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl.ScheduleViewerOpenButtonDataProvider;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
+import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
@@ -67,7 +70,17 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		if((!roomIDs.contains(controller.getAllRoomLabel(req!=null?req.getLocale():null)))) {
 			cleanListByRooms(input, roomIDs);
 		}
-		String dataType = getDataType(req);
+		final String dataTypeOrg = getDataType(req);
+		final String dataType;
+		final String tsProcessRequest;
+		if(dataTypeOrg.contains("##")) {
+			String[] parts = dataTypeOrg.split("##");
+			dataType = parts[0];
+			tsProcessRequest = parts[1];
+		} else {
+			dataType = dataTypeOrg;
+			tsProcessRequest = null;			
+		}
 		if(dataType.equals(controller.getAllDataLabel()))
 			return input;
 		Set<String> inputsToUse = new HashSet<>(); //ArrayList<>();
@@ -103,6 +116,32 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		}
 		ExportBulkData.cleanList(input, inputsToUse);
 		input.addAll(manualTsInput);
+		if(tsProcessRequest != null) {
+			List<TimeSeriesData> result = new ArrayList<>();
+			for(TimeSeriesData tsd: input) {
+				if(!(tsd instanceof TimeSeriesDataImpl))
+					continue;
+				TimeSeriesDataImpl tsdi = (TimeSeriesDataImpl) tsd;
+				if(tsProcessRequest.equals("D24")) {
+					final AggregationMode mode;
+					if(controller.getConfigParam(tsd.label(null)).contains("C2M"))
+						mode = AggregationMode.Consumption2Meter;
+					else
+						mode = AggregationMode.Meter2Meter;
+					ProcessedReadOnlyTimeSeries newTs = new ProcessedReadOnlyTimeSeries(InterpolationMode.STEPS) {
+						
+						@Override
+						protected List<SampledValue> updateValues(long start, long end) {
+							return TimeSeriesServlet.getDayValues(tsdi.getTimeSeries(), start, end, mode, 1.0f);
+						}
+					};
+					TimeSeriesDataExtendedImpl newtsdi = new TimeSeriesDataExtendedImpl(newTs,
+							tsdi.label(null)+"_proTag", tsdi.description(null)+"_proTag", InterpolationMode.STEPS);
+					result.add(newtsdi);
+				}
+			}
+			return result;
+		}
 		return input;
 	}
 	

@@ -106,6 +106,9 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	/** TODO: We should have a default or template implementation for this, probably a Util class*/
 	protected abstract void registerStaticTimeSeriesViewerLinks();
 	
+	/** Overwrite to provide configurations for certain time series*/
+	public String getConfigParam(String tsLabel) {return null;}
+	
 	/** Method for OfflineControlGUI page, overwrite if additional buttons shall be added*/
 	public StaticTable provideButtonTable(OfflineControlGUI page, Button closeTabButton, Button messageButton) {
 		StaticTable buttonTable = new StaticTable(1,2);
