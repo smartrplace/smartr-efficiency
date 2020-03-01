@@ -209,8 +209,19 @@ public class OfflineControlGUI {
 		selectConfig.selectDefaultItem("Eine Woche");
 		
 		selectDataType =  new TemplateDropdown<String>(page, "selectDataType");
+		selectDataType.setTemplate(new DefaultDisplayTemplate<String>() {
+			@Override
+			public String getLabel(String object, OgemaLocale locale) {
+				String labelorg = super.getLabel(object, locale);
+				if(labelorg.contains("##")) {
+					String[] parts = labelorg.split("##");
+					return parts[0];
+				} else
+					return labelorg;
+			}
+		});
 		selectDataType.setDefaultItems(getDataTypes());
-		selectDataType.selectDefaultItem("Wasser- und Luftemperatur");
+		selectDataType.selectDefaultItem(controller.getDefaultComplexOptionKey());
 		
 		//gateway multi-selection
 		//multiSelectRooms = new Checkbox2(page, "roomSelectionMS");

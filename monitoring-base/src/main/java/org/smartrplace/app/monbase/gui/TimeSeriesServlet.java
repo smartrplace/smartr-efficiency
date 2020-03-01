@@ -161,14 +161,16 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	}
 	
 	public enum AggregationMode {
-		/** In this mode the input is expected as power value that has to be integrated over time*/
+		/** In this mode the input is expected as power value that has to be integrated over time to get
+		 * a daily value*/
 		Power2Meter,
 		/** In this mode the input is a meter value that has to be read e.g. once per day to
-		 * generate daily values
+		 * generate daily values or the first derivate has to be calculated to get power values
 		 */
 		Meter2Meter,
 		/** In this mode the input contains consumption values that reflect the consumption since the 
-		 * last value provided. So these values have to be added up to generate a real meter*/
+		 * last value provided. So these values have to be added up to generate a real meter or have to
+		 * be divided by the respective time step to get power estimation values*/
 		Consumption2Meter
 	}
 	

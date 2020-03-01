@@ -10,7 +10,6 @@ import org.apache.felix.scr.annotations.Reference;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
-import org.ogema.core.model.schedule.Schedule;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
@@ -134,7 +133,7 @@ public class MonitoringApp implements Application, OfflineEvalServiceAccess {
 		}
 
 		@Override
-		public Schedule getManualDataEntrySchedule(String room, String label) {
+		public TimeSeriesData getManualDataEntrySchedule(String room, String label, String baseLabel) {
 			// TODO Auto-generated method stub
 			return null;
 		}
