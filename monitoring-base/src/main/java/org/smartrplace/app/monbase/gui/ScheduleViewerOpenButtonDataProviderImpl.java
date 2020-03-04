@@ -2,20 +2,20 @@ package org.smartrplace.app.monbase.gui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
-import org.ogema.core.model.schedule.Schedule;
-import org.ogema.core.timeseries.InterpolationMode;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet.AggregationMode;
+import org.smartrplace.tissue.util.resource.ResourceHelperSP;
+import org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference;
 
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl.ScheduleViewerOpenButtonDataProvider;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
@@ -23,7 +23,6 @@ import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
@@ -128,8 +127,32 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 				if(!(tsd instanceof TimeSeriesDataImpl))
 					continue;
 				TimeSeriesDataImpl tsdi = (TimeSeriesDataImpl) tsd;
-				if(tsProcessRequest.equals("DAY")) {
-					final AggregationMode mode;
+				if(tsProcessRequest.equals("METER")) {
+					ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi, nameProvider(), controller) {
+						@Override
+						protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
+								long end, AggregationMode mode) {
+							MeterReference ref = new MeterReference();
+							ref.referenceMeterValue = 0;
+							TimeResource refRes = ResourceHelperSP.getSubResource(null,
+									"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
+									TimeResource.class, controller.appMan.getResourceAccess());
+							ref.referenceTime = refRes.getValue();
+							return TimeSeriesServlet.getMeterFromConsumption(timeSeries, start, end, ref, mode);						}
+					}; 
+					TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
+					result.add(newtsdi);
+				} else if(tsProcessRequest.equals("DAY")) {
+					ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi, nameProvider(), controller) {
+						@Override
+						protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
+								long end, AggregationMode mode) {
+							return TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);						}
+					}; 
+					TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
+					result.add(newtsdi);
+					
+					/*final AggregationMode mode;
 					final String cparam = controller.getConfigParam(tsd.label(null));
 					if(cparam != null && cparam.contains(AggregationMode.Consumption2Meter.name()))
 						mode = AggregationMode.Consumption2Meter;
@@ -161,8 +184,7 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 						}
 					}
 					TimeSeriesDataExtendedImpl newtsdi = new TimeSeriesDataExtendedImpl(newTs,
-							shortId+"_proTag", tsd.description(null)+"_proTag", InterpolationMode.STEPS);
-					result.add(newtsdi);
+							shortId+"_proTag", tsd.description(null)+"_proTag", InterpolationMode.STEPS);*/
 				}
 			}
 			return result;

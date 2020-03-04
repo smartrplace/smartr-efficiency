@@ -2,6 +2,7 @@ package org.smartrplace.app.monbase.gui;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -184,13 +185,20 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	 * @return
 	 */
 	public static List<SampledValue> getMeterFromConsumption(ReadOnlyTimeSeries timeSeries, long start, long end,
-			MeterReference ref) {
+			MeterReference ref, AggregationMode mode) {
+		if(mode == AggregationMode.Power2Meter)
+			throw new UnsupportedClassVersionError("Power2Meter not supported yet");
 		List<SampledValue> result = new ArrayList<>();
 		double myRefValue = getInterpolatedValue(timeSeries, ref.referenceTime);
+		if(Double.isNaN(myRefValue))
+			return Collections.emptyList();
 		double delta = ref.referenceMeterValue - myRefValue;
 		double counter = 0;
 		for(SampledValue sv: timeSeries.getValues(start, end)) {
-			counter += sv.getValue().getFloatValue();
+			if(mode == AggregationMode.Consumption2Meter)
+				counter += sv.getValue().getFloatValue();
+			else
+				counter = sv.getValue().getFloatValue();
 			result.add(new SampledValue(new FloatValue((float) (counter+delta)), sv.getTimestamp(), sv.getQuality()));
 		}
 		return result;

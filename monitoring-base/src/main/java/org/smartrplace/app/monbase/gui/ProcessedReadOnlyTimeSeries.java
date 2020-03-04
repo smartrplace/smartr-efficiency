@@ -1,6 +1,7 @@
 package org.smartrplace.app.monbase.gui;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,6 +15,8 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 	protected List<SampledValue> values = null;
 	protected long knownStart = -1;
 	protected long knownEnd;
+	protected long firstValueInList = Long.MAX_VALUE;
+	protected long lastValueInList = -1;
 	protected boolean isOwnList = false;
 	
 	protected final InterpolationMode interpolationMode;
@@ -28,10 +31,12 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 			values = updateValues(startTime, endTime);
 			knownStart = startTime;
 			knownEnd = endTime;
+			updateValueLimits();
 		} else if(startTime < knownStart && endTime > knownEnd) {
 			values = updateValues(startTime, endTime);
 			knownStart = startTime;
 			knownEnd = endTime;			
+			updateValueLimits();
 		} else if(startTime < knownStart) {
 			List<SampledValue> newVals = updateValues(startTime, knownStart);
 			List<SampledValue> concat = new ArrayList<SampledValue>(newVals);
@@ -39,6 +44,7 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 			values = concat;
 			isOwnList = true;
 			knownStart = startTime;			
+			updateValueLimits();
 		} else if(endTime > knownEnd) {
 			List<SampledValue> newVals = updateValues(knownEnd, endTime);
 			if(isOwnList)
@@ -50,10 +56,45 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 				isOwnList = true;
 			}
 			knownEnd = endTime;			
+			updateValueLimits();
 		}
-		return values;
+		if(startTime > lastValueInList)
+			return Collections.emptyList();
+		if(endTime < firstValueInList)
+			return Collections.emptyList();
+		if(startTime <= firstValueInList && endTime >= lastValueInList)
+			return values;
+		if(values.isEmpty())
+			return values;
+		int fromIndex = -1;
+		int toIndex = -1;
+		for(int i=0; i<values.size(); i++) {
+			if(values.get(i).getTimestamp() >= startTime) {
+				fromIndex = i;
+				break;
+			}
+		}
+		if(fromIndex < 0)
+			throw new IllegalStateException("Should not occur!");
+		for(int i=values.size()-1; i>=(fromIndex-1); i--) {
+			if(values.get(i).getTimestamp() <= endTime) {
+				toIndex = i;
+				break;
+			}
+		}
+		if(fromIndex > toIndex)
+			return Collections.emptyList();
+		List<SampledValue> result = values.subList(fromIndex, toIndex);
+		return result;
 	}
 
+	protected void updateValueLimits() {
+		if(!values.isEmpty()) {
+			firstValueInList = values.get(0).getTimestamp();
+			lastValueInList = values.get(values.size()-1).getTimestamp();
+		}
+	}
+	
 	@Override
 	public List<SampledValue> getValues(long startTime) {
 		return getValues(startTime, Long.MAX_VALUE);

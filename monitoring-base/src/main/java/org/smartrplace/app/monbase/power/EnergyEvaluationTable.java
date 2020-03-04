@@ -14,7 +14,6 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.gateway.EvalCollection;
-import org.ogema.model.smartgriddata.Price;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.config.EnergyEvalInterval;
@@ -26,9 +25,8 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.logconfig.EvalHelper;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.widgets.api.widgets.WidgetGroup;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
-import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.calendar.datepicker.Datepicker;
@@ -54,6 +52,8 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 	protected final FloatResource elPrice;
 	protected final FloatResource gasPrice;
 	protected final FloatResource gasEff;
+	
+	protected final WidgetGroup wg;
 	
 	public EnergyEvaluationTable(WidgetPage<?> page, MonitoringController controller) {
 		super(page, controller.appMan, new EnergyEvaluationTableLine((ElectricityConnection)null, "init", true, null, null, null, 0,
@@ -154,6 +154,9 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 		};
 		updateButton.addWidget(startPicker);
 		updateButton.addWidget(endPicker);
+		
+		wg = page.registerWidgetGroup("pollingGroup");
+		wg.setPollingInterval(POLL_RATE);
 		triggerPageBuild();
 	}
 
@@ -241,7 +244,8 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 	}
 	
 	protected void configureLabelForPolling(Label label, OgemaHttpRequest req) {
-		endPicker.triggerAction(label, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req);
+		//endPicker.triggerAction(label, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req);
+		wg.addWidget(label);
 		updateButton.registerDependentWidget(label, req);
 	}
 	
