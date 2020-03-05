@@ -25,8 +25,9 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.logconfig.EvalHelper;
 import de.iwes.util.resource.ResourceHelper;
-import de.iwes.widgets.api.widgets.WidgetGroup;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.calendar.datepicker.Datepicker;
@@ -53,7 +54,7 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 	protected final FloatResource gasPrice;
 	protected final FloatResource gasEff;
 	
-	protected final WidgetGroup wg;
+	//protected final WidgetGroup wg;
 	
 	public EnergyEvaluationTable(WidgetPage<?> page, MonitoringController controller) {
 		super(page, controller.appMan, new EnergyEvaluationTableLine((ElectricityConnection)null, "init", true, null, null, null, 0,
@@ -155,8 +156,8 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 		updateButton.addWidget(startPicker);
 		updateButton.addWidget(endPicker);
 		
-		wg = page.registerWidgetGroup("pollingGroup");
-		wg.setPollingInterval(POLL_RATE);
+		//wg = page.registerWidgetGroup("pollingGroup");
+		//wg.setPollingInterval(POLL_RATE);
 		triggerPageBuild();
 	}
 
@@ -179,7 +180,7 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 		
 		Label costLabel  = new Label(mainTable, "costLabel_"+id, "--", req);
 		//costLabel.setDefaultPollingInterval(POLL_RATE);
-		configureLabelForPolling(costLabel, req);
+		configureLabelForPolling(costLabel, object.lineShowsPower, req);
 		if(object.type == SumType.SUM_LINE)
 			costLabel.addCssStyle("font-weight", "bold", req);
 		row.addCell(ResourceUtils.getValidResourceName(COST_HEADER), costLabel);
@@ -238,15 +239,19 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 			}
 		};
 		//phaseLabel.setDefaultPollingInterval(POLL_RATE);
-		configureLabelForPolling(phaseLabel, req);
+		configureLabelForPolling(phaseLabel, object.lineShowsPower, req);
 		row.addCell(columnId, phaseLabel);
 		return phaseLabel;
 	}
 	
-	protected void configureLabelForPolling(Label label, OgemaHttpRequest req) {
-		//endPicker.triggerAction(label, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req);
-		wg.addWidget(label);
-		updateButton.registerDependentWidget(label, req);
+	protected void configureLabelForPolling(Label label, boolean lineShowsPower, OgemaHttpRequest req) {
+		if(lineShowsPower)
+			endPicker.triggerAction(label, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req);
+		else {
+			//updateButton.addWidget(label);
+			updateButton.registerDependentWidget(label, req);
+		}
+		//wg.addWidget(label);
 	}
 	
 	@Override
@@ -279,6 +284,7 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 		initResType.registerDependentWidget(mainTable);
 		initResType.registerDependentWidget(startPicker);
 		initResType.registerDependentWidget(endPicker);
+		initResType.registerDependentWidget(updateButton);
 		
 		Header header = new Header(page, "header") {
 			private static final long serialVersionUID = 1L;
@@ -303,6 +309,8 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 		topTable.setContent(0, 3, closeTabButton);
 		topTable.setContent(0, 4, messageButton);
 		page.append(topTable);
+		
+		//wg.addWidget(mainTable);
 	}
 
 	/*protected void updateContent(OgemaHttpRequest req, long endTime) {

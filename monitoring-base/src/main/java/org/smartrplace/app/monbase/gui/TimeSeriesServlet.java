@@ -30,6 +30,8 @@ import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 
 public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl> {
+	public static final long ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL = AlarmingManagement.HOUR_MILLIS*12;
+	
 	Map<String, ReadOnlyTimeSeries> knownSpecialTs = new HashMap<>();
 	protected final ApplicationManager appMan;
 	
@@ -105,7 +107,11 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	}
 	public static float getDiffOfLast24h(ReadOnlyTimeSeries ts, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
-		SampledValue startval = ts.getPreviousValue(now-AlarmingManagement.DAY_MILLIS);
+		long start = now-AlarmingManagement.DAY_MILLIS;
+		SampledValue startval = ts.getPreviousValue(start);
+		if(start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL) {
+			return -1;
+		}
 		SampledValue endval = ts.getPreviousValue(now);
 		if(startval == null || endval == null)
 			return -1;
@@ -121,6 +127,9 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, AbsoluteTiming.DAY);
 		long end = start + AlarmingManagement.DAY_MILLIS;
 		SampledValue startval = ts.getPreviousValue(start);
+		if(start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL) {
+			return -1;
+		}
 		SampledValue endval = ts.getPreviousValue(end);
 		if(startval == null || endval == null)
 			return -1;
