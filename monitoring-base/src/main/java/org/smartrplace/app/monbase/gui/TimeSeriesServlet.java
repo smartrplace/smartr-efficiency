@@ -189,11 +189,26 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		if(mode == AggregationMode.Power2Meter)
 			throw new UnsupportedClassVersionError("Power2Meter not supported yet");
 		List<SampledValue> result = new ArrayList<>();
-		double myRefValue = getInterpolatedValue(timeSeries, ref.referenceTime);
+		final double myRefValue;
+		final double delta;
+		if(mode == AggregationMode.Consumption2Meter) {
+			double counter = getPartialConsumptionValue(timeSeries, start, true);
+			List<SampledValue> svList = timeSeries.getValues(start, ref.referenceTime);
+			for(SampledValue sv: svList) {
+				counter += sv.getValue().getFloatValue();
+			}
+			counter += getPartialConsumptionValue(timeSeries, end, false);
+			myRefValue = counter;
+		} else {
+			myRefValue = getInterpolatedValue(timeSeries, ref.referenceTime);
+		}
 		if(Double.isNaN(myRefValue))
 			return Collections.emptyList();
-		double delta = ref.referenceMeterValue - myRefValue;
+		delta = ref.referenceMeterValue - myRefValue;
 		double counter = 0;
+		if(mode == AggregationMode.Consumption2Meter) {
+			counter = getPartialConsumptionValue(timeSeries, start, true);
+		}
 		for(SampledValue sv: timeSeries.getValues(start, end)) {
 			if(mode == AggregationMode.Consumption2Meter)
 				counter += sv.getValue().getFloatValue();
@@ -252,5 +267,29 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		return (float) interpolateEnergyValue(svBefore.getTimestamp(), svNext.getTimestamp(),
 				timestamp,
 				svBefore.getValue().getFloatValue(), svNext.getValue().getFloatValue());
+	}
+	
+	/** For Consumption2Meter time series get energy consumption from timestamp to the end of the
+	 * interval within timestamp or from the start of the interval until timestamp
+	 * @param timeseries
+	 * @param timestamp
+	 * @return
+	 */
+	protected static float getPartialConsumptionValue(ReadOnlyTimeSeries timeseries, long timestamp,
+			boolean getConsumptionTowardsEnd) {
+		SampledValue sv = timeseries.getValue(timestamp);
+		if(sv != null)
+			return 0;
+		SampledValue svBefore = timeseries.getPreviousValue(timestamp);
+		SampledValue svNext = timeseries.getNextValue(timestamp);
+		if(svBefore == null || svNext == null)
+			return 0;
+		float partialVal = (float) interpolateEnergyStep(svBefore.getTimestamp(), svNext.getTimestamp(),
+				timestamp,
+				svBefore.getValue().getFloatValue());
+		if(getConsumptionTowardsEnd)
+			return svBefore.getValue().getFloatValue() - partialVal;
+		else
+			return partialVal;
 	}
 }
