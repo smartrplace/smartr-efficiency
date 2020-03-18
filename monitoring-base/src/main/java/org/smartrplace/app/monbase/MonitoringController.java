@@ -258,6 +258,7 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		
 		List<String> done = new ArrayList<>();
 		Map<String, List<String>> roomSensors = new HashMap<>();
+		System.out.println("In initAlarmingSensors: Processing "+getAllRooms(null).size()+ "Rooms!");
 		for(String roomLoop: getAllRooms(null)) {
 			ScheduleViewerOpenButtonDataProviderImpl allProv = new ScheduleViewerOpenButtonDataProviderImpl(this) {
 				
@@ -278,20 +279,30 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 			};
 			List<TimeSeriesData> input = allProv.getData(null);
 			
+			System.out.println("Processing "+input.size()+ " timeseries for alarming configuration!");
 			for(TimeSeriesData tsd: input) {
-				if(!(tsd instanceof TimeSeriesDataImpl)) continue;
+				if(!(tsd instanceof TimeSeriesDataImpl)) {
+					System.out.println("Skipping as not TimeSeriesDataImpl:"+tsd.label(null));
+					continue;
+				}
 				TimeSeriesDataImpl tsdi = (TimeSeriesDataImpl) tsd;
 				ReadOnlyTimeSeries ts = tsdi.getTimeSeries();
-				if(!(ts instanceof RecordedData)) continue;
+				if(!(ts instanceof RecordedData)) {
+					System.out.println("Skipping as not RecordedData:"+tsd.label(null)+ "Class:"+ts.getClass().getName());
+					continue;
+				}
 				RecordedData rec = (RecordedData) ts;
 				SingleValueResource reading = appMan.getResourceAccess().getResource(rec.getPath());
 				if(reading == null) {
+					System.out.println("Resource for RecordedData not found"+rec.getPath());
 					log.warn("Resource for RecordedData not found"+rec.getPath());
 					continue;
 				}
-				if(done.contains(reading.getLocation()))
+				if(done.contains(reading.getLocation())) {
+					System.out.println("Already in done:"+reading.getLocation());
 					continue;
-				else done.add(reading.getLocation());
+				} else done.add(reading.getLocation());
+				System.out.println("Added to done:"+reading.getLocation());
 				Sensor sensor = ResourceHelper.getFirstParentOfType(reading, Sensor.class);
 				String room = getRoomLabel(rec.getPath(), null);
 				BuildingUnit bu = InitUtil.getBuildingUnitByRoom(room, user.editableData());

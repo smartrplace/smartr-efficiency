@@ -109,11 +109,11 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		long now = appMan.getFrameworkTime();
 		long start = now-AlarmingManagement.DAY_MILLIS;
 		SampledValue startval = ts.getPreviousValue(start);
-		if(start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL) {
+		if(startval == null || start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL) {
 			return -1;
 		}
 		SampledValue endval = ts.getPreviousValue(now);
-		if(startval == null || endval == null)
+		if(endval == null)
 			return -1;
 			//return Float.NaN;
 		try {
