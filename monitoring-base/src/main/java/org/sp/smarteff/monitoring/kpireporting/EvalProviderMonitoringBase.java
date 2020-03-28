@@ -9,8 +9,8 @@ import org.ogema.util.kpieval.provider.EvalProviderMessagingBase;
 
 import de.iwes.timeseries.eval.api.EvaluationProvider;
 
-//@Service(EvaluationProvider.class)
-//@Component
+@Service(EvaluationProvider.class)
+@Component
 public class EvalProviderMonitoringBase extends EvalProviderMessagingBase {
 	protected static List<KPIPageDefinitionWithEmail> pagesWithEmails = new ArrayList<>();
 	
