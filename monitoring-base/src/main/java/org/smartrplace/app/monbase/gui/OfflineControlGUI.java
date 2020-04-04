@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
@@ -21,6 +22,7 @@ import org.smartrplace.app.monbase.MonitoringController;
 
 import com.iee.app.evaluationofflinecontrol.gui.GaRoMultiResultDeser;
 import com.iee.app.evaluationofflinecontrol.gui.GaRoSuperEvalResultDeser;
+import com.iee.app.evaluationofflinecontrol.gui.GatewayConfigPage;
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl;
 import com.iee.app.evaluationofflinecontrol.gui.PreEvalSelectDropdown;
 
@@ -50,6 +52,8 @@ import de.iwes.widgets.html.form.button.WindowCloseButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.multiselect.TemplateMultiselect;
+import de.iwes.widgets.multiselect.extended.MultiSelectExtended;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 import de.iwes.widgets.template.DefaultDisplayTemplate;
 
@@ -84,6 +88,9 @@ public class OfflineControlGUI {
 
 	private GaRoTestStarter<GaRoMultiResult> lastEvalStarted = null;
 	private final Button stopLastEvalButton;
+	
+	private final TemplateMultiselect<String> multiSelectGWs;
+	private final MultiSelectExtended<String> gateWaySelection;
 	
     public List<String> getConfigOptionsMinimal() {
 		List<String> configOptions = Arrays.asList(controller.getIntervalOptions());
@@ -160,8 +167,6 @@ public class OfflineControlGUI {
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
 		RedirectButton messageButton = new RedirectButton(page, "messageButton", "Alarme", "/de/iwes/ogema/apps/message/reader/index.html");
 		messageButton.setDefaultOpenInNewTab(false);
-		//RedirectButton groupMgmtButton = new RedirectButton(page, "groupMgmtButton", "Gruppen", GroupModifyPage.PATH);
-		//groupMgmtButton.setDefaultOpenInNewTab(false);
 		
 		//provider drop-down
 		selectProvider 
@@ -224,11 +229,38 @@ public class OfflineControlGUI {
 		selectDataType.selectDefaultItem(controller.getDefaultComplexOptionKey());
 		
 		//gateway multi-selection
+		if(!Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+			multiSelectGWs = new TemplateMultiselect<String>(page, "gateWaySelectionMS") {
+	
+				private static final long serialVersionUID = 1L;
+				
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+				}
+			};
+			//multiSelectGWs.setDefaultWidth("100%");
+			multiSelectGWs.setDefaultWidth("200px");
+			multiSelectGWs.selectDefaultItems(controller.getGwIDs(null));
+			multiSelectGWs.setDefaultSelectedItems(controller.getGwIDsDefaultSelected(null));
+			//multiSelectGWs.selectDefaultItems(controller.serviceAccess.gatewayParser.getGatewayIds());
+			
+			gateWaySelection = 
+					new MultiSelectExtended<String>(page, "gateWaySelection", multiSelectGWs, true, "", true, false) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected boolean addMultiSelectAutomatically() {
+					return false;
+				}
+			};
+		} else {
+			multiSelectGWs = null;
+			gateWaySelection = null;
+		}
+		
 		//multiSelectRooms = new Checkbox2(page, "roomSelectionMS");
 		List<String> items = new ArrayList<>();
 		List<String> ids = new ArrayList<>(controller.getAllRooms(null));
-		//ids.add("Luft");
-		//ids.add("Strom");
 		ids.add(controller.getAllRoomLabel(null));
 		for(String id: ids) {
 			items.add(id);
@@ -293,20 +325,22 @@ public class OfflineControlGUI {
 		
 
 		openScheduleViewer = OfflineEvaluationControl.getScheduleViewerOpenButton(page, "openScheduleViewer",
-				null, //multiSelectRooms,
+				multiSelectGWs, //multiSelectRooms,
 				selectProvider, app, selectConfig,
 			new ScheduleViewerOpenButtonDataProviderImpl(controller) {
 				
 				@Override
 				protected List<String> getRoomIDs(OgemaHttpRequest req) {
 					final List<String> roomIDs = multiSelectRooms2.getSelectedItems(req);
-					/*List<CheckboxEntry> entries = multiSelectRooms.getCheckboxList(req);
-					roomIDs = new ArrayList<>();
-					for(CheckboxEntry e: entries) {
-						if(e.isChecked())
-							roomIDs.add(e.label(null));
-					}*/
 					return roomIDs;
+				}
+				
+				@Override
+				protected List<String> getGatewayIds(OgemaHttpRequest req) {
+					if(gateWaySelection != null)
+						return (List<String>) gateWaySelection.multiSelect.getSelectedLabels(req);
+					else
+						return controller.getGwIDs(req);
 				}
 				
 				@Override
@@ -375,7 +409,7 @@ public class OfflineControlGUI {
 		//table1.setContent(i, 1, selectProvider	);
 		//table1.setContent(i, 2, " 		"		);
 		//i++;
-		table1.setContent(i, 0, "Interval"	);
+		table1.setContent(i, 0, "Intervall"	);
 		table1.setContent(i, 1, selectConfig	);
 		StaticTable buttonTable = controller.provideButtonTable(this, closeTabButton, messageButton);
 		table1.setContent(i, 2, buttonTable);
@@ -383,12 +417,18 @@ public class OfflineControlGUI {
 		table1.setContent(i, 0, "Datentypen"	);
 		table1.setContent(i, 1, selectDataType	);
 		table1.setContent(i, 2, "              ");
+		if(gateWaySelection != null) {
+			i++;
+			table1.setContent(i, 0, "Gateways"	);
+			table1.setContent(i, 1, gateWaySelection		);
+			table1.setContent(i, 2, "		"				);
+			i++;
+			table1.setContent(i, 0, "");
+			table1.setContent(i, 1, multiSelectGWs		);
+			table1.setContent(i, 2, "		"				);
+		}
 		i++;
-		/*table1.setContent(i, 0, "Result Selection"		);
-		table1.setContent(i, 1, "  ALL   " ); //resultSelectionExtended	);
-		table1.setContent(i, 2, autoEvalActiveCheck				);
-		i++;*/
-		table1.setContent(i, 0, "Auswahl Becken"	);
+		table1.setContent(i, 0, controller.getRoomOptionLineTitle());
 		table1.setContent(i, 1, multiSelectRooms2.getStaticTable()		);
 		//table1.setContent(i, 1, roomSelection		);
 		table1.setContent(i, 2, "		"				);
@@ -416,6 +456,9 @@ public class OfflineControlGUI {
 		//selectProvider.triggerAction(evalName, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		selectProvider.triggerAction(autoEvalActiveCheck, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		
+		if(multiSelectGWs != null)
+			multiSelectGWs.triggerAction(openScheduleViewer, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+
 		//resultsSelection.triggerAction(startOfflineEval, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		//TODO multiSelectRooms
 		//multiSelectRooms2.triggerAction(openScheduleViewer, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
@@ -429,28 +472,23 @@ public class OfflineControlGUI {
 			if(!resultOnly) {
 				//Set<String> ids = controller.getGatewayIds();
 				List<String> ids = new ArrayList<>(controller.getAllRooms(req.getLocale()));
-				//ids.add("Luft");
-				//ids.add("Strom");
 				ids.add(controller.getAllRoomLabel(req.getLocale()));
-				//multiSelectRooms.update(ids, req);
-				/*List<CheckboxEntry> entries = new ArrayList<>();
-				for(String id: ids) {
-					entries.add(new CheckboxEntry(ResourceUtils.getValidResourceName(id)) {
-						
-						@Override
-						public String label(OgemaLocale locale) {
-							return id;
-						}
-					});
-				}
-				multiSelectRooms.setCheckboxList(entries, req);
-				Collection<String> toUse = ids;
-				//multiSelectRooms.selectItems(toUse, req);
-				multiSelectRooms.deselectAll(req);*/
 			}
 		}
 	}
 		
+	protected void initResultsGws(OgemaHttpRequest req, boolean resultOnly) {
+		GaRoSingleEvalProvider eval = selectProvider.getSelectedItem(req);
+		if(eval != null ) {
+			if(!resultOnly) {
+				Set<String> ids = controller.getGatewayIds();
+				multiSelectGWs.update(ids, req);
+				Collection<String> toUse = GatewayConfigPage.getGwsToUse(controller);
+				multiSelectGWs.selectItems(toUse, req);
+			}
+		}
+	}
+
 	/** This method could be offered as an OSGi service in the future
 	 * For this task the method should be moved to the controller.
 	 * Compared to {@link #startEvaluation(GaRoSingleEvalProvider, List, ChronoUnit, long, long, List, CSVArchiveExporter, String, OverwriteMode, Path)}

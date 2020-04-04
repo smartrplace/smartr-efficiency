@@ -14,11 +14,12 @@ import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet.AggregationMode;
-import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference;
+import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl.ScheduleViewerOpenButtonDataProvider;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDescription;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
@@ -32,6 +33,8 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 public abstract class ScheduleViewerOpenButtonDataProviderImpl implements ScheduleViewerOpenButtonDataProvider{
 	protected abstract GaRoSingleEvalProvider getEvalProvider(OgemaHttpRequest req);
 	protected abstract List<String> getRoomIDs(OgemaHttpRequest req);
+	/** Only relevant on server*/
+	protected List<String> getGatewayIds(OgemaHttpRequest req) {return null;}
 	protected abstract String getDataType(OgemaHttpRequest req);
 	protected final MonitoringController controller;
 	
@@ -63,7 +66,8 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		if(dp.id().endsWith("Resource")) {
 			gwIds = Arrays.asList(new String[] {GaRoMultiEvalDataProviderResource.LOCAL_GATEWAY_ID});
 		} else {
-			gwIds = controller.getGwIDs(req);
+			gwIds = getGatewayIds(req);
+			//gwIds = controller.getGwIDs(req);
 		}
 		//We perform room filtering in cleanListByRooms, so we get data for all rooms here
 		input = GaRoEvalHelper.getFittingTSforEval(dp, eval, gwIds, null);
@@ -85,7 +89,7 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		}
 		if(dataTypeOrg.equals(controller.getAllDataLabel()))
 			return input;
-		Set<String> inputsToUse = new HashSet<>(); //ArrayList<>();
+		Set<ComplexOptionDescription> inputsToUse = new HashSet<>(); //ArrayList<>();
 		
 		// For reverse conversion see InitUtil(?)
 		List<String> baselabels = controller.getComplexOptions().get(dataTypeOrg);
@@ -100,13 +104,16 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		
 		List<String> done = new ArrayList<String>();
 		for(String baselabel: baselabels) {
-			List<String> newInp = controller.getDatatypesBase().get(baselabel);
+			List<ComplexOptionDescription> newInp = controller.getDatatypesBaseExtended().get(baselabel);
 			try {
-			inputsToUse.addAll(newInp);
+				inputsToUse.addAll(newInp);
 			} catch(NullPointerException e) {
 				e.printStackTrace();
 			}
-			for(String locpart: newInp) {
+			for(ComplexOptionDescription locc: newInp) {
+				if(locc.pathElement == null)
+					continue;
+				String locpart = locc.pathElement;
 				if(locpart.startsWith("#")) {
 					for(String room: roomIDsForManual) {
 						TimeSeriesData mansched = controller.getManualDataEntrySchedule(room, locpart.substring(1),

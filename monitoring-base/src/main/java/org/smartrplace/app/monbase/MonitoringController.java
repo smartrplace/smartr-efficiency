@@ -3,6 +3,7 @@ package org.smartrplace.app.monbase;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +38,12 @@ import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage.AlarmingUpdater;
 import org.sp.smarteff.monitoring.alarming.AlarmingUtil;
+import org.sp.smarteff.monitoring.kpireporting.EvalProviderMonitoringBase;
 
 import com.iee.app.evaluationofflinecontrol.OfflineEvalServiceAccessBase;
 import com.iee.app.evaluationofflinecontrol.OfflineEvaluationControlController;
 import com.iee.app.evaluationofflinecontrol.gui.KPIPageGWOverviewMultiKPI.PageConfig;
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDescription;
 import com.iee.app.evaluationofflinecontrol.util.ScheduleViewerConfigProvEvalOff;
 import com.iee.app.evaluationofflinecontrol.util.StandardConfigurations;
 
@@ -65,7 +68,6 @@ import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 // here the controller logic is implemented
 public abstract class MonitoringController extends OfflineEvaluationControlController implements AlarmingUpdater {
-	//public static final String[] roomNames = {"Aufzuchtbecken_1", "Aufzuchtbecken_2", "Quarantänebereich"};
 	protected AlarmingManagement alarmMan = null;
 	
 	/** Implementation must be able to deal with a null value for locale
@@ -89,8 +91,53 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	 *      label.
 	 * @param return TimeSeriesData indicating the ReadOnlyTimeSeries as well as the label to be used.*/
 	public abstract TimeSeriesData getManualDataEntrySchedule(String room, String label, String baseLabel);
-	//public abstract List<String> getBastType(String userTSLabel);
-	public abstract Map<String, List<String>> getDatatypesBase();
+	
+	Map<String, List<String>> cachedDt = null;
+	long lastCacheDtE = -1;
+	/** you have to overwrite either {@link #getDatatypesBase()} or {@link #getDatatypesBaseExtended()}*/
+	public Map<String, List<String>> getDatatypesBase() {return null;}
+	/*public Map<String, List<String>> getDatatypesBase() {
+		long now = appMan.getFrameworkTime();
+		if(cachedDt == null || (now - lastCacheDtE > 10000)) {
+			lastCacheDtE = now;
+			cachedDt = new HashMap<>();
+			for(Entry<String, List<ComplexOptionDescription>> base: getDatatypesBaseExtended().entrySet()) {
+				cachedDt.put(base.getKey(), base.getValue());
+			}
+		}
+		return cachedDt;		
+	};*/
+
+	/** you have to overwrite either {@link #getDatatypesBase()} or {@link #getDatatypesBaseExtended()}*/
+	Map<String, List<ComplexOptionDescription>> cachedDtE = null;
+	public Map<String, List<ComplexOptionDescription>> getDatatypesBaseExtended() {
+		long now = appMan.getFrameworkTime();
+		if(cachedDtE == null || (now - lastCacheDtE > 10000)) {
+			lastCacheDtE = now;
+			cachedDtE = new HashMap<>();
+			for(Entry<String, List<String>> base: getDatatypesBase().entrySet()) {
+				cachedDtE.put(base.getKey(), getComplexOptionsByString(base.getValue().toArray(new String[0])));
+			}
+		}
+		return cachedDtE;
+	}
+	protected List<ComplexOptionDescription> getComplexOptionsByString(String... values) {
+		List<ComplexOptionDescription> result = new ArrayList<>();
+		for(String val: values) {
+			result.add(new ComplexOptionDescription(val));
+		}
+		return result;
+	}
+	/*protected List<String> getStringsByComplexOptions(List<ComplexOptionDescription> values) {
+		List<String> result = new ArrayList<>();
+		for(ComplexOptionDescription val: values) {
+			if(pathElement != null)
+				result.add(val.pathElement);
+			else for(String snippet: val.type.)
+				result.add(val.type);
+		}
+		return result;
+	}*/
 	
 	/** Plot types to be offered by the charting app
 	 * @return The keys of the map indicate the label of each plot type (e.g.
@@ -108,7 +155,6 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	
 	public String getDefaultComplexOptionKey() {
 		return new ArrayList<>(getComplexOptions().keySet()).get(0);
-		//"Wasser- und Luftemperatur"
 	}
 	
 	/** The real rooms may have some type of hierarchy, so a timeseries may be plotted not only with
@@ -134,8 +180,16 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	public abstract SensorDevice getHeatMeterDevice(String subPath);
 	public abstract ElectricityConnection getElectrictiyMeterDevice(String subPath);
 	
-	/** Only relevant on server*/
+	/** GatewayIds relevant for this application. Only relevant on server. The implementation must
+	 * be able to handle a null argument for the request.*/
 	public abstract List<String> getGwIDs(OgemaHttpRequest req);
+	public List<String> getGwIDsDefaultSelected(OgemaHttpRequest req) {
+		List<String> all = getGwIDs(req);
+		if(all.size() > 5)
+			return Collections.emptyList();
+		else
+			return all;
+	};
 	
 	//For manual alarming: TODO: explicit implementation should not be required, use complexOptions, DatatypesBase
 	public abstract List<SmartEffTimeSeries> getManualTimeSeries(BuildingUnit bu);
@@ -168,6 +222,9 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	/** Overwrite if necesary*/
 	public String[] getIntervalOptions( ) {
 		return OPTIONS;
+	}
+	public String getRoomOptionLineTitle() {
+		return "Auswahl Räume";
 	}
 	public IntervalConfiguration getConfigDuration(String config, ApplicationManager appMan) {
     	switch(config) {
@@ -204,6 +261,7 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	
 	public MonitoringController(ApplicationManager appMan, OfflineEvalServiceAccessBase evaluationOCApp) {
 		super(appMan, evaluationOCApp, null, new PageConfig(false, false), true);
+		EvalProviderMonitoringBase.controller = this;
 		evaluationOCApp.messageService().registerMessagingApp(appMan.getAppID(), getAlarmingDomain()+"_Alarming");
 		if(activateAlarming()) {
 			initManualResources();
@@ -216,26 +274,20 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 				
 				@Override
 				public String provideLabel(SmartEffTimeSeries res) {
-					//BuildingUnit bu = ResourceHelper.getFirstParentOfType(res, BuildingUnit.class);
 					String room = AlarmingUtil.getRoomNameFromSub(res);
-					/*if(bu != null) {
-						room = ResourceUtils.getHumanReadableShortName(bu);
-					} else
-						room = "Anlage";*/
 					return room+"-"+ getScheduleLabel(res.getName(), res);
 				}
 			};
 		}
-		//groupMan = new GroupManagementImpl(this);
 	}
     
 	public String getScheduleLabel(String resName, Resource fullResource) {
 		String name = null;
 		//first test for manual resources
 		String entryName = "#"+resName;
-		for(Entry<String, List<String>> e: getDatatypesBase().entrySet()) {
-			for(String locPart: e.getValue()) {
-				if(entryName.equals(locPart)) {
+		for(Entry<String, List<ComplexOptionDescription>> e: getDatatypesBaseExtended().entrySet()) {
+			for(ComplexOptionDescription locPart: e.getValue()) {
+				if(entryName.equals(locPart.pathElement)) {
 					name = e.getKey();
 					return name;
 				}
@@ -411,32 +463,14 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 						setStartTime(startTime).setEndTime(endTime).setShowManipulator(false).
 						setShowPlotTypeSelector(true).build();
 				return viewerConfiguration;
-				//return super.viewerConfiguration();
 			}
 		}, schedConfigProv);
 		if(writeLink)
 			System.out.println("      For "+input.get(0).id()+"(#"+filteringResult.timeSeries.size()+"/"+input.size()+") added ts expert ID:"+ci+" providerID:"+ScheduleViewerConfigProvEvalOff.PROVIDER_ID);		
 		return ci;
 	}
-	/*protected void registerStaticTimeSeriesViewerLink(//long startTime, long endTime,
-			TimeSeriesNameProviderImpl sprov,
-			ReadOnlyTimeSeries ts, String location, String room,
-			DefaultScheduleViewerConfigurationProviderExtended schedConfigProv) {
-		
-		TimeSeriesDataExtendedImpl tsd = new TimeSeriesDataExtendedImpl(ts, location, location, InterpolationMode.STEPS);
-		tsd.type = GaRoDataType.Any; //must be set, but type is not evaluated
-		List<String> ids = new ArrayList<>();
-		ids.add(GaRoMultiEvalDataProviderResource.LOCAL_GATEWAY_ID);
-		ids.add(room);
-		tsd.setIds(ids);
-		registerStaticTimeSeriesViewerLink(//startTime, endTime,
-				sprov, tsd, schedConfigProv);
-	}*/
 
 	protected static String addConfig(SessionConfiguration sc, DefaultScheduleViewerConfigurationProviderExtended schedConfigProv) {
-		//lastConfig++;
-		//if(lastConfig > maxId) lastConfig = 1;
-		//String result = ""+lastConfig;
 		String result = schedConfigProv.addConfig(sc);
 		return result;
 	}

@@ -8,9 +8,12 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeri
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.format.StringListFormatUtils;
 
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDescription;
+
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
+import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 
 public class TimeSeriesNameProviderImpl implements TimeSeriesNameProvider {
 	protected final MonitoringController controller;
@@ -41,9 +44,18 @@ public class TimeSeriesNameProviderImpl implements TimeSeriesNameProvider {
 	}
 
 	public String getSensorType(String location) {
-		for(Entry<String, List<String>> e: controller.getDatatypesBase().entrySet()) {
-			for(String s: e.getValue()) {
-				if(location.contains(s)) return e.getKey();
+		GaRoDataTypeI locationType = null;
+		for(Entry<String, List<ComplexOptionDescription>> e: controller.getDatatypesBaseExtended().entrySet()) {
+			for(ComplexOptionDescription s: e.getValue()) {
+				if(s.pathElement != null) {
+					if(location.contains(s.pathElement))
+						return e.getKey();
+				} else {
+					if(locationType == null)
+						locationType = GaRoEvalHelper.getDataType(location);
+					if(s.type.equals(locationType))
+						return e.getKey();
+				}
 			}
 		}
 		return location;
