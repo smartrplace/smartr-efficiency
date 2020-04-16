@@ -105,7 +105,12 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		long now = appMan.getFrameworkTime();
 		return (float) (TimeSeriesUtils.integrate(ts, now-AlarmingManagement.DAY_MILLIS, now)/AlarmingManagement.HOUR_MILLIS);
 	}
+	/** This method is only applicable for AggregationMode.Meter2Meter*/
 	public static float getDiffOfLast24h(ReadOnlyTimeSeries ts, ApplicationManager appMan) {
+		return getDiffOfLast24h(ts, Boolean.getBoolean("org.smartrplace.app.monbase.dointerpolate"), appMan);
+	}
+	/** This method is only applicable for AggregationMode.Meter2Meter*/
+	public static float getDiffOfLast24h(ReadOnlyTimeSeries ts, boolean interpolate, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
 		long start = now-AlarmingManagement.DAY_MILLIS;
 		SampledValue startval = ts.getPreviousValue(start);
@@ -123,32 +128,55 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			return -2;
 		}
 	}
-	public static float getDiffForDay(long timeStamp, ReadOnlyTimeSeries ts, ApplicationManager appMan) {
+	
+	/** This method is only applicable for AggregationMode.Meter2Meter*/
+	public static float getDiffForDay(long timeStamp, ReadOnlyTimeSeries ts) {
+		return getDiffForDay(timeStamp, ts, Boolean.getBoolean("org.smartrplace.app.monbase.dointerpolate"));
+	}
+	/** This method is only applicable for AggregationMode.Meter2Meter*/
+	public static float getDiffForDay(long timeStamp, ReadOnlyTimeSeries ts,
+			boolean interpolate) {
 		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, AbsoluteTiming.DAY);
 		long end = start + AlarmingManagement.DAY_MILLIS;
-		SampledValue startval = ts.getPreviousValue(start);
-		if(startval == null || (start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL)) {
-			return -1;
+		final float startFloat;
+		final float endFloat;
+		if(interpolate) {
+			startFloat = getInterpolatedValue(ts, start);
+			endFloat = getInterpolatedValue(ts, end);			
+		} else {
+			SampledValue startval = ts.getPreviousValue(start);
+			if(startval == null || (start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL)) {
+				return Float.NaN; //-1
+			}
+			SampledValue endval = ts.getPreviousValue(end);
+			if(endval == null)
+				return Float.NaN;
+				//return Float.NaN;
+			try {
+				startFloat = startval.getValue().getFloatValue();
+				endFloat = endval.getValue().getFloatValue();
+			} catch(NullPointerException e) {
+				e.printStackTrace();
+				return -2;
+			}
 		}
-		SampledValue endval = ts.getPreviousValue(end);
-		if(endval == null)
-			return -1;
-			//return Float.NaN;
-		try {
-		return endval.getValue().getFloatValue() - startval.getValue().getFloatValue();
-		} catch(NullPointerException e) {
-			e.printStackTrace();
-			return -2;
-		}
+		return endFloat - startFloat;
 	}
-	public static float getDiffForDayOrLast24(long timeStamp, ReadOnlyTimeSeries ts, ApplicationManager appMan) {
+	/** This method is only applicable for AggregationMode.Meter2Meter*/
+	public static float getDiffForDayOrLast24(long timeStamp, ReadOnlyTimeSeries ts,
+			ApplicationManager appMan) {
+		return getDiffForDayOrLast24(timeStamp, ts, Boolean.getBoolean("org.smartrplace.app.monbase.dointerpolate"), appMan);
+	}
+	/** This method is only applicable for AggregationMode.Meter2Meter*/
+	public static float getDiffForDayOrLast24(long timeStamp, ReadOnlyTimeSeries ts,
+			boolean interpolate, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
 		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, AbsoluteTiming.DAY);		
 		long end = start + AlarmingManagement.DAY_MILLIS;
 		if(now>=start && now<=end)
-			return getDiffOfLast24h(ts, appMan);
+			return getDiffOfLast24h(ts, interpolate, appMan);
 		else
-			return getDiffForDay(timeStamp, ts, appMan);
+			return getDiffForDay(timeStamp, ts, interpolate);
 	}
 	
 	public static float specialEvaluation(String label, ReadOnlyTimeSeries timeSeries, ApplicationManager appMan,
@@ -163,7 +191,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			return getDiffForDayOrLast24(ts, timeSeries, appMan);
 		} else	if(label.equals("D24")) {
 			long ts = Long.parseLong(paramMap.get("time")[0]);
-			return getDiffForDay(ts, timeSeries, appMan);
+			return getDiffForDay(ts, timeSeries);
 		} else if(label.equals("I24")) {
 			return getIntegralOfLast24h(timeSeries, appMan);
 		}
@@ -191,6 +219,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	
 	/** Calculate a virtual meter series that has the same counter value at a reference point as another
 	 * real meter so that the further consumption trend can be compared directly
+	 * Note: Currently this method only supports interpolation
 	 * @return
 	 */
 	public static List<SampledValue> getMeterFromConsumption(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -202,12 +231,19 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		final double delta;
 		if(mode == AggregationMode.Consumption2Meter) {
 			double counter = getPartialConsumptionValue(timeSeries, start, true);
-			List<SampledValue> svList = timeSeries.getValues(start, ref.referenceTime);
+			final List<SampledValue> svList;
+			if(ref.referenceTime > start)
+				svList = timeSeries.getValues(start, ref.referenceTime);
+			else
+				svList = timeSeries.getValues(ref.referenceTime, start);
 			for(SampledValue sv: svList) {
 				counter += sv.getValue().getFloatValue();
 			}
 			counter += getPartialConsumptionValue(timeSeries, end, false);
-			myRefValue = counter;
+			if(ref.referenceTime > start)
+				myRefValue = counter;
+			else
+				myRefValue = -counter;
 		} else {
 			myRefValue = getInterpolatedValue(timeSeries, ref.referenceTime);
 		}
@@ -229,32 +265,56 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	}
 	public static List<SampledValue> getDayValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 			AggregationMode mode, float factor) {
-		if(mode == AggregationMode.Power2Meter)
-			throw new UnsupportedClassVersionError("Power2Meter not supported yet");
-		long startDay = AbsoluteTimeHelper.getIntervalStart(start, AbsoluteTiming.DAY);
-		float prevCounter;
+		return getDayValues(timeSeries, start, end, mode, factor,
+				Boolean.getBoolean("org.smartrplace.app.monbase.dointerpolate"));
+	}
+	public static List<SampledValue> getDayValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+			AggregationMode mode, float factor, boolean interpolate) {
+		//if(mode == AggregationMode.Power2Meter)
+		//	throw new UnsupportedClassVersionError("Power2Meter not supported yet");
+		long nextDayStart = AbsoluteTimeHelper.getIntervalStart(start, AbsoluteTiming.DAY);
+		/*float prevCounter;
 		switch(mode) {
 		case Meter2Meter:
 			prevCounter = getInterpolatedValue(timeSeries, startDay);
 			break;
 		default:
 			prevCounter = 0;
-		}
+		}*/
 		List<SampledValue> result = new ArrayList<>();
-		while(startDay < end) {
-			long startDayPrev = startDay;
-			startDay = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startDay, 1, AbsoluteTiming.DAY);
-			float newCounter = getInterpolatedValue(timeSeries, startDay);
+		while(nextDayStart < end) {
+			long startCurrentDay = nextDayStart;
+			nextDayStart = AbsoluteTimeHelper.addIntervalsFromAlignedTime(nextDayStart, 1, AbsoluteTiming.DAY);
 			float newDayVal;
-			switch(mode) {
-			case Meter2Meter:
-				newDayVal = newCounter - prevCounter;
-				prevCounter = newCounter;
-				break;
-			default:
-				newDayVal = newCounter;
+			if(mode == AggregationMode.Meter2Meter) {
+				newDayVal = getDiffForDay(startCurrentDay, timeSeries, interpolate);
+			} else {
+				float newCounter = getInterpolatedValue(timeSeries, startCurrentDay);
+				switch(mode) {
+				//case Meter2Meter:
+				//	newDayVal = newCounter - prevCounter;
+				//	prevCounter = newCounter;
+				//	break;
+				case Power2Meter:
+					//TODO: not really tested
+					newDayVal = (float) (TimeSeriesUtils.integrate(
+							timeSeries, startCurrentDay, nextDayStart)/AlarmingManagement.HOUR_MILLIS);
+					break;
+				case Consumption2Meter:
+					double counter = getPartialConsumptionValue(timeSeries, start, true);
+					List<SampledValue> svList = timeSeries.getValues(startCurrentDay, nextDayStart);
+					for(SampledValue sv: svList) {
+						counter += sv.getValue().getFloatValue();
+					}
+					//TODO: correct start / end value usage
+					//counter += getPartialConsumptionValue(timeSeries, end, false);
+					newDayVal = (float) counter;
+					break;
+				default:
+					newDayVal = newCounter;
+				}
 			}
-			result.add(new SampledValue(new FloatValue(newDayVal), startDayPrev, Quality.GOOD));
+			result.add(new SampledValue(new FloatValue(newDayVal), startCurrentDay, Quality.GOOD));
 		}
 		return result;
 	}
@@ -279,9 +339,14 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	}
 	
 	/** For Consumption2Meter time series get energy consumption from timestamp to the end of the
-	 * interval within timestamp or from the start of the interval until timestamp
+	 * interval within timestamp or from the start of the interval until timestamp<br>
+	 * Note that the interval is defined by the values available in the timeseries, so this is
+	 * mainly intended for manual timeseries e.g. with one value per day
 	 * @param timeseries
 	 * @param timestamp
+	 * @param getConsumptionTowardsEnd if true the energy consumption from timestamp to the end of
+	 * the current interval is returned, otherwise the energy consumption from the start of the current
+	 * interval until timestamp
 	 * @return
 	 */
 	protected static float getPartialConsumptionValue(ReadOnlyTimeSeries timeseries, long timestamp,
@@ -293,11 +358,12 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		SampledValue svNext = timeseries.getNextValue(timestamp);
 		if(svBefore == null || svNext == null)
 			return 0;
+		// Part of consumption represented by the value at the end of the interval that is used until timestamp
 		float partialVal = (float) interpolateEnergyStep(svBefore.getTimestamp(), svNext.getTimestamp(),
 				timestamp,
-				svBefore.getValue().getFloatValue());
+				svNext.getValue().getFloatValue());
 		if(getConsumptionTowardsEnd)
-			return svBefore.getValue().getFloatValue() - partialVal;
+			return svNext.getValue().getFloatValue() - partialVal;
 		else
 			return partialVal;
 	}

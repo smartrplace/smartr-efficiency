@@ -12,6 +12,7 @@ import org.ogema.util.kpieval.provider.EvalProviderMessagingBase;
 import org.smartrplace.app.monbase.MonitoringController;
 
 import com.iee.app.evaluationofflinecontrol.OfflineEvaluationControlController;
+import com.iee.app.evaluationofflinecontrol.config.KPIPageConfig;
 
 import de.iwes.timeseries.eval.api.EvaluationProvider;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
@@ -50,7 +51,7 @@ public class EvalProviderMonitoringBase extends EvalProviderMessagingBase {
 
 	@Override
 	protected void addOrUpdatePageConfigFromProvider(KPIPageDefinitionWithEmail def, GaRoSingleEvalProvider eval) {
-		controller.addOrUpdatePageConfigFromProvider(def.kpiPageDefinition, eval);
+		KPIPageConfig pageConfig = controller.addOrUpdatePageConfigFromProvider(def.kpiPageDefinition, eval);
 		
 		MultiKPIEvalConfiguration configLoc = controller.getOrCreateEvalConfig(
 				EvalProviderMessagingBase.DEFAULT_QUALITY_EVALPROVIDER_ID,
@@ -64,6 +65,7 @@ public class EvalProviderMonitoringBase extends EvalProviderMessagingBase {
 			}
 			ValueResourceHelper.setCreate(configLoc.performAutoQueuing(), true);
 		}
-		
+		if(OfflineEvaluationControlController.registerExistingMultiPagesDone)
+			controller.registerExistingMultiPage(pageConfig);
 	}
 }

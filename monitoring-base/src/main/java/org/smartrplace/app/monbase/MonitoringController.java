@@ -142,7 +142,8 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	/** Plot types to be offered by the charting app
 	 * @return The keys of the map indicate the label of each plot type (e.g.
 	 * 		"All air quality values for the rooms selected"). The values of the map indicate the
-	 * 		labels for. Keys ending on "##DAY" indicate that the input timeseries shall be aggregated
+	 * 		labels of the time series, these must be found as keys in {@link #getDatatypesBaseExtended()}.
+	 * 		Keys ending on "##DAY" indicate that the input timeseries shall be aggregated
 	 * 		to one value per day. "##METER" indicates that all timeseries shall be shown as meters starting
 	 * 		with a common meter value at the reference data. See
 	 * 		{@link TimeSeriesServlet#getMeterFromConsumption(ReadOnlyTimeSeries, long, long, org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference)}

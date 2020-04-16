@@ -145,7 +145,12 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 									"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
 									TimeResource.class, controller.appMan.getResourceAccess());
 							ref.referenceTime = refRes.getValue();
-							return TimeSeriesServlet.getMeterFromConsumption(timeSeries, start, end, ref, mode);						}
+							return TimeSeriesServlet.getMeterFromConsumption(timeSeries, start, end, ref, mode);						
+						}
+						@Override
+						protected String getLabelPostfix() {
+							return "_vm";
+						}
 					}; 
 					TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
 					result.add(newtsdi);
@@ -154,44 +159,15 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 						@Override
 						protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
 								long end, AggregationMode mode) {
-							return TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);						}
+							return TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);						
+						}
+						@Override
+						protected String getLabelPostfix() {
+							return "_proTag";
+						}
 					}; 
 					TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
-					result.add(newtsdi);
-					
-					/*final AggregationMode mode;
-					final String cparam = controller.getConfigParam(tsd.label(null));
-					if(cparam != null && cparam.contains(AggregationMode.Consumption2Meter.name()))
-						mode = AggregationMode.Consumption2Meter;
-					else
-						mode = AggregationMode.Meter2Meter;
-					ProcessedReadOnlyTimeSeries newTs = new ProcessedReadOnlyTimeSeries(InterpolationMode.STEPS) {
-						private Long lastTimestampInSource = null;
-						
-						@Override
-						protected List<SampledValue> updateValues(long start, long end) {
-							ReadOnlyTimeSeries ts = tsdi.getTimeSeries();
-							if(lastTimestampInSource == null) {
-								SampledValue sv = ts.getPreviousValue(Long.MAX_VALUE);
-								if(sv != null)
-									lastTimestampInSource = sv.getTimestamp();
-								else
-									return Collections.emptyList();
-							} if(end > lastTimestampInSource)
-								end = lastTimestampInSource;
-							return TimeSeriesServlet.getDayValues(ts, start, end, mode, 1.0f);
-						}
-					};
-					String shortId = tsd.label(null);
-					if(tsdi instanceof TimeSeriesDataExtendedImpl) {
-						TimeSeriesDataExtendedImpl tse = (TimeSeriesDataExtendedImpl) tsdi;
-						if(tse.type != null && tse.type instanceof GaRoDataTypeI) {
-							GaRoDataTypeI dataType = (GaRoDataTypeI) tse.type;
-							shortId = nameProvider().getShortNameForTypeI(dataType, tse);
-						}
-					}
-					TimeSeriesDataExtendedImpl newtsdi = new TimeSeriesDataExtendedImpl(newTs,
-							shortId+"_proTag", tsd.description(null)+"_proTag", InterpolationMode.STEPS);*/
+					result.add(newtsdi);				
 				}
 			}
 			return result;

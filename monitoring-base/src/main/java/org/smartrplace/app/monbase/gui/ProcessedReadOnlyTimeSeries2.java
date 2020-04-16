@@ -18,6 +18,8 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	
 	protected abstract List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 			AggregationMode mode);
+	protected String getLabelPostfix() {return "";}
+
 	
 	final protected MonitoringController controller;
 	final protected TimeSeriesDataImpl tsdi;
@@ -84,6 +86,6 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	
 	public TimeSeriesDataExtendedImpl getResultSeries() {
 		return new TimeSeriesDataExtendedImpl(this,
-				getShortId()+"_proTag", tsdi.description(null)+"_proTag", InterpolationMode.STEPS);
-	};
+				getShortId()+getLabelPostfix(), tsdi.description(null)+getLabelPostfix(), InterpolationMode.STEPS);
+	}
 }
