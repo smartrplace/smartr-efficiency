@@ -821,6 +821,11 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	public static void addComment(SmartEffTimeSeries res, String comment, long timestamp) {
 		res.comments().create();
 		res.commmentTimeStamps().create();
+		GetCommentResult plusRes = getCommentPlus(res, timestamp, null, null);
+		if(plusRes != null) {
+			res.comments().setElementValue(comment, plusRes.commentsIndex);
+			return;
+		}
 		ValueResourceUtils.appendValue(res.comments(), comment);
 		ValueResourceUtils.appendValue(res.commmentTimeStamps(), timestamp);
 		if(!res.comments().isActive()) res.comments().activate(false);
@@ -837,6 +842,18 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 	 * @return
 	 */
 	public static String getComment(SmartEffTimeSeries res, long timestamp, Long maxDist, Long startOfDay) {
+		GetCommentResult plusRes = getCommentPlus(res, timestamp, maxDist, startOfDay);
+		return (plusRes!=null)?plusRes.comment:null;
+	}
+	public static class GetCommentResult {
+		String comment;
+		int commentsIndex;
+		public GetCommentResult(String comment, int commentsIndex) {
+			this.comment = comment;
+			this.commentsIndex = commentsIndex;
+		}
+	}
+	protected static GetCommentResult getCommentPlus(SmartEffTimeSeries res, long timestamp, Long maxDist, Long startOfDay) {
 		if(res.commmentTimeStamps().isActive()) {
 			int len = res.commmentTimeStamps().size();
 			if(len > 0) {
@@ -866,7 +883,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 					idx++;
 				}
 				if(lastv != null) {
-					return res.comments().getElementValue(lastvIdx);
+					return new GetCommentResult(res.comments().getElementValue(lastvIdx), lastvIdx);
 				}
 			}
 		}
