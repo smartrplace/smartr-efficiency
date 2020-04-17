@@ -827,6 +827,52 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		if(!res.commmentTimeStamps().isActive()) res.commmentTimeStamps().activate(false);
 	}
 
+	/** Get comment for a timeseries
+	 * 
+	 * @param res
+	 * @param timestamp
+	 * @param maxDist if null the timeStamp must fit exactly, otherwise the next comment is used if it is
+	 * 		within maxDist
+	 * @param startOfDay if not null then the first comment within the day will be returned
+	 * @return
+	 */
+	public static String getComment(SmartEffTimeSeries res, long timestamp, Long maxDist, Long startOfDay) {
+		if(res.commmentTimeStamps().isActive()) {
+			int len = res.commmentTimeStamps().size();
+			if(len > 0) {
+				Long lastv = null;
+				int lastvIdx = -1;
+				long[] tss = res.commmentTimeStamps().getValues();
+				int idx = 0;
+				for(long ts: tss) {
+					if(startOfDay != null) {
+						if(ts >= startOfDay && ((lastv == null)||(lastv<ts))) {
+							lastv = ts;
+							lastvIdx = idx;
+						}						
+					} else if(maxDist == null) {
+						if(ts == timestamp) {
+							lastv = 0l;
+							lastvIdx = idx;
+							break;							
+						}
+					} else {
+						long diff = Math.abs(ts - timestamp);
+						if((diff < maxDist) && ((lastv == null)||(diff < lastv))) {
+							lastv = ts;
+							lastvIdx = idx;
+						}
+					}
+					idx++;
+				}
+				if(lastv != null) {
+					return res.comments().getElementValue(lastvIdx);
+				}
+			}
+		}
+		return null;
+	}	
+
 	/** Convert from a European human standard value into OGEMA value (e.g. °C to K)
 	 * 
 	 * @param euHumValue value as expected by most continental European humans
@@ -945,7 +991,10 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 			String enteredValue = getValue(req);
 				if(enteredValue == null || enteredValue.isEmpty()) {
 				if(isFreeText(req)) {
-					if(res.commmentTimeStamps().isActive()) {
+					String comment = getComment(res, -1, null, startOfDay);
+					if(comment != null)
+						setValue("*"+comment, req);
+					/*if(res.commmentTimeStamps().isActive()) {
 						int len = res.commmentTimeStamps().size();
 						if(len > 0) {
 							Long lastv = null;
@@ -963,7 +1012,7 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 								setValue("*"+res.comments().getElementValue(lastvIdx), req);
 							}
 						}
-					}
+					}*/
 				} else if(res.schedule().isActive()) {
 					SampledValue lastv = res.schedule().getPreviousValue(Long.MAX_VALUE);
 					if(lastv != null && (lastv.getTimestamp() >= startOfDay)) {
