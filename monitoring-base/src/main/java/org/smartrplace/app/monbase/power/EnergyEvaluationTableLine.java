@@ -253,4 +253,14 @@ public class EnergyEvaluationTableLine implements ConsumptionEvalTableLineI {
 	public void setLastValue(int index, float value) {
 		lastValues[index] = value;	
 	}
+	
+	@Override
+	public boolean lineShowsPower() {
+		return lineShowsPower;
+	}
+	
+	@Override
+	public String getLinePosition() {
+		return index;
+	}
 }

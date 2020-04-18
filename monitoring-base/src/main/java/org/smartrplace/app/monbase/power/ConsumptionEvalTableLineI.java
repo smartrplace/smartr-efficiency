@@ -66,10 +66,16 @@ public interface ConsumptionEvalTableLineI {
 	public String getLabel();
 	
 	SumType getLineType();
+	/** If true the line shows power, otherwise line shows aggregated consumption like energy*/
+	boolean lineShowsPower();
 	
 	/** Set last value cached for a phase
 	 * 
 	 * @param index phase for which value is supplied
 	 */
 	void setLastValue(int index, float value);
+	
+	/** A line with a lower position index will be displayed above a line with a higher position index
+	 * @return */
+	String getLinePosition();
 }
