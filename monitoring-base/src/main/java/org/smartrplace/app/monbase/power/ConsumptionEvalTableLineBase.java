@@ -14,7 +14,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	//protected final float[] sumUps;
 	// line which counts the sumup for the current line
 	//protected final EnergyEvaluationTableLine sumUpIndex2;
-	protected final List<ConsumptionEvalTableLineBase> sourcesToSum;
+	protected final List<ConsumptionEvalTableLineI> sourcesToSum;
 	//protected final List<EnergyEvaluationTableLine> sumLinesToClear;
 	//protected final ApplicationManager appMan;
 	
@@ -37,14 +37,14 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	 */
 	public ConsumptionEvalTableLineBase(String label, boolean lineShowsPower,
 			SumType type,
-			List<ConsumptionEvalTableLineBase> sourcesToSum,
+			List<ConsumptionEvalTableLineI> sourcesToSum,
 			int index,
 			EnergyEvalObjI energyEvalObjI) {
 		this(energyEvalObjI, label, lineShowsPower, type, sourcesToSum, index);
 	}
 	public ConsumptionEvalTableLineBase(EnergyEvalObjI conn, String label, boolean lineShowsPower,
 			SumType type,
-			List<ConsumptionEvalTableLineBase> sourcesToSum,
+			List<ConsumptionEvalTableLineI> sourcesToSum,
 			int index) {
 		this.conn = conn;
 		this.lineShowsPower = lineShowsPower;
@@ -67,10 +67,10 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	public float getPhaseValue(int index, long startTime, long endTime, long now, List<ConsumptionEvalTableLineI> allLines) {
 		if(type == SumType.SUM_LINE) {
 			float val = 0;
-			for(ConsumptionEvalTableLineBase source: sourcesToSum) {
-				float sval = source.lastValues[index];
+			for(ConsumptionEvalTableLineI source: sourcesToSum) {
+				float sval = source.getLastValue(index);
 				if(!Float.isNaN(sval))
-					val += source.lastValues[index];
+					val += source.getLastValue(index);
 			}
 			return val;
 		} else {
@@ -143,6 +143,11 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	@Override
 	public void setLastValue(int index, float value) {
 		lastValues[index] = value;	
+	}
+	
+	@Override
+	public float getLastValue(int index) {
+		return lastValues[index];
 	}
 	
 	@Override

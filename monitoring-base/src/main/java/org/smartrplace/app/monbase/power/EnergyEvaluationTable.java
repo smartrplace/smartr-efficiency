@@ -16,7 +16,7 @@ import org.ogema.model.gateway.EvalCollection;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.config.EnergyEvalInterval;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
-import org.smartrplace.app.monbase.power.EnergyEvaluationTableLine.EnergyEvalObj;
+import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
 
 import de.iwes.util.logconfig.EvalHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -59,13 +59,16 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 	}
 	
 	public EnergyEvaluationTable(WidgetPage<?> page, MonitoringController controller) {
-		super(page, controller, new EnergyEvaluationTableLine((ElectricityConnection)null, "init", true, null, null, null, 0,
-				null));
+		super(page, controller, new EnergyEvaluationTableLine((ElectricityConnection)null, "init", true, null, null, 0));
 	}
 
 	@Override
 	public ElectricityConnection getResource(EnergyEvaluationTableLine object, OgemaHttpRequest req) {
-		return object.conn.conn;
+		Resource res = object.conn.getMeterReadingResource();
+		if(res instanceof ElectricityConnection)
+			return (ElectricityConnection) res;
+		return null;
+		//return object.conn.getMeterReadingResource().conn;
 	}
 	
 	@Override
@@ -78,19 +81,19 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 		List<EnergyEvaluationTableLine> result = new ArrayList<>();
 		int lineCounter = 0;
 		
-		List<EnergyEvaluationTableLine> rexoLines = new ArrayList<>();
-		List<EnergyEvaluationTableLine> pumpLines = new ArrayList<>();
-		List<EnergyEvaluationTableLine> heatLines = new ArrayList<>();
+		List<ConsumptionEvalTableLineI> rexoLines = new ArrayList<>();
+		List<ConsumptionEvalTableLineI> pumpLines = new ArrayList<>();
+		List<ConsumptionEvalTableLineI> heatLines = new ArrayList<>();
 		//EnergyEvaluationTableLine rexoSum = new EnergyEvaluationTableLine(null, "Verteilung gesamt",
 		//		lineShowsPower, null, SumType.SUM_LINE, null, intv, (lineCounter++));					
 		//EnergyEvaluationTableLine pumpSum = new EnergyEvaluationTableLine(null, "Pumpen gesamt",
 		//				lineShowsPower, null, SumType.SUM_LINE, null, intv, (lineCounter++));					
 		EnergyEvaluationTableLine rexoSum = new EnergyEvaluationTableLine((ElectricityConnection)null, "Strom Summe Abgänge",
-				lineShowsPower, SumType.SUM_LINE, rexoLines , intv, (lineCounter++), this);					
+				lineShowsPower, SumType.SUM_LINE, rexoLines , (lineCounter++));					
 		EnergyEvaluationTableLine pumpSum = new EnergyEvaluationTableLine((ElectricityConnection)null, "Pumpen gesamt",
-						lineShowsPower, SumType.SUM_LINE, pumpLines, intv, (lineCounter++), this);					
+						lineShowsPower, SumType.SUM_LINE, pumpLines, (lineCounter++));					
 		EnergyEvaluationTableLine heatSum = new EnergyEvaluationTableLine((ElectricityConnection)null, "Wärme gesamt",
-				lineShowsPower, SumType.SUM_LINE, heatLines, intv, (lineCounter++), this);					
+				lineShowsPower, SumType.SUM_LINE, heatLines, (lineCounter++));					
 
 		//List<EnergyEvaluationTableLine> clearList = Arrays.asList(new EnergyEvaluationTableLine[] {rexoSum, pumpSum});
 		//In first line we have to add clearList
@@ -128,7 +131,7 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 		for(String label: sorted) {
 			ElectricityConnection conn = conns.get(label);
 			EnergyEvaluationTableLine newLine = new EnergyEvaluationTableLine(
-					conn, label, lineShowsPower, SumType.STD, null, intv, (lineCounter++), this);
+					conn, label, lineShowsPower, SumType.STD, null, (lineCounter++));
 			//result.add(new EnergyEvaluationTableLine(conn, label, lineShowsPower, pumpSum, SumType.STD, null, intv, (lineCounter++)));
 			result.add(newLine);
 			pumpLines.add(newLine);
@@ -150,7 +153,7 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 	}
 	
 	protected EnergyEvaluationTableLine addRexoLine(String subPath, boolean lineShowsPower,
-			List<EnergyEvaluationTableLine> result, List<EnergyEvaluationTableLine> rexoLines,
+			List<EnergyEvaluationTableLine> result, List<ConsumptionEvalTableLineI> rexoLines,
 			EnergyEvalInterval intv, int lineIdx, OgemaHttpRequest req) {
 		//Resource rexo = controller.appMan.getResourceAccess().getResource(MAIN_ELECTRICITY_METER_RES);
 		ElectricityConnection conn =controller.getElectrictiyMeterDevice(subPath); // ResourceHelper.getSubResource(rexo,
@@ -158,7 +161,7 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 
 		String label = controller.getRoomLabel(conn.getLocation(), req.getLocale());
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
-		EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, SumType.STD, null, intv, lineIdx, this);
+		EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, SumType.STD, null, lineIdx);
 		if(rexoLines != null)
 			rexoLines.add(retVal);
 		result.add(retVal);
@@ -166,7 +169,7 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 	}
 
 	protected EnergyEvaluationTableLine addHeatLine(String subPath, boolean lineShowsPower,
-			List<EnergyEvaluationTableLine> result, List<EnergyEvaluationTableLine> heatLines,
+			List<EnergyEvaluationTableLine> result, List<ConsumptionEvalTableLineI> heatLines,
 			EnergyEvalInterval intv, int lineIdx, OgemaHttpRequest req) {
 		//Resource rexo = controller.appMan.getResourceAccess().getResource(MAIN_HEAT_METER_RES);
 		SensorDevice conn = controller.getHeatMeterDevice(subPath); //ResourceHelper.getSubResource(rexo,
@@ -174,8 +177,8 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 
 		String label = "Wärme "+controller.getRoomLabel(conn.getLocation(), req.getLocale());
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
-		EnergyEvalObj connObj = new EnergyEvalHeatObj(conn);
-		EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(connObj, label, lineShowsPower, SumType.STD, null, intv, lineIdx, this);
+		EnergyEvalObjI connObj = new EnergyEvalHeatObj(conn);
+		EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);
 		if(heatLines != null)
 			heatLines.add(retVal);
 		result.add(retVal);
@@ -190,7 +193,7 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 				subPath, Schedule.class);
 		
 		String label = "Ablesung Hauptzähler Strom";
-		EnergyEvalObj connObj = new EnergyEvalObj(null) {
+		EnergyEvalElConnObj connObj = new EnergyEvalElConnObj(null) {
 			@Override
 			public
 			float getPowerValue() {
@@ -249,7 +252,7 @@ public class EnergyEvaluationTable extends ConsumptionEvalTableBase<EnergyEvalua
 			
 		};
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
-		EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(connObj, label, false, SumType.STD, null, intv, lineIdx, this);
+		EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(connObj, label, false, SumType.STD, null, lineIdx);
 		result.add(retVal);
 		return retVal;
 	}

@@ -74,6 +74,7 @@ public interface ConsumptionEvalTableLineI {
 	 * @param index phase for which value is supplied
 	 */
 	void setLastValue(int index, float value);
+	float getLastValue(int index);
 	
 	/** A line with a lower position index will be displayed above a line with a higher position index
 	 * @return */

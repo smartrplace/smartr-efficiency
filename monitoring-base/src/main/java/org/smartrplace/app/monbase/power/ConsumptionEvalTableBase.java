@@ -3,17 +3,21 @@ package org.smartrplace.app.monbase.power;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.model.connections.ElectricityConnection;
+import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.config.EnergyEvalInterval;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
-import org.smartrplace.app.monbase.power.EnergyEvaluationTableLine.EnergyEvalSessionDataProvider;
+import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
@@ -30,7 +34,7 @@ import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 
-public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLineI> extends ObjectGUITablePage<C, ElectricityConnection> implements EnergyEvalSessionDataProvider {
+public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLineI> extends ObjectGUITablePage<C, ElectricityConnection> {
 
 	private static final long POLL_RATE = 10000;
 	private static final String COST_HEADER ="Kosten (EUR)";
@@ -275,4 +279,115 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	public String getLineId(C object) {
 		return object.getLinePosition()+"_"+super.getLineId(object);
 	}
+	
+	/******
+	 * Default line adder implementations
+	 ********/
+
+	protected ConsumptionEvalTableLineBase addRexoLineBase(String subPath, boolean lineShowsPower,
+			List<ConsumptionEvalTableLineBase> result, List<ConsumptionEvalTableLineI> rexoLines,
+			EnergyEvalInterval intv, int lineIdx, OgemaHttpRequest req) {
+		//Resource rexo = controller.appMan.getResourceAccess().getResource(MAIN_ELECTRICITY_METER_RES);
+		ElectricityConnection conn =controller.getElectrictiyMeterDevice(subPath); // ResourceHelper.getSubResource(rexo,
+		//		subPath, ElectricityConnection.class);
+
+		String label = controller.getRoomLabel(conn.getLocation(), req.getLocale());
+		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
+		EnergyEvalObjI connObj = new EnergyEvalElConnObj(conn);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);
+		if(rexoLines != null)
+			rexoLines.add(retVal);
+		result.add(retVal);
+		return retVal;
+	}
+
+	protected ConsumptionEvalTableLineBase addHeatLineBase(String subPath, boolean lineShowsPower,
+			List<ConsumptionEvalTableLineBase> result, List<ConsumptionEvalTableLineI> heatLines,
+			EnergyEvalInterval intv, int lineIdx, OgemaHttpRequest req) {
+		//Resource rexo = controller.appMan.getResourceAccess().getResource(MAIN_HEAT_METER_RES);
+		SensorDevice conn = controller.getHeatMeterDevice(subPath); //ResourceHelper.getSubResource(rexo,
+		//		subPath, SensorDevice.class);
+
+		String label = "Heat "+controller.getRoomLabel(conn.getLocation(), req.getLocale());
+		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
+		EnergyEvalObjI connObj = new EnergyEvalHeatObj(conn);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);
+		if(heatLines != null)
+			heatLines.add(retVal);
+		result.add(retVal);
+		return retVal;
+	}
+	
+	protected ConsumptionEvalTableLineBase addMainMeterLineBase(String topResName, String subPath,
+			List<ConsumptionEvalTableLineBase> result,
+			EnergyEvalInterval intv, int lineIdx) {
+		Resource rexo = controller.appMan.getResourceAccess().getResource(topResName);
+		Schedule sched = ResourceHelper.getSubResource(rexo,
+				subPath, Schedule.class);
+		
+		String label = "Main Electricity Meter Reading";
+		EnergyEvalElConnObj connObj = new EnergyEvalElConnObj(null) {
+			@Override
+			public
+			float getPowerValue() {
+				return Float.NaN;
+			}
+
+			@Override
+			public
+			float getEnergyValue() {
+				SampledValue val = sched.getPreviousValue(Long.MAX_VALUE);
+				if(val == null) return Float.NaN;
+				return val.getValue().getFloatValue();
+			}
+			
+			@Override
+			public
+			float getEnergyValue(long startTime, long endTime, String label) {
+				return getEnergyValue(sched, startTime, endTime, label);
+			}
+			
+			@Override
+			public
+			boolean hasSubPhases() {
+				return false;
+			}
+			
+			@Override
+			public
+			boolean hasEnergySensor() {
+				return true;
+			}
+			
+			@Override
+			public
+			float getPowerValueSubPhase(int index) {
+				return Float.NaN;
+			}
+
+			@Override
+			public
+			float getEnergyValueSubPhase(int index) {
+				return Float.NaN;
+			}
+			
+			@Override
+			public
+			float getEnergyValueSubPhase(int index, long startTime, long endTime) {
+				return Float.NaN;
+			}
+			
+			@Override
+			public
+			Resource getMeterReadingResource() {
+				return sched;			
+			}
+			
+		};
+		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, false, SumType.STD, null, lineIdx);
+		result.add(retVal);
+		return retVal;
+	}
+	
 }

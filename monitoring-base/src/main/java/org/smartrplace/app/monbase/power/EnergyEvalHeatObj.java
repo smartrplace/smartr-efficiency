@@ -6,15 +6,15 @@ import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.EnergyAccumulatedSensor;
 import org.ogema.model.sensors.PowerSensor;
-import org.smartrplace.app.monbase.power.EnergyEvaluationTableLine.EnergyEvalObj;
+import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
 
-public class EnergyEvalHeatObj extends EnergyEvalObj {
+public class EnergyEvalHeatObj implements EnergyEvalObjI {
 	protected final SensorDevice heatDevice;
 	protected final FloatResource powerReading;
 	protected final FloatResource energyReading;
 	
 	public EnergyEvalHeatObj(SensorDevice conn) {
-		super(conn, false);
+		//super(conn, false);
 		//if(!(conn instanceof SensorDevice))
 		//	throw new IllegalStateException("Wrong resource type for heat meter:"+conn.getResourceType());
 		heatDevice = conn;
@@ -48,7 +48,7 @@ public class EnergyEvalHeatObj extends EnergyEvalObj {
 	float getEnergyValue(long startTime, long endTime, String label) {
 		if(energyReading == null) return Float.NaN;
 		RecordedData recTs = energyReading.getHistoricalData();
-		return getEnergyValue(recTs, startTime, endTime, label);
+		return EnergyEvalElConnObj.getEnergyValue(recTs, startTime, endTime, label);
 	}
 	
 	@Override
