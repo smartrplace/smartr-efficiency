@@ -31,17 +31,20 @@ public class EnergyEvalHeatObj extends EnergyEvalObj {
 	}
 
 	@Override
+	public
 	float getPowerValue() {
 		if(powerReading == null) return Float.NaN;
 		return powerReading.getValue();
 	}
 
 	@Override
+	public
 	float getEnergyValue() {
 		if(energyReading == null) return Float.NaN;
 		return energyReading.getValue();
 	}
 	@Override
+	public
 	float getEnergyValue(long startTime, long endTime, String label) {
 		if(energyReading == null) return Float.NaN;
 		RecordedData recTs = energyReading.getHistoricalData();
@@ -49,30 +52,36 @@ public class EnergyEvalHeatObj extends EnergyEvalObj {
 	}
 	
 	@Override
+	public
 	boolean hasSubPhases() {
 		return false;
 	}
 	
 	@Override
+	public
 	boolean hasEnergySensor() {
 		return (energyReading != null);
 	}
 	
 	@Override
+	public
 	float getPowerValueSubPhase(int index) {
 		return Float.NaN;
 	}
 
 	@Override
+	public
 	float getEnergyValueSubPhase(int index) {
 		return Float.NaN;
 	}
 	@Override
+	public
 	float getEnergyValueSubPhase(int index, long startTime, long endTime) {
 		return Float.NaN;
 	}
 	
 	@Override
+	public
 	Resource getMeterReadingResource() {
 		return energyReading;
 	}

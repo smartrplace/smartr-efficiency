@@ -13,12 +13,12 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.MonitoringController;
-import org.smartrplace.app.monbase.gui.TimeSeriesServlet.AggregationMode;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference;
 import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl.ScheduleViewerOpenButtonDataProvider;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.AggregationMode;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDescription;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;

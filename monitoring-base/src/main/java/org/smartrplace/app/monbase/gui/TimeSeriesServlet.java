@@ -24,6 +24,8 @@ import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.AggregationMode;
+
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
@@ -196,20 +198,6 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			return getIntegralOfLast24h(timeSeries, appMan);
 		}
 		return Float.NaN;
-	}
-	
-	public enum AggregationMode {
-		/** In this mode the input is expected as power value that has to be integrated over time to get
-		 * a daily value*/
-		Power2Meter,
-		/** In this mode the input is a meter value that has to be read e.g. once per day to
-		 * generate daily values or the first derivate has to be calculated to get power values
-		 */
-		Meter2Meter,
-		/** In this mode the input contains consumption values that reflect the consumption since the 
-		 * last value provided. So these values have to be added up to generate a real meter or have to
-		 * be divided by the respective time step to get power estimation values*/
-		Consumption2Meter
 	}
 	
 	public static class MeterReference {

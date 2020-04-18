@@ -17,9 +17,9 @@ import org.ogema.model.gateway.EvalCollection;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.config.EnergyEvalInterval;
+import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 import org.smartrplace.app.monbase.power.EnergyEvaluationTableLine.EnergyEvalObj;
 import org.smartrplace.app.monbase.power.EnergyEvaluationTableLine.EnergyEvalSessionDataProvider;
-import org.smartrplace.app.monbase.power.EnergyEvaluationTableLine.SumType;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -50,16 +50,17 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 	protected final Datepicker endPicker;
 	protected final Button updateButton;
 	protected final MonitoringController controller;
-	protected final FloatResource elPrice;
-	protected final FloatResource gasPrice;
-	protected final FloatResource gasEff;
+	
+	/** Price calculcation, all values in the utility default/currency unit, e.g kWh/EUR*/
+	protected FloatResource elPrice = null;
+	protected FloatResource gasPrice = null;
+	protected FloatResource gasEff = null;
+	protected FloatResource waterprice = null;
+	protected FloatResource foodprice = null;
 	
 	//protected final WidgetGroup wg;
 	
-	public EnergyEvaluationTable(WidgetPage<?> page, MonitoringController controller) {
-		super(page, controller.appMan, new EnergyEvaluationTableLine((ElectricityConnection)null, "init", true, null, null, null, 0,
-				null), false);
-		this.controller = controller;
+	protected void configurePricingInformation() {
 		FloatResource elPriceLoc;
 		elPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/electricityPrice", FloatResource.class);
@@ -88,7 +89,13 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 			gasEffLoc = evalCollection.getSubResource("gasEff", FloatResource.class);
 		}
 		gasEff = gasEffLoc;
-		gasEff.create();
+		gasEff.create();		
+	}
+	
+	public EnergyEvaluationTable(WidgetPage<?> page, MonitoringController controller) {
+		super(page, controller.appMan, new EnergyEvaluationTableLine((ElectricityConnection)null, "init", true, null, null, null, 0,
+				null), false);
+		this.controller = controller;
 		
 		startPicker = new Datepicker(page, "startPicker") {
 			private static final long serialVersionUID = 1L;
@@ -447,11 +454,13 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 		String label = "Ablesung Hauptzähler Strom";
 		EnergyEvalObj connObj = new EnergyEvalObj(null) {
 			@Override
+			public
 			float getPowerValue() {
 				return Float.NaN;
 			}
 
 			@Override
+			public
 			float getEnergyValue() {
 				SampledValue val = sched.getPreviousValue(Long.MAX_VALUE);
 				if(val == null) return Float.NaN;
@@ -459,36 +468,43 @@ public class EnergyEvaluationTable extends ObjectGUITablePage<EnergyEvaluationTa
 			}
 			
 			@Override
+			public
 			float getEnergyValue(long startTime, long endTime, String label) {
 				return getEnergyValue(sched, startTime, endTime, label);
 			}
 			
 			@Override
+			public
 			boolean hasSubPhases() {
 				return false;
 			}
 			
 			@Override
+			public
 			boolean hasEnergySensor() {
 				return true;
 			}
 			
 			@Override
+			public
 			float getPowerValueSubPhase(int index) {
 				return Float.NaN;
 			}
 
 			@Override
+			public
 			float getEnergyValueSubPhase(int index) {
 				return Float.NaN;
 			}
 			
 			@Override
+			public
 			float getEnergyValueSubPhase(int index, long startTime, long endTime) {
 				return Float.NaN;
 			}
 			
 			@Override
+			public
 			Resource getMeterReadingResource() {
 				return sched;			
 			}

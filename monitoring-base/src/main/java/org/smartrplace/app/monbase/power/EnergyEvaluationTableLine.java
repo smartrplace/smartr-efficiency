@@ -9,8 +9,9 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.model.connections.ElectricityConnection;
 import org.smartrplace.app.monbase.config.EnergyEvalInterval;
 import org.smartrplace.app.monbase.config.EnergyEvalIntervalMeterData;
+import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 
-public class EnergyEvaluationTableLine {
+public class EnergyEvaluationTableLine implements ConsumptionEvalTableLineI {
 	public static interface EnergyEvalSessionDataProvider {
 		//TODO: Not used currently
 	}
@@ -19,7 +20,7 @@ public class EnergyEvaluationTableLine {
 	
 	protected final EnergyEvalSessionDataProvider sessionDataProvider;
 	
-	public static class EnergyEvalObj {
+	protected static class EnergyEvalObj implements EnergyEvalObjI {
 		protected final ElectricityConnection conn;
 
 		//Implementation for Electricity
@@ -38,14 +39,14 @@ public class EnergyEvaluationTableLine {
 			}
 		}
 		
-		float getPowerValue() {
+		public float getPowerValue() {
 			return conn.powerSensor().reading().getValue();
 		}
 
-		float getEnergyValue() {
+		public float getEnergyValue() {
 			return conn.energySensor().reading().getValue();
 		}
-		float getEnergyValue(long startTime, long endTime, String printVals) {
+		public float getEnergyValue(long startTime, long endTime, String printVals) {
 			RecordedData ts = conn.energySensor().reading().getHistoricalData();
 			return getEnergyValue(ts, startTime, endTime, printVals);
 		}
@@ -63,34 +64,34 @@ public class EnergyEvaluationTableLine {
 			return endV.getValue().getFloatValue() - startV.getValue().getFloatValue();			
 		}
 		
-		boolean hasSubPhases() {
+		public boolean hasSubPhases() {
 			return conn.subPhaseConnections().isActive();
 		}
 		
-		boolean hasEnergySensor() {
+		public boolean hasEnergySensor() {
 			if(conn == null) return false;
 			return conn.energySensor().reading().exists();
 		}
 		
-		float getPowerValueSubPhase(int index) {
+		public float getPowerValueSubPhase(int index) {
 			ElectricityConnection subConn = conn.subPhaseConnections().getSubResource(
 					"phase"+index, ElectricityConnection.class);
 			return subConn.powerSensor().reading().getValue();
 		}
 
-		float getEnergyValueSubPhase(int index) {
+		public float getEnergyValueSubPhase(int index) {
 			ElectricityConnection subConn = conn.subPhaseConnections().getSubResource(
 					"phase"+index, ElectricityConnection.class);
 			return subConn.energySensor().reading().getValue();
 		}
-		float getEnergyValueSubPhase(int index, long startTime, long endTime) {
+		public float getEnergyValueSubPhase(int index, long startTime, long endTime) {
 			ElectricityConnection subConn = conn.subPhaseConnections().getSubResource(
 					"phase"+index, ElectricityConnection.class);
 			RecordedData ts = subConn.energySensor().reading().getHistoricalData();
 			return getEnergyValue(ts, startTime, endTime, null);
 		}
 		
-		Resource getMeterReadingResource() {
+		public Resource getMeterReadingResource() {
 			return conn.energySensor().reading();			
 		}
 	}
@@ -109,11 +110,6 @@ public class EnergyEvaluationTableLine {
 	protected final float[] lastValues;
 	protected long lastUpdateTime = -1;
 	
-	public static enum SumType {
-		STD,
-		INIT,
-		SUM_LINE
-	}
 	protected final SumType type;
 	protected final String index;
 	
@@ -164,7 +160,7 @@ public class EnergyEvaluationTableLine {
 	}
 
 	/** 0: overall, 1: L1, 2: L2, 3: L3*/
-	public float getPhaseValue(int index, long startTime, long endTime, long now, List<EnergyEvaluationTableLine> allLines) {
+	public float getPhaseValue(int index, long startTime, long endTime, long now, List<ConsumptionEvalTableLineI> allLines) {
 		if(type == SumType.SUM_LINE) {
 			float val = 0;
 			for(EnergyEvaluationTableLine source: sourcesToSum) {
@@ -176,12 +172,13 @@ public class EnergyEvaluationTableLine {
 		} else {
 			synchronized(this) {
 				if(now - lastUpdateTime > MAX_CACHE_TIME) {
-					for(EnergyEvaluationTableLine line: allLines) {
-						if(line.type == SumType.SUM_LINE)
+					for(ConsumptionEvalTableLineI line: allLines) {
+						if(line.getLineType() == SumType.SUM_LINE)
 							break;
 						for(int indexAll=0; indexAll<=3; indexAll++) {
 							float value = line.getPhaseValueInternal(indexAll, startTime, endTime);
-							line.lastValues[indexAll] = value;
+							//line.lastValues[indexAll] = value;
+							line.setLastValue(indexAll, value);
 						}
 					}
 					lastUpdateTime = now;
@@ -193,7 +190,7 @@ public class EnergyEvaluationTableLine {
 			}
 		}
 	}
-	protected float getPhaseValueInternal(int index, long startTime, long endTime) {
+	public float getPhaseValueInternal(int index, long startTime, long endTime) {
 		if(lineShowsPower) {
 			if(index == 0) {
 				return conn.getPowerValue();
@@ -245,5 +242,15 @@ public class EnergyEvaluationTableLine {
 			}
 		}
 		return null;
+	}
+	
+	@Override
+	public org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType getLineType() {
+		return type;
+	}
+	
+	@Override
+	public void setLastValue(int index, float value) {
+		lastValues[index] = value;	
 	}
 }

@@ -8,7 +8,8 @@ import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.MonitoringController;
-import org.smartrplace.app.monbase.gui.TimeSeriesServlet.AggregationMode;
+
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.AggregationMode;
 
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
