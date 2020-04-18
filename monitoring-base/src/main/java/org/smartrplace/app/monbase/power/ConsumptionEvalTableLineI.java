@@ -61,7 +61,7 @@ public interface ConsumptionEvalTableLineI {
 	public float getPhaseValue(int index, long startTime, long endTime, long now, List<ConsumptionEvalTableLineI> allLines);
 	
 	/** Get value for a phase and an interval. Implementation needs not to support sum lines*/
-	float getPhaseValueInternal(int index, long startTime, long endTime);
+	void updatePhaseValueInternal(int index, long startTime, long endTime, long currentTime);
 	
 	public String getLabel();
 	

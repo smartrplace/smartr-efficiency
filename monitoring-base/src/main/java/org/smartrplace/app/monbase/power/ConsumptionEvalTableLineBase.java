@@ -5,9 +5,9 @@ import java.util.List;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 
 public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
-	private static final long MAX_CACHE_TIME = 2000;
+	private static final long MAX_CACHE_TIME = 10000;
 	
-	protected final EnergyEvalObjI conn;
+	public final EnergyEvalObjI conn;
 	//protected final EnergyEvalInterval eeInterval;
 	protected final boolean lineShowsPower;
 	protected final String label;
@@ -64,6 +64,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	}
 
 	/** 0: overall, 1: L1, 2: L2, 3: L3*/
+	@Override
 	public float getPhaseValue(int index, long startTime, long endTime, long now, List<ConsumptionEvalTableLineI> allLines) {
 		if(type == SumType.SUM_LINE) {
 			float val = 0;
@@ -80,21 +81,28 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 						if(line.getLineType() == SumType.SUM_LINE)
 							break;
 						for(int indexAll=0; indexAll<=3; indexAll++) {
-							float value = line.getPhaseValueInternal(indexAll, startTime, endTime);
+							//float value = line.getPhaseValueInternal(indexAll, startTime, endTime);
 							//line.lastValues[indexAll] = value;
-							line.setLastValue(indexAll, value);
+							//line.setLastValue(indexAll, value);
+							line.updatePhaseValueInternal(index, startTime, endTime, now);
 						}
 					}
-					lastUpdateTime = now;
 				} 
 				return lastValues[index];
-				//float value = getPhaseValueInternal(index, startTime, endTime);
-				//lastValues[index] = value;
-				//return value;
 			}
 		}
 	}
-	public float getPhaseValueInternal(int index, long startTime, long endTime) {
+	@Override
+	public void updatePhaseValueInternal(int index, long startTime, long endTime, long now) {
+		if(now - lastUpdateTime <= MAX_CACHE_TIME) {
+			return;
+		}
+		float val = getPhaseValueRealInternal(index, startTime, endTime);
+		lastValues[index] = val;
+		lastUpdateTime = now;
+	}
+	
+	public float getPhaseValueRealInternal(int index, long startTime, long endTime) {
 		if(lineShowsPower) {
 			if(index == 0) {
 				return conn.getPowerValue();
@@ -104,33 +112,17 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 		} else {
 			//if(startTime != eeInterval.start().getValue()) {
 			if(index == 0) {
-				return conn.getEnergyValue(startTime, endTime, label);
+				float val = conn.getEnergyValue(startTime, endTime, label);
+				return val;
 			} else if(conn.hasSubPhases()) {
 				return conn.getEnergyValueSubPhase(index, startTime, endTime);
 			}
 			return Float.NaN;
-			/*}
-			float startVal = 999999999;
-			if(eeInterval != null) {
-				EnergyEvaluationIntervalMeterData meter = getMeterData(conn, eeInterval, index);
-				if(meter != null) {
-					if(meter.energyConsumedInInterval().isActive())
-						return meter.energyConsumedInInterval().getValue();
-					else startVal = meter.startCounterValue().getValue();
-				} else return Float.NaN;
-			}
-			Float rawCounter = null;
-			if(index == 0) {
-				rawCounter = conn.getEnergyValue();
-			} else if(conn.hasSubPhases()) {
-				rawCounter = conn.getEnergyValueSubPhase(index);
-			}
-			if(rawCounter == null) return Float.NaN;
-			return rawCounter - startVal;*/
 		}
 		return Float.NaN;
-	};
+	}
 	
+	@Override
 	public String getLabel() {
 		return label;
 	}

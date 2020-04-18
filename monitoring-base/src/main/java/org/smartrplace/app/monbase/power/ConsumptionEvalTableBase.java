@@ -38,18 +38,18 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 
 	private static final long POLL_RATE = 10000;
 	private static final String COST_HEADER ="Kosten (EUR)";
-	TemplateInitSingleEmpty<EnergyEvalInterval> initResType;
+	protected TemplateInitSingleEmpty<EnergyEvalInterval> initResType;
 	protected final Datepicker startPicker;
 	protected final Datepicker endPicker;
 	protected final Button updateButton;
 	protected final MonitoringController controller;
 	
 	/** Price calculcation, all values in the utility default/currency unit, e.g kWh/EUR*/
-	protected FloatResource elPrice = null;
-	protected FloatResource gasPrice = null;
-	protected FloatResource gasEff = null;
-	protected FloatResource waterprice = null;
-	protected FloatResource foodprice = null;
+	public FloatResource elPrice = null;
+	public FloatResource gasPrice = null;
+	public FloatResource gasEff = null;
+	public FloatResource waterprice = null;
+	public FloatResource foodprice = null;
 	
 	//protected final WidgetGroup wg;
 	

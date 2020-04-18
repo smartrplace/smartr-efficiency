@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.smartrplace.app.monbase.MonitoringController;
 
+@Deprecated //Not used yet - maybe not necessary?
 public class ConsumptionEvalAdmin {
 	public static enum SumType {
 		STD,
@@ -31,7 +32,7 @@ public class ConsumptionEvalAdmin {
 		this.controller = controller;
 	}
 
-	protected final List<EnergyEvaluationTable> evaluations = new ArrayList<>();
+	protected final List<ConsumptionEvalTableBase<?>> evaluations = new ArrayList<>();
 	
 	public void registerEvaluation() {
 		

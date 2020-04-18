@@ -16,8 +16,6 @@ import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.smartrplace.app.monbase.gui.OfflineControlGUI;
-import org.smartrplace.app.monbase.power.EnergyEvaluationIntervalTable;
-import org.smartrplace.app.monbase.power.EnergyEvaluationTable;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.util.format.WidgetPageFormatter;
 
@@ -234,20 +232,6 @@ public class MonitoringApp implements Application, OfflineEvalServiceAccess {
 		menu.addEntry("Chart-Konfiguration", page);
 		
 		configMenuConfig(page.getMenuConfiguration());
-
-		//Only offer energy pages on gateway
-		if(Boolean.getBoolean("org.smartrplace.app.monitoring.gui.offerManualTimeseries")) {
-			WidgetPage<?> page3 = widgetApp.createWidgetPage("energyTable.html");
-			EnergyEvaluationTable eet = new EnergyEvaluationTable(page3, controller);
-			configMenuConfig(page3.getMenuConfiguration());
-			WidgetPage<?> page2 = widgetApp.createWidgetPage("energyIntervals.html");
-			new EnergyEvaluationIntervalTable(page2, controller, eet);
-			menu.addEntry("Energieauswertung", page2);
-			configMenuConfig(page2.getMenuConfiguration());
-			
-			STANDARD_PAGE_FORMATTER.formatPage(page2);
-			STANDARD_PAGE_FORMATTER.formatPage(page3);
-		}
 
 		controller.registerExistingMultiPages();
 		
