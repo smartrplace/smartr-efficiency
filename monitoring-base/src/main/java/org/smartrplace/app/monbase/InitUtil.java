@@ -7,9 +7,12 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
+import org.smartrplace.app.monbase.servlet.SensorServlet;
+import org.smartrplace.app.monbase.servlet.UserServletTestMon;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
+import org.smartrplace.util.frontend.servlet.UserServlet;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
 import org.sp.smarteff.monitoring.alarming.AlarmingUtil;
 
@@ -107,4 +110,18 @@ public class InitUtil {
 		ValueResourceHelper.setCreate(ac.name(), controller.getLabel(ac, bu.name().getValue().equals("gesamt")));
 		
 	}
+	
+ 	/** Call this from all applications implementing this bundle*/
+ 	public static boolean registerGenericMonitoringServlet(MonitoringController controller) {
+ 		if(UserServletTestMon.userServlet != null)
+ 			return false;
+		//register own servlet
+		String userServletPath = MonitoringApp.urlPathServlet+"/userdata";
+		UserServlet userServlet = new UserServlet(); //.getInstance();
+		UserServletTestMon.userServlet = userServlet;
+		SensorServlet sensServlet = new SensorServlet(controller);
+		userServlet.addPage("sensorsByRoom", sensServlet);
+		controller.appMan.getWebAccessManager().registerWebResource(userServletPath, userServlet);
+		return true;
+ 	}
 }

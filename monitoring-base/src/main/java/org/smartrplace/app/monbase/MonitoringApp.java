@@ -16,8 +16,11 @@ import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.smartrplace.app.monbase.gui.OfflineControlGUI;
+import org.smartrplace.app.monbase.servlet.SensorServlet;
+import org.smartrplace.app.monbase.servlet.UserServletTestMon;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.util.format.WidgetPageFormatter;
+import org.smartrplace.util.frontend.servlet.UserServlet;
 
 import com.iee.app.evaluationofflinecontrol.OfflineEvalServiceAccess;
 import com.iee.app.evaluationofflinecontrol.gui.MainPage;
@@ -64,6 +67,7 @@ import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 @Service(Application.class)*/
 public class MonitoringApp implements Application, OfflineEvalServiceAccess {
 	public static final String urlPath = "/org/sp/app/monapp";
+	public static final String urlPathServlet = "/org/sp/app/monappserv";
 	public static WidgetPageFormatter STANDARD_PAGE_FORMATTER = new WidgetPageFormatter();
 
     private OgemaLogger log;
@@ -234,7 +238,7 @@ public class MonitoringApp implements Application, OfflineEvalServiceAccess {
 		configMenuConfig(page.getMenuConfiguration());
 
 		controller.registerExistingMultiPages();
-		
+				
 		//initDone = true;
 		//for(GaRoSingleEvalProvider p: earlyProviders) initGaroProvider(p);
 	}
