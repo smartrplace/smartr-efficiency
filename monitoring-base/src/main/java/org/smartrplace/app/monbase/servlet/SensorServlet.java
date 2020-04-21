@@ -7,14 +7,15 @@ import java.util.Map;
 
 import org.json.JSONObject;
 import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.frontend.servlet.ServletResourceDataProvider;
-import org.smartrplace.util.frontend.servlet.UserServlet;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
+import org.smartrplace.util.frontend.servlet.UserServlet;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
 public class SensorServlet implements ServletPageProvider<Room> {
@@ -44,6 +45,9 @@ public class SensorServlet implements ServletPageProvider<Room> {
 					ValueResource reading = sens.reading();
 					UserServlet.addValueEntry(reading, result);
 					String roomName = controller.getRoomLabel(sens.reading().getLocation(), null);
+                    IntegerResource alarmStatus = sens.getSubResource("alarmStatus");
+                    if (alarmStatus != null)
+                        result.put("alarmStatus", alarmStatus.getValue());
 					if(roomName != null)
 						result.put("monitoringRoomName", roomName);
 				}
