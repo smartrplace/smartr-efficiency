@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.json.JSONObject;
 import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -46,6 +47,9 @@ public class SensorServlet implements ServletPageProvider<Room> {
 					ValueResource reading = sens.reading();
 					UserServletUtil.addValueEntry(reading, suppressNan, result);
 					String roomName = controller.getRoomLabel(sens.reading().getLocation(), null);
+                    IntegerResource alarmStatus = sens.getSubResource("alarmStatus");
+                    if (alarmStatus != null)
+                        result.put("alarmStatus", alarmStatus.getValue());
 					if(roomName != null)
 						result.put("monitoringRoomName", roomName);
 				}
