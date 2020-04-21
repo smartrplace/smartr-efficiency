@@ -5,9 +5,10 @@ import java.util.List;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
-import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
+import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
 import org.smartrplace.app.monbase.servlet.SensorServlet;
+import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
 import org.smartrplace.app.monbase.servlet.UserServletTestMon;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
@@ -112,7 +113,8 @@ public class InitUtil {
 	}
 	
  	/** Call this from all applications implementing this bundle*/
- 	public static boolean registerGenericMonitoringServlet(MonitoringController controller) {
+ 	public static boolean registerGenericMonitoringServlet(MonitoringController controller,
+ 			boolean includeSpecialTimeseriesServlet) {
  		if(UserServletTestMon.userServlet != null)
  			return false;
 		//register own servlet
@@ -121,6 +123,12 @@ public class InitUtil {
 		UserServletTestMon.userServlet = userServlet;
 		SensorServlet sensServlet = new SensorServlet(controller);
 		userServlet.addPage("sensorsByRoom", sensServlet);
+		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);
+		userServlet.addPage("timeseries", timeSeriesServlet);
+		if(includeSpecialTimeseriesServlet) {
+			TimeSeriesServlet timeSeriesServletExt = new TimeSeriesServlet(controller.appMan);
+			userServlet.addPage("timeseriesExtended", timeSeriesServletExt);
+		}
 		controller.appMan.getWebAccessManager().registerWebResource(userServletPath, userServlet);
 		return true;
  	}

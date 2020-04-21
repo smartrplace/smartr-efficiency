@@ -19,6 +19,7 @@ import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.timeseries.v2.tools.TimeSeriesUtils;
+import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
@@ -31,6 +32,11 @@ import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 
+/** Note: This servlet is currently foreseen to be registered under the path of an implementing application. The
+ * {@link TimeseriesBaseServlet} is registered under the path of the monitoringApp.
+ * TODO: It could make sense to offer also this servlet under the path of the monitoringApp.
+ *
+ */
 public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl> {
 	public static final long ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL = AlarmingManagement.HOUR_MILLIS*12;
 	

@@ -12,9 +12,9 @@ import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.frontend.servlet.ServletResourceDataProvider;
-import org.smartrplace.util.frontend.servlet.UserServlet;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
+import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
 public class SensorServlet implements ServletPageProvider<Room> {
@@ -30,6 +30,8 @@ public class SensorServlet implements ServletPageProvider<Room> {
 	@Override
 	public Map<String, ServletValueProvider> getProviders(Room object, String user, Map<String, String[]> parameters) {
 		Map<String, ServletValueProvider> result = new HashMap<>();
+		boolean suppressNan = UserServletUtil.suppressNan(parameters);
+		
 		List<Sensor> roomSensors = knownSensors.get(object.getLocation());
 		//TODO: Add caching mechanism, now new sensors are only found when the bundle is restarted
 		if(roomSensors == null ) {
@@ -38,11 +40,11 @@ public class SensorServlet implements ServletPageProvider<Room> {
 		}
 		int index = 0;
 		for(Sensor sens: roomSensors) {
-			ServletResourceDataProvider resProv = new ServletResourceDataProvider(sens) {
+			ServletResourceDataProvider resProv = new ServletResourceDataProvider(sens, suppressNan) {
 				@Override
 				protected void addAdditionalInformation(JSONObject result) {
 					ValueResource reading = sens.reading();
-					UserServlet.addValueEntry(reading, result);
+					UserServletUtil.addValueEntry(reading, suppressNan, result);
 					String roomName = controller.getRoomLabel(sens.reading().getLocation(), null);
 					if(roomName != null)
 						result.put("monitoringRoomName", roomName);
