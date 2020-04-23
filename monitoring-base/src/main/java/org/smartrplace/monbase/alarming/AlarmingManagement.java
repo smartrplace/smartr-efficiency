@@ -194,7 +194,8 @@ public class AlarmingManagement {
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
 								vl.maxIntervalBetweenNewValues, alarmStatus);
 						//reset value
-						vl.res.setValue(Float.NaN);
+						if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
+							vl.res.setValue(Float.NaN);
 					} else {
 						IntegerResource alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
 						executeNoValueAlarm(vl.listener.getAc(), Float.NaN, vl.lastTimeOfNewData,
