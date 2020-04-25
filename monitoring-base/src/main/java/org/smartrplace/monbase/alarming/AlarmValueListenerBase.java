@@ -114,7 +114,7 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 	
 	public void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
-		String title = alarmID+": Für "+controller.getTsName(ac)+" (Alarming)";
+		String title = alarmID+": "+controller.getTsName(ac)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}

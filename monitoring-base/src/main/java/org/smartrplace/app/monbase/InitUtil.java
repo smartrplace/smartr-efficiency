@@ -2,6 +2,7 @@ package org.smartrplace.app.monbase;
 
 import java.util.List;
 
+import org.ogema.accesscontrol.RestAccess;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
@@ -108,19 +109,21 @@ public class InitUtil {
 			ac.activate(true);
 			dev.addDecorator(AlarmingManagement.ALARMSTATUS_RES_NAME, IntegerResource.class);
 		}
-		ValueResourceHelper.setCreate(ac.name(), controller.getLabel(ac, bu.name().getValue().equals("gesamt")));
-		
+		//ValueResourceHelper.setCreate(ac.name(), controller.getLabel(ac, bu.name().getValue().equals("gesamt")));
+		if(ValueResourceHelper.setIfNew(ac.name(), controller.getLabel(ac, bu.name().getValue().equals("gesamt"))))
+			ac.activate(true);
 	}
 	
  	/** Call this from all applications implementing this bundle*/
  	public static boolean registerGenericMonitoringServlet(MonitoringController controller,
- 			boolean includeSpecialTimeseriesServlet) {
+ 			boolean includeSpecialTimeseriesServlet, RestAccess restAcc) {
  		if(UserServletTestMon.userServlet != null)
  			return false;
 		//register own servlet
 		String userServletPath = MonitoringApp.urlPathServlet+"/userdata";
 		UserServlet userServlet = new UserServlet(); //.getInstance();
 		UserServletTestMon.userServlet = userServlet;
+		UserServletTestMon.restAcc = restAcc;
 		SensorServlet sensServlet = new SensorServlet(controller);
 		userServlet.addPage("sensorsByRoom", sensServlet);
 		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);
