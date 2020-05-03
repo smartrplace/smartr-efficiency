@@ -7,41 +7,42 @@ import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
-import org.ogema.core.model.simple.TimeResource;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
-import org.ogema.model.gateway.EvalCollection;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
+import org.smartrplace.app.monbase.config.EnergyEvalInterval;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
-import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
-import de.iwes.util.logconfig.EvalHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
-import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.calendar.datepicker.Datepicker;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
+import de.iwes.widgets.html.form.button.TemplateInitSingleEmpty;
 import de.iwes.widgets.html.form.button.WindowCloseButton;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 
-public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLineI>
-		extends ObjectGUITablePage<C, ElectricityConnection> implements ConsumptionEvalTableI<C> {
+/** The initial version of the ConsumptionTable is based on the Resource Type
+ * EnergyEvalInterval. This type does not necessarily implement implements ConsumptionEvalTableI<C>
+ */
+public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends ConsumptionEvalTableLineI>
+		extends ObjectGUITablePage<C, ElectricityConnection> {
 
 	private static final long POLL_RATE = 10000;
 	private static final String COST_HEADER ="Kosten (EUR)";
+	protected TemplateInitSingleEmpty<EnergyEvalInterval> initResType;
 	protected final Datepicker startPicker;
 	protected final Datepicker endPicker;
 	protected final Button updateButton;
@@ -56,41 +57,9 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	
 	//protected final WidgetGroup wg;
 	
-	/** Override default implementation if required*/
-	protected void configurePricingInformation() {
-		FloatResource elPriceLoc;
-		elPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
-				"editableData/buildingData/E_0/electricityPrice", FloatResource.class);
-		if(elPriceLoc == null) {
-			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
-			elPriceLoc = evalCollection.getSubResource("elPrice", FloatResource.class);
-		}
-		elPrice = elPriceLoc;
-		elPrice.create();
-		if(!elPrice.isActive())
-			elPrice.activate(false);
-		FloatResource gasPriceLoc;
-		gasPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
-				"editableData/buildingData/E_0/gasPrice", FloatResource.class);
-		if(gasPriceLoc == null) {
-			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
-			gasPriceLoc = evalCollection.getSubResource("gasPrice", FloatResource.class);
-		}
-		gasPrice = gasPriceLoc;
-		gasPrice.create();
-		FloatResource gasEffLoc;
-		gasEffLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
-				"editableData/buildingData/E_0/heatingEfficiency", FloatResource.class);
-		if(gasEffLoc == null) {
-			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
-			gasEffLoc = evalCollection.getSubResource("gasEff", FloatResource.class);
-		}
-		gasEff = gasEffLoc;
-		gasEff.create();		
-	}		
-	protected abstract String getHeaderText(OgemaHttpRequest req);
+	protected abstract void configurePricingInformation();
 	
-	public ConsumptionEvalTableBase(WidgetPage<?> page, MonitoringController controller,
+	public ConsumptionEvalTableBaseWithEvalInterval(WidgetPage<?> page, MonitoringController controller,
 			C initObject) {
 		super(page, controller.appMan, initObject, false);
 		this.controller = controller;
@@ -100,16 +69,13 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				boolean lineShowsPower = isPowerTable();
+				EnergyEvalInterval intv = initResType.getSelectedItem(req);
+				boolean lineShowsPower = !(intv.start().isActive());
 				if(lineShowsPower) {
 					setWidgetVisibility(false, req);
 					return;
 				}
-				TimeResource refRes = ResourceHelperSP.getSubResource(null,
-						//"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
-						"offlineEvaluationControlConfig/start",
-						TimeResource.class, controller.appMan.getResourceAccess());
-				long ts = refRes.getValue();
+				long ts = intv.start().getValue();
 				setDate(ts, req);
 				setWidgetVisibility(true, req);
 			}
@@ -119,26 +85,36 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				boolean lineShowsPower = isPowerTable();
+				EnergyEvalInterval intv = initResType.getSelectedItem(req);
+				boolean lineShowsPower = !(intv.start().isActive());
 				if(lineShowsPower) {
 					setPollingInterval(POLL_RATE, req);
 					setWidgetVisibility(false, req);
 					return;
 				}
 				long ts;
-				ts = getDateLong(req);
-				if(ts <= 0) {
-					ts = appMan.getFrameworkTime();
+				if(intv.end().isActive()) {
+					ts = intv.start().getValue();
+					setDate(ts, req);
+					setPollingInterval(-1, req);
+				} else {
+					ts = getDateLong(req);
+					if(ts <= 0) {
+						ts = appMan.getFrameworkTime();
+					}
+					setDate(ts, req);
+					setPollingInterval(POLL_RATE, req);
 				}
-				setDate(ts, req);
-				setPollingInterval(POLL_RATE, req);
-				setWidgetVisibility(true, req);			}
+				setWidgetVisibility(true, req);
+				//updateContent(req, ts);
+			}
 		};
 		updateButton = new Button(page, "updateButton", "Aktualisieren") {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				boolean lineShowsPower = isPowerTable();
+				EnergyEvalInterval intv = initResType.getSelectedItem(req);
+				boolean lineShowsPower = !(intv.start().isActive());
 				if(lineShowsPower) {
 					setWidgetVisibility(false, req);
 					return;
@@ -255,13 +231,34 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	
 	@Override
 	public void addWidgetsAboveTable() {
+		initResType =
+				new TemplateInitSingleEmpty<EnergyEvalInterval>(page, "initResType", false) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected EnergyEvalInterval getItemById(String configId) {
+				Resource result = controller.appMan.getResourceAccess().getResource(configId);
+				if(result != null && result instanceof EnergyEvalInterval) return (EnergyEvalInterval) result;
+				return null;
+			}
+			@Override
+			public void init(OgemaHttpRequest req) {
+				super.init(req);
+			}
+		};
+		page.append(initResType);
+		initResType.registerDependentWidget(mainTable);
+		initResType.registerDependentWidget(startPicker);
+		initResType.registerDependentWidget(endPicker);
+		initResType.registerDependentWidget(updateButton);
 		
 		Header header = new Header(page, "header") {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				setText(getHeaderText(req), req);
+				EnergyEvalInterval intv = initResType.getSelectedItem(req);
+				setText("Übersicht "+intv.name().getValue(), req);
 			}
 		};
 		page.append(header);
@@ -310,12 +307,12 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 
 	protected ConsumptionEvalTableLineBase addHeatLineBase(String subPath, boolean lineShowsPower,
 			List<ConsumptionEvalTableLineBase> result, List<ConsumptionEvalTableLineI> heatLines,
-			int lineIdx, OgemaLocale locale) {
+			int lineIdx, OgemaHttpRequest req) {
 		//Resource rexo = controller.appMan.getResourceAccess().getResource(MAIN_HEAT_METER_RES);
 		SensorDevice conn = controller.getHeatMeterDevice(subPath); //ResourceHelper.getSubResource(rexo,
 		//		subPath, SensorDevice.class);
 
-		String label = "Heat "+controller.getRoomLabel(conn.getLocation(), locale);
+		String label = "Heat "+controller.getRoomLabel(conn.getLocation(), req.getLocale());
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
 		EnergyEvalObjI connObj = new EnergyEvalHeatObj(conn);
 		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);

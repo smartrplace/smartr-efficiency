@@ -128,7 +128,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	}
 	
 	@Override
-	public org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType getLineType() {
+	public SumType getLineType() {
 		return type;
 	}
 	

@@ -17,6 +17,8 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.basedata.DeviceFinderInit;
 import org.ogema.externalviewer.extensions.DefaultDedicatedTSSessionConfiguration;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
@@ -69,6 +71,7 @@ import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 // here the controller logic is implemented
 public abstract class MonitoringController extends OfflineEvaluationControlController implements AlarmingUpdater {
 	protected AlarmingManagement alarmMan = null;
+	public final DatapointService dpService;
 	
 	/** Implementation must be able to deal with a null value for locale
 	 * TODO: getRoomLabel should have default implementation finding the room based on the resource structure
@@ -261,8 +264,16 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
     }
 	
 	public MonitoringController(ApplicationManager appMan, OfflineEvalServiceAccessBase evaluationOCApp) {
+		this(appMan, evaluationOCApp, null);
+	}
+	public MonitoringController(ApplicationManager appMan, OfflineEvalServiceAccessBase evaluationOCApp,
+			DatapointService dpService) {
 		super(appMan, evaluationOCApp, null, new PageConfig(false, false), true);
+		this.dpService = dpService;
 		EvalProviderMonitoringBase.controller = this;
+		if(dpService != null)
+			DeviceFinderInit.getAllDatapoints(this);
+		
 		evaluationOCApp.messageService().registerMessagingApp(appMan.getAppID(), getAlarmingDomain()+"_Alarming");
 		if(activateAlarming()) {
 			initManualResources();
