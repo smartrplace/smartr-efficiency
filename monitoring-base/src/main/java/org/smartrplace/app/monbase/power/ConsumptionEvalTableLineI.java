@@ -3,6 +3,7 @@ package org.smartrplace.app.monbase.power;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
+import org.ogema.devicefinder.api.Datapoint;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.AggregationMode;
@@ -26,7 +27,7 @@ public interface ConsumptionEvalTableLineI {
 		
 		/** Even if the {@link EnergyEvaluationTable}(s) using this line have sub phases not all lines
 		 * included need to support this*/
-		boolean hasSubPhases();
+		int hasSubPhaseNum();
 		
 		/** If false this indicates that energy has to be calculated from power
 		 * TODO: This needs to be replaced by returing the {@link AggregationMode}
@@ -79,4 +80,10 @@ public interface ConsumptionEvalTableLineI {
 	/** A line with a lower position index will be displayed above a line with a higher position index
 	 * @return */
 	String getLinePosition();
+	
+	/** May return null if no such information is available*/
+	Datapoint getDatapoint();
+
+	/** Return number of sub phase values*/
+	public int hasSubPhaseNum();
 }

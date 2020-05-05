@@ -8,6 +8,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.gateway.EvalCollection;
@@ -268,20 +269,24 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		
 		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding", "Fertig");
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
-		RedirectButton messageButton = new RedirectButton(page, "messageButton", "Alarme", "/de/iwes/ogema/apps/message/reader/index.html");
-		messageButton.setDefaultOpenInNewTab(false);
+		
+		RedirectButton messageButton = getMessageButton();
 		
 		StaticTable topTable = new StaticTable(1, 5);
 		topTable.setContent(0, 0, startPicker);
 		topTable.setContent(0, 1, endPicker);
 		topTable.setContent(0, 2, updateButton);
 		topTable.setContent(0, 3, closeTabButton);
-		topTable.setContent(0, 4, messageButton);
+		if(messageButton != null)
+			topTable.setContent(0, 4, messageButton);
 		page.append(topTable);
 		
 		//wg.addWidget(mainTable);
 	}
 
+	protected RedirectButton getMessageButton() {
+		return null;
+	}
 	@Override
 	public String getLineId(C object) {
 		return object.getLinePosition()+"_"+super.getLineId(object);
@@ -291,47 +296,84 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	 * Default line adder implementations
 	 ********/
 
-	protected ConsumptionEvalTableLineBase addRexoLineBase(String subPath, boolean lineShowsPower,
+	protected ConsumptionEvalTableLineBase addRexoLineBase(ElectricityConnection conn, boolean lineShowsPower,
 			List<ConsumptionEvalTableLineBase> result, List<ConsumptionEvalTableLineI> rexoLines,
-			int lineIdx, OgemaHttpRequest req) {
+			int lineIdx, OgemaLocale locale,
+			Datapoint dp) {
 		//Resource rexo = controller.appMan.getResourceAccess().getResource(MAIN_ELECTRICITY_METER_RES);
-		ElectricityConnection conn =controller.getElectrictiyMeterDevice(subPath); // ResourceHelper.getSubResource(rexo,
+		//ElectricityConnection conn =controller.getElectrictiyMeterDevice(subPath); // ResourceHelper.getSubResource(rexo,
 		//		subPath, ElectricityConnection.class);
 
-		String label = controller.getRoomLabel(conn.getLocation(), req.getLocale());
+		String label = (dp != null)?dp.label(null):controller.getRoomLabel(conn.getLocation(), locale);
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
 		EnergyEvalObjI connObj = new EnergyEvalElConnObj(conn);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, dp);
 		if(rexoLines != null)
 			rexoLines.add(retVal);
 		result.add(retVal);
 		return retVal;
 	}
 
-	protected ConsumptionEvalTableLineBase addHeatLineBase(String subPath, boolean lineShowsPower,
+	protected ConsumptionEvalTableLineBase addHeatLineBase(SensorDevice conn, boolean lineShowsPower,
 			List<ConsumptionEvalTableLineBase> result, List<ConsumptionEvalTableLineI> heatLines,
-			int lineIdx, OgemaLocale locale) {
+			int lineIdx, OgemaLocale locale,
+			Datapoint dp) {
 		//Resource rexo = controller.appMan.getResourceAccess().getResource(MAIN_HEAT_METER_RES);
-		SensorDevice conn = controller.getHeatMeterDevice(subPath); //ResourceHelper.getSubResource(rexo,
+		//SensorDevice conn = controller.getHeatMeterDevice(subPath); //ResourceHelper.getSubResource(rexo,
 		//		subPath, SensorDevice.class);
 
-		String label = "Heat "+controller.getRoomLabel(conn.getLocation(), locale);
+		String label = (dp != null)?dp.label(null):"Heat "+controller.getRoomLabel(conn.getLocation(), locale);
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
 		EnergyEvalObjI connObj = new EnergyEvalHeatObj(conn);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);
+		if(dp == null && controller.dpService != null) {
+			dp = controller.dpService.getDataPointStandard(connObj.getMeterReadingResource().getLocation());
+			//It is not possible to set the label directly, we have to check this in the future
+			if(dp.getRoom() == null) {
+				dp.setSubRoomLocation(null, null, label);
+			}
+		}
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, dp);
 		if(heatLines != null)
 			heatLines.add(retVal);
 		result.add(retVal);
 		return retVal;
 	}
-	
+
+	/**
+	 * 
+	 * @param conn
+	 * @param powerReading may be null
+	 * @param lineShowsPower
+	 * @param result
+	 * @param linesForSum
+	 * @param lineIdx
+	 * @param locale
+	 * @param label
+	 * @return
+	 */
+	protected ConsumptionEvalTableLineBase addLineBase(FloatResource conn, FloatResource powerReading, boolean lineShowsPower,
+			List<ConsumptionEvalTableLineBase> result, List<ConsumptionEvalTableLineI> linesForSum,
+			int lineIdx, String label,
+			Datapoint dp) {
+		
+		EnergyEvalObjI connObj = new EnergyEvalObjBase(conn, powerReading);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, dp);
+		if(linesForSum != null)
+			linesForSum.add(retVal);
+		result.add(retVal);
+		return retVal;
+	}
+
 	protected ConsumptionEvalTableLineBase addMainMeterLineBase(String topResName, String subPath,
-			List<ConsumptionEvalTableLineBase> result, int lineIdx) {
+			List<ConsumptionEvalTableLineBase> result, int lineIdx,
+			Datapoint dp) {
 		Resource rexo = controller.appMan.getResourceAccess().getResource(topResName);
 		Schedule sched = ResourceHelper.getSubResource(rexo,
 				subPath, Schedule.class);
+		if(sched == null)
+			return null;
 		
-		String label = "Main Electricity Meter Reading";
+		String label = (dp != null)?dp.label(null):"Main Electricity Meter Reading";
 		EnergyEvalElConnObj connObj = new EnergyEvalElConnObj(null) {
 			@Override
 			public
@@ -355,8 +397,8 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 			
 			@Override
 			public
-			boolean hasSubPhases() {
-				return false;
+			int hasSubPhaseNum() {
+				return 0;
 			}
 			
 			@Override
@@ -391,7 +433,7 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 			
 		};
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, false, SumType.STD, null, lineIdx);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, false, SumType.STD, null, lineIdx, dp);
 		result.add(retVal);
 		return retVal;
 	}

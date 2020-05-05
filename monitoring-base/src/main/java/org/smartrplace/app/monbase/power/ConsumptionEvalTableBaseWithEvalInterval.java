@@ -352,8 +352,8 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 			
 			@Override
 			public
-			boolean hasSubPhases() {
-				return false;
+			int hasSubPhaseNum() {
+				return 0;
 			}
 			
 			@Override

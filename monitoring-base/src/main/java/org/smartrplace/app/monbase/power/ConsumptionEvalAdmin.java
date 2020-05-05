@@ -3,6 +3,7 @@ package org.smartrplace.app.monbase.power;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ogema.devicefinder.api.ConsumptionInfo.UtilityType;
 import org.smartrplace.app.monbase.MonitoringController;
 
 public class ConsumptionEvalAdmin {
@@ -31,9 +32,23 @@ public class ConsumptionEvalAdmin {
 		this.controller = controller;
 	}
 
-	protected final List<ConsumptionEvalTableBaseWithEvalInterval<?>> evaluations = new ArrayList<>();
+	protected final List<ConsumptionEvalTableBase<?>> evaluations = new ArrayList<>();
 	
-	public void registerEvaluationTable() {
-		
+	public void registerEvaluationTable(ConsumptionEvalTableBase<?> table) {
+		evaluations.add(table);
+	}
+	
+	/** Get all registered tables of a type
+	 * 
+	 * @param type if null tables for all types are returned
+	 * @return
+	 */
+	public List<ConsumptionEvalTableBase<?>> getTables(UtilityType type) {
+		List<ConsumptionEvalTableBase<?>> result = new ArrayList<>();
+		for(ConsumptionEvalTableBase<?> table: evaluations) {
+			if(type == null || type == table.getUtilityType())
+				result.add(table);
+		}
+		return result ;
 	}
 }

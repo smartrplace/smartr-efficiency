@@ -3,31 +3,20 @@ package org.smartrplace.app.monbase.power;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.recordeddata.RecordedData;
-import org.ogema.model.devices.sensoractordevices.SensorDevice;
-import org.ogema.model.sensors.EnergyAccumulatedSensor;
-import org.ogema.model.sensors.PowerSensor;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
 
-public class EnergyEvalHeatObj implements EnergyEvalObjI {
-	protected final SensorDevice heatDevice;
+public class EnergyEvalObjBase implements EnergyEvalObjI {
 	protected final FloatResource powerReading;
 	protected final FloatResource energyReading;
 	
-	public EnergyEvalHeatObj(SensorDevice conn) {
-		//super(conn, false);
-		//if(!(conn instanceof SensorDevice))
-		//	throw new IllegalStateException("Wrong resource type for heat meter:"+conn.getResourceType());
-		heatDevice = conn;
-		FloatResource res = heatDevice.getSubResource("POWER_0_0", PowerSensor.class).reading();
-		if(res.isActive()) {
-			powerReading = res;
-		} else
-			powerReading = null;
-		res = heatDevice.getSubResource("ENERGY_0_0", EnergyAccumulatedSensor.class).reading();
-		if(res.isActive()) {
-			energyReading = res;
-		} else
-			energyReading = null;
+	/**
+	 * 
+	 * @param energyReading
+	 * @param powerReading may be null
+	 */
+	public EnergyEvalObjBase(FloatResource energyReading, FloatResource powerReading) {
+		this.energyReading = energyReading;
+		this.powerReading = powerReading;
 	}
 
 	@Override

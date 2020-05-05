@@ -34,6 +34,7 @@ import org.smartrplace.app.monbase.gui.OfflineControlGUI;
 import org.smartrplace.app.monbase.gui.ScheduleViewerOpenButtonDataProviderImpl;
 import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
+import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
@@ -72,6 +73,7 @@ import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 public abstract class MonitoringController extends OfflineEvaluationControlController implements AlarmingUpdater {
 	protected AlarmingManagement alarmMan = null;
 	public final DatapointService dpService;
+	public final ConsumptionEvalAdmin evalAdm;
 	
 	/** Implementation must be able to deal with a null value for locale
 	 * TODO: getRoomLabel should have default implementation finding the room based on the resource structure
@@ -271,6 +273,7 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		super(appMan, evaluationOCApp, null, new PageConfig(false, false), true);
 		this.dpService = dpService;
 		EvalProviderMonitoringBase.controller = this;
+		evalAdm = new ConsumptionEvalAdmin(this);
 		if(dpService != null)
 			DeviceFinderInit.getAllDatapoints(this);
 		

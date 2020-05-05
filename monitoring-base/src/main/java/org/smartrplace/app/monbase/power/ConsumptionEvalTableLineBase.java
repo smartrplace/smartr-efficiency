@@ -2,6 +2,7 @@ package org.smartrplace.app.monbase.power;
 
 import java.util.List;
 
+import org.ogema.devicefinder.api.Datapoint;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 
 public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
@@ -24,6 +25,8 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	protected final SumType type;
 	protected final String index;
 	
+	protected final Datapoint datapoint;
+
 	/** 
 	 * 
 	 * @param conn
@@ -46,7 +49,15 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 			SumType type,
 			List<ConsumptionEvalTableLineI> sourcesToSum,
 			int index) {
+		this(conn, label, lineShowsPower, type, sourcesToSum, index, null);
+	}
+	public ConsumptionEvalTableLineBase(EnergyEvalObjI conn, String label, boolean lineShowsPower,
+			SumType type,
+			List<ConsumptionEvalTableLineI> sourcesToSum,
+			int index,
+			Datapoint datapoint) {
 		this.conn = conn;
+		this.datapoint = datapoint;
 		this.lineShowsPower = lineShowsPower;
 		this.label = label;
 		//this.sumUpIndex2 = sumUpIndex;
@@ -106,7 +117,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 		if(lineShowsPower) {
 			if(index == 0) {
 				return conn.getPowerValue();
-			} else if(conn.hasSubPhases()) {
+			} else if(conn.hasSubPhaseNum() > 0) {
 				return conn.getPowerValueSubPhase(index);
 			}
 		} else {
@@ -114,7 +125,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 			if(index == 0) {
 				float val = conn.getEnergyValue(startTime, endTime, label);
 				return val;
-			} else if(conn.hasSubPhases()) {
+			} else if(conn.hasSubPhaseNum() > 0) {
 				return conn.getEnergyValueSubPhase(index, startTime, endTime);
 			}
 			return Float.NaN;
@@ -150,5 +161,15 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	@Override
 	public String getLinePosition() {
 		return index;
+	}
+	
+	@Override
+	public Datapoint getDatapoint() {
+		return datapoint;
+	}
+	
+	@Override
+	public int hasSubPhaseNum() {
+		return conn.hasSubPhaseNum();
 	}
 }

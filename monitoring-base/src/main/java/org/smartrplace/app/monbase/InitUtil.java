@@ -8,6 +8,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.sensors.Sensor;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
+import org.smartrplace.app.monbase.servlet.ConsumptionEvalServlet;
 import org.smartrplace.app.monbase.servlet.SensorServlet;
 import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
 import org.smartrplace.app.monbase.servlet.UserServletTestMon;
@@ -132,6 +133,8 @@ public class InitUtil {
 			TimeSeriesServlet timeSeriesServletExt = new TimeSeriesServlet(controller.appMan);
 			userServlet.addPage("timeseriesExtended", timeSeriesServletExt);
 		}
+		ConsumptionEvalServlet conEvalServlet = new ConsumptionEvalServlet(controller);
+		userServlet.addPage("consumptionData", conEvalServlet);
 		controller.appMan.getWebAccessManager().registerWebResource(userServletPath, userServlet);
 		return true;
  	}
