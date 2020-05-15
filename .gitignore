@@ -10,3 +10,5 @@ testdata/
 *.class
 pom.xml.versionsBackup
 pom.xml.releaseBackup
+*.iml
+.idea
