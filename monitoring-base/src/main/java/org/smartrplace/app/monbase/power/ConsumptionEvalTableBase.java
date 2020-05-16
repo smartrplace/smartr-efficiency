@@ -155,6 +155,12 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		updateButton.addWidget(startPicker);
 		updateButton.addWidget(endPicker);
 		
+		//updateButton.governingWidget = true;
+		//Just do this to make sure that updateButton.governingWidget = true;
+		//Note that if session-specific widgets have a dependency to a non-session-specific widget then
+		//the non-session-specific parent widget needs to register a non-session-specific dependency once
+		updateButton.registerDependentWidget(alert);
+		
 		//wg = page.registerWidgetGroup("pollingGroup");
 		//wg.setPollingInterval(POLL_RATE);
 		triggerPageBuild();

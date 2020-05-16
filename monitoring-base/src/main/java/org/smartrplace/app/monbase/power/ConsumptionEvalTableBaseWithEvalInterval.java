@@ -103,7 +103,7 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 						ts = appMan.getFrameworkTime();
 					}
 					setDate(ts, req);
-					setPollingInterval(POLL_RATE, req);
+					//setPollingInterval(POLL_RATE, req);
 				}
 				setWidgetVisibility(true, req);
 				//updateContent(req, ts);
@@ -129,6 +129,12 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 		};
 		updateButton.addWidget(startPicker);
 		updateButton.addWidget(endPicker);
+		
+		//updateButton.governingWidget = true;
+		//Just do this to make sure that updateButton.governingWidget = true;
+		//Note that if session-specific widgets have a dependency to a non-session-specific widget then
+		//the non-session-specific parent widget needs to register a non-session-specific dependency once
+		updateButton.registerDependentWidget(alert);
 		
 		//wg = page.registerWidgetGroup("pollingGroup");
 		//wg.setPollingInterval(POLL_RATE);

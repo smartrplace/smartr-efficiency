@@ -6,7 +6,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 
 public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
-	private static final long MAX_CACHE_TIME = 10000;
+	private static final long MAX_CACHE_TIME = 2000;
 	
 	public final EnergyEvalObjI conn;
 	//protected final EnergyEvalInterval eeInterval;
@@ -19,6 +19,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	//protected final List<EnergyEvaluationTableLine> sumLinesToClear;
 	//protected final ApplicationManager appMan;
 	
+	//TODO: This approach is not multi-session safe!
 	protected final float[] lastValues;
 	protected long lastUpdateTime = -1;
 	
@@ -95,7 +96,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 							//float value = line.getPhaseValueInternal(indexAll, startTime, endTime);
 							//line.lastValues[indexAll] = value;
 							//line.setLastValue(indexAll, value);
-							line.updatePhaseValueInternal(index, startTime, endTime, now);
+							line.updatePhaseValueInternal(indexAll, startTime, endTime, now);
 						}
 					}
 				} 
