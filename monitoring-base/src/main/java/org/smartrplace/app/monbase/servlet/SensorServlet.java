@@ -9,11 +9,13 @@ import org.json.JSONObject;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.frontend.servlet.ServletResourceDataProvider;
+import org.smartrplace.util.frontend.servlet.UserServletParamData;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
@@ -56,6 +58,24 @@ public class SensorServlet implements ServletPageProvider<Room> {
 					if (reading instanceof PhysicalUnitResource) {
 						String unit = ((PhysicalUnitResource) reading).getUnit().toString();
 						result.put("unit", unit);
+					}
+					
+					UserServletParamData pdata = new UserServletParamData(parameters);
+					if(pdata.provideExtended && controller.dpService != null) {
+						Datapoint dp = controller.dpService.getDataPointStandard(reading);
+						if(dp.getConsumptionInfo() != null)
+							result.put("consumptionInfo", dp.getConsumptionInfo());
+						if(dp.getGaroDataType() != null)
+							result.put("garoType", dp.getGaroDataType().label(null));
+						String subRoomLoc = dp.getSubRoomLocation(pdata.locale, null);
+						if(subRoomLoc != null)
+							result.put("subRoomLocation", subRoomLoc);
+						if(dp.getDeviceResource() != null)
+							result.put("deviceResourceLocation", dp.getDeviceResource().getLocation());
+						if(dp.getDeviceResource() != null)
+							result.put("deviceResourceType", dp.getDeviceResource().getResourceType().getName());
+						if(dp.getTimeSeriesID() != null)
+							result.put("timeSeries", dp.getTimeSeriesID());
 					}
 				}
 			};

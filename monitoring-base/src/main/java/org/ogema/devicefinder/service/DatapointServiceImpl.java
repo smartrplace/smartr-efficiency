@@ -8,10 +8,14 @@ import java.util.Map;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
+import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
+import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
@@ -80,7 +84,23 @@ public class DatapointServiceImpl implements DatapointService {
 			result.setGaroDataType(GaRoEvalHelper.getDataType(result.getLocation()));
 		}
 	}
-
+	public static void addStandardData(Datapoint result, ValueResource valRes) {
+		addStandardData(result);
+		SingleValueResource svr;
+		if(valRes instanceof SingleValueResource)
+			svr = (SingleValueResource) valRes;
+		else
+			svr = null;
+		if(result.getTimeSeriesID() == null && svr != null) {
+			RecordedData recData = ValueResourceHelperSP.getRecordedData(svr);
+			//if(LoggingUtils.isLoggingEnabled(svr)) {
+			if(recData != null && (!recData.isEmpty())) {	
+				String id = UserServletUtil.getOrAddTimeSeriesData(recData, recData.getPath());
+				result.setTimeSeriesID(id);
+			}
+		}
+	}
+		
 	@Override
 	public Datapoint getDataPointStandard(ValueResource valRes) {
 		Datapoint result = getDataPointAsIs(valRes);
@@ -89,7 +109,7 @@ public class DatapointServiceImpl implements DatapointService {
 			Map<String, Datapoint> gwMap = getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 			gwMap.put(valRes.getLocation(), result);
 		}
-		addStandardData(result);
+		addStandardData(result, valRes);
 		return result;
 	}
 

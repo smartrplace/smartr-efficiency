@@ -24,6 +24,7 @@ import org.smartrplace.util.message.MessageImpl;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
 import org.sp.smarteff.monitoring.alarming.AlarmingUtil;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
@@ -186,7 +187,10 @@ public class AlarmingManagement {
 				//for now we do do generate alarms here if not initial value was received
 				if(vl.lastTimeOfNewData < 0 || vl.maxIntervalBetweenNewValues <= 0) continue;
 				long waiting = now - vl.lastTimeOfNewData;
-				if(waiting > vl.maxIntervalBetweenNewValues &&(!vl.isNoValueAlarmActive)) {
+if(vl.res.getLocation().contains("HM_HMIP_PSM_0001D3C99C5634")) {
+	System.out.println("Last Q3 time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000);
+}
+				if((waiting > vl.maxIntervalBetweenNewValues) &&(!vl.isNoValueAlarmActive)) {
 					vl.isNoValueAlarmActive = true;
 					if(vl.res != null) {
 						IntegerResource alarmStatus = getAlarmStatus(vl.res);
