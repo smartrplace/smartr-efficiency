@@ -48,7 +48,8 @@ public interface AlarmConfigBase extends SmartEffResource {
 	FloatResource alarmRepetitionTime();
 	
 	/** If an alarm is detected and the alarmStatus resource is active then the value given
-	 * here is written into the alarmStatus resource.
+	 * here is written into the alarmStatus resource.<br>
+	 * For no-value alarms the level plus 1000 is used.
 	 */
 	IntegerResource alarmLevel();
 	

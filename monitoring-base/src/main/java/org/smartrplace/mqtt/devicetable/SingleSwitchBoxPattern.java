@@ -17,15 +17,15 @@ package org.smartrplace.mqtt.devicetable;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.model.devices.sensoractordevices.MultiSwitchBox;
+import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 
 
-public class MultiSwitchBoxPattern extends ResourcePattern<MultiSwitchBox> {
+public class SingleSwitchBoxPattern extends ResourcePattern<SingleSwitchBox> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public MultiSwitchBoxPattern(Resource device) {
+	public SingleSwitchBoxPattern(Resource device) {
 		super(device);
 	}
 

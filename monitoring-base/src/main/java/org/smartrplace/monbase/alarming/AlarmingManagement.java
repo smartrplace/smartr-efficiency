@@ -80,7 +80,7 @@ public class AlarmingManagement {
 		for(IntegerResource intr: allAlarmStats) {
 			if(!intr.getName().equals(ALARMSTATUS_RES_NAME))
 				continue;
-			intr.setValue(0);
+			//intr.setValue(0);
 		}
 		
 		long now = controller.appMan.getFrameworkTime();
@@ -151,6 +151,11 @@ public class AlarmingManagement {
 					AlarmValueListener mylistener = new AlarmValueListener(ac, vl, controller);
 					vl.listener = mylistener;
 					valueListeners.add(vl);
+					
+					IntegerResource alarmStatus = getAlarmStatus(res);
+					if(alarmStatus.getValue() > 1000)
+						vl.isNoValueAlarmActive = true;
+					
 					res.addValueListener(mylistener, true);
 				}
 				if(!ac.performAdditinalOperations().getValue()) continue;
@@ -187,8 +192,10 @@ public class AlarmingManagement {
 				//for now we do do generate alarms here if not initial value was received
 				if(vl.lastTimeOfNewData < 0 || vl.maxIntervalBetweenNewValues <= 0) continue;
 				long waiting = now - vl.lastTimeOfNewData;
-if(vl.res.getLocation().contains("HM_HMIP_PSM_0001D3C99C5634")) {
-	System.out.println("Last Q3 time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000);
+if(vl.res != null && vl.res.getLocation().contains("JMBUS_BASE/_22009444/USER_DEFINED_0_0")) {
+	System.out.println("Last A-CO2 time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);
+} else if((waiting > (vl.maxIntervalBetweenNewValues/2)) &&(!vl.isNoValueAlarmActive)) {
+	System.out.println("Last "+vl.listener.getAc().getLocation()+" time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);	
 }
 				if((waiting > vl.maxIntervalBetweenNewValues) &&(!vl.isNoValueAlarmActive)) {
 					vl.isNoValueAlarmActive = true;
@@ -200,6 +207,17 @@ if(vl.res.getLocation().contains("HM_HMIP_PSM_0001D3C99C5634")) {
 						//reset value
 						if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
 							vl.res.setValue(Float.NaN);
+					} else 	if(vl.bres != null) {
+						//TODO: OnOffSwitches do not have alarmStatus yet. This should not be activated yet
+						IntegerResource alarmStatus = getAlarmStatus(vl.res);
+						if(alarmStatus == null)
+							alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
+						float val = vl.bres.getValue()?1.0f:0.0f;
+						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
+								vl.maxIntervalBetweenNewValues, alarmStatus);
+						//reset value
+						//if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
+						//	vl.bres.setValue(Float.NaN);
 					} else {
 						IntegerResource alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
 						executeNoValueAlarm(vl.listener.getAc(), Float.NaN, vl.lastTimeOfNewData,
@@ -479,7 +497,7 @@ if(vl.res.getLocation().contains("HM_HMIP_PSM_0001D3C99C5634")) {
 		sendMessage(title, message, MessagePriority.HIGH);
 		
 		if(alarmStatus != null) {
-			alarmStatus.setValue(ac.alarmLevel().getValue());
+			alarmStatus.setValue(ac.alarmLevel().getValue()+1000);
 		}
 	}
 	
