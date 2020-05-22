@@ -10,7 +10,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
-import org.ogema.devicefinder.util.DeviceTableBase.InstalledAppsSelector;
+import org.ogema.devicefinder.util.InstalledAppsSelector;
 import org.ogema.model.devices.buildingtechnology.AirConditioner;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
