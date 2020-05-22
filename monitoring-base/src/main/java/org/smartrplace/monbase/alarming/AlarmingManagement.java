@@ -192,11 +192,7 @@ public class AlarmingManagement {
 				//for now we do do generate alarms here if not initial value was received
 				if(vl.lastTimeOfNewData < 0 || vl.maxIntervalBetweenNewValues <= 0) continue;
 				long waiting = now - vl.lastTimeOfNewData;
-if(vl.res != null && vl.res.getLocation().contains("JMBUS_BASE/_22009444/USER_DEFINED_0_0")) {
-	System.out.println("Last A-CO2 time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);
-} else if((waiting > (vl.maxIntervalBetweenNewValues/2)) &&(!vl.isNoValueAlarmActive)) {
-	System.out.println("Last "+vl.listener.getAc().getLocation()+" time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);	
-}
+//debugPrintingForNoValueAlarm(vl, waiting);
 				if((waiting > vl.maxIntervalBetweenNewValues) &&(!vl.isNoValueAlarmActive)) {
 					vl.isNoValueAlarmActive = true;
 					if(vl.res != null) {
@@ -234,6 +230,7 @@ if(vl.res != null && vl.res.getLocation().contains("JMBUS_BASE/_22009444/USER_DE
 				IntegerResource.class);
 		return alarmStatus.isActive()?alarmStatus:null;		
 	}
+
 	protected IntegerResource getAlarmStatus(Schedule sched) {
 		IntegerResource alarmStatus = sched.getLocationResource().getSubResource(AlarmingManagement.ALARMSTATUS_RES_NAME,
 				IntegerResource.class);
@@ -569,5 +566,14 @@ if(vl.res != null && vl.res.getLocation().contains("JMBUS_BASE/_22009444/USER_DE
 		else
 			val = resource.getValue();
 		return val;
+	}
+	
+	private void debugPrintingForNoValueAlarm(ValueListenerData vl, long waiting) {
+		//if(vl.res != null && vl.res.getLocation().contains("JMBUS_BASE/_22009444/USER_DEFINED_0_0")) {
+		//	System.out.println("Last A-CO2 time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);
+		//} else 
+		if((waiting > (vl.maxIntervalBetweenNewValues/2)) &&(!vl.isNoValueAlarmActive)) {
+			System.out.println("Last "+vl.listener.getAc().getLocation()+" time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);	
+		}
 	}
 }
