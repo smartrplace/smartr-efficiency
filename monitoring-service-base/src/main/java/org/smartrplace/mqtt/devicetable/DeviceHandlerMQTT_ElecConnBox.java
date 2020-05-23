@@ -1,11 +1,9 @@
 package org.smartrplace.mqtt.devicetable;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.InstalledAppsSelector;
@@ -23,16 +21,22 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
 
 
-@Component(specVersion = "1.2", immediate = true)
-@Service(DeviceHandlerProvider.class)
+//@Component(specVersion = "1.2", immediate = true)
+//@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<ElectricityConnectionBox> {
+	private final ApplicationManager appMan;
+	
+	public DeviceHandlerMQTT_ElecConnBox(ApplicationManager appMan) {
+		this.appMan = appMan;
+	}
+	
 	@Override
 	public Class<ElectricityConnectionBox> getResourceType() {
 		return ElectricityConnectionBox.class;
 	}
 
 	@Override
-	public DeviceTableBase getDeviceTable(WidgetPage<?> page, ApplicationManager appMan, Alert alert,
+	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
 			InstalledAppsSelector appSelector) {
 		return new DeviceTableBase(page, appMan, alert, appSelector) {
 			
@@ -90,6 +94,11 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 	@Override
 	protected Class<? extends ResourcePattern<ElectricityConnectionBox>> getPatternClass() {
 		return ElectricityConnectionBoxPattern.class;
+	}
+
+	@Override
+	protected ResourcePatternAccess advAcc() {
+		return appMan.getResourcePatternAccess();
 	}
 
 }

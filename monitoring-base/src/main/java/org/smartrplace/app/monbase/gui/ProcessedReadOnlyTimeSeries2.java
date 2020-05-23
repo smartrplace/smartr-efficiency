@@ -6,10 +6,9 @@ import java.util.List;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.MonitoringController;
-
-import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.AggregationMode;
 
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
@@ -22,7 +21,7 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	protected String getLabelPostfix() {return "";}
 
 	
-	final protected MonitoringController controller;
+	//final protected MonitoringController controller;
 	final protected TimeSeriesDataImpl tsdi;
 	final protected TimeSeriesNameProvider nameProvider;
 	
@@ -34,15 +33,22 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 
 	public ProcessedReadOnlyTimeSeries2(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
 			MonitoringController controller) {
+		this(tsdi, nameProvider, getMode(controller, tsdi.label(null)));
+	}
+	public ProcessedReadOnlyTimeSeries2(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
+			AggregationMode mode) {
 		super(InterpolationMode.STEPS);
-		this.controller = controller;
 		this.nameProvider = nameProvider;
 		this.tsdi = tsdi;
-		final String cparam = controller.getConfigParam(tsdi.label(null));
+		this.mode = mode;
+	}
+	
+	static AggregationMode getMode(MonitoringController controller, String label) {
+		final String cparam = controller.getConfigParam(label);
 		if(cparam != null && cparam.contains(AggregationMode.Consumption2Meter.name()))
-			mode = AggregationMode.Consumption2Meter;
+			return AggregationMode.Consumption2Meter;
 		else
-			mode = AggregationMode.Meter2Meter;
+			return AggregationMode.Meter2Meter;		
 	}
 
 	@Override

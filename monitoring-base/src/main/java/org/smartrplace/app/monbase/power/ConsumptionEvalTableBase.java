@@ -173,9 +173,12 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		if(req == null) {
 			vh.registerHeaderEntry("Messung");
 			vh.registerHeaderEntry("Gesamt");
-			vh.registerHeaderEntry("L1");
-			vh.registerHeaderEntry("L2");
-			vh.registerHeaderEntry("L3");
+			if(hasSubPhaseNum() > 0)
+				vh.registerHeaderEntry("L1");
+			if(hasSubPhaseNum() > 1)
+				vh.registerHeaderEntry("L2");
+			if(hasSubPhaseNum() > 2)
+				vh.registerHeaderEntry("L3");
 			vh.registerHeaderEntry(COST_HEADER);
 			return;
 		}
@@ -194,9 +197,12 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		//Label lab = vh.floatLabel("Gesamt", id, object.getPhaseValue(0), row, "%.1f");
 		if(object.getLineType() == SumType.SUM_LINE)
 			lab.addDefaultStyle(LabelData.BOOTSTRAP_GREEN);
-		addLabel("L1", object, id, 1, row, req, null);
-		addLabel("L2", object, id, 2, row, req, null);
-		addLabel("L3", object, id, 3, row, req, null);
+		if(hasSubPhaseNum() > 0)
+			addLabel("L1", object, id, 1, row, req, null);
+		if(hasSubPhaseNum() > 1)
+			addLabel("L2", object, id, 2, row, req, null);
+		if(hasSubPhaseNum() > 2)
+			addLabel("L3", object, id, 3, row, req, null);
 		//vh.floatLabel("L1", id, object.getPhaseValue(1), row, "%.1f");
 		//vh.floatLabel("L2", id, object.getPhaseValue(2), row, "%.1f");
 		//vh.floatLabel("L3", id, object.getPhaseValue(3), row, "%.1f");
@@ -357,6 +363,7 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	 * @param label
 	 * @return
 	 */
+	@Deprecated
 	protected ConsumptionEvalTableLineBase addLineBase(FloatResource conn, FloatResource powerReading, boolean lineShowsPower,
 			List<ConsumptionEvalTableLineBase> result, List<ConsumptionEvalTableLineI> linesForSum,
 			int lineIdx, String label,
@@ -366,6 +373,16 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, dp);
 		if(linesForSum != null)
 			linesForSum.add(retVal);
+		result.add(retVal);
+		return retVal;
+	}
+	protected ConsumptionEvalTableLineBase addLineBase(FloatResource conn, FloatResource powerReading, boolean lineShowsPower,
+			List<ConsumptionEvalTableLineBase> result,
+			int lineIdx, String label,
+			Datapoint dp) {
+		
+		EnergyEvalObjI connObj = new EnergyEvalObjBase(conn, powerReading);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, dp);
 		result.add(retVal);
 		return retVal;
 	}

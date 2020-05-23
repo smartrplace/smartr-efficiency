@@ -7,23 +7,17 @@ import java.util.List;
 import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.channelmanager.measurements.SampledValue;
-import org.ogema.core.model.simple.TimeResource;
-import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
 import org.smartrplace.app.monbase.MonitoringController;
-import org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference;
-import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl.ScheduleViewerOpenButtonDataProvider;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
-import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.AggregationMode;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDescription;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
-import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
-import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
@@ -129,7 +123,20 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		ExportBulkData.cleanList(input, inputsToUse);
 		input.addAll(manualTsInput);
 		if(tsProcessRequest != null) {
-			List<TimeSeriesData> result = new ArrayList<>();
+			TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService) {
+				
+				@Override
+				protected TimeSeriesNameProvider nameProvider() {
+					return ScheduleViewerOpenButtonDataProviderImpl.this.nameProvider();
+				}
+				
+				@Override
+				protected AggregationMode getMode(String tsLabel) {
+					return ProcessedReadOnlyTimeSeries2.getMode(controller, tsLabel);
+				}
+			};
+			List<TimeSeriesData> result = util.process(tsProcessRequest, input);
+			/*List<TimeSeriesData> result = new ArrayList<>();
 			for(TimeSeriesData tsd: input) {
 				if(!(tsd instanceof TimeSeriesDataImpl))
 					continue;
@@ -169,7 +176,7 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 					TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
 					result.add(newtsdi);				
 				}
-			}
+			}*/
 			return result;
 		}
 		return input;

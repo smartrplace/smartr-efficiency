@@ -1,13 +1,12 @@
 package org.smartrplace.mqtt.devicetable;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.InstalledAppsSelector;
@@ -25,16 +24,22 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
 
-@Component(specVersion = "1.2", immediate = true)
-@Service(DeviceHandlerProvider.class)
+//@Component(specVersion = "1.2", immediate = true)
+//@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitchBox> {
+	private final ApplicationManager appMan;
+	
+	public DeviceHandlerMQTT_MultiSwBox(ApplicationManager appMan) {
+		this.appMan = appMan;
+	}
+	
 	@Override
 	public Class<SingleSwitchBox> getResourceType() {
 		return SingleSwitchBox.class;
 	}
 
 	@Override
-	public DeviceTableBase getDeviceTable(WidgetPage<?> page, ApplicationManager appMan, Alert alert,
+	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
 			InstalledAppsSelector appSelector) {
 		return new DeviceTableBase(page, appMan, alert, appSelector) {
 			
@@ -115,8 +120,15 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 	}
 	@Override
 	public	RoomInsideSimulationBase startSimulationForDevice(SingleSwitchBox resource,
-			SingleRoomSimulationBase roomSimulation, ApplicationManager appMan) {
+			SingleRoomSimulationBase roomSimulation,
+			DatapointService dpService) {
 		return new AirConditionerSimSimple(resource.onOffSwitch().stateControl(),
 				resource.onOffSwitch().stateFeedback(), appMan);
+	}
+	
+
+	@Override
+	protected ResourcePatternAccess advAcc() {
+		return appMan.getResourcePatternAccess();
 	}
 }

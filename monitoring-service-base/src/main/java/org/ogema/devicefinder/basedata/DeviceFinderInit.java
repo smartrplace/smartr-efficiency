@@ -18,13 +18,13 @@ import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.app.monbase.MonitoringController;
+import org.smartrplace.app.monservice.MonitoringServiceBaseController;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 
 public class DeviceFinderInit {
 	/** Re-implementation of finding sensors accoring to the SensorServlet*/
-	public static Map<Room, List<Sensor>> getAllSensors(MonitoringController controller) {
+	public static Map<Room, List<Sensor>> getAllSensors(MonitoringServiceBaseController controller) {
 		Map<Room, List<Sensor>> result = new HashMap<>();
 		List<Room> rooms = controller.appMan.getResourceAccess().getToplevelResources(Room.class);
 		for(Room room: rooms) {
@@ -34,12 +34,12 @@ public class DeviceFinderInit {
 		return result ;
 	}
 	
-	/** See {@link #getAllDatapointsForRoom(MonitoringController, Room)}
+	/** See {@link #getAllDatapointsForRoom(MonitoringServiceBaseController, Room)}
 	 * 
 	 * @param controller
 	 * @return
 	 */
-	public static Map<DPRoom, List<Datapoint>> getAllDatapoints(MonitoringController controller) {
+	public static Map<DPRoom, List<Datapoint>> getAllDatapoints(MonitoringServiceBaseController controller) {
 		Map<DPRoom, List<Datapoint>> result = new HashMap<>();
 		//Map<Room, List<Sensor>> sensors = getAllSensors(controller);
 		List<Room> rooms = controller.appMan.getResourceAccess().getToplevelResources(Room.class);
@@ -72,7 +72,7 @@ public class DeviceFinderInit {
 	 * @return data points registered. If controller.dpService is null then own instances not registered
 	 * 		with a service are returned as legacy option
 	 */
-	public static List<Datapoint> getAllDatapointsForRoom(MonitoringController controller, DPRoom room) {
+	public static List<Datapoint> getAllDatapointsForRoom(MonitoringServiceBaseController controller, DPRoom room) {
 		List<Datapoint> valress = new ArrayList<>();
 		List<Sensor> slist = ResourceUtils.getDevicesFromRoom(controller.appMan.getResourceAccess(), Sensor.class, room.getResource());
 		for(Sensor sens: slist) {
@@ -96,7 +96,7 @@ public class DeviceFinderInit {
 		return valress;
 	}
 
-	protected static Datapoint getDataPoint(ValueResource valRes, MonitoringController controller,
+	protected static Datapoint getDataPoint(ValueResource valRes, MonitoringServiceBaseController controller,
 			Resource sensorActorResource, DPRoom room) {
 		final Datapoint dp;
 		if(controller.dpService != null) {

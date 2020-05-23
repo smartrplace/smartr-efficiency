@@ -18,7 +18,6 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DatapointService;
-import org.ogema.devicefinder.basedata.DeviceFinderInit;
 import org.ogema.externalviewer.extensions.DefaultDedicatedTSSessionConfiguration;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
@@ -274,8 +273,8 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		this.dpService = dpService;
 		EvalProviderMonitoringBase.controller = this;
 		evalAdm = new ConsumptionEvalAdmin(this);
-		if(dpService != null)
-			DeviceFinderInit.getAllDatapoints(this);
+		//if(dpService != null)
+		//	DeviceFinderInit.getAllDatapoints(this);
 		
 		evaluationOCApp.messageService().registerMessagingApp(appMan.getAppID(), getAlarmingDomain()+"_Alarming");
 		if(activateAlarming()) {

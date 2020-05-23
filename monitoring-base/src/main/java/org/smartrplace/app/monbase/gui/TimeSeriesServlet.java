@@ -17,6 +17,7 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.timeseries.v2.tools.TimeSeriesUtils;
 import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
@@ -24,8 +25,6 @@ import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
-
-import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.AggregationMode;
 
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -207,8 +206,8 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	}
 	
 	public static class MeterReference {
-		long referenceTime;
-		float referenceMeterValue;
+		public long referenceTime;
+		public float referenceMeterValue;
 	}
 	
 	/** Calculate a virtual meter series that has the same counter value at a reference point as another

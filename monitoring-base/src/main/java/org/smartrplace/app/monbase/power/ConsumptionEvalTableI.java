@@ -4,11 +4,16 @@ import java.util.Collection;
 
 import org.ogema.devicefinder.api.ConsumptionInfo.UtilityType;
 
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
+
 public interface ConsumptionEvalTableI<C extends ConsumptionEvalTableLineI> {
 
 	public Collection<C> getAllObjectsInTable();
 	
-	UtilityType getUtilityType();
+	Collection<UtilityType> getUtilityType();
+	Collection<GaRoDataType> getDataTypes();
 	
 	default boolean isPowerTable() {return false;}
+	
+	default int hasSubPhaseNum() {return 0;}
 }

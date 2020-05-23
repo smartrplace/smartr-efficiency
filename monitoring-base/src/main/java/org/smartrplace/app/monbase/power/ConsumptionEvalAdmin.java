@@ -46,7 +46,7 @@ public class ConsumptionEvalAdmin {
 	public List<ConsumptionEvalTableBase<?>> getTables(UtilityType type) {
 		List<ConsumptionEvalTableBase<?>> result = new ArrayList<>();
 		for(ConsumptionEvalTableBase<?> table: evaluations) {
-			if(type == null || type == table.getUtilityType())
+			if(type == null || table.getUtilityType().contains(type))
 				result.add(table);
 		}
 		return result ;
