@@ -220,7 +220,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		}
 		
 		for(Datapoint dp: alldps) {
-System.out.println("DP Label: "+dp.id()+ "  /  "+dp.getGaroDataType().label(null));			
+//System.out.println("DP Label: "+dp.id()+ "  /  "+dp.getGaroDataType().label(null));			
 			//ConsumptionInfo conInfo = dp.getConsumptionInfo();
 			if(dp.getResource() == null) {
 				if(dp.getGaroDataType() == null)
