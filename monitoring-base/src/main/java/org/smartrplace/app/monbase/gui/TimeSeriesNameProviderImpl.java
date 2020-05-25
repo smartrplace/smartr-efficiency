@@ -25,6 +25,10 @@ public class TimeSeriesNameProviderImpl implements TimeSeriesNameProvider {
 	@Override
 	public String getShortNameForTypeI(GaRoDataTypeI dataType, TimeSeriesDataExtendedImpl tse) {
 		String location = tse.label(null);
+		return getShortNameForTypeI(dataType, location);
+	}
+
+	public String getShortNameForTypeI(GaRoDataTypeI dataType, String location) {
 		String sensorType = getSensorType(location); //getSensorType(inputLabel, location);
 		String room = controller.getRoomLabel(location, null);
 		if(room.contains("?")) {

@@ -27,6 +27,7 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.widgets.reswidget.scheduleviewer.api.expert.ext.ScheduleViewerConfigurationBuilderExpert;
 import org.smartrplace.app.monbase.gui.OfflineControlGUI;

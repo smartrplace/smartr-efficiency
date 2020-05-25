@@ -37,7 +37,7 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	}
 	public ProcessedReadOnlyTimeSeries2(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
 			AggregationMode mode) {
-		super(InterpolationMode.STEPS);
+		super(InterpolationMode.NONE);
 		this.nameProvider = nameProvider;
 		this.tsdi = tsdi;
 		this.mode = mode;
@@ -93,6 +93,6 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	
 	public TimeSeriesDataExtendedImpl getResultSeries() {
 		return new TimeSeriesDataExtendedImpl(this,
-				getShortId()+getLabelPostfix(), tsdi.description(null)+getLabelPostfix(), InterpolationMode.STEPS);
+				getShortId()+getLabelPostfix(), tsdi.description(null)+getLabelPostfix(), InterpolationMode.NONE);
 	}
 }

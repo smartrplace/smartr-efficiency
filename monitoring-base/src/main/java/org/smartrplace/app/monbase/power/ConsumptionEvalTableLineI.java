@@ -85,4 +85,9 @@ public interface ConsumptionEvalTableLineI {
 
 	/** Return number of sub phase values*/
 	public int hasSubPhaseNum();
+	
+	public static interface CostProvider {
+		String getCost(float value);
+	}
+	default CostProvider getCostProvider( ) {return null;}
 }

@@ -91,8 +91,8 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 				if(now - lastUpdateTime > MAX_CACHE_TIME) {
 					for(ConsumptionEvalTableLineI line: allLines) {
 						if(line.getLineType() == SumType.SUM_LINE)
-							break;
-						for(int indexAll=0; indexAll<=3; indexAll++) {
+							continue;
+						for(int indexAll=0; indexAll<=line.hasSubPhaseNum(); indexAll++) {
 							//float value = line.getPhaseValueInternal(indexAll, startTime, endTime);
 							//line.lastValues[indexAll] = value;
 							//line.setLastValue(indexAll, value);

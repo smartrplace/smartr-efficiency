@@ -228,9 +228,10 @@ public class DatapointServiceImpl implements DatapointService {
 	public RecIdVal addDataTypeDescription(RecIdVal recIdVal) {
 		RecIdVal existing = GaRoTypeStringConfigProviderDP.recIdSnippets.get(recIdVal.type.label(null));
 		RecIdVal result;
-		if(existing == null)
+		if(existing == null) {
 			result = recIdVal;
-		else {
+			GaRoTypeStringConfigProviderDP.recIdSnippets.put(recIdVal.type.label(null), recIdVal);
+		} else {
 			result = existing;
 			if(recIdVal.snippets != null) {
 				if(existing.snippets != null)

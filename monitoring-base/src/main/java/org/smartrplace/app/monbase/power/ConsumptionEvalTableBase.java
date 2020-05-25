@@ -7,7 +7,6 @@ import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
-import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
@@ -15,8 +14,9 @@ import org.ogema.model.gateway.EvalCollection;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
+import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.CostProvider;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
-import org.smartrplace.tissue.util.resource.ResourceHelperSP;
+import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -47,6 +47,9 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	protected final Datepicker endPicker;
 	protected final Button updateButton;
 	protected final MonitoringController controller;
+	protected boolean hasCostColumn() {
+		return true;
+	}
 	
 	/** Price calculcation, all values in the utility default/currency unit, e.g kWh/EUR*/
 	public FloatResource elPrice = null;
@@ -56,6 +59,11 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	public FloatResource foodprice = null;
 	
 	//protected final WidgetGroup wg;
+	
+	protected long getDefaultStartTime(OgemaHttpRequest req) {
+		long now = appMan.getFrameworkTime();
+		return now - 30*AlarmingManagement.DAY_MILLIS;
+	}
 	
 	/** Override default implementation if required*/
 	protected void configurePricingInformation() {
@@ -70,6 +78,7 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		elPrice.create();
 		if(!elPrice.isActive())
 			elPrice.activate(false);
+		
 		FloatResource gasPriceLoc;
 		gasPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/gasPrice", FloatResource.class);
@@ -87,7 +96,27 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 			gasEffLoc = evalCollection.getSubResource("gasEff", FloatResource.class);
 		}
 		gasEff = gasEffLoc;
-		gasEff.create();		
+		gasEff.create();
+		
+		FloatResource waterPriceLoc;
+		waterPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
+				"editableData/buildingData/E_0/waterPrice", FloatResource.class);
+		if(waterPriceLoc == null) {
+			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
+			waterPriceLoc = evalCollection.getSubResource("waterPrice", FloatResource.class);
+		}
+		waterprice = waterPriceLoc;
+		waterprice.create();
+
+		FloatResource foodPriceLoc;
+		foodPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
+				"editableData/buildingData/E_0/foodPrice", FloatResource.class);
+		if(foodPriceLoc == null) {
+			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
+			foodPriceLoc = evalCollection.getSubResource("foodPrice", FloatResource.class);
+		}
+		foodprice = foodPriceLoc;
+		foodprice.create();
 	}		
 	protected abstract String getHeaderText(OgemaHttpRequest req);
 	
@@ -95,6 +124,7 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 			C initObject) {
 		super(page, controller.appMan, initObject, false);
 		this.controller = controller;
+		configurePricingInformation();
 		
 		startPicker = new Datepicker(page, "startPicker") {
 			private static final long serialVersionUID = 1L;
@@ -106,11 +136,11 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 					setWidgetVisibility(false, req);
 					return;
 				}
-				TimeResource refRes = ResourceHelperSP.getSubResource(null,
+				//TimeResource refRes = ResourceHelperSP.getSubResource(null,
 						//"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
-						"offlineEvaluationControlConfig/start",
-						TimeResource.class, controller.appMan.getResourceAccess());
-				long ts = refRes.getValue();
+				//		"offlineEvaluationControlConfig/start",
+				//		TimeResource.class, controller.appMan.getResourceAccess());
+				long ts = getDefaultStartTime(req); //refRes.getValue();
 				setDate(ts, req);
 				setWidgetVisibility(true, req);
 			}
@@ -179,30 +209,30 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 				vh.registerHeaderEntry("L2");
 			if(hasSubPhaseNum() > 2)
 				vh.registerHeaderEntry("L3");
-			vh.registerHeaderEntry(COST_HEADER);
+			if(hasCostColumn())
+				vh.registerHeaderEntry(COST_HEADER);
 			return;
 		}
 		Label lab = vh.stringLabel("Messung", id, object.getLabel(), row);
 		if(object.getLineType() == SumType.SUM_LINE)
 			lab.addDefaultCssStyle("font-weight", "bold");
 		
-		Label costLabel  = new Label(mainTable, "costLabel_"+id, "--", req);
-		//costLabel.setDefaultPollingInterval(POLL_RATE);
-		configureLabelForPolling(costLabel, object.lineShowsPower(), req);
-		if(object.getLineType() == SumType.SUM_LINE)
-			costLabel.addCssStyle("font-weight", "bold", req);
-		row.addCell(ResourceUtils.getValidResourceName(COST_HEADER), costLabel);
-
-		lab = addLabel("Gesamt", object, id, 0, row, req, costLabel);
+		if(hasCostColumn()) {
+			Label costLabel  = addLabel(ResourceUtils.getValidResourceName(COST_HEADER), object, id, 0, row, req, true);
+			if(object.getLineType() == SumType.SUM_LINE)
+				costLabel.addCssStyle("font-weight", "bold", req);
+		}
+		
+		lab = addLabel("Gesamt", object, id, 0, row, req, false);
 		//Label lab = vh.floatLabel("Gesamt", id, object.getPhaseValue(0), row, "%.1f");
 		if(object.getLineType() == SumType.SUM_LINE)
 			lab.addDefaultStyle(LabelData.BOOTSTRAP_GREEN);
 		if(hasSubPhaseNum() > 0)
-			addLabel("L1", object, id, 1, row, req, null);
+			addLabel("L1", object, id, 1, row, req, false);
 		if(hasSubPhaseNum() > 1)
-			addLabel("L2", object, id, 2, row, req, null);
+			addLabel("L2", object, id, 2, row, req, false);
 		if(hasSubPhaseNum() > 2)
-			addLabel("L3", object, id, 3, row, req, null);
+			addLabel("L3", object, id, 3, row, req, false);
 		//vh.floatLabel("L1", id, object.getPhaseValue(1), row, "%.1f");
 		//vh.floatLabel("L2", id, object.getPhaseValue(2), row, "%.1f");
 		//vh.floatLabel("L3", id, object.getPhaseValue(3), row, "%.1f");
@@ -210,8 +240,8 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 
 	protected Label addLabel(String columnId, ConsumptionEvalTableLineI object, String id, int index, 
 			Row row, OgemaHttpRequest req,
-			Label costLabel) {
-		Label phaseLabel = new Label(mainTable, "phaseLabel"+index+"_"+id, req) {
+			boolean isCostLabel) {
+		Label phaseLabel = new Label(mainTable, (isCostLabel?"costLabel":"phaseLabel")+index+"_"+id, req) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -227,26 +257,23 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 				else {
 					if(object.lineShowsPower())
 						setText(String.format("%.1f", val), req);
-					else
-						if(object.getLabel().contains("Pumpe"))
-							setText("--", req); //homematic counters are reset each time voltage is lost, so a special handling would have to be implemented
-							//setText(String.format("%.1f", val*0.001f), req);
-						else if(object.getLabel().contains("Wärme")) {
+					else {
+						if(!isCostLabel)
 							setText(String.format("%.1f", val), req);
-							if((index == 0) && (costLabel != null) && (gasPrice != null) && (gasEff != null)) {
-								costLabel.setText(String.format("%.2f", val*gasPrice.getValue()*gasEff.getValue()/100), req);
+						else {
+							CostProvider cprov = object.getCostProvider();
+							if(cprov == null)
+								setText("--", req); //homematic counters are reset each time voltage is lost, so a special handling would have to be implemented
+								//setText(String.format("%.1f", val*0.001f), req);
+							else {
 								setCostLabel = true;
-							}
-						} else {
-							setText(String.format("%.1f", val), req);
-							if((index == 0) && (costLabel != null) && (elPrice != null)) {
-								costLabel.setText(String.format("%.2f", val*elPrice.getValue()), req);
-								setCostLabel = true;
+								setText(cprov.getCost(val), req);
 							}
 						}
+					}
 				}
-				if((!setCostLabel) && (costLabel != null))
-					costLabel.setText("--", req);
+				if((!setCostLabel) && (isCostLabel))
+					setText("--", req);
 					
 			}
 		};
@@ -379,10 +406,23 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	protected ConsumptionEvalTableLineBase addLineBase(FloatResource conn, FloatResource powerReading, boolean lineShowsPower,
 			List<ConsumptionEvalTableLineBase> result,
 			int lineIdx, String label,
-			Datapoint dp) {
+			Datapoint dp, CostProvider cprov) {
 		
 		EnergyEvalObjI connObj = new EnergyEvalObjBase(conn, powerReading);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, dp);
+		return addLineBase(connObj, powerReading, lineShowsPower, result, lineIdx, label, dp, cprov);
+	}
+	protected ConsumptionEvalTableLineBase addLineBase(EnergyEvalObjI connObj, FloatResource powerReading, boolean lineShowsPower,
+			List<ConsumptionEvalTableLineBase> result,
+			int lineIdx, String label,
+			Datapoint dp, CostProvider cprov) {
+		
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower,
+				SumType.STD, null, lineIdx, dp) {
+			@Override
+			public CostProvider getCostProvider() {
+				return cprov;
+			}
+		};
 		result.add(retVal);
 		return retVal;
 	}

@@ -32,10 +32,6 @@ public class GaRoTypeStringConfigProviderDP implements OGEMAConfigurationProvide
 	static Set<String> typeIdsForEval = new LinkedHashSet<>();
 	static Map<String, GaRoDataType> typesWithoutDescription = new HashMap<>();
 
-	//static {
-	//	GaRoEvalHelper.addRecId(GaRoDataType.WaterConductivityValue, new String[] {"/Leitwert_S__1/sensor/reading"}, recIdSnippets);
-	//}
-
 	@Override
 	public String className() {
 		return GaRoDataType.class.getName();

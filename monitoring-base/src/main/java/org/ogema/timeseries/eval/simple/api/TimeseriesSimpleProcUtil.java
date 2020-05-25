@@ -26,7 +26,10 @@ public abstract class TimeseriesSimpleProcUtil {
 	public static final String SUM_PER_DAY_EVAL = "SUM_PER_DAY";
 	public static final String SUM_PER_DAY_PER_ROOM_EVAL = "DAY_PER_ROOM";
 	
-	public final Map<String, TimeseriesSetProcessor> knownProcessors = new HashMap<>();
+	protected final Map<String, TimeseriesSetProcessor> knownProcessors = new HashMap<>();
+	public TimeseriesSetProcessor getProcessor(String procID) {
+		return knownProcessors.get(procID);
+	}
 	
 	protected abstract TimeSeriesNameProvider nameProvider();
 	protected abstract AggregationMode getMode(String tsLabel);

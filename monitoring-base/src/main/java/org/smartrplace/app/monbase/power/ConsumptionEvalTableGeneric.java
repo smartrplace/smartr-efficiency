@@ -1,24 +1,31 @@
 package org.smartrplace.app.monbase.power;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
+import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.devicefinder.api.ConsumptionInfo;
+import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
 import org.ogema.devicefinder.api.ConsumptionInfo.UtilityType;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.model.connections.ElectricityConnection;
 import org.smartrplace.app.monbase.MonitoringController;
+import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
+import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.CostProvider;
+import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
+import org.smartrplace.util.frontend.servlet.UserServlet;
 
+import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.format.StringFormatHelper.StringProvider;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -28,17 +35,25 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 
 	//protected final UtilityType utility;
 	protected final List<GaRoDataType> utilities;
+	protected final TimeSeriesNameProviderImpl nameProvider;
+	protected final List<UtilityType> utilsSorted;
 	
-	public static class SumLineInfo {
-		List<ConsumptionEvalTableLineI> subLines = new ArrayList<>();
-		ConsumptionEvalTableLineBase subSum;
-		String id;
-		String label;
+	public static class LineInfo {
+		public boolean isInTable = true;
+		public String label;
+		public UtilityType util = null;
+		public CostProvider costProvider = null;
+	}
+	public static class SumLineInfo extends LineInfo {
+		public List<ConsumptionEvalTableLineI> subLines = new ArrayList<>();
+		public ConsumptionEvalTableLineBase subSum;
+		public String id;
 	}
 	
-	public static class DatapointStatus {
-		public boolean isInTable;
+	public static class LineInfoDp extends LineInfo {
 		public List<String> sumIds;
+		public Datapoint dp;
+		public EnergyEvalObjI conn = null;
 		
 		//TODO: Implement this later
 		//boolean includePhases;
@@ -51,30 +66,127 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		List<SumLineInfo> result = new ArrayList<>();
 		for(UtilityType util: utypes) {
 			SumLineInfo info = new SumLineInfo();
-			info.id = util.name();
-			info.label = "Sum "+util.toString();
+			info.id = util.name()+"_Sum";
+			info.label = getSumLineLabel(util);
+			info.util = util;
+			info.costProvider = getCostProvider(util);
 			result.add(info);
 		}
 		return result;
 	}
+	protected String getSumLineLabel(UtilityType util) {
+		return "Sum "+util.toString();
+	}
 	
-	/** Override if required*/
-	protected DatapointStatus isInTable(GaRoDataTypeI gaRoDataTypeI, Datapoint dp) {
-		DatapointStatus result = new DatapointStatus();
+	/** Override if required
+	 * Note that result.conn needs to be replaced if the datapoint resource is not a meter counter resource*/
+	protected LineInfoDp getDpLineInfo(GaRoDataType gaRoDataTypeI, Datapoint dp) {
+		LineInfoDp result = new LineInfoDp();
 		result.isInTable = utilities.contains(gaRoDataTypeI);
-		result.sumIds = null;
+		if(!result.isInTable)
+			return result;
+		result.dp = dp;
+		UtilityType util = ConsumptionInfo.getUtilityType(gaRoDataTypeI);
+		if(util != null)
+			result.sumIds = Arrays.asList(new String[] {util.name()+"_Sum"});
+		else
+			result.sumIds = null;
+		result.util = util;
+		if(dp.getResource() != null && dp.getResource() instanceof Schedule) {
+			AggregationMode mode = ConsumptionInfo.getConsumptionMode(gaRoDataTypeI);
+			if(mode == null)
+				mode = AggregationMode.Meter2Meter;
+			result.conn = new EnergyEvalObjSchedule((Schedule)dp.getResource(), null,
+					mode, controller);
+		} else if((dp.getResource() == null) && (dp.getTimeSeriesID() != null)) {
+			AggregationMode mode = ConsumptionInfo.getConsumptionMode(gaRoDataTypeI);
+			if(mode == null)
+				mode = AggregationMode.Meter2Meter;
+			TimeSeriesDataImpl ts = UserServlet.knownTS.get(dp.getTimeSeriesID());
+			if(ts != null)
+				result.conn = new EnergyEvalObjSchedule(ts.getTimeSeries(), null, mode, controller);
+			else {
+				result.isInTable = false;
+				return result;
+			}
+		}
+		result.costProvider = getCostProvider(util);
+		return result;
+	}
+
+	public CostProvider getCostProvider(UtilityType util) {
+		switch(util) {
+		case ELECTRICITY:
+			return new CostProvider() {
+				@Override
+				public String getCost(float value) {
+					return (elPrice != null)?String.format("%.2f", value*elPrice.getValue()):"--";
+				}
+			};
+		case HEAT_ENERGY:
+			return new CostProvider() {
+				@Override
+				public String getCost(float value) {
+					return ((gasPrice != null) && (gasEff != null))?
+						String.format("%.2f", value*gasPrice.getValue()*gasEff.getValue()/100):"--";
+				}
+			};
+		case WATER:
+			return new CostProvider() {
+				@Override
+				public String getCost(float value) {
+					return (waterprice != null)?String.format("%.2f", value*waterprice.getValue()):"--";
+				}
+			};
+		case FOOD:	
+			return new CostProvider() {
+				@Override
+				public String getCost(float value) {
+					return (foodprice != null)?String.format("%.2f", value*foodprice.getValue()):"--";
+				}
+			};
+		default:
+			return null;
+		}		
+	}
+	
+	/** Sum lines are the first entries in each List in the map*/
+	private List<LineInfo> getSortedList(Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
+		List<LineInfo> result = new ArrayList<>();
+		for(UtilityType util: UtilityType.values()) {
+			List<LineInfo> lineList = dpsPerUtilType.get(util);
+			if(lineList != null) {
+				lineList.sort(new Comparator<LineInfo>() {
+
+					@Override
+					public int compare(LineInfo o1, LineInfo o2) {
+						if(o1 instanceof SumLineInfo && (!(o2 instanceof SumLineInfo)))
+							return -1;
+						if(o2 instanceof SumLineInfo && (!(o1 instanceof SumLineInfo)))
+							return 1;
+						return o1.label.compareTo(o2.label);
+					}
+				});
+				result.addAll(lineList);
+			}
+		}
 		return result;
 	}
 
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType utility) {
 		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
 		this.utilities = ConsumptionInfo.typeByUtility.get(utility);
+		utilsSorted = new ArrayList<>();
+		utilsSorted.add(utility);
 		if(this.utilities == null)
 			throw new IllegalStateException("Unknown utility:"+utility);
+		nameProvider = new TimeSeriesNameProviderImpl(controller);
 	}
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType[] utilities) {
 		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
 		this.utilities = new ArrayList<>();
+		utilsSorted = Arrays.asList(utilities);	
+		nameProvider = new TimeSeriesNameProviderImpl(controller);
 		for(UtilityType utility: utilities) {
 			List<GaRoDataType> loc = ConsumptionInfo.typeByUtility.get(utility);
 			if(loc == null)
@@ -88,6 +200,8 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 			List<GaRoDataType> utilities) {
 		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
 		this.utilities = utilities;
+		utilsSorted = new ArrayList<>(getUtilityType());	
+		nameProvider = new TimeSeriesNameProviderImpl(controller);
 	}
 
 	@Override
@@ -96,98 +210,104 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		List<ConsumptionEvalTableLineBase> result = new ArrayList<>();
 		int lineCounter = 0;
 
+		Map<UtilityType, List<LineInfo>> dpsPerUtilType = new HashMap<>();
+
 		Map<String, SumLineInfo> sumLines = new HashMap<>();
 		for(SumLineInfo info: getSumLines()) {
-			info.subSum = new ConsumptionEvalTableLineBase(null, info.label,
-					isPowerTable(), SumType.SUM_LINE, info.subLines, (lineCounter++));
 			sumLines.put(info.id, info);
+			List<LineInfo> lineList = getLineInfoList(info.util, dpsPerUtilType);
+			lineList.add(info);
 		}
-		
-		/*List<ConsumptionEvalTableLineI> subLines = new ArrayList<>();
-		List<ConsumptionEvalTableLineI> elLines = new ArrayList<>();
-		List<ConsumptionEvalTableLineI> heatLines = new ArrayList<>();
-		ConsumptionEvalTableLineBase elSum = null;
-		ConsumptionEvalTableLineBase heatSum = null;
-		ConsumptionEvalTableLineBase subSum = new ConsumptionEvalTableLineBase(null, "Sum Submeter",
-				isPowerTable(), SumType.SUM_LINE, subLines , (lineCounter++));
-		if(utility == UtilityType.ENERGY_MIXED) {
-			elSum = new ConsumptionEvalTableLineBase(null, "Sum Electricity",
-					isPowerTable(), SumType.SUM_LINE, elLines , (lineCounter++));
-			heatSum = new ConsumptionEvalTableLineBase(null, "Sum Heat",
-					isPowerTable(), SumType.SUM_LINE, heatLines , (lineCounter++));			
-		}*/
 		
 		for(Datapoint dp: alldps) {
-			ConsumptionInfo conInfo = dp.getConsumptionInfo();
-			if(conInfo != null && dp.getResource() != null) {
-				//TODO: Support also AggregationMode.Consumption2Meter
-				//if(conInfo.aggregationMode != AggregationMode.Meter2Meter)
-				//	continue;
-				DatapointStatus lineInfo = isInTable(dp.getGaroDataType(), dp);
-				if(!lineInfo.isInTable)
+System.out.println("DP Label: "+dp.id()+ "  /  "+dp.getGaroDataType().label(null));			
+			//ConsumptionInfo conInfo = dp.getConsumptionInfo();
+			if(dp.getResource() == null) {
+				if(dp.getGaroDataType() == null)
 					continue;
-				if(!(dp.getResource() instanceof FloatResource))
+				AggregationMode aggMode = ConsumptionInfo.getConsumptionMode(dp.getGaroDataType());
+				if(aggMode == null || aggMode == AggregationMode.Power2Meter)
 					continue;
-				ConsumptionEvalTableLineBase retVal = addLineBase((FloatResource)dp.getResource(), null, isPowerTable(), result, (lineCounter++),
-						dp.label(null), dp);
-				for(String sumId: lineInfo.sumIds) {
-					SumLineInfo sumLineInfo = sumLines.get(sumId);
-					if(sumLineInfo != null)
-						sumLineInfo.subLines.add(retVal);
-				}
-				/*if(conInfo.utilityType == UtilityType.ELECTRICITY) {
-					ElectricityConnection conn = ResourceUtils.getFirstParentOfType(dp.getResource(), ElectricityConnection.class);
-					if(conn == null)
-						continue;
-					addRexoLineBase(conn , isPowerTable(), result, (elLines!=null)?elLines:subLines, (lineCounter++), null, dp);
-				} else if(conInfo.utilityType == UtilityType.HEAT_ENERGY) {
-					SensorDevice conn = ResourceUtils.getFirstParentOfType(dp.getResource(), SensorDevice.class);
-					if(conn == null)
-						continue;
-					addHeatLineBase(conn , isPowerTable(), result, (heatLines!=null)?heatLines:subLines, (lineCounter++), null, dp);
-				} else if(conInfo.utilityType == UtilityType.WATER) {
-					if(!(dp.getResource() instanceof FloatResource))
-						continue;
-					addLineBase((FloatResource)dp.getResource(), null, isPowerTable(), result, subLines, (lineCounter++),
-							dp.label(null)+"(FW)", dp);
-				} else if(conInfo.utilityType == UtilityType.FOOD) {
-					if(!(dp.getResource() instanceof FloatResource))
-						continue;
-					addLineBase((FloatResource)dp.getResource(), null, isPowerTable(), result, subLines, (lineCounter++),
-							dp.label(null)+"(Food)", dp);
-				}*/
+			}
+			//TODO: Support also AggregationMode.Consumption2Meter
+			//if(conInfo.aggregationMode != AggregationMode.Meter2Meter)
+			//	continue;
+			LineInfoDp lineInfo = getDpLineInfo(dp.getGaroDataType(), dp);
+			if(!lineInfo.isInTable)
+				continue;
+			//if(!(dp.getResource() instanceof FloatResource))
+			//	continue;
+			List<LineInfo> lineList = getLineInfoList(lineInfo.util, dpsPerUtilType);
+			lineList.add(lineInfo);
+		}
+		List<LineInfo> lineList = getSortedList(dpsPerUtilType);
+		for(LineInfo lineInfo: lineList) {
+			if(lineInfo instanceof SumLineInfo) {
+				SumLineInfo info = (SumLineInfo) lineInfo;
+				info.subSum = new ConsumptionEvalTableLineBase(null, info.label,
+						isPowerTable(), SumType.SUM_LINE, info.subLines, (lineCounter++)) {
+					@Override
+					public CostProvider getCostProvider() {
+						return info.costProvider;
+					}
+				};
+				result.add(info.subSum);
+				continue;
+			}
+			LineInfoDp lineInfoDp = (LineInfoDp) lineInfo;
+			Datapoint dp = lineInfoDp.dp;
+			String label;
+			if(lineInfo.label != null)
+				label = lineInfo.label;
+			else
+				label = getLabel(dp);
+			final ConsumptionEvalTableLineBase retVal;
+			if(lineInfoDp.conn != null)
+				retVal = addLineBase(lineInfoDp.conn, null, isPowerTable(), result, (lineCounter++),
+						label, dp, lineInfo.costProvider);
+			else
+				retVal = addLineBase((FloatResource)dp.getResource(), null, isPowerTable(), result, (lineCounter++),
+					label, dp, lineInfo.costProvider);
+			if(lineInfoDp.sumIds != null) for(String sumId: lineInfoDp.sumIds) {
+				SumLineInfo sumLineInfo = sumLines.get(sumId);
+				if(sumLineInfo != null)
+					sumLineInfo.subLines.add(retVal);
 			}
 		}
-		/*if(utility == UtilityType.ENERGY_MIXED) {
-			subLines.addAll(elLines);
-			subLines.addAll(heatLines);
-		}*/
 		
-		if(!isPowerTable()) {
-			//TODO: This does not work like this
-			addMainMeterLineBase("master", "editableData/buildingData/E_0/electricityMeterCountValue/recordedDataParent/program",
-					result, lineCounter++, null);			
-		}
-		
-		for(SumLineInfo info: sumLines.values()) {
-			result.add(info.subSum);
-		}
-		/*result.add(subSum);
-		if(utility == UtilityType.ENERGY_MIXED) {
-			result.add(elSum);					
-			result.add(heatSum);					
-		}*/
+		//for(SumLineInfo info: sumLines.values()) {
+		//	result.add(info.subSum);
+		//}
 		return result;
 	}
 
+	protected List<LineInfo> getLineInfoList(UtilityType util, Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
+		if(util == null) 
+			util = UtilityType.UNKNOWN;
+		List<LineInfo> dpsList = dpsPerUtilType.get(util);
+		if(dpsList == null) {
+			dpsList = new ArrayList<>();
+			dpsPerUtilType.put(util, dpsList);
+		}
+		return dpsList;
+	}
+	
+	public String getLabel(Datapoint dp) {
+		String label= dp.label(null);
+		if(label == null) {
+			label = nameProvider.getShortNameForTypeI(dp.getGaroDataType(), dp.getResource().getLocation());
+			dp.setLabel(label);
+		}
+		return label;
+	}
+	
 	@Override
 	public Collection<UtilityType> getUtilityType() {
-		Set<UtilityType> result = new HashSet<>();
+		Set<UtilityType> result = new LinkedHashSet<>();
 		for(GaRoDataType type: getDataTypes()) {
-			for(Entry<UtilityType, List<GaRoDataType>> tlist: ConsumptionInfo.typeByUtility.entrySet()) {
-				if(tlist.getValue().contains(type))
-					result.add(tlist.getKey());
-			}
+			UtilityType util = ConsumptionInfo.getUtilityType(type);
+			if(util != null)
+				result.add(util);
 		}
 		return result;
 	}

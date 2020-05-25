@@ -63,7 +63,7 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 			@Override
 			public TimeSeriesDataExtendedImpl getResultSeries() {
 				return new TimeSeriesDataExtendedImpl(this,
-						resultLabel(), resultDescription(), InterpolationMode.STEPS);
+						resultLabel(), resultDescription(), InterpolationMode.NONE);
 			}
 		}; 
 		TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
