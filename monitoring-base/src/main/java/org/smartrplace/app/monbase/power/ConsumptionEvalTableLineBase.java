@@ -18,13 +18,14 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	protected final List<ConsumptionEvalTableLineI> sourcesToSum;
 	//protected final List<EnergyEvaluationTableLine> sumLinesToClear;
 	//protected final ApplicationManager appMan;
+	public Float factorEnergy = null;
 	
 	//TODO: This approach is not multi-session safe!
 	protected final float[] lastValues;
 	protected long lastUpdateTime = -1;
 	
 	protected final SumType type;
-	protected final String index;
+	protected String index;
 	
 	protected final Datapoint datapoint;
 
@@ -65,7 +66,8 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 		this.type = type;
 		this.sourcesToSum = sourcesToSum;
 		//this.sumLinesToClear = sumLinesToClear;
-		this.index = String.format("%06d", index);
+		setIndex(index);
+		//this.index = String.format("%06d", index);
 		if(type == SumType.SUM_LINE)
 			lastValues = null;
 		//	sumUps = new float[4];
@@ -75,6 +77,10 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 		//this.eeInterval = eeInterval;
 	}
 
+	public void setIndex(int index) {
+		this.index = String.format("%06d", index);		
+	}
+	
 	/** 0: overall, 1: L1, 2: L2, 3: L3*/
 	@Override
 	public float getPhaseValue(int index, long startTime, long endTime, long now, List<ConsumptionEvalTableLineI> allLines) {
@@ -125,9 +131,14 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 			//if(startTime != eeInterval.start().getValue()) {
 			if(index == 0) {
 				float val = conn.getEnergyValue(startTime, endTime, label);
+				if(factorEnergy != null)
+					val = factorEnergy * val;
 				return val;
 			} else if(conn.hasSubPhaseNum() > 0) {
-				return conn.getEnergyValueSubPhase(index, startTime, endTime);
+				if(factorEnergy != null)
+					return conn.getEnergyValueSubPhase(index, startTime, endTime) * factorEnergy;
+				else
+					return conn.getEnergyValueSubPhase(index, startTime, endTime);
 			}
 			return Float.NaN;
 		}

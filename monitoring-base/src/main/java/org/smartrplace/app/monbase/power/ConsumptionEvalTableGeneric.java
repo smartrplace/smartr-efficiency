@@ -43,6 +43,8 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		public String label;
 		public UtilityType util = null;
 		public CostProvider costProvider = null;
+		public ConsumptionEvalTableLineBase tableLine = null;
+		public Float factor = null;
 	}
 	public static class SumLineInfo extends LineInfo {
 		public List<ConsumptionEvalTableLineI> subLines = new ArrayList<>();
@@ -54,7 +56,6 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		public List<String> sumIds;
 		public Datapoint dp;
 		public EnergyEvalObjI conn = null;
-		
 		//TODO: Implement this later
 		//boolean includePhases;
 		//boolean includeCostInfo;
@@ -79,8 +80,10 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	}
 	
 	/** Override if required
-	 * Note that result.conn needs to be replaced if the datapoint resource is not a meter counter resource*/
-	protected LineInfoDp getDpLineInfo(GaRoDataType gaRoDataTypeI, Datapoint dp) {
+	 * Note that result.conn needs to be replaced if the datapoint resource is not a meter counter resource
+	 * @param dpsPerUtilType */
+	protected LineInfoDp getDpLineInfo(GaRoDataType gaRoDataTypeI, Datapoint dp,
+			Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
 		LineInfoDp result = new LineInfoDp();
 		result.isInTable = utilities.contains(gaRoDataTypeI);
 		if(!result.isInTable)
@@ -151,28 +154,32 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	}
 	
 	/** Sum lines are the first entries in each List in the map*/
-	private List<LineInfo> getSortedList(Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
+	protected List<LineInfo> getSortedList(Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
 		List<LineInfo> result = new ArrayList<>();
 		for(UtilityType util: UtilityType.values()) {
 			List<LineInfo> lineList = dpsPerUtilType.get(util);
-			if(lineList != null) {
-				lineList.sort(new Comparator<LineInfo>() {
-
-					@Override
-					public int compare(LineInfo o1, LineInfo o2) {
-						if(o1 instanceof SumLineInfo && (!(o2 instanceof SumLineInfo)))
-							return -1;
-						if(o2 instanceof SumLineInfo && (!(o1 instanceof SumLineInfo)))
-							return 1;
-						return o1.label.compareTo(o2.label);
-					}
-				});
-				result.addAll(lineList);
-			}
+			if(lineList == null)
+				continue;
+			sortList(lineList);
+			result.addAll(lineList);
 		}
 		return result;
 	}
 
+	protected void sortList(List<LineInfo> lineList) {
+		lineList.sort(new Comparator<LineInfo>() {
+
+			@Override
+			public int compare(LineInfo o1, LineInfo o2) {
+				if(o1 instanceof SumLineInfo && (!(o2 instanceof SumLineInfo)))
+					return -1;
+				if(o2 instanceof SumLineInfo && (!(o1 instanceof SumLineInfo)))
+					return 1;
+				return o1.label.compareTo(o2.label);
+			}
+		});		
+	}
+	
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType utility) {
 		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
 		this.utilities = ConsumptionInfo.typeByUtility.get(utility);
@@ -232,7 +239,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 			//TODO: Support also AggregationMode.Consumption2Meter
 			//if(conInfo.aggregationMode != AggregationMode.Meter2Meter)
 			//	continue;
-			LineInfoDp lineInfo = getDpLineInfo(dp.getGaroDataType(), dp);
+			LineInfoDp lineInfo = getDpLineInfo(dp.getGaroDataType(), dp, dpsPerUtilType);
 			if(!lineInfo.isInTable)
 				continue;
 			//if(!(dp.getResource() instanceof FloatResource))
@@ -251,6 +258,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 						return info.costProvider;
 					}
 				};
+				info.subSum.factorEnergy = lineInfo.factor;
 				result.add(info.subSum);
 				continue;
 			}
@@ -262,12 +270,17 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 			else
 				label = getLabel(dp);
 			final ConsumptionEvalTableLineBase retVal;
-			if(lineInfoDp.conn != null)
+			if(lineInfoDp.tableLine != null) {
+				lineInfoDp.tableLine.setIndex(lineCounter++);
+				result.add(lineInfoDp.tableLine);
+				retVal = lineInfoDp.tableLine;
+			} else if(lineInfoDp.conn != null)
 				retVal = addLineBase(lineInfoDp.conn, null, isPowerTable(), result, (lineCounter++),
 						label, dp, lineInfo.costProvider);
 			else
 				retVal = addLineBase((FloatResource)dp.getResource(), null, isPowerTable(), result, (lineCounter++),
 					label, dp, lineInfo.costProvider);
+			retVal.factorEnergy = lineInfoDp.factor;
 			if(lineInfoDp.sumIds != null) for(String sumId: lineInfoDp.sumIds) {
 				SumLineInfo sumLineInfo = sumLines.get(sumId);
 				if(sumLineInfo != null)

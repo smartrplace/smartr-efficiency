@@ -87,8 +87,19 @@ public abstract class TimeseriesSimpleProcUtil {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 					AggregationMode mode) {
-				return TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);						
+				List<SampledValue> result = TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);
+				return result;
 			}
+			
+			/** TODO: Just for debugging*/
+			/*@Override
+			public List<TimeSeriesData> getResultSeries(List<TimeSeriesData> input, DatapointService dpService) {
+				TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
+				List<TimeSeriesData> result = super.getResultSeries(input, dpService);
+				TimeProcUtil.printTimeSeriesSet(input, "IN(1):Dayproc", 1, null, null);
+				TimeProcUtil.printTimeSeriesSet(result, "OUT(1):Dayproc", 1, null, null);
+				return result;
+			}*/
 		};
 		knownProcessors.put(PER_DAY_EVAL, dayProc);
 		
@@ -96,9 +107,14 @@ public abstract class TimeseriesSimpleProcUtil {
 			
 			@Override
 			public List<TimeSeriesData> getResultSeries(List<TimeSeriesData> input, DatapointService dpService) {
+//TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 				List<TimeSeriesData> result1 = dayProc.getResultSeries(input, dpService);
+//TimeProcUtil.printTimeSeriesSet(input, "IN(1):Dayproc", 1, null, null);
+//TimeProcUtil.printTimeSeriesSet(result1, "OUT(1):Dayproc", 1, null, null);
 				TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum("total_sum");
 				List<TimeSeriesData> result = sumProc.getResultSeries(result1, dpService);
+//TimeProcUtil.printTimeSeriesSet(result1, "OUT/IN(2):Dayproc", 1, null, null);
+//TimeProcUtil.printTimeSeriesSet(result, "OUT(1):Total_Sum", 1, null, null);
 				return result;
 			}
 		};

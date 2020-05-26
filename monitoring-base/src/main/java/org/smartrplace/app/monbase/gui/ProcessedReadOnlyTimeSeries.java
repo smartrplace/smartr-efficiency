@@ -13,6 +13,11 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 	protected abstract List<SampledValue> updateValues(long start, long end);
 
 	protected List<SampledValue> values = null;
+	//For Debugging only!
+	public List<SampledValue> getCurrentValues() {
+		return values;
+	}
+	
 	protected long knownStart = -1;
 	protected long knownEnd;
 	protected long firstValueInList = Long.MAX_VALUE;
