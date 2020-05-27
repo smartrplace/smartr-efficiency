@@ -14,7 +14,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
@@ -38,6 +38,13 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
  *   > On the other hand drivers and their extensions should be able to provide all information to offer a plot for the data and
  *   to include the data into an "all data plot" for a room etc.
  *   > Drivers or their extensions should also be able to provide {@link AggregationMode} information etc.
+ *   
+ *   It is not possible to add own Datapoint instances into the map of known datapoints, you have to get these
+ *   object via {@link #getDataPointStandard(String)} and its variants. You can add your
+ *   own DatapointpointInfoProvider via
+ *   {@link Datapoint#registerInfoProvider(DatapointInfoProvider, int)}, though. This has not
+ *   been tested, though. You can still use own instances of {@link DatapointImpl} or own implementations
+ *   if it is not required to make them accessible via the {@link DatapointService}.
  */
 
 @Service(DatapointService.class)
@@ -89,9 +96,7 @@ public class DatapointServiceImpl implements DatapointService {
 	}
 	
 	public static void addStandardData(Datapoint result) {
-		if(result.getGaroDataType() == null) {
-			result.setGaroDataType(GaRoEvalHelper.getDataType(result.getLocation()));
-		}
+		DatapointImpl.addStandardData(result);
 		GaRoDataTypeI type = result.getGaroDataType();
 		if(type != null) {
 			typeIdsRegistered.add(type.label(null));

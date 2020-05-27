@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.simple.FloatResource;
-import org.ogema.devicefinder.api.ConsumptionInfo.UtilityType;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableGeneric.LineInfo;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableGeneric.LineInfoDp;

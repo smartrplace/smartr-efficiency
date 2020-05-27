@@ -2,11 +2,14 @@ package org.ogema.timeseries.eval.simple.api;
 
 import java.util.List;
 
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.util.AggregationModeProvider;
+import org.ogema.devicefinder.util.DPUtil;
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
-import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 
 public interface TimeseriesSetProcessor {
 	/** Provide resulting time series
@@ -18,10 +21,15 @@ public interface TimeseriesSetProcessor {
 	 * Note that these steps can be done by the processor or by the surrounding process. This method
 	 * should only be relevant if the information is added by the process, but in many cases this can be done
 	 * much more efficiently by The TimeseriesSetProcessy<br>
-	 * Note that the label and description shall be provided directly via the methods in {@link TimeSeriesData}.
-	 * TODO: There should be an extension of {@link TimeSeriesDataExtendedImpl} providing a reference to the
+	 * Note that the label and description shall be provided directly via the methods in {@link Datapoint}.
+	 * TODO: There should be an extension of {@link DatapointExtendedImpl} providing a reference to the
 	 * Datapoint.
 	 * @return resulting time series.
 	 */
-	List<TimeSeriesData> getResultSeries(List<TimeSeriesData> input, DatapointService dpService);
+	List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService);
+	
+	default List<TimeSeriesData> getResultSeriesTSD(List<TimeSeriesData> input, DatapointService dpService,
+			TimeSeriesNameProvider nameProvider, AggregationModeProvider aggProv) {
+		return DPUtil.getTSList(getResultSeries(DPUtil.getDPList(input, nameProvider, aggProv), dpService));
+	};
 }

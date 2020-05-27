@@ -5,16 +5,12 @@ import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
-import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
-import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
 import org.smartrplace.app.monbase.MonitoringController;
-import org.smartrplace.app.monbase.gui.ProcessedReadOnlyTimeSeries2;
-import org.smartrplace.app.monbase.gui.ScheduleViewerOpenButtonDataProviderImpl;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
@@ -63,22 +59,11 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 		if(energyReading == null) return Float.NaN;
 		if(mode == AggregationMode.Meter2Meter)
 			return EnergyEvalElConnObj.getEnergyValue(energyReading, startTime, endTime, label);
-		TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService) {
-
-			@Override
-			protected TimeSeriesNameProvider nameProvider() {
-				return null;
-			}
-
-			@Override
-			protected AggregationMode getMode(String tsLabel) {
-				return AggregationMode.Consumption2Meter;
-			}
-		};
+		TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 		TimeseriesSetProcessor proc = util.getProcessor(TimeseriesSimpleProcUtil.METER_EVAL);
-		List<TimeSeriesData> resultTs = proc.getResultSeries(Arrays.asList(new TimeSeriesData[] {
+		List<TimeSeriesData> resultTs = proc.getResultSeriesTSD(Arrays.asList(new TimeSeriesData[] {
 				new TimeSeriesDataImpl(energyReading, "", "", InterpolationMode.NONE)}),
-				controller.dpService);
+				controller.dpService, null, controller);
 		if(resultTs == null || resultTs.isEmpty())
 			return Float.NaN;
 		ReadOnlyTimeSeries ts = ((TimeSeriesDataImpl)resultTs.get(0)).getTimeSeries();

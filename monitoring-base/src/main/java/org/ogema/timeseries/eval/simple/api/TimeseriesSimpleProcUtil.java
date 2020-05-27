@@ -10,8 +10,10 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.util.AggregationModeProvider;
+import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
@@ -20,7 +22,7 @@ import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 
-public abstract class TimeseriesSimpleProcUtil {
+public class TimeseriesSimpleProcUtil {
 	public static final String METER_EVAL = "METER";
 	public static final String PER_DAY_EVAL = "DAY";
 	public static final String SUM_PER_DAY_EVAL = "SUM_PER_DAY";
@@ -31,8 +33,8 @@ public abstract class TimeseriesSimpleProcUtil {
 		return knownProcessors.get(procID);
 	}
 	
-	protected abstract TimeSeriesNameProvider nameProvider();
-	protected abstract AggregationMode getMode(String tsLabel);
+	//protected TimeSeriesNameProvider nameProvider() {return null;}
+	//protected abstract AggregationMode getMode(String tsLabel);
 	protected final ApplicationManager appMan;
 	protected final DatapointService dpService;
 	
@@ -47,16 +49,6 @@ public abstract class TimeseriesSimpleProcUtil {
 		this.dpService = dpService;
 		
 		TimeseriesSetProcessor meterProc = new TimeseriesSetProcSingleToSingle("_vm") {
-			
-			@Override
-			protected TimeSeriesNameProvider nameProvider() {
-				return TimeseriesSimpleProcUtil.this.nameProvider();
-			}
-			
-			@Override
-			protected AggregationMode getMode(String tsLabel) {
-				return TimeseriesSimpleProcUtil.this.getMode(tsLabel);
-			}
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -75,46 +67,28 @@ public abstract class TimeseriesSimpleProcUtil {
 		TimeseriesSetProcessor dayProc = new TimeseriesSetProcSingleToSingle("_proTag") {
 			
 			@Override
-			protected TimeSeriesNameProvider nameProvider() {
-				return TimeseriesSimpleProcUtil.this.nameProvider();
-			}
-			
-			@Override
-			protected AggregationMode getMode(String tsLabel) {
-				return TimeseriesSimpleProcUtil.this.getMode(tsLabel);
-			}
-			
-			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 					AggregationMode mode) {
 				List<SampledValue> result = TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);
 				return result;
 			}
-			
-			/** TODO: Just for debugging*/
-			/*@Override
-			public List<TimeSeriesData> getResultSeries(List<TimeSeriesData> input, DatapointService dpService) {
-				TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
-				List<TimeSeriesData> result = super.getResultSeries(input, dpService);
-				TimeProcUtil.printTimeSeriesSet(input, "IN(1):Dayproc", 1, null, null);
-				TimeProcUtil.printTimeSeriesSet(result, "OUT(1):Dayproc", 1, null, null);
-				return result;
-			}*/
 		};
 		knownProcessors.put(PER_DAY_EVAL, dayProc);
 		
 		TimeseriesSetProcessor sumProc = new TimeseriesSetProcessor() {
 			
 			@Override
-			public List<TimeSeriesData> getResultSeries(List<TimeSeriesData> input, DatapointService dpService) {
-//TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
-				List<TimeSeriesData> result1 = dayProc.getResultSeries(input, dpService);
-//TimeProcUtil.printTimeSeriesSet(input, "IN(1):Dayproc", 1, null, null);
-//TimeProcUtil.printTimeSeriesSet(result1, "OUT(1):Dayproc", 1, null, null);
-				TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum("total_sum");
-				List<TimeSeriesData> result = sumProc.getResultSeries(result1, dpService);
-//TimeProcUtil.printTimeSeriesSet(result1, "OUT/IN(2):Dayproc", 1, null, null);
-//TimeProcUtil.printTimeSeriesSet(result, "OUT(1):Total_Sum", 1, null, null);
+			public List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService) {
+TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
+				List<Datapoint> result1 = dayProc.getResultSeries(input, dpService);
+				TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum("total_sum") {
+					@Override
+					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
+						TimeProcUtil.printTimeSeriesSet(input, "--RT-OUT/IN(2):Dayproc", 1, null, null);
+						TimeProcUtil.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum");
+					}
+				};
+				List<Datapoint> result = sumProc.getResultSeries(result1, dpService);
 				return result;
 			}
 		};
@@ -124,15 +98,15 @@ public abstract class TimeseriesSimpleProcUtil {
 		TimeseriesSetProcessor dayPerRoomProc = new TimeseriesSetProcessor() {
 			
 			@Override
-			public List<TimeSeriesData> getResultSeries(List<TimeSeriesData> input, DatapointService dpService) {
-				List<TimeSeriesData> result1 = dayProc.getResultSeries(input, dpService);
-				List<TimeSeriesData> result = new ArrayList<>();
+			public List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService) {
+				List<Datapoint> result1 = dayProc.getResultSeries(input, dpService);
+				List<Datapoint> result = new ArrayList<>();
 				// RoomID -> Timeseries in the room
-				Map<String, List<TimeSeriesData>> sortedbyRoom = new HashMap<>();
-				for(TimeSeriesData tsd: result1) {
+				Map<String, List<Datapoint>> sortedbyRoom = new HashMap<>();
+				for(Datapoint tsd: result1) {
 					Datapoint dp = dpService.getDataPointStandard(tsd.id());
 					if(dp.getRoom() != null) {
-						List<TimeSeriesData> roomList = sortedbyRoom.get(dp.getRoom().id());
+						List<Datapoint> roomList = sortedbyRoom.get(dp.getRoom().id());
 						if(roomList == null) {
 							roomList = new ArrayList<>();
 							sortedbyRoom.put(dp.getRoom().id(), roomList);
@@ -141,9 +115,9 @@ public abstract class TimeseriesSimpleProcUtil {
 					}
 						
 				}
-				for(Entry<String, List<TimeSeriesData>> roomData: sortedbyRoom.entrySet()) {
+				for(Entry<String, List<Datapoint>> roomData: sortedbyRoom.entrySet()) {
 					TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum(roomData.getKey()+"_sum");
-					List<TimeSeriesData> resultLoc = sumProc.getResultSeries(roomData.getValue(), dpService);
+					List<Datapoint> resultLoc = sumProc.getResultSeries(roomData.getValue(), dpService);
 					result.addAll(resultLoc);
 				}
 				return result;
@@ -152,10 +126,15 @@ public abstract class TimeseriesSimpleProcUtil {
 
 		knownProcessors.put(SUM_PER_DAY_PER_ROOM_EVAL, dayPerRoomProc);
 	}
-	public List<TimeSeriesData> process(String tsProcessRequest, List<TimeSeriesData> input) {
+	public List<Datapoint> process(String tsProcessRequest, List<Datapoint> input) {
 		TimeseriesSetProcessor proc = knownProcessors.get(tsProcessRequest);
 		if(proc == null)
 			throw new IllegalArgumentException("Unknown timeseries processor: "+tsProcessRequest);
 		return proc.getResultSeries(input, dpService);
+	}
+	
+	public List<TimeSeriesData> processTSD(String tsProcessRequest, List<TimeSeriesData> input,
+			TimeSeriesNameProvider nameProvider, AggregationModeProvider aggProv) {
+		return DPUtil.getTSList(process(tsProcessRequest, DPUtil.getDPList(input, nameProvider, aggProv)));
 	}
 }

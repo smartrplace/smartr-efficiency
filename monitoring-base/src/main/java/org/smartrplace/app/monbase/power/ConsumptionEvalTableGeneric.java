@@ -12,10 +12,10 @@ import java.util.Set;
 
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
-import org.ogema.devicefinder.api.ConsumptionInfo;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
-import org.ogema.devicefinder.api.ConsumptionInfo.UtilityType;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
+import org.ogema.devicefinder.util.DatapointInfoImpl;
 import org.ogema.model.connections.ElectricityConnection;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
@@ -89,20 +89,20 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		if(!result.isInTable)
 			return result;
 		result.dp = dp;
-		UtilityType util = ConsumptionInfo.getUtilityType(gaRoDataTypeI);
+		UtilityType util = dp.info().getUtilityType(); //DatapointInfoImpl.getUtilityType(gaRoDataTypeI);
 		if(util != null)
 			result.sumIds = Arrays.asList(new String[] {util.name()+"_Sum"});
 		else
 			result.sumIds = null;
 		result.util = util;
 		if(dp.getResource() != null && dp.getResource() instanceof Schedule) {
-			AggregationMode mode = ConsumptionInfo.getConsumptionMode(gaRoDataTypeI);
+			AggregationMode mode = dp.info().getAggregationMode();
 			if(mode == null)
 				mode = AggregationMode.Meter2Meter;
 			result.conn = new EnergyEvalObjSchedule((Schedule)dp.getResource(), null,
 					mode, controller);
 		} else if((dp.getResource() == null) && (dp.getTimeSeriesID() != null)) {
-			AggregationMode mode = ConsumptionInfo.getConsumptionMode(gaRoDataTypeI);
+			AggregationMode mode = dp.info().getAggregationMode();
 			if(mode == null)
 				mode = AggregationMode.Meter2Meter;
 			TimeSeriesDataImpl ts = UserServlet.knownTS.get(dp.getTimeSeriesID());
@@ -182,7 +182,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType utility) {
 		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
-		this.utilities = ConsumptionInfo.typeByUtility.get(utility);
+		this.utilities = DatapointInfoImpl.getGaRotypes(utility);
 		utilsSorted = new ArrayList<>();
 		utilsSorted.add(utility);
 		if(this.utilities == null)
@@ -195,7 +195,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		utilsSorted = Arrays.asList(utilities);	
 		nameProvider = new TimeSeriesNameProviderImpl(controller);
 		for(UtilityType utility: utilities) {
-			List<GaRoDataType> loc = ConsumptionInfo.typeByUtility.get(utility);
+			List<GaRoDataType> loc = DatapointInfoImpl.getGaRotypes(utility);
 			if(loc == null)
 				throw new IllegalStateException("Unknown utility:"+utility);
 			this.utilities.addAll(loc);
@@ -232,7 +232,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 			if(dp.getResource() == null) {
 				if(dp.getGaroDataType() == null)
 					continue;
-				AggregationMode aggMode = ConsumptionInfo.getConsumptionMode(dp.getGaroDataType());
+				AggregationMode aggMode = dp.info().getAggregationMode(); //ConsumptionInfo.getConsumptionMode(dp.getGaroDataType());
 				if(aggMode == null || aggMode == AggregationMode.Power2Meter)
 					continue;
 			}
@@ -318,7 +318,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	public Collection<UtilityType> getUtilityType() {
 		Set<UtilityType> result = new LinkedHashSet<>();
 		for(GaRoDataType type: getDataTypes()) {
-			UtilityType util = ConsumptionInfo.getUtilityType(type);
+			UtilityType util = DatapointInfoImpl.getUtilityType(type);
 			if(util != null)
 				result.add(util);
 		}

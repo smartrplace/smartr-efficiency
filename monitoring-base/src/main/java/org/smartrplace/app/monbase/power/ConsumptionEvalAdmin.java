@@ -3,7 +3,7 @@ package org.smartrplace.app.monbase.power;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ogema.devicefinder.api.ConsumptionInfo.UtilityType;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.smartrplace.app.monbase.MonitoringController;
 
 public class ConsumptionEvalAdmin {

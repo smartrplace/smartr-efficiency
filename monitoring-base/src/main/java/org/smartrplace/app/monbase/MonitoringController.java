@@ -18,6 +18,8 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.externalviewer.extensions.DefaultDedicatedTSSessionConfiguration;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
@@ -70,7 +72,8 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 // here the controller logic is implemented
-public abstract class MonitoringController extends OfflineEvaluationControlController implements AlarmingUpdater {
+public abstract class MonitoringController extends OfflineEvaluationControlController implements AlarmingUpdater,
+		AggregationModeProvider {
 	protected AlarmingManagement alarmMan = null;
 	public final DatapointService dpService;
 	public final ConsumptionEvalAdmin evalAdm;
@@ -207,7 +210,11 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 	protected abstract void registerStaticTimeSeriesViewerLinks();
 	
 	/** Overwrite to provide configurations for certain time series*/
-	public String getConfigParam(String tsLabel) {return null;}
+	@Override
+	public AggregationMode getMode(String tsId) {
+		return null;
+	}
+	//public String getConfigParam(String tsLabel) {return null;}
 	
 	/** Method for OfflineControlGUI page, overwrite if additional buttons shall be added*/
 	public StaticTable provideButtonTable(OfflineControlGUI page, Button closeTabButton, Button messageButton) {

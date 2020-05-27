@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.devicefinder.api.ConsumptionInfo.UtilityType;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.Datapoint;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin;

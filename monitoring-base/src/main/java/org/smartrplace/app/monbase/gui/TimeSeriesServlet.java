@@ -17,7 +17,7 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.timeseries.v2.tools.TimeSeriesUtils;
 import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;

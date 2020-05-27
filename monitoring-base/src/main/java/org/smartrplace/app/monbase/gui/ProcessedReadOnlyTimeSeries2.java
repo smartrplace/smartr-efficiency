@@ -6,9 +6,10 @@ import java.util.List;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
-import org.smartrplace.app.monbase.MonitoringController;
 
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
@@ -23,6 +24,9 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	
 	//final protected MonitoringController controller;
 	final protected TimeSeriesDataImpl tsdi;
+	final protected Datapoint dp;
+	
+	/** only relevant if dp == null*/
 	final protected TimeSeriesNameProvider nameProvider;
 	
 	//final protected ProcessedReadOnlyTimeSeries newTs;
@@ -31,25 +35,34 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	private Long firstTimestampInSource = null;
 	private Long lastTimestampInSource = null;
 
-	public ProcessedReadOnlyTimeSeries2(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
+	/*public ProcessedReadOnlyTimeSeries2(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
 			MonitoringController controller) {
 		this(tsdi, nameProvider, getMode(controller, tsdi.label(null)));
-	}
+	}*/
 	public ProcessedReadOnlyTimeSeries2(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
 			AggregationMode mode) {
+		this(tsdi, nameProvider, mode, null);
+	}
+	public ProcessedReadOnlyTimeSeries2(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
+			AggregationMode mode, Datapoint dp) {
 		super(InterpolationMode.NONE);
 		this.nameProvider = nameProvider;
 		this.tsdi = tsdi;
+		this.dp = dp;
 		this.mode = mode;
 	}
+
+	public ProcessedReadOnlyTimeSeries2(Datapoint dp) {
+		this(dp.getTimeSeriesDataImpl(), null, dp.info().getAggregationMode(), dp);
+	}
 	
-	static AggregationMode getMode(MonitoringController controller, String label) {
+	/*static AggregationMode getMode(MonitoringController controller, String label) {
 		final String cparam = controller.getConfigParam(label);
 		if(cparam != null && cparam.contains(AggregationMode.Consumption2Meter.name()))
 			return AggregationMode.Consumption2Meter;
 		else
 			return AggregationMode.Meter2Meter;		
-	}
+	}*/
 
 	@Override
 	protected List<SampledValue> updateValues(long start, long end) {
@@ -80,19 +93,41 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	}
 
 	public String getShortId() {
+		return getShortId(tsdi, nameProvider, dp);
+	}
+	
+	public static String getShortId(TimeSeriesDataImpl tsdi, TimeSeriesNameProvider nameProvider,
+			Datapoint dp) {
 		String shortId = tsdi.label(null);
 		if(tsdi instanceof TimeSeriesDataExtendedImpl) {
 			TimeSeriesDataExtendedImpl tse = (TimeSeriesDataExtendedImpl) tsdi;
 			if(tse.type != null && tse.type instanceof GaRoDataTypeI) {
 				GaRoDataTypeI dataType = (GaRoDataTypeI) tse.type;
-				shortId = nameProvider.getShortNameForTypeI(dataType, tse);
+				if(nameProvider != null)
+					shortId = nameProvider.getShortNameForTypeI(dataType, tse);
+				else
+					shortId = dp.label();
 			}
 		}
-		return shortId;
+		return shortId;		
 	}
 	
 	public TimeSeriesDataExtendedImpl getResultSeries() {
 		return new TimeSeriesDataExtendedImpl(this,
 				getShortId()+getLabelPostfix(), tsdi.description(null)+getLabelPostfix(), InterpolationMode.NONE);
+	}
+	
+	public DatapointImpl getResultSeriesDP() {
+		String label;
+		String tsLocationOrBaseId;
+		if(dp != null) {
+			label = dp.label()+getLabelPostfix();
+			tsLocationOrBaseId = dp.getLocation()+getLabelPostfix();
+		} else {
+			label = getShortId()+getLabelPostfix();
+			tsLocationOrBaseId = tsdi.id()+getLabelPostfix();
+		}
+		DatapointImpl result = new DatapointImpl(this, tsLocationOrBaseId, label, false);
+		return result ;
 	}
 }

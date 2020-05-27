@@ -8,62 +8,81 @@ import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.util.DatapointImpl;
 import org.smartrplace.app.monbase.gui.ProcessedReadOnlyTimeSeries;
 
-import de.iwes.timeseries.eval.api.TimeSeriesData;
-import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.format.StringFormatHelper.StringProvider;
 
 public class TimeProcUtil {
 	public static int DEFAULT_MAX_ELS = 5;
 	
-	public static void printTimeSeriesSet(List<TimeSeriesData> tsdlist, String setName, int maxTsToPrint, Long startTime, Long endTime) {
+	public static void printTimeSeriesSet(List<Datapoint> tsdlist, String setName, int maxTsToPrint, Long startTime, Long endTime) {
 		int nonImplCount = 0;
-		int maxSize = -1;
+		GoodData maxGood = null;
+		//int maxSize = -1;
+		//int maxNN = -1;
+		//int maxNZ = -1;
 		String maxName = "-";
 		int minSize = Integer.MAX_VALUE;
 		String minName = "-";
 		int countTs = 0;
 		int sizeSum = 0;
 		int sizeNNSum = 0;
-		List<TimeSeriesDataImpl> listsToPrint = new ArrayList<>();
-		for(TimeSeriesData tsdIn: tsdlist) {
-			if(!(tsdIn instanceof TimeSeriesDataImpl)) {
+		int sizeNZSum = 0;
+		List<Datapoint> listsToPrint = new ArrayList<>();
+		for(Datapoint tsd: tsdlist) {
+			if(!(tsd instanceof DatapointImpl)) {
 				nonImplCount++;
 				continue;
 			}
-			TimeSeriesDataImpl tsd = (TimeSeriesDataImpl) tsdIn;
 			List<SampledValue> values = getValuesWithoutCalc(tsd.getTimeSeries(), null, startTime, endTime);
-			int mysiz = values.size();
-			int mysizNN = getNonNaNNum(values);
+			GoodData good = getGoodNum(values);
+			//int mysiz = (int) good.nonZeroNum;
+			//int mysizNN = (int) good.nonNanNum;
 			String myName = getName(tsd);
-			if(mysiz > maxSize) {
-				maxSize = mysiz;
+			if(maxGood == null || good.nonZeroNum > maxGood.nonZeroNum) {
+				maxGood= good;
 				maxName = myName;
 			}
-			if(mysiz < minSize) {
-				minSize = mysiz;
+			if(good.totalNum < minSize) {
+				minSize = (int) good.totalNum;
 				minName = myName;
 			}
 			countTs++;
-			sizeSum += mysiz;
-			sizeNNSum += mysizNN;
+			sizeSum += good.totalNum;
+			sizeNNSum += good.nonNanNum;
+			sizeNZSum += good.nonZeroNum;
 			if(listsToPrint.size() < maxTsToPrint)
 				listsToPrint.add(tsd);
 		}
+		GoodData goodAv = new GoodData();
+		goodAv.totalNum = sizeSum/countTs;
+		goodAv.nonNanNum = sizeNNSum/countTs;
+		goodAv.nonZeroNum = sizeNZSum/countTs;
 		System.out.println("--TSSet:"+setName+"["+((nonImplCount>0)?tsdlist.size()+"!!NonImpl:"+nonImplCount:tsdlist.size())+"]::"
-				+ "Av:"+(sizeSum/countTs)+", AvNonNaN:"+(sizeNNSum/countTs)+"  Max:"+maxSize+"/"+maxName+"  Min:"+minSize+"/"+minName);
-		for(TimeSeriesDataImpl tsd: listsToPrint) {
+				+ "AvSize"+getGoodString(goodAv)+"  Max:"+getGoodStringInt(maxGood)+"/"+maxName+"  Min:"+minSize+"/"+minName);
+		for(Datapoint tsd: listsToPrint) {
 			printFirstElements(tsd.getTimeSeries(), startTime, endTime);
 		}
 	}
 	
-	private static int getNonNaNNum(List<SampledValue> values) {
-		int result = 0;
+	public static class GoodData {
+		public float totalNum;
+		public float nonNanNum;
+		public float nonZeroNum;
+	}
+	public static GoodData getGoodNum(List<SampledValue> values) {
+		GoodData result = new GoodData();
+		result.totalNum = values.size();
 		for(SampledValue sv: values) {
-			if(!Float.isNaN(sv.getValue().getFloatValue()))
-				result++;
+			float val = sv.getValue().getFloatValue();
+			if(!Float.isNaN(val)) {
+				(result.nonNanNum)++;
+				if(val != 0)
+					(result.nonZeroNum)++;
+			}
 		}
 		return result;
 	}
@@ -96,7 +115,7 @@ public class TimeProcUtil {
 		counter ++;
 		return name;
 	}
-	protected static String getName(TimeSeriesDataImpl tsd) {
+	protected static String getName(Datapoint tsd) {
 		String name = tsd.label(null);
 		if(name != null && !name.isEmpty()) {
 			counter ++;
@@ -107,7 +126,7 @@ public class TimeProcUtil {
 	
 	public static void printFirstElements(List<SampledValue> values, int maxEl) {
 		String name = "TS2Plot_"+counter;
-		printFirstElements(values, maxEl, name);
+		printFirstElements(values, name, maxEl);
 	}
 	
 	public static void printFirstElements(ReadOnlyTimeSeries ts, int maxEl, String name) {
@@ -115,9 +134,12 @@ public class TimeProcUtil {
 	}
 	public static void printFirstElements(ReadOnlyTimeSeries ts, int maxEl, String name, Long startTime, Long endTime) {
 		List<SampledValue> values = getValuesWithoutCalc(ts, null, startTime, endTime);
-		printFirstElements(values, maxEl, name);
+		printFirstElements(values, name, maxEl);
 	}
-	public static void printFirstElements(List<SampledValue> values, int maxEl, String name) {
+	public static void printFirstElements(List<SampledValue> values, String name) {
+		printFirstElements(values, name, DEFAULT_MAX_ELS);
+	}
+	public static void printFirstElements(List<SampledValue> values, String name, int maxEl) {
 		StringProvider<SampledValue> fhelp = new StringProvider<SampledValue>() {
 
 			@Override
@@ -126,7 +148,14 @@ public class TimeProcUtil {
 						String.format("%.2f", object.getValue().getFloatValue());
 			}
 		};
-		System.out.println("  TSPrint:"+name+"["+values.size()+"] : "+StringFormatHelper.getListToPrint(values, fhelp , maxEl));
+		GoodData good = getGoodNum(values);
+		System.out.println("  TS:"+name+ getGoodStringInt(good)+ " : "+StringFormatHelper.getListToPrint(values, fhelp , maxEl));
+	}
+	public static String getGoodString(GoodData good) {
+		return "["+good.totalNum+"/"+good.nonNanNum+"/"+good.nonZeroNum+"]";
+	}
+	public static String getGoodStringInt(GoodData good) {
+		return "["+(int)(good.totalNum)+"/"+(int)(good.nonNanNum)+"/"+(int)(good.nonZeroNum)+"]";
 	}
 	
 	public static List<SampledValue> getValuesWithoutCalc(ReadOnlyTimeSeries ts, Integer limitResSize, Long startTime, Long endTime) {

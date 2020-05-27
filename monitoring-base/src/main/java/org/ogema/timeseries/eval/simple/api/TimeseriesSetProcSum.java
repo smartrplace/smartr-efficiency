@@ -1,6 +1,6 @@
 package org.ogema.timeseries.eval.simple.api;
 
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 
 public class TimeseriesSetProcSum extends TimeseriesSetProcMultiToSingle {
 	

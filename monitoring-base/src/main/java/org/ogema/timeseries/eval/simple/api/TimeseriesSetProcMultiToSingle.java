@@ -6,21 +6,18 @@ import java.util.List;
 import org.ogema.core.channelmanager.measurements.FloatValue;
 import org.ogema.core.channelmanager.measurements.Quality;
 import org.ogema.core.channelmanager.measurements.SampledValue;
-import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
-import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.devicefinder.util.DatapointImpl;
 import org.smartrplace.app.monbase.gui.ProcessedReadOnlyTimeSeries2;
-
-import de.iwes.timeseries.eval.api.TimeSeriesData;
-import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
-import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 
 /** The input time series for this provider must be aligned having common time stamps*/
 public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetProcessor {
 	protected abstract float aggregateValues(float[] values, long timestamp, AggregationMode mode);
-	protected TimeSeriesNameProvider nameProvider() {return null;}
+	//protected TimeSeriesNameProvider nameProvider() {return null;}
+	protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {};
 	//protected abstract AggregationMode getMode(String tsLabel);
 	protected String resultLabel() {return label;}
 	protected String resultDescription() {
@@ -32,11 +29,10 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 		this.label = label;
 	}
 	@Override
-	public List<TimeSeriesData> getResultSeries(List<TimeSeriesData> input, DatapointService dpService) {
-		List<TimeSeriesData> result = new ArrayList<>();
-		final TimeSeriesDataImpl tsdi = (TimeSeriesDataImpl) input.get(0);
-		ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi, nameProvider(),
-					(AggregationMode)null) {
+	public List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService) {
+		List<Datapoint> result = new ArrayList<>();
+		final Datapoint tsdi = input.get(0);
+		ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi) {
 			@Override
 			protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
 					long end, AggregationMode mode) {
@@ -45,8 +41,8 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 				for(SampledValue svalTs: tsdi.getTimeSeries().getValues(start, end)) {
 					long timestamp = svalTs.getTimestamp();
 					int idx = 0;
-					for(TimeSeriesData tsd: input) {
-						TimeSeriesDataImpl tsdiLoc = (TimeSeriesDataImpl) tsd;
+					for(Datapoint tsd: input) {
+						Datapoint tsdiLoc = (Datapoint) tsd;
 						SampledValue svLoc = tsdiLoc.getTimeSeries().getValue(timestamp);
 						if(svLoc == null)
 							values[idx] = Float.NaN;
@@ -57,16 +53,17 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 					float val = aggregateValues(values, timestamp, mode);
 					resultLoc.add(new SampledValue(new FloatValue(val), timestamp, Quality.GOOD));
 				}
-				return resultLoc;					
+				debugCalculationResult(input, resultLoc);
+				return resultLoc;
 			}
 			
-			@Override
-			public TimeSeriesDataExtendedImpl getResultSeries() {
+			/*@Override
+			public TimeSeriesDataExtendedImpl getResultSeriesDP() {
 				return new TimeSeriesDataExtendedImpl(this,
 						resultLabel(), resultDescription(), InterpolationMode.NONE);
-			}
+			}*/
 		}; 
-		TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
+		DatapointImpl newtsdi = newTs2.getResultSeriesDP();
 		result.add(newtsdi);
 		return result;
 	}

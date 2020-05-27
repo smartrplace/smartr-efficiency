@@ -63,8 +63,8 @@ public class SensorServlet implements ServletPageProvider<Room> {
 					UserServletParamData pdata = new UserServletParamData(parameters);
 					if(pdata.provideExtended && controller.dpService != null) {
 						Datapoint dp = controller.dpService.getDataPointStandard(reading);
-						if(dp.getConsumptionInfo() != null)
-							result.put("consumptionInfo", dp.getConsumptionInfo());
+						if(dp.info() != null)
+							result.put("consumptionInfo", dp.info());
 						if(dp.getGaroDataType() != null)
 							result.put("garoType", dp.getGaroDataType().label(null));
 						String subRoomLoc = dp.getSubRoomLocation(pdata.locale, null);

@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.devicefinder.api.ConsumptionInfo.AggregationMode;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
@@ -123,19 +122,8 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		ExportBulkData.cleanList(input, inputsToUse);
 		input.addAll(manualTsInput);
 		if(tsProcessRequest != null) {
-			TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService) {
-				
-				@Override
-				protected TimeSeriesNameProvider nameProvider() {
-					return ScheduleViewerOpenButtonDataProviderImpl.this.nameProvider();
-				}
-				
-				@Override
-				protected AggregationMode getMode(String tsLabel) {
-					return ProcessedReadOnlyTimeSeries2.getMode(controller, tsLabel);
-				}
-			};
-			List<TimeSeriesData> result = util.process(tsProcessRequest, input);
+			TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
+			List<TimeSeriesData> result = util.processTSD(tsProcessRequest, input, nameProvider(), controller);
 			/*List<TimeSeriesData> result = new ArrayList<>();
 			for(TimeSeriesData tsd: input) {
 				if(!(tsd instanceof TimeSeriesDataImpl))
