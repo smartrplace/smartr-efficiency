@@ -1,9 +1,15 @@
 package org.smartrplace.mqtt.devicetable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
@@ -101,4 +107,14 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		return appMan.getResourcePatternAccess();
 	}
 
+	@Override
+	public Collection<Datapoint> getDatapoints(ElectricityConnectionBox dev, DatapointService dpService) {
+		List<Datapoint> result = new ArrayList<>();
+		addDatapoint(dev.connection().voltageSensor().reading(), result, dpService);
+		addDatapoint(dev.connection().powerSensor().reading(), result, dpService);
+		addDatapoint(dev.connection().energySensor().reading(), result, dpService);
+		addDatapoint(dev.connection().currentSensor().reading(), result, dpService);
+		addDatapoint(dev.connection().frequencySensor().reading(), result, dpService);
+		return result;
+	}
 }

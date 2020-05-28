@@ -3,21 +3,28 @@ package org.ogema.devicefinder.service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Service;
+import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
-import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointInfoProvider;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DatapointImpl;
+import org.smartrplace.app.monservice.MonitoringServiceBaseController;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
@@ -47,9 +54,19 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
  *   if it is not required to make them accessible via the {@link DatapointService}.
  */
 
-@Service(DatapointService.class)
-@Component
+//@Service(DatapointService.class)
+//@Component
 public class DatapointServiceImpl implements DatapointService {
+	@SuppressWarnings("unchecked")
+	public DatapointServiceImpl(MonitoringServiceBaseController controller) {
+		this.controller = controller;
+		installAppList = ResourceHelperSP.getSubResource(null, "hardwareInstallConfig/knownDevices",
+				ResourceList.class, controller.appMan.getResourceAccess());
+	}
+
+	private final MonitoringServiceBaseController controller;
+	private final ResourceList<InstallAppDevice> installAppList;
+	
 	/** GatewayId -> Resource-location -> Datapoint object*/
 	Map<String, Map<String, Datapoint>> knownDps = new HashMap<>();
 	
@@ -259,5 +276,37 @@ public class DatapointServiceImpl implements DatapointService {
 		GaRoTypeStringConfigProviderDP.typeIdsForEval.add(type.label(null));
 		RecIdVal existing = GaRoTypeStringConfigProviderDP.recIdSnippets.get(type.label(null));
 		return existing;
+	}
+
+	@Override
+	public Collection<Class<? extends Resource>> getManagedDeviceResoureceTypes() {
+		Set<Class<? extends Resource>> result = new HashSet<>();
+		for(DeviceHandlerProvider<?> prov: controller.baseApp.getTableProviders().values()) {
+			result.add(prov.getResourceType());
+		}
+		return result;
+	}
+
+	@Override
+	public Collection<InstallAppDevice> managedDeviceResoures(Class<? extends Resource> resourceType) {
+		List<InstallAppDevice> result = new ArrayList<>();
+		for(InstallAppDevice iad: installAppList.getAllElements()) {
+			if(resourceType.isAssignableFrom(iad.device().getResourceType()))
+				result.add(iad);
+		}
+		return result;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	//TODO: Current implementation supports only a single DeviceHandlerProvider per type
+	public <T extends Resource> DeviceHandlerProviderDP<T> getDeviceHandlerProvider(
+			InstallAppDevice installAppDeviceRes) {
+		Class<? extends Resource> deviceType = installAppDeviceRes.device().getResourceType();
+		for(DeviceHandlerProvider<?> prov: controller.baseApp.getTableProviders().values()) {
+			if(prov.getResourceType().isAssignableFrom(deviceType))
+				return (DeviceHandlerProviderDP<T>) prov;
+		}
+		return null;
 	}
 }

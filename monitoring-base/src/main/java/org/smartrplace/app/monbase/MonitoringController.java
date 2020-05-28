@@ -17,8 +17,8 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.externalviewer.extensions.DefaultDedicatedTSSessionConfiguration;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
@@ -29,10 +29,10 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
-import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.widgets.reswidget.scheduleviewer.api.expert.ext.ScheduleViewerConfigurationBuilderExpert;
 import org.smartrplace.app.monbase.gui.OfflineControlGUI;
+import org.smartrplace.app.monbase.gui.OfflineControlGUI.DefaultGUIConfig;
 import org.smartrplace.app.monbase.gui.ScheduleViewerOpenButtonDataProviderImpl;
 import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
@@ -333,18 +333,20 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		List<String> done = new ArrayList<>();
 		Map<String, List<String>> roomSensors = new HashMap<>();
 		System.out.println("In initAlarmingSensors: Processing "+getAllRooms(null).size()+ "Rooms!");
+		DefaultGUIConfig guiConfig = new DefaultGUIConfig(this);
 		for(String roomLoop: getAllRooms(null)) {
-			ScheduleViewerOpenButtonDataProviderImpl allProv = new ScheduleViewerOpenButtonDataProviderImpl(this) {
+			ScheduleViewerOpenButtonDataProviderImpl allProv = new ScheduleViewerOpenButtonDataProviderImpl(
+					this, guiConfig) {
 				
 				@Override
 				protected List<String> getRoomIDs(OgemaHttpRequest req) {
 					return Arrays.asList(new String[] {roomLoop});
 				}
 				
-				@Override
-				protected GaRoSingleEvalProvider getEvalProvider(OgemaHttpRequest req) {
-					return controller.getDefaultProvider();
-				}
+				//@Override
+				//protected GaRoSingleEvalProvider getEvalProvider(OgemaHttpRequest req) {
+				//	return controller.getDefaultProvider();
+				//}
 				
 				@Override
 				protected String getDataType(OgemaHttpRequest req) {

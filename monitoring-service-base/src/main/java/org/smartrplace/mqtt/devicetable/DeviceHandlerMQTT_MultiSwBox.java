@@ -1,11 +1,16 @@
 package org.smartrplace.mqtt.devicetable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
@@ -56,6 +61,7 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 
 				vh.booleanLabel("StateFB", id, box.onOffSwitch().stateFeedback(), row, 0);
 				vh.booleanEdit("Control", id, box.onOffSwitch().stateControl(), row);
+				vh.floatLabel("Power", id, box.electricityConnection().powerSensor().reading(), row, "%.1f");
 				
 				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
 				addInstallationStatus(object, vh, id, req, row, appMan, deviceRoom);
@@ -130,5 +136,14 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 	@Override
 	protected ResourcePatternAccess advAcc() {
 		return appMan.getResourcePatternAccess();
+	}
+	
+	@Override
+	public Collection<Datapoint> getDatapoints(SingleSwitchBox dev, DatapointService dpService) {
+		List<Datapoint> result = new ArrayList<>();
+		addDatapoint(dev.onOffSwitch().stateControl(), result, dpService);
+		addDatapoint(dev.onOffSwitch().stateFeedback(), result, dpService);
+		addDatapoint(dev.electricityConnection().powerSensor().reading(), result, dpService);
+		return result;
 	}
 }

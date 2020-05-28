@@ -1,11 +1,16 @@
 package org.smartrplace.mqtt.devicetable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
@@ -128,5 +133,14 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 	@Override
 	protected ResourcePatternAccess advAcc() {
 		return appMan.getResourcePatternAccess();
+	}
+
+	@Override
+	public Collection<Datapoint> getDatapoints(AirConditioner dev, DatapointService dpService) {
+		List<Datapoint> result = new ArrayList<>();
+		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
+		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
+		result.add(dpService.getDataPointStandard(dev.temperatureSensor().reading()));
+		return result;
 	}
 }

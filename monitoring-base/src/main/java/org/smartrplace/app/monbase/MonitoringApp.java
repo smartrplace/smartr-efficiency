@@ -230,7 +230,7 @@ public class MonitoringApp implements Application, OfflineEvalServiceAccess {
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
 		WidgetPage<?> page = widgetApp.createStartPage();
-		offlineEval = new OfflineControlGUI(page, controller);
+		offlineEval = new OfflineControlGUI(page, controller, null);
 		
 		menu = new NavigationMenu("Select Page");
 		menu.addEntry("Chart-Konfiguration", page);

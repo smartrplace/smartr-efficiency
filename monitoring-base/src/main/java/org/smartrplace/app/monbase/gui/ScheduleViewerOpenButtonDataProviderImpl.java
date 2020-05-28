@@ -18,21 +18,26 @@ import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDes
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
-import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
-import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
 import de.iwes.timeseries.eval.garo.resource.GaRoMultiEvalDataProviderResource;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public abstract class ScheduleViewerOpenButtonDataProviderImpl implements ScheduleViewerOpenButtonDataProvider{
-	protected abstract GaRoSingleEvalProvider getEvalProvider(OgemaHttpRequest req);
+	//protected abstract GaRoSingleEvalProvider getEvalProvider(OgemaHttpRequest req);
 	protected abstract List<String> getRoomIDs(OgemaHttpRequest req);
 	/** Only relevant on server*/
 	protected List<String> getGatewayIds(OgemaHttpRequest req) {return null;}
 	protected abstract String getDataType(OgemaHttpRequest req);
 	protected final MonitoringController controller;
+	protected final OfflineControlGUIConfig guiConfig;
 	
 	public ScheduleViewerOpenButtonDataProviderImpl(MonitoringController controller) {
 		this.controller = controller;
+		this.guiConfig = new OfflineControlGUI.DefaultGUIConfig(controller);
+	}
+	public ScheduleViewerOpenButtonDataProviderImpl(MonitoringController controller,
+			OfflineControlGUIConfig guiConfig) {
+		this.controller = controller;
+		this.guiConfig = guiConfig;
 	}
 
 	@Override
@@ -42,19 +47,13 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 	
 	@Override
 	public List<TimeSeriesData> getData(OgemaHttpRequest req) {
-		final GaRoSingleEvalProvider eval = getEvalProvider(req);
+		//final GaRoSingleEvalProvider eval = getEvalProvider(req);
 		List<GaRoMultiEvalDataProvider<?>> dps = controller.getDataProvidersToUse();
 		GaRoMultiEvalDataProvider<?> dp = dps.get(0);
 		final List<String> roomIDs = getRoomIDs(req);
 		final List<String> gwIds;
 		final List<TimeSeriesData> input;
-		//roomIDs = (List<String>) roomSelection.multiSelect.getSelectedLabels(req);
-		/*List<CheckboxEntry> entries = multiSelectRooms.getCheckboxList(req);
-		roomIDs = new ArrayList<>();
-		for(CheckboxEntry e: entries) {
-			if(e.isChecked())
-				roomIDs.add(e.label(null));
-		}*/
+
 		//On local GW we use provider ending on Resource
 		if(dp.id().endsWith("Resource")) {
 			gwIds = Arrays.asList(new String[] {GaRoMultiEvalDataProviderResource.LOCAL_GATEWAY_ID});
@@ -63,9 +62,9 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 			//gwIds = controller.getGwIDs(req);
 		}
 		//We perform room filtering in cleanListByRooms, so we get data for all rooms here
-		input = GaRoEvalHelper.getFittingTSforEval(dp, eval, gwIds, null);
-		//else
-		//	input = GaRoEvalHelper.getFittingTSforEval(dp, eval, gwIds, roomIDs);
+		//input = GaRoEvalHelper.getFittingTSforEval(dp, eval, gwIds, null);
+		input = guiConfig.getTimeseries(gwIds, roomIDs, req);
+
 		if((!roomIDs.contains(controller.getAllRoomLabel(req!=null?req.getLocale():null)))) {
 			cleanListByRooms(input, roomIDs);
 		}
@@ -85,7 +84,7 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		Set<ComplexOptionDescription> inputsToUse = new HashSet<>(); //ArrayList<>();
 		
 		// For reverse conversion see InitUtil(?)
-		List<String> baselabels = controller.getComplexOptions().get(dataTypeOrg);
+		List<String> baselabels = guiConfig.baseLabels(dataTypeOrg); //controller.getComplexOptions().get(dataTypeOrg);
 		if(baselabels == null)
 			throw new IllegalStateException("unknown data type label:"+dataTypeOrg);
 		final List<TimeSeriesData> manualTsInput = new ArrayList<>();
@@ -124,47 +123,6 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		if(tsProcessRequest != null) {
 			TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 			List<TimeSeriesData> result = util.processTSD(tsProcessRequest, input, nameProvider(), controller);
-			/*List<TimeSeriesData> result = new ArrayList<>();
-			for(TimeSeriesData tsd: input) {
-				if(!(tsd instanceof TimeSeriesDataImpl))
-					continue;
-				TimeSeriesDataImpl tsdi = (TimeSeriesDataImpl) tsd;
-				if(tsProcessRequest.equals("METER")) {
-					ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi, nameProvider(), controller) {
-						@Override
-						protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
-								long end, AggregationMode mode) {
-							MeterReference ref = new MeterReference();
-							ref.referenceMeterValue = 0;
-							TimeResource refRes = ResourceHelperSP.getSubResource(null,
-									"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
-									TimeResource.class, controller.appMan.getResourceAccess());
-							ref.referenceTime = refRes.getValue();
-							return TimeSeriesServlet.getMeterFromConsumption(timeSeries, start, end, ref, mode);						
-						}
-						@Override
-						protected String getLabelPostfix() {
-							return "_vm";
-						}
-					}; 
-					TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
-					result.add(newtsdi);
-				} else if(tsProcessRequest.equals("DAY")) {
-					ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi, nameProvider(), controller) {
-						@Override
-						protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
-								long end, AggregationMode mode) {
-							return TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);						
-						}
-						@Override
-						protected String getLabelPostfix() {
-							return "_proTag";
-						}
-					}; 
-					TimeSeriesDataExtendedImpl newtsdi = newTs2.getResultSeries();
-					result.add(newtsdi);				
-				}
-			}*/
 			return result;
 		}
 		return input;

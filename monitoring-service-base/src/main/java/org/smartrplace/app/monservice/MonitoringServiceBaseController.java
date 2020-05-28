@@ -8,6 +8,7 @@ import org.ogema.devicefinder.basedata.DeviceFinderInit;
 public class MonitoringServiceBaseController {
 	public final DatapointService dpService;
 	public final ApplicationManager appMan;
+	public final MonitoringServiceBaseApp baseApp;
 	
 	public MonitoringServiceBaseController(ApplicationManager appMan, MonitoringServiceBaseApp evaluationOCApp) {
 		this(appMan, evaluationOCApp, evaluationOCApp.dpService);
@@ -16,6 +17,7 @@ public class MonitoringServiceBaseController {
 			DatapointService dpService) {
 		this.appMan = appMan;
 		this.dpService = dpService;
+		this.baseApp = evaluationOCApp;
 		DeviceFinderInit.getAllDatapoints(appMan, dpService);
 	}
 	public void close() {
