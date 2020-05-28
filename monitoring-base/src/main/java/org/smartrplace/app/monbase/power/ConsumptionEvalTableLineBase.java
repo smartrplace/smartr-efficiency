@@ -1,5 +1,6 @@
 package org.smartrplace.app.monbase.power;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.ogema.devicefinder.api.Datapoint;
@@ -83,7 +84,8 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	
 	/** 0: overall, 1: L1, 2: L2, 3: L3*/
 	@Override
-	public float getPhaseValue(int index, long startTime, long endTime, long now, List<ConsumptionEvalTableLineI> allLines) {
+	public float getPhaseValue(int index, long startTime, long endTime, long now,
+			Collection<ConsumptionEvalTableLineI> allLines) {
 		if(type == SumType.SUM_LINE) {
 			float val = 0;
 			for(ConsumptionEvalTableLineI source: sourcesToSum) {
@@ -182,6 +184,8 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	
 	@Override
 	public int hasSubPhaseNum() {
+		if(conn == null)
+			return 0;
 		return conn.hasSubPhaseNum();
 	}
 }

@@ -43,7 +43,9 @@ public class ConsumptionEvalServlet implements ServletPageProvider<UtilityType> 
 		long now = appMan.getFrameworkTime();
 		long[] startEnd = ServletTimeseriesProvider.getDayStartEnd(parameters, appMan);
 		for(ConsumptionEvalTableBase<?> page: pages) {
-			for(ConsumptionEvalTableLineI line: page.getAllObjectsInTable()) {
+			@SuppressWarnings("unchecked")
+			Collection<ConsumptionEvalTableLineI> allLines = (Collection<ConsumptionEvalTableLineI>) page.getAllObjectsInTable();
+			for(ConsumptionEvalTableLineI line: allLines) {
 				Datapoint dp = line.getDatapoint();
 				if(dp != null) {
 					ServletStringProvider nameP = new ServletStringProvider(dp.label(null));
@@ -58,13 +60,13 @@ public class ConsumptionEvalServlet implements ServletPageProvider<UtilityType> 
 					ServletStringProvider nameP = new ServletStringProvider(line.getLabel());
 					result.put("name", nameP);					
 				}
-				float val = line.getPhaseValue(0, startEnd[0], startEnd[1], now, null);
+				float val = line.getPhaseValue(0, startEnd[0], startEnd[1], now, allLines);
 				ServletNumProvider valueP = new ServletNumProvider(val);
 				result.put("value", valueP);
 				List<Float> values = new ArrayList<>();
 				List<String> names = new ArrayList<>();
 				for(int subPh=0; subPh<line.hasSubPhaseNum(); subPh++) {
-					values.add(line.getPhaseValue(subPh, startEnd[0], startEnd[1], now, null));
+					values.add(line.getPhaseValue(subPh, startEnd[0], startEnd[1], now, allLines));
 					names.add(""+(subPh+1));
 				}
 				//TODO
@@ -85,6 +87,10 @@ public class ConsumptionEvalServlet implements ServletPageProvider<UtilityType> 
 
 	@Override
 	public UtilityType getObject(String objectId) {
-		return UtilityType.valueOf(objectId);
+		try {
+			return UtilityType.valueOf(objectId);
+		} catch(IllegalArgumentException e) {
+			return null;
+		}
 	}
 }

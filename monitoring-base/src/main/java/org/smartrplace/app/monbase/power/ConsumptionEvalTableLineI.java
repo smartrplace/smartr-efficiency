@@ -1,5 +1,6 @@
 package org.smartrplace.app.monbase.power;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.ogema.core.model.Resource;
@@ -58,7 +59,8 @@ public interface ConsumptionEvalTableLineI {
 	 * TODO: Adapt naming
 	 * @param index 0: overall, 1: L1, 2: L2, 3: L3
 	 * */
-	public float getPhaseValue(int index, long startTime, long endTime, long now, List<ConsumptionEvalTableLineI> allLines);
+	public float getPhaseValue(int index, long startTime, long endTime, long now,
+			Collection<ConsumptionEvalTableLineI> allLines);
 	
 	/** Get value for a phase and an interval. Implementation needs not to support sum lines*/
 	void updatePhaseValueInternal(int index, long startTime, long endTime, long currentTime);

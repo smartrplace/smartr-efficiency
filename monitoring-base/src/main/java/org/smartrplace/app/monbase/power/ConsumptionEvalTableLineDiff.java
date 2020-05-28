@@ -1,6 +1,7 @@
 package org.smartrplace.app.monbase.power;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -80,7 +81,7 @@ public abstract class ConsumptionEvalTableLineDiff extends ConsumptionEvalTableL
 	
 	@Override
 	public float getPhaseValue(int index, long startTime, long endTime, long now,
-			List<ConsumptionEvalTableLineI> allLines) {
+			Collection<ConsumptionEvalTableLineI> allLines) {
 		if(diffLines == null) {
 			diffLines = new ArrayList<>();
 			linesToInclude = updateLinesToInclude();
