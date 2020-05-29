@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
@@ -22,9 +23,7 @@ import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.CostProvider;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
-import org.smartrplace.util.frontend.servlet.UserServlet;
 
-import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.format.StringFormatHelper.StringProvider;
@@ -101,16 +100,19 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 				mode = AggregationMode.Meter2Meter;
 			result.conn = new EnergyEvalObjSchedule((Schedule)dp.getResource(), null,
 					mode, controller);
-		} else if((dp.getResource() == null) && (dp.getTimeSeriesID() != null)) {
-			AggregationMode mode = dp.info().getAggregationMode();
-			if(mode == null)
-				mode = AggregationMode.Meter2Meter;
-			TimeSeriesDataImpl ts = UserServlet.knownTS.get(dp.getTimeSeriesID());
-			if(ts != null)
-				result.conn = new EnergyEvalObjSchedule(ts.getTimeSeries(), null, mode, controller);
-			else {
+		} else if(dp.getResource() == null) {
+			ReadOnlyTimeSeries ts = dp.getTimeSeries();
+			if(ts != null) {
+				AggregationMode mode = dp.info().getAggregationMode();
+				if(mode == null)
+					mode = AggregationMode.Meter2Meter;
+				//TimeSeriesDataImpl ts = UserServlet.knownTS.get(dp.getTimeSeriesID());
+				//if(ts != null)
+				result.conn = new EnergyEvalObjSchedule(ts, null, mode, controller);
+				//else {
 				result.isInTable = false;
 				return result;
+				//}
 			}
 		}
 		result.costProvider = getCostProvider(util);

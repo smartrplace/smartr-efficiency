@@ -10,9 +10,11 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.AggregationModeProvider;
+import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
@@ -27,6 +29,9 @@ public class TimeseriesSimpleProcUtil {
 	public static final String PER_DAY_EVAL = "DAY";
 	public static final String SUM_PER_DAY_EVAL = "SUM_PER_DAY";
 	public static final String SUM_PER_DAY_PER_ROOM_EVAL = "DAY_PER_ROOM";
+	
+	public static final DPRoom unknownRoom = new DPRoomImpl(Datapoint.UNKNOWN_ROOM_ID,
+			Datapoint.UNKNOWN_ROOM_ID);
 	
 	protected final Map<String, TimeseriesSetProcessor> knownProcessors = new HashMap<>();
 	public TimeseriesSetProcessor getProcessor(String procID) {
@@ -104,20 +109,31 @@ TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 				// RoomID -> Timeseries in the room
 				Map<String, List<Datapoint>> sortedbyRoom = new HashMap<>();
 				for(Datapoint tsd: result1) {
-					Datapoint dp = dpService.getDataPointStandard(tsd.id());
-					if(dp.getRoom() != null) {
-						List<Datapoint> roomList = sortedbyRoom.get(dp.getRoom().id());
-						if(roomList == null) {
-							roomList = new ArrayList<>();
-							sortedbyRoom.put(dp.getRoom().id(), roomList);
-						}
-						roomList.add(tsd);
+					Datapoint dp = dpService.getDataPointAsIs(tsd.getLocation());
+					String label;
+					if(dp.getRoom() != null)
+						label = dp.getRoom().label(null);
+					else
+						label = "noRoom";
+					List<Datapoint> roomList = sortedbyRoom.get(label);
+					if(roomList == null) {
+						roomList = new ArrayList<>();
+						sortedbyRoom.put(label, roomList);
 					}
-						
+					roomList.add(tsd);
 				}
 				for(Entry<String, List<Datapoint>> roomData: sortedbyRoom.entrySet()) {
 					TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum(roomData.getKey()+"_sum");
 					List<Datapoint> resultLoc = sumProc.getResultSeries(roomData.getValue(), dpService);
+					if(!roomData.getValue().isEmpty()) {
+						DPRoom room = roomData.getValue().get(0).getRoom();
+						for(Datapoint dpLoc: resultLoc) {
+							if(room != null)
+								dpLoc.setRoom(room);
+							else
+								dpLoc.setRoom(unknownRoom);
+						}
+					}
 					result.addAll(resultLoc);
 				}
 				return result;

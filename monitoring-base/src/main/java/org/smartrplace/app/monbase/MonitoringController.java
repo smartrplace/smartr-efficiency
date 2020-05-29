@@ -18,6 +18,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.externalviewer.extensions.DefaultDedicatedTSSessionConfiguration;
@@ -515,5 +516,16 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		alarmMan = new AlarmingManagement(configs, this, getAlarmingDomain());
 	}
 
-	
+	/** Methods for {@link AggregationModeProvider}
+	 * 
+	 */
+	@Override
+	public DPRoom getRoom(String resLocation) {
+		return dpService.getRoom(getRoomLabel(resLocation, null));
+	}
+	@Override
+	public DatapointService getDpService() {
+		return dpService;
+	}
+
 }

@@ -10,19 +10,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
+import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointInfoProvider;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.api.GatewayResource;
+import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
-import org.smartrplace.app.monservice.MonitoringServiceBaseController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
@@ -56,20 +59,26 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 //@Service(DatapointService.class)
 //@Component
-public class DatapointServiceImpl implements DatapointService {
+public abstract class DatapointServiceImpl implements DatapointService {
 	@SuppressWarnings("unchecked")
-	public DatapointServiceImpl(MonitoringServiceBaseController controller) {
-		this.controller = controller;
+	public DatapointServiceImpl(ApplicationManager appMan) {
+		this.appMan = appMan;
 		installAppList = ResourceHelperSP.getSubResource(null, "hardwareInstallConfig/knownDevices",
-				ResourceList.class, controller.appMan.getResourceAccess());
+				ResourceList.class, appMan.getResourceAccess());
 	}
 
-	private final MonitoringServiceBaseController controller;
+	protected abstract Map<String, DeviceHandlerProvider<?>> getTableProviders();
+	
+	//private final MonitoringServiceBaseController controller;
+	private final ApplicationManager appMan;
 	private final ResourceList<InstallAppDevice> installAppList;
 	
 	/** GatewayId -> Resource-location -> Datapoint object*/
 	Map<String, Map<String, Datapoint>> knownDps = new HashMap<>();
 	
+	/** GatewayId -> GatewayResource-location -> GatewayResource object*/
+	Map<String, Map<String, GatewayResource>> knownGWRes = new HashMap<>();
+
 	@Override
 	public Datapoint getDataPointStandard(String resourceLocation) {
 		return getDataPointStandard(resourceLocation, GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
@@ -84,7 +93,14 @@ public class DatapointServiceImpl implements DatapointService {
 	public Datapoint getDataPointStandard(String resourceLocation, String gatewayId) {
 		Datapoint result = getDataPointAsIs(resourceLocation);
 		if(result == null) {
-			result = new DatapointImpl(resourceLocation, gatewayId, null, null);
+			result = new DatapointImpl(resourceLocation, gatewayId, null, null) {
+				@Override
+				public boolean setRoom(DPRoom room) {
+					if(room != null)
+						setStructure(room, room.id(), gatewayId);
+					return super.setRoom(room);
+				}
+			};
 			Map<String, Datapoint> gwMap = getGwMap(gatewayId);
 			gwMap.put(resourceLocation, result);
 		}
@@ -143,7 +159,14 @@ public class DatapointServiceImpl implements DatapointService {
 	public Datapoint getDataPointStandard(ValueResource valRes) {
 		Datapoint result = getDataPointAsIs(valRes);
 		if(result == null) {
-			result = new DatapointImpl(valRes.getLocation(), null, valRes, null);
+			result = new DatapointImpl(valRes.getLocation(), null, valRes, null) {
+				@Override
+				public boolean setRoom(DPRoom room) {
+					if(room != null)
+						setStructure(room, room.id(), gatewayId);
+					return super.setRoom(room);
+				}
+			};
 			Map<String, Datapoint> gwMap = getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 			gwMap.put(valRes.getLocation(), result);
 		}
@@ -281,7 +304,7 @@ public class DatapointServiceImpl implements DatapointService {
 	@Override
 	public Collection<Class<? extends Resource>> getManagedDeviceResoureceTypes() {
 		Set<Class<? extends Resource>> result = new HashSet<>();
-		for(DeviceHandlerProvider<?> prov: controller.baseApp.getTableProviders().values()) {
+		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
 			result.add(prov.getResourceType());
 		}
 		return result;
@@ -303,10 +326,49 @@ public class DatapointServiceImpl implements DatapointService {
 	public <T extends Resource> DeviceHandlerProviderDP<T> getDeviceHandlerProvider(
 			InstallAppDevice installAppDeviceRes) {
 		Class<? extends Resource> deviceType = installAppDeviceRes.device().getResourceType();
-		for(DeviceHandlerProvider<?> prov: controller.baseApp.getTableProviders().values()) {
+		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
 			if(prov.getResourceType().isAssignableFrom(deviceType))
 				return (DeviceHandlerProviderDP<T>) prov;
 		}
 		return null;
+	}
+
+	@Override
+	public long getFrameworkTime() {
+		return appMan.getFrameworkTime();
+	}
+
+	@Override
+	public GatewayResource getStructure(String id, String gatewayId) {
+		Map<String, GatewayResource> subMap = knownGWRes.get(gatewayId);
+		if(subMap == null)
+			return null;
+		return subMap.get(id);
+	}
+
+	public void setStructure(GatewayResource gwRes, String id, String gatewayId) {
+		Map<String, GatewayResource> subMap = knownGWRes.get(gatewayId);
+		if(subMap == null) {
+			subMap = new HashMap<>();
+			knownGWRes.put(gatewayId, subMap);
+		}
+		subMap.put(id, gwRes);
+	}
+	
+	@Override
+	public DPRoom getRoom(String id) {
+		return getRoom(id, GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
+	}
+	
+	@Override
+	public DPRoom getRoom(String id, String gatewayId) {
+		GatewayResource result = getStructure(id, gatewayId);
+		if(result != null && !(result instanceof DPRoom))
+			return null;
+		if(result == null) {
+			result = new DPRoomImpl(id);
+			setStructure(result, id, gatewayId);
+		}
+		return (DPRoom) result;
 	}
 }

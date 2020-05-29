@@ -56,7 +56,7 @@ public class DeviceFinderInit {
 		}
 		
 		List<ElectricityConnectionBox> meters = appMan.getResourceAccess().getToplevelResources(ElectricityConnectionBox.class);
-		DPRoomImpl dproom = new DPRoomImpl(GaRoMultiEvalDataProvider.BUILDING_OVERALL_ROOM_ID, "Building");
+		DPRoom dproom = dpService.getRoom(DPRoom.BUILDING_OVERALL_ROOM_LABEL);
 		for(ElectricityConnectionBox meter: meters) {
 			Room room = ResourceUtils.getDeviceRoom(meter);
 			if(room != null)

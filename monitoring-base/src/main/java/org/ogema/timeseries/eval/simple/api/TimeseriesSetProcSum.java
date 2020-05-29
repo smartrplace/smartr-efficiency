@@ -9,10 +9,10 @@ public class TimeseriesSetProcSum extends TimeseriesSetProcMultiToSingle {
 	}
 
 	@Override
-	protected float aggregateValues(float[] values, long timestamp, AggregationMode mode) {
+	protected float aggregateValues(Float[] values, long timestamp, AggregationMode mode) {
 		float result = 0;
-		for(float val: values) {
-			if(!Float.isNaN(val))
+		for(Float val: values) {
+			if((val != null) && (!Float.isNaN(val)))
 				result += val;
 		}
 		return result;

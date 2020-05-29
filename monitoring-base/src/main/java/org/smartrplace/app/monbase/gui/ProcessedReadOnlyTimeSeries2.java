@@ -8,6 +8,8 @@ import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 
@@ -117,7 +119,10 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 				getShortId()+getLabelPostfix(), tsdi.description(null)+getLabelPostfix(), InterpolationMode.NONE);
 	}
 	
-	public DatapointImpl getResultSeriesDP() {
+	//public DatapointImpl getResultSeriesDP() {
+	//	return getResultSeriesDP(null);
+	//}
+	public DatapointImpl getResultSeriesDP(DatapointService dpService) {
 		String label;
 		String tsLocationOrBaseId;
 		if(dp != null) {
@@ -127,7 +132,17 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 			label = getShortId()+getLabelPostfix();
 			tsLocationOrBaseId = tsdi.id()+getLabelPostfix();
 		}
-		DatapointImpl result = new DatapointImpl(this, tsLocationOrBaseId, label, false);
+		DatapointImpl result;
+		if(dpService == null)
+			result = new DatapointImpl(this, tsLocationOrBaseId, label, false);
+		else {
+			result = (DatapointImpl) dpService.getDataPointStandard(tsLocationOrBaseId);
+			result.setTimeSeries(this, false);
+			result.setLabel(label);
+		}
+		DPUtil.copyExistingDataRoomDevice(dp, result);
+		result.info().setAggregationMode(AggregationMode.Consumption2Meter);
+		result.info().setInterpolationMode(InterpolationMode.NONE);
 		return result ;
 	}
 }

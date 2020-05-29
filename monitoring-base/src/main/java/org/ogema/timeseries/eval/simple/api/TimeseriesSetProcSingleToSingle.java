@@ -43,8 +43,13 @@ public abstract class TimeseriesSetProcSingleToSingle implements TimeseriesSetPr
 				protected String getLabelPostfix() {
 					return labelPostfix;
 				}
+				
+				@Override
+				protected long getCurrentTime() {
+					return dpService.getFrameworkTime();
+				}
 			}; 
-			DatapointImpl newtsdi = newTs2.getResultSeriesDP();
+			DatapointImpl newtsdi = newTs2.getResultSeriesDP(dpService);
 			result.add(newtsdi);
 		}
 		return result;

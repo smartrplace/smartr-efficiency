@@ -20,6 +20,10 @@ public class TimeProcUtil {
 	
 	public static void printTimeSeriesSet(List<Datapoint> tsdlist, String setName, int maxTsToPrint, Long startTime, Long endTime) {
 		int nonImplCount = 0;
+		int countTs = 0;
+		int countNonNullNaN = 0;
+		int countWithRoom = 0;
+
 		GoodData maxGood = null;
 		//int maxSize = -1;
 		//int maxNN = -1;
@@ -27,7 +31,7 @@ public class TimeProcUtil {
 		String maxName = "-";
 		int minSize = Integer.MAX_VALUE;
 		String minName = "-";
-		int countTs = 0;
+		
 		int sizeSum = 0;
 		int sizeNNSum = 0;
 		int sizeNZSum = 0;
@@ -37,8 +41,13 @@ public class TimeProcUtil {
 				nonImplCount++;
 				continue;
 			}
+			if(tsd.getRoom() != null && !tsd.getRoom().label(null).equals(Datapoint.UNKNOWN_ROOM_ID))
+				countWithRoom++;
 			List<SampledValue> values = getValuesWithoutCalc(tsd.getTimeSeries(), null, startTime, endTime);
 			GoodData good = getGoodNum(values);
+			if(good.nonZeroNum > 0)
+				countNonNullNaN++;
+			
 			//int mysiz = (int) good.nonZeroNum;
 			//int mysizNN = (int) good.nonNanNum;
 			String myName = getName(tsd);
@@ -61,11 +70,16 @@ public class TimeProcUtil {
 		goodAv.totalNum = sizeSum/countTs;
 		goodAv.nonNanNum = sizeNNSum/countTs;
 		goodAv.nonZeroNum = sizeNZSum/countTs;
-		System.out.println("--TSSet:"+setName+"["+((nonImplCount>0)?tsdlist.size()+"!!NonImpl:"+nonImplCount:tsdlist.size())+"]::"
+		String tsNum = getTsNum(tsdlist.size(), countNonNullNaN, countWithRoom);
+		System.out.println("--TSSet:"+setName+"["+((nonImplCount>0)?tsNum+"!!NonImpl:"+nonImplCount:tsNum)+"]::"
 				+ "AvSize"+getGoodString(goodAv)+"  Max:"+getGoodStringInt(maxGood)+"/"+maxName+"  Min:"+minSize+"/"+minName);
 		for(Datapoint tsd: listsToPrint) {
 			printFirstElements(tsd.getTimeSeries(), startTime, endTime);
 		}
+	}
+	
+	private static String getTsNum(int tsdlistsize, int countNonNullNaN, int countWithRoom) {
+		return ""+tsdlistsize+"/"+countNonNullNaN+"/"+countWithRoom;
 	}
 	
 	public static class GoodData {

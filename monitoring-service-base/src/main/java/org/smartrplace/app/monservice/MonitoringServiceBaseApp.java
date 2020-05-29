@@ -90,13 +90,20 @@ public class MonitoringServiceBaseApp implements Application {
     public void start(ApplicationManager appManager) {
 
         // Remember framework references for later.
-        appMan = appManager;
-        log = appManager.getLogger();
+       appMan = appManager;
+       log = appManager.getLogger();
 
-        // 
+       // 
+       dpService = new DatapointServiceImpl(appMan) {
+
+		@Override
+		protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
+			return MonitoringServiceBaseApp.this.getTableProviders();
+		}
+    	   
+       };
        controller = new MonitoringServiceBaseController(appMan, this);
        
-       dpService = new DatapointServiceImpl(controller);
        srDpservice = bc.registerService(DatapointService.class, dpService, null);
        
        devHandAircond = new DeviceHandlerMQTT_Aircond(appMan);

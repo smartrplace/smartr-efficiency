@@ -8,9 +8,18 @@ import java.util.List;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.smartrplace.monbase.alarming.AlarmingManagement;
 
+/** Implementation for time series that is based on some input provided via {@link #updateValues(long, long)}
+ * Note that if knownEndUpdateInterval is null the limits of values provided via updateValues and the data within intervals that have been
+ * requested before are NOT updated later on. If the interval is set then after the interval is finished the 
+ * knownEnd is reset to the time of the last update meaning that it is assumed that everything behing this last
+ * update is unknown.*/
 public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries {
 	protected abstract List<SampledValue> updateValues(long start, long end);
+	
+	/** Only relevant if updateFinalValue is active (default is every two hours)*/
+	protected abstract long getCurrentTime();
 
 	protected List<SampledValue> values = null;
 	//For Debugging only!
@@ -23,15 +32,29 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 	protected long firstValueInList = Long.MAX_VALUE;
 	protected long lastValueInList = -1;
 	protected boolean isOwnList = false;
+
+	final Long knownEndUpdateInterval;
+	long lastKnownEndUpdate = -1;
 	
 	protected final InterpolationMode interpolationMode;
 	
 	public ProcessedReadOnlyTimeSeries(InterpolationMode interpolationMode) {
+		this(interpolationMode, AlarmingManagement.HOUR_MILLIS*2);
+	}
+	public ProcessedReadOnlyTimeSeries(InterpolationMode interpolationMode, Long knownEndUpdateInterval) {
 		this.interpolationMode = interpolationMode;
+		this.knownEndUpdateInterval = knownEndUpdateInterval;
 	}
 
 	@Override
 	public List<SampledValue> getValues(long startTime, long endTime) {
+		if(knownEndUpdateInterval != null) {
+			long now = getCurrentTime();
+			if(now - lastKnownEndUpdate > knownEndUpdateInterval) {
+				knownEnd = lastKnownEndUpdate;
+				lastKnownEndUpdate = now;
+			}
+		}
 		if(knownStart < 0) {
 			values = updateValues(startTime, endTime);
 			knownStart = startTime;
@@ -81,7 +104,9 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 		}
 		if(fromIndex < 0)
 			throw new IllegalStateException("Should not occur!");
-		for(int i=values.size()-1; i>=(fromIndex-1); i--) {
+		if(endTime == startTime)
+			toIndex = fromIndex;
+		else for(int i=values.size()-1; i>=fromIndex; i--) {
 			if(values.get(i).getTimestamp() <= endTime) {
 				toIndex = i;
 				break;
@@ -89,7 +114,7 @@ public abstract class ProcessedReadOnlyTimeSeries implements ReadOnlyTimeSeries 
 		}
 		if(fromIndex > toIndex)
 			return Collections.emptyList();
-		List<SampledValue> result = values.subList(fromIndex, toIndex);
+		List<SampledValue> result = values.subList(fromIndex, toIndex+1);
 		return result;
 	}
 
