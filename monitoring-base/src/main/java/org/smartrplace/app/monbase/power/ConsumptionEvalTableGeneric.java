@@ -16,6 +16,7 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
+import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.devicefinder.util.DatapointInfoImpl;
 import org.ogema.model.connections.ElectricityConnection;
 import org.smartrplace.app.monbase.MonitoringController;
@@ -98,7 +99,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 			AggregationMode mode = dp.info().getAggregationMode();
 			if(mode == null)
 				mode = AggregationMode.Meter2Meter;
-			result.conn = new EnergyEvalObjSchedule((Schedule)dp.getResource(), null,
+			result.conn = new EnergyEvalObjSchedule(dp, null,
 					mode, controller);
 		} else if(dp.getResource() == null) {
 			ReadOnlyTimeSeries ts = dp.getTimeSeries();
@@ -108,11 +109,10 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 					mode = AggregationMode.Meter2Meter;
 				//TimeSeriesDataImpl ts = UserServlet.knownTS.get(dp.getTimeSeriesID());
 				//if(ts != null)
-				result.conn = new EnergyEvalObjSchedule(ts, null, mode, controller);
-				//else {
+				result.conn = new EnergyEvalObjSchedule(dp, null, mode, controller);
+			} else {
 				result.isInTable = false;
 				return result;
-				//}
 			}
 		}
 		result.costProvider = getCostProvider(util);
@@ -215,6 +215,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 
 	@Override
 	public Collection<ConsumptionEvalTableLineBase> getAllObjectsInTable() {
+DPUtil.printDatapointsOfType(GaRoDataType.HeatEnergyIntegral, controller.dpService);
 		List<Datapoint> alldps = controller.dpService.getAllDatapoints();
 		List<ConsumptionEvalTableLineBase> result = new ArrayList<>();
 		int lineCounter = 0;
@@ -308,7 +309,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	}
 	
 	public String getLabel(Datapoint dp) {
-		String label= dp.label(null);
+		String label= dp.label();
 		if(label == null) {
 			label = nameProvider.getShortNameForTypeI(dp.getGaroDataType(), dp.getResource().getLocation());
 			dp.setLabel(label);
