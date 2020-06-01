@@ -13,6 +13,7 @@ import org.ogema.model.locations.Room;
 import org.ogema.widgets.configuration.service.OGEMAConfigurations;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
+import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.ServletTimeseriesProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
@@ -36,6 +37,8 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 	public Map<String, ServletValueProvider> getProviders(TimeSeriesDataImpl object, String user, Map<String, String[]> parameters) {
 		Map<String, ServletValueProvider> result = new HashMap<>();
 		
+		ServletStringProvider tsID = new ServletStringProvider(getObjectId(object));
+		result.put("timeseriesID", tsID);
 		ZoneOffset utcOffset = ZoneOffset.systemDefault().getRules().getOffset(Instant.now());
 		result.put("UTCoffset", new ServletNumProvider(utcOffset.getTotalSeconds()*1000));
 		ServletTimeseriesProvider recData = new ServletTimeseriesProvider(object.label(null),
