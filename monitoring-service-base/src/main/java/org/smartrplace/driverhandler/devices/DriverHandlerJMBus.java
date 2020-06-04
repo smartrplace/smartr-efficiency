@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -13,6 +14,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DocumentationLinkProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableRaw;
@@ -75,19 +77,31 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 		//TODO: The concept of holding this object and writing back later on is not fully thread-safe
 		//If the config page is opened, then configuration is edited in the Felix Admin, then written on this config page
 		//the result may be non-consistent or changes in Felix Admin will be overwritten.
-		public boolean writeConfig(ConfigurationAdmin configAdmin) {
-        	Configuration config;
+		public boolean writeConfigMain(ConfigurationAdmin configAdmin) {
 			try {
 				Configuration configPrev = configAdmin.getConfiguration("org.smartrplace.drivers.JmbusTest");
 	        	Dictionary<String, Object> dict = configPrev.getProperties();
+	        	if(dict == null) {
+	        		dict = new Hashtable<String, Object>();
+	        	}
 	        	putDict(dict, "port", port);
 	        	putDict(dict, "hardwareIdentifier", hardwareIdentifier);
 	        	putDict(dict, "manufacturer", manufacturer);
 	        	putDict(dict, "mode", mode);
+				configPrev.update(dict);
+				return true;
+			} catch (IOException e) {
+				e.printStackTrace();
+	 			throw new IllegalStateException(e);
+			}
+		}
+		public boolean writeConfigDeviceData(ConfigurationAdmin configAdmin) {
+			try {
+				Configuration configPrev = configAdmin.getConfiguration("org.smartrplace.drivers.JmbusTest");
+	        	Dictionary<String, Object> dict = configPrev.getProperties();
 	        	putDict(dict, "keyDeviceIds", keyDeviceIds);
 	        	putDict(dict, "keysHexa", keysHexa);
-				config = configAdmin.createFactoryConfiguration("org.smartrplace.drivers.JmbusTest");
-				config.update(dict);
+				configPrev.update(dict);
 				return true;
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -145,10 +159,12 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 	public DriverHandlerJMBus(ApplicationManager appMan, ConfigurationAdmin configAdmin) {
 		this.appMan = appMan;
 		this.configAdmin = configAdmin;
+		this.deviceHandlerSensDev = new DeviceHandlerWMBus_SensorDevice(appMan);
 	}
 
 	private final ApplicationManager appMan;
 	private final ConfigurationAdmin configAdmin;
+	private final DeviceHandlerWMBus_SensorDevice deviceHandlerSensDev;
 
 	@Override
 	public String id() {
@@ -190,8 +206,8 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 
 	@Override
 	public List<DeviceHandlerProvider<?>> getDeviceHandlerProviders(boolean registerByFramework) {
-		// TODO: Add device handler providers for water, heat meters, CO2 sensors, energy cam,...
-		return null;
+		// TODO: Add device handler providers for energy cam,...
+		return Arrays.asList(new DeviceHandlerProvider<?>[] {deviceHandlerSensDev});
 	}
 
 	@Override
@@ -212,11 +228,59 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 					vh.registerHeaderEntry("Mode");
 					return;
 				}
-				vh.stringLabel("USB Port (if no HW-ID)", id, config.port, row);
-				vh.stringLabel("Hardware Identifier of USB stick", id, config.hardwareIdentifier, row);
+				TextField portText = new TextField(mainTable, "portText"+id, req) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						setValue(config.port, req);
+					}
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						String val = getValue(req);
+						if(val == null)
+							alert.showAlert("Value could not be processed for device ID!", false, req);
+						else {
+							config.port = val;
+							config.writeConfigMain(configAdmin);
+							initDeviceData(config, configAdmin);
+						}
+					}
+				};
+				row.addCell(WidgetHelper.getValidWidgetId("USB Port (if no HW-ID)"), portText);
+
+				//vh.stringEdit("USB Port (if no HW-ID)", id, config.port, row);
+				//vh.stringEdit("Hardware Identifier of USB stick", id, config.hardwareIdentifier, row);
 				
+				TextField hwIDText = new TextField(mainTable, "hwIDText"+id, req) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						setValue(config.hardwareIdentifier, req);
+					}
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						String val = getValue(req);
+						if(val == null)
+							alert.showAlert("Value could not be processed for device ID!", false, req);
+						else {
+							config.hardwareIdentifier = val;
+							config.writeConfigMain(configAdmin);
+							initDeviceData(config, configAdmin);
+						}
+					}
+				};
+				row.addCell(WidgetHelper.getValidWidgetId("Hardware Identifier of USB stick"), hwIDText);
+
 				//vh.stringLabel("Manufacturer ID", id, config.manufacturer, row);
-				TemplateDropdown<String> manufacturerDrop = new TemplateDropdown<String>(mainTable, "manufacturerDrop"+id, req);
+				TemplateDropdown<String> manufacturerDrop = new TemplateDropdown<String>(mainTable, "manufacturerDrop"+id, req) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						config.manufacturer = getSelectedItem(req);
+						config.writeConfigMain(configAdmin);
+					}
+				};
 				manufacturerDrop.setTemplate(new DefaultDisplayTemplate<String>() {
 					@Override
 					public String getLabel(String object, OgemaLocale locale) {
@@ -232,7 +296,15 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 				manufacturerDrop.selectDefaultItem(config.manufacturer);
 				row.addCell(WidgetHelper.getValidWidgetId("Manufacturer ID"), manufacturerDrop);
 	
-				TemplateDropdown<String> modeDrop = new TemplateDropdown<String>(mainTable, "modeDrop"+id, req);
+				TemplateDropdown<String> modeDrop = new TemplateDropdown<String>(mainTable, "modeDrop"+id, req) {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						config.mode = getSelectedItem(req);
+						config.writeConfigMain(configAdmin);
+					}
+				};
 				modeDrop.setTemplate(new DefaultDisplayTemplate<String>());
 				modeDrop.setDefaultItems(Arrays.asList(new String[] {"S", "T", "C"}));
 				modeDrop.selectDefaultItem(config.mode);
@@ -250,22 +322,35 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 			}
 
 			@Override
+			protected DocumentationLinkProvider getDocLinkProvider() {
+				return DriverHandlerJMBus.this;
+			}
+			
+			@Override
 			public Collection<DriverHandlerProvider> getObjectsInTable(OgemaHttpRequest req) {
-				if(config.keyDeviceIds == null)
-					return Collections.emptyList();
+				//if(config.keyDeviceIds == null)
+				//	return Collections.emptyList();
 				return Arrays.asList(new DriverHandlerProvider[] {DriverHandlerJMBus.this});
 			}
 		};
 	}
 
+	private static void initDeviceData(DriverConfigJMBus config, ConfigurationAdmin configAdmin) {
+		if(config.keyDeviceIds == null || config.keyDeviceIds.length == 0) {
+			config.keyDeviceIds = new Long[] {12345678l};
+			config.keysHexa = new String[] {""};
+			config.writeConfigDeviceData(configAdmin);
+		}		
+	}
+	
 	@Override
-	public DeviceTableRaw<DriverDeviceConfig, Resource> getDriverPerDeviceConfigurationTable(WidgetPage<?> page,
+	public DeviceTableRaw<DriverDeviceConfig, InstallAppDevice> getDriverPerDeviceConfigurationTable(WidgetPage<?> page,
 			Alert alert, InstalledAppsSelector selector, boolean addUnfoundDevices) {
-		return new DeviceTableRaw<DriverDeviceConfig, Resource>(page, appMan, alert, null) {
+		return new DeviceTableRaw<DriverDeviceConfig, InstallAppDevice>(page, appMan, alert, null) {
 
 			@Override
 			public void addWidgets(DriverDeviceConfig objectIn,
-					ObjectResourceGUIHelper<DriverDeviceConfig, Resource> vh, String id, OgemaHttpRequest req,
+					ObjectResourceGUIHelper<DriverDeviceConfig, InstallAppDevice> vh, String id, OgemaHttpRequest req,
 					Row row, ApplicationManager appMan) {
 				if(req == null) {
 					vh.registerHeaderEntry("DeviceID");
@@ -284,6 +369,8 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 					private static final long serialVersionUID = 1L;
 					@Override
 					public void onGET(OgemaHttpRequest req) {
+						if(object.mainConfig == null)
+							return;
 						setNumericalValue(object.mainConfig.keyDeviceIds[object.deviceIdx], req);
 					}
 					@Override
@@ -293,7 +380,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 							alert.showAlert("Value "+getValue(req)+" could not be processed for device ID!", false, req);
 						else {
 							object.mainConfig.keyDeviceIds[object.deviceIdx] = val;
-							object.mainConfig.writeConfig(configAdmin);
+							object.mainConfig.writeConfigDeviceData(configAdmin);
 						}
 					}
 				};
@@ -303,6 +390,8 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 					private static final long serialVersionUID = 1L;
 					@Override
 					public void onGET(OgemaHttpRequest req) {
+						if(object.mainConfig == null)
+							return;
 						setValue(""+object.mainConfig.keysHexa[object.deviceIdx], req);
 					}
 					@Override
@@ -312,32 +401,12 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 							alert.showAlert("Value could not be processed for device ID!", false, req);
 						else {
 							object.mainConfig.keysHexa[object.deviceIdx] = val;
-							object.mainConfig.writeConfig(configAdmin);
+							object.mainConfig.writeConfigDeviceData(configAdmin);
 						}
 					}
 				};
 				row.addCell(WidgetHelper.getValidWidgetId("Device Encryption Key (Hex)"), keyHexaText);
 
-				Button resultDel = new Button(mainTable, "delete"+id, "Delete", req) {
-					private static final long serialVersionUID = 1L;
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						object.mainConfig.keyDeviceIds = ArrayUtils.remove(object.mainConfig.keyDeviceIds, object.deviceIdx);
-						object.mainConfig.keysHexa = ArrayUtils.remove(object.mainConfig.keysHexa, object.deviceIdx);
-						disable(req);
-						devIdText.disable(req);
-						keyHexaText.disable(req);
-						object.mainConfig.writeConfig(configAdmin);
-						if(object.deviceRes != null)
-							alert.showAlert("Note that device information int the OGEMA database is not deleted by this Action. Check the Hardware Installation page for this!", false, req);
-						object.mainConfig = null;
-					}
-				};
-				resultDel.registerDependentWidget(resultDel);
-				resultDel.registerDependentWidget(devIdText);
-				resultDel.registerDependentWidget(keyHexaText);
-				row.addCell(WidgetHelper.getValidWidgetId("Delete"), resultDel);
-				
 				Button resultCopy = new Button(mainTable, "copy"+id, "Copy", req) {
 					private static final long serialVersionUID = 1L;
 					@Override
@@ -346,10 +415,33 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 						object.mainConfig.keyDeviceIds = ArrayUtils.add(object.mainConfig.keyDeviceIds, devId);
 						String kexHex = object.mainConfig.keysHexa[object.deviceIdx];
 						object.mainConfig.keysHexa = ArrayUtils.add(object.mainConfig.keysHexa, kexHex);
-						object.mainConfig.writeConfig(configAdmin);
+						object.mainConfig.writeConfigDeviceData(configAdmin);
 					}
 				};
+
+				Button resultDel = new Button(mainTable, "delete"+id, "Delete", req) {
+					private static final long serialVersionUID = 1L;
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						object.mainConfig.keyDeviceIds = ArrayUtils.remove(object.mainConfig.keyDeviceIds, object.deviceIdx);
+						object.mainConfig.keysHexa = ArrayUtils.remove(object.mainConfig.keysHexa, object.deviceIdx);
+						disable(req);
+						resultCopy.disable(req);
+						devIdText.disable(req);
+						keyHexaText.disable(req);
+						object.mainConfig.writeConfigDeviceData(configAdmin);
+						if(object.deviceRes != null)
+							alert.showAlert("Note that device information int the OGEMA database is not deleted by this Action. Check the Hardware Installation page for this!", false, req);
+						object.mainConfig = null;
+					}
+				};
+				row.addCell(WidgetHelper.getValidWidgetId("Delete"), resultDel);
 				row.addCell(WidgetHelper.getValidWidgetId("Copy"), resultCopy);
+				
+				resultDel.registerDependentWidget(resultDel);
+				resultDel.registerDependentWidget(resultCopy);
+				resultDel.registerDependentWidget(devIdText);
+				resultDel.registerDependentWidget(keyHexaText);
 				
 				if(object.installAppDevice == null)
 					return;
@@ -369,6 +461,11 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 			@Override
 			protected String getTableTitle() {
 				return "wMBus Device Configuration";
+			}
+			
+			@Override
+			public InstallAppDevice getResource(DriverDeviceConfig object, OgemaHttpRequest req) {
+				return ((DriverDeviceConfigJMBus)object).installAppDevice;
 			}
 
 			@Override
