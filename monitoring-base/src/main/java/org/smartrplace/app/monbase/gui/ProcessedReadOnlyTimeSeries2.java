@@ -108,7 +108,7 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 				if(nameProvider != null)
 					shortId = nameProvider.getShortNameForTypeI(dataType, tse);
 				else
-					shortId = dp.label();
+					shortId = dp.label(null);
 			}
 		}
 		return shortId;		
@@ -126,7 +126,7 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 		String label;
 		String tsLocationOrBaseId;
 		if(dp != null) {
-			label = dp.label()+getLabelPostfix();
+			label = dp.label(null)+getLabelPostfix();
 			tsLocationOrBaseId = dp.getLocation()+getLabelPostfix();
 		} else {
 			label = getShortId()+getLabelPostfix();
@@ -138,7 +138,7 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 		else {
 			result = (DatapointImpl) dpService.getDataPointStandard(tsLocationOrBaseId);
 			result.setTimeSeries(this, false);
-			result.setLabel(label);
+			result.setLabel(label, null);
 		}
 		DPUtil.copyExistingDataRoomDevice(dp, result);
 		result.info().setAggregationMode(AggregationMode.Consumption2Meter);

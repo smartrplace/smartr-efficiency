@@ -16,9 +16,12 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_MultiSwBox;
@@ -54,6 +57,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@Reference
 	OgemaGuiService guiService;
 	
+	@Reference
+	ConfigurationAdmin configAdmin;
+	
 	//@Reference
 	//DatapointService dpService;
 	
@@ -78,6 +84,10 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srSwBox = null;
 	private DeviceHandlerMQTT_MultiSwBox devHandSwBox;
 	
+	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
+	private DriverHandlerJMBus jmbusConfig;
+	
+	
 	@Activate
 	   void activate(BundleContext bc) {
 	    this.bc = bc;
@@ -90,28 +100,31 @@ public class MonitoringServiceBaseApp implements Application {
     public void start(ApplicationManager appManager) {
 
         // Remember framework references for later.
-       appMan = appManager;
-       log = appManager.getLogger();
+        appMan = appManager;
+        log = appManager.getLogger();
 
-       // 
-       dpService = new DatapointServiceImpl(appMan) {
+        // 
+        dpService = new DatapointServiceImpl(appMan) {
 
-		@Override
-		protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
-			return MonitoringServiceBaseApp.this.getTableProviders();
-		}
-    	   
-       };
-       controller = new MonitoringServiceBaseController(appMan, this);
-       
-       srDpservice = bc.registerService(DatapointService.class, dpService, null);
-       
-       devHandAircond = new DeviceHandlerMQTT_Aircond(appMan);
-       srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
-       devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(appMan);
-       srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
-       devHandSwBox = new DeviceHandlerMQTT_MultiSwBox(appMan);
-       srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
+			@Override
+			protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
+				return MonitoringServiceBaseApp.this.getTableProviders();
+			}
+		   
+	   };
+	   controller = new MonitoringServiceBaseController(appMan, this);
+	   
+	   srDpservice = bc.registerService(DatapointService.class, dpService, null);
+	   
+	   devHandAircond = new DeviceHandlerMQTT_Aircond(appMan);
+	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
+	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(appMan);
+	   srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
+	   devHandSwBox = new DeviceHandlerMQTT_MultiSwBox(appMan);
+	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
+	   
+	   jmbusConfig = new DriverHandlerJMBus(appManager, configAdmin);
+	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
 	}
  	
      /*

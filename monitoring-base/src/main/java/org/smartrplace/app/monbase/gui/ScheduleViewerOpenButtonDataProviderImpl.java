@@ -2,9 +2,7 @@ package org.smartrplace.app.monbase.gui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
@@ -63,12 +61,10 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		}
 		//We perform room filtering in cleanListByRooms, so we get data for all rooms here
 		//input = GaRoEvalHelper.getFittingTSforEval(dp, eval, gwIds, null);
-		input = guiConfig.getTimeseries(gwIds, roomIDs, req);
-
-		if((!roomIDs.contains(controller.getAllRoomLabel(req!=null?req.getLocale():null)))) {
-			cleanListByRooms(input, roomIDs);
-		}
 		final String dataTypeOrg = getDataType(req);
+		List<String> baselabels = guiConfig.baseLabels(dataTypeOrg, req.getLocale()); //controller.getComplexOptions().get(dataTypeOrg);
+		input = guiConfig.getTimeseries(gwIds, roomIDs, baselabels, req);
+
 		//final String dataType;
 		final String tsProcessRequest;
 		if(dataTypeOrg.contains("##")) {
@@ -79,15 +75,15 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 			//dataType = dataTypeOrg;
 			tsProcessRequest = null;			
 		}
+
+		//This should never be true
 		if(dataTypeOrg.equals(controller.getAllDataLabel()))
 			return input;
-		Set<ComplexOptionDescription> inputsToUse = new HashSet<>(); //ArrayList<>();
 		
 		// For reverse conversion see InitUtil(?)
-		List<String> baselabels = guiConfig.baseLabels(dataTypeOrg); //controller.getComplexOptions().get(dataTypeOrg);
 		if(baselabels == null)
 			throw new IllegalStateException("unknown data type label:"+dataTypeOrg);
-		final List<TimeSeriesData> manualTsInput = new ArrayList<>();
+		final List<TimeSeriesData> manualTsInput = new ArrayList<>();	
 		final List<String> roomIDsForManual;
 		if(roomIDs.contains(controller.getAllRoomLabel(req!=null?req.getLocale():null))) {
 			roomIDsForManual = controller.getAllRooms(req!=null?req.getLocale():null);
@@ -97,11 +93,6 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		List<String> done = new ArrayList<String>();
 		for(String baselabel: baselabels) {
 			List<ComplexOptionDescription> newInp = controller.getDatatypesBaseExtended().get(baselabel);
-			try {
-				inputsToUse.addAll(newInp);
-			} catch(NullPointerException e) {
-				e.printStackTrace();
-			}
 			for(ComplexOptionDescription locc: newInp) {
 				if(locc.pathElement == null)
 					continue;
@@ -118,7 +109,6 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 				}
 			}
 		}
-		ExportBulkData.cleanList(input, inputsToUse);
 		input.addAll(manualTsInput);
 		if(tsProcessRequest != null) {
 			TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
@@ -139,7 +129,8 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 	 * @param input
 	 * @param rooms
 	 */
-	public void cleanListByRooms(List<TimeSeriesData> input, List<String> rooms) {
+	public static void cleanListByRooms(List<TimeSeriesData> input, List<String> rooms,
+			MonitoringController controller) {
 		List<TimeSeriesData> toRemove = new ArrayList<>();
 		for (TimeSeriesData tsdBase : input) {
 			boolean found = false;

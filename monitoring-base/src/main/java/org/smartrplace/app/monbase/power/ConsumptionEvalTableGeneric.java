@@ -309,10 +309,10 @@ DPUtil.printDatapointsOfType(GaRoDataType.HeatEnergyIntegral, controller.dpServi
 	}
 	
 	public String getLabel(Datapoint dp) {
-		String label= dp.label();
+		String label= dp.labelDefault();
 		if(label == null) {
 			label = nameProvider.getShortNameForTypeI(dp.getGaroDataType(), dp.getResource().getLocation());
-			dp.setLabel(label);
+			dp.setLabel(label, null);
 		}
 		return label;
 	}

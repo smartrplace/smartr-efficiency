@@ -130,7 +130,7 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 			//}
 		}; 
 		DatapointImpl newtsdi = newTs2.getResultSeriesDP(dpService);
-		newtsdi.setLabel(label);
+		newtsdi.setLabel(label, null);
 		result.add(newtsdi);
 		return result;
 	}

@@ -23,7 +23,6 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monservice.MonitoringServiceBaseController;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
-import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 
 public class DeviceFinderInit {

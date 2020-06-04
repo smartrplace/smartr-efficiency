@@ -3,6 +3,7 @@ package org.smartrplace.app.monbase.gui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -11,6 +12,8 @@ import org.smartrplace.app.monbase.MonitoringController;
 
 import com.iee.app.evaluationofflinecontrol.gui.GatewayConfigPage;
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl;
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
+import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDescription;
 
 import de.iwes.timeseries.eval.api.EvaluationProvider;
 import de.iwes.timeseries.eval.api.TimeSeriesData;
@@ -73,20 +76,24 @@ public class OfflineControlGUI {
 	    	return configOptions;
 	    }
 	    
-	    public Collection<String> getDataTypes() {
+		@Override
+	    public Collection<String> getPlotNames() {
 			return controller.getComplexOptions().keySet();
 	    }
-	    public String getDefaultComplexOptionKey() {
+		
+		@Override
+	    public String getDefaultPlotName() {
 			return controller.getDefaultComplexOptionKey();
 		}
 	
 		@Override
-		public List<String> baseLabels(String plotName) {
+		public List<String> baseLabels(String plotName, OgemaLocale locale) {
 			return controller.getComplexOptions().get(plotName);
 		}
 		
-		public List<TimeSeriesData> getTimeseries(final List<String> gwIds, List<String> roomIds,
-				OgemaHttpRequest req) {
+		@Override
+		public List<TimeSeriesData> getTimeseries(final List<String> gwIds, List<String> roomIDs,
+				List<String> baselabels, OgemaHttpRequest req) {
 			final GaRoSingleEvalProvider eval = controller.getDefaultProvider();
 			List<GaRoMultiEvalDataProvider<?>> dps = controller.getDataProvidersToUse();
 			GaRoMultiEvalDataProvider<?> dp = dps.get(0);
@@ -94,6 +101,21 @@ public class OfflineControlGUI {
 
 			//We perform room filtering in cleanListByRooms, so we get data for all rooms here
 			input = GaRoEvalHelper.getFittingTSforEval(dp, eval, gwIds, null);
+			if((!roomIDs.contains(controller.getAllRoomLabel(req!=null?req.getLocale():null)))) {
+				ScheduleViewerOpenButtonDataProviderImpl.cleanListByRooms(input, roomIDs, controller);
+			}
+			
+			Set<ComplexOptionDescription> inputsToUse = new HashSet<>(); //ArrayList<>();
+			for(String baselabel: baselabels) {
+				List<ComplexOptionDescription> newInp = controller.getDatatypesBaseExtended().get(baselabel);
+				try {
+					inputsToUse.addAll(newInp);
+				} catch(NullPointerException e) {
+					e.printStackTrace();
+				}
+			}
+			ExportBulkData.cleanList(input, inputsToUse);
+
 			return input;
 		}
 	}
@@ -154,8 +176,8 @@ public class OfflineControlGUI {
 					return labelorg;
 			}
 		});
-		selectDataType.setDefaultItems(this.guiConfig.getDataTypes());
-		selectDataType.selectDefaultItem(this.guiConfig.getDefaultComplexOptionKey());
+		selectDataType.setDefaultItems(this.guiConfig.getPlotNames());
+		selectDataType.selectDefaultItem(this.guiConfig.getDefaultPlotName());
 		
 		//gateway multi-selection
 		if(!Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
