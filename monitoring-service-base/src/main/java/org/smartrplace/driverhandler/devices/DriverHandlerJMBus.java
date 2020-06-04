@@ -45,7 +45,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 		// AMBER, IMST, RADIO_CRAFTS
 		public String manufacturer = "IMST";
 		public String mode = "T"; // modes: "S", "T", "C"
-		public long[] keyDeviceIds;
+		public Long[] keyDeviceIds;
 		public String[] keysHexa;
 
 		public DriverConfigJMBus(ConfigurationAdmin configAdmin) {
@@ -78,20 +78,29 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 		public boolean writeConfig(ConfigurationAdmin configAdmin) {
         	Configuration config;
 			try {
-				config = configAdmin.getConfiguration("org.smartrplace.drivers.JmbusTest");
-	        	Dictionary<String, Object> dict = config.getProperties();
-	        	dict.put("port", port);
-	        	dict.put("hardwareIdentifier", hardwareIdentifier);
-	        	dict.put("manufacturer", manufacturer);
-	        	dict.put("mode", mode);
-	        	dict.put("keyDeviceIds", keyDeviceIds);
-	        	dict.put("keysHexa", keysHexa);
+				Configuration configPrev = configAdmin.getConfiguration("org.smartrplace.drivers.JmbusTest");
+	        	Dictionary<String, Object> dict = configPrev.getProperties();
+	        	putDict(dict, "port", port);
+	        	putDict(dict, "hardwareIdentifier", hardwareIdentifier);
+	        	putDict(dict, "manufacturer", manufacturer);
+	        	putDict(dict, "mode", mode);
+	        	putDict(dict, "keyDeviceIds", keyDeviceIds);
+	        	putDict(dict, "keysHexa", keysHexa);
+				config = configAdmin.createFactoryConfiguration("org.smartrplace.drivers.JmbusTest");
+				config.update(dict);
 				return true;
 			} catch (IOException e) {
 				e.printStackTrace();
 	 			throw new IllegalStateException(e);
 			}
 		}
+	}
+	
+	public static boolean putDict(Dictionary<String, Object> dict, String key, Object value) {
+		if(value == null)
+			return false;
+		dict.put(key, value);
+		return true;
 	}
 	
 	public static String getString(String key, Dictionary<String, Object> dict) {
@@ -106,11 +115,11 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 			return null;
 		return (String[]) obj;
 	}
-	public static long[] getLongArray(String key, Dictionary<String, Object> dict) {
+	public static Long[] getLongArray(String key, Dictionary<String, Object> dict) {
 		Object obj = dict.get(key);
-		if(!(obj instanceof long[]))
+		if(!(obj instanceof Long[]))
 			return null;
-		return (long[]) obj;
+		return (Long[]) obj;
 	}
 	
 	/** See */
@@ -275,7 +284,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 					private static final long serialVersionUID = 1L;
 					@Override
 					public void onGET(OgemaHttpRequest req) {
-						setValue(""+object.mainConfig.keyDeviceIds[object.deviceIdx], req);
+						setNumericalValue(object.mainConfig.keyDeviceIds[object.deviceIdx], req);
 					}
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -318,6 +327,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 						disable(req);
 						devIdText.disable(req);
 						keyHexaText.disable(req);
+						object.mainConfig.writeConfig(configAdmin);
 						if(object.deviceRes != null)
 							alert.showAlert("Note that device information int the OGEMA database is not deleted by this Action. Check the Hardware Installation page for this!", false, req);
 						object.mainConfig = null;
@@ -336,6 +346,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 						object.mainConfig.keyDeviceIds = ArrayUtils.add(object.mainConfig.keyDeviceIds, devId);
 						String kexHex = object.mainConfig.keysHexa[object.deviceIdx];
 						object.mainConfig.keysHexa = ArrayUtils.add(object.mainConfig.keysHexa, kexHex);
+						object.mainConfig.writeConfig(configAdmin);
 					}
 				};
 				row.addCell(WidgetHelper.getValidWidgetId("Copy"), resultCopy);

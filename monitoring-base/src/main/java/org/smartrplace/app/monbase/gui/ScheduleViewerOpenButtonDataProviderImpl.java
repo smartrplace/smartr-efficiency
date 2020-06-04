@@ -62,7 +62,7 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		//We perform room filtering in cleanListByRooms, so we get data for all rooms here
 		//input = GaRoEvalHelper.getFittingTSforEval(dp, eval, gwIds, null);
 		final String dataTypeOrg = getDataType(req);
-		List<String> baselabels = guiConfig.baseLabels(dataTypeOrg, req.getLocale()); //controller.getComplexOptions().get(dataTypeOrg);
+		List<String> baselabels = guiConfig.baseLabels(dataTypeOrg, req==null?null:req.getLocale()); //controller.getComplexOptions().get(dataTypeOrg);
 		input = guiConfig.getTimeseries(gwIds, roomIDs, baselabels, req);
 
 		//final String dataType;
