@@ -65,17 +65,6 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		List<String> baselabels = guiConfig.baseLabels(dataTypeOrg, req==null?null:req.getLocale()); //controller.getComplexOptions().get(dataTypeOrg);
 		input = guiConfig.getTimeseries(gwIds, roomIDs, baselabels, req);
 
-		//final String dataType;
-		final String tsProcessRequest;
-		if(dataTypeOrg.contains("##")) {
-			String[] parts = dataTypeOrg.split("##");
-			//dataType = parts[0];
-			tsProcessRequest = parts[1];
-		} else {
-			//dataType = dataTypeOrg;
-			tsProcessRequest = null;			
-		}
-
 		//This should never be true
 		if(dataTypeOrg.equals(controller.getAllDataLabel()))
 			return input;
@@ -83,6 +72,10 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		// For reverse conversion see InitUtil(?)
 		if(baselabels == null)
 			throw new IllegalStateException("unknown data type label:"+dataTypeOrg);
+		
+		/////////////////////////////////
+		// Manual time series
+		//////////////////////////////////
 		final List<TimeSeriesData> manualTsInput = new ArrayList<>();	
 		final List<String> roomIDsForManual;
 		if(roomIDs.contains(controller.getAllRoomLabel(req!=null?req.getLocale():null))) {
@@ -92,7 +85,19 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		
 		List<String> done = new ArrayList<String>();
 		for(String baselabel: baselabels) {
-			List<ComplexOptionDescription> newInp = controller.getDatatypesBaseExtended().get(baselabel);
+			for(String locpart: guiConfig.getManualTimeseriesTypeLabels(baselabel)) {
+				if(locpart.startsWith("#")) {
+					for(String room: roomIDsForManual) {
+						TimeSeriesData mansched = controller.getManualDataEntrySchedule(room, locpart.substring(1),
+								baselabel);
+						if(mansched != null && (!done.contains(mansched.label(null)))) {
+							manualTsInput.add(mansched);
+							done.add(mansched.label(null));
+						}
+					}
+				}				
+			}
+			/*List<ComplexOptionDescription> newInp = controller.getDatatypesBaseExtended().get(baselabel);
 			for(ComplexOptionDescription locc: newInp) {
 				if(locc.pathElement == null)
 					continue;
@@ -107,9 +112,24 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 						}
 					}
 				}
-			}
+			}*/
 		}
 		input.addAll(manualTsInput);
+		
+		////////////////////////////
+		// Timeseries processing, e.g. daily values / meter evaluation
+		////////////////////////////
+		//final String dataType;
+		final String tsProcessRequest;
+		if(dataTypeOrg.contains("##")) {
+			String[] parts = dataTypeOrg.split("##");
+			//dataType = parts[0];
+			tsProcessRequest = parts[1];
+		} else {
+			//dataType = dataTypeOrg;
+			tsProcessRequest = null;			
+		}
+
 		if(tsProcessRequest != null) {
 			TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 			List<TimeSeriesData> result = util.processTSD(tsProcessRequest, input, nameProvider(), controller);

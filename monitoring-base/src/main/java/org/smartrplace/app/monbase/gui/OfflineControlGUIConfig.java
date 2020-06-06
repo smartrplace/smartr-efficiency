@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
+import org.smartrplace.app.monbase.MonitoringController;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -35,4 +36,13 @@ public interface OfflineControlGUIConfig {
     
     List<TimeSeriesData> getTimeseries(final List<String> gwIds, List<String> roomIds,
     		List<String> baselabels, OgemaHttpRequest req);
+    
+    /** The list returned may contain more labels than relevant for manual time series types.
+     * Only labels starting with a hash ('#') are relevant in the result. These are passed to the contoller
+     * to get the actual time series for a combination of type label and room via
+     * {@link MonitoringController#getManualDataEntrySchedule(String, String, String)}
+     * @param baseLabel a time series label returned by {@link #baseLabels(String, OgemaLocale)}
+     * @return
+     */
+    List<String> getManualTimeseriesTypeLabels(String baseLabel);
 }

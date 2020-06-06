@@ -112,8 +112,12 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 	public Collection<Datapoint> getDatapoints(SensorDeviceDpRes dev, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
 		for(Sensor sens: dev.sensors().getAllElements()) {
-			if(sens.reading() instanceof SingleValueResource)
-				addDatapoint((SingleValueResource) sens.reading(), result, dpService);			
+			String loc = sens.getName();
+			Datapoint dp = dpService.getDataPointAsIs(loc);
+			if(dp != null)
+				result.add(dp);
+			//if(sens.reading() instanceof SingleValueResource)
+			//	addDatapoint((SingleValueResource) sens.reading(), result, dpService);			
 		}
 		return result;
 	}

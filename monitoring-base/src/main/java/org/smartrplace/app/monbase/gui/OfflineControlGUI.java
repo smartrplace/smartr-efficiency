@@ -118,6 +118,19 @@ public class OfflineControlGUI {
 
 			return input;
 		}
+
+		@Override
+		public List<String> getManualTimeseriesTypeLabels(String baseLabel) {
+			List<String> result = new ArrayList<>();
+			List<ComplexOptionDescription> newInp = controller.getDatatypesBaseExtended().get(baseLabel);
+			for(ComplexOptionDescription locc: newInp) {
+				if(locc.pathElement == null)
+					continue;
+				String locpart = locc.pathElement;
+				result.add(locpart);
+			}
+			return result;
+		}
 	}
 	public WidgetPage<?> getPage() {
 		return page;
@@ -164,7 +177,15 @@ public class OfflineControlGUI {
 		selectConfig.setDefaultItems(configOptions);
 		selectConfig.selectDefaultItem("Eine Woche");
 		
-		selectDataType =  new TemplateDropdown<String>(page, "selectDataType");
+		selectDataType =  new TemplateDropdown<String>(page, "selectDataType") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				update(OfflineControlGUI.this.guiConfig.getPlotNames(), 
+						OfflineControlGUI.this.guiConfig.getDefaultPlotName(), req);
+			}
+		};
 		selectDataType.setTemplate(new DefaultDisplayTemplate<String>() {
 			@Override
 			public String getLabel(String object, OgemaLocale locale) {

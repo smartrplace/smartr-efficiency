@@ -206,11 +206,14 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			devName = ResourceUtils.getValidResourceName(sensorDeviceName);
 		SensorDeviceDpRes sensDev = ec.getSubResource(devName, (SensorDeviceDpRes.class));
 		String loc =ResourceUtils.getValidResourceName(dp.getLocation());
-		GenericFloatSensor sensRes = sensDev.getSubResource(loc, GenericFloatSensor.class);
+		GenericFloatSensor sensRes = sensDev.sensors().getSubResource(loc, GenericFloatSensor.class);
 		if(!sensRes.isActive()) {
-			sensRes.create();
+			sensRes.reading().create();
 			dp.setTimeSeries(sensRes.reading().getHistoricalData());
-			sensRes.activate(false);
+			if(!sensDev.isActive())
+				sensDev.activate(true);
+			else
+				sensRes.activate(true);
 		} else if(dp.getTimeSeries() == null)
 			dp.setTimeSeries(sensRes.reading().getHistoricalData());
 		return sensRes;
