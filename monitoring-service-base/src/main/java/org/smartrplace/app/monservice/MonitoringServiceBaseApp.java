@@ -22,6 +22,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
+import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_MultiSwBox;
@@ -84,6 +85,10 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srSwBox = null;
 	private DeviceHandlerMQTT_MultiSwBox devHandSwBox;
 	
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
+	private DeviceHandlerDpRes devVirtDpRes;
+
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
 	
@@ -123,6 +128,9 @@ public class MonitoringServiceBaseApp implements Application {
 	   devHandSwBox = new DeviceHandlerMQTT_MultiSwBox(appMan);
 	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
 	   
+	   devVirtDpRes = new DeviceHandlerDpRes(appMan);
+	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
+
 	   jmbusConfig = new DriverHandlerJMBus(appManager, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
 	}

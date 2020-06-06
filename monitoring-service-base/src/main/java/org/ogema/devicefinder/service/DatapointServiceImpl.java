@@ -26,7 +26,11 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.GatewayResource;
 import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
+import org.ogema.model.gateway.EvalCollection;
+import org.ogema.model.sensors.GenericFloatSensor;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.dpres.SensorDeviceDpRes;
 import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
@@ -37,6 +41,7 @@ import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper.RecIdVal;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper.TypeChecker;
+import de.iwes.util.logconfig.EvalHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of central Data Point Service
@@ -99,6 +104,14 @@ public abstract class DatapointServiceImpl implements DatapointService {
 					if(room != null)
 						setStructure(room, room.id(), gatewayId);
 					return super.setRoom(room);
+				}
+				@Override
+				public GenericFloatSensor registerAsVirtualSensor() {
+					return registerAsVirtualSensor(null);
+				}
+				@Override
+				public GenericFloatSensor registerAsVirtualSensor(String sensorDeviceName) {
+					return DatapointServiceImpl.this.registerAsVirtualSensor(this, sensorDeviceName);
 				}
 			};
 			Map<String, Datapoint> gwMap = getGwMap(gatewayId);
@@ -166,6 +179,15 @@ public abstract class DatapointServiceImpl implements DatapointService {
 						setStructure(room, room.id(), gatewayId);
 					return super.setRoom(room);
 				}
+				
+				@Override
+				public GenericFloatSensor registerAsVirtualSensor() {
+					return registerAsVirtualSensor(null);
+				}
+				@Override
+				public GenericFloatSensor registerAsVirtualSensor(String sensorDeviceName) {
+					return DatapointServiceImpl.this.registerAsVirtualSensor(this, sensorDeviceName);
+				}
 			};
 			Map<String, Datapoint> gwMap = getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 			gwMap.put(valRes.getLocation(), result);
@@ -174,6 +196,25 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		return result;
 	}
 
+	protected GenericFloatSensor registerAsVirtualSensor(DatapointImpl dp, String sensorDeviceName) {
+		@SuppressWarnings("deprecation")
+		EvalCollection ec = EvalHelper.getEvalCollection(appMan);
+		String devName;
+		if(sensorDeviceName == null)
+			devName = "virtualDatapointDeviceDefault";
+		else
+			devName = ResourceUtils.getValidResourceName(sensorDeviceName);
+		SensorDeviceDpRes sensDev = ec.getSubResource(devName, (SensorDeviceDpRes.class));
+		String loc =ResourceUtils.getValidResourceName(dp.getLocation());
+		GenericFloatSensor sensRes = sensDev.getSubResource(loc, GenericFloatSensor.class);
+		if(!sensRes.isActive()) {
+			sensRes.create();
+			dp.setTimeSeries(sensRes.reading().getHistoricalData());
+			sensRes.activate(false);
+		} else if(dp.getTimeSeries() == null)
+			dp.setTimeSeries(sensRes.reading().getHistoricalData());
+		return sensRes;
+	}
 	@Override
 	public Datapoint getDataPointAsIs(ValueResource valRes) {
 		return getDataPointAsIs(valRes.getLocation());

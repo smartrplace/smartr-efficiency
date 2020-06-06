@@ -1,4 +1,4 @@
-package org.smartrplace.driverhandler.devices;
+package org.smartrplace.driverhandler.more;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,11 +15,12 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
-import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.dpres.SensorDeviceDpRes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -31,16 +32,16 @@ import de.iwes.widgets.html.form.label.Label;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDevice> {
+public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 	private final ApplicationManager appMan;
 	
-	public DeviceHandlerWMBus_SensorDevice(ApplicationManager appMan) {
+	public DeviceHandlerDpRes(ApplicationManager appMan) {
 		this.appMan = appMan;
 	}
 	
 	@Override
-	public Class<SensorDevice> getResourceType() {
-		return SensorDevice.class;
+	public Class<SensorDeviceDpRes> getResourceType() {
+		return SensorDeviceDpRes.class;
 	}
 
 	@Override
@@ -52,16 +53,14 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 
-				final SensorDevice box =
-						(SensorDevice) addNameWidget(object, vh, id, req, row, appMan);
-				Sensor sampleSensor = null;
+				final SensorDeviceDpRes box =
+						(SensorDeviceDpRes) addNameWidget(object, vh, id, req, row, appMan);
+				GenericFloatSensor sampleSensor = null;
 				FloatResource reading = null;
-				for(Sensor sens: box.sensors().getAllElements()) {
-					if(sens.reading() instanceof FloatResource) {
-						sampleSensor = sens;
-						reading = (FloatResource) sens.reading();
-						break;
-					}
+				for(GenericFloatSensor sens: box.sensors().getAllElements()) {
+					sampleSensor = sens;
+					reading = sens.reading();
+					break;
 				}
 				
 				Room deviceRoom = box.location().room();
@@ -84,24 +83,24 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 			
 			@Override
 			protected Class<? extends Resource> getResourceType() {
-				return DeviceHandlerWMBus_SensorDevice.this.getResourceType();
+				return DeviceHandlerDpRes.this.getResourceType();
 			}
 			
 			@Override
 			protected String id() {
-				return DeviceHandlerWMBus_SensorDevice.this.id();
+				return DeviceHandlerDpRes.this.id();
 			}
 
 			@Override
 			protected String getTableTitle() {
-				return "Sensor Devices";
+				return "Virtual Datapoint Sensor Devices";
 			}
 		};
 	}
 
 	@Override
-	protected Class<? extends ResourcePattern<SensorDevice>> getPatternClass() {
-		return SensorDevicePattern.class;
+	protected Class<? extends ResourcePattern<SensorDeviceDpRes>> getPatternClass() {
+		return SensorDeviceDpResPattern.class;
 	}
 
 	@Override
@@ -110,7 +109,7 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(SensorDevice dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(SensorDeviceDpRes dev, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
 		for(Sensor sens: dev.sensors().getAllElements()) {
 			if(sens.reading() instanceof SingleValueResource)
