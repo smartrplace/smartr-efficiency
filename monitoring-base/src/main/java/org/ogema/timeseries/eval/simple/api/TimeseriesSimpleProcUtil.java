@@ -151,6 +151,6 @@ TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 	
 	public List<TimeSeriesData> processTSD(String tsProcessRequest, List<TimeSeriesData> input,
 			TimeSeriesNameProvider nameProvider, AggregationModeProvider aggProv) {
-		return DPUtil.getTSList(process(tsProcessRequest, DPUtil.getDPList(input, nameProvider, aggProv)));
+		return DPUtil.getTSList(process(tsProcessRequest, DPUtil.getDPList(input, nameProvider, aggProv)), null);
 	}
 }

@@ -55,7 +55,7 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	}
 
 	public ProcessedReadOnlyTimeSeries2(Datapoint dp) {
-		this(dp.getTimeSeriesDataImpl(), null, dp.info().getAggregationMode(), dp);
+		this(dp.getTimeSeriesDataImpl(null), null, dp.info().getAggregationMode(), dp);
 	}
 	
 	/*static AggregationMode getMode(MonitoringController controller, String label) {

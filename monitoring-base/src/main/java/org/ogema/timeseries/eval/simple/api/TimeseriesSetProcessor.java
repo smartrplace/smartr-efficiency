@@ -30,6 +30,6 @@ public interface TimeseriesSetProcessor {
 	
 	default List<TimeSeriesData> getResultSeriesTSD(List<TimeSeriesData> input, DatapointService dpService,
 			TimeSeriesNameProvider nameProvider, AggregationModeProvider aggProv) {
-		return DPUtil.getTSList(getResultSeries(DPUtil.getDPList(input, nameProvider, aggProv), dpService));
+		return DPUtil.getTSList(getResultSeries(DPUtil.getDPList(input, nameProvider, aggProv), dpService), null);
 	};
 }

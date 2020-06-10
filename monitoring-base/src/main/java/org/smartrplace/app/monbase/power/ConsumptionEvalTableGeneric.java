@@ -3,6 +3,7 @@ package org.smartrplace.app.monbase.power;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -16,7 +17,7 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
-import org.ogema.devicefinder.util.DPUtil;
+import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.util.DatapointInfoImpl;
 import org.ogema.model.connections.ElectricityConnection;
 import org.smartrplace.app.monbase.MonitoringController;
@@ -37,6 +38,30 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	protected final List<GaRoDataType> utilities;
 	protected final TimeSeriesNameProviderImpl nameProvider;
 	protected final List<UtilityType> utilsSorted;
+
+	/** Exactly one of the two options should be non-null. Either a datapoint with time series is provided or
+	 * a cost provider used to calculate the value based on the other actual values in the row (for now it is just
+	 * the main value that is provided, should be changed in the future)
+	 */
+	public static class ColumnValue {
+		public ColumnValue(Datapoint dp) {
+			this.dp = dp;
+			this.valueProvider = null;
+		}
+		public ColumnValue(CostProvider valueProvider) {
+			this.dp = null;
+			this.valueProvider = valueProvider;
+		}
+		Datapoint dp;
+		CostProvider valueProvider;
+	}
+	/** Only relevant if the respective phase num is configured. Additional datapoints will be
+	 * inserted into additional phase columns. If phaseNum > 0 then the respective number of
+	 * datapoints has to be delivered.
+	 * TODO: Providing CostProviders in the result list is not implemented yet in {@link ConsumptionEvalTableBase}*/
+	protected List<ColumnValue> getAdditionalDatapoints(Datapoint dp) {
+		return Collections.emptyList();
+	}
 	
 	public static class LineInfo {
 		public boolean isInTable = true;
@@ -62,6 +87,10 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	}
 	
 	/** Overwrite default if necessary*/
+	protected boolean useConnections() {
+		return false;
+	}
+	
 	protected List<SumLineInfo> getSumLines() {
 		Collection<UtilityType> utypes = getUtilityType();
 		List<SumLineInfo> result = new ArrayList<>();
@@ -76,7 +105,20 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		return result;
 	}
 	protected String getSumLineLabel(UtilityType util) {
-		return "Sum "+util.toString();
+		switch(util) {
+		case ELECTRICITY:
+			return "Sum Main Meters (kWh)";
+		case HEAT_ENERGY:
+			return "Sum Heat Energy (kWh)";
+		case ENERGY_MIXED:
+			return "Sum Electricity and Heat (kWh)";
+		case WATER:
+			return "Sum Fresh Water (m3)";
+		case FOOD:
+			return "Sum Food (kg)";
+		default:
+			throw new IllegalStateException("unknown UtilityType:"+util.toString());
+		}
 	}
 	
 	/** Override if required
@@ -95,6 +137,34 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		else
 			result.sumIds = null;
 		result.util = util;
+		if(hasSubPhaseNum() > 0) {
+			List<ColumnValue> phaseValData = getAdditionalDatapoints(dp);
+			boolean hasAdditionalDp = false;
+			for(ColumnValue cv: phaseValData) {
+				if(cv.dp != null) {
+					hasAdditionalDp = true;
+					break;
+				}
+			}
+			if(hasAdditionalDp) {
+				ReadOnlyTimeSeries ts = dp.getTimeSeries();
+				if(ts != null) {
+					AggregationMode mode = dp.info().getAggregationMode();
+					if(mode == null)
+						mode = AggregationMode.Meter2Meter;
+					result.conn = new EnergyEvalObjSchedule(dp, null, mode, controller,
+							phaseValData) {
+						@Override
+						public int hasSubPhaseNum() {
+							return ConsumptionEvalTableGeneric.this.hasSubPhaseNum();
+						}
+					};
+				} else {
+					result.isInTable = false;
+					return result;
+				}
+			}
+		}
 		if(dp.getResource() != null && dp.getResource() instanceof Schedule) {
 			AggregationMode mode = dp.info().getAggregationMode();
 			if(mode == null)
@@ -168,22 +238,23 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		return result;
 	}
 
-	protected void sortList(List<LineInfo> lineList) {
-		lineList.sort(new Comparator<LineInfo>() {
+	protected static final Comparator<LineInfo> lineComparator = new Comparator<LineInfo>() {
 
-			@Override
-			public int compare(LineInfo o1, LineInfo o2) {
-				if(o1 instanceof SumLineInfo && (!(o2 instanceof SumLineInfo)))
-					return -1;
-				if(o2 instanceof SumLineInfo && (!(o1 instanceof SumLineInfo)))
-					return 1;
-				return o1.label.compareTo(o2.label);
-			}
-		});		
+		@Override
+		public int compare(LineInfo o1, LineInfo o2) {
+			if(o1 instanceof SumLineInfo && (!(o2 instanceof SumLineInfo)))
+				return -1;
+			if(o2 instanceof SumLineInfo && (!(o1 instanceof SumLineInfo)))
+				return 1;
+			return o1.label.compareTo(o2.label);
+		}
+	};
+	protected void sortList(List<LineInfo> lineList) {
+		lineList.sort(lineComparator);		
 	}
 	
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType utility) {
-		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
+		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null));
 		this.utilities = DatapointInfoImpl.getGaRotypes(utility);
 		utilsSorted = new ArrayList<>();
 		utilsSorted.add(utility);
@@ -192,7 +263,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		nameProvider = new TimeSeriesNameProviderImpl(controller);
 	}
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType[] utilities) {
-		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
+		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null));
 		this.utilities = new ArrayList<>();
 		utilsSorted = Arrays.asList(utilities);	
 		nameProvider = new TimeSeriesNameProviderImpl(controller);
@@ -207,7 +278,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	}
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller,
 			List<GaRoDataType> utilities) {
-		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0));
+		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null));
 		this.utilities = utilities;
 		utilsSorted = new ArrayList<>(getUtilityType());	
 		nameProvider = new TimeSeriesNameProviderImpl(controller);
@@ -215,8 +286,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 
 	@Override
 	public Collection<ConsumptionEvalTableLineBase> getAllObjectsInTable() {
-DPUtil.printDatapointsOfType(GaRoDataType.HeatEnergyIntegral, controller.dpService);
-		List<Datapoint> alldps = controller.dpService.getAllDatapoints();
+//DPUtil.printDatapointsOfType(GaRoDataType.HeatEnergyIntegral, controller.dpService);
 		List<ConsumptionEvalTableLineBase> result = new ArrayList<>();
 		int lineCounter = 0;
 
@@ -229,6 +299,20 @@ DPUtil.printDatapointsOfType(GaRoDataType.HeatEnergyIntegral, controller.dpServi
 			lineList.add(info);
 		}
 		
+		List<Datapoint> alldps;
+		if(useConnections()) {
+			alldps = new ArrayList<>();
+			for(DpConnection conn: controller.dpService.getConnections(null)) {
+				if(isPowerTable() && conn.getPowerSensorDp() != null)
+					alldps.add(conn.getPowerSensorDp());
+				else if((!isPowerTable()) && conn.getEnergySensorDp() != null)
+					alldps.add(conn.getEnergySensorDp());
+				else if(conn.getPowerSensorDp() != null)
+					alldps.add(conn.getPowerSensorDp());
+				//for now we do not support energy sensors for power pages
+			}
+		} else
+			alldps = controller.dpService.getAllDatapoints();
 		for(Datapoint dp: alldps) {
 //System.out.println("DP Label: "+dp.id()+ "  /  "+dp.getGaroDataType().label(null));			
 			//ConsumptionInfo conInfo = dp.getConsumptionInfo();
@@ -236,7 +320,7 @@ DPUtil.printDatapointsOfType(GaRoDataType.HeatEnergyIntegral, controller.dpServi
 				if(dp.getGaroDataType() == null)
 					continue;
 				AggregationMode aggMode = dp.info().getAggregationMode(); //ConsumptionInfo.getConsumptionMode(dp.getGaroDataType());
-				if(aggMode == null || aggMode == AggregationMode.Power2Meter)
+				if(aggMode == null) // || aggMode == AggregationMode.Power2Meter)
 					continue;
 			}
 			//TODO: Support also AggregationMode.Consumption2Meter
@@ -255,10 +339,14 @@ DPUtil.printDatapointsOfType(GaRoDataType.HeatEnergyIntegral, controller.dpServi
 			if(lineInfo instanceof SumLineInfo) {
 				SumLineInfo info = (SumLineInfo) lineInfo;
 				info.subSum = new ConsumptionEvalTableLineBase(null, info.label,
-						isPowerTable(), SumType.SUM_LINE, info.subLines, (lineCounter++)) {
+						isPowerTable(), SumType.SUM_LINE, info.subLines, (lineCounter++), info.util) {
 					@Override
 					public CostProvider getCostProvider() {
 						return info.costProvider;
+					}
+					@Override
+					public int hasSubPhaseNum() {
+						return ConsumptionEvalTableGeneric.this.hasSubPhaseNum();
 					}
 				};
 				info.subSum.factorEnergy = lineInfo.factor;

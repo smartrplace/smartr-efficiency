@@ -54,7 +54,7 @@ public abstract class ConsumptionEvalTableLineDiff extends ConsumptionEvalTableL
 	public ConsumptionEvalTableLineDiff(LineInfoDp lineInfoDp, boolean lineShowsPower, int index,
 			CostProvider cprov,
 			Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
-		super(getConn(lineInfoDp), lineInfoDp.label, lineShowsPower, SumType.STD, null, index);
+		super(getConn(lineInfoDp), lineInfoDp.label, lineShowsPower, SumType.STD, null, index, lineInfoDp.util);
 		this.dpsPerUtilType = dpsPerUtilType;
 		this.cprov = cprov;
 		this.lineInfoDp = lineInfoDp;

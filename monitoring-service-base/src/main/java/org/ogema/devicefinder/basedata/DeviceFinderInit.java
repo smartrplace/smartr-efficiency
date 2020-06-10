@@ -10,13 +10,22 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ValueResource;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DpConnection.DpElectricityConnection;
+import org.ogema.devicefinder.api.SumUpLevel;
 import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.model.actors.OnOffSwitch;
+import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.ElectricCurrentSensor;
+import org.ogema.model.sensors.ElectricEnergySensor;
+import org.ogema.model.sensors.ElectricFrequencySensor;
+import org.ogema.model.sensors.ElectricVoltageSensor;
+import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -24,6 +33,7 @@ import org.smartrplace.app.monservice.MonitoringServiceBaseController;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
+import de.iwes.util.resource.ResourceHelper;
 
 public class DeviceFinderInit {
 	/** Re-implementation of finding sensors accoring to the SensorServlet*/
@@ -63,7 +73,9 @@ public class DeviceFinderInit {
 			List<Sensor> sensors = meter.getSubResources(Sensor.class, true);
 			List<Datapoint> valress = new ArrayList<>();
 			for(Sensor sens: sensors) {
-				valress.add(getDataPoint(sens.reading(), dpService, sens, dproom));
+				Datapoint dp = getDataPoint(sens.reading(), dpService, sens, dproom);
+				valress.add(dp);
+				checkForElectricityMeter(sens, dp);
 			}
 			result.put(dproom, valress);
 		}
@@ -82,15 +94,21 @@ public class DeviceFinderInit {
 		List<Datapoint> valress = new ArrayList<>();
 		List<Sensor> slist = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), Sensor.class, room.getResource());
 		for(Sensor sens: slist) {
+			if(omitSensor(sens))
+				continue;
 			ValueResource valRes = sens.reading();
 			
-			valress.add(getDataPoint(valRes, dpService, sens, room));
+			Datapoint dp = getDataPoint(valRes, dpService, sens, room);
+			valress.add(dp);
 			if(sens instanceof TemperatureSensor)  {
 				TemperatureSensor tsens = (TemperatureSensor) sens;
 				if(tsens.settings().setpoint().exists())
 					valress.add(getDataPoint(tsens.settings().setpoint(), dpService, sens, room));
 				if(tsens.deviceFeedback().setpoint().exists())
 					valress.add(getDataPoint(tsens.deviceFeedback().setpoint(), dpService, sens, room));
+			}
+			else {
+				checkForElectricityMeter(sens, dp);
 			}
 		}
 		List<OnOffSwitch> switches = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(),
@@ -102,6 +120,51 @@ public class DeviceFinderInit {
 		return valress;
 	}
 
+	protected static boolean checkForElectricityMeter(Sensor sens, Datapoint dp) {
+		Resource parent = sens.getParent();
+		//TODO: Check handling of thermal connections / heat meters
+		if(parent != null && parent instanceof ElectricityConnection) {
+			if(sens instanceof PowerSensor) {
+				dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY).setPowerSensorDp(dp);
+			} else if(sens instanceof ElectricEnergySensor) {
+				dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY).setEnergySensorDp(dp);
+			} else if(sens instanceof ElectricCurrentSensor) {
+				((DpElectricityConnection)dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY)).setCurrentSensorDp(dp);
+			} else if(sens instanceof ElectricVoltageSensor) {
+				((DpElectricityConnection)dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY)).setVoltageSensorDp(dp);
+			} else if(sens instanceof ElectricFrequencySensor) {
+				((DpElectricityConnection)dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY)).setFrequencySensorDp(dp);
+			}
+			int majorLevel;
+			boolean isOutlet = dp.getGaroDataType().label(null).contains("Outlet");
+			if(ResourceHelper.hasParentAboveType(parent, ElectricityConnectionBox.class) >= 0 && (!isOutlet)) {
+				majorLevel = SumUpLevel.BUILDING_LEVEL;
+			} else if(dp.getLocation().contains("Vekin"))
+				majorLevel = SumUpLevel.ROOM_LEVEL;
+			else
+				majorLevel = SumUpLevel.DEVICE_LEVEL;
+			
+			Resource parentList = parent.getParent();
+			if(parentList != null && parentList.getName().equals("subPhaseConnections")) {
+				dp.setSubRoomLocation(null, null, parent.getName());
+				Resource nodeConnection = parentList.getParent();
+				boolean sumOfAllPhasesisMeasured = false;
+				if(nodeConnection != null && nodeConnection instanceof ElectricityConnection) {
+					ElectricityConnection nodeConn = (ElectricityConnection) nodeConnection;
+					//TODO: Check could be more precise
+					if(nodeConn.powerSensor().isActive() || nodeConn.energySensor().isActive()) {
+						sumOfAllPhasesisMeasured = true;
+					}
+				}
+				dp.info().setSumUpLevel(majorLevel+(sumOfAllPhasesisMeasured?10:0));								
+			} else {
+				dp.info().setSumUpLevel(majorLevel);
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	protected static Datapoint getDataPoint(ValueResource valRes, DatapointService dpService,
 			Resource sensorActorResource, DPRoom room) {
 		final Datapoint dp;
@@ -118,5 +181,12 @@ public class DeviceFinderInit {
 		if(room != null)
 			dp.setRoom(room);
 		return dp;
+	}
+	
+	/** Filter out sensors that we do no want to use at all as they are faulty resources or similar*/
+	protected static boolean omitSensor(Sensor sens) {
+		if((sens instanceof PowerSensor) && (sens.getLocation().contains("THERMOSTAT")))
+			return true;
+		return false;
 	}
 }

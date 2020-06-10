@@ -50,6 +50,12 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	protected boolean hasCostColumn() {
 		return true;
 	}
+	/** This method is only relevant for the phase num configured. Overwrite to provide your own
+	 * phase column labels
+	 */
+	public String[] getPhaseLabels() {
+		return new String[] {"L1", "L2", "L3"};
+	}
 	
 	/** Price calculcation, all values in the utility default/currency unit, e.g kWh/EUR*/
 	public FloatResource elPrice = null;
@@ -203,12 +209,14 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		if(req == null) {
 			vh.registerHeaderEntry("Messung");
 			vh.registerHeaderEntry("Gesamt");
-			if(hasSubPhaseNum() > 0)
+			for(int i=0; i<hasSubPhaseNum(); i++)
+				vh.registerHeaderEntry(getPhaseLabels()[i]);
+			/*if(hasSubPhaseNum() > 0)
 				vh.registerHeaderEntry("L1");
 			if(hasSubPhaseNum() > 1)
 				vh.registerHeaderEntry("L2");
 			if(hasSubPhaseNum() > 2)
-				vh.registerHeaderEntry("L3");
+				vh.registerHeaderEntry("L3");*/
 			if(hasCostColumn())
 				vh.registerHeaderEntry(COST_HEADER);
 			return;
@@ -227,12 +235,14 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		//Label lab = vh.floatLabel("Gesamt", id, object.getPhaseValue(0), row, "%.1f");
 		if(object.getLineType() == SumType.SUM_LINE)
 			lab.addDefaultStyle(LabelData.BOOTSTRAP_GREEN);
-		if(hasSubPhaseNum() > 0)
+		for(int i=0; i<hasSubPhaseNum(); i++)
+			addLabel(getPhaseLabels()[i], object, id, i+1, row, req, false);
+		/*if(hasSubPhaseNum() > 0)
 			addLabel("L1", object, id, 1, row, req, false);
 		if(hasSubPhaseNum() > 1)
 			addLabel("L2", object, id, 2, row, req, false);
 		if(hasSubPhaseNum() > 2)
-			addLabel("L3", object, id, 3, row, req, false);
+			addLabel("L3", object, id, 3, row, req, false);*/
 		//vh.floatLabel("L1", id, object.getPhaseValue(1), row, "%.1f");
 		//vh.floatLabel("L2", id, object.getPhaseValue(2), row, "%.1f");
 		//vh.floatLabel("L3", id, object.getPhaseValue(3), row, "%.1f");

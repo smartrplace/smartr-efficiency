@@ -2,6 +2,7 @@ package org.ogema.devicefinder.service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -19,13 +20,16 @@ import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.DatapointInfoProvider;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.api.GatewayResource;
 import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
+import org.ogema.devicefinder.util.DpConnectionImpl;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -84,6 +88,9 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	/** GatewayId -> GatewayResource-location -> GatewayResource object*/
 	Map<String, Map<String, GatewayResource>> knownGWRes = new HashMap<>();
 
+	/** GatewayId -> Connection-location -> Connection object*/
+	Map<String, Map<String, DpConnection>> knownConnections = new HashMap<>();
+
 	@Override
 	public Datapoint getDataPointStandard(String resourceLocation) {
 		return getDataPointStandard(resourceLocation, GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
@@ -112,6 +119,10 @@ public abstract class DatapointServiceImpl implements DatapointService {
 				@Override
 				public GenericFloatSensor registerAsVirtualSensor(String sensorDeviceName) {
 					return DatapointServiceImpl.this.registerAsVirtualSensor(this, sensorDeviceName);
+				}
+				@Override
+				protected DpConnection getConnection(String connectionLocation, UtilityType type) {
+					return DatapointServiceImpl.this.getConnectionForDp(connectionLocation, type, getGatewayId());
 				}
 			};
 			Map<String, Datapoint> gwMap = getGwMap(gatewayId);
@@ -188,6 +199,10 @@ public abstract class DatapointServiceImpl implements DatapointService {
 				public GenericFloatSensor registerAsVirtualSensor(String sensorDeviceName) {
 					return DatapointServiceImpl.this.registerAsVirtualSensor(this, sensorDeviceName);
 				}
+				@Override
+				protected DpConnection getConnection(String connectionLocation, UtilityType type) {
+					return DatapointServiceImpl.this.getConnectionForDp(connectionLocation, type, getGatewayId());
+				}
 			};
 			Map<String, Datapoint> gwMap = getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 			gwMap.put(valRes.getLocation(), result);
@@ -218,6 +233,41 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			dp.setTimeSeries(sensRes.reading().getHistoricalData());
 		return sensRes;
 	}
+	
+	protected DpConnection getConnectionForDp(String connectionLocation, UtilityType type, String gatewayId) {
+		if(gatewayId == null)
+			gatewayId = GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID;
+		Map<String, DpConnection> subData = knownConnections.get(gatewayId);
+		if(subData == null) {
+			subData = new HashMap<>();
+			knownConnections.put(gatewayId, subData);
+		}
+		DpConnection result = subData.get(connectionLocation);
+		if(result != null) {
+			return result;
+		}
+		switch(type) {
+		case ELECTRICITY:
+			result = new DpConnectionImpl.DpElectricityConnectionImpl(connectionLocation);
+			break;
+		case HEAT_ENERGY:
+			result = new DpConnectionImpl.DpThermalConnectionImpl(connectionLocation);
+			break;
+		case WATER:
+			result = new DpConnectionImpl.DpFreshWaterConnectionImpl(connectionLocation);
+			break;
+		case FOOD:
+			result = new DpConnectionImpl.DpFoodConnectionImpl(connectionLocation);
+			break;
+		default:
+			throw new IllegalStateException("Unknown utility type:"+type);
+		}
+		
+		subData.put(connectionLocation, result);
+		return result;
+	}
+
+
 	@Override
 	public Datapoint getDataPointAsIs(ValueResource valRes) {
 		return getDataPointAsIs(valRes.getLocation());
@@ -414,5 +464,23 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			setStructure(result, id, gatewayId);
 		}
 		return (DPRoom) result;
+	}
+	
+	@Override
+	public List<DpConnection> getConnections(UtilityType type, String gatewayId) {
+		Map<String, DpConnection> subData = knownConnections.get(gatewayId);
+		if(subData == null)
+			return Collections.emptyList();
+		List<DpConnection> result = new ArrayList<>();
+		for(DpConnection conn: subData.values()) {
+			if(type == null || conn.getUtilityType() == type)
+				result.add(conn);
+		}
+		return result;
+	}
+	
+	@Override
+	public List<DpConnection> getConnections(UtilityType type) {
+		return getConnections(type, GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 	}
 }

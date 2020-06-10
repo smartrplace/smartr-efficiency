@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 
 public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
@@ -29,6 +30,7 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	protected String index;
 	
 	protected final Datapoint datapoint;
+	protected final UtilityType utilType;
 
 	/** 
 	 * 
@@ -46,21 +48,29 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 			List<ConsumptionEvalTableLineI> sourcesToSum,
 			int index,
 			EnergyEvalObjI energyEvalObjI) {
-		this(energyEvalObjI, label, lineShowsPower, type, sourcesToSum, index);
+		this(energyEvalObjI, label, lineShowsPower, type, sourcesToSum, index, (UtilityType)null);
 	}
 	public ConsumptionEvalTableLineBase(EnergyEvalObjI conn, String label, boolean lineShowsPower,
 			SumType type,
 			List<ConsumptionEvalTableLineI> sourcesToSum,
-			int index) {
-		this(conn, label, lineShowsPower, type, sourcesToSum, index, null);
+			int index, UtilityType utilType) {
+		this(conn, label, lineShowsPower, type, sourcesToSum, index, null, utilType);
 	}
 	public ConsumptionEvalTableLineBase(EnergyEvalObjI conn, String label, boolean lineShowsPower,
 			SumType type,
 			List<ConsumptionEvalTableLineI> sourcesToSum,
 			int index,
 			Datapoint datapoint) {
+		this(conn, label, lineShowsPower, type, sourcesToSum, index, datapoint, datapoint.info().getUtilityType());
+	}
+	public ConsumptionEvalTableLineBase(EnergyEvalObjI conn, String label, boolean lineShowsPower,
+			SumType type,
+			List<ConsumptionEvalTableLineI> sourcesToSum,
+			int index,
+			Datapoint datapoint, UtilityType utilType) {
 		this.conn = conn;
 		this.datapoint = datapoint;
+		this.utilType = utilType;
 		this.lineShowsPower = lineShowsPower;
 		this.label = label;
 		//this.sumUpIndex2 = sumUpIndex;
@@ -187,5 +197,9 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 		if(conn == null)
 			return 0;
 		return conn.hasSubPhaseNum();
+	}
+	@Override
+	public UtilityType getUtilityType() {
+		return utilType;
 	}
 }

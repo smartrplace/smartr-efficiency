@@ -7,6 +7,7 @@ import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -304,7 +305,7 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 		String label = controller.getRoomLabel(conn.getLocation(), req.getLocale());
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
 		EnergyEvalObjI connObj = new EnergyEvalElConnObj(conn);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, (UtilityType)null);
 		if(rexoLines != null)
 			rexoLines.add(retVal);
 		result.add(retVal);
@@ -321,7 +322,7 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 		String label = "Heat "+controller.getRoomLabel(conn.getLocation(), req.getLocale());
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
 		EnergyEvalObjI connObj = new EnergyEvalHeatObj(conn);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower, SumType.STD, null, lineIdx, (UtilityType)null);
 		if(heatLines != null)
 			heatLines.add(retVal);
 		result.add(retVal);
@@ -394,7 +395,7 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 			
 		};
 		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, false, SumType.STD, null, lineIdx);
+		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, false, SumType.STD, null, lineIdx, (UtilityType)null);
 		result.add(retVal);
 		return retVal;
 	}

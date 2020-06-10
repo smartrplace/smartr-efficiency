@@ -1,19 +1,21 @@
 package org.smartrplace.app.monbase.servlet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableBase;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI;
+import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
+import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.CostProvider;
+import org.smartrplace.util.frontend.servlet.ServletNumListProvider;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.ServletTimeseriesProvider;
@@ -25,7 +27,7 @@ import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
  * Return data for all {@link ConsumptionEvalTableLineI}s in all pages for the utility type requested
  *
  */
-public class ConsumptionEvalServlet implements ServletPageProvider<UtilityType> {
+public class ConsumptionEvalServlet implements ServletPageProvider<ConsumptionEvalPageEntry> {
 	protected final ApplicationManager appMan;
 	protected final ConsumptionEvalAdmin evalAdm;
 	
@@ -35,62 +37,117 @@ public class ConsumptionEvalServlet implements ServletPageProvider<UtilityType> 
 	}
 
 	@Override
-	public Map<String, ServletValueProvider> getProviders(UtilityType object, String user,
+	public Map<String, ServletValueProvider> getProviders(ConsumptionEvalPageEntry object, String user,
 			Map<String, String[]> parameters) {
 		Map<String, ServletValueProvider> result = new HashMap<>();
 		
-		List<ConsumptionEvalTableBase<?>> pages = evalAdm.getTables(object);
+		
 		long now = appMan.getFrameworkTime();
 		long[] startEnd = ServletTimeseriesProvider.getDayStartEnd(parameters, appMan);
+		//for(ConsumptionEvalTableBase<?> page: pages) {
+			//@SuppressWarnings("unchecked")
+			//Collection<ConsumptionEvalTableLineI> allLines = (Collection<ConsumptionEvalTableLineI>) page.getAllObjectsInTable();
+			//for(ConsumptionEvalTableLineI line: allLines) {
+		Datapoint dp = object.line.getDatapoint();
+		if(dp != null) {
+			ServletStringProvider nameP = new ServletStringProvider(dp.label(null));
+			result.put("name", nameP);
+			ServletStringProvider roomP = new ServletStringProvider(dp.getRoomName(null));
+			result.put("room", roomP);
+			if(dp.getSubRoomLocation(null, null) != null) {
+				ServletStringProvider subRoomP = new ServletStringProvider(dp.getSubRoomLocation(null, null));
+				result.put("locationInRoom", subRoomP);						
+			}
+		} else {
+			ServletStringProvider nameP = new ServletStringProvider(object.line.getLabel());
+			result.put("name", nameP);					
+		}
+		String label = object.line.getLabel();
+		boolean isMainMeter = false;
+		if(object.line.getLineType() == SumType.SUM_LINE &&
+				(!(label.contains("Device")||label.contains("Room")||label.contains("Manual")||label.contains("manuell")))) {
+			isMainMeter = true;
+		}
+		ServletNumProvider mainMeterP = new ServletNumProvider(isMainMeter);
+		result.put("isMainMeter", mainMeterP);
+		float val = object.line.getPhaseValue(0, startEnd[0], startEnd[1], now, object.allLines);
+		ServletNumProvider valueP = new ServletNumProvider(val);
+		result.put("value", valueP);
+		ServletStringProvider util = new ServletStringProvider(object.line.getUtilityType().name());
+		result.put("utilityType", util);
+		String unit = DatapointInfo.getDefaultUnit(object.line.getUtilityType());
+		if(unit != null) {
+			ServletStringProvider unitP = new ServletStringProvider(unit);
+			result.put("unit", unitP);			
+		}
+		CostProvider costProv = object.line.getCostProvider();
+		ServletValueProvider cost;
+		if(costProv != null) {
+			String costVal = costProv.getCost(val);
+			try {
+				float costF = Float.parseFloat(costVal);
+				cost = new ServletNumProvider(costF);
+			} catch(NumberFormatException e) {
+				cost = new ServletStringProvider(costVal);				
+			}
+			result.put("cost", cost);
+		}
+		ServletNumProvider index = new ServletNumProvider(Integer.parseInt(object.line.getLinePosition()));
+		result.put("index", index);
+		List<Float> values = new ArrayList<>();
+		List<String> names = new ArrayList<>();
+		Float savings = null;
+		for(int subPh=0; subPh<object.line.hasSubPhaseNum(); subPh++) {
+			float valLoc = object.line.getPhaseValue(subPh, startEnd[0], startEnd[1], now, object.allLines);
+			values.add(valLoc);
+			names.add(object.page.getPhaseLabels()[subPh]); //line.""+(subPh+1));
+			if(object.page.getPhaseLabels()[subPh].startsWith("Estimated Savings"))
+				savings = valLoc;
+		}
+
+		ServletNumListProvider<Float> phaseValuesP = new ServletNumListProvider<Float>(values, "--");
+		result.put("phaseValues", phaseValuesP);
+		ServletNumListProvider<String> phaseNamesP = new ServletNumListProvider<String>(names);
+		result.put("phaseNames", phaseNamesP);					
+
+		ServletValueProvider savingsP;
+		if(savings != null) {
+			savingsP = new ServletNumProvider(savings);
+			result.put("estimatedSavings", savingsP);
+		}
+
+		return result;
+	}
+
+	//TODO: This won't work for several pages sharing rows with same labels
+	Map<String, ConsumptionEvalPageEntry> lines = new HashMap<>();
+	
+	@Override
+	public Collection<ConsumptionEvalPageEntry> getAllObjects(String user) {
+		List<ConsumptionEvalTableBase<?>> pages = evalAdm.getTables(null);
+		Collection<ConsumptionEvalPageEntry> result = new ArrayList<>();
 		for(ConsumptionEvalTableBase<?> page: pages) {
 			@SuppressWarnings("unchecked")
 			Collection<ConsumptionEvalTableLineI> allLines = (Collection<ConsumptionEvalTableLineI>) page.getAllObjectsInTable();
 			for(ConsumptionEvalTableLineI line: allLines) {
-				Datapoint dp = line.getDatapoint();
-				if(dp != null) {
-					ServletStringProvider nameP = new ServletStringProvider(dp.label(null));
-					result.put("name", nameP);
-					ServletStringProvider roomP = new ServletStringProvider(dp.getRoomName(null));
-					result.put("room", roomP);
-					if(dp.getSubRoomLocation(null, null) != null) {
-						ServletStringProvider subRoomP = new ServletStringProvider(dp.getSubRoomLocation(null, null));
-						result.put("locationInRoom", subRoomP);						
-					}
-				} else {
-					ServletStringProvider nameP = new ServletStringProvider(line.getLabel());
-					result.put("name", nameP);					
-				}
-				float val = line.getPhaseValue(0, startEnd[0], startEnd[1], now, allLines);
-				ServletNumProvider valueP = new ServletNumProvider(val);
-				result.put("value", valueP);
-				List<Float> values = new ArrayList<>();
-				List<String> names = new ArrayList<>();
-				for(int subPh=0; subPh<line.hasSubPhaseNum(); subPh++) {
-					values.add(line.getPhaseValue(subPh, startEnd[0], startEnd[1], now, allLines));
-					names.add(""+(subPh+1));
-				}
-				//TODO
-				//ServletNumProvider phaseValuesP = new ServletNumListProvider(values);
-				//result.put("phaseValues", phaseValuesP);
-				//ServletNumProvider phaseNamesP = new ServletNumListProvider(names);
-				//result.put("phaseNames", phaseNamesP);					
+				ConsumptionEvalPageEntry entry = new ConsumptionEvalPageEntry();
+				entry.allLines = allLines;
+				entry.line = line;
+				entry.page = page;
+				lines.put(line.getLabel(), entry);
+				result.add(entry);
 			}
 		}
-		
-		return result;
+		return result ;
 	}
 
 	@Override
-	public Collection<UtilityType> getAllObjects(String user) {
-		return Arrays.asList(UtilityType.values());
+	public ConsumptionEvalPageEntry getObject(String objectId) {
+		return lines.get(objectId);
 	}
-
+	
 	@Override
-	public UtilityType getObject(String objectId) {
-		try {
-			return UtilityType.valueOf(objectId);
-		} catch(IllegalArgumentException e) {
-			return null;
-		}
+	public String getObjectId(ConsumptionEvalPageEntry obj) {
+		return obj.line.getLabel();
 	}
 }

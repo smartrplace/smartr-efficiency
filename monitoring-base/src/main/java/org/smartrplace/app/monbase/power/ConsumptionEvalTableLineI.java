@@ -1,11 +1,11 @@
 package org.smartrplace.app.monbase.power;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.ogema.core.model.Resource;
-import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 
 public interface ConsumptionEvalTableLineI {
@@ -84,6 +84,8 @@ public interface ConsumptionEvalTableLineI {
 	
 	/** May return null if no such information is available*/
 	Datapoint getDatapoint();
+	
+	UtilityType getUtilityType();
 
 	/** Return number of sub phase values*/
 	public int hasSubPhaseNum();

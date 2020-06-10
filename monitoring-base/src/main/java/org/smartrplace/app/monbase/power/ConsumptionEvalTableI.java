@@ -16,4 +16,5 @@ public interface ConsumptionEvalTableI<C extends ConsumptionEvalTableLineI> {
 	default boolean isPowerTable() {return false;}
 	
 	default int hasSubPhaseNum() {return 0;}
+	String[] getPhaseLabels();
 }
