@@ -22,7 +22,7 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 	protected abstract List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 			AggregationMode mode);
 	protected String getLabelPostfix() {return "";}
-
+	protected String getLocationPostifx() {return getLabelPostfix();}
 	
 	//final protected MonitoringController controller;
 	final protected TimeSeriesDataImpl tsdi;
@@ -127,10 +127,10 @@ public abstract class ProcessedReadOnlyTimeSeries2 extends ProcessedReadOnlyTime
 		String tsLocationOrBaseId;
 		if(dp != null) {
 			label = dp.label(null)+getLabelPostfix();
-			tsLocationOrBaseId = dp.getLocation()+getLabelPostfix();
+			tsLocationOrBaseId = dp.getLocation()+getLocationPostifx();
 		} else {
 			label = getShortId()+getLabelPostfix();
-			tsLocationOrBaseId = tsdi.id()+getLabelPostfix();
+			tsLocationOrBaseId = tsdi.id()+getLocationPostifx();
 		}
 		DatapointImpl result;
 		if(dpService == null)

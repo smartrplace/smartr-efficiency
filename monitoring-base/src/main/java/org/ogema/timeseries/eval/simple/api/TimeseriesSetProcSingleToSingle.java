@@ -9,7 +9,6 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
-import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.gui.ProcessedReadOnlyTimeSeries2;
 
 public abstract class TimeseriesSetProcSingleToSingle implements TimeseriesSetProcessor {

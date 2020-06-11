@@ -72,15 +72,21 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	@SuppressWarnings("unchecked")
 	public DatapointServiceImpl(ApplicationManager appMan) {
 		this.appMan = appMan;
-		installAppList = ResourceHelperSP.getSubResource(null, "hardwareInstallConfig/knownDevices",
-				ResourceList.class, appMan.getResourceAccess());
 	}
 
 	protected abstract Map<String, DeviceHandlerProvider<?>> getTableProviders();
 	
 	//private final MonitoringServiceBaseController controller;
 	private final ApplicationManager appMan;
-	private final ResourceList<InstallAppDevice> installAppList;
+	private ResourceList<InstallAppDevice> installAppListInternal = null;
+	@SuppressWarnings("unchecked")
+	private ResourceList<InstallAppDevice> installAppList() {
+		if(installAppListInternal == null) {
+			installAppListInternal = ResourceHelperSP.getSubResource(null, "hardwareInstallConfig/knownDevices",
+					ResourceList.class, appMan.getResourceAccess());			
+		}
+		return installAppListInternal;
+	}
 	
 	/** GatewayId -> Resource-location -> Datapoint object*/
 	Map<String, Map<String, Datapoint>> knownDps = new HashMap<>();
@@ -407,7 +413,7 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	@Override
 	public Collection<InstallAppDevice> managedDeviceResoures(Class<? extends Resource> resourceType) {
 		List<InstallAppDevice> result = new ArrayList<>();
-		for(InstallAppDevice iad: installAppList.getAllElements()) {
+		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
 			if(resourceType.isAssignableFrom(iad.device().getResourceType()))
 				result.add(iad);
 		}

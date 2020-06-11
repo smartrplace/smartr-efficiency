@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
@@ -23,12 +24,35 @@ import org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference;
 import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.util.resource.ValueResourceHelper;
 
 public class TimeseriesSimpleProcUtil {
-	public static final String METER_EVAL = "METER";
 	public static final String PER_DAY_EVAL = "DAY";
 	public static final String SUM_PER_DAY_EVAL = "SUM_PER_DAY";
 	public static final String SUM_PER_DAY_PER_ROOM_EVAL = "DAY_PER_ROOM";
+
+	public static final String METER_EVAL = "METER";
+	public static TimeResource getDefaultMeteringReferenceResource(ResourceAccess resAcc ) {
+		TimeResource refRes = null;
+		if(!Boolean.getBoolean("org.ogema.timeseries.eval.simple.api.suppress_legacy_meteringreference"))
+			refRes = ResourceHelperSP.getSubResource(null,
+				"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
+				TimeResource.class, resAcc);
+		if(refRes == null) {
+			refRes = ResourceHelperSP.getSubResource(null, "offlineEvaluationControlConfig/defaultMeteringReference",
+					TimeResource.class, resAcc);
+		}
+		return refRes;
+	}
+	public static boolean initDefaultMeteringReferenceResource(long referenceTime, boolean forceUpdate, ResourceAccess resAcc) {
+		TimeResource ref = getDefaultMeteringReferenceResource(resAcc);
+		if((!ref.isActive()) || forceUpdate) {
+			ValueResourceHelper.setCreate(ref, referenceTime);
+			return true;
+		}
+		return false;
+	}
+	
 	
 	public static final DPRoom unknownRoom = new DPRoomImpl(Datapoint.UNKNOWN_ROOM_ID,
 			Datapoint.UNKNOWN_ROOM_ID);
@@ -60,9 +84,12 @@ public class TimeseriesSimpleProcUtil {
 					AggregationMode mode) {
 				MeterReference ref = new MeterReference();
 				ref.referenceMeterValue = 0;
-				TimeResource refRes = ResourceHelperSP.getSubResource(null,
-						"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
-						TimeResource.class, appMan.getResourceAccess());
+				TimeResource refRes = getDefaultMeteringReferenceResource(appMan.getResourceAccess());
+				if(!refRes.exists()) {
+					refRes.create();
+					refRes.setValue(start);
+					refRes.activate(false);
+				}
 				ref.referenceTime = refRes.getValue();
 				return TimeSeriesServlet.getMeterFromConsumption(timeSeries, start, end, ref, mode);						
 			}

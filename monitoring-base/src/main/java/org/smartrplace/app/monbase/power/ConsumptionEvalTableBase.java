@@ -142,10 +142,6 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 					setWidgetVisibility(false, req);
 					return;
 				}
-				//TimeResource refRes = ResourceHelperSP.getSubResource(null,
-						//"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
-				//		"offlineEvaluationControlConfig/start",
-				//		TimeResource.class, controller.appMan.getResourceAccess());
 				long ts = getDefaultStartTime(req); //refRes.getValue();
 				setDate(ts, req);
 				setWidgetVisibility(true, req);
@@ -432,12 +428,16 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 			public CostProvider getCostProvider() {
 				return cprov;
 			}
+			@Override
+			public int hasSubPhaseNum() {
+				return ConsumptionEvalTableBase.this.hasSubPhaseNum();
+			}
 		};
 		result.add(retVal);
 		return retVal;
 	}
 
-	protected ConsumptionEvalTableLineBase addMainMeterLineBase(String topResName, String subPath,
+	/*protected ConsumptionEvalTableLineBase addMainMeterLineBase(String topResName, String subPath,
 			List<ConsumptionEvalTableLineBase> result, int lineIdx,
 			Datapoint dp) {
 		Resource rexo = controller.appMan.getResourceAccess().getResource(topResName);
@@ -509,6 +509,6 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, false, SumType.STD, null, lineIdx, dp);
 		result.add(retVal);
 		return retVal;
-	}
+	}*/
 	
 }

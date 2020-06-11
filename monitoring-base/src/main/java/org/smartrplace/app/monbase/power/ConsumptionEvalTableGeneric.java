@@ -20,6 +20,7 @@ import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.util.DatapointInfoImpl;
 import org.ogema.model.connections.ElectricityConnection;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
@@ -32,6 +33,23 @@ import de.iwes.util.format.StringFormatHelper.StringProvider;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
+/** Standard KPI page template
+ * The lines provided are determined either via suitable datapoints or via {@link DpConnection}s, depending
+ * on {@link #useConnections()}. The lines use {@link EnergyEvalObjI} instances for evaluation. For
+ * schedules and time series that are not RecordedData usually an {@link EnergyEvalObjSchedule} is used
+ * that uses TimeseriesSimpleProcUtil.METER_EVAL. This is also used for other {@link AggregationMode}s
+ * then {@link AggregationMode#Meter2Meter}.<br>
+ * Otherwise an {@link EnergyEvalObjBase} is used that just reads the meter values at start and end and calculates the
+ * difference.<br>
+ * Note that METER_EVAL uses one of the resources provided in
+ * {@link TimeseriesSimpleProcUtil#getDefaultMeteringReferenceResource(org.ogema.core.resourcemanager.ResourceAccess)}.
+ * to determine the reference time. If the resource does not exist it is created and set to the start time of the initial
+ * evaluation.
+ *
+ * 
+ * @author dnestle
+ *
+ */
 public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<ConsumptionEvalTableLineBase> {
 
 	//protected final UtilityType utility;
@@ -91,6 +109,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		return false;
 	}
 	
+	/** Defines one sum line per {@link UtilityType}. Overwrite this in order to provide additional sum lines*/
 	protected List<SumLineInfo> getSumLines() {
 		Collection<UtilityType> utypes = getUtilityType();
 		List<SumLineInfo> result = new ArrayList<>();
@@ -104,6 +123,12 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		}
 		return result;
 	}
+	
+	/** Overwrite this to change the default sum line labels. Custom sum lines usually should
+	 * get their labels directly.
+	 * @param util
+	 * @return
+	 */
 	protected String getSumLineLabel(UtilityType util) {
 		switch(util) {
 		case ELECTRICITY:
@@ -121,8 +146,8 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		}
 	}
 	
-	/** Override if required
-	 * Note that result.conn needs to be replaced if the datapoint resource is not a meter counter resource
+	/** Override if required, e.g. in order to determine shich lines shall be used, to change factors,
+	 *  assignment of lines to sim lines etc.
 	 * @param dpsPerUtilType */
 	protected LineInfoDp getDpLineInfo(GaRoDataType gaRoDataTypeI, Datapoint dp,
 			Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
@@ -165,18 +190,15 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 				}
 			}
 		}
-		if(dp.getResource() != null && dp.getResource() instanceof Schedule) {
-			AggregationMode mode = dp.info().getAggregationMode();
-			if(mode == null)
-				mode = AggregationMode.Meter2Meter;
+		AggregationMode mode = dp.info().getAggregationMode();
+		if(mode == null)
+			mode = AggregationMode.Meter2Meter;
+		if(dp.getResource() != null && ((dp.getResource() instanceof Schedule) || (mode != AggregationMode.Meter2Meter))) {
 			result.conn = new EnergyEvalObjSchedule(dp, null,
 					mode, controller);
 		} else if(dp.getResource() == null) {
 			ReadOnlyTimeSeries ts = dp.getTimeSeries();
 			if(ts != null) {
-				AggregationMode mode = dp.info().getAggregationMode();
-				if(mode == null)
-					mode = AggregationMode.Meter2Meter;
 				//TimeSeriesDataImpl ts = UserServlet.knownTS.get(dp.getTimeSeriesID());
 				//if(ts != null)
 				result.conn = new EnergyEvalObjSchedule(dp, null, mode, controller);

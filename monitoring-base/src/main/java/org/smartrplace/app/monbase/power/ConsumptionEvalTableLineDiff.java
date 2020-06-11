@@ -71,6 +71,10 @@ public abstract class ConsumptionEvalTableLineDiff extends ConsumptionEvalTableL
 	public CostProvider getCostProvider() {
 		return cprov;
 	}
+	@Override
+	public int hasSubPhaseNum() {
+		return ConsumptionEvalTableLineDiff.this.hasSubPhaseNum();
+	}
 
 	//@Override
 	//public void updatePhaseValueInternal(int index, long startTime, long endTime, long now) {

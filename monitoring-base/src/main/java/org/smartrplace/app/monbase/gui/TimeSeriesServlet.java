@@ -210,33 +210,63 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		public float referenceMeterValue;
 	}
 	
+	public static class Power2MeterPrevValues {
+		Float value;
+		long timestamp;
+	}
 	/** Calculate a virtual meter series that has the same counter value at a reference point as another
 	 * real meter so that the further consumption trend can be compared directly
 	 * Note: Currently this method only supports interpolation
+	 * TODO: param resultSerie especially for mode Power2Meter we would like to get a reference on a preexisting result
+	 * 		series to avoid a recalculation all the time. For now we re-calculate every time. If the value of the reference
+	 * 		time changes existing data is still not recalculated. The datapoint service app has to be restarted for this.
+	 * TODO: For Power2Meter we should generate a warning regarding value gaps, for now we just use the last value for the entire
+	 * 		interval until the next value is available.
 	 * @return
 	 */
 	public static List<SampledValue> getMeterFromConsumption(ReadOnlyTimeSeries timeSeries, long start, long end,
 			MeterReference ref, AggregationMode mode) {
-		if(mode == AggregationMode.Power2Meter)
-			throw new UnsupportedClassVersionError("Power2Meter not supported yet");
+			//ReadOnlyTimeSeries resultSeries) {
 		List<SampledValue> result = new ArrayList<>();
 		final double myRefValue;
 		final double delta;
-		if(mode == AggregationMode.Consumption2Meter) {
-			double counter = getPartialConsumptionValue(timeSeries, start, true);
-			final List<SampledValue> svList;
-			if(ref.referenceTime > start)
-				svList = timeSeries.getValues(start, ref.referenceTime);
-			else
-				svList = timeSeries.getValues(ref.referenceTime, start);
-			for(SampledValue sv: svList) {
-				counter += sv.getValue().getFloatValue();
+		Power2MeterPrevValues prevVal = null;
+		if(mode == AggregationMode.Power2Meter)
+			prevVal = new Power2MeterPrevValues();
+		if(mode == AggregationMode.Consumption2Meter || mode == AggregationMode.Power2Meter) {
+			long startLoc;
+			long endLoc;
+			if(ref.referenceTime > start) {
+				startLoc = start;
+				endLoc = ref.referenceTime;
+			} else {
+				startLoc = ref.referenceTime;
+				endLoc = start;			
 			}
-			counter += getPartialConsumptionValue(timeSeries, end, false);
+			double counter = aggregateValuesForMeter(timeSeries, mode, startLoc, endLoc, prevVal, null, 0);
+			/*if(mode == AggregationMode.Consumption2Meter)
+				counter = getPartialConsumptionValue(timeSeries, startLoc, true);
+			else
+				counter = 0;
+			final List<SampledValue> svList;
+			svList = timeSeries.getValues(startLoc, endLoc);
+			for(SampledValue sv: svList) {
+				if(mode == AggregationMode.Power2Meter)
+					counter += getPowerStep(prevVal, sv, startLoc);
+				else
+					counter += sv.getValue().getFloatValue();
+			}
+			if(mode == AggregationMode.Power2Meter)
+				counter += getFinalPowerStep(prevVal, endLoc);
+			else
+				counter += getPartialConsumptionValue(timeSeries, endLoc, false);*/
 			if(ref.referenceTime > start)
 				myRefValue = counter;
 			else
 				myRefValue = -counter;
+			delta = ref.referenceMeterValue - myRefValue;
+			aggregateValuesForMeter(timeSeries, mode, start, end, prevVal, result, delta);
+			return result;
 		} else {
 			myRefValue = getInterpolatedValue(timeSeries, ref.referenceTime);
 		}
@@ -244,14 +274,23 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			return Collections.emptyList();
 		delta = ref.referenceMeterValue - myRefValue;
 		double counter = 0;
-		if(mode == AggregationMode.Consumption2Meter) {
-			counter = getPartialConsumptionValue(timeSeries, start, true);
-		}
+		//if(mode == AggregationMode.Consumption2Meter) {
+		//	counter = getPartialConsumptionValue(timeSeries, start, true);
+		//}
+		//Float prevValue = null;
+		//long prevTime = -1;
 		for(SampledValue sv: timeSeries.getValues(start, end)) {
-			if(mode == AggregationMode.Consumption2Meter)
+			/*if(mode == AggregationMode.Consumption2Meter)
 				counter += sv.getValue().getFloatValue();
-			else
-				counter = sv.getValue().getFloatValue();
+			else if(mode == AggregationMode.Power2Meter) {
+				if(prevValue != null) {
+					counter += (prevValue * (sv.getTimestamp() - prevTime));
+					prevTime = sv.getTimestamp();
+				} else
+					prevTime = start;
+				prevValue = sv.getValue().getFloatValue();
+			} else*/
+			counter = sv.getValue().getFloatValue();
 			result.add(new SampledValue(new FloatValue((float) (counter+delta)), sv.getTimestamp(), sv.getQuality()));
 		}
 		return result;
@@ -359,5 +398,64 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			return svNext.getValue().getFloatValue() - partialVal;
 		else
 			return partialVal;
+	}
+	
+	/**
+	 * 
+	 * @param internalVals
+	 * @param sv
+	 * @param evalStart required for initial step. The first value will be integrated not from its timstamp, but
+	 * 		from the start of the evaluation as the real value before the first value usually is not in the
+	 * 		integration
+	 * @return
+	 */
+	protected static float getPowerStep(Power2MeterPrevValues internalVals, SampledValue sv, long evalStart) {
+		float result;
+		if(internalVals.value != null) {
+			result = (internalVals.value * (sv.getTimestamp() - internalVals.timestamp));
+			internalVals.timestamp = sv.getTimestamp();
+		} else {
+			result = 0;
+			internalVals.timestamp = evalStart;
+		}
+		internalVals.value = sv.getValue().getFloatValue();
+		return result;
+	}
+	protected static float getFinalPowerStep(Power2MeterPrevValues internalVals, long evalEnd) {
+		float result;
+		if(internalVals.value != null) {
+			result = (internalVals.value * (evalEnd - internalVals.timestamp));
+		} else {
+			result = 0;
+		}
+		return result;		
+	}
+	
+	protected static double aggregateValuesForMeter(ReadOnlyTimeSeries timeSeries, AggregationMode mode,
+			long startLoc, long endLoc, Power2MeterPrevValues prevVal,
+			 List<SampledValue> result, double delta) {
+		double counter;
+		if(mode == AggregationMode.Consumption2Meter)
+			counter = getPartialConsumptionValue(timeSeries, startLoc, true);
+		else
+			counter = 0;
+		final List<SampledValue> svList;
+		svList = timeSeries.getValues(startLoc, endLoc);
+		for(SampledValue sv: svList) {
+			if(mode == AggregationMode.Power2Meter)
+				counter += getPowerStep(prevVal, sv, startLoc);
+			else
+				counter += sv.getValue().getFloatValue();
+			if(result != null)
+				result.add(new SampledValue(new FloatValue((float) (counter+delta)), sv.getTimestamp(), sv.getQuality()));
+		}
+		if(mode == AggregationMode.Power2Meter) {
+			counter += getFinalPowerStep(prevVal, endLoc);
+			if(result != null)
+				result.add(new SampledValue(new FloatValue((float) (counter+delta)), prevVal.timestamp, Quality.GOOD));
+			else
+				counter += getPartialConsumptionValue(timeSeries, endLoc, false);
+		}
+		return counter;
 	}
 }

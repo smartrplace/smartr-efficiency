@@ -36,6 +36,13 @@ import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.util.resource.ResourceHelper;
 
 public class DeviceFinderInit {
+	/** Intended to be called on startup by one initializing application*/
+	public static void initAllDatapoints(ApplicationManager appMan,
+			DatapointService dpService) {
+		getAllDatapoints(appMan, dpService);
+		//if(Boolean.getBoolean(""))
+		//	Times
+	}
 	/** Re-implementation of finding sensors accoring to the SensorServlet*/
 	public static Map<Room, List<Sensor>> getAllSensors(MonitoringServiceBaseController controller) {
 		Map<Room, List<Sensor>> result = new HashMap<>();
