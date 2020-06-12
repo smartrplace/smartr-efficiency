@@ -7,7 +7,7 @@ import java.util.List;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
-import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.smartrplace.app.monbase.MonitoringController;
 
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl.ScheduleViewerOpenButtonDataProvider;

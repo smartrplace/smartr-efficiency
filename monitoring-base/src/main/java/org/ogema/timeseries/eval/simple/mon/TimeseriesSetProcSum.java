@@ -1,4 +1,4 @@
-package org.ogema.timeseries.eval.simple.api;
+package org.ogema.timeseries.eval.simple.mon;
 
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 

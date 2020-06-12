@@ -21,6 +21,7 @@ import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
@@ -89,6 +90,10 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
 	private DeviceHandlerDpRes devVirtDpRes;
 
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srPv = null;
+	private DeviceHandler_PVPlant devHandPv;
+
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
 	
@@ -131,6 +136,9 @@ public class MonitoringServiceBaseApp implements Application {
 	   devVirtDpRes = new DeviceHandlerDpRes(appMan);
 	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
 
+	   devHandPv = new DeviceHandler_PVPlant(appMan);
+	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
+
 	   jmbusConfig = new DriverHandlerJMBus(appManager, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
 	}
@@ -153,6 +161,9 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srSwBox != null) {
    		 srSwBox.unregister();
        }
+    	if (srPv != null) {
+      		 srPv.unregister();
+          }
 		if (controller != null)
     		controller.close();
         log.info("{} stopped", getClass().getName());

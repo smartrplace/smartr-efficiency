@@ -1,4 +1,4 @@
-package org.ogema.timeseries.eval.simple.api;
+package org.ogema.timeseries.eval.simple.mon;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
-import org.smartrplace.app.monbase.gui.ProcessedReadOnlyTimeSeries2;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 
 public abstract class TimeseriesSetProcSingleToSingle implements TimeseriesSetProcessor {
 	protected abstract List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start,

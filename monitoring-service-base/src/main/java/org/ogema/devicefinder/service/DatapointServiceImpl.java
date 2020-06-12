@@ -19,6 +19,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.DatapointInfoProvider;
@@ -28,6 +29,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.api.GatewayResource;
 import org.ogema.devicefinder.util.DPRoomImpl;
+import org.ogema.devicefinder.util.DatapointGroupImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DpConnectionImpl;
 import org.ogema.model.gateway.EvalCollection;
@@ -97,6 +99,10 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	/** GatewayId -> Connection-location -> Connection object*/
 	Map<String, Map<String, DpConnection>> knownConnections = new HashMap<>();
 
+	/** Group-Id -> Group object*/
+	Map<String, DatapointGroup> knownGroups = new HashMap<>();
+	
+	
 	@Override
 	public Datapoint getDataPointStandard(String resourceLocation) {
 		return getDataPointStandard(resourceLocation, GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
@@ -488,5 +494,25 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	@Override
 	public List<DpConnection> getConnections(UtilityType type) {
 		return getConnections(type, GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
+	}
+	
+	@Override
+	public List<DatapointGroup> getAllGroups() {
+		return Collections.unmodifiableList(new ArrayList<DatapointGroup>(knownGroups.values()));
+	}
+	
+	@Override
+	public DatapointGroup getGroup(String id) {
+		DatapointGroup result = knownGroups.get(id);
+		if(result == null) {
+			result = new DatapointGroupImpl(id);
+			knownGroups.put(id, result);
+		}
+		return result ;
+	}
+	
+	@Override
+	public boolean hasGroup(String id) {
+		return knownGroups.containsKey(id);
 	}
 }

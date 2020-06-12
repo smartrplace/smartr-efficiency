@@ -1,4 +1,4 @@
-package org.smartrplace.app.monbase.gui;
+package org.ogema.timeseries.eval.simple.mon;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,11 +18,10 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.timeseries.v2.tools.TimeSeriesUtils;
-import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
-import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
@@ -38,7 +37,7 @@ import de.iwes.util.timer.AbsoluteTiming;
  *
  */
 public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl> {
-	public static final long ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL = AlarmingManagement.HOUR_MILLIS*12;
+	public static final long ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL = TimeProcUtil.HOUR_MILLIS*12;
 	
 	Map<String, ReadOnlyTimeSeries> knownSpecialTs = new HashMap<>();
 	protected final ApplicationManager appMan;
@@ -111,7 +110,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	
 	public static float getIntegralOfLast24h(ReadOnlyTimeSeries ts, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
-		return (float) (TimeSeriesUtils.integrate(ts, now-AlarmingManagement.DAY_MILLIS, now)/AlarmingManagement.HOUR_MILLIS);
+		return (float) (TimeSeriesUtils.integrate(ts, now-TimeProcUtil.DAY_MILLIS, now)/TimeProcUtil.HOUR_MILLIS);
 	}
 	/** This method is only applicable for AggregationMode.Meter2Meter*/
 	public static float getDiffOfLast24h(ReadOnlyTimeSeries ts, ApplicationManager appMan) {
@@ -120,7 +119,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	/** This method is only applicable for AggregationMode.Meter2Meter*/
 	public static float getDiffOfLast24h(ReadOnlyTimeSeries ts, boolean interpolate, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
-		long start = now-AlarmingManagement.DAY_MILLIS;
+		long start = now-TimeProcUtil.DAY_MILLIS;
 		SampledValue startval = ts.getPreviousValue(start);
 		if(startval == null || start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL) {
 			return -1;
@@ -145,7 +144,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	public static float getDiffForDay(long timeStamp, ReadOnlyTimeSeries ts,
 			boolean interpolate) {
 		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, AbsoluteTiming.DAY);
-		long end = start + AlarmingManagement.DAY_MILLIS;
+		long end = start + TimeProcUtil.DAY_MILLIS;
 		final float startFloat;
 		final float endFloat;
 		if(interpolate) {
@@ -180,7 +179,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			boolean interpolate, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
 		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, AbsoluteTiming.DAY);		
-		long end = start + AlarmingManagement.DAY_MILLIS;
+		long end = start + TimeProcUtil.DAY_MILLIS;
 		if(now>=start && now<=end)
 			return getDiffOfLast24h(ts, interpolate, appMan);
 		else
@@ -326,7 +325,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 				case Power2Meter:
 					//TODO: not really tested
 					newDayVal = (float) (TimeSeriesUtils.integrate(
-							timeSeries, startCurrentDay, nextDayStart)/AlarmingManagement.HOUR_MILLIS);
+							timeSeries, startCurrentDay, nextDayStart)/TimeProcUtil.HOUR_MILLIS);
 					break;
 				case Consumption2Meter:
 					double counter = getPartialConsumptionValue(timeSeries, start, true);

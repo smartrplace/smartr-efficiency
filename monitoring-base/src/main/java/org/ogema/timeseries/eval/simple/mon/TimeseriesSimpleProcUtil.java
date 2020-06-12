@@ -1,4 +1,4 @@
-package org.ogema.timeseries.eval.simple.api;
+package org.ogema.timeseries.eval.simple.mon;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,54 +9,20 @@ import java.util.Map.Entry;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.simple.TimeResource;
-import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
-import org.ogema.devicefinder.util.AggregationModeProvider;
-import org.ogema.devicefinder.util.DPRoomImpl;
-import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.util.AggregationModeProvider;
+import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
-import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
-import org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference;
-import org.smartrplace.tissue.util.resource.ResourceHelperSP;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
-import de.iwes.util.resource.ValueResourceHelper;
 
 public class TimeseriesSimpleProcUtil {
-	public static final String PER_DAY_EVAL = "DAY";
-	public static final String SUM_PER_DAY_EVAL = "SUM_PER_DAY";
-	public static final String SUM_PER_DAY_PER_ROOM_EVAL = "DAY_PER_ROOM";
-
-	public static final String METER_EVAL = "METER";
-	public static TimeResource getDefaultMeteringReferenceResource(ResourceAccess resAcc ) {
-		TimeResource refRes = null;
-		if(!Boolean.getBoolean("org.ogema.timeseries.eval.simple.api.suppress_legacy_meteringreference"))
-			refRes = ResourceHelperSP.getSubResource(null,
-				"offlineEvaluationControlConfig/energyEvaluationInterval/initialTest/start",
-				TimeResource.class, resAcc);
-		if(refRes == null) {
-			refRes = ResourceHelperSP.getSubResource(null, "offlineEvaluationControlConfig/defaultMeteringReference",
-					TimeResource.class, resAcc);
-		}
-		return refRes;
-	}
-	public static boolean initDefaultMeteringReferenceResource(long referenceTime, boolean forceUpdate, ResourceAccess resAcc) {
-		TimeResource ref = getDefaultMeteringReferenceResource(resAcc);
-		if((!ref.isActive()) || forceUpdate) {
-			ValueResourceHelper.setCreate(ref, referenceTime);
-			return true;
-		}
-		return false;
-	}
-	
-	
-	public static final DPRoom unknownRoom = new DPRoomImpl(Datapoint.UNKNOWN_ROOM_ID,
-			Datapoint.UNKNOWN_ROOM_ID);
-	
 	protected final Map<String, TimeseriesSetProcessor> knownProcessors = new HashMap<>();
 	public TimeseriesSetProcessor getProcessor(String procID) {
 		return knownProcessors.get(procID);
@@ -84,7 +50,7 @@ public class TimeseriesSimpleProcUtil {
 					AggregationMode mode) {
 				MeterReference ref = new MeterReference();
 				ref.referenceMeterValue = 0;
-				TimeResource refRes = getDefaultMeteringReferenceResource(appMan.getResourceAccess());
+				TimeResource refRes = TimeProcUtil.getDefaultMeteringReferenceResource(appMan.getResourceAccess());
 				if(!refRes.exists()) {
 					refRes.create();
 					refRes.setValue(start);
@@ -94,7 +60,7 @@ public class TimeseriesSimpleProcUtil {
 				return TimeSeriesServlet.getMeterFromConsumption(timeSeries, start, end, ref, mode);						
 			}
 		};
-		knownProcessors.put(METER_EVAL, meterProc);
+		knownProcessors.put(TimeProcUtil.METER_EVAL, meterProc);
 		
 		TimeseriesSetProcessor dayProc = new TimeseriesSetProcSingleToSingle("_proTag") {
 			
@@ -105,7 +71,7 @@ public class TimeseriesSimpleProcUtil {
 				return result;
 			}
 		};
-		knownProcessors.put(PER_DAY_EVAL, dayProc);
+		knownProcessors.put(TimeProcUtil.PER_DAY_EVAL, dayProc);
 		
 		TimeseriesSetProcessor sumProc = new TimeseriesSetProcessor() {
 			
@@ -124,7 +90,7 @@ TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 				return result;
 			}
 		};
-		knownProcessors.put(SUM_PER_DAY_EVAL, sumProc);
+		knownProcessors.put(TimeProcUtil.SUM_PER_DAY_EVAL, sumProc);
 
 		
 		TimeseriesSetProcessor dayPerRoomProc = new TimeseriesSetProcessor() {
@@ -158,7 +124,7 @@ TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 							if(room != null)
 								dpLoc.setRoom(room);
 							else
-								dpLoc.setRoom(unknownRoom);
+								dpLoc.setRoom(TimeProcUtil.unknownRoom);
 						}
 					}
 					result.addAll(resultLoc);
@@ -167,7 +133,7 @@ TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 			}
 		};
 
-		knownProcessors.put(SUM_PER_DAY_PER_ROOM_EVAL, dayPerRoomProc);
+		knownProcessors.put(TimeProcUtil.SUM_PER_DAY_PER_ROOM_EVAL, dayPerRoomProc);
 	}
 	public List<Datapoint> process(String tsProcessRequest, List<Datapoint> input) {
 		TimeseriesSetProcessor proc = knownProcessors.get(tsProcessRequest);

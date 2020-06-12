@@ -20,7 +20,7 @@ import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.util.DatapointInfoImpl;
 import org.ogema.model.connections.ElectricityConnection;
-import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;

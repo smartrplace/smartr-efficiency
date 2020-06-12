@@ -18,7 +18,7 @@ public class MonitoringServiceBaseController {
 		this.appMan = appMan;
 		this.dpService = dpService;
 		this.baseApp = evaluationOCApp;
-		DeviceFinderInit.getAllDatapoints(appMan, dpService);
+		DeviceFinderInit.initAllDatapoints(appMan, dpService);
 	}
 	public void close() {
 		// TODO Auto-generated method stub

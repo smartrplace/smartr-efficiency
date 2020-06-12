@@ -9,8 +9,9 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
-import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor;
-import org.ogema.timeseries.eval.simple.api.TimeseriesSimpleProcUtil;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcessor;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableGeneric.ColumnValue;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
@@ -127,7 +128,7 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 		if(modeLoc == AggregationMode.Meter2Meter)
 			return EnergyEvalElConnObj.getEnergyValue(energyReadingLoc.getTimeSeries(), startTime, endTime, label);
 		TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
-		TimeseriesSetProcessor proc = util.getProcessor(TimeseriesSimpleProcUtil.METER_EVAL);
+		TimeseriesSetProcessor proc = util.getProcessor(TimeProcUtil.METER_EVAL);
 		List<Datapoint> resultTs = proc.getResultSeries(Arrays.asList(new Datapoint[] {
 				energyReadingLoc}), controller.dpService);
 		//List<TimeSeriesData> resultTs = proc.getResultSeriesTSD(Arrays.asList(new TimeSeriesData[] {

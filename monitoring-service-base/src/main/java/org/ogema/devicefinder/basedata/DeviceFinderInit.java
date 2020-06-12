@@ -28,6 +28,7 @@ import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.model.sensors.TemperatureSensor;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monservice.MonitoringServiceBaseController;
 
@@ -40,8 +41,9 @@ public class DeviceFinderInit {
 	public static void initAllDatapoints(ApplicationManager appMan,
 			DatapointService dpService) {
 		getAllDatapoints(appMan, dpService);
-		//if(Boolean.getBoolean(""))
-		//	Times
+		Long referenceTime = Long.getLong("org.ogema.timeseries.eval.simple.api.meteringreferencetime");
+		if(referenceTime != null)
+			TimeProcUtil.initDefaultMeteringReferenceResource(referenceTime, true, appMan.getResourceAccess());
 	}
 	/** Re-implementation of finding sensors accoring to the SensorServlet*/
 	public static Map<Room, List<Sensor>> getAllSensors(MonitoringServiceBaseController controller) {

@@ -1,4 +1,4 @@
-package org.ogema.timeseries.eval.simple.api;
+package org.ogema.timeseries.eval.simple.mon;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,15 +14,15 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
-import org.smartrplace.app.monbase.gui.ProcessedReadOnlyTimeSeries;
-import org.smartrplace.app.monbase.gui.ProcessedReadOnlyTimeSeries2;
-import org.smartrplace.monbase.alarming.AlarmingManagement;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 
 /** The input time series for this provider must be aligned having common time stamps
  * and the time series starting first and ending last shall have no gap in between that occurs not in
  * all input series.*/
 public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetProcessor {
-	private final static long TEST_SHIFT = AlarmingManagement.DAY_MILLIS-2*AlarmingManagement.HOUR_MILLIS;
+	private final static long TEST_SHIFT = TimeProcUtil.DAY_MILLIS-2*TimeProcUtil.HOUR_MILLIS;
 
 	protected abstract float aggregateValues(Float[] values, long timestamp, AggregationMode mode);
 	//protected TimeSeriesNameProvider nameProvider() {return null;}

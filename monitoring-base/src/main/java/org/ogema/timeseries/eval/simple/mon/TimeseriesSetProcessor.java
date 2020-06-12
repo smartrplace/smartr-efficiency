@@ -1,4 +1,4 @@
-package org.ogema.timeseries.eval.simple.api;
+package org.ogema.timeseries.eval.simple.mon;
 
 import java.util.List;
 
