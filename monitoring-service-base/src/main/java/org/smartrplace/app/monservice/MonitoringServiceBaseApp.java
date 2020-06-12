@@ -21,6 +21,7 @@ import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.smartrplace.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
@@ -97,6 +98,10 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
 	
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srDoorWindowSensor = null;
+	private DeviceHandlerDoorWindowSensor devHandDoorWindowSensor;
+
 	
 	@Activate
 	   void activate(BundleContext bc) {
@@ -132,6 +137,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
 	   devHandSwBox = new DeviceHandlerMQTT_MultiSwBox(appMan);
 	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
+	   devHandDoorWindowSensor = new DeviceHandlerDoorWindowSensor(appMan);
+	   srDoorWindowSensor = bc.registerService(DeviceHandlerProvider.class, devHandDoorWindowSensor, null);
 	   
 	   devVirtDpRes = new DeviceHandlerDpRes(appMan);
 	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
@@ -141,6 +148,7 @@ public class MonitoringServiceBaseApp implements Application {
 
 	   jmbusConfig = new DriverHandlerJMBus(appManager, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
+
 	}
  	
      /*
