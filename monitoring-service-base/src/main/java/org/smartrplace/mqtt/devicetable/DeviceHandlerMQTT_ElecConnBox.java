@@ -108,13 +108,22 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(ElectricityConnectionBox dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
+		ElectricityConnectionBox dev = (ElectricityConnectionBox) installDeviceRes.device();
 		List<Datapoint> result = new ArrayList<>();
-		addDatapoint(dev.connection().voltageSensor().reading(), result, dpService);
-		addDatapoint(dev.connection().powerSensor().reading(), result, dpService);
-		addDatapoint(dev.connection().energySensor().reading(), result, dpService);
-		addDatapoint(dev.connection().currentSensor().reading(), result, dpService);
-		addDatapoint(dev.connection().frequencySensor().reading(), result, dpService);
+		addConnDatapoints(result, dev.connection(), dpService);
+		for(ElectricityConnection subConn: dev.connection().subPhaseConnections().getAllElements()) {
+			addConnDatapoints(result, subConn, dpService);			
+		}
+		
 		return result;
+	}
+	
+	protected void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService) {
+		addDatapoint(conn.voltageSensor().reading(), result, dpService);
+		addDatapoint(conn.powerSensor().reading(), result, dpService);
+		addDatapoint(conn.energySensor().reading(), result, dpService);
+		addDatapoint(conn.currentSensor().reading(), result, dpService);
+		addDatapoint(conn.frequencySensor().reading(), result, dpService);		
 	}
 }

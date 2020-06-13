@@ -76,7 +76,7 @@ public class EnergyEvalHeatObj implements EnergyEvalObjI {
 	}
 	@Override
 	public
-	float getEnergyValueSubPhase(int index, long startTime, long endTime) {
+	float getEnergyValueSubPhase(int index, float lineMainValue, long startTime, long endTime) {
 		return Float.NaN;
 	}
 	

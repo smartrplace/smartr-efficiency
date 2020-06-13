@@ -1,6 +1,5 @@
 package org.smartrplace.app.monbase.power;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -10,10 +9,7 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcessor;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
-import org.smartrplace.app.monbase.MonitoringController;
-import org.smartrplace.app.monbase.power.ConsumptionEvalTableGeneric.ColumnValue;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
 
 /** TODO: This is currently only implemented for {@link AggregationMode#Consumption2Meter} and
@@ -24,28 +20,31 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 	//protected final ReadOnlyTimeSeries energyReading;
 	protected final Datapoint energyReading;
 	protected final AggregationMode mode;
-	protected MonitoringController controller;
+	//protected MonitoringController controller;
+	protected final TimeseriesSimpleProcUtil util;
+
 	
-	protected final List<ColumnValue> phaseValData;
+	protected final List<ColumnDataProvider> phaseValData;
 	/**
 	 * 
 	 * @param energyReading
 	 * @param powerReading may be null
 	 */
-	public EnergyEvalObjSchedule(Datapoint energyReading, MonitoringController controller) {
-		this(energyReading, null, AggregationMode.Consumption2Meter, controller);
+	public EnergyEvalObjSchedule(Datapoint energyReading, TimeseriesSimpleProcUtil util) {
+		this(energyReading, null, AggregationMode.Consumption2Meter, util);
 	}
 	public EnergyEvalObjSchedule(Datapoint energyReading, FloatResource powerReading,
-			AggregationMode mode, MonitoringController controller) {
-		this(energyReading, powerReading, AggregationMode.Consumption2Meter, controller, Collections.emptyList());
+			AggregationMode mode, TimeseriesSimpleProcUtil util) {
+		this(energyReading, powerReading, AggregationMode.Consumption2Meter, util, Collections.emptyList());
 	}
 	public EnergyEvalObjSchedule(Datapoint energyReading, FloatResource powerReading,
-			AggregationMode mode, MonitoringController controller,
-			List<ColumnValue> phaseValData) {
+			AggregationMode mode, TimeseriesSimpleProcUtil util,
+			List<ColumnDataProvider> phaseValData) {
 		this.energyReading = energyReading;
 		this.powerReading = powerReading;
 		this.mode = mode;
-		this.controller = controller;
+		//this.controller = controller;
+		this.util = util;
 		this.phaseValData = phaseValData;
 	}
 
@@ -66,20 +65,6 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 	public
 	float getEnergyValue(long startTime, long endTime, String label) {
 		return getEnergyValue(energyReading, mode, startTime, endTime, label);
-		/*if(energyReading == null) return Float.NaN;
-		if(mode == AggregationMode.Meter2Meter)
-			return EnergyEvalElConnObj.getEnergyValue(energyReading.getTimeSeries(), startTime, endTime, label);
-		TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
-		TimeseriesSetProcessor proc = util.getProcessor(TimeseriesSimpleProcUtil.METER_EVAL);
-		List<Datapoint> resultTs = proc.getResultSeries(Arrays.asList(new Datapoint[] {
-				energyReading}), controller.dpService);
-		//List<TimeSeriesData> resultTs = proc.getResultSeriesTSD(Arrays.asList(new TimeSeriesData[] {
-		//		new TimeSeriesDataImpl(energyReading, "", "", InterpolationMode.NONE)}),
-		//		controller.dpService, null, controller);
-		if(resultTs == null || resultTs.isEmpty())
-			return Float.NaN;
-		ReadOnlyTimeSeries ts = resultTs.get(0).getTimeSeries();
-		return EnergyEvalElConnObj.getEnergyValue(ts, startTime, endTime, label);*/
 	}
 	
 	@Override
@@ -107,11 +92,12 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 	}
 	@Override
 	public
-	float getEnergyValueSubPhase(int index, long startTime, long endTime) {
-		ColumnValue cv = phaseValData.get(index);
-		if(cv.dp != null)
-			return getEnergyValue(cv.dp, cv.dp.info().getAggregationMode(), startTime, endTime, null);
-		return Float.NaN;
+	float getEnergyValueSubPhase(int index, float lineMainValue, long startTime, long endTime) {
+		ColumnDataProvider cv = phaseValData.get(index);
+		return cv.getValue(lineMainValue, startTime, endTime);
+		//if(cv.dp != null)
+		//	return getEnergyValue(cv.dp, cv.dp.info().getAggregationMode(), startTime, endTime, null);
+		//return Float.NaN;
 	}
 	
 	@Override
@@ -127,17 +113,36 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 		if(energyReadingLoc == null) return Float.NaN;
 		if(modeLoc == AggregationMode.Meter2Meter)
 			return EnergyEvalElConnObj.getEnergyValue(energyReadingLoc.getTimeSeries(), startTime, endTime, label);
-		TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
+		Datapoint resultDp = util.processSingle(TimeProcUtil.METER_EVAL, energyReadingLoc);
+		if(resultDp == null)
+			return Float.NaN;
+		/*
+		//TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 		TimeseriesSetProcessor proc = util.getProcessor(TimeProcUtil.METER_EVAL);
 		List<Datapoint> resultTs = proc.getResultSeries(Arrays.asList(new Datapoint[] {
-				energyReadingLoc}), controller.dpService);
+				energyReadingLoc}), util.dpService);
 		//List<TimeSeriesData> resultTs = proc.getResultSeriesTSD(Arrays.asList(new TimeSeriesData[] {
 		//		new TimeSeriesDataImpl(energyReading, "", "", InterpolationMode.NONE)}),
 		//		controller.dpService, null, controller);
 		if(resultTs == null || resultTs.isEmpty())
 			return Float.NaN;
-		ReadOnlyTimeSeries ts = resultTs.get(0).getTimeSeries();
+		
+		ReadOnlyTimeSeries ts = resultTs.get(0).getTimeSeries();*/
+		ReadOnlyTimeSeries ts = resultDp.getTimeSeries();
 		return EnergyEvalElConnObj.getEnergyValue(ts, startTime, endTime, label);
 	}
 
+	@Override
+	public Datapoint getDailyConsumptionValues() {
+		return util.processSingle(TimeProcUtil.PER_DAY_EVAL, energyReading);
+	}
+	@Override
+	public Datapoint getHourlyConsumptionValues() {
+		return util.processSingle(TimeProcUtil.PER_HOUR_EVAL, energyReading);
+	}
+	
+	@Override
+	public Datapoint getMeterComparisonValues() {
+		return util.processSingle(TimeProcUtil.METER_EVAL, energyReading);
+	}
 }

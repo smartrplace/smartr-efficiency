@@ -12,7 +12,6 @@ import org.smartrplace.app.monbase.MonitoringController;
 
 import com.iee.app.evaluationofflinecontrol.gui.OfflineEvaluationControl.ScheduleViewerOpenButtonDataProvider;
 import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
-import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDescription;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
@@ -27,15 +26,19 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 	protected abstract String getDataType(OgemaHttpRequest req);
 	protected final MonitoringController controller;
 	protected final OfflineControlGUIConfig guiConfig;
+	protected final TimeseriesSimpleProcUtil tsUtil;
+
 	
 	public ScheduleViewerOpenButtonDataProviderImpl(MonitoringController controller) {
 		this.controller = controller;
 		this.guiConfig = new OfflineControlGUI.DefaultGUIConfig(controller);
+		tsUtil = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 	}
 	public ScheduleViewerOpenButtonDataProviderImpl(MonitoringController controller,
 			OfflineControlGUIConfig guiConfig) {
 		this.controller = controller;
 		this.guiConfig = guiConfig;
+		tsUtil = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 	}
 
 	@Override
@@ -131,8 +134,8 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 		}
 
 		if(tsProcessRequest != null) {
-			TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
-			List<TimeSeriesData> result = util.processTSD(tsProcessRequest, input, nameProvider(), controller);
+			//TimeseriesSimpleProcUtil util = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
+			List<TimeSeriesData> result = tsUtil.processTSD(tsProcessRequest, input, nameProvider(), controller);
 			return result;
 		}
 		return input;

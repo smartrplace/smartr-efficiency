@@ -110,7 +110,8 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(SensorDevice dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
+		SensorDevice dev = (SensorDevice) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		for(Sensor sens: dev.sensors().getAllElements()) {
 			if(sens.reading() instanceof SingleValueResource)

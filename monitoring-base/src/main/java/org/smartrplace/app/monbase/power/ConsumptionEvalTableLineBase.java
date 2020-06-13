@@ -10,7 +10,7 @@ import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	private static final long MAX_CACHE_TIME = 2000;
 	
-	public final EnergyEvalObjI conn;
+	protected final EnergyEvalObjI conn;
 	//protected final EnergyEvalInterval eeInterval;
 	protected final boolean lineShowsPower;
 	protected final String label;
@@ -127,12 +127,12 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 		if(now - lastUpdateTime <= MAX_CACHE_TIME) {
 			return;
 		}
-		float val = getPhaseValueRealInternal(index, startTime, endTime);
+		float val = getPhaseValueRealInternal(index, lastValues[0], startTime, endTime);
 		lastValues[index] = val;
 		lastUpdateTime = now;
 	}
 	
-	public float getPhaseValueRealInternal(int index, long startTime, long endTime) {
+	public float getPhaseValueRealInternal(int index, float lineMainValue, long startTime, long endTime) {
 		if(lineShowsPower) {
 			if(index == 0) {
 				return conn.getPowerValue();
@@ -148,9 +148,9 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 				return val;
 			} else if(conn.hasSubPhaseNum() > 0) {
 				if(factorEnergy != null)
-					return conn.getEnergyValueSubPhase(index, startTime, endTime) * factorEnergy;
+					return conn.getEnergyValueSubPhase(index, lineMainValue, startTime, endTime) * factorEnergy;
 				else
-					return conn.getEnergyValueSubPhase(index, startTime, endTime);
+					return conn.getEnergyValueSubPhase(index, lineMainValue, startTime, endTime);
 			}
 			return Float.NaN;
 		}
@@ -201,5 +201,14 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	@Override
 	public UtilityType getUtilityType() {
 		return utilType;
+	}
+	@Override
+	public EnergyEvalObjI getEvalObjConn() {
+		return conn;
+	}
+	
+	@Override
+	public List<ColumnDataProvider> getAdditionalDatapoints() {
+		return ConsumptionEvalTableLineI.super.getAdditionalDatapoints();
 	}
 }

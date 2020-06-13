@@ -6,8 +6,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
@@ -20,6 +25,7 @@ import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
+import org.ogema.model.devices.generators.PVPlant;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.ElectricCurrentSensor;
 import org.ogema.model.sensors.ElectricEnergySensor;
@@ -28,6 +34,7 @@ import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.model.sensors.TemperatureSensor;
+import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monservice.MonitoringServiceBaseController;
@@ -35,15 +42,74 @@ import org.smartrplace.app.monservice.MonitoringServiceBaseController;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
+import extensionmodel.smarteff.api.base.SmartEffUserData;
+import extensionmodel.smarteff.api.common.BuildingData;
+import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class DeviceFinderInit {
+	protected static Timer openWeatherTempTimer = null;
+	
+	protected static final Map<UtilityType, Float> defaultPrices = new HashMap<>();
+	protected static final Map<UtilityType, Float> defaultEffs = new HashMap<>();
+	static {
+		defaultPrices.put(UtilityType.ELECTRICITY, 0.28f);
+		defaultPrices.put(UtilityType.HEAT_ENERGY, 0.06f);
+		defaultEffs.put(UtilityType.HEAT_ENERGY, 0.95f);
+		defaultPrices.put(UtilityType.WATER, 1.8f);
+	}
+	
 	/** Intended to be called on startup by one initializing application*/
 	public static void initAllDatapoints(ApplicationManager appMan,
 			DatapointService dpService) {
 		getAllDatapoints(appMan, dpService);
+		
 		Long referenceTime = Long.getLong("org.ogema.timeseries.eval.simple.api.meteringreferencetime");
 		if(referenceTime != null)
 			TimeProcUtil.initDefaultMeteringReferenceResource(referenceTime, true, appMan.getResourceAccess());
+		
+		TemperatureResource openWeatherMapTemp = KPIResourceAccess.getOpenWeatherMapTemperature(appMan.getResourceAccess());
+		if(openWeatherMapTemp != null) {
+			if(openWeatherTempTimer == null) {
+				openWeatherTempTimer = appMan.createTimer(TimeProcUtil.DAY_MILLIS, new TimerListenerInitialElapsed() {
+					@Override
+					public void timerElapsed(Timer arg0) {
+						long now = appMan.getFrameworkTime();
+						float val = TimeProcUtil.getInterpolatedOrAvailableValue(openWeatherMapTemp.forecast(), now);
+						if(!Float.isNaN(val))
+							openWeatherMapTemp.setValue(val);
+					}
+				});
+			}
+		}
+		
+		SmartEffUserData smUser = appMan.getResourceAccess().getResource("master/editableData");
+		if(smUser != null) {
+			ResourceList<BuildingData> buildingData = smUser.buildingData();
+			buildingData.create();
+			BuildingData building = buildingData.addDecorator("E_0", BuildingData.class);
+			ResourceList<BuildingUnit> roomList = building.buildingUnit();
+			roomList.create();
+			BuildingUnit overall = roomList.addDecorator(DPRoom.BUILDING_OVERALL_ROOM_LABEL, BuildingUnit.class);
+			overall.name().<StringResource>create().setValue(DPRoom.BUILDING_OVERALL_ROOM_LABEL);
+			for(DPRoom room: dpService.getAllRooms()) {
+				BuildingUnit bu = roomList.addDecorator(ResourceUtils.getValidResourceName(room.label(null)), BuildingUnit.class);
+				bu.name().<StringResource>create().setValue(room.label(null));				
+			}
+			smUser.activate(true);
+		}
+		for(UtilityType type: UtilityType.values()) {
+			FloatResource priceRes = KPIResourceAccess.getDefaultPriceResource(type, appMan);
+			if(priceRes != null && (!priceRes.exists())) {
+				Float price = defaultPrices.get(type);
+				if(price != null)
+					ValueResourceHelper.setCreate(priceRes, price);
+				FloatResource effRes = KPIResourceAccess.getDefaultEfficiencyResource(type, appMan);
+				Float eff = defaultEffs.get(type);
+				if(eff != null)
+					ValueResourceHelper.setCreate(effRes, eff);
+			}
+		}
 	}
 	/** Re-implementation of finding sensors accoring to the SensorServlet*/
 	public static Map<Room, List<Sensor>> getAllSensors(MonitoringServiceBaseController controller) {
@@ -88,6 +154,22 @@ public class DeviceFinderInit {
 			}
 			result.put(dproom, valress);
 		}
+		
+		List<PVPlant> pvs = appMan.getResourceAccess().getToplevelResources(PVPlant.class);
+		for(PVPlant pv: pvs) {
+			Room room = ResourceUtils.getDeviceRoom(pv);
+			if(room != null)
+				continue; // we have already processed this
+			List<Sensor> sensors = pv.getSubResources(Sensor.class, true);
+			List<Datapoint> valress = new ArrayList<>();
+			for(Sensor sens: sensors) {
+				Datapoint dp = getDataPoint(sens.reading(), dpService, sens, dproom);
+				valress.add(dp);
+				checkForElectricityMeter(sens, dp);
+			}
+			result.put(dproom, valress);
+		}
+		
 		return result;
 	}
 	

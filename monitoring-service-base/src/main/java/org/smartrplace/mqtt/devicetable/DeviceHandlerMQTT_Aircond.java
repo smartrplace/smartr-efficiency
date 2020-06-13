@@ -136,7 +136,8 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(AirConditioner dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
+		AirConditioner dev = (AirConditioner) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));

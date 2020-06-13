@@ -21,7 +21,7 @@ import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.ogema.tools.timeseries.v2.tools.TimeSeriesUtils;
+import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
@@ -110,7 +110,8 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	
 	public static float getIntegralOfLast24h(ReadOnlyTimeSeries ts, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
-		return (float) (TimeSeriesUtils.integrate(ts, now-TimeProcUtil.DAY_MILLIS, now)/TimeProcUtil.HOUR_MILLIS);
+		return (float) (integrateSimple(ts, now-TimeProcUtil.DAY_MILLIS, now)/TimeProcUtil.HOUR_MILLIS);
+		//return (float) (TimeSeriesUtils.integrate(ts, now-TimeProcUtil.DAY_MILLIS, now)/TimeProcUtil.HOUR_MILLIS);
 	}
 	/** This method is only applicable for AggregationMode.Meter2Meter*/
 	public static float getDiffOfLast24h(ReadOnlyTimeSeries ts, ApplicationManager appMan) {
@@ -143,16 +144,21 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	/** This method is only applicable for AggregationMode.Meter2Meter*/
 	public static float getDiffForDay(long timeStamp, ReadOnlyTimeSeries ts,
 			boolean interpolate) {
+		return getDiffForDay(timeStamp, ts, interpolate, AbsoluteTiming.DAY);
+	}
+	public static float getDiffForDay(long timeStamp, ReadOnlyTimeSeries ts,
+			boolean interpolate, int intervalType) {
 		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, AbsoluteTiming.DAY);
-		long end = start + TimeProcUtil.DAY_MILLIS;
+		long end = start + AbsoluteTimeHelper.getStandardInterval(intervalType); //TimeProcUtil.DAY_MILLIS;
 		final float startFloat;
 		final float endFloat;
+		long ACCEPTED_PREVIOUS_VALUE_DISTANCE = AbsoluteTimeHelper.getStandardInterval(intervalType)/2;
 		if(interpolate) {
-			startFloat = getInterpolatedValue(ts, start);
-			endFloat = getInterpolatedValue(ts, end);			
+			startFloat = TimeProcUtil.getInterpolatedValue(ts, start);
+			endFloat = TimeProcUtil.getInterpolatedValue(ts, end);			
 		} else {
 			SampledValue startval = ts.getPreviousValue(start);
-			if(startval == null || (start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL)) {
+			if(startval == null || (start - startval.getTimestamp() > ACCEPTED_PREVIOUS_VALUE_DISTANCE)) { //ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL)) {
 				return Float.NaN; //-1
 			}
 			SampledValue endval = ts.getPreviousValue(end);
@@ -263,7 +269,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			aggregateValuesForMeter(timeSeries, mode, start, end, prevVal, result, delta);
 			return result;
 		} else {
-			myRefValue = getInterpolatedValue(timeSeries, ref.referenceTime);
+			myRefValue = TimeProcUtil.getInterpolatedValue(timeSeries, ref.referenceTime);
 		}
 		if(Double.isNaN(myRefValue))
 			return Collections.emptyList();
@@ -293,13 +299,13 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	public static List<SampledValue> getDayValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 			AggregationMode mode, float factor) {
 		return getDayValues(timeSeries, start, end, mode, factor,
-				Boolean.getBoolean("org.smartrplace.app.monbase.dointerpolate"));
+				Boolean.getBoolean("org.smartrplace.app.monbase.dointerpolate"), AbsoluteTiming.DAY);
 	}
 	public static List<SampledValue> getDayValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-			AggregationMode mode, float factor, boolean interpolate) {
+			AggregationMode mode, float factor, boolean interpolate, int intervalType) {
 		//if(mode == AggregationMode.Power2Meter)
 		//	throw new UnsupportedClassVersionError("Power2Meter not supported yet");
-		long nextDayStart = AbsoluteTimeHelper.getIntervalStart(start, AbsoluteTiming.DAY);
+		long nextDayStart = AbsoluteTimeHelper.getIntervalStart(start, intervalType);
 		/*float prevCounter;
 		switch(mode) {
 		case Meter2Meter:
@@ -311,20 +317,21 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		List<SampledValue> result = new ArrayList<>();
 		while(nextDayStart < end) {
 			long startCurrentDay = nextDayStart;
-			nextDayStart = AbsoluteTimeHelper.addIntervalsFromAlignedTime(nextDayStart, 1, AbsoluteTiming.DAY);
+			nextDayStart = AbsoluteTimeHelper.addIntervalsFromAlignedTime(nextDayStart, 1, intervalType);
 			float newDayVal;
 			if(mode == AggregationMode.Meter2Meter) {
 				newDayVal = getDiffForDay(startCurrentDay, timeSeries, interpolate);
 			} else {
-				float newCounter = getInterpolatedValue(timeSeries, startCurrentDay);
+				float newCounter = TimeProcUtil.getInterpolatedValue(timeSeries, startCurrentDay);
 				switch(mode) {
 				//case Meter2Meter:
 				//	newDayVal = newCounter - prevCounter;
 				//	prevCounter = newCounter;
 				//	break;
 				case Power2Meter:
-					//TODO: not really tested
-					newDayVal = (float) (TimeSeriesUtils.integrate(
+					//TODO: not really tested => integrate from W*(milliseconds) to kWh
+					//newDayVal = (float) (TimeSeriesUtils.integrate(
+					newDayVal = (float) (integrateSimple(
 							timeSeries, startCurrentDay, nextDayStart)/TimeProcUtil.HOUR_MILLIS);
 					break;
 				case Consumption2Meter:
@@ -344,25 +351,6 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			result.add(new SampledValue(new FloatValue(newDayVal), startCurrentDay, Quality.GOOD));
 		}
 		return result;
-	}
-	
-	protected static double interpolateEnergyValue(long start, long end, long ts, float valStart, float valEnd) {
-		return valStart+interpolateEnergyStep(start, end, ts, valEnd-valStart);
-	}
-	protected static double interpolateEnergyStep(long start, long end, long ts, float deltaVal) {
-		return ((double)(ts-start))/(end-start)*deltaVal;
-	}
-	protected static float getInterpolatedValue(ReadOnlyTimeSeries timeseries, long timestamp) {
-		SampledValue sv = timeseries.getValue(timestamp);
-		if(sv != null)
-			return sv.getValue().getFloatValue();
-		SampledValue svBefore = timeseries.getPreviousValue(timestamp);
-		SampledValue svNext = timeseries.getNextValue(timestamp);
-		if(svBefore == null || svNext == null)
-			return Float.NaN;
-		return (float) interpolateEnergyValue(svBefore.getTimestamp(), svNext.getTimestamp(),
-				timestamp,
-				svBefore.getValue().getFloatValue(), svNext.getValue().getFloatValue());
 	}
 	
 	/** For Consumption2Meter time series get energy consumption from timestamp to the end of the
@@ -386,7 +374,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		if(svBefore == null || svNext == null)
 			return 0;
 		// Part of consumption represented by the value at the end of the interval that is used until timestamp
-		float partialVal = (float) interpolateEnergyStep(svBefore.getTimestamp(), svNext.getTimestamp(),
+		float partialVal = (float) TimeProcUtil.interpolateTsStep(svBefore.getTimestamp(), svNext.getTimestamp(),
 				timestamp,
 				svNext.getValue().getFloatValue());
 		if(getConsumptionTowardsEnd)
@@ -432,11 +420,23 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		double counter;
 		if(mode == AggregationMode.Consumption2Meter)
 			counter = getPartialConsumptionValue(timeSeries, startLoc, true);
-		else
+		else {
+			SampledValue svBefore = timeSeries.getPreviousValue(startLoc);
+			SampledValue svFirst = timeSeries.getNextValue(startLoc);
+			long firstTs;
+			if(svFirst == null || svFirst.getTimestamp() > endLoc)
+				firstTs = endLoc;
+			else
+				firstTs = svFirst.getTimestamp();
+			if(svBefore != null && (!Float.isNaN(svBefore.getValue().getFloatValue())))
+				counter = svBefore.getValue().getFloatValue()*(firstTs - startLoc);
 			counter = 0;
+		}
 		final List<SampledValue> svList;
 		svList = timeSeries.getValues(startLoc, endLoc);
 		for(SampledValue sv: svList) {
+			if(Float.isNaN(sv.getValue().getFloatValue()))
+				continue;
 			if(mode == AggregationMode.Power2Meter)
 				counter += getPowerStep(prevVal, sv, startLoc);
 			else
@@ -453,4 +453,20 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		}
 		return counter;
 	}
+	
+	/**
+	 * @param timeseries
+	 * @param start
+	 * @param end
+	 * @return
+	 * 		integral, with time measured in ms
+	 */
+	public static double integrateSimple(ReadOnlyTimeSeries timeseries, long start, long end) {
+		double sum = 0;
+		
+		Power2MeterPrevValues prevVal = new Power2MeterPrevValues();
+		sum += aggregateValuesForMeter(timeseries, AggregationMode.Power2Meter, start, end, prevVal , null, 0);
+		return sum;
+	}
+
 }

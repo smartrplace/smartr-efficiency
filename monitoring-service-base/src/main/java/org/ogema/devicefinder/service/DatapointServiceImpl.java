@@ -451,6 +451,15 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			return null;
 		return subMap.get(id);
 	}
+	
+	@Override
+	public List<GatewayResource> getAllStructures() {
+		List<GatewayResource> result = new ArrayList<>();
+		for(Map<String, GatewayResource> subMap: knownGWRes.values()) {
+			result.addAll(subMap.values());
+		}
+		return result;
+	}
 
 	public void setStructure(GatewayResource gwRes, String id, String gatewayId) {
 		Map<String, GatewayResource> subMap = knownGWRes.get(gatewayId);
@@ -476,6 +485,16 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			setStructure(result, id, gatewayId);
 		}
 		return (DPRoom) result;
+	}
+	
+	@Override
+	public List<DPRoom> getAllRooms() {
+		List<DPRoom> result = new ArrayList<>();
+		for(GatewayResource gwres: getAllStructures()) {
+			if(gwres instanceof DPRoom)
+				result.add((DPRoom) gwres);
+		}
+		return result;
 	}
 	
 	@Override

@@ -79,7 +79,7 @@ public class EnergyEvalElConnObj implements EnergyEvalObjI {
 		return subConn.energySensor().reading().getValue();
 	}
 	@Override
-	public float getEnergyValueSubPhase(int index, long startTime, long endTime) {
+	public float getEnergyValueSubPhase(int index, float lineMainValue, long startTime, long endTime) {
 		ElectricityConnection subConn = conn.subPhaseConnections().getSubResource(
 				"phase"+index, ElectricityConnection.class);
 		RecordedData ts = subConn.energySensor().reading().getHistoricalData();

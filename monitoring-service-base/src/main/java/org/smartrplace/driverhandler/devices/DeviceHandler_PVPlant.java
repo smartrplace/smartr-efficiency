@@ -97,16 +97,18 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(PVPlant dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
+		PVPlant dev = (PVPlant) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(dev.electricityConnection().powerSensor().reading(), result, dpService);
 		addDatapoint(dev.electricityConnection().energySensor().reading(), result, dpService);
+		checkDpSubLocations(appDevice, result);
 		return result;
 	}
 	
 	/** We are using this for configuration*/
 	@Override
-	public String getDeviceTypeShortId(InstallAppDevice device) {
+	public String getDeviceTypeShortId(InstallAppDevice device, DatapointService dpService) {
 		if(!device.installationLocation().exists() || device.installationLocation().getValue().isEmpty()) {			
 			String devName = device.device().getLocationResource().getName();
 			String defaultSubLoc;
@@ -115,8 +117,9 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 				defaultSubLoc = "PVPlant"+devName.substring(idx);
 			} else
 				defaultSubLoc = "PVPlant";				
-			device.installationLocation().setValue(defaultSubLoc);
+			setInstallationLocation(device, defaultSubLoc, dpService);
+			//ValueResourceHelper.setCreate(device.installationLocation(), defaultSubLoc);
 		}
-		return super.getDeviceTypeShortId(device);
+		return super.getDeviceTypeShortId(device, dpService);
 	}
 }

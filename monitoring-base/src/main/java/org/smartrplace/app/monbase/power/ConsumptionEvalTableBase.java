@@ -3,25 +3,21 @@ package org.smartrplace.app.monbase.power;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.channelmanager.measurements.SampledValue;
-import org.ogema.core.model.Resource;
-import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
-import org.ogema.model.gateway.EvalCollection;
+import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
-import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.CostProvider;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObjI;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
-import de.iwes.util.logconfig.EvalHelper;
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
@@ -67,25 +63,35 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	//protected final WidgetGroup wg;
 	
 	protected long getDefaultStartTime(OgemaHttpRequest req) {
+		Long preset = Long.getLong("org.smartrplace.app.monbase.power.defaultkpistarttime");
+		if(preset != null)
+			return preset;
 		long now = appMan.getFrameworkTime();
 		return now - 30*AlarmingManagement.DAY_MILLIS;
 	}
 	
 	/** Override default implementation if required*/
+	protected abstract String getHeaderText(OgemaHttpRequest req);
+	/** Short label for the generation of plot titles*/
+	protected abstract String getShortLabel();
+
+	/** Override default implementation if required*/
 	protected void configurePricingInformation() {
-		FloatResource elPriceLoc;
+		elPrice = KPIResourceAccess.getDefaultPriceResource(UtilityType.ELECTRICITY, appMan);
+		/*FloatResource elPriceLoc;
 		elPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/electricityPrice", FloatResource.class);
 		if(elPriceLoc == null) {
 			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
 			elPriceLoc = evalCollection.getSubResource("elPrice", FloatResource.class);
 		}
-		elPrice = elPriceLoc;
+		elPrice = elPriceLoc;*/
 		elPrice.create();
 		if(!elPrice.isActive())
 			elPrice.activate(false);
 		
-		FloatResource gasPriceLoc;
+		gasPrice = KPIResourceAccess.getDefaultPriceResource(UtilityType.HEAT_ENERGY, appMan);
+		/*FloatResource gasPriceLoc;
 		gasPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/gasPrice", FloatResource.class);
 		if(gasPriceLoc == null) {
@@ -93,38 +99,40 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 			gasPriceLoc = evalCollection.getSubResource("gasPrice", FloatResource.class);
 		}
 		gasPrice = gasPriceLoc;
-		gasPrice.create();
-		FloatResource gasEffLoc;
+		gasPrice.create();*/
+		gasEff = KPIResourceAccess.getDefaultEfficiencyResource(UtilityType.HEAT_ENERGY, appMan);
+		/*FloatResource gasEffLoc;
 		gasEffLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/heatingEfficiency", FloatResource.class);
 		if(gasEffLoc == null) {
 			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
 			gasEffLoc = evalCollection.getSubResource("gasEff", FloatResource.class);
 		}
-		gasEff = gasEffLoc;
+		gasEff = gasEffLoc;*/
 		gasEff.create();
 		
-		FloatResource waterPriceLoc;
+		waterprice = KPIResourceAccess.getDefaultPriceResource(UtilityType.WATER, appMan);
+		/*FloatResource waterPriceLoc;
 		waterPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/waterPrice", FloatResource.class);
 		if(waterPriceLoc == null) {
 			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
 			waterPriceLoc = evalCollection.getSubResource("waterPrice", FloatResource.class);
 		}
-		waterprice = waterPriceLoc;
+		waterprice = waterPriceLoc;*/
 		waterprice.create();
 
-		FloatResource foodPriceLoc;
+		foodprice = KPIResourceAccess.getDefaultPriceResource(UtilityType.FOOD, appMan);
+		/*FloatResource foodPriceLoc;
 		foodPriceLoc = ResourceHelper.getSubResource(controller.appMan.getResourceAccess().getResource("master"),
 				"editableData/buildingData/E_0/foodPrice", FloatResource.class);
 		if(foodPriceLoc == null) {
 			EvalCollection evalCollection = EvalHelper.getEvalCollection(appMan);
 			foodPriceLoc = evalCollection.getSubResource("foodPrice", FloatResource.class);
 		}
-		foodprice = foodPriceLoc;
+		foodprice = foodPriceLoc;*/
 		foodprice.create();
 	}		
-	protected abstract String getHeaderText(OgemaHttpRequest req);
 	
 	public ConsumptionEvalTableBase(WidgetPage<?> page, MonitoringController controller,
 			C initObject) {
@@ -267,13 +275,13 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 						if(!isCostLabel)
 							setText(String.format("%.1f", val), req);
 						else {
-							CostProvider cprov = object.getCostProvider();
+							ColumnDataProvider cprov = object.getCostProvider();
 							if(cprov == null)
 								setText("--", req); //homematic counters are reset each time voltage is lost, so a special handling would have to be implemented
 								//setText(String.format("%.1f", val*0.001f), req);
 							else {
 								setCostLabel = true;
-								setText(cprov.getCost(val), req);
+								setText(cprov.getString(val), req);
 							}
 						}
 					}
@@ -412,20 +420,20 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 	protected ConsumptionEvalTableLineBase addLineBase(FloatResource conn, FloatResource powerReading, boolean lineShowsPower,
 			List<ConsumptionEvalTableLineBase> result,
 			int lineIdx, String label,
-			Datapoint dp, CostProvider cprov) {
+			Datapoint dp, ColumnDataProvider cprov, TimeseriesSimpleProcUtil tsUtil) {
 		
-		EnergyEvalObjI connObj = new EnergyEvalObjBase(conn, powerReading);
+		EnergyEvalObjI connObj = new EnergyEvalObjBase(conn, powerReading, dp, tsUtil);
 		return addLineBase(connObj, powerReading, lineShowsPower, result, lineIdx, label, dp, cprov);
 	}
 	protected ConsumptionEvalTableLineBase addLineBase(EnergyEvalObjI connObj, FloatResource powerReading, boolean lineShowsPower,
 			List<ConsumptionEvalTableLineBase> result,
 			int lineIdx, String label,
-			Datapoint dp, CostProvider cprov) {
+			Datapoint dp, ColumnDataProvider cprov) {
 		
 		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, lineShowsPower,
 				SumType.STD, null, lineIdx, dp) {
 			@Override
-			public CostProvider getCostProvider() {
+			public ColumnDataProvider getCostProvider() {
 				return cprov;
 			}
 			@Override

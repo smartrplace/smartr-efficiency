@@ -11,10 +11,10 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin;
+import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableBase;
 import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI;
-import org.smartrplace.app.monbase.power.ConsumptionEvalAdmin.SumType;
-import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.CostProvider;
+import org.smartrplace.app.monbase.power.ColumnDataProvider;
 import org.smartrplace.util.frontend.servlet.ServletNumListProvider;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
@@ -80,10 +80,10 @@ public class ConsumptionEvalServlet implements ServletPageProvider<ConsumptionEv
 			ServletStringProvider unitP = new ServletStringProvider(unit);
 			result.put("unit", unitP);			
 		}
-		CostProvider costProv = object.line.getCostProvider();
+		ColumnDataProvider costProv = object.line.getCostProvider();
 		ServletValueProvider cost;
 		if(costProv != null) {
-			String costVal = costProv.getCost(val);
+			String costVal = costProv.getString(val);
 			try {
 				float costF = Float.parseFloat(costVal);
 				cost = new ServletNumProvider(costF);
@@ -116,6 +116,22 @@ public class ConsumptionEvalServlet implements ServletPageProvider<ConsumptionEv
 			result.put("estimatedSavings", savingsP);
 		}
 
+		if(object.line.getEvalObjConn() != null) {
+			Datapoint dailyTs = object.line.getEvalObjConn().getDailyConsumptionValues();
+			if(dailyTs != null) {
+				dailyTs.setTimeSeriesID(null);
+				String tsId = dailyTs.getTimeSeriesID();
+				ServletStringProvider timeSeriesId = new ServletStringProvider(tsId);
+				result.put("dailyValues_TsId", timeSeriesId);				
+			}
+			Datapoint hourlyTs = object.line.getEvalObjConn().getHourlyConsumptionValues();
+			if(hourlyTs != null) {
+				hourlyTs.setTimeSeriesID(null);
+				String tsId = hourlyTs.getTimeSeriesID();
+				ServletStringProvider timeSeriesId = new ServletStringProvider(tsId);
+				result.put("hourlyValues_TsId", timeSeriesId);				
+			}
+		}
 		return result;
 	}
 

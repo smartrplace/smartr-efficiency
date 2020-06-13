@@ -383,7 +383,7 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 			
 			@Override
 			public
-			float getEnergyValueSubPhase(int index, long startTime, long endTime) {
+			float getEnergyValueSubPhase(int index, float lineMainValue, long startTime, long endTime) {
 				return Float.NaN;
 			}
 			

@@ -139,7 +139,8 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 	}
 	
 	@Override
-	public Collection<Datapoint> getDatapoints(SingleSwitchBox dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
+		SingleSwitchBox dev = (SingleSwitchBox) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(dev.onOffSwitch().stateControl(), result, dpService);
 		addDatapoint(dev.onOffSwitch().stateFeedback(), result, dpService);

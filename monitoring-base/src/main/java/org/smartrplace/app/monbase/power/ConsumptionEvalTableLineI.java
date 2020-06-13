@@ -1,6 +1,8 @@
 package org.smartrplace.app.monbase.power;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.Datapoint;
@@ -46,13 +48,30 @@ public interface ConsumptionEvalTableLineI {
 		 * 		If null no debug printings shall be made
 		 * @return
 		 */
-		float getEnergyValueSubPhase(int index, long startTime, long endTime);
+		float getEnergyValueSubPhase(int index, float lineMainValue, long startTime, long endTime);
 		
 		/** May return null if no such resource is available
 		 * TODO: Check if necessary/meaningful
 		 * @return
 		 */
 		Resource getMeterReadingResource();
+
+		
+		/** Metering datapoints shall return their daily and hourly values here*/
+		default Datapoint getDailyConsumptionValues() {return null;}
+		/** Metering datapoints shall return their daily and hourly values here*/
+		default Datapoint getHourlyConsumptionValues() {return null;}
+		
+		/** Metering datapoints shall return their meter counter curve based on the
+		 * standard metering reference time. This is also the data used for calculation
+		 * of the consumption per interval in the KPI table.*/
+		default Datapoint getMeterComparisonValues() {return null;}
+
+		/** Data point containing non-metering values (typically {@link AggregationMode#AVERAGE_VALUE_PER_STEP}) just shall return their
+		 * raw values here. Also power timeseries. They could also return hourly and daily averages, but this is not considered a
+		 * relevant added value compared to the base values here.
+		 */
+		default List<Datapoint> getAvergageValues() {return null;}
 	}
 	
 	/** Update sum lines and cached values
@@ -90,8 +109,9 @@ public interface ConsumptionEvalTableLineI {
 	/** Return number of sub phase values*/
 	public int hasSubPhaseNum();
 	
-	public static interface CostProvider {
-		String getCost(float value);
-	}
-	default CostProvider getCostProvider( ) {return null;}
+	default ColumnDataProvider getCostProvider( ) {return null;}
+	
+	EnergyEvalObjI getEvalObjConn();
+		
+	default List<ColumnDataProvider> getAdditionalDatapoints() {return Collections.emptyList();}
 }

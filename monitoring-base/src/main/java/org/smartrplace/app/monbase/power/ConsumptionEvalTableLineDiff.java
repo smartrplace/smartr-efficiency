@@ -14,7 +14,7 @@ import org.smartrplace.app.monbase.power.ConsumptionEvalTableGeneric.SumLineInfo
 
 public abstract class ConsumptionEvalTableLineDiff extends ConsumptionEvalTableLineBase {
 	protected final Map<UtilityType, List<LineInfo>> dpsPerUtilType;
-	protected final CostProvider cprov;
+	protected final ColumnDataProvider cprov;
 	protected final LineInfoDp lineInfoDp;
 	
 	protected List<LineInfo> linesToInclude;
@@ -52,7 +52,7 @@ public abstract class ConsumptionEvalTableLineDiff extends ConsumptionEvalTableL
 
 	
 	public ConsumptionEvalTableLineDiff(LineInfoDp lineInfoDp, boolean lineShowsPower, int index,
-			CostProvider cprov,
+			ColumnDataProvider cprov,
 			Map<UtilityType, List<LineInfo>> dpsPerUtilType) {
 		super(getConn(lineInfoDp), lineInfoDp.label, lineShowsPower, SumType.STD, null, index, lineInfoDp.util);
 		this.dpsPerUtilType = dpsPerUtilType;
@@ -68,7 +68,7 @@ public abstract class ConsumptionEvalTableLineDiff extends ConsumptionEvalTableL
 	}
 	
 	@Override
-	public CostProvider getCostProvider() {
+	public ColumnDataProvider getCostProvider() {
 		return cprov;
 	}
 	@Override
@@ -100,11 +100,11 @@ public abstract class ConsumptionEvalTableLineDiff extends ConsumptionEvalTableL
 	}
 
 	@Override
-	public float getPhaseValueRealInternal(int index, long startTime, long endTime) {
+	public float getPhaseValueRealInternal(int index, float lineMainValue, long startTime, long endTime) {
 		if(diffLines == null)
 			return 0;
 		
-		float myRawVal = super.getPhaseValueRealInternal(index, startTime, endTime);
+		float myRawVal = super.getPhaseValueRealInternal(index, lineMainValue, startTime, endTime);
 		
 		float result = getAggregatedValue(myRawVal, diffLines);
 		

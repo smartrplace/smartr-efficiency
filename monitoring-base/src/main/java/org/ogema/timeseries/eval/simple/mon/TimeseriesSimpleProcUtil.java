@@ -1,6 +1,7 @@
 package org.ogema.timeseries.eval.simple.mon;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +18,12 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.util.timer.AbsoluteTiming;
 
 public class TimeseriesSimpleProcUtil {
 	protected final Map<String, TimeseriesSetProcessor> knownProcessors = new HashMap<>();
@@ -31,7 +34,7 @@ public class TimeseriesSimpleProcUtil {
 	//protected TimeSeriesNameProvider nameProvider() {return null;}
 	//protected abstract AggregationMode getMode(String tsLabel);
 	protected final ApplicationManager appMan;
-	protected final DatapointService dpService;
+	public final DatapointService dpService;
 	
 	// This is from the MonitoringController API definition. Maybe this should be revised anyways.
 	//protected abstract List<String> getAllRooms(OgemaLocale locale);
@@ -73,17 +76,28 @@ public class TimeseriesSimpleProcUtil {
 		};
 		knownProcessors.put(TimeProcUtil.PER_DAY_EVAL, dayProc);
 		
+		TimeseriesSetProcessor hourProc = new TimeseriesSetProcSingleToSingle("_proStunde") {
+			
+			@Override
+			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode) {
+				List<SampledValue> result = TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f, false, AbsoluteTiming.HOUR);
+				return result;
+			}
+		};
+		knownProcessors.put(TimeProcUtil.PER_HOUR_EVAL, hourProc);
+		
 		TimeseriesSetProcessor sumProc = new TimeseriesSetProcessor() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService) {
-TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
+TimeProcPrint.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 				List<Datapoint> result1 = dayProc.getResultSeries(input, dpService);
 				TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum("total_sum") {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
-						TimeProcUtil.printTimeSeriesSet(input, "--RT-OUT/IN(2):Dayproc", 1, null, null);
-						TimeProcUtil.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum");
+						TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):Dayproc", 1, null, null);
+						TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum");
 					}
 				};
 				List<Datapoint> result = sumProc.getResultSeries(result1, dpService);
@@ -142,6 +156,28 @@ TimeProcUtil.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 		return proc.getResultSeries(input, dpService);
 	}
 	
+	public Datapoint processSingle(String tsProcessRequest, Datapoint dp) {
+		TimeseriesSetProcessor proc = getProcessor(tsProcessRequest);
+		if(proc == null)
+			throw new IllegalArgumentException("Unknown timeseries processor: "+tsProcessRequest);
+		List<Datapoint> resultTs = proc.getResultSeries(Arrays.asList(new Datapoint[] {dp}), dpService);
+		if(resultTs != null && !resultTs.isEmpty())
+			return resultTs.get(0);
+		return null;
+	}
+	
+	public List<Datapoint> processSingleToMulti(String tsProcessRequest, Datapoint dp) {
+		List<Datapoint> result = new ArrayList<>();
+		TimeseriesSetProcessor proc = getProcessor(tsProcessRequest);
+		if(proc == null)
+			throw new IllegalArgumentException("Unknown timeseries processor: "+tsProcessRequest);
+		List<Datapoint> resultTs = proc.getResultSeries(Arrays.asList(new Datapoint[] {dp}), dpService);
+		if(resultTs != null && !resultTs.isEmpty())
+			result.addAll(resultTs);
+		
+		return result;
+	}
+
 	public List<TimeSeriesData> processTSD(String tsProcessRequest, List<TimeSeriesData> input,
 			TimeSeriesNameProvider nameProvider, AggregationModeProvider aggProv) {
 		return DPUtil.getTSList(process(tsProcessRequest, DPUtil.getDPList(input, nameProvider, aggProv)), null);

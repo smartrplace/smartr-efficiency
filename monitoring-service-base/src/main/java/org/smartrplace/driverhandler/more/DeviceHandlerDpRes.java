@@ -109,7 +109,8 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(SensorDeviceDpRes dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
+		SensorDeviceDpRes dev = (SensorDeviceDpRes) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		for(Sensor sens: dev.sensors().getAllElements()) {
 			String loc = sens.getName();
