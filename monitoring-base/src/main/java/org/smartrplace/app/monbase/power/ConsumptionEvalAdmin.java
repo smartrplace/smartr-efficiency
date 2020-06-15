@@ -52,12 +52,17 @@ public class ConsumptionEvalAdmin {
 			return;
 		lastUpdate = now;
 		for(ConsumptionEvalTableLineI line: table.getObjectsInTable(null)) {
+			
+			Datapoint dps = line.getDailyConsumptionValues();
+			registerPlotDps(dps, table, line, "_Daily");
+			Datapoint dps3 = line.getHourlyConsumptionValues();
+			registerPlotDps(dps3, table, line, "_Hourly");
+			Datapoint dps4 = line.getAvergageValues();
+			registerPlotDps(dps4, table, line, "_Av");
+
 			EnergyEvalObjI conn = line.getEvalObjConn();
 			if(conn == null)
 				continue;
-			
-			Datapoint dps = conn.getDailyConsumptionValues();
-			registerPlotDps(dps, table, line, "_Daily");
 			Datapoint dps2 = conn.getMeterComparisonValues();
 			registerPlotDps(dps2, table, line, "_MeterComp");
 			

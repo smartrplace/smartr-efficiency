@@ -23,6 +23,11 @@ public class UtilityDataPage extends ObjectGUITablePage<UtilityType, FloatResour
 		triggerPageBuild();
 	}
 
+	/** Override if necessary*/
+	protected UtilityType[] getTypes(OgemaHttpRequest req) {
+		return DatapointInfo.defaultSRCTypes;		
+	}
+	
 	@Override
 	public void addWidgets(UtilityType object, ObjectResourceGUIHelper<UtilityType, FloatResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
@@ -55,7 +60,7 @@ public class UtilityDataPage extends ObjectGUITablePage<UtilityType, FloatResour
 
 	@Override
 	public Collection<UtilityType> getObjectsInTable(OgemaHttpRequest req) {
-		return Arrays.asList(UtilityType.values());
+		return Arrays.asList(getTypes(req));
 	}
 
 }

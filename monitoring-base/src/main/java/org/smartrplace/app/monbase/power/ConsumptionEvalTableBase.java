@@ -17,6 +17,7 @@ import org.smartrplace.app.monbase.power.ConsumptionEvalTableLineI.EnergyEvalObj
 import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -281,7 +282,7 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 								//setText(String.format("%.1f", val*0.001f), req);
 							else {
 								setCostLabel = true;
-								setText(cprov.getString(val), req);
+								setText(cprov.getString(val, startTime, endTime), req);
 							}
 						}
 					}
@@ -293,7 +294,7 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		};
 		//phaseLabel.setDefaultPollingInterval(POLL_RATE);
 		configureLabelForPolling(phaseLabel, object.lineShowsPower(), req);
-		row.addCell(columnId, phaseLabel);
+		row.addCell(WidgetHelper.getValidWidgetId(columnId), phaseLabel);
 		return phaseLabel;
 	}
 	
@@ -444,79 +445,4 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		result.add(retVal);
 		return retVal;
 	}
-
-	/*protected ConsumptionEvalTableLineBase addMainMeterLineBase(String topResName, String subPath,
-			List<ConsumptionEvalTableLineBase> result, int lineIdx,
-			Datapoint dp) {
-		Resource rexo = controller.appMan.getResourceAccess().getResource(topResName);
-		Schedule sched = ResourceHelper.getSubResource(rexo,
-				subPath, Schedule.class);
-		if(sched == null)
-			return null;
-		
-		String label = (dp != null)?dp.label(null):"Main Electricity Meter Reading";
-		EnergyEvalElConnObj connObj = new EnergyEvalElConnObj(null) {
-			@Override
-			public
-			float getPowerValue() {
-				return Float.NaN;
-			}
-
-			@Override
-			public
-			float getEnergyValue() {
-				SampledValue val = sched.getPreviousValue(Long.MAX_VALUE);
-				if(val == null) return Float.NaN;
-				return val.getValue().getFloatValue();
-			}
-			
-			@Override
-			public
-			float getEnergyValue(long startTime, long endTime, String label) {
-				return getEnergyValue(sched, startTime, endTime, label);
-			}
-			
-			@Override
-			public
-			int hasSubPhaseNum() {
-				return 0;
-			}
-			
-			@Override
-			public
-			boolean hasEnergySensor() {
-				return true;
-			}
-			
-			@Override
-			public
-			float getPowerValueSubPhase(int index) {
-				return Float.NaN;
-			}
-
-			@Override
-			public
-			float getEnergyValueSubPhase(int index) {
-				return Float.NaN;
-			}
-			
-			@Override
-			public
-			float getEnergyValueSubPhase(int index, long startTime, long endTime) {
-				return Float.NaN;
-			}
-			
-			@Override
-			public
-			Resource getMeterReadingResource() {
-				return sched;			
-			}
-			
-		};
-		//EnergyEvaluationTableLine retVal = new EnergyEvaluationTableLine(conn, label, lineShowsPower, rexoSum, SumType.STD, clearList, intv, lineIdx);
-		ConsumptionEvalTableLineBase retVal = new ConsumptionEvalTableLineBase(connObj, label, false, SumType.STD, null, lineIdx, dp);
-		result.add(retVal);
-		return retVal;
-	}*/
-	
 }

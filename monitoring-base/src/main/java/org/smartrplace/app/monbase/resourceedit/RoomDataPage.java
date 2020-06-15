@@ -1,6 +1,8 @@
 package org.smartrplace.app.monbase.resourceedit;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.FloatResource;
@@ -26,6 +28,11 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 	protected final DatapointService dpService;
 	
+	/** Override if necessary*/
+	protected UtilityType[] getTypes(OgemaHttpRequest req) {
+		return DatapointInfo.defaultSRCTypes;		
+	}
+	
 	public RoomDataPage(WidgetPage<?> page, ApplicationManager appMan, DatapointService dpService) {
 		super(page, appMan, new DPRoomImpl(DPRoom.BUILDING_OVERALL_ROOM_LABEL), false);
 		this.dpService = dpService;
@@ -46,7 +53,7 @@ public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 		if(bu != null) {
 			vh.floatEdit("Area(m2)", id, bu.groundArea(), row, alert, 0, Float.MAX_VALUE, "Area must be positive !");			
 		}
-		for(UtilityType util: UtilityType.values()) {
+		for(UtilityType util: getTypes(req)) {
 			FloatResource refCon = KPIResourceAccess.getDefaultYearlyConsumptionReferenceResource(util, roomId, appMan);
 			if(refCon == null) {
 				continue;
@@ -69,7 +76,14 @@ public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 
 	@Override
 	public Collection<DPRoom> getObjectsInTable(OgemaHttpRequest req) {
-		return dpService.getAllRooms();
+		List<Room> rooms = KPIResourceAccess.getRealRooms(appMan.getResourceAccess());
+		List<DPRoom> result = new ArrayList<>();
+		for(Room room: rooms) {
+			result.add(dpService.getRoom(room.getLocation()));
+		}
+		result.add(dpService.getRoom(DPRoom.BUILDING_OVERALL_ROOM_LABEL));
+		return result ;
+		//return dpService.getAllRooms();
 	}
 
 }

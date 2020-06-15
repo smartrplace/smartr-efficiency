@@ -23,6 +23,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
+import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
@@ -96,6 +97,8 @@ public class MonitoringServiceBaseApp implements Application {
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
+	protected ServiceRegistration<DriverHandlerProvider> mqttBrokerDriver = null;
+	private DriverHandlerMQTTBroker mqttBrokerConfig;
 	
 	
 	@Activate
@@ -141,6 +144,8 @@ public class MonitoringServiceBaseApp implements Application {
 
 	   jmbusConfig = new DriverHandlerJMBus(appManager, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
+	   mqttBrokerConfig = new DriverHandlerMQTTBroker(appManager, configAdmin);
+	   mqttBrokerDriver = bc.registerService(DriverHandlerProvider.class, mqttBrokerConfig, null);
 	}
  	
      /*

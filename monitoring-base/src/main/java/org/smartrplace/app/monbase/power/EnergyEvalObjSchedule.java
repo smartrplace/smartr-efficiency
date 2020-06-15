@@ -24,7 +24,7 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 	protected final TimeseriesSimpleProcUtil util;
 
 	
-	protected final List<ColumnDataProvider> phaseValData;
+	protected List<ColumnDataProvider> phaseValData;
 	/**
 	 * 
 	 * @param energyReading
@@ -70,7 +70,7 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 	@Override
 	public
 	int hasSubPhaseNum() {
-		return 0;
+		return phaseValData.size();
 	}
 	
 	@Override
@@ -93,7 +93,7 @@ public class EnergyEvalObjSchedule implements EnergyEvalObjI {
 	@Override
 	public
 	float getEnergyValueSubPhase(int index, float lineMainValue, long startTime, long endTime) {
-		ColumnDataProvider cv = phaseValData.get(index);
+		ColumnDataProvider cv = phaseValData.get(index-1);
 		return cv.getValue(lineMainValue, startTime, endTime);
 		//if(cv.dp != null)
 		//	return getEnergyValue(cv.dp, cv.dp.info().getAggregationMode(), startTime, endTime, null);

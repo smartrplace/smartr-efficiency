@@ -106,7 +106,25 @@ TimeProcPrint.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 		};
 		knownProcessors.put(TimeProcUtil.SUM_PER_DAY_EVAL, sumProc);
 
-		
+		TimeseriesSetProcessor sumProcHour = new TimeseriesSetProcessor() {
+			
+			@Override
+			public List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService) {
+TimeProcPrint.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
+				List<Datapoint> result1 = hourProc.getResultSeries(input, dpService);
+				TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum("total_sum_hour") {
+					@Override
+					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
+						TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):Hourproc", 1, null, null);
+						TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum_hour");
+					}
+				};
+				List<Datapoint> result = sumProc.getResultSeries(result1, dpService);
+				return result;
+			}
+		};
+		knownProcessors.put(TimeProcUtil.SUM_PER_HOUR_EVAL, sumProcHour);
+
 		TimeseriesSetProcessor dayPerRoomProc = new TimeseriesSetProcessor() {
 			
 			@Override
@@ -154,6 +172,15 @@ TimeProcPrint.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 		if(proc == null)
 			throw new IllegalArgumentException("Unknown timeseries processor: "+tsProcessRequest);
 		return proc.getResultSeries(input, dpService);
+	}
+	public Datapoint processMultiToSingle(String tsProcessRequest, List<Datapoint> input) {
+		TimeseriesSetProcessor proc = knownProcessors.get(tsProcessRequest);
+		if(proc == null)
+			throw new IllegalArgumentException("Unknown timeseries processor: "+tsProcessRequest);
+		List<Datapoint> resultTs = proc.getResultSeries(input, dpService);
+		if(resultTs != null && !resultTs.isEmpty())
+			return resultTs.get(0);
+		return null;
 	}
 	
 	public Datapoint processSingle(String tsProcessRequest, Datapoint dp) {

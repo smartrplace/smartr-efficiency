@@ -71,7 +71,7 @@ public interface ConsumptionEvalTableLineI {
 		 * raw values here. Also power timeseries. They could also return hourly and daily averages, but this is not considered a
 		 * relevant added value compared to the base values here.
 		 */
-		default List<Datapoint> getAvergageValues() {return null;}
+		default Datapoint getAvergageValues() {return null;}
 	}
 	
 	/** Update sum lines and cached values
@@ -113,5 +113,27 @@ public interface ConsumptionEvalTableLineI {
 	
 	EnergyEvalObjI getEvalObjConn();
 		
-	default List<ColumnDataProvider> getAdditionalDatapoints() {return Collections.emptyList();}
+	//default List<ColumnDataProvider> getAdditionalDatapoints() {return Collections.emptyList();}
+	
+	/** Metering datapoints shall return their daily and hourly values here*/
+	default Datapoint getDailyConsumptionValues() {
+		if(getEvalObjConn() != null)
+			return getEvalObjConn().getDailyConsumptionValues();
+		return null;
+	}
+	/** Metering datapoints shall return their daily and hourly values here*/
+	default Datapoint getHourlyConsumptionValues() {
+		if(getEvalObjConn() != null)
+			return getEvalObjConn().getHourlyConsumptionValues();
+		return null;
+	}
+	/** Data point containing non-metering values (typically {@link AggregationMode#AVERAGE_VALUE_PER_STEP}) just shall return their
+	 * raw values here. Also power timeseries. They could also return hourly and daily averages, but this is not considered a
+	 * relevant added value compared to the base values here.
+	 */
+	default Datapoint getAvergageValues() {
+		if(getEvalObjConn() != null)
+			return getEvalObjConn().getAvergageValues();
+		return null;
+	}
 }

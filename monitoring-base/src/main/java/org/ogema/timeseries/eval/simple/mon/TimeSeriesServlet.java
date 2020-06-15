@@ -148,7 +148,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	}
 	public static float getDiffForDay(long timeStamp, ReadOnlyTimeSeries ts,
 			boolean interpolate, int intervalType) {
-		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, AbsoluteTiming.DAY);
+		long start = AbsoluteTimeHelper.getIntervalStart(timeStamp, intervalType);
 		long end = start + AbsoluteTimeHelper.getStandardInterval(intervalType); //TimeProcUtil.DAY_MILLIS;
 		final float startFloat;
 		final float endFloat;
@@ -320,7 +320,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			nextDayStart = AbsoluteTimeHelper.addIntervalsFromAlignedTime(nextDayStart, 1, intervalType);
 			float newDayVal;
 			if(mode == AggregationMode.Meter2Meter) {
-				newDayVal = getDiffForDay(startCurrentDay, timeSeries, interpolate);
+				newDayVal = getDiffForDay(startCurrentDay, timeSeries, interpolate, intervalType);
 			} else {
 				float newCounter = TimeProcUtil.getInterpolatedValue(timeSeries, startCurrentDay);
 				switch(mode) {
@@ -329,7 +329,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 				//	prevCounter = newCounter;
 				//	break;
 				case Power2Meter:
-					//TODO: not really tested => integrate from W*(milliseconds) to kWh
+					//TODO: not really tested => integrate from kW*(milliseconds) to kWh
 					//newDayVal = (float) (TimeSeriesUtils.integrate(
 					newDayVal = (float) (integrateSimple(
 							timeSeries, startCurrentDay, nextDayStart)/TimeProcUtil.HOUR_MILLIS);

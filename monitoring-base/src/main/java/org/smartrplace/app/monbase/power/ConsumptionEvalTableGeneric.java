@@ -19,6 +19,7 @@ import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.util.DatapointInfoImpl;
 import org.ogema.model.connections.ElectricityConnection;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.gui.TimeSeriesNameProviderImpl;
@@ -149,7 +150,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	public ConsumptionEvalAdmin evalAdm = null;
 	
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType utility) {
-		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null));
+		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null, null));
 		tsUtil = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 		this.utilities = DatapointInfoImpl.getGaRotypes(utility);
 		utilsSorted = new ArrayList<>();
@@ -159,7 +160,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		nameProvider = new TimeSeriesNameProviderImpl(controller);
 	}
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller, UtilityType[] utilities) {
-		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null));
+		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null, null));
 		tsUtil = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 		this.utilities = new ArrayList<>();
 		utilsSorted = Arrays.asList(utilities);	
@@ -175,7 +176,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 	}
 	public ConsumptionEvalTableGeneric(WidgetPage<?> page, MonitoringController controller,
 			List<GaRoDataType> utilities) {
-		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null));
+		super(page, controller, new ConsumptionEvalTableLineBase(null, null, false, null, null, 0, (UtilityType)null, null));
 		tsUtil = new TimeseriesSimpleProcUtil(controller.appMan, controller.dpService);
 		this.utilities = utilities;
 		utilsSorted = new ArrayList<>(getUtilityType());	
@@ -384,7 +385,8 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 			if(lineInfo instanceof SumLineInfo) {
 				SumLineInfo info = (SumLineInfo) lineInfo;
 				info.subSum = new ConsumptionEvalTableLineBase(null, info.label,
-						isPowerTable(), SumType.SUM_LINE, info.subLines, (lineCounter++), info.util) {
+						isPowerTable(), SumType.SUM_LINE, info.subLines, (lineCounter++), info.util,
+						lineInfo.additionalDatapoints) {
 					@Override
 					public ColumnDataProvider getCostProvider() {
 						return info.costProvider;
@@ -392,6 +394,28 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 					@Override
 					public int hasSubPhaseNum() {
 						return ConsumptionEvalTableGeneric.this.hasSubPhaseNum();
+					}
+					@Override
+					public Datapoint getDailyConsumptionValues() {
+						if(info.subLines.isEmpty())
+							return null;
+						List<Datapoint> sumDps = new ArrayList<>();
+						for(ConsumptionEvalTableLineI subLine: info.subLines) {
+							sumDps.add(subLine.getDatapoint());
+						}
+						Datapoint tsDaily = tsUtil.processMultiToSingle(TimeProcUtil.SUM_PER_DAY_EVAL, sumDps);
+						return tsDaily;
+					}
+					@Override
+					public Datapoint getHourlyConsumptionValues() {
+						if(info.subLines.isEmpty())
+							return null;
+						List<Datapoint> sumDps = new ArrayList<>();
+						for(ConsumptionEvalTableLineI subLine: info.subLines) {
+							sumDps.add(subLine.getDatapoint());
+						}
+						Datapoint tsDaily = tsUtil.processMultiToSingle(TimeProcUtil.SUM_PER_HOUR_EVAL, sumDps);
+						return tsDaily;
 					}
 				};
 				info.subSum.factorEnergy = lineInfo.factor;
@@ -410,10 +434,12 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 				lineInfoDp.tableLine.setIndex(lineCounter++);
 				result.add(lineInfoDp.tableLine);
 				retVal = lineInfoDp.tableLine;
-			} else if(lineInfoDp.conn != null)
+			} else if(lineInfoDp.conn != null) {
+				if(lineInfo.additionalDatapoints != null && (lineInfoDp.conn instanceof EnergyEvalObjSchedule))
+					((EnergyEvalObjSchedule)lineInfoDp.conn).phaseValData = lineInfo.additionalDatapoints;
 				retVal = addLineBase(lineInfoDp.conn, null, isPowerTable(), result, (lineCounter++),
 						label, dp, lineInfo.costProvider);
-			else
+			} else
 				retVal = addLineBase((FloatResource)dp.getResource(), null, isPowerTable(), result, (lineCounter++),
 					label, dp, lineInfo.costProvider, tsUtil);
 			retVal.factorEnergy = lineInfoDp.factor;

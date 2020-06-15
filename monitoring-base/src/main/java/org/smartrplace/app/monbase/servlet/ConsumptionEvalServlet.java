@@ -83,7 +83,7 @@ public class ConsumptionEvalServlet implements ServletPageProvider<ConsumptionEv
 		ColumnDataProvider costProv = object.line.getCostProvider();
 		ServletValueProvider cost;
 		if(costProv != null) {
-			String costVal = costProv.getString(val);
+			String costVal = costProv.getString(val, startEnd[0], startEnd[1]);
 			try {
 				float costF = Float.parseFloat(costVal);
 				cost = new ServletNumProvider(costF);
