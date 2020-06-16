@@ -215,7 +215,7 @@ public class DeviceFinderInit {
 	protected static boolean checkForElectricityMeter(Sensor sens, Datapoint dp) {
 		Resource parent = sens.getParent();
 		//TODO: Check handling of thermal connections / heat meters
-		if(parent != null && parent instanceof ElectricityConnection) {
+		if(parent != null && (parent instanceof ElectricityConnection || parent instanceof PVPlant)) {
 			if(sens instanceof PowerSensor) {
 				dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY).setPowerSensorDp(dp);
 			} else if(sens instanceof ElectricEnergySensor) {
