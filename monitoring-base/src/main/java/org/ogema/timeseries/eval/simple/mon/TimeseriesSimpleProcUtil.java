@@ -113,9 +113,9 @@ TimeProcPrint.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService) {
-TimeProcPrint.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
+TimeProcPrint.printTimeSeriesSet(input, "IN(0):Hourproc", 1, null, null);
 				List<Datapoint> result1 = hourProc.getResultSeries(input, dpService);
-				TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum("total_sum_hour") {
+				TimeseriesSetProcessor sumProc = new TimeseriesSetProcSum("total_sum_hour", AbsoluteTiming.HOUR) {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
 						TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):Hourproc", 1, null, null);
@@ -176,6 +176,13 @@ TimeProcPrint.printTimeSeriesSet(input, "IN(0):Dayproc", 1, null, null);
 			throw new IllegalArgumentException("Unknown timeseries processor: "+tsProcessRequest);
 		return proc.getResultSeries(input, dpService);
 	}
+	
+	/** Regarding calculation notes see {@link TimeseriesSetProcMultiToSingle}
+	 * 
+	 * @param tsProcessRequest
+	 * @param input
+	 * @return
+	 */
 	public Datapoint processMultiToSingle(String tsProcessRequest, List<Datapoint> input) {
 		TimeseriesSetProcessor proc = knownProcessors.get(tsProcessRequest);
 		if(proc == null)

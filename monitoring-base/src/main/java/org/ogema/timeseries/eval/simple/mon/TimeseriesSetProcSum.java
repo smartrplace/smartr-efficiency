@@ -7,6 +7,9 @@ public class TimeseriesSetProcSum extends TimeseriesSetProcMultiToSingle {
 	public TimeseriesSetProcSum(String label) {
 		super(label);
 	}
+	public TimeseriesSetProcSum(String label, int intervalType) {
+		super(label, intervalType);
+	}
 
 	@Override
 	protected float aggregateValues(Float[] values, long timestamp, AggregationMode mode) {

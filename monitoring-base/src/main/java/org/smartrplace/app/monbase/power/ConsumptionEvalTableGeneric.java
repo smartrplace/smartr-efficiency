@@ -14,6 +14,7 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointInfo.UtilityType;
 import org.ogema.devicefinder.api.DpConnection;
@@ -404,6 +405,8 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 							sumDps.add(subLine.getDatapoint());
 						}
 						Datapoint tsDaily = tsUtil.processMultiToSingle(TimeProcUtil.SUM_PER_DAY_EVAL, sumDps);
+						//tsDaily.setLabel("sum_"+DatapointInfo.getDefaultShortLabel(info.util), null);
+						tsDaily.setLabel(info.label+"_daily", null);
 						return tsDaily;
 					}
 					@Override
@@ -415,6 +418,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 							sumDps.add(subLine.getDatapoint());
 						}
 						Datapoint tsDaily = tsUtil.processMultiToSingle(TimeProcUtil.SUM_PER_HOUR_EVAL, sumDps);
+						tsDaily.setLabel(info.label+"_hourly", null);
 						return tsDaily;
 					}
 				};

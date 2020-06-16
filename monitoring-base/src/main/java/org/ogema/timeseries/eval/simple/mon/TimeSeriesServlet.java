@@ -317,7 +317,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 			prevCounter = 0;
 		}*/
 		List<SampledValue> result = new ArrayList<>();
-		while(nextDayStart < end) {
+		while(nextDayStart <= end) {
 			long startCurrentDay = nextDayStart;
 			nextDayStart = AbsoluteTimeHelper.addIntervalsFromAlignedTime(nextDayStart, 1, intervalType);
 			float newDayVal;

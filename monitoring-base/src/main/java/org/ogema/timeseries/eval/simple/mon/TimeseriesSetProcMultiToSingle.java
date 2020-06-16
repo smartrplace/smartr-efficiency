@@ -16,13 +16,21 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
-import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 
 /** The input time series for this provider must be aligned having common time stamps
  * and the time series starting first and ending last shall have no gap in between that occurs not in
- * all input series.*/
+ * all input series.<br>
+ * Note that this processor evaluates the input time series on calling {@link #getResultSeries(List, DatapointService)} as
+ * it has to find out which time series starts first and which ends last. Based on this it builds a
+ * temporary input time series inputSingle.
+ * Note also that you have to set the label of the resulting datapoint explicitly as the label cannot
+ * be directly obtained from a single input datapoint with postfix as for {@link TimeseriesSetProcSingleToSingle}.
+ * If you are using a Multi2Single predefined evaluation you still have to set the label afterwards. You should
+ * set at least label(null) or label(ENGLISH).*/
 public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetProcessor {
-	private final static long TEST_SHIFT = TimeProcUtil.DAY_MILLIS-2*TimeProcUtil.HOUR_MILLIS;
 
 	protected abstract float aggregateValues(Float[] values, long timestamp, AggregationMode mode);
 	//protected TimeSeriesNameProvider nameProvider() {return null;}
@@ -41,10 +49,18 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 	}
 	
 	protected final String label;
+	protected final int intervalType;
+	private final long TEST_SHIFT;
 	
 	public TimeseriesSetProcMultiToSingle(String resultlabel) {
-		this.label = resultlabel;
+		this(resultlabel, AbsoluteTiming.DAY);
 	}
+	public TimeseriesSetProcMultiToSingle(String resultlabel, int intervalType) {
+		this.label = resultlabel;
+		this.intervalType = intervalType;
+		TEST_SHIFT = (long) (0.9*AbsoluteTimeHelper.getStandardInterval(intervalType)); //TimeProcUtil.DAY_MILLIS-2*TimeProcUtil.HOUR_MILLIS;
+	}
+
 	@Override
 	public List<Datapoint> getResultSeries(List<Datapoint> input, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
