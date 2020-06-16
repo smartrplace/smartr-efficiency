@@ -18,6 +18,7 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
@@ -50,7 +51,7 @@ public class TimeseriesSimpleProcUtil {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode) {
+					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2) {
 				MeterReference ref = new MeterReference();
 				ref.referenceMeterValue = 0;
 				TimeResource refRes = TimeProcUtil.getDefaultMeteringReferenceResource(appMan.getResourceAccess());
@@ -69,8 +70,9 @@ public class TimeseriesSimpleProcUtil {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode) {
-				List<SampledValue> result = TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f);
+					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2) {
+				List<SampledValue> result = TimeSeriesServlet.getDayValues(timeSeries, start, end, mode,
+						newTs2.getDp()!=null?newTs2.getDp().getScale():null);
 				return result;
 			}
 		};
@@ -80,8 +82,9 @@ public class TimeseriesSimpleProcUtil {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode) {
-				List<SampledValue> result = TimeSeriesServlet.getDayValues(timeSeries, start, end, mode, 1.0f, false, AbsoluteTiming.HOUR);
+					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2) {
+				List<SampledValue> result = TimeSeriesServlet.getDayValues(timeSeries, start, end, mode,
+						newTs2.getDp()!=null?newTs2.getDp().getScale():null, false, AbsoluteTiming.HOUR);
 				return result;
 			}
 		};

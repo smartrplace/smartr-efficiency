@@ -22,6 +22,7 @@ import org.ogema.devicefinder.api.SumUpLevel;
 import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
+import org.ogema.devicefinder.util.FactorScale;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
@@ -219,6 +220,8 @@ public class DeviceFinderInit {
 				dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY).setPowerSensorDp(dp);
 			} else if(sens instanceof ElectricEnergySensor) {
 				dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY).setEnergySensorDp(dp);
+				//TODO: This setting will not work for all electricity meters. We will have to develop a differentiation in the future
+				dp.setScale(new FactorScale(1f/3600000f));
 			} else if(sens instanceof ElectricCurrentSensor) {
 				((DpElectricityConnection)dp.info().getConnection(parent.getLocation(), UtilityType.ELECTRICITY)).setCurrentSensorDp(dp);
 			} else if(sens instanceof ElectricVoltageSensor) {

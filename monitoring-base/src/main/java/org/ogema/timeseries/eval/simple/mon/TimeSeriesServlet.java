@@ -17,6 +17,7 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.DatapointDesc.ScalingProvider;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
@@ -38,6 +39,7 @@ import de.iwes.util.timer.AbsoluteTiming;
  */
 public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl> {
 	public static final long ACCEPTED_PREVIOUS_VALUE_DISTANCE_FOR_DAY_EVAL = TimeProcUtil.HOUR_MILLIS*12;
+	public static final double MILLIJOULE_TO_KWH = 0.001/TimeProcUtil.HOUR_MILLIS;
 	
 	Map<String, ReadOnlyTimeSeries> knownSpecialTs = new HashMap<>();
 	protected final ApplicationManager appMan;
@@ -110,7 +112,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 	
 	public static float getIntegralOfLast24h(ReadOnlyTimeSeries ts, ApplicationManager appMan) {
 		long now = appMan.getFrameworkTime();
-		return (float) (integrateSimple(ts, now-TimeProcUtil.DAY_MILLIS, now)/TimeProcUtil.HOUR_MILLIS);
+		return (float) (integrateSimple(ts, now-TimeProcUtil.DAY_MILLIS, now)*MILLIJOULE_TO_KWH); // /TimeProcUtil.HOUR_MILLIS);
 		//return (float) (TimeSeriesUtils.integrate(ts, now-TimeProcUtil.DAY_MILLIS, now)/TimeProcUtil.HOUR_MILLIS);
 	}
 	/** This method is only applicable for AggregationMode.Meter2Meter*/
@@ -297,12 +299,12 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 		return result;
 	}
 	public static List<SampledValue> getDayValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-			AggregationMode mode, float factor) {
-		return getDayValues(timeSeries, start, end, mode, factor,
+			AggregationMode mode, ScalingProvider scale) {
+		return getDayValues(timeSeries, start, end, mode, scale,
 				Boolean.getBoolean("org.smartrplace.app.monbase.dointerpolate"), AbsoluteTiming.DAY);
 	}
 	public static List<SampledValue> getDayValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-			AggregationMode mode, float factor, boolean interpolate, int intervalType) {
+			AggregationMode mode, ScalingProvider scale, boolean interpolate, int intervalType) {
 		//if(mode == AggregationMode.Power2Meter)
 		//	throw new UnsupportedClassVersionError("Power2Meter not supported yet");
 		long nextDayStart = AbsoluteTimeHelper.getIntervalStart(start, intervalType);
@@ -332,7 +334,7 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 					//TODO: not really tested => integrate from kW*(milliseconds) to kWh
 					//newDayVal = (float) (TimeSeriesUtils.integrate(
 					newDayVal = (float) (integrateSimple(
-							timeSeries, startCurrentDay, nextDayStart)/TimeProcUtil.HOUR_MILLIS);
+							timeSeries, startCurrentDay, nextDayStart)*MILLIJOULE_TO_KWH); // /TimeProcUtil.HOUR_MILLIS);
 					break;
 				case Consumption2Meter:
 					double counter = getPartialConsumptionValue(timeSeries, start, true);
@@ -348,7 +350,10 @@ public class TimeSeriesServlet implements ServletPageProvider<TimeSeriesDataImpl
 					newDayVal = newCounter;
 				}
 			}
-			result.add(new SampledValue(new FloatValue(newDayVal), startCurrentDay, Quality.GOOD));
+			if(scale != null)
+				result.add(new SampledValue(new FloatValue(scale.getStdVal(newDayVal, startCurrentDay)), startCurrentDay, Quality.GOOD));
+			else
+				result.add(new SampledValue(new FloatValue(newDayVal), startCurrentDay, Quality.GOOD));
 		}
 		return result;
 	}
