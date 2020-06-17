@@ -28,6 +28,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.form.textfield.TextField;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
@@ -54,6 +55,33 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 
 				final AirConditioner device = (AirConditioner) addNameWidget(object, vh, id, req, row, appMan);
 				Label setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
+				if(req != null) {
+					TextField setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							setValue(String.format("%.1f", device.temperatureSensor().settings().setpoint().getCelsius()), req);
+						}
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							String val = getValue(req);
+							val = val.replaceAll("[^\\d.]", "");
+							try {
+								float value  = Float.parseFloat(val);
+								if(value < 4.5f || value> 30.5f) {
+									alert.showAlert("Allowed range: 4.5 to 30°C", false, req);
+								} else
+									device.temperatureSensor().settings().setpoint().setCelsius(value);
+							} catch (NumberFormatException | NullPointerException e) {
+								if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
+								return;
+							}
+						}
+					};
+					row.addCell("Set", setpointSet);
+				} else
+					vh.registerHeaderEntry("Set");
+				
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Room deviceRoom = device.location().room();
 				Label lastContact = addLastContact(object, vh, id, req, row, appMan, deviceRoom,  device.temperatureSensor().reading());
