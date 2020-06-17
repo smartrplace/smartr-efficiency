@@ -50,7 +50,7 @@ public class OfflineControlGUI {
 	private final WidgetPage<?> page;
 	private final Button openScheduleViewer;
 	private final TemplateDropdown<String> selectConfig;
-	private final TemplateDropdown<String> selectSingleValueIntervals;
+	//private final TemplateDropdown<String> selectSingleValueIntervals;
 	
 	private final TemplateDropdown<String> selectDataType;
 	
@@ -77,6 +77,14 @@ public class OfflineControlGUI {
 	    	return configOptions;
 	    }
 	    
+		@Override
+		public String getDefaultIntervalOption() {
+			if(System.getProperty("org.smartrplace.smarteff.util.editgeneric.fixedlanguage", "english").equals("german"))
+				return "Eine Woche";
+			else
+				return MonitoringController.OPTIONS[2];
+		}
+		
 		@Override
 	    public Collection<String> getPlotNames() {
 			return controller.getComplexOptions().keySet();
@@ -155,7 +163,7 @@ public class OfflineControlGUI {
 		addHeader();
 		
 		List<String> configOptions = this.guiConfig.getIntervalOptions();
-		List<String> singleValueOption = new ArrayList<>();
+		/*List<String> singleValueOption = new ArrayList<>();
 		
 		singleValueOption.add("Days Value");
 		singleValueOption.add("Weeks Value");
@@ -163,7 +171,7 @@ public class OfflineControlGUI {
 		//options that do not contribute to longer KPIs, just for manual check
 		singleValueOption.add("Hours Value");
 		singleValueOption.add("Minutes Value");
-		singleValueOption.add("Current Hour Single From-To Minutes");
+		singleValueOption.add("Current Hour Single From-To Minutes");*/
 
 		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
 				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
@@ -184,7 +192,7 @@ public class OfflineControlGUI {
 			
 		};
 		selectConfig.setDefaultItems(configOptions);
-		selectConfig.selectDefaultItem("Eine Woche");
+		selectConfig.selectDefaultItem(this.guiConfig.getDefaultIntervalOption());
 		
 		selectDataType =  new TemplateDropdown<String>(page, "selectDataType") {
 			private static final long serialVersionUID = 1L;
@@ -250,7 +258,7 @@ public class OfflineControlGUI {
 				ButtonData.BOOTSTRAP_GREEN, ButtonData.BOOTSTRAP_LIGHTGREY);
 
 		//single value intervals drop-down
-		selectSingleValueIntervals = 
+		/*selectSingleValueIntervals = 
 				new TemplateDropdown<String>(page, "singleValueIntervals") {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -259,7 +267,7 @@ public class OfflineControlGUI {
 			}
 		};
 		selectSingleValueIntervals.setDefaultItems(singleValueOption);
-		selectSingleValueIntervals.selectDefaultItem("ThreeFullDaysBeforeNow");
+		selectSingleValueIntervals.selectDefaultItem("ThreeFullDaysBeforeNow");*/
 
 		GaRoSingleEvalProvider sel = controller.getDefaultProvider();
 		openScheduleViewer = OfflineEvaluationControl.getScheduleViewerOpenButton(page, "openScheduleViewer",

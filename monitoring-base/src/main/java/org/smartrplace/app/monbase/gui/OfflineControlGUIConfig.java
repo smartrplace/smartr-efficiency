@@ -19,6 +19,7 @@ public interface OfflineControlGUIConfig {
 	/** Get names of interval options. Note that the respective {@link IntervalConfiguration} object needs to
 	 * be provided by the controller*/
 	List<String> getIntervalOptions();
+	String getDefaultIntervalOption();
 	
 	/** Get names of plots.
 	 * TODO: Currrently the OfflineControlGUI just supports fixed plot names per page without localisation.
