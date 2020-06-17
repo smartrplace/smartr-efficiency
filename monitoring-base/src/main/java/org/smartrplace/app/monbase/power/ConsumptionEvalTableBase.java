@@ -321,7 +321,8 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		};
 		page.append(header);
 		
-		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding", "Fertig");
+		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
+				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
 		
 		RedirectButton messageButton = getMessageButton();

@@ -119,7 +119,8 @@ public class TSManagementPage extends EditPageGeneric<SmartEffTimeSeries> {
 		if(!Boolean.getBoolean("org.smartrplace.smarteff.defaultservice.tsmanagementpage.removecsvupload")) {
 			setLabel(sr.allowNanValues(), EN, "Not-a-number values (NaN) allowed", DE, "Ungültige Werte (NaN) in Zeitreihe zulässig");
 		} else {
-			WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButton", "Fertig");
+			WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButton",
+					System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
 			closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
 			EditLineProvider tabProv = new EditLineProvider() {
 				@Override

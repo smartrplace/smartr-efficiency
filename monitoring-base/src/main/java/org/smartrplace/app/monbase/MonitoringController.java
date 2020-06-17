@@ -238,7 +238,7 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		return OPTIONS;
 	}
 	public String getRoomOptionLineTitle() {
-		return "Auswahl Räume";
+		return System.getProperty("org.smartrplace.app.monbase.gui.datatypelabel", "Auswahl Räume");
 	}
 	public IntervalConfiguration getConfigDuration(String config, ApplicationManager appMan) {
     	switch(config) {

@@ -270,9 +270,12 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 		};
 		page.append(header);
 		
-		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding", "Fertig");
+		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
+				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
-		RedirectButton messageButton = new RedirectButton(page, "messageButton", "Alarme", "/de/iwes/ogema/apps/message/reader/index.html");
+		RedirectButton messageButton = new RedirectButton(page, "messageButton",
+				System.getProperty("org.ogema.app.navigation.alarmbuttontext", "Alarme"),
+				"/de/iwes/ogema/apps/message/reader/index.html");
 		messageButton.setDefaultOpenInNewTab(false);
 		
 		StaticTable topTable = new StaticTable(1, 5);

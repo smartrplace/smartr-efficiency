@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.ogema.util.extended.eval.widget.MultiSelectByButtons;
 import org.smartrplace.app.monbase.MonitoringController;
 
@@ -131,6 +132,11 @@ public class OfflineControlGUI {
 			}
 			return result;
 		}
+
+		@Override
+		public TimeSeriesNameProvider nameProvider() {
+			return new TimeSeriesNameProviderImpl(controller);
+		}
 	}
 	public WidgetPage<?> getPage() {
 		return page;
@@ -159,9 +165,12 @@ public class OfflineControlGUI {
 		singleValueOption.add("Minutes Value");
 		singleValueOption.add("Current Hour Single From-To Minutes");
 
-		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding", "Fertig");
+		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
+				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
-		RedirectButton messageButton = new RedirectButton(page, "messageButton", "Alarme", "/de/iwes/ogema/apps/message/reader/index.html");
+		RedirectButton messageButton = new RedirectButton(page, "messageButton",
+				System.getProperty("org.ogema.app.navigation.alarmbuttontext", "Alarme"),
+				"/de/iwes/ogema/apps/message/reader/index.html");
 		messageButton.setDefaultOpenInNewTab(false);
 
 		selectConfig = 
@@ -306,12 +315,12 @@ public class OfflineControlGUI {
 		int i = 0;
 		StaticTable table1 = new StaticTable(8, 3);
 		page.append(table1);
-		table1.setContent(i, 0, "Intervall"	);
+		table1.setContent(i, 0, System.getProperty("org.smartrplace.app.monbase.gui.intervallabel", "Intervall")	);
 		table1.setContent(i, 1, selectConfig	);
 		StaticTable buttonTable = controller.provideButtonTable(this, closeTabButton, messageButton);
 		table1.setContent(i, 2, buttonTable);
 		i++;
-		table1.setContent(i, 0, "Datentypen"	);
+		table1.setContent(i, 0, System.getProperty("org.smartrplace.app.monbase.gui.roomselectlabel", "Datentypen")	);
 		table1.setContent(i, 1, selectDataType	);
 		table1.setContent(i, 2, "              ");
 		if(gateWaySelection != null) {
@@ -363,7 +372,8 @@ public class OfflineControlGUI {
 	}
 
 	private void addHeader() {
-		Header header = new Header(page, "header", "Chart-Konfiguration");
+		Header header = new Header(page, "header", System.getProperty(
+				"org.smartrplace.app.monbase.gui.chartconfigheader", "Chart-Konfiguration"));
 		header.addDefaultStyle(WidgetData.TEXT_ALIGNMENT_LEFT);
 		page.append(header);
 	}

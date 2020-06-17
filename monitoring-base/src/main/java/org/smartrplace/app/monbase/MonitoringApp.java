@@ -233,7 +233,7 @@ public class MonitoringApp implements Application, OfflineEvalServiceAccess {
 		offlineEval = new OfflineControlGUI(page, controller, null);
 		
 		menu = new NavigationMenu("Select Page");
-		menu.addEntry("Chart-Konfiguration", page);
+		menu.addEntry(System.getProperty("org.smartrplace.app.monbase.gui.chartconfigheader", "Chart-Konfiguration"), page);
 		
 		configMenuConfig(page.getMenuConfiguration());
 

@@ -87,7 +87,8 @@ public class AlarmingEditPage extends EditPageGenericWithTable<AlarmConfigBase> 
 	@Override
 	public boolean addWidgetsAboveTable(Class<? extends Resource> resourceType, WidgetPage<?> page,
 			GenericResourceByTypeTablePage<AlarmConfigBase> genericResourceByTypeTablePage) {
-		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding", "Fertig") {
+		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
+				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig")) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {

@@ -1,6 +1,7 @@
 package org.ogema.timeseries.eval.simple.mon;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -84,6 +85,8 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 		final ReadOnlyTimeSeries firstStartTsFinal = firstStartTs;
 		final ReadOnlyTimeSeries lastEndTsFinal =lastEndTs;
 
+		if(firstStartTs == null)
+			return Collections.emptyList();
 		//TODO: We assume that startTS and endTS overlap. If not we might have to use more timeseries intermediately
 		long firstStartTSEnd = firstStartTs.getPreviousValue(Long.MAX_VALUE).getTimestamp();
 		ProcessedReadOnlyTimeSeries inputSingle = new ProcessedReadOnlyTimeSeries(InterpolationMode.NONE) {

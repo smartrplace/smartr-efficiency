@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.smartrplace.app.monbase.MonitoringController;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
@@ -45,4 +46,6 @@ public interface OfflineControlGUIConfig {
      * @return
      */
     List<String> getManualTimeseriesTypeLabels(String baseLabel);
+    
+    TimeSeriesNameProvider nameProvider();
 }

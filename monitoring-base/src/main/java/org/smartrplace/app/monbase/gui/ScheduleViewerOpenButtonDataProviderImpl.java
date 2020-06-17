@@ -143,7 +143,7 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 	
 	@Override
 	public TimeSeriesNameProvider nameProvider() {
-		return new TimeSeriesNameProviderImpl(controller);
+		return guiConfig.nameProvider();
 	}
 
 	/** Like {@link ExportBulkData#cleanList(List, List, List)} but removes all sensors not
