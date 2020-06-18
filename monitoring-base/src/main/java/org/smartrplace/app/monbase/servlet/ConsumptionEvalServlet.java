@@ -116,21 +116,24 @@ public class ConsumptionEvalServlet implements ServletPageProvider<ConsumptionEv
 			result.put("estimatedSavings", savingsP);
 		}
 
-		if(object.line.getEvalObjConn() != null) {
-			Datapoint dailyTs = object.line.getEvalObjConn().getDailyConsumptionValues();
-			if(dailyTs != null) {
-				dailyTs.setTimeSeriesID(null);
-				String tsId = dailyTs.getTimeSeriesID();
-				ServletStringProvider timeSeriesId = new ServletStringProvider(tsId);
-				result.put("dailyValues_TsId", timeSeriesId);				
-			}
-			Datapoint hourlyTs = object.line.getEvalObjConn().getHourlyConsumptionValues();
-			if(hourlyTs != null) {
-				hourlyTs.setTimeSeriesID(null);
-				String tsId = hourlyTs.getTimeSeriesID();
-				ServletStringProvider timeSeriesId = new ServletStringProvider(tsId);
-				result.put("hourlyValues_TsId", timeSeriesId);				
-			}
+		//Datapoint dailyTs = null;
+		//if(object.line.getEvalObjConn() != null) {
+		//	dailyTs = object.line.getEvalObjConn().getDailyConsumptionValues();
+		//}
+		Datapoint dailyTs = object.line.getDailyConsumptionValues();
+		if(dailyTs != null) {
+			dailyTs.setTimeSeriesID(null);
+			String tsId = dailyTs.getTimeSeriesID();
+			ServletStringProvider timeSeriesId = new ServletStringProvider(tsId);
+			result.put("dailyValues_TsId", timeSeriesId);				
+		}
+		//Datapoint hourlyTs = object.line.getEvalObjConn().getHourlyConsumptionValues();
+		Datapoint hourlyTs = object.line.getHourlyConsumptionValues();
+		if(hourlyTs != null) {
+			hourlyTs.setTimeSeriesID(null);
+			String tsId = hourlyTs.getTimeSeriesID();
+			ServletStringProvider timeSeriesId = new ServletStringProvider(tsId);
+			result.put("hourlyValues_TsId", timeSeriesId);				
 		}
 		return result;
 	}
