@@ -116,19 +116,22 @@ public class ConsumptionEvalServlet implements ServletPageProvider<ConsumptionEv
 			result.put("estimatedSavings", savingsP);
 		}
 
-		//Datapoint dailyTs = null;
-		//if(object.line.getEvalObjConn() != null) {
-		//	dailyTs = object.line.getEvalObjConn().getDailyConsumptionValues();
-		//}
-		Datapoint dailyTs = object.line.getDailyConsumptionValues();
+		//Datapoint dailyTs = object.line.getDailyConsumptionValues();
+		Datapoint dailyTs = null;
+		if(object.line.getEvalObjConn() != null) {
+			dailyTs = object.line.getEvalObjConn().getDailyConsumptionValues();
+		}
 		if(dailyTs != null) {
 			dailyTs.setTimeSeriesID(null);
 			String tsId = dailyTs.getTimeSeriesID();
 			ServletStringProvider timeSeriesId = new ServletStringProvider(tsId);
 			result.put("dailyValues_TsId", timeSeriesId);				
 		}
-		//Datapoint hourlyTs = object.line.getEvalObjConn().getHourlyConsumptionValues();
-		Datapoint hourlyTs = object.line.getHourlyConsumptionValues();
+		//Datapoint hourlyTs = object.line.getHourlyConsumptionValues();
+		Datapoint hourlyTs = null;
+		if(object.line.getEvalObjConn() != null) {
+			hourlyTs = object.line.getEvalObjConn().getHourlyConsumptionValues();
+		}
 		if(hourlyTs != null) {
 			hourlyTs.setTimeSeriesID(null);
 			String tsId = hourlyTs.getTimeSeriesID();
