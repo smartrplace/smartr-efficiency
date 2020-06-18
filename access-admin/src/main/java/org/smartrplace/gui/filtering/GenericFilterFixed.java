@@ -7,7 +7,7 @@ import java.util.List;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 /** A generic filter with a fixed list of items*/
-public class GenericFilterFixed<T> implements GenericFilter<T> {
+public class GenericFilterFixed<T> implements GenericFilterOption<T> {
 	protected List<T> baseOptions = new ArrayList<>();
 	public GenericFilterFixed(T object) {
 		baseOptions.add(object);

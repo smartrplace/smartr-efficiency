@@ -2,7 +2,7 @@ package org.smartrplace.gui.filtering;
 
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
-public class DualFiltering<A, B, T> implements GenericFilter<T> {
+public class DualFiltering<A, B, T> implements GenericFilterOption<T> {
 	protected final SingleFiltering<A, T> singleFilterA;
 	protected final SingleFiltering<B, T> singleFilterB;
 	

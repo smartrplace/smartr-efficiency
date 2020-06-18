@@ -31,7 +31,8 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 		AccessConfigBase accessConfig;
 	}
 	protected abstract List<String> getPermissionNames();
-	protected abstract ConfigurablePermission getAccessConfig(T object);
+	protected abstract ConfigurablePermission getAccessConfig(T object, String permissionID,
+			OgemaHttpRequest req);
 	
 	public StandardPermissionPage(WidgetPage<?> page, ApplicationManager appMan, T sampleObject) {
 		super(page, appMan, sampleObject, false);
@@ -48,7 +49,7 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 				vh.registerHeaderEntry(label);
 				continue;
 			}
-			ConfigurablePermission acc = getAccessConfig(object);
+			ConfigurablePermission acc = getAccessConfig(object, label, req);
 			SimpleCheckbox check = new SimpleCheckbox(mainTable, "check"+id, "", req) {
 				private static final long serialVersionUID = 1L;
 				@Override
@@ -83,11 +84,4 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 		};
 		page.append(header);
 	}
-
-	@Override
-	public Collection<T> getObjectsInTable(OgemaHttpRequest req) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 }

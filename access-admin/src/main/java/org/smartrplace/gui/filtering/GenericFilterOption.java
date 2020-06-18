@@ -5,7 +5,7 @@ import java.util.List;
 
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
-public interface GenericFilter<T> {
+public interface GenericFilterOption<T> {
 	boolean isInSelection(T object, OgemaHttpRequest req);
 	
 	/** Overwrite this to improve efficiency, the behaviour should not change*/
