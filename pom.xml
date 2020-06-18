@@ -76,6 +76,7 @@
 		<module>smartr-heating-pricing</module>
 		<module>monitoring-base</module>
 		<module>monitoring-service-base</module>
+		<module>access-admin</module>
     </modules>
 
     <build>
