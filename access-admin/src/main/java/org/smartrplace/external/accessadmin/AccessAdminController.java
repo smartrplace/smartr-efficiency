@@ -1,9 +1,18 @@
 package org.smartrplace.external.accessadmin;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
+import org.ogema.core.model.ResourceList;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
+import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.MainPage;
+import org.smartrplace.external.accessadmin.gui.UserConfigPage;
+import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
+import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
 
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -13,22 +22,47 @@ public class AccessAdminController {
 
 	public OgemaLogger log;
     public ApplicationManager appMan;
-
+    /** This will not be available in the constructor*/
+    public UserPermissionServiceImpl userPermService;
+    
 	public AccessAdminConfig appConfigData;
 	public AccessAdminApp accessAdminApp;
 	
 	public MainPage mainPage;
+	public UserRoomPermissionPage userRoomPermPage;
+	public UserRoomGroupPermissionPage userRoomGroupPermPage;
+	public UserConfigPage userConfigPage;
 	WidgetApp widgetApp;
 
-	public AccessAdminController(ApplicationManager appMan, WidgetPage<?> page, AccessAdminApp accessAdminApp) {
+	public final ResourceList<AccessConfigUser> userPerms;
+	
+	public AccessAdminController(ApplicationManager appMan, WidgetPage<?> page, AccessAdminApp initApp) {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
-		this.accessAdminApp = accessAdminApp;
+		this.accessAdminApp = initApp;
 		
-		mainPage = new MainPage(page, appMan);
-
 		initConfigurationResource();
-        initDemands();
+		userPerms = appConfigData.userPermissions();
+
+		//mainPage = new MainPage(page, appMan);
+
+		//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");
+		WidgetPage<?> pageRes1 = page; //initApp.widgetApp.createWidgetPage("userroomperm.html");
+		userRoomPermPage = new UserRoomPermissionPage(pageRes1, this);
+		initApp.menu.addEntry("User Room Permissions", pageRes1);
+		initApp.configMenuConfig(pageRes1.getMenuConfiguration());
+
+		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
+		userRoomGroupPermPage = new UserRoomGroupPermissionPage(pageRes2, this);
+		initApp.menu.addEntry("Room Group Permissions", pageRes2);
+		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
+
+		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("userconfig.html");
+		userConfigPage = new UserConfigPage(pageRes3, this);
+		initApp.menu.addEntry("User Group Configuration", pageRes3);
+		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
+
+		initDemands();
 	}
 
     /*
@@ -61,12 +95,13 @@ public class AccessAdminController {
 	public void close() {
 	}
 
-	/*
-	 * if the app needs to consider dependencies between different pattern types,
-	 * they can be processed here.
-	 */
-	public void processInterdependies() {
-		// TODO Auto-generated method stub
-		
+	//TODO: Provide user and room group access via service
+	public List<AccessConfigUser> getUserGroups(boolean includeNaturalUsers) {
+		List<AccessConfigUser> result = new ArrayList<>();
+		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
+			if(includeNaturalUsers || user.isGroup().getValue())
+				result.add(user);
+		}
+		return result ;
 	}
 }

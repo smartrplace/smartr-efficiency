@@ -26,8 +26,8 @@ public abstract class RoomFilteringWithGroups<T> extends RoomFilteringByType<T> 
 				
 			};
 			addOption(other, LocaleHelper.getLabelMap(ResourceUtils.getHumanReadableShortName(bu)));
-			setDefaultItems(filteringOptions);
 		}
+		finishOptionsSetup();
 	}
 
 }

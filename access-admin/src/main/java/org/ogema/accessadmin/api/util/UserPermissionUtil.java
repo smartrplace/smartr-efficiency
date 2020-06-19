@@ -10,6 +10,8 @@ import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 
+import de.iwes.util.resource.ValueResourceHelper;
+
 public class UserPermissionUtil {
 	public static interface PermissionForLevelProvider {
 		Integer getUserPermissionForLevel(AccessConfigUser userAcc, String resourceId, String permissionType);
@@ -73,6 +75,15 @@ public class UserPermissionUtil {
 		}
 		return null;
 	}
+	public static AccessConfigUser getOrCreateUserPermissions(ResourceList<AccessConfigUser> userPerms, String userName) {
+		AccessConfigUser result = getUserPermissions(userPerms, userName);
+		if(result != null)
+			return result;
+		result = userPerms.add();
+		ValueResourceHelper.setCreate(result.name(), userName);
+		result.activate(true);
+		return result;
+	}
 	
 	public static Integer getUserPermissionForUserGroupLevel(List<AccessConfigUser> levelPlus, String resourceId, String permissionType,
 			PermissionForLevelProvider levelProv) {
@@ -125,9 +136,19 @@ public class UserPermissionUtil {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		boolean isNew = false;
+		if(!configRes.isActive()) {
+			configRes.create();
+			configRes.resourceIds().create();
+			configRes.permissionTypes().create();
+			configRes.permissionValues().create();
+			isNew = true;
+		}
 		ValueResourceUtils.appendValue(configRes.resourceIds(), resourceId);
 		ValueResourceUtils.appendValue(configRes.permissionTypes(), permissionType);
 		ValueResourceUtils.appendValue(configRes.permissionValues(), value);
+		if(isNew)
+			configRes.activate(true);
 		return true;
 	}
 	

@@ -15,6 +15,8 @@ import org.osgi.framework.ServiceRegistration;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
+import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 /**
  * Template OGEMA application class
@@ -28,7 +30,8 @@ public class AccessAdminApp implements Application {
     private ApplicationManager appMan;
     private AccessAdminController controller;
 
-	private WidgetApp widgetApp;
+	public WidgetApp widgetApp;
+	public NavigationMenu menu;
 
 	@Reference
 	private OgemaGuiService guiService;
@@ -55,10 +58,11 @@ public class AccessAdminApp implements Application {
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
 		final WidgetPage<?> page = widgetApp.createStartPage();
+		menu = new NavigationMenu("Select Page");
 
         controller = new AccessAdminController(appMan, page, this);
         userAccService = new UserPermissionServiceImpl(controller);
-	   
+	    controller.userPermService = userAccService;
         srUserAccService = bc.registerService(UserPermissionService.class, userAccService, null);
 
 		
@@ -74,4 +78,12 @@ public class AccessAdminApp implements Application {
     		controller.close();
         log.info("{} stopped", getClass().getName());
     }
+    
+ 	void configMenuConfig(MenuConfiguration mc) {
+		mc.setCustomNavigation(menu);
+		mc.setLanguageSelectionVisible(false);
+		mc.setNavigationVisible(false); 		
+ 	}
+
+
 }

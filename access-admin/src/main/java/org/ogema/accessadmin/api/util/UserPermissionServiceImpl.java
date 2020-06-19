@@ -49,12 +49,20 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 
 	@Override
 	public int getUserPermissionForRoom(String userName, Room room, String permissionType) {
+		return getUserPermissionForRoom(userName, room.getLocation(), permissionType, false);
+	}
+	/**
+	 * @param getSuperSetting if true the specific setting for the user and room will be ignored and
+	 * 		only the more general setting will be returned
+	 */
+	public int getUserPermissionForRoom(String userName, String resourceId, String permissionType,
+			boolean getSuperSetting) {
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(userPerms, userName);
 		if(userAcc == null)
 			return 0;
-		String resourceId = room.getLocation();
 		List<String> roomGroups = getRoomGroups(resourceId);
-		Integer result = getUserPermissionForRoomLevel(userAcc, resourceId, permissionType, roomGroups);
+		Integer result;
+		result = getUserPermissionForRoomLevel(userAcc, resourceId, permissionType, roomGroups, getSuperSetting);
 		if(result != null)
 			return result;
 		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), resourceId,
@@ -63,7 +71,7 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 					@Override
 					public Integer getUserPermissionForLevel(AccessConfigUser userAcc, String resourceId,
 							String permissionType) {
-						return getUserPermissionForRoomLevel(userAcc, resourceId, permissionType, roomGroups);
+						return getUserPermissionForRoomLevel(userAcc, resourceId, permissionType, roomGroups, false);
 					}
 			
 		});
@@ -73,8 +81,12 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 	}
 	
 	public Integer getUserPermissionForRoomLevel(AccessConfigUser userAcc, String resourceId, String permissionType,
-			List<String> roomGroups) {
-		Integer result = UserPermissionUtil.getRoomAccessPermission(resourceId, permissionType, userAcc);
+			List<String> roomGroups, boolean getSuperSetting) {
+		Integer result;
+		if(getSuperSetting)
+			result = null;
+		else
+			result = UserPermissionUtil.getRoomAccessPermission(resourceId, permissionType, userAcc);
 		if(result == null) {
 			for(String roomGrp: roomGroups) {
 				result = UserPermissionUtil.getRoomAccessPermission(roomGrp, permissionType, userAcc);

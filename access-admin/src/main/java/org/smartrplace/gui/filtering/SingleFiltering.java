@@ -109,15 +109,15 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 	 * @return Further options can be added to the result*/
 	public GenericFilterFixed<A> addOptionSingle(A object, Map<OgemaLocale, String> optionLabel) {
 		GenericFilterFixed<A> result = new GenericFilterFixed<A>(object);
-		filteringOptions.add(result);
-		addLabels(result, optionLabel);
+		addOption(result, optionLabel);
 		return result;
 	}
 	/** Add filtering option that selects several base objects*/
 	public GenericFilterFixed<A> addOptionSingle(A[] objects, Map<OgemaLocale, String> optionLabel) {
 		GenericFilterFixed<A> result = new GenericFilterFixed<A>(objects);
-		filteringOptions.add(result);
-		addLabels(result, optionLabel);
+		addOption(result, optionLabel);
+		//filteringOptions.add(result);
+		//addLabels(result, optionLabel);
 		return result;
 	}
 	/** Add custom-created filtering option<br>
@@ -125,6 +125,11 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 	public void addOption(GenericFilterOption<A> newOption, Map<OgemaLocale, String> optionLabel) {
 		filteringOptions.add(newOption);
 		addLabels(newOption, optionLabel);
+	}
+	
+	public void finishOptionsSetup() {
+		setDefaultItems(filteringOptions);
+		selectDefaultItem(filteringOptions.get(0));
 	}
 	
 	protected Map<String, GenericFilterOption<A>> getKnownLabels(OgemaLocale locale) {
@@ -139,6 +144,11 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 	protected String labelLocaleOnly(GenericFilterOption<A> object, OgemaLocale locale) {
 		Map<String, GenericFilterOption<A>> subMap = getKnownLabels(locale);
 		for(Entry<String, GenericFilterOption<A>> lab: subMap.entrySet()) {
+			if(lab.getValue() == null) {
+				if(object == null)
+					return lab.getKey();
+				continue;
+			}
 			if(lab.getValue().equals(object))
 				return lab.getKey();
 		}

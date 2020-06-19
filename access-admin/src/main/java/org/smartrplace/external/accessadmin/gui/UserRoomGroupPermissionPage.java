@@ -12,9 +12,7 @@ import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
-import org.smartrplace.gui.filtering.SingleFiltering;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
-import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
 import org.smartrplace.gui.filtering.util.UserFilteringBase;
 import org.smartrplace.gui.filtering.util.UserFilteringWithGroups;
 
@@ -28,16 +26,16 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
-public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
+public class UserRoomGroupPermissionPage extends StandardPermissionPage<BuildingPropertyUnit> {
 	protected final AccessAdminController controller;
 	
 	protected UserFilteringBase<Room> userFilter;
-	protected RoomFilteringWithGroups<Room> roomFilter;
+	//protected RoomFilteringWithGroups<Room> roomFilter;
 
 	protected ResourceList<AccessConfigUser> userPerms;
 	
-	public UserRoomPermissionPage(WidgetPage<?> page, AccessAdminController controller) {
-		super(page, controller.appMan, ResourceHelper.getSampleResource(Room.class));
+	public UserRoomGroupPermissionPage(WidgetPage<?> page, AccessAdminController controller) {
+		super(page, controller.appMan, ResourceHelper.getSampleResource(BuildingPropertyUnit.class));
 		this.controller = controller;
 		userPerms = controller.appConfigData.userPermissions();
 		triggerPageBuild();
@@ -45,11 +43,11 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 
 	@Override
 	protected String getTypeName(OgemaLocale locale) {
-		return "Room";
+		return "Room Group";
 	}
 
 	@Override
-	protected String getLabel(Room obj) {
+	protected String getLabel(BuildingPropertyUnit obj) {
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 
@@ -59,7 +57,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 	}
 
 	@Override
-	protected ConfigurablePermission getAccessConfig(Room object, String permissionID,
+	protected ConfigurablePermission getAccessConfig(BuildingPropertyUnit object, String permissionID,
 			OgemaHttpRequest req) {
 		String userName = userFilter.getSelectedUser(req);
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
@@ -80,7 +78,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(2, 5);
-		roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
+		/*roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
 				OptionSavingMode.PER_USER, controller.appConfigData.roomGroups()) {
 			private static final long serialVersionUID = 1L;
 
@@ -88,7 +86,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 			protected Room getAttribute(Room object) {
 				return object;
 			}
-		};
+		};*/
 		userFilter = new UserFilteringWithGroups<Room>(page, "userFilter",
 				OptionSavingMode.GENERAL, controller);
 		
@@ -113,13 +111,13 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 				grp.activate(true);
 			}
 		};
-		roomFilter.registerDependentWidget(mainTable);
+		//roomFilter.registerDependentWidget(mainTable);
 		userFilter.registerDependentWidget(mainTable);
 		addRoomGroup.registerDependentWidget(mainTable);
 		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User App Access Configuration",
 				"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
-		topTable.setContent(0, 1, userFilter).setContent(0,  2, roomFilter);
+		topTable.setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
 		topTable.setContent(1, 0, addUserGroup).setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
@@ -127,10 +125,10 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 	}
 
 	@Override
-	public Collection<Room> getObjectsInTable(OgemaHttpRequest req) {
-		List<Room> all = controller.appMan.getResourceAccess().getToplevelResources(Room.class);
-		List<Room> result = roomFilter.getFiltered(all, req);
+	public Collection<BuildingPropertyUnit> getObjectsInTable(OgemaHttpRequest req) {
+		List<BuildingPropertyUnit> all = controller.appConfigData.roomGroups().getAllElements();
+		//List<Room> result = roomFilter.getFiltered(all, req);
 		
-		return result;
+		return all;
 	}
 }

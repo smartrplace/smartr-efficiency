@@ -8,8 +8,8 @@
     </parent>
     
     <artifactId>access-admin</artifactId>
-    <name></name>
-    <description></description>
+    <name>Group and Permission Management</name>
+    <description>Management of groups of users, rooms etc. and user permissions</description>
     
     <packaging>bundle</packaging>
     

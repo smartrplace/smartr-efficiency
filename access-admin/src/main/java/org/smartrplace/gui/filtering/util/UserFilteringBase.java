@@ -31,13 +31,18 @@ public class UserFilteringBase<T> extends SingleFiltering<String, T> {
 			ApplicationManager appMan) {
 		super(page, id, saveOptionMode);
 		this.appMan = appMan;
+		addOptions();
+	}
+
+	protected void addOptions() {
 		for(UserAccount ac: appMan.getAdministrationManager().getAllUsers()) {
 			GenericFilterOption<String> newOption = new SingleUserOption(ac.getName());
 			addOption(newOption , LocaleHelper.getLabelMap(ac.getName()));
 		}
-		
+		setDefaultAddEmptyOption(false);		
+		finishOptionsSetup();
 	}
-
+	
 	@Override
 	protected boolean isAttributeSinglePerDestinationObject() {
 		return true;

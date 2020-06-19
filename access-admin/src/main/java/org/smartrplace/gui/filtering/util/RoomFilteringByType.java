@@ -52,7 +52,7 @@ public abstract class RoomFilteringByType<T> extends SingleFiltering<Room, T> {
 			
 		};
 		addOption(other, LocaleHelper.getLabelMap("Other"));
-		setDefaultItems(filteringOptions);
+		finishOptionsSetup();
 	}
 
 	@Override

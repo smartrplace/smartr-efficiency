@@ -1,21 +1,26 @@
 package org.smartrplace.external.accessadmin.gui;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
+import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.widgets.api.extended.WidgetData;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.checkbox.CheckboxData;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
+import de.iwes.widgets.html.form.checkbox.SimpleCheckboxData;
 import de.iwes.widgets.html.form.label.Header;
 
 public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, BooleanResource> {
@@ -25,18 +30,40 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 	}
 	protected abstract String getLabel(T obj);
 	
-	public static class ConfigurablePermission {
+	public static class ConfigurablePermission implements PermissionCellData {
 		String resourceId;
 		String permissionId;
 		AccessConfigBase accessConfig;
+		boolean defaultStatus;
+		ResourceList<AccessConfigUser> userPerms;
+		String userName;
+		
+		@Override
+		public Boolean getOwnstatus() {
+			return UserPermissionUtil.getPermissionStatus(resourceId, permissionId, accessConfig);
+		}
+		@Override
+		public void setOwnStatus(Boolean newStatus) {
+			if(newStatus == null) {
+				UserPermissionUtil.removePermissionSetting(resourceId, permissionId, accessConfig);				
+			} else {
+				UserPermissionUtil.addPermission(resourceId, permissionId, accessConfig,
+						newStatus==null?null:(newStatus?1:0));
+			}
+		}
+		@Override
+		public boolean getDefaultStatus() {
+			return defaultStatus;
+		}
 	}
 	protected abstract List<String> getPermissionNames();
-	protected abstract ConfigurablePermission getAccessConfig(T object, String permissionID,
+	protected abstract PermissionCellData getAccessConfig(T object, String permissionID,
 			OgemaHttpRequest req);
 	
 	public StandardPermissionPage(WidgetPage<?> page, ApplicationManager appMan, T sampleObject) {
 		super(page, appMan, sampleObject, false);
-		triggerPageBuild();
+		//Trigger has to be done by implementing page
+		//triggerPageBuild();
 	}
 
 	@Override
@@ -49,19 +76,22 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 				vh.registerHeaderEntry(label);
 				continue;
 			}
-			ConfigurablePermission acc = getAccessConfig(object, label, req);
-			SimpleCheckbox check = new SimpleCheckbox(mainTable, "check"+id, "", req) {
+			PermissionCellData acc = getAccessConfig(object, label, req);
+			SimpleCheckbox check = new SimpleCheckbox(mainTable, "check_"+label+id, "", req) {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void onGET(OgemaHttpRequest req) {
-					Boolean status = UserPermissionUtil.getPermissionStatus(acc.resourceId, acc.permissionId, acc.accessConfig);
+					Boolean status = acc.getOwnstatus();
 					setValue(status != null && status, req);
+					if(status != null)
+						addStyle(ButtonData.BOOTSTRAP_GREEN, req);
+					else
+						addStyle(ButtonData.BOOTSTRAP_DARKGREY, req);
 				}
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
 					boolean val = getValue(req);
-					UserPermissionUtil.addPermission(acc.resourceId, acc.permissionId, acc.accessConfig, val?1:0);
-				}
+					acc.setOwnStatus(val);				}
 			};
 			row.addCell(WidgetHelper.getValidWidgetId(label), check);
 		}
