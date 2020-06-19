@@ -17,6 +17,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.checkbox.CheckboxData;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
@@ -77,23 +78,41 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 				continue;
 			}
 			PermissionCellData acc = getAccessConfig(object, label, req);
-			SimpleCheckbox check = new SimpleCheckbox(mainTable, "check_"+label+id, "", req) {
+			Button perm = new Button(mainTable, "perm_"+label+id, "", req) {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void onGET(OgemaHttpRequest req) {
 					Boolean status = acc.getOwnstatus();
-					setValue(status != null && status, req);
-					if(status != null)
-						addStyle(ButtonData.BOOTSTRAP_GREEN, req);
-					else
-						addStyle(ButtonData.BOOTSTRAP_DARKGREY, req);
+					if (status == null) {
+						boolean inheritedStatus = acc.getEffectiveStatus();
+						setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
+						//setGlyphicon(inheritedStatus ? Glyphicons.CHECK : Glyphicons.OFF, req);
+						setText(inheritedStatus ? "(✓ granted)": "(✕ denied)", req);
+						setToolTip("Permission was " + (inheritedStatus ? "granted" : "denied") + " by inheritance.", req);
+						
+					} else {
+						//setGlyphicon(status ? Glyphicons.CHECK : Glyphicons.OFF, req);
+						setText(status ? "✓ granted": "✕ denied", req);
+						if (status) {
+							setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+						} else {
+							setStyle(ButtonData.BOOTSTRAP_RED, req);
+						}
+						setToolTip("Permission was explicitly " + (status ? "granted" : "denied") + ".", req);
+					}
 				}
+				
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					boolean val = getValue(req);
-					acc.setOwnStatus(val);				}
+					Boolean status = acc.getOwnstatus();
+					if (status == null) status = true;
+					else if (status == true) status = false;
+					else status = null;
+					acc.setOwnStatus(status);
+				}
 			};
-			row.addCell(WidgetHelper.getValidWidgetId(label), check);
+			row.addCell(WidgetHelper.getValidWidgetId(label), perm);
+			perm.triggerOnPOST(perm);
 		}
 	}
 
