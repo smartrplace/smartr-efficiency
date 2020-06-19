@@ -160,8 +160,10 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(Thermostat dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
+		Thermostat dev = (Thermostat) installDeviceRes.device();
+		if (null == dev) return result;
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().reading()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
 		return result;

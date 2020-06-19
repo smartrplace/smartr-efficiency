@@ -135,8 +135,10 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(DoorWindowSensor dev, DatapointService dpService) {
+	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
+		DoorWindowSensor dev = (DoorWindowSensor) installDeviceRes.device();
+		if (null == dev) return result;
 		result.add(dpService.getDataPointStandard(dev.reading()));
 		return result;
 	}
