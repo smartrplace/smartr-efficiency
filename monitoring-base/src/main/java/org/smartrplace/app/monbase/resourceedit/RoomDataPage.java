@@ -70,7 +70,7 @@ public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 
 	@Override
 	public void addWidgetsAboveTable() {
-		Header header = new Header(page, "headerUtilPage", "Room Master Data");
+		Header header = new Header(page, "headerUtilPage", "Building Master Data");
 		page.append(header);
 	}
 

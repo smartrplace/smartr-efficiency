@@ -145,6 +145,12 @@ public class OfflineControlGUI {
 		public TimeSeriesNameProvider nameProvider() {
 			return new TimeSeriesNameProviderImpl(controller);
 		}
+
+		@Override
+		public String getHeaderText() {
+			return System.getProperty(
+					"org.smartrplace.app.monbase.gui.chartconfigheader", "Chart-Konfiguration");
+		}
 	}
 	public WidgetPage<?> getPage() {
 		return page;
@@ -380,8 +386,8 @@ public class OfflineControlGUI {
 	}
 
 	private void addHeader() {
-		Header header = new Header(page, "header", System.getProperty(
-				"org.smartrplace.app.monbase.gui.chartconfigheader", "Chart-Konfiguration"));
+		String headerText = this.guiConfig.getHeaderText();
+		Header header = new Header(page, "header", headerText);
 		header.addDefaultStyle(WidgetData.TEXT_ALIGNMENT_LEFT);
 		page.append(header);
 	}

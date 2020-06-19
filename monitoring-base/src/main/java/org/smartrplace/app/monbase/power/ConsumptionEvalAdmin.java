@@ -42,11 +42,14 @@ public class ConsumptionEvalAdmin {
 	
 	public void registerEvaluationTable(ConsumptionEvalTableBase<?> table) {
 		evaluations.add(table);
-		update(table, true);
+		if(!Boolean.getBoolean("org.smartrplace.app.monbase.power.suppressDailyHourlyTimseries"))
+			update(table, true);
 	}
 	
 	long lastUpdate = -1;
 	public void update(ConsumptionEvalTableBase<?> table, boolean force) {
+		if(Boolean.getBoolean("org.smartrplace.app.monbase.power.suppressDailyHourlyTimseries"))
+			return;
 		long now = controller.appMan.getFrameworkTime();
 		if((!force) && (lastUpdate - now < UPDATE_MIN_INTERVAL))
 			return;

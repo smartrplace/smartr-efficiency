@@ -56,6 +56,8 @@ public class EnergyEvalElConnObj implements EnergyEvalObjI {
 	
 	@Override
 	public int hasSubPhaseNum() {
+		if(conn == null)
+			return 0;
 		return conn.subPhaseConnections().isActive()?3:0;
 	}
 	

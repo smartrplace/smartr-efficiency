@@ -49,4 +49,6 @@ public interface OfflineControlGUIConfig {
     List<String> getManualTimeseriesTypeLabels(String baseLabel);
     
     TimeSeriesNameProvider nameProvider();
+    
+	String getHeaderText();
 }

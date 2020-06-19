@@ -129,9 +129,15 @@ public class GenericResourceByTypeTablePage<T extends Resource> extends GenericR
 				if(cellObject == null)
 					vh.stringLabel(text, id, "n/a", row);
 				else if(cellObject instanceof FloatResource) {
-					if(doEdit)
-						vh.floatEdit(text, id, (FloatResource)cellObject, row, null, Float.MIN_VALUE, Float.MAX_VALUE, null);
-					else
+					if(doEdit) {
+						//Access to limits does not work for some reason
+						//Float low = creatingPage.lowerLimits.get(sub);
+						//Float up = creatingPage.upperLimits.get(sub);
+						//float lowv = (low!=null)?low:0;
+						//float upv = (up!=null)?up:999999f;
+						//vh.floatEdit(text, id, (FloatResource)cellObject, row, null, lowv, upv, null);
+						vh.floatEdit(text, id, (FloatResource)cellObject, row, null, -Float.MAX_VALUE, Float.MAX_VALUE, null);
+					} else
 						vh.floatLabel(text, id, (FloatResource)cellObject, row, "%.2f");
 				}
 				else if(cellObject instanceof IntegerResource) {
