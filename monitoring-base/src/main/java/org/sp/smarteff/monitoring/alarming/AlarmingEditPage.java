@@ -46,6 +46,25 @@ public class AlarmingEditPage extends EditPageGenericWithTable<AlarmConfigBase> 
 	@Override
 	public void setData(AlarmConfigBase sr) {
 		setLabel("#humanreadableshort", EN, "Name");
+		if(System.getProperty("org.smartrplace.smarteff.util.editgeneric.fixedlanguage", "german").equals("english")) {
+			setLabel(sr.sendAlarm(), EN, "Alarm active");
+			setTableHeader(sr.sendAlarm(), EN, "active", FORMAT, "edit");
+			setLabel(sr.lowerLimit(), EN, "Lower limit operation range");
+			setTableHeader(sr.lowerLimit(), EN, "Lower limit", FORMAT, "edit");
+			setLabel(sr.upperLimit(), EN, "Upper limit operation range");
+			setTableHeader(sr.upperLimit(), EN, "Upper limit", FORMAT, "edit");
+			setLabel(sr.maxViolationTimeWithoutAlarm(), EN, "Delay until the alarm is triggered (minutes)");
+			setTableHeader(sr.maxViolationTimeWithoutAlarm(), EN, "Delay (min)", FORMAT, "edit");
+			setLabel(sr.alarmLevel(), EN, "Priority");
+			setTableHeader(sr.alarmLevel(), EN, "Level", FORMAT, "edit");
+			setDisplayOptions(sr.alarmLevel(), EN, ALARM_LEVEL_EN);
+			setLabel(sr.alarmRepetitionTime(), EN, "Duration Blocking Sending the same alarm (minutes)");
+			setLabel(sr.maxIntervalBetweenNewValues(), EN, "Maximale Dauer bis neuer Wert empfangen wird");
+			setTableHeader(sr.maxIntervalBetweenNewValues(), EN, "Maximum duration until new value is received", FORMAT, "edit");
+			setLabel(sr.performAdditinalOperations(), EN, "Monitoring Switch active");
+			setTableHeader("#TableHeader", EN, "Alarms for ");
+			return;
+		}
 		setLabel(sr.sendAlarm(), EN, "Alarm aktiv");
 		setTableHeader(sr.sendAlarm(), EN, "aktiv", FORMAT, "edit");
 		setLabel(sr.lowerLimit(), EN, "Untere Grenze Normalbereich");
@@ -99,7 +118,8 @@ public class AlarmingEditPage extends EditPageGenericWithTable<AlarmConfigBase> 
 		};
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
 
-		Button saveButton = new Button(page, "saveButton", "Speichern") {
+		Button saveButton = new Button(page, "saveButton",
+				System.getProperty("org.ogema.app.navigation.alarmchangesactivate", "Speichern")) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
