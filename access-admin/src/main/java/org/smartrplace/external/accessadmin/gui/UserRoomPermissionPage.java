@@ -9,10 +9,10 @@ import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
+import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
-import org.smartrplace.gui.filtering.SingleFiltering;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
 import org.smartrplace.gui.filtering.util.UserFilteringBase;
@@ -128,7 +128,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 
 	@Override
 	public Collection<Room> getObjectsInTable(OgemaHttpRequest req) {
-		List<Room> all = controller.appMan.getResourceAccess().getToplevelResources(Room.class);
+		List<Room> all = KPIResourceAccess.getRealRooms(controller.appMan.getResourceAccess()); //.getToplevelResources(Room.class);
 		List<Room> result = roomFilter.getFiltered(all, req);
 		
 		return result;

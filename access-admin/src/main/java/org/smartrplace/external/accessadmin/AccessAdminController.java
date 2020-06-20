@@ -7,10 +7,14 @@ import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
+import org.ogema.model.locations.BuildingPropertyUnit;
+import org.ogema.model.locations.Room;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.MainPage;
+import org.smartrplace.external.accessadmin.gui.RoomConfigPage;
 import org.smartrplace.external.accessadmin.gui.UserConfigPage;
+import org.smartrplace.external.accessadmin.gui.UserGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
 
@@ -31,10 +35,13 @@ public class AccessAdminController {
 	public MainPage mainPage;
 	public UserRoomPermissionPage userRoomPermPage;
 	public UserRoomGroupPermissionPage userRoomGroupPermPage;
+	public RoomConfigPage roomConfigPage;
 	public UserConfigPage userConfigPage;
+	public UserGroupPermissionPage userGroupPermPage;
 	WidgetApp widgetApp;
 
 	public final ResourceList<AccessConfigUser> userPerms;
+	public final ResourceList<BuildingPropertyUnit> roomGroups;
 	
 	public AccessAdminController(ApplicationManager appMan, WidgetPage<?> page, AccessAdminApp initApp) {
 		this.appMan = appMan;
@@ -43,6 +50,7 @@ public class AccessAdminController {
 		
 		initConfigurationResource();
 		userPerms = appConfigData.userPermissions();
+		roomGroups = appConfigData.roomGroups();
 
 		//mainPage = new MainPage(page, appMan);
 
@@ -57,10 +65,20 @@ public class AccessAdminController {
 		initApp.menu.addEntry("Room Group Permissions", pageRes2);
 		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
 
-		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("userconfig.html");
-		userConfigPage = new UserConfigPage(pageRes3, this);
-		initApp.menu.addEntry("User Group Configuration", pageRes3);
+		WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
+		userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
+		initApp.menu.addEntry("User Group System Permissions", pageRes5);
+		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
+
+		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
+		roomConfigPage = new RoomConfigPage(pageRes3, this);
+		initApp.menu.addEntry("Room Group Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
+
+		WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
+		userConfigPage = new UserConfigPage(pageRes4, this);
+		initApp.menu.addEntry("User Group Configuration", pageRes4);
+		initApp.configMenuConfig(pageRes4.getMenuConfiguration());
 
 		initDemands();
 	}
@@ -101,6 +119,15 @@ public class AccessAdminController {
 		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
 			if(includeNaturalUsers || user.isGroup().getValue())
 				result.add(user);
+		}
+		return result ;
+	}
+	
+	public List<BuildingPropertyUnit> getGroups(Room object) {
+		List<BuildingPropertyUnit> result = new ArrayList<>();
+		for(BuildingPropertyUnit bu: roomGroups.getAllElements()) {
+			if(bu.rooms().contains(object))
+				result.add(bu);
 		}
 		return result ;
 	}

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.ogema.internationalization.util.LocaleHelper;
@@ -22,7 +21,7 @@ import de.iwes.widgets.template.DefaultDisplayTemplate;
  * @param <A> attribute type for which the filtering shall take place
  * @param <T> type of object returned as filtering result (typically type of object used in table)
  */
-public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilterOption<A>> implements GenericFilterOption<T> {
+public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilterOption<A>> implements GenericFilterI<T> {
 	private static final long serialVersionUID = 1461509059889019498L;
 
 	public static final OgemaLocale[] defaultOrderedLocales = {OgemaLocale.ENGLISH, OgemaLocale.GERMAN,
@@ -45,6 +44,19 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 	 */
 	protected abstract boolean isAttributeSinglePerDestinationObject();
 	
+	/** Only relevant if options update is configured*/
+	protected long getFrameworkTime( ) {return 0;}
+	
+	/**If null is returned the default options set via {@link #addOption(GenericFilterOption, Map)} etc.
+	 * are used. Otherwise only the dynamic options are displayed
+	 * 
+	 * @param req
+	 * @return
+	 */
+	protected List<GenericFilterOption<A>> getOptionsDynamic(OgemaHttpRequest req) {
+		return null;
+	}
+
 	protected A getAttribute(T object) {
 		throw new IllegalStateException("Either getAttribute or getAttributes must be overriden!");
 	};
@@ -63,8 +75,26 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 		GENERAL
 	}
 	protected final OptionSavingMode saveOptionMode;
+	protected final long optionSetUpdateRate;
+	protected final boolean addAllOption;
+	
+	public class AllOption implements GenericFilterOption<A> {
+
+		@Override
+		public boolean isInSelection(A object, OgemaHttpRequest req) {
+			return true;
+		}
+
+		@Override
+		public Map<OgemaLocale, String> optionLabel() {
+			return LocaleHelper.getLabelMap(allOptionsForStandardLocales());
+		}
+		
+	}
+	public final AllOption ALL_OPTION = new AllOption();
+
 	protected final Map<String, GenericFilterOption<A>> preSelectionPerUser;
-	protected GenericFilterOption<A> preSelectionGeneral;
+	protected GenericFilterOption<A> preSelectionGeneral = ALL_OPTION;
 	
 	protected String[] allOptionsForStandardLocales() {
 		return new String[] {"All", "Alle", "Tous", "All"};
@@ -74,75 +104,92 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 	//protected final TemplateDropdown<A> dropdown;
 	
 	//Do not use directly, use #label for reading and #getKnownLabels for writing
-	protected Map<OgemaLocale, Map<String, GenericFilterOption<A>>> knowLabels = new HashMap<>();
-
+	//protected Map<OgemaLocale, Map<String, GenericFilterOption<A>>> knowLabels = new HashMap<>();
+	
 	public SingleFiltering(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode) {
+		this(page, id, saveOptionMode, -1, true);
+	}
+	/**
+	 * 
+	 * @param page
+	 * @param id
+	 * @param saveOptionMode
+	 * @param optionSetUpdateRate if negative no updates of filteringOptions will be made. If zero or {@link #getFrameworkTime()} is zero
+	 * 		then an update will be triggered on every request. This requires {@link #getOptionsDynamic(OgemaHttpRequest)} to be
+	 * 		overridden
+	 */
+	public SingleFiltering(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode, long optionSetUpdateRate,
+			boolean addAllOption) {
 		super(page, "SingleFiltDrop"+id);
 		this.saveOptionMode = saveOptionMode;
+		this.optionSetUpdateRate = optionSetUpdateRate;
+		this.addAllOption = addAllOption;
 		if(saveOptionMode == OptionSavingMode.PER_USER) {
 			preSelectionPerUser = new HashMap<>();
 		} else
 			preSelectionPerUser = null;
-		int idx = 0;
-		for(String allLabel: allOptionsForStandardLocales()) {
-			getKnownLabels(defaultOrderedLocales[idx]).put(allLabel, null);
-			idx++;
-		}
+		if(addAllOption)
+			addOption(ALL_OPTION);
+		//int idx = 0;
+		//for(String allLabel: allOptionsForStandardLocales()) {
+		//	getKnownLabels(defaultOrderedLocales[idx]).put(allLabel, null);
+		//	idx++;
+		//}
 		setTemplate(new DefaultDisplayTemplate<GenericFilterOption<A>>() {
 			@Override
 			public String getLabel(GenericFilterOption<A> object, OgemaLocale locale) {
 				return label(object, locale);
 			}
 		});
-		setDefaultAddEmptyOption(true);
+		//setDefaultAddEmptyOption(true);
 	}
 	
-	protected void addLabels(GenericFilterOption<A> object, Map<OgemaLocale, String> optionLabel) {
-		for(Entry<OgemaLocale, String> lab: optionLabel.entrySet()) {
-			getKnownLabels(lab.getKey()).put(lab.getValue(), object);
-		}
-	}
+	//protected void addLabels(GenericFilterOption<A> object, Map<OgemaLocale, String> optionLabel) {
+	//	for(Entry<OgemaLocale, String> lab: optionLabel.entrySet()) {
+	//		getKnownLabels(lab.getKey()).put(lab.getValue(), object);
+	//	}
+	//}
 	
 	/** Add filtering option that selects a single base object
 	 * @param optionLabel Just provide the label for the language you want. Usage of default English labels
 	 * is handled by the base class. {@link LocaleHelper} usage is recommended.
 	 * @return Further options can be added to the result*/
 	public GenericFilterFixed<A> addOptionSingle(A object, Map<OgemaLocale, String> optionLabel) {
-		GenericFilterFixed<A> result = new GenericFilterFixed<A>(object);
-		addOption(result, optionLabel);
+		GenericFilterFixed<A> result = new GenericFilterFixed<A>(object, optionLabel);
+		addOption(result);
 		return result;
 	}
 	/** Add filtering option that selects several base objects*/
 	public GenericFilterFixed<A> addOptionSingle(A[] objects, Map<OgemaLocale, String> optionLabel) {
-		GenericFilterFixed<A> result = new GenericFilterFixed<A>(objects);
-		addOption(result, optionLabel);
-		//filteringOptions.add(result);
-		//addLabels(result, optionLabel);
+		GenericFilterFixed<A> result = new GenericFilterFixed<A>(objects, optionLabel);
+		addOption(result);
 		return result;
 	}
 	/** Add custom-created filtering option<br>
 	 * Note that the filtering on this level should not depend on the {@link OgemaHttpRequest} for now.*/
-	public void addOption(GenericFilterOption<A> newOption, Map<OgemaLocale, String> optionLabel) {
+	public void addOption(GenericFilterOption<A> newOption) {
 		filteringOptions.add(newOption);
-		addLabels(newOption, optionLabel);
+		//addLabels(newOption, optionLabel);
 	}
 	
-	public void finishOptionsSetup() {
+	/** Only relevant if no dynamic option setting is configured*/
+	public void finishOptionsSetupOnStartup() {
 		setDefaultItems(filteringOptions);
 		selectDefaultItem(filteringOptions.get(0));
 	}
 	
-	protected Map<String, GenericFilterOption<A>> getKnownLabels(OgemaLocale locale) {
+	/*protected Map<String, GenericFilterOption<A>> getKnownLabels(OgemaLocale locale) {
 		Map<String, GenericFilterOption<A>> result = knowLabels.get(locale==null?OgemaLocale.ENGLISH:locale);
 		if(result == null) {
 			result = new HashMap<>();
 			knowLabels.put(locale, result);
 		}
 		return result;
-	}
+	}*/
 	
 	protected String labelLocaleOnly(GenericFilterOption<A> object, OgemaLocale locale) {
-		Map<String, GenericFilterOption<A>> subMap = getKnownLabels(locale);
+		return object.optionLabel().get(locale);
+		/*Map<String, GenericFilterOption<A>> subMap = getKnownLabels(locale);
 		for(Entry<String, GenericFilterOption<A>> lab: subMap.entrySet()) {
 			if(lab.getValue() == null) {
 				if(object == null)
@@ -152,21 +199,22 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 			if(lab.getValue().equals(object))
 				return lab.getKey();
 		}
-		return null;
+		return null;*/
 	}
 	protected String label(GenericFilterOption<A> object, OgemaLocale locale) {
-		if(locale == null)
+		return LocaleHelper.getLabel(object.optionLabel(), locale);
+		/*if(locale == null)
 			locale = OgemaLocale.ENGLISH;
 		String result = labelLocaleOnly(object, locale);
 		if(result != null) {
 			return result;
 		} else if(locale != null && locale != OgemaLocale.ENGLISH) {
 			result = labelLocaleOnly(object, OgemaLocale.ENGLISH);
-			if(result != null) {
-				getKnownLabels(OgemaLocale.ENGLISH).put(result, object);
-			}			
+			//if(result != null) {
+			//	getKnownLabels(OgemaLocale.ENGLISH).put(result, object);
+			//}			
 		}
-		return result;
+		return result;*/
 	}
 	
 	@Override
@@ -180,8 +228,29 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 			preSelectionPerUser.put(user, selected);
 		}
 	}
+	
+	
+	protected long lastOptionsUpdate = -1;
 	@Override
 	public void onGET(OgemaHttpRequest req) {
+		if(optionSetUpdateRate >= 0) {
+			long now = getFrameworkTime();
+			if(now == 0 || ((now-lastOptionsUpdate) > optionSetUpdateRate)) {
+				List<GenericFilterOption<A>> dynOpts = getOptionsDynamic(req);
+				if(dynOpts != null) {
+					if(addAllOption) {
+						filteringOptions = new ArrayList<>();
+						filteringOptions.add(ALL_OPTION);
+						filteringOptions.addAll(dynOpts);
+					} else
+						filteringOptions = dynOpts;
+					setDefaultItems(filteringOptions);
+					selectDefaultItem(preSelectionGeneral);
+					update(filteringOptions, req);
+				}
+				lastOptionsUpdate = now;
+			}
+		}
 		if (saveOptionMode == OptionSavingMode.PER_USER) {
 			String user = GUIUtilHelper.getUserLoggedIn(req);
 			GenericFilterOption<A> presel = preSelectionPerUser.get(user);
@@ -228,6 +297,4 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 		}
 		return alist.contains(object);
 	}
-	
-
 }

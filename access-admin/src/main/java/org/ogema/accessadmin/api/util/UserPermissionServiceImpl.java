@@ -102,10 +102,16 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 
 	@Override
 	public int getUserPermissionForUnitApps(String userName, String unitName, String appName, String permissionType) {
+		return getUserPermissionForUnitApps(userName, unitName, appName, permissionType, false);
+	}
+	public int getUserPermissionForUnitApps(String userName, String unitName, String appName, String permissionType,
+			boolean getSuperSetting) {
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(userPerms, userName);
 		if(userAcc == null)
 			return 0;
-		Integer result = UserPermissionUtil.getOtherAccessPermission(unitName, appName, permissionType, userAcc);
+		Integer result = null;
+		if(!getSuperSetting)
+			result = UserPermissionUtil.getOtherAccessPermission(unitName, appName, permissionType, userAcc);
 		if(result != null)
 			return result;
 		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), appName,
@@ -125,10 +131,16 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 
 	@Override
 	public int getUserPermissionForApp(String userName, String appName, String permissionType) {
+		return getUserPermissionForApp(userName, appName, permissionType, false);
+	}
+	public int getUserPermissionForApp(String userName, String appName, String permissionType,
+			boolean getSuperSetting) {
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(userPerms, userName);
 		if(userAcc == null)
 			return 0;
-		Integer result = UserPermissionUtil.getAppAccessPermission(appName, permissionType, userAcc);
+		Integer result = null;
+		if(!getSuperSetting)
+			result = UserPermissionUtil.getAppAccessPermission(appName, permissionType, userAcc);
 		if(result != null)
 			return result;
 		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), appName,

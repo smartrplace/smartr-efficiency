@@ -8,6 +8,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -24,13 +25,7 @@ import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckboxData;
 import de.iwes.widgets.html.form.label.Header;
 
-public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, BooleanResource> {
-	protected abstract String getTypeName(OgemaLocale locale);
-	protected String getHeader(OgemaLocale locale) {
-		return "Permission Configuration "+getTypeName(locale);
-	}
-	protected abstract String getLabel(T obj);
-	
+public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<T, BooleanResource> {
 	public static class ConfigurablePermission implements PermissionCellData {
 		String resourceId;
 		String permissionId;
@@ -62,14 +57,10 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 			OgemaHttpRequest req);
 	
 	public StandardPermissionPage(WidgetPage<?> page, ApplicationManager appMan, T sampleObject) {
-		super(page, appMan, sampleObject, false);
+		super(page, appMan, sampleObject);
 		//Trigger has to be done by implementing page
 		//triggerPageBuild();
 	}
-
-	protected void addNameLabel(T object, ObjectResourceGUIHelper<T, BooleanResource> vh, String id, Row row) {
-		vh.stringLabel(getTypeName(null), id, getLabel(object), row);
-	};
 
 	@Override
 	public void addWidgets(T object, ObjectResourceGUIHelper<T, BooleanResource> vh, String id,
@@ -118,23 +109,5 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePage<T, Bo
 			row.addCell(WidgetHelper.getValidWidgetId(label), perm);
 			perm.triggerOnPOST(perm);
 		}
-	}
-
-	@Override
-	public BooleanResource getResource(T object, OgemaHttpRequest req) {
-		return null;
-	}
-
-	@Override
-	public void addWidgetsAboveTable() {
-		Header header = new Header(page, WidgetHelper.getValidWidgetId("headerStdPermPage"+this.getClass().getSimpleName())) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				setText(getHeader(req.getLocale()), req);
-			}
-		};
-		page.append(header);
 	}
 }

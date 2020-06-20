@@ -351,7 +351,7 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 				
 				@Override
 				protected String getDataType(OgemaHttpRequest req) {
-					return "Alle(Ext)";
+					return System.getProperty("org.smartrplace.app.monbase.plotnameforalarming", "Alle(Ext)");
 				}
 			};
 			List<TimeSeriesData> input = allProv.getData(null);
