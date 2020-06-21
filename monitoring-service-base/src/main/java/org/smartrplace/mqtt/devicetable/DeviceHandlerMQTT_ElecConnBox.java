@@ -54,12 +54,17 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 						(ElectricityConnectionBox) addNameWidget(object, vh, id, req, row, appMan);
 
 				Room deviceRoom = box.location().room();
-				Label lastContact = null;
+				//Label lastContact = null;
 
-				//for (ElectricityConnection c : box.getSubResources(ElectricityConnection.class, true)) {
-				// FIXME: show _all_ connections
-				{   ElectricityConnection c = box.connection();
-					Label voltage = vh.floatLabel("Voltage (" + ResourceUtils.getHumanReadableShortName(c) + ")",
+				ElectricityConnection cc = box.connection();
+				if(cc.isActive() || req == null)
+					addPowerEnergySensor(cc, vh, id, req, row);
+				else for (ElectricityConnection c : box.getSubResources(ElectricityConnection.class, true)) {
+					if(c.isActive()) {
+						addPowerEnergySensor(c, vh, id, req, row);
+						break;
+					}
+					/*Label voltage = vh.floatLabel("Voltage (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 							id, c.voltageSensor().reading(), row, "%.1f");
 					Label power = vh.floatLabel("Power (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 							id, c.powerSensor().reading(), row, "%.1f");
@@ -68,9 +73,9 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 						power.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
 					if (lastContact == null) {
-						lastContact = addLastContact(object, vh, id, req, row, appMan, deviceRoom,
+						lastContact = addLastContact(null, vh, id, req, row, appMan, deviceRoom,
 								c.voltageSensor().reading());
-					}
+					}*/
 				}
 
 				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
@@ -94,8 +99,25 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 			protected String getTableTitle() {
 				return "Electricity Meters";
 			}
+			
+			protected void addPowerEnergySensor(ElectricityConnection c, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+					String id, OgemaHttpRequest req, Row row) {   
+				Label voltage = vh.floatLabel("Voltage (" + ResourceUtils.getHumanReadableShortName(c) + ")",
+						id, c.voltageSensor().reading(), row, "%.1f");
+				Label power = vh.floatLabel("Power (" + ResourceUtils.getHumanReadableShortName(c) + ")",
+						id, c.powerSensor().reading(), row, "%.1f");
+				Label lastContact = addLastContact(null, vh, id, req, row, appMan, null,
+							c.voltageSensor().reading());
+				if (req != null) {
+					voltage.setPollingInterval(DEFAULT_POLL_RATE, req);
+					power.setPollingInterval(DEFAULT_POLL_RATE, req);
+					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+				}
+
+			}
 		};
 	}
+	
 
 	@Override
 	protected Class<? extends ResourcePattern<ElectricityConnectionBox>> getPatternClass() {

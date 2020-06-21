@@ -12,12 +12,9 @@ import java.util.Map;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
-import org.ogema.devicefinder.api.DocumentationLinkProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.model.devices.sensoractordevices.SensorDevice;
-import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
@@ -183,7 +180,8 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 
 	@Override
 	public DeviceTableRaw<DriverHandlerProvider, Resource> getDriverInitTable(WidgetPage<?> page, Alert alert) {
-		return new DeviceTableRaw<DriverHandlerProvider, Resource>(page, appMan, alert, this) {
+		return null;
+		/*return new DeviceTableRaw<DriverHandlerProvider, Resource>(page, appMan, alert, this) {
 
 			@Override
 			public void addWidgets(DriverHandlerProvider object,
@@ -209,7 +207,7 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 			public Collection<DriverHandlerProvider> getObjectsInTable(OgemaHttpRequest req) {
 				return Collections.emptyList();
 			}
-		};
+		};*/
 	}
 
 	private static void initDeviceData(DriverConfigMQTT config, ConfigurationAdmin configAdmin) {

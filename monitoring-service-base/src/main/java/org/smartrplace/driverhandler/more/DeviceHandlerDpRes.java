@@ -92,7 +92,7 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 
 			@Override
 			protected String getTableTitle() {
-				return "Virtual Datapoint Sensor Devices";
+				return "Virtual Calendar Devices";
 			}
 		};
 	}
