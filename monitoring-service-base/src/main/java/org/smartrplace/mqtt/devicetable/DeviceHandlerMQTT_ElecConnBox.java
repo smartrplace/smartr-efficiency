@@ -16,7 +16,6 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -57,10 +56,10 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 				//Label lastContact = null;
 
 				ElectricityConnection cc = box.connection();
-				if(cc.isActive() || req == null)
+				if(cc.powerSensor().isActive() || req == null)
 					addPowerEnergySensor(cc, vh, id, req, row);
 				else for (ElectricityConnection c : box.getSubResources(ElectricityConnection.class, true)) {
-					if(c.isActive()) {
+					if(c.powerSensor().isActive()) {
 						addPowerEnergySensor(c, vh, id, req, row);
 						break;
 					}
@@ -102,9 +101,9 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 			
 			protected void addPowerEnergySensor(ElectricityConnection c, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row) {   
-				Label voltage = vh.floatLabel("Voltage (" + ResourceUtils.getHumanReadableShortName(c) + ")",
+				Label voltage = vh.floatLabel("Voltage", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 						id, c.voltageSensor().reading(), row, "%.1f");
-				Label power = vh.floatLabel("Power (" + ResourceUtils.getHumanReadableShortName(c) + ")",
+				Label power = vh.floatLabel("Power", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 						id, c.powerSensor().reading(), row, "%.1f");
 				Label lastContact = addLastContact(null, vh, id, req, row, appMan, null,
 							c.voltageSensor().reading());

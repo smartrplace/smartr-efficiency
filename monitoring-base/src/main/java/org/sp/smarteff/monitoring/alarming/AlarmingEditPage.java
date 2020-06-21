@@ -56,11 +56,11 @@ public class AlarmingEditPage extends EditPageGenericWithTable<AlarmConfigBase> 
 			setLabel(sr.maxViolationTimeWithoutAlarm(), EN, "Delay until the alarm is triggered (minutes)");
 			setTableHeader(sr.maxViolationTimeWithoutAlarm(), EN, "Delay (min)", FORMAT, "edit");
 			setLabel(sr.alarmLevel(), EN, "Priority");
-			setTableHeader(sr.alarmLevel(), EN, "Level", FORMAT, "edit");
+			setTableHeader(sr.alarmLevel(), EN, "Expert Level", FORMAT, "edit");
 			setDisplayOptions(sr.alarmLevel(), EN, ALARM_LEVEL_EN);
 			setLabel(sr.alarmRepetitionTime(), EN, "Duration Blocking Sending the same alarm (minutes)");
 			setLabel(sr.maxIntervalBetweenNewValues(), EN, "Maximale Dauer bis neuer Wert empfangen wird");
-			setTableHeader(sr.maxIntervalBetweenNewValues(), EN, "Maximum duration until new value is received", FORMAT, "edit");
+			setTableHeader(sr.maxIntervalBetweenNewValues(), EN, "Maximum duration until new value is received (min)", FORMAT, "edit");
 			setLabel(sr.performAdditinalOperations(), EN, "Monitoring Switch active");
 			setTableHeader("#TableHeader", EN, "Alarms for ");
 			return;
