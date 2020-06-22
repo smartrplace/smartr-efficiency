@@ -123,6 +123,14 @@ public class AccessAdminController {
 		return result ;
 	}
 	
+	public AccessConfigUser getUserConfig(String userName) {
+		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
+			if(user.name().getValue().equals(userName))
+				return user;
+		}
+		return null;
+	}
+	
 	public List<BuildingPropertyUnit> getGroups(Room object) {
 		List<BuildingPropertyUnit> result = new ArrayList<>();
 		for(BuildingPropertyUnit bu: roomGroups.getAllElements()) {

@@ -6,8 +6,10 @@ import java.util.List;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 import org.smartrplace.gui.filtering.GenericFilterOption;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
@@ -16,25 +18,34 @@ public class UserFilteringWithGroups<T> extends UserFilteringBase<T> {
 	protected final AccessAdminController controller;
 
 	public UserFilteringWithGroups(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
-			AccessAdminController controller) {
-		super(page, id, saveOptionMode, controller.appMan);
+			long optionSetUpdateRate, AccessAdminController controller) {
+		super(page, id, saveOptionMode, optionSetUpdateRate, controller.appMan);
 		this.controller = controller;
-		addOptionsLoc();
 	}
 
 
 	@Override
 	protected List<GenericFilterOption<String>> getOptionsDynamic(OgemaHttpRequest req) {
-		List<GenericFilterOption<String>> result = new ArrayList<>();
-		for(AccessConfigUser grp: controller.getUserGroups(false)) {
-			String name = grp.name().getValue();
-			GenericFilterOption<String> newOption = new SingleUserOption(name, LocaleHelper.getLabelMap(name));
-			result.add(newOption);			
-		}
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		List<GenericFilterOption<String>> result = (List<GenericFilterOption<String>>)(List)getOptionsDynamic(controller, req);
 		result.addAll(super.getOptionsDynamic(req));
 		return result;
 	}
-	
-	protected void addOptionsLoc() {
+	public static List<GenericFilterFixedGroup<String, AccessConfigUser>> getOptionsDynamic(AccessAdminController controller, OgemaHttpRequest req) {
+		List<GenericFilterFixedGroup<String, AccessConfigUser>> result = new ArrayList<>();
+		for(AccessConfigUser grp: controller.getUserGroups(false)) {
+			String name = grp.name().getValue();
+			GenericFilterFixedGroup<String, AccessConfigUser> newOption = new GenericFilterFixedGroup<String, AccessConfigUser>(
+					grp, LocaleHelper.getLabelMap(name)) {
+
+				@Override
+				public boolean isInSelection(String object, OgemaHttpRequest req) {
+					AccessConfigUser userConfig = controller.getUserConfig(object);
+					return ResourceHelper.containsLocation(userConfig.superGroups().getAllElements(), grp);
+				}
+			};
+			result.add(newOption);			
+		}
+		return result;
 	}
 }

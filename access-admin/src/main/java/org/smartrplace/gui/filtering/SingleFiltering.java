@@ -93,8 +93,8 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 	}
 	public final AllOption ALL_OPTION = new AllOption();
 
-	protected final Map<String, GenericFilterOption<A>> preSelectionPerUser;
-	protected GenericFilterOption<A> preSelectionGeneral = ALL_OPTION;
+	protected final Map<String, String> preSelectionPerUser;
+	protected String preSelectionGeneralEnglish = null;
 	
 	protected String[] allOptionsForStandardLocales() {
 		return new String[] {"All", "Alle", "Tous", "All"};
@@ -128,8 +128,10 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 			preSelectionPerUser = new HashMap<>();
 		} else
 			preSelectionPerUser = null;
-		if(addAllOption)
+		if(addAllOption) {
 			addOption(ALL_OPTION);
+			preSelectionGeneralEnglish = LocaleHelper.getLabel(ALL_OPTION.optionLabel(), null);
+		}
 		//int idx = 0;
 		//for(String allLabel: allOptionsForStandardLocales()) {
 		//	getKnownLabels(defaultOrderedLocales[idx]).put(allLabel, null);
@@ -220,12 +222,12 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 	@Override
 	public void onPOSTComplete(String data, OgemaHttpRequest req) {
 		if(saveOptionMode == OptionSavingMode.GENERAL) {
-			preSelectionGeneral = getSelectedItem(req);
-			selectDefaultItem(preSelectionGeneral);
+			preSelectionGeneralEnglish = LocaleHelper.getLabel(getSelectedItem(req).optionLabel(), null);
+			//selectDefaultItem(preSelectionGeneral);
 		} else if (saveOptionMode == OptionSavingMode.PER_USER) {
 			GenericFilterOption<A> selected = getSelectedItem(req);
 			String user = GUIUtilHelper.getUserLoggedIn(req);
-			preSelectionPerUser.put(user, selected);
+			preSelectionPerUser.put(user, LocaleHelper.getLabel(selected.optionLabel(), null));
 		}
 	}
 	
@@ -245,17 +247,27 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 					} else
 						filteringOptions = dynOpts;
 					setDefaultItems(filteringOptions);
-					selectDefaultItem(preSelectionGeneral);
-					update(filteringOptions, req);
+					GenericFilterOption<A> defaultItem = getFilterOption(preSelectionGeneralEnglish);
+					selectDefaultItem(defaultItem);
+					update(filteringOptions, defaultItem, req);
 				}
 				lastOptionsUpdate = now;
 			}
 		}
 		if (saveOptionMode == OptionSavingMode.PER_USER) {
 			String user = GUIUtilHelper.getUserLoggedIn(req);
-			GenericFilterOption<A> presel = preSelectionPerUser.get(user);
+			GenericFilterOption<A> presel = getFilterOption(preSelectionPerUser.get(user));
 			selectItem(presel, req);
 		}
+	}
+	
+	protected GenericFilterOption<A> getFilterOption(String englishLabel) {
+		for(GenericFilterOption<A> item: filteringOptions) {
+			if(LocaleHelper.getLabel(item.optionLabel(), null).equals(preSelectionGeneralEnglish)) {
+				return item;
+			}
+		}
+		return null;
 	}
 	
 	protected final Map<GenericFilterOption<A>, List<T>> destinationObjects = new HashMap<>();

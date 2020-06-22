@@ -18,7 +18,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 public abstract class RoomFilteringByType<T> extends SingleFiltering<Room, T> {
 	private static final long serialVersionUID = 1L;
 	//TODO: Add this as constructor parameter
-	public static final long UPDATE_RATE = 5000;
+	//public static final long UPDATE_RATE = 5000;
 
 	protected class RoomByTypeFilter extends GenericFilterBase<Room> {
 		protected final List<Integer> fixedValues;
@@ -35,8 +35,9 @@ public abstract class RoomFilteringByType<T> extends SingleFiltering<Room, T> {
 		
 	}
 	
-	public RoomFilteringByType(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode) {
-		super(page, id, saveOptionMode, UPDATE_RATE, true);
+	public RoomFilteringByType(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
+			long updateChoicesRate) {
+		super(page, id, saveOptionMode, updateChoicesRate, true);
 	}
 
 	@Override

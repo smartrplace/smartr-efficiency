@@ -38,7 +38,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(1, 5);
 		roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
-				OptionSavingMode.PER_USER, controller.appConfigData.roomGroups()) {
+				OptionSavingMode.PER_USER, 5000, controller.appConfigData.roomGroups()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

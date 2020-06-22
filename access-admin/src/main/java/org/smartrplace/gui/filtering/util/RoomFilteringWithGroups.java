@@ -18,8 +18,8 @@ public abstract class RoomFilteringWithGroups<T> extends RoomFilteringByType<T> 
 	protected final ResourceList<BuildingPropertyUnit> roomGroups;
 	
 	public RoomFilteringWithGroups(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
-			ResourceList<BuildingPropertyUnit> roomGroups) {
-		super(page, id, saveOptionMode);
+			long updateChoicesRate, ResourceList<BuildingPropertyUnit> roomGroups) {
+		super(page, id, saveOptionMode, updateChoicesRate);
 		this.roomGroups = roomGroups;
 	}
 

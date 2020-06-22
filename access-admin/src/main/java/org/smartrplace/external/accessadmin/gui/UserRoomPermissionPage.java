@@ -1,7 +1,9 @@
 package org.smartrplace.external.accessadmin.gui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
@@ -10,12 +12,13 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomTbl;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
-import org.smartrplace.gui.filtering.util.UserFilteringBase;
 import org.smartrplace.gui.filtering.util.UserFilteringWithGroups;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -28,16 +31,15 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
-public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
+public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter<RoomTbl> {
 	protected final AccessAdminController controller;
 	
-	protected UserFilteringBase<Room> userFilter;
 	protected RoomFilteringWithGroups<Room> roomFilter;
 
 	protected ResourceList<AccessConfigUser> userPerms;
 	
 	public UserRoomPermissionPage(WidgetPage<?> page, AccessAdminController controller) {
-		super(page, controller.appMan, ResourceHelper.getSampleResource(Room.class));
+		super(page, controller.appMan, new RoomTbl(ResourceHelper.getSampleResource(Room.class), null));
 		this.controller = controller;
 		userPerms = controller.appConfigData.userPermissions();
 		triggerPageBuild();
@@ -49,8 +51,8 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 	}
 
 	@Override
-	protected String getLabel(Room obj) {
-		return ResourceUtils.getHumanReadableShortName(obj);
+	protected String getLabel(RoomTbl obj) {
+		return ResourceUtils.getHumanReadableShortName(obj.room);
 	}
 
 	@Override
@@ -59,7 +61,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 	}
 
 	@Override
-	protected ConfigurablePermission getAccessConfig(Room object, String permissionID,
+	protected ConfigurablePermission getAccessConfig(RoomTbl object, String permissionID,
 			OgemaHttpRequest req) {
 		String userName = userFilter.getSelectedUser(req);
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
@@ -69,7 +71,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 		if(userAcc == null)
 			userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);
 		result.accessConfig = userAcc.roompermissionData();
-		result.resourceId = object.getLocation();
+		result.resourceId = object.room.getLocation();
 		result.permissionId = permissionID;
 		result.defaultStatus = controller.userPermService.getUserPermissionForRoom(userName, result.resourceId,
 				permissionID, true) > 0;
@@ -81,7 +83,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(2, 5);
 		roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
-				OptionSavingMode.PER_USER, controller.appConfigData.roomGroups()) {
+				OptionSavingMode.PER_USER, TimeProcUtil.HOUR_MILLIS, controller.appConfigData.roomGroups()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -90,7 +92,7 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 			}
 		};
 		userFilter = new UserFilteringWithGroups<Room>(page, "userFilter",
-				OptionSavingMode.GENERAL, controller);
+				OptionSavingMode.GENERAL, 5000, controller);
 		
 		Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
 			private static final long serialVersionUID = 1L;
@@ -127,10 +129,23 @@ public class UserRoomPermissionPage extends StandardPermissionPage<Room> {
 	}
 
 	@Override
-	public Collection<Room> getObjectsInTable(OgemaHttpRequest req) {
+	public Collection<RoomTbl> getObjectsInTable(OgemaHttpRequest req) {
 		List<Room> all = KPIResourceAccess.getRealRooms(controller.appMan.getResourceAccess()); //.getToplevelResources(Room.class);
-		List<Room> result = roomFilter.getFiltered(all, req);
+		List<Room> result1 = roomFilter.getFiltered(all, req);
+		result1.sort(new Comparator<Room>() {
+
+			@Override
+			public int compare(Room o1, Room o2) {
+				return o1.name().getValue().compareTo(o2.name().getValue());
+			}
+		});
 		
+		String userName = userFilter.getSelectedUser(req);
+		List<RoomTbl> result = new ArrayList<>();
+		for(Room room: result1) {
+			result.add(new RoomTbl(room, userName));
+		}
+
 		return result;
 	}
 }

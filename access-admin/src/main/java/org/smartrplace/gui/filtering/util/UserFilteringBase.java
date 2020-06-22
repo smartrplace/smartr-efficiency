@@ -8,6 +8,7 @@ import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.smartrplace.gui.filtering.GenericFilterBase;
+import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.GenericFilterOption;
 import org.smartrplace.gui.filtering.SingleFiltering;
 
@@ -22,23 +23,15 @@ public class UserFilteringBase<T> extends SingleFiltering<String, T> {
 	
 	protected final ApplicationManager appMan;
 	
-	protected class SingleUserOption extends GenericFilterBase<String> {
+	public static class SingleUserOption extends GenericFilterFixedSingle<String> {
 		public SingleUserOption(String myUserName, Map<OgemaLocale, String> optionLab) {
-			super(optionLab);
-			this.myUserName = myUserName;
+			super(myUserName, optionLab);
 		}
-
-		public final String myUserName;
-
-		@Override
-		public boolean isInSelection(String object, OgemaHttpRequest req) {
-			return myUserName.equals(object);
-		}	
 	}
 	
 	public UserFilteringBase(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
-			ApplicationManager appMan) {
-		super(page, id, saveOptionMode, UPDATE_RATE, false);
+			long optionSetUpdateRate, ApplicationManager appMan) {
+		super(page, id, saveOptionMode, optionSetUpdateRate, false);
 		this.appMan = appMan;
 	}
 
@@ -48,7 +41,7 @@ public class UserFilteringBase<T> extends SingleFiltering<String, T> {
 	}
 
 	public String getSelectedUser(OgemaHttpRequest req) {
-		return ((SingleUserOption)getSelectedItem(req)).myUserName;
+		return ((SingleUserOption)getSelectedItem(req)).getValue();
 	}
 	
 	@Override

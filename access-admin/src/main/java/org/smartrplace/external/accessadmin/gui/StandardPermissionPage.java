@@ -9,21 +9,14 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
-import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
-import de.iwes.widgets.api.extended.WidgetData;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
-import de.iwes.widgets.html.form.checkbox.CheckboxData;
-import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
-import de.iwes.widgets.html.form.checkbox.SimpleCheckboxData;
-import de.iwes.widgets.html.form.label.Header;
 
 public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<T, BooleanResource> {
 	public static class ConfigurablePermission implements PermissionCellData {
@@ -107,7 +100,7 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 				}
 			};
 			row.addCell(WidgetHelper.getValidWidgetId(label), perm);
-			perm.triggerOnPOST(perm);
+			perm.registerDependentWidget(perm);
 		}
 	}
 }

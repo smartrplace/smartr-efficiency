@@ -1,7 +1,9 @@
 package org.smartrplace.external.accessadmin.gui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
@@ -13,7 +15,9 @@ import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomGroupTbl;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
+import org.smartrplace.gui.filtering.util.UserFiltering2Steps;
 import org.smartrplace.gui.filtering.util.UserFilteringBase;
 import org.smartrplace.gui.filtering.util.UserFilteringWithGroups;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -29,16 +33,17 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
-public class UserRoomGroupPermissionPage extends StandardPermissionPage<BuildingPropertyUnit> {
+public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserFilter<RoomGroupTbl> {
 	protected final AccessAdminController controller;
 	
-	protected UserFilteringBase<Room> userFilter;
+	//protected UserFilteringBase<Room> userFilter;
+	protected UserFiltering2Steps<Room> userFilter;
 	//protected RoomFilteringWithGroups<Room> roomFilter;
 
 	protected ResourceList<AccessConfigUser> userPerms;
 	
 	public UserRoomGroupPermissionPage(WidgetPage<?> page, AccessAdminController controller) {
-		super(page, controller.appMan, ResourceHelper.getSampleResource(BuildingPropertyUnit.class));
+		super(page, controller.appMan, new RoomGroupTbl(ResourceHelper.getSampleResource(BuildingPropertyUnit.class), null));
 		this.controller = controller;
 		userPerms = controller.appConfigData.userPermissions();
 		triggerPageBuild();
@@ -50,8 +55,8 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPage<Building
 	}
 
 	@Override
-	protected String getLabel(BuildingPropertyUnit obj) {
-		return ResourceUtils.getHumanReadableShortName(obj);
+	protected String getLabel(RoomGroupTbl obj) {
+		return ResourceUtils.getHumanReadableShortName(obj.roomGrp);
 	}
 
 	@Override
@@ -60,7 +65,7 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPage<Building
 	}
 
 	@Override
-	protected ConfigurablePermission getAccessConfig(BuildingPropertyUnit object, String permissionID,
+	protected ConfigurablePermission getAccessConfig(RoomGroupTbl object, String permissionID,
 			OgemaHttpRequest req) {
 		String userName = userFilter.getSelectedUser(req);
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
@@ -70,7 +75,7 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPage<Building
 		if(userAcc == null)
 			userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);
 		result.accessConfig = userAcc.roompermissionData();
-		result.resourceId = object.getLocation();
+		result.resourceId = object.roomGrp.getLocation();
 		result.permissionId = permissionID;
 		result.defaultStatus = controller.userPermService.getUserPermissionForRoom(userName, result.resourceId,
 				permissionID, true) > 0;
@@ -90,8 +95,8 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPage<Building
 				return object;
 			}
 		};*/
-		userFilter = new UserFilteringWithGroups<Room>(page, "userFilter",
-				OptionSavingMode.GENERAL, controller);
+		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
+				OptionSavingMode.GENERAL, 5000, false, controller);
 		
 		Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
 			private static final long serialVersionUID = 1L;
@@ -128,16 +133,29 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPage<Building
 	}
 	
 	@Override
-	protected void addNameLabel(BuildingPropertyUnit object,
-			ObjectResourceGUIHelper<BuildingPropertyUnit, BooleanResource> vh, String id, Row row) {
-		vh.valueEdit(getTypeName(null), id, object.name(), row, alert);
+	protected void addNameLabel(RoomGroupTbl object,
+			ObjectResourceGUIHelper<RoomGroupTbl, BooleanResource> vh, String id, Row row) {
+		vh.valueEdit(getTypeName(null), id, object.roomGrp.name(), row, alert);
 	}
 
 	@Override
-	public Collection<BuildingPropertyUnit> getObjectsInTable(OgemaHttpRequest req) {
+	public Collection<RoomGroupTbl> getObjectsInTable(OgemaHttpRequest req) {
 		List<BuildingPropertyUnit> all = controller.appConfigData.roomGroups().getAllElements();
 		//List<Room> result = roomFilter.getFiltered(all, req);
+		all.sort(new Comparator<BuildingPropertyUnit>() {
+
+			@Override
+			public int compare(BuildingPropertyUnit o1, BuildingPropertyUnit o2) {
+				return o1.name().getValue().compareTo(o2.name().getValue());
+			}
+		});
 		
-		return all;
+		String userName = userFilter.getSelectedUser(req);
+		List<RoomGroupTbl> result = new ArrayList<>();
+		for(BuildingPropertyUnit room: all) {
+			result.add(new RoomGroupTbl(room, userName));
+		}
+
+		return result;
 	}
 }
