@@ -12,6 +12,7 @@ import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 import org.smartrplace.gui.filtering.GenericFilterOption;
 import org.smartrplace.gui.filtering.util.UserFilteringBase.SingleUserOption;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
@@ -20,8 +21,8 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	protected final AccessAdminController controller;
 
 	public UserFiltering2Steps(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode, long optionSetUpdateRate,
-			boolean addAllOption, AccessAdminController controller) {
-		super(page, id, saveOptionMode, optionSetUpdateRate, true);
+			AccessAdminController controller) {
+		super(page, id, saveOptionMode, optionSetUpdateRate, false);
 		this.controller = controller;
 	}
 
@@ -38,16 +39,36 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	}
 
 	@Override
-	protected List<GenericFilterFixedGroup<String, AccessConfigUser>> getGroupOptionsDynamic(OgemaHttpRequest req) {
-		List<GenericFilterFixedGroup<String, AccessConfigUser>> result = UserFilteringWithGroups.getOptionsDynamic(controller, req);
+	protected List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> getGroupOptionsDynamic(OgemaHttpRequest req) {
+		List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> result = getOptionsDynamic2S(controller, req);
 		return result;
 	}
+	
+	public static List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> getOptionsDynamic2S(AccessAdminController controller, OgemaHttpRequest req) {
+		List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> result = new ArrayList<>();
+		for(AccessConfigUser grp: controller.getUserGroups(false)) {
+			String name = grp.name().getValue();
+			GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser> newOption = new GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>(
+					grp, LocaleHelper.getLabelMap(name)) {
+
+				@Override
+				public boolean isInSelection(AccessConfigUser userConfig, OgemaHttpRequest req) {
+					//AccessConfigUser userConfig = controller.getUserConfig(object);
+					return userConfig.equalsLocation(grp);
+					//return ResourceHelper.containsLocation(userConfig, grp);
+				}
+			};
+			result.add(newOption);			
+		}
+		return result;
+	}
+	
 
 	@Override
 	protected List<AccessConfigUser> getGroups(String object) {
 		AccessConfigUser userConfig = controller.getUserConfig(object);
 		List<AccessConfigUser> result = new ArrayList<>();
-		result.add(userConfig);
+		result.addAll(userConfig.superGroups().getAllElements());
 		return result ;
 	}
 	
@@ -57,6 +78,17 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	}
 	
 	public String getSelectedUser(OgemaHttpRequest req) {
-		return ((SingleUserOption)getSelectedItem(req)).getValue();
+		GenericFilterOption<String> selected = getSelectedItem(req);
+		if(selected == null) {
+			onGET(req);
+			return getSelectedUser(req);
+			//return ((SingleUserOption)getItems(req).get(0)).getValue();
+		}
+		return ((SingleUserOption)selected).getValue();
+	}
+	
+	@Override
+	protected long getFrameworkTime() {
+		return controller.appMan.getFrameworkTime();
 	}
 }

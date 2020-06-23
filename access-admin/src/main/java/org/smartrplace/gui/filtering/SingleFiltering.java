@@ -2,10 +2,8 @@ package org.smartrplace.gui.filtering;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.ogema.internationalization.util.LocaleHelper;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
@@ -270,13 +268,14 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 		return null;
 	}
 	
-	protected final Map<GenericFilterOption<A>, List<T>> destinationObjects = new HashMap<>();
-	protected final Set<T> destinationObjectsChecked = new HashSet<>();
+	protected final Map<String, List<T>> destinationObjects = new HashMap<>();
+	protected final Map<T, Long> destinationObjectsChecked = new HashMap<>();
 	List<T> getDestinationList(GenericFilterOption<A> attribute) {
-		List<T> alist = destinationObjects.get(attribute);
+		String stdLabel = LocaleHelper.getLabel(attribute.optionLabel(), null);
+		List<T> alist = destinationObjects.get(stdLabel);
 		if(alist == null) {
 			alist = new ArrayList<>();
-			destinationObjects.put(attribute, alist);
+			destinationObjects.put(stdLabel, alist);
 		}
 		return alist;
 	}
@@ -289,7 +288,10 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 			return true;
 		}
 		List<T> alist = getDestinationList(selected);
-		if(!destinationObjectsChecked.contains(object)) {
+		Long lastUpdate = destinationObjectsChecked.get(object);
+		long now = getFrameworkTime();
+		if(lastUpdate == null ||
+				((optionSetUpdateRate >= 0) && ((now-lastOptionsUpdate) > optionSetUpdateRate))) {
 			List<A> tlist = getAttributes(object);
 			for(GenericFilterOption<A> option: filteringOptions) {
 				boolean found = false;
@@ -305,7 +307,7 @@ public abstract class SingleFiltering<A, T> extends TemplateDropdown<GenericFilt
 				if(!alistsub.contains(object))
 					alistsub.add(object);
 			}
-			destinationObjectsChecked.add(object);
+			destinationObjectsChecked.put(object, now);
 		}
 		return alist.contains(object);
 	}

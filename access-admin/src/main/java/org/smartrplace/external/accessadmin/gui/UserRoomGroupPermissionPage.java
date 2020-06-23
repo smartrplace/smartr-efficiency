@@ -96,7 +96,7 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 			}
 		};*/
 		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
-				OptionSavingMode.GENERAL, 5000, false, controller);
+				OptionSavingMode.GENERAL, 5000, controller);
 		
 		Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
 			private static final long serialVersionUID = 1L;
@@ -125,7 +125,7 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User App Access Configuration",
 				"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
-		topTable.setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
+		topTable.setContent(0, 1, userFilter.getFirstDropdown()).setContent(0, 2, userFilter); //.setContent(0,  2, roomFilter);
 		topTable.setContent(1, 0, addUserGroup).setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(

@@ -7,7 +7,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
@@ -63,16 +62,17 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 	@Override
 	protected ConfigurablePermission getAccessConfig(RoomTbl object, String permissionID,
 			OgemaHttpRequest req) {
-		String userName = userFilter.getSelectedUser(req);
-		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
-				userPerms, userName);
+		AccessConfigUser userAcc = userFilter.getSelectedUser(req);
+		//AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
+		//		userPerms, userName);
 		ConfigurablePermission result = new ConfigurablePermission();
 		//We have to choose the right permission data for the page here
-		if(userAcc == null)
-			userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);
+		//if(userAcc == null)
+		//	userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);
 		result.accessConfig = userAcc.roompermissionData();
 		result.resourceId = object.room.getLocation();
 		result.permissionId = permissionID;
+		String userName = userAcc.name().getValue();
 		result.defaultStatus = controller.userPermService.getUserPermissionForRoom(userName, result.resourceId,
 				permissionID, true) > 0;
 		return result;
@@ -140,10 +140,10 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 			}
 		});
 		
-		String userName = userFilter.getSelectedUser(req);
+		AccessConfigUser user = userFilter.getSelectedUser(req);
 		List<RoomTbl> result = new ArrayList<>();
 		for(Room room: result1) {
-			result.add(new RoomTbl(room, userName));
+			result.add(new RoomTbl(room, user.name().getValue()));
 		}
 
 		return result;

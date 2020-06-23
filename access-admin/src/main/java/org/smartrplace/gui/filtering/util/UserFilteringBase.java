@@ -7,6 +7,8 @@ import java.util.Map;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.internationalization.util.LocaleHelper;
+import org.smartrplace.external.accessadmin.AccessAdminController;
+import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.GenericFilterBase;
 import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.GenericFilterOption;
@@ -22,6 +24,7 @@ public class UserFilteringBase<T> extends SingleFiltering<String, T> {
 	public static final long UPDATE_RATE = 5000;
 	
 	protected final ApplicationManager appMan;
+	protected final AccessAdminController controller;
 	
 	public static class SingleUserOption extends GenericFilterFixedSingle<String> {
 		public SingleUserOption(String myUserName, Map<OgemaLocale, String> optionLab) {
@@ -30,9 +33,10 @@ public class UserFilteringBase<T> extends SingleFiltering<String, T> {
 	}
 	
 	public UserFilteringBase(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
-			long optionSetUpdateRate, ApplicationManager appMan) {
+			long optionSetUpdateRate, AccessAdminController controller) {
 		super(page, id, saveOptionMode, optionSetUpdateRate, false);
-		this.appMan = appMan;
+		this.controller = controller;
+		this.appMan = controller.appMan;
 	}
 
 	@Override
@@ -40,8 +44,11 @@ public class UserFilteringBase<T> extends SingleFiltering<String, T> {
 		return true;
 	}
 
-	public String getSelectedUser(OgemaHttpRequest req) {
-		return ((SingleUserOption)getSelectedItem(req)).getValue();
+	public AccessConfigUser getSelectedUser(OgemaHttpRequest req) {
+		GenericFilterOption<String> selected = getSelectedItem(req);
+		String userName = ((SingleUserOption)selected).getValue();
+		AccessConfigUser userConfig = controller.getUserConfig(userName);
+		return userConfig;
 	}
 	
 	@Override

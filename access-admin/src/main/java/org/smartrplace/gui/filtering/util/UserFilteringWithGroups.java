@@ -15,12 +15,10 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public class UserFilteringWithGroups<T> extends UserFilteringBase<T> {
 	private static final long serialVersionUID = 1L;
-	protected final AccessAdminController controller;
 
 	public UserFilteringWithGroups(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
 			long optionSetUpdateRate, AccessAdminController controller) {
-		super(page, id, saveOptionMode, optionSetUpdateRate, controller.appMan);
-		this.controller = controller;
+		super(page, id, saveOptionMode, optionSetUpdateRate, controller);
 	}
 
 
@@ -48,4 +46,15 @@ public class UserFilteringWithGroups<T> extends UserFilteringBase<T> {
 		}
 		return result;
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public AccessConfigUser getSelectedUser(OgemaHttpRequest req) {
+		GenericFilterOption<String> selected = getSelectedItem(req);
+		if(selected instanceof SingleUserOption) {
+			return super.getSelectedUser(req);
+		}
+		return ((GenericFilterFixedGroup<String, AccessConfigUser>)selected).getGroup();
+	}
+
 }

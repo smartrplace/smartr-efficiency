@@ -22,7 +22,7 @@ public abstract class DualFiltering2Steps<A, G, T> extends SingleFiltering<A, T>
 	//protected abstract List<G> getAllGroups(OgemaHttpRequest req);
 	//protected abstract List<A> elementsInGroup(G group, OgemaHttpRequest req);
 	protected abstract List<GenericFilterOption<A>> getOptionsDynamic(G group, OgemaHttpRequest req);
-	protected abstract List<GenericFilterFixedGroup<A, G>> getGroupOptionsDynamic(OgemaHttpRequest req);
+	protected abstract List<GenericFilterFixedGroup<G, G>> getGroupOptionsDynamic(OgemaHttpRequest req);
 	protected abstract List<G> getGroups(A object);
 	
 	//We do not support prelection per user here yet*/
@@ -58,13 +58,21 @@ public abstract class DualFiltering2Steps<A, G, T> extends SingleFiltering<A, T>
 			protected List<GenericFilterOption<G>> getOptionsDynamic(OgemaHttpRequest req) {
 				return (List)(getGroupOptionsDynamic(req));
 			}
+			
+			@Override
+			protected long getFrameworkTime() {
+				return DualFiltering2Steps.this.getFrameworkTime();
+			}
 		};
+		firstDropDown.registerDependentWidget(this);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	protected List<GenericFilterOption<A>> getOptionsDynamic(OgemaHttpRequest req) {
 		GenericFilterOption<G> groupFilterSelected = firstDropDown.getSelectedItem(req);
+		if(groupFilterSelected == firstDropDown.ALL_OPTION || groupFilterSelected == null)
+			return getOptionsDynamic(null, req);
 		if(!(groupFilterSelected instanceof GenericFilterFixedGroup))
 			throw new IllegalStateException();
 		return getOptionsDynamic(((GenericFilterFixedGroup<A, G>)groupFilterSelected).getGroup(), req);
@@ -73,5 +81,9 @@ public abstract class DualFiltering2Steps<A, G, T> extends SingleFiltering<A, T>
 	@Override
 	protected boolean isAttributeSinglePerDestinationObject() {
 		return false;
+	}
+	
+	public SingleFiltering<G, A> getFirstDropdown() {
+		return firstDropDown;
 	}
 }
