@@ -6,6 +6,7 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
+import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
@@ -35,6 +36,9 @@ public class AccessAdminApp implements Application {
 
 	@Reference
 	private OgemaGuiService guiService;
+
+	@Reference
+	public PermissionManager permMan;
 
 	private BundleContext bc;
 	protected ServiceRegistration<UserPermissionService> srUserAccService = null;

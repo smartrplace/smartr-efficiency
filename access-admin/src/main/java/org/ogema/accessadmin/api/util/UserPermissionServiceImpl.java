@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.accessadmin.api.util.UserPermissionUtil.PermissionForLevelProvider;
+import org.ogema.accessadmin.api.util.UserPermissionUtil.RoomPermissionData;
 import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
@@ -100,10 +102,10 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 		return UserPermissionUtil.getRoomAccessPermission(resourceId, USER_ROOM_PERM, userAcc);
 	}
 
-	@Override
-	public int getUserPermissionForUnitApps(String userName, String unitName, String appName, String permissionType) {
-		return getUserPermissionForUnitApps(userName, unitName, appName, permissionType, false);
-	}
+	/*@Override
+	/public int getUserPermissionForUnitApps(String userName, String unitName, String appName, String permissionType) {
+	/	return getUserPermissionForUnitApps(userName, unitName, appName, permissionType, false);
+	/}
 	public int getUserPermissionForUnitApps(String userName, String unitName, String appName, String permissionType,
 			boolean getSuperSetting) {
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(userPerms, userName);
@@ -127,7 +129,7 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 		if(result != null)
 			return result;
 		return 0;
-	}
+	}*/
 
 	@Override
 	public int getUserPermissionForApp(String userName, String appName, String permissionType) {
@@ -158,4 +160,40 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 		return 0;
 	}
 
+	@Override
+	public int getUserSystemPermission(String userName, String permissionType) {
+		return getUserSystemPermission(userName, permissionType, false);
+	}
+	public int getUserSystemPermission(String userName, String permissionType,
+			boolean getSuperSetting) {
+		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(userPerms, userName);
+		if(userAcc == null)
+			return 0;
+		Integer result = null;
+		if(!getSuperSetting)
+			result = UserPermissionUtil.getOtherSystemAccessPermission(permissionType, userAcc);
+		if(result != null)
+			return result;
+		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), 
+				UserPermissionUtil.SYSTEM_RESOURCE_ID,
+				permissionType, new PermissionForLevelProvider() {
+
+					@Override
+					public Integer getUserPermissionForLevel(AccessConfigUser userAcc, String resourceId,
+							String permissionType) {
+						return UserPermissionUtil.getOtherSystemAccessPermission(permissionType, userAcc);
+					}
+			
+		});
+		if(result != null)
+			return result;
+		return 0;
+	}
+
+	@Override
+	public int getUserStatusAppPermission(UserStatus userStatus, String permissionType) {
+		RoomPermissionData mapData = UserPermissionUtil.getResourcePermissionData(userStatus.name(),
+				controller.appConfigData.userStatusPermission());
+		return mapData.permissions.get(permissionType);
+	}
 }

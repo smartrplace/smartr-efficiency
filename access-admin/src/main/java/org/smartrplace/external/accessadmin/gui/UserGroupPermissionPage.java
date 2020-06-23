@@ -65,8 +65,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 		result.accessConfig = userAcc.otherResourcepermissionData(); //.roompermissionData();
 		result.resourceId = userAcc.getLocation();
 		result.permissionId = permissionID;
-		result.defaultStatus = controller.userPermService.getUserPermissionForUnitApps(userName, "myUnit", "",
-				permissionID, true) > 0;
+		result.defaultStatus = controller.userPermService.getUserSystemPermission(userName,permissionID, true) > 0;
 		return result;
 	}
 

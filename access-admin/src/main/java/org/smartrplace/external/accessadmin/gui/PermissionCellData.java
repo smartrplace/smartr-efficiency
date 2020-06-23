@@ -26,4 +26,6 @@ public interface PermissionCellData {
 			return ownStatus;
 		return getDefaultStatus();
 	}
+	
+	boolean supportsUnset();
 }

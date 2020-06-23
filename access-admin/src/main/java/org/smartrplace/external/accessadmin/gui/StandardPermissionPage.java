@@ -4,15 +4,15 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
+import org.smartrplace.appstore.api.GitRepository;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
-import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
@@ -24,8 +24,9 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 		String permissionId;
 		AccessConfigBase accessConfig;
 		boolean defaultStatus;
-		ResourceList<AccessConfigUser> userPerms;
-		String userName;
+		//ResourceList<AccessConfigUser> userPerms;
+		//String userName;
+		boolean supportsUnset = true;
 		
 		@Override
 		public Boolean getOwnstatus() {
@@ -43,6 +44,10 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 		@Override
 		public boolean getDefaultStatus() {
 			return defaultStatus;
+		}
+		@Override
+		public boolean supportsUnset() {
+			return supportsUnset;
 		}
 	}
 	protected abstract List<String> getPermissionNames();
@@ -95,7 +100,10 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 					Boolean status = acc.getOwnstatus();
 					if (status == null) status = true;
 					else if (status == true) status = false;
-					else status = null;
+					else if(acc.supportsUnset()) {
+						status = null;
+					} else
+						status = true;
 					acc.setOwnStatus(status);
 				}
 			};

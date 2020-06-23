@@ -22,7 +22,7 @@ public abstract class DualFiltering2Steps<A, G, T> extends SingleFiltering<A, T>
 	//protected abstract List<G> getAllGroups(OgemaHttpRequest req);
 	//protected abstract List<A> elementsInGroup(G group, OgemaHttpRequest req);
 	protected abstract List<GenericFilterOption<A>> getOptionsDynamic(G group, OgemaHttpRequest req);
-	protected abstract List<GenericFilterFixedGroup<G, G>> getGroupOptionsDynamic(OgemaHttpRequest req);
+	protected abstract List<GenericFilterFixedSingle<G>> getGroupOptionsDynamic(OgemaHttpRequest req);
 	protected abstract List<G> getGroups(A object);
 	
 	//We do not support prelection per user here yet*/

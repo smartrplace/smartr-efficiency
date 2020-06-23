@@ -3,6 +3,7 @@ package org.smartrplace.external.accessadmin;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
@@ -17,6 +18,7 @@ import org.smartrplace.external.accessadmin.gui.UserConfigPage;
 import org.smartrplace.external.accessadmin.gui.UserGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
+import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
 
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -31,6 +33,7 @@ public class AccessAdminController {
     
 	public AccessAdminConfig appConfigData;
 	public AccessAdminApp accessAdminApp;
+    public final ApplicationManagerPlus appManPlus;
 	
 	public MainPage mainPage;
 	public UserRoomPermissionPage userRoomPermPage;
@@ -42,11 +45,15 @@ public class AccessAdminController {
 
 	public final ResourceList<AccessConfigUser> userPerms;
 	public final ResourceList<BuildingPropertyUnit> roomGroups;
+	public final UserStatusPermissionPage userStatusPage;
 	
 	public AccessAdminController(ApplicationManager appMan, WidgetPage<?> page, AccessAdminApp initApp) {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
 		this.accessAdminApp = initApp;
+		this.appManPlus = new ApplicationManagerPlus(appMan);
+		appManPlus.setPermMan(initApp.permMan);
+		appManPlus.setUserPermService(userPermService);
 		
 		initConfigurationResource();
 		userPerms = appConfigData.userPermissions();
@@ -79,6 +86,11 @@ public class AccessAdminController {
 		userConfigPage = new UserConfigPage(pageRes4, this);
 		initApp.menu.addEntry("User Group Configuration", pageRes4);
 		initApp.configMenuConfig(pageRes4.getMenuConfiguration());
+
+		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
+		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
+		initApp.menu.addEntry("User Type App Access", pageRes6);
+		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
 
 		initDemands();
 	}

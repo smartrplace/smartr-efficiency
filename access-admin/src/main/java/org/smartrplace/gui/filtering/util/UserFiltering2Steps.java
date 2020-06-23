@@ -8,11 +8,10 @@ import org.ogema.internationalization.util.LocaleHelper;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.DualFiltering2Steps;
-import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
+import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.GenericFilterOption;
 import org.smartrplace.gui.filtering.util.UserFilteringBase.SingleUserOption;
 
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
@@ -39,17 +38,17 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	}
 
 	@Override
-	protected List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> getGroupOptionsDynamic(OgemaHttpRequest req) {
-		List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> result = getOptionsDynamic2S(controller, req);
+	protected List<GenericFilterFixedSingle<AccessConfigUser>> getGroupOptionsDynamic(OgemaHttpRequest req) {
+		List<GenericFilterFixedSingle<AccessConfigUser>> result = getOptionsDynamic2S(controller, req);
 		return result;
 	}
 	
-	public static List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> getOptionsDynamic2S(AccessAdminController controller, OgemaHttpRequest req) {
-		List<GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>> result = new ArrayList<>();
+	public static List<GenericFilterFixedSingle<AccessConfigUser>> getOptionsDynamic2S(AccessAdminController controller, OgemaHttpRequest req) {
+		List<GenericFilterFixedSingle<AccessConfigUser>> result = new ArrayList<>();
 		for(AccessConfigUser grp: controller.getUserGroups(false)) {
 			String name = grp.name().getValue();
-			GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser> newOption = new GenericFilterFixedGroup<AccessConfigUser, AccessConfigUser>(
-					grp, LocaleHelper.getLabelMap(name)) {
+			GenericFilterFixedSingle<AccessConfigUser> newOption = new GenericFilterFixedSingle<AccessConfigUser>(
+					grp, LocaleHelper.getLabelMap(name));  /* {
 
 				@Override
 				public boolean isInSelection(AccessConfigUser userConfig, OgemaHttpRequest req) {
@@ -57,7 +56,7 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 					return userConfig.equalsLocation(grp);
 					//return ResourceHelper.containsLocation(userConfig, grp);
 				}
-			};
+			};*/
 			result.add(newOption);			
 		}
 		return result;

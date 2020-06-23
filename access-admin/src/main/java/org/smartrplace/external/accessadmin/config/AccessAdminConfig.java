@@ -16,4 +16,6 @@ public interface AccessAdminConfig extends Configuration {
 	 * These groups can be used also for other purposes besides permission management
 	 */
 	ResourceList<BuildingPropertyUnit> roomGroups();
+	
+	AccessConfigBase userStatusPermission();
 }

@@ -13,6 +13,8 @@ import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import de.iwes.util.resource.ValueResourceHelper;
 
 public class UserPermissionUtil {
+	public static final String SYSTEM_RESOURCE_ID = "system";
+	
 	public static interface PermissionForLevelProvider {
 		Integer getUserPermissionForLevel(AccessConfigUser userAcc, String resourceId, String permissionType);
 	}
@@ -55,6 +57,13 @@ public class UserPermissionUtil {
 	};
 	public static Integer getAppAccessPermission(String appName, String permissionType, AccessConfigUser userAcc) {
 		RoomPermissionData roomPerms = getResourcePermissionData(appName, userAcc.appstorePermissionData());
+		Integer result = roomPerms.permissions.get(permissionType);
+		if(result != null)
+			return result;
+		return null;
+	};
+	public static Integer getOtherSystemAccessPermission(String permissionType, AccessConfigUser userAcc) {
+		RoomPermissionData roomPerms = getResourcePermissionData(SYSTEM_RESOURCE_ID, userAcc.appstorePermissionData());
 		Integer result = roomPerms.permissions.get(permissionType);
 		if(result != null)
 			return result;
