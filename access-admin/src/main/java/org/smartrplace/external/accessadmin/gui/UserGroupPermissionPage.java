@@ -94,7 +94,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 		
 		//roomFilter.registerDependentWidget(mainTable);
 		//userFilter.registerDependentWidget(mainTable);
-		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User App Access Configuration",
+		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
 				"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
 		//topTable.setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);

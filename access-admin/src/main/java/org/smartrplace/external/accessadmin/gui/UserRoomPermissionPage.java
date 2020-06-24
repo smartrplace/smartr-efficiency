@@ -105,17 +105,6 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
 				OptionSavingMode.GENERAL, 5000, controller);
 		
-		Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
-						controller.appConfigData.userPermissions(),
-						"New User Group", false);
-				ValueResourceHelper.setCreate(grp.isGroup(), 1);
-				grp.activate(true);
-			}
-		};
 		Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -129,11 +118,11 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		roomFilter.registerDependentWidget(mainTable);
 		userFilter.registerDependentWidget(mainTable);
 		addRoomGroup.registerDependentWidget(mainTable);
-		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User App Access Configuration",
+		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
 				"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
 		topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter).setContent(0,  3, roomFilter);
-		topTable.setContent(1, 0, addUserGroup).setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
+		topTable.setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);
