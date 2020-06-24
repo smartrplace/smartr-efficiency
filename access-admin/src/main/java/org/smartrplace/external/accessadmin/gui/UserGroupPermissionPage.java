@@ -5,8 +5,10 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.tools.app.createuser.UserAdminBaseUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
@@ -68,7 +70,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 		ConfigurablePermission result = new ConfigurablePermission();
 
 		result.accessConfig = userAcc.otherResourcepermissionData(); //.roompermissionData();
-		result.resourceId = userAcc.getLocation();
+		result.resourceId = UserPermissionUtil.SYSTEM_RESOURCE_ID;
 		result.permissionId = permissionID;
 		result.defaultStatus = controller.userPermService.getUserSystemPermission(userName,permissionID, true) > 0;
 		return result;

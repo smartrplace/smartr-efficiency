@@ -61,7 +61,7 @@ public class UserAdminBaseUtil {
 			UserPermissionService userPermService, boolean useWorkingCopy) {
 		List<String> result = new ArrayList<>(GUEST_APPS);
 		for(String permType: UserPermissionService.APP_ACCESS_PERMISSIONS) {
-			int hasPerm = userPermService.getUserStatusAppPermission(UserStatus.USER_STD, permType,
+			int hasPerm = userPermService.getUserStatusAppPermission(status, permType,
 					useWorkingCopy);
 			if(hasPerm <= 0)
 				continue;

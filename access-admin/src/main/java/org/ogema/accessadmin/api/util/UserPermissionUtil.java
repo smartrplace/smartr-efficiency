@@ -63,19 +63,19 @@ public class UserPermissionUtil {
 		return null;
 	};
 	public static Integer getOtherSystemAccessPermission(String permissionType, AccessConfigUser userAcc) {
-		RoomPermissionData roomPerms = getResourcePermissionData(SYSTEM_RESOURCE_ID, userAcc.appstorePermissionData());
+		RoomPermissionData roomPerms = getResourcePermissionData(SYSTEM_RESOURCE_ID, userAcc.otherResourcepermissionData());
 		Integer result = roomPerms.permissions.get(permissionType);
 		if(result != null)
 			return result;
 		return null;
 	};
-	public static Integer getOtherAccessPermission(String unitName, String appName, String permissionType, AccessConfigUser userAcc) {
+	/*public static Integer getOtherAccessPermission(String unitName, String appName, String permissionType, AccessConfigUser userAcc) {
 		RoomPermissionData roomPerms = getResourcePermissionData(unitName+"$$"+appName, userAcc.otherResourcepermissionData());
 		Integer result = roomPerms.permissions.get(permissionType);
 		if(result != null)
 			return result;
 		return null;
-	};
+	};*/
 	
 	public static AccessConfigUser getUserPermissions(ResourceList<AccessConfigUser> userPerms, String userName) {
 		for(AccessConfigUser userData: userPerms.getAllElements()) {
