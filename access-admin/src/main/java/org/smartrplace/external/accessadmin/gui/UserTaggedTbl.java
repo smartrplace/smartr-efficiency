@@ -11,7 +11,7 @@ public abstract class UserTaggedTbl {
 	}
 
 	public final String userName;
-	public final String index;
+	public String index;
 	
 	public static class RoomTbl extends UserTaggedTbl {
 		public final Room room;
@@ -27,6 +27,9 @@ public abstract class UserTaggedTbl {
 		
 		public RoomGroupTbl(BuildingPropertyUnit roomGrp, String userName) {
 			super(userName);
+			String name = roomGrp.name().getValue();
+			if(name.startsWith("New Room Group"))
+				index = String.format("%011d", 0);
 			this.roomGrp = roomGrp;
 		}
 	}

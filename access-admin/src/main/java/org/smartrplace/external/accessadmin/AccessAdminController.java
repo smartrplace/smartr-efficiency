@@ -15,10 +15,13 @@ import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.MainPage;
 import org.smartrplace.external.accessadmin.gui.RoomConfigPage;
+import org.smartrplace.external.accessadmin.gui.RoomSetupPage;
+import org.smartrplace.external.accessadmin.gui.UserSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserConfigPage;
 import org.smartrplace.external.accessadmin.gui.UserGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
+import org.smartrplace.external.accessadmin.gui.UserSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 
@@ -48,8 +51,10 @@ public class AccessAdminController {
 	public final ResourceList<AccessConfigUser> userPerms;
 	public final ResourceList<BuildingPropertyUnit> roomGroups;
 	public final UserStatusPermissionPage userStatusPage;
+	public final RoomSetupPage roomSetupPage;
+	public final UserSetupPage userSetupPage;
 	
-	public AccessAdminController(ApplicationManager appMan, WidgetPage<?> page, AccessAdminApp initApp) {
+	public AccessAdminController(ApplicationManager appMan, AccessAdminApp initApp) {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
 		this.accessAdminApp = initApp;
@@ -64,24 +69,34 @@ public class AccessAdminController {
 		//mainPage = new MainPage(page, appMan);
 
 		//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");
-		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
-		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
-		initApp.menu.addEntry("User Type App Access", pageRes6);
-		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
+		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("roomsetup.html", true);
+		roomSetupPage = new RoomSetupPage(pageRes10, this);
+		initApp.menu.addEntry("Room Setup", pageRes10);
+		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
-		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
-		userRoomGroupPermPage = new UserRoomGroupPermissionPage(pageRes2, this);
-		initApp.menu.addEntry("Room Group Access Permissions", pageRes2);
-		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
+		WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html");
+		userSetupPage = new UserSetupPage(pageRes11, this);
+		initApp.menu.addEntry("User Setup", pageRes11);
+		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 
 		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
 		roomConfigPage = new RoomConfigPage(pageRes3, this);
-		initApp.menu.addEntry("Room Group Configuration", pageRes3);
+		initApp.menu.addEntry("Room - Group Mapping", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
+
+		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
+		userRoomGroupPermPage = new UserRoomGroupPermissionPage(pageRes2, this);
+		initApp.menu.addEntry("User - Room Group Mapping", pageRes2);
+		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
+
+		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
+		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
+		initApp.menu.addEntry("User App Mapping", pageRes6);
+		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
 
 		WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
 		userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
-		initApp.menu.addEntry("User Appstore Permissions", pageRes5);
+		initApp.menu.addEntry("User Appstore Mapping", pageRes5);
 		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
 
 		WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
@@ -89,7 +104,7 @@ public class AccessAdminController {
 		initApp.menu.addEntry("User Attribute Configuration", pageRes4);
 		initApp.configMenuConfig(pageRes4.getMenuConfiguration());
 
-		WidgetPage<?> pageRes1 = page; //initApp.widgetApp.createWidgetPage("userroomperm.html");
+		WidgetPage<?> pageRes1 =  initApp.widgetApp.createWidgetPage("singleroome.html");//initApp.widgetApp.createWidgetPage("userroomperm.html");
 		userRoomPermPage = new UserRoomPermissionPage(pageRes1, this);
 		initApp.menu.addEntry("Single Room Access Permissions", pageRes1);
 		initApp.configMenuConfig(pageRes1.getMenuConfiguration());

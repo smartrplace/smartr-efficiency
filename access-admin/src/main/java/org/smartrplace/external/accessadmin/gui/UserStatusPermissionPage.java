@@ -29,7 +29,7 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "User Type App Access";
+		return "User App Mapping";
 	}
 	
 	@Override

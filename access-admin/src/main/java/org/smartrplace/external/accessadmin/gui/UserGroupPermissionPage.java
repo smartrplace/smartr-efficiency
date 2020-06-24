@@ -8,7 +8,6 @@ import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
-import org.ogema.tools.app.createuser.UserAdminBaseUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
@@ -42,7 +41,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "User Appstore Permissions";
+		return "User Appstore Mapping";
 	}
 	
 	@Override
@@ -127,8 +126,6 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 	@Override
 	public Collection<AccessConfigUser> getObjectsInTable(OgemaHttpRequest req) {
 		List<AccessConfigUser> all = controller.getUserGroups(false);
-		//List<Room> result = roomFilter.getFiltered(all, req);
-		
 		return all;
 	}
 }

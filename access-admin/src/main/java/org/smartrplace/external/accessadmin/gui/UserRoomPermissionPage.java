@@ -9,7 +9,6 @@ import java.util.List;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
-import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -22,14 +21,10 @@ import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
 import org.smartrplace.gui.filtering.util.UserFiltering2Steps;
 
 import de.iwes.util.resource.ResourceHelper;
-import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
-import de.iwes.widgets.html.form.button.Button;
-import de.iwes.widgets.html.form.button.RedirectButton;
 
 public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter<RoomTbl> {
 	protected final AccessAdminController controller;
@@ -90,7 +85,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
-		StaticTable topTable = new StaticTable(2, 5);
+		StaticTable topTable = new StaticTable(1, 5);
 		roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
 				OptionSavingMode.PER_USER, TimeProcUtil.HOUR_MILLIS, controller.appConfigData.roomGroups()) {
 			private static final long serialVersionUID = 1L;
@@ -105,7 +100,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
 				OptionSavingMode.GENERAL, 5000, controller);
 		
-		Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
+		/*Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -114,15 +109,15 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 						"New Room Group", false);
 				grp.activate(true);
 			}
-		};
+		};*/
 		roomFilter.registerDependentWidget(mainTable);
 		userFilter.registerDependentWidget(mainTable);
-		addRoomGroup.registerDependentWidget(mainTable);
-		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
-				"/de/iwes/ogema/apps/logtransfermodus/index.html");
+		//addRoomGroup.registerDependentWidget(mainTable);
+		//RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
+		//		"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
 		topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter).setContent(0,  3, roomFilter);
-		topTable.setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
+		//topTable.setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);

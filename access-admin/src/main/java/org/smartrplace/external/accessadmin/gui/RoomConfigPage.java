@@ -35,7 +35,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Room Group Configuration";
+		return "Room - Group Mapping";
 	}
 	
 	@Override
@@ -68,7 +68,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 
 	@Override
 	protected String getGroupColumnLabel() {
-		return "User Groups";
+		return "Room Groups";
 	}
 
 	/*@Override
@@ -95,7 +95,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 
 	@Override
 	protected String getTypeName(OgemaLocale locale) {
-		return "User name";
+		return "Room name";
 	}
 
 	@Override

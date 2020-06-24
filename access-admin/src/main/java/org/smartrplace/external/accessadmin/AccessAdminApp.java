@@ -61,10 +61,10 @@ public class AccessAdminApp implements Application {
         
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
-		final WidgetPage<?> page = widgetApp.createStartPage();
+		//final WidgetPage<?> page = widgetApp.createStartPage();
 		menu = new NavigationMenu("Select Page");
 
-        controller = new AccessAdminController(appMan, page, this);
+        controller = new AccessAdminController(appMan, this);
         userAccService = new UserPermissionServiceImpl(controller);
 	    controller.userPermService = userAccService;
 	    controller.appManPlus.setUserPermService(userAccService);
