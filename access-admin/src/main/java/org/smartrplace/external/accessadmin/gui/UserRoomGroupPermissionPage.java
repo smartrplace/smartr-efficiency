@@ -102,17 +102,6 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
 				OptionSavingMode.GENERAL, 5000, controller);
 		
-		Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
-						controller.appConfigData.userPermissions(),
-						"New User Group", false);
-				ValueResourceHelper.setCreate(grp.isGroup(), 1);
-				grp.activate(true);
-			}
-		};
 		Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -130,7 +119,21 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 				"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
 		topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
-		topTable.setContent(1, 0, addUserGroup).setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
+		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
+			Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
+				private static final long serialVersionUID = 1L;
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
+							controller.appConfigData.userPermissions(),
+							"New User Group", false);
+					ValueResourceHelper.setCreate(grp.isGroup(), 1);
+					grp.activate(true);
+				}
+			};
+			topTable.setContent(1, 0, addUserGroup);
+		}
+		topTable.setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);
