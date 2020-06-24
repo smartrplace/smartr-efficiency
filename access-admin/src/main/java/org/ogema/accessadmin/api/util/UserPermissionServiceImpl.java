@@ -72,7 +72,7 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 		result = getUserPermissionForRoomLevel(userAcc, resourceId, permissionType, roomGroups, getSuperSetting);
 		if(result != null)
 			return result;
-		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), resourceId,
+		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(controller.getAllGroupsForUser(userAcc), resourceId,
 				permissionType, new PermissionForLevelProvider() {
 
 					@Override
@@ -121,7 +121,7 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 			result = UserPermissionUtil.getOtherAccessPermission(unitName, appName, permissionType, userAcc);
 		if(result != null)
 			return result;
-		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), appName,
+		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(controller.getAllGroupsForUser(userAcc), appName,
 				permissionType, new PermissionForLevelProvider() {
 
 					@Override
@@ -150,7 +150,7 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 			result = UserPermissionUtil.getAppAccessPermission(appName, permissionType, userAcc);
 		if(result != null)
 			return result;
-		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), appName,
+		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(controller.getAllGroupsForUser(userAcc), appName,
 				permissionType, new PermissionForLevelProvider() {
 
 					@Override
@@ -179,7 +179,7 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 			result = UserPermissionUtil.getOtherSystemAccessPermission(permissionType, userAcc);
 		if(result != null)
 			return result;
-		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(userAcc.superGroups().getAllElements(), 
+		result = UserPermissionUtil.getUserPermissionForUserGroupLevel(controller.getAllGroupsForUser(userAcc), 
 				UserPermissionUtil.SYSTEM_RESOURCE_ID,
 				permissionType, new PermissionForLevelProvider() {
 
@@ -219,7 +219,7 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 					public boolean isInSelection(String object, AccessConfigUser group) {
 						UserAccount userAccount = controller.appMan.getAdministrationManager().getUser(object);
 						UserStatusResult status = UserAdminBaseUtil.getUserStatus(userAccount, controller.appManPlus, false);
-						return userGroupName.contentEquals(UserStatus.getLabel(status.status, null));
+						return userGroupName.equals(UserStatus.getLabel(status.status, null));
 					}
 				};
 			}

@@ -94,6 +94,15 @@ public class UserPermissionUtil {
 		return result;
 	}
 	
+	/** Process level of user groups
+	 * 
+	 * @param levelPlus all user groups in the level. This shall NOT be a list containing natural users as for these
+	 * 		the type 2 user groups would not be processed
+	 * @param resourceId
+	 * @param permissionType
+	 * @param levelProv
+	 * @return
+	 */
 	public static Integer getUserPermissionForUserGroupLevel(List<AccessConfigUser> levelPlus, String resourceId, String permissionType,
 			PermissionForLevelProvider levelProv) {
 		List<AccessConfigUser> levelPlusNew = new ArrayList<>();

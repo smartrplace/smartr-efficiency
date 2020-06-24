@@ -88,7 +88,5 @@ public abstract class PerMultiselectConfigPage<T, G, R extends Resource> extends
 				}
 			});
 		row.addCell(WidgetHelper.getValidWidgetId(getGroupColumnLabel()), groupSelect);
-		//MultiSelectExtendedStringArray<AccessConfigUser> groupSelect = new MultiSelectExtendedStringArray<AccessConfigUser>(mainTable, "groupSelect"+id,
-		//		true, true, true, object.accessConfig.superGroups(), req);
 	}
 }

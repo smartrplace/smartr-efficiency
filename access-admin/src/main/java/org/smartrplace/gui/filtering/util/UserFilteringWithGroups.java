@@ -33,6 +33,13 @@ public class UserFilteringWithGroups<T> extends UserFilteringBase<T> {
 		List<GenericFilterFixedGroup<String, AccessConfigUser>> result = new ArrayList<>();
 		for(AccessConfigUser grp: controller.getUserGroups(false)) {
 			String name = grp.name().getValue();
+			if(grp.isGroup().getValue() >= 2) {
+				GenericFilterFixedGroup<String, AccessConfigUser> filter = controller.userPermService.getUserGroupFiler(name);
+				if(filter == null)
+					continue;
+				result.add(filter);
+				continue;
+			}
 			GenericFilterFixedGroup<String, AccessConfigUser> newOption = new GenericFilterFixedGroup<String, AccessConfigUser>(
 					grp, LocaleHelper.getLabelMap(name)) {
 

@@ -40,7 +40,7 @@ public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, Access
 	@Override
 	public Collection<UserDataTbl> getObjectsInTable(OgemaHttpRequest req) {
 		List<UserDataTbl> result = new ArrayList<>();
-		for(UserAccount ac: appMan.getAdministrationManager().getAllUsers()) {
+		for(UserAccount ac: controller.getAllNaturalUsers(false)) { //appMan.getAdministrationManager().getAllUsers()) {
 			UserDataTbl obj = new UserDataTbl(ac);
 			obj.accessConfig = UserPermissionUtil.getOrCreateUserPermissions(controller.userPerms, ac.getName());
 			result.add(obj);
@@ -59,28 +59,6 @@ public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, Access
 	protected String getGroupColumnLabel() {
 		return "User Attributes";
 	}
-
-	/*@Override
-	protected TemplateMultiselect<AccessConfigUser> getMultiselect(UserDataTbl object, String lineId,
-			OgemaHttpRequest req) {
-		TemplateMultiselect<AccessConfigUser> groupSelect = new TemplateMultiselect<AccessConfigUser>(mainTable, "groupSelect"+id, req) {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				List<AccessConfigUser> selected = object.accessConfig.superGroups().getAllElements();
-				List<AccessConfigUser> all = controller.getUserGroups(false);
-				update(all, req);
-				selectItems(selected, req);
-			}
-		};
-		groupSelect.setTemplate(new DefaultDisplayTemplate<AccessConfigUser>() {
-			@Override
-			public String getLabel(AccessConfigUser object, OgemaLocale locale) {
-				return ResourceUtils.getHumanReadableShortName(object);
-			}
-		});
-		return groupSelect;
-	}*/
 
 	@Override
 	protected String getTypeName(OgemaLocale locale) {

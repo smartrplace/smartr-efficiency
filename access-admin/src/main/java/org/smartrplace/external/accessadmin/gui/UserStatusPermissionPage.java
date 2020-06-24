@@ -87,12 +87,12 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				List<UserAccount> allUsers = controller.appMan.getAdministrationManager().getAllUsers();
+				List<UserAccount> allUsers = controller.getAllNaturalUsers(); //controller.appMan.getAdministrationManager().getAllUsers();
 				for(UserAccount ac: allUsers) {
-					if((ac.getName().equals("master")||ac.getName().equals("guest2")))
-						continue;
-					if(!controller.appManPlus.permMan().getAccessManager().isNatural(ac.getName()))
-						continue;
+					//if((ac.getName().equals("master")||ac.getName().equals("guest2")))
+					//	continue;
+					//if(!controller.appManPlus.permMan().getAccessManager().isNatural(ac.getName()))
+					//	continue;
 					UserAdminBaseUtil.updateUserPermissionsToWorkingStatus(
 							ac, controller.appManPlus);
 				}

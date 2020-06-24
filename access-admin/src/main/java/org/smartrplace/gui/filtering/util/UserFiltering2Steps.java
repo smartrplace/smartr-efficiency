@@ -8,10 +8,11 @@ import org.ogema.internationalization.util.LocaleHelper;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.DualFiltering2Steps;
-import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
+import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 import org.smartrplace.gui.filtering.GenericFilterOption;
 import org.smartrplace.gui.filtering.util.UserFilteringBase.SingleUserOption;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
@@ -26,10 +27,10 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	}
 
 	@Override
-	protected List<GenericFilterOption<String>> getOptionsDynamic(AccessConfigUser group, OgemaHttpRequest req) {
+	protected List<GenericFilterOption<String>> getOptionsDynamic(AccessConfigUser group) {
 		List<GenericFilterOption<String>> result = new ArrayList<>();
-		for(UserAccount ac: controller.appMan.getAdministrationManager().getAllUsers()) {
-			if(!firstDropDown.isInSelection(ac.getName(), req))
+		for(UserAccount ac: controller.getAllNaturalUsers()) { //controller.appMan.getAdministrationManager().getAllUsers()) {
+			if(group != null && (!firstDropDown.isInSelection(ac.getName(), group)))
 				continue;
 			GenericFilterOption<String> newOption = new SingleUserOption(ac.getName(), LocaleHelper.getLabelMap(ac.getName()));
 			result.add(newOption);
@@ -38,36 +39,67 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	}
 
 	@Override
-	protected List<GenericFilterFixedSingle<AccessConfigUser>> getGroupOptionsDynamic(OgemaHttpRequest req) {
-		List<GenericFilterFixedSingle<AccessConfigUser>> result = getOptionsDynamic2S(controller, req);
-		return result;
-	}
-	
-	public static List<GenericFilterFixedSingle<AccessConfigUser>> getOptionsDynamic2S(AccessAdminController controller, OgemaHttpRequest req) {
-		List<GenericFilterFixedSingle<AccessConfigUser>> result = new ArrayList<>();
+	protected List<GenericFilterFixedGroup<String, AccessConfigUser>> getGroupOptionsDynamic() {
+		List<GenericFilterFixedGroup<String, AccessConfigUser>> result = new ArrayList<>();
 		for(AccessConfigUser grp: controller.getUserGroups(false)) {
-			String name = grp.name().getValue();
-			GenericFilterFixedSingle<AccessConfigUser> newOption = new GenericFilterFixedSingle<AccessConfigUser>(
-					grp, LocaleHelper.getLabelMap(name));  /* {
-
-				@Override
-				public boolean isInSelection(AccessConfigUser userConfig, OgemaHttpRequest req) {
-					//AccessConfigUser userConfig = controller.getUserConfig(object);
-					return userConfig.equalsLocation(grp);
-					//return ResourceHelper.containsLocation(userConfig, grp);
-				}
-			};*/
+			GenericFilterFixedGroup<String, AccessConfigUser> newOption = getGroupOptionDynamic(grp);
+			if(newOption == null)
+				continue;
 			result.add(newOption);			
 		}
 		return result;
 	}
+	
+	@Override
+	protected GenericFilterFixedGroup<String, AccessConfigUser> getGroupOptionDynamic(AccessConfigUser grp) {
+		String name = grp.name().getValue();
+		if(grp.isGroup().getValue() >= 2) {
+			GenericFilterFixedGroup<String, AccessConfigUser> filter = controller.userPermService.getUserGroupFiler(name);
+			return filter;
+		}
+		GenericFilterFixedGroup<String, AccessConfigUser> newOption = new GenericFilterFixedGroup<String, AccessConfigUser>(
+				grp, LocaleHelper.getLabelMap(name)) {
+
+			@Override
+			public boolean isInSelection(String object, AccessConfigUser group) {
+				AccessConfigUser userConfig = controller.getUserConfig(object);
+				return ResourceHelper.containsLocation(userConfig.superGroups().getAllElements(), grp);
+			}
+		};
+		return newOption;
+	}
+	/*public static List<GenericFilterFixedGroup<String, AccessConfigUser>> getOptionsDynamic2S(AccessAdminController controller, OgemaHttpRequest req) {
+		List<GenericFilterFixedGroup<String, AccessConfigUser>> result = new ArrayList<>();
+		for(AccessConfigUser grp: controller.getUserGroups(false)) {
+			String name = grp.name().getValue();
+			GenericFilterFixedGroup<String, AccessConfigUser> newOption = getGroupOptionDynamic(grp, req);
+			if(grp.isGroup().getValue() >= 2) {
+				GenericFilterFixedGroup<String, AccessConfigUser> filter = controller.userPermService.getUserGroupFiler(name);
+				if(filter == null)
+					continue;
+				result.add(filter);
+				continue;
+			}
+			GenericFilterFixedGroup<String, AccessConfigUser> newOption = new GenericFilterFixedGroup<String, AccessConfigUser>(
+					grp, LocaleHelper.getLabelMap(name)) {
+
+					@Override
+				public boolean isInSelection(String object, AccessConfigUser group) {
+					AccessConfigUser userConfig = controller.getUserConfig(object);
+					return ResourceHelper.containsLocation(userConfig.superGroups().getAllElements(), grp);
+				}
+			};
+			result.add(newOption);			
+		}
+		return result;
+	}*/
 	
 
 	@Override
 	protected List<AccessConfigUser> getGroups(String object) {
 		AccessConfigUser userConfig = controller.getUserConfig(object);
 		List<AccessConfigUser> result = new ArrayList<>();
-		result.addAll(userConfig.superGroups().getAllElements());
+		result.addAll(controller.getAllGroupsForUser(userConfig)); //.superGroups().getAllElements());
 		return result ;
 	}
 	
@@ -78,6 +110,8 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	
 	public String getSelectedUser(OgemaHttpRequest req) {
 		GenericFilterOption<String> selected = getSelectedItem(req);
+		if(selected == NONE_OPTION)
+			return null;
 		if(selected == null) {
 			onGET(req);
 			return getSelectedUser(req);
@@ -89,5 +123,10 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	@Override
 	protected long getFrameworkTime() {
 		return controller.appMan.getFrameworkTime();
+	}
+
+	@Override
+	protected boolean isGroupEqual(AccessConfigUser group1, AccessConfigUser group2) {
+		return group1.equalsLocation(group2);
 	}
 }

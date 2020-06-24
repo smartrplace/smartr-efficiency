@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
+import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
@@ -19,6 +20,7 @@ import org.smartrplace.external.accessadmin.gui.UserGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
+import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -161,5 +163,43 @@ public class AccessAdminController {
 				result.add(bu);
 		}
 		return result ;
+	}
+	
+	public List<AccessConfigUser> getAllGroupsForUser(AccessConfigUser naturalUser) {
+		List<AccessConfigUser> result = getLevel2GroupsForUser(naturalUser);
+		result.addAll(naturalUser.superGroups().getAllElements());
+		return result;
+	}
+	public List<AccessConfigUser> getLevel2GroupsForUser(AccessConfigUser naturalUser) {
+		List<AccessConfigUser> result = new ArrayList<>();
+		if(naturalUser.isGroup().getValue() > 0)
+			return result;
+		String userName = naturalUser.name().getValue();
+		for(AccessConfigUser grp: appConfigData.userPermissions().getAllElements()) {
+			if(grp.isGroup().getValue() < 2)
+				continue;
+			GenericFilterFixedGroup<String, AccessConfigUser> filter = userPermService.getUserGroupFiler(grp.name().getValue());
+			if(filter == null)
+				continue;
+			if(filter.isInSelection(userName, grp))
+				result.add(grp);
+		}
+		return result ;
+	}
+	
+	public List<UserAccount> getAllNaturalUsers() {
+		return getAllNaturalUsers(true);
+	}
+	public List<UserAccount> getAllNaturalUsers(boolean includeMaster) {
+		List<UserAccount> allUsers = appMan.getAdministrationManager().getAllUsers();
+		List<UserAccount> result = new ArrayList<>();
+		for(UserAccount ac: allUsers) {
+			if((!includeMaster) && (ac.getName().equals("master")||ac.getName().equals("guest2")))
+				continue;
+			if(!appManPlus.permMan().getAccessManager().isNatural(ac.getName()))
+				continue;
+			result.add(ac);
+		}
+		return result;
 	}
 }
