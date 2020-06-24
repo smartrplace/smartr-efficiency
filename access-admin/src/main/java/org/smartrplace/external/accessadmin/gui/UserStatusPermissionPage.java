@@ -8,9 +8,10 @@ import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.tools.app.createuser.UserAdminBaseUtil;
-import org.smartrplace.appstore.api.GitRepository;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 
+import de.iwes.util.resource.OGEMAResourceCopyHelper;
+import de.iwes.util.resource.OGEMAResourceCopyHelper.CopyParams;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -27,6 +28,11 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 	}
 
 	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "User Type App Access";
+	}
+	
+	@Override
 	protected List<String> getPermissionNames() {
 		return Arrays.asList(UserPermissionService.APP_ACCESS_PERMISSIONS);
 	}
@@ -34,7 +40,12 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 	@Override
 	protected PermissionCellData getAccessConfig(UserStatus object, String permissionID, OgemaHttpRequest req) {
 		ConfigurablePermission result = new ConfigurablePermission();
-		result.accessConfig = controller.appConfigData.userStatusPermission(); //userAcc.roompermissionData();
+		CopyParams copyParams = new CopyParams(appMan, true, 0);
+		if(!controller.appConfigData.userStatusPermissionWorkingCopy().isActive())
+			OGEMAResourceCopyHelper.copySubResourceIntoDestination(
+					controller.appConfigData.userStatusPermissionWorkingCopy(),
+					controller.appConfigData.userStatusPermission(), copyParams );
+		result.accessConfig = controller.appConfigData.userStatusPermissionWorkingCopy(); //userAcc.roompermissionData();
 		result.resourceId = object.name();
 		result.permissionId = permissionID;
 		result.defaultStatus = false; //controller.userPermService.getUserStatusAppPermission(object, permissionID, true) > 0;
@@ -80,8 +91,15 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 				for(UserAccount ac: allUsers) {
 					if((ac.getName().equals("master")||ac.getName().equals("guest2")))
 						continue;
-					UserAdminBaseUtil.updateUserPermissions(null, ac, controller.appManPlus);
+					if(!controller.appManPlus.permMan().getAccessManager().isNatural(ac.getName()))
+						continue;
+					UserAdminBaseUtil.updateUserPermissionsToWorkingStatus(
+							ac, controller.appManPlus);
 				}
+				CopyParams copyParams = new CopyParams(appMan, true, 0);
+				OGEMAResourceCopyHelper.copySubResourceIntoDestination(controller.appConfigData.userStatusPermission(),
+						controller.appConfigData.userStatusPermissionWorkingCopy(), copyParams );
+				controller.appConfigData.userStatusPermissionWorkingCopy().delete();
 			}
 		};
 		topTable.setContent(0, 1, commitBtn);

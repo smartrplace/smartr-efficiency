@@ -7,6 +7,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
@@ -18,7 +19,7 @@ import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomTbl;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
-import org.smartrplace.gui.filtering.util.UserFilteringWithGroups;
+import org.smartrplace.gui.filtering.util.UserFiltering2Steps;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -33,6 +34,7 @@ import de.iwes.widgets.html.form.button.RedirectButton;
 public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter<RoomTbl> {
 	protected final AccessAdminController controller;
 	
+	protected UserFiltering2Steps<Room> userFilter;
 	protected RoomFilteringWithGroups<Room> roomFilter;
 
 	protected ResourceList<AccessConfigUser> userPerms;
@@ -44,6 +46,11 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		triggerPageBuild();
 	}
 
+	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "Room Access Permissions per User";
+	}
+	
 	@Override
 	protected String getTypeName(OgemaLocale locale) {
 		return "Room";
@@ -62,7 +69,9 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 	@Override
 	protected ConfigurablePermission getAccessConfig(RoomTbl object, String permissionID,
 			OgemaHttpRequest req) {
-		AccessConfigUser userAcc = userFilter.getSelectedUser(req);
+		String userName = userFilter.getSelectedUser(req);
+		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
+				userPerms, userName);
 		//AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
 		//		userPerms, userName);
 		ConfigurablePermission result = new ConfigurablePermission();
@@ -72,7 +81,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		result.accessConfig = userAcc.roompermissionData();
 		result.resourceId = object.room.getLocation();
 		result.permissionId = permissionID;
-		String userName = userAcc.name().getValue();
+		//String userName = userAcc.name().getValue();
 		result.defaultStatus = controller.userPermService.getUserPermissionForRoom(userName, result.resourceId,
 				permissionID, true) > 0;
 		return result;
@@ -91,7 +100,9 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 				return object;
 			}
 		};
-		userFilter = new UserFilteringWithGroups<Room>(page, "userFilter",
+		//userFilter = new UserFilteringWithGroups<Room>(page, "userFilter",
+		//		OptionSavingMode.GENERAL, 5000, controller);
+		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
 				OptionSavingMode.GENERAL, 5000, controller);
 		
 		Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
@@ -101,7 +112,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 				AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
 						controller.appConfigData.userPermissions(),
 						"New User Group", false);
-				ValueResourceHelper.setCreate(grp.isGroup(), true);
+				ValueResourceHelper.setCreate(grp.isGroup(), 1);
 				grp.activate(true);
 			}
 		};
@@ -121,7 +132,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User App Access Configuration",
 				"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
-		topTable.setContent(0, 1, userFilter).setContent(0,  2, roomFilter);
+		topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter).setContent(0,  3, roomFilter);
 		topTable.setContent(1, 0, addUserGroup).setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
@@ -140,10 +151,10 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 			}
 		});
 		
-		AccessConfigUser user = userFilter.getSelectedUser(req);
+		String user = userFilter.getSelectedUser(req);
 		List<RoomTbl> result = new ArrayList<>();
 		for(Room room: result1) {
-			result.add(new RoomTbl(room, user.name().getValue()));
+			result.add(new RoomTbl(room, user));
 		}
 
 		return result;

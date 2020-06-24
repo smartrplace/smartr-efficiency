@@ -71,7 +71,7 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 				continue;
 			}
 			PermissionCellData acc = getAccessConfig(object, label, req);
-			Button perm = new Button(mainTable, "perm_"+label+id, "", req) {
+			Button perm = new Button(mainTable, WidgetHelper.getValidWidgetId("perm_"+label+id), "", req) {
 				private static final long serialVersionUID = 1L;
 				@Override
 				public void onGET(OgemaHttpRequest req) {

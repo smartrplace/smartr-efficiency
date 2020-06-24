@@ -37,7 +37,7 @@ public class UserFilteringWithGroups<T> extends UserFilteringBase<T> {
 					grp, LocaleHelper.getLabelMap(name)) {
 
 				@Override
-				public boolean isInSelection(String object, OgemaHttpRequest req) {
+				public boolean isInSelection(String object, AccessConfigUser grp) {
 					AccessConfigUser userConfig = controller.getUserConfig(object);
 					return ResourceHelper.containsLocation(userConfig.superGroups().getAllElements(), grp);
 				}

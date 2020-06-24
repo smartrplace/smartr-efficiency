@@ -34,6 +34,11 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	}
 
 	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "Room Group Configuration";
+	}
+	
+	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(1, 5);

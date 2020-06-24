@@ -67,6 +67,7 @@ public class AccessAdminApp implements Application {
         controller = new AccessAdminController(appMan, page, this);
         userAccService = new UserPermissionServiceImpl(controller);
 	    controller.userPermService = userAccService;
+	    controller.appManPlus.setUserPermService(userAccService);
         srUserAccService = bc.registerService(UserPermissionService.class, userAccService, null);
 
 		

@@ -28,6 +28,11 @@ public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, Access
 	}
 
 	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "User Attribute Configuration";
+	}
+	
+	@Override
 	public AccessConfigUser getResource(UserDataTbl object, OgemaHttpRequest req) {
 		return object.accessConfig;
 	}
@@ -52,7 +57,7 @@ public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, Access
 
 	@Override
 	protected String getGroupColumnLabel() {
-		return "User Groups";
+		return "User Attributes";
 	}
 
 	/*@Override
@@ -89,7 +94,7 @@ public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, Access
 
 	@Override
 	protected List<AccessConfigUser> getAllGroups(OgemaHttpRequest req) {
-		return controller.getUserGroups(false);
+		return controller.getUserGroups(false, false);
 	}
 
 	@Override

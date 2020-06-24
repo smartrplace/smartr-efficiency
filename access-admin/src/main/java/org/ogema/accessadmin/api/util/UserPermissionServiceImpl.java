@@ -7,11 +7,16 @@ import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.accessadmin.api.util.UserPermissionUtil.PermissionForLevelProvider;
 import org.ogema.accessadmin.api.util.UserPermissionUtil.RoomPermissionData;
+import org.ogema.core.administration.UserAccount;
 import org.ogema.core.model.ResourceList;
+import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
+import org.ogema.tools.app.createuser.UserAdminBaseUtil;
+import org.ogema.tools.app.createuser.UserAdminBaseUtil.UserStatusResult;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 
 public class UserPermissionServiceImpl implements UserPermissionService {
 	protected final AccessAdminController controller;
@@ -191,9 +196,34 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 	}
 
 	@Override
-	public int getUserStatusAppPermission(UserStatus userStatus, String permissionType) {
+	public int getUserStatusAppPermission(UserStatus userStatus, String permissionType, boolean useWorkingCopy) {
 		RoomPermissionData mapData = UserPermissionUtil.getResourcePermissionData(userStatus.name(),
-				controller.appConfigData.userStatusPermission());
-		return mapData.permissions.get(permissionType);
+				useWorkingCopy?controller.appConfigData.userStatusPermissionWorkingCopy():controller.appConfigData.userStatusPermission());
+		
+		Integer result = mapData.permissions.get(permissionType);
+		if(result == null)
+			return 0;
+		return result;
+	}
+	
+	@Override
+	public GenericFilterFixedGroup<String, AccessConfigUser> getUserGroupFiler(String userGroupName) {
+		List<AccessConfigUser> grps = controller.getUserGroups(false);
+		for(AccessConfigUser grp: grps) {
+			if(grp.isGroup().getValue() < 2)
+				continue;
+			if(grp.name().getValue().equals(userGroupName)) {
+				return new GenericFilterFixedGroup<String, AccessConfigUser>(grp, LocaleHelper.getLabelMap(userGroupName)) {
+
+					@Override
+					public boolean isInSelection(String object, AccessConfigUser group) {
+						UserAccount userAccount = controller.appMan.getAdministrationManager().getUser(object);
+						UserStatusResult status = UserAdminBaseUtil.getUserStatus(userAccount, controller.appManPlus, false);
+						return userGroupName.contentEquals(UserStatus.getLabel(status.status, null));
+					}
+				};
+			}
+		}
+		return null;
 	}
 }

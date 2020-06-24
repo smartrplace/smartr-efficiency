@@ -29,22 +29,27 @@ public class UserAdminBaseUtil {
 		GUEST_APPS.add("org.smartrplace.apps.smartrplace-heatcontrol-servlet");
 	}
 
-	public static Collection<String> USER_APPS(UserPermissionService userPermService) {
-		return getPermissionsCoordinates(UserStatus.USER_STD, userPermService);
+	public static Collection<String> USER_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
+		return getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
 		
 	}
 
-	public static Collection<String> SECRETARY_APPS(UserPermissionService userPermService) {
-		return getPermissionsCoordinates(UserStatus.SECRETARY, userPermService);
-		
+	public static Collection<String> SECRETARY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
+		List<String> result = getPermissionsCoordinates(UserStatus.SECRETARY, userPermService, useWorkingCopy);
+		//Just to identify the user level, has no GUI
+		result.add("org.smartrplace.api.smartr-efficiency-api");
+		return result;		
 	}
 
-	public static Collection<String> ADMIN_APPS(UserPermissionService userPermService) {
-		return getPermissionsCoordinates(UserStatus.ADMIN, userPermService);
+	public static Collection<String> ADMIN_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
+		List<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService, useWorkingCopy);
+		//Just to identify the user level, has no GUI
+		result.add("org.smartrplace.apps.smartr-efficiency-util");
+		return result;
 	}
 	
-	public static Collection<String> SUPERADMIN_APPS(UserPermissionService userPermService) {
-		List<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService);
+	public static Collection<String> SUPERADMIN_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
+		List<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService, useWorkingCopy);
 		result.add("org.ogema.ref-impl.framework-administration");
 		result.add("org.ogema.messaging.message-settings");
 		result.add("org.ogema.apps.room-link");
@@ -53,10 +58,11 @@ public class UserAdminBaseUtil {
 		
 	};
 	protected static List<String> getPermissionsCoordinates(UserStatus status,
-			UserPermissionService userPermService) {
+			UserPermissionService userPermService, boolean useWorkingCopy) {
 		List<String> result = new ArrayList<>(GUEST_APPS);
 		for(String permType: UserPermissionService.APP_ACCESS_PERMISSIONS) {
-			int hasPerm = userPermService.getUserStatusAppPermission(UserStatus.USER_STD, permType);
+			int hasPerm = userPermService.getUserStatusAppPermission(UserStatus.USER_STD, permType,
+					useWorkingCopy);
 			if(hasPerm <= 0)
 				continue;
 			switch(permType) {
@@ -98,7 +104,7 @@ public class UserAdminBaseUtil {
 		public UserStatus status = null;
 		public List<String> addPerms = null;
 	}
-	public static UserStatusResult getUserStatus(UserAccount userAccount, ApplicationManagerPlus appManPlus) {
+	public static UserStatusResult getUserStatus(UserAccount userAccount, ApplicationManagerPlus appManPlus, boolean useWorkingCopy) {
 		String userName = userAccount.getName();
 		UserStatusResult result = new UserStatusResult();
 		List<String> userPerms = null;
@@ -112,8 +118,9 @@ public class UserAdminBaseUtil {
 					ConditionalPermissionAdmin cpa = (ConditionalPermissionAdmin) sysAdmin;
 					userPerms = UserAdminBaseUtil.getPermissions(userName, cpa);
 					if(!userPerms.contains("[(java.security.AllPermission)]")) {
-						result.status = UserAdminBaseUtil.getUserStatus(userPerms, appManPlus.userPermService());
-						result.addPerms = UserAdminBaseUtil.getAdditionalPerms(userPerms, result.status, appManPlus.userPermService());
+						result.status = UserAdminBaseUtil.getUserStatus(userPerms, appManPlus.userPermService(), useWorkingCopy);
+						result.addPerms = UserAdminBaseUtil.getAdditionalPerms(userPerms, result.status, appManPlus.userPermService(),
+								useWorkingCopy);
 					}
 				}
 			}
@@ -121,16 +128,16 @@ public class UserAdminBaseUtil {
 		return result;
 	}
 
-	public static UserStatus getUserStatus(List<String> appPermissions, UserPermissionService userPermService) {
-		if(hasAllPerms(appPermissions, SUPERADMIN_APPS(userPermService)))
+	public static UserStatus getUserStatus(List<String> appPermissions, UserPermissionService userPermService, boolean useWorkingCopy) {
+		if(hasAllPerms(appPermissions, SUPERADMIN_APPS(userPermService, useWorkingCopy)))
 			return UserStatus.SUPERADMIN;
 		//if(hasAllPerms(appPermissions, TESTER_APPS))
 		//	return UserStatus.TESTER;
-		if(hasAllPerms(appPermissions, ADMIN_APPS(userPermService)))
+		if(hasAllPerms(appPermissions, ADMIN_APPS(userPermService, useWorkingCopy)))
 			return UserStatus.ADMIN;
-		if(hasAllPerms(appPermissions, SECRETARY_APPS(userPermService)))
+		if(hasAllPerms(appPermissions, SECRETARY_APPS(userPermService, useWorkingCopy)))
 			return UserStatus.SECRETARY;
-		if(hasAllPerms(appPermissions, USER_APPS(userPermService)))
+		if(hasAllPerms(appPermissions, USER_APPS(userPermService, useWorkingCopy)))
 			return UserStatus.USER_STD;
 		//if(hasAllPerms(appPermissions, GUEST_APPS))
 		//	return UserStatus.GUEST;
@@ -148,18 +155,18 @@ public class UserAdminBaseUtil {
 	}
 	
 	public static List<String> getAdditionalPerms(List<String> appPermissions, UserStatus status,
-			UserPermissionService userPermService) {
+			UserPermissionService userPermService, boolean useWorkingCopy) {
 		switch(status) {
 		case SUPERADMIN:
-			return getAdditionalPerms(appPermissions, SUPERADMIN_APPS(userPermService));
+			return getAdditionalPerms(appPermissions, SUPERADMIN_APPS(userPermService, useWorkingCopy));
 		//case TESTER:
 		//	return getAdditionalPerms(appPermissions, TESTER_APPS);
 		case ADMIN:
-			return getAdditionalPerms(appPermissions, ADMIN_APPS(userPermService));
+			return getAdditionalPerms(appPermissions, ADMIN_APPS(userPermService, useWorkingCopy));
 		case SECRETARY:
-			return getAdditionalPerms(appPermissions, SECRETARY_APPS(userPermService));
+			return getAdditionalPerms(appPermissions, SECRETARY_APPS(userPermService, useWorkingCopy));
 		case USER_STD:
-			return getAdditionalPerms(appPermissions, USER_APPS(userPermService));
+			return getAdditionalPerms(appPermissions, USER_APPS(userPermService, useWorkingCopy));
 		//case GUEST:
 		//	return getAdditionalPerms(appPermissions, GUEST_APPS);
 		//case RAW:
@@ -180,21 +187,21 @@ public class UserAdminBaseUtil {
 	
 	public static List<String> setPerms(UserAccount userData, List<String> currentUserPerms,
 			UserStatus destinationStatus, List<String> additionalPermissionstoMaintain,
-			ApplicationManagerPlus appManPlus) {
+			ApplicationManagerPlus appManPlus, boolean useWorkingCopy) {
 		switch(destinationStatus) {
 		case SUPERADMIN:
-			return setPerms(userData, currentUserPerms, SUPERADMIN_APPS(appManPlus.userPermService()), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, SUPERADMIN_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
 					appManPlus);
 		//case TESTER:
 		//	return setPerms(userData, currentUserPerms, TESTER_APPS, additionalPermissionstoMaintain);
 		case ADMIN:
-			return setPerms(userData, currentUserPerms, ADMIN_APPS(appManPlus.userPermService()), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, ADMIN_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
 					appManPlus);
 		case SECRETARY:
-			return setPerms(userData, currentUserPerms, SECRETARY_APPS(appManPlus.userPermService()), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, SECRETARY_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
 					appManPlus);
 		case USER_STD:
-			return setPerms(userData, currentUserPerms, USER_APPS(appManPlus.userPermService()), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, USER_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
 					appManPlus);
 		//case GUEST:
 		//	return setPerms(userData, currentUserPerms, GUEST_APPS, additionalPermissionstoMaintain);
@@ -312,7 +319,7 @@ public class UserAdminBaseUtil {
 	}
 	
 	public static List<String> updateUserPermissions(UserStatus destStatus, UserAccount userData, ApplicationManagerPlus appManPlus) {
-		UserStatusResult currentStatusRes = getUserStatus(userData, appManPlus);
+		UserStatusResult currentStatusRes = getUserStatus(userData, appManPlus, false);
 		if(destStatus == null)
 			destStatus = currentStatusRes.status;
 		//List<String> result = addMissingPerms(object, userPermsFinal, destStatus);
@@ -324,6 +331,21 @@ public class UserAdminBaseUtil {
 			ConditionalPermissionAdmin cpa = (ConditionalPermissionAdmin) sysAdmin;
 			userPerms  = UserAdminBaseUtil.getPermissions(userName, cpa);
 		}
-		return setPerms(userData, userPerms, destStatus, currentStatusRes.addPerms, appManPlus);	
+		return setPerms(userData, userPerms, destStatus, currentStatusRes.addPerms, appManPlus, false);	
+	}
+	public static List<String> updateUserPermissionsToWorkingStatus(UserAccount userData,
+			ApplicationManagerPlus appManPlus) {
+		UserStatusResult currentStatusRes = getUserStatus(userData, appManPlus, false);
+		UserStatus destStatus = currentStatusRes.status;
+		//List<String> result = addMissingPerms(object, userPermsFinal, destStatus);
+		Object sysAdmin = appManPlus.permMan().getSystemPermissionAdmin();
+		String userName = userData.getName();
+		appManPlus.permMan().getAccessManager().getSupportedAuthenticators(userName);
+		List<String> userPerms = null;
+		if(sysAdmin instanceof ConditionalPermissionAdmin) {
+			ConditionalPermissionAdmin cpa = (ConditionalPermissionAdmin) sysAdmin;
+			userPerms  = UserAdminBaseUtil.getPermissions(userName, cpa);
+		}
+		return setPerms(userData, userPerms, destStatus, currentStatusRes.addPerms, appManPlus, true);	
 	}
 }

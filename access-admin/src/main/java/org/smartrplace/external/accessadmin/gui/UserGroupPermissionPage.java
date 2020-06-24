@@ -39,8 +39,13 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 	}
 
 	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "User System Permissions";
+	}
+	
+	@Override
 	protected String getTypeName(OgemaLocale locale) {
-		return "Room Group";
+		return "User Group";
 	}
 
 	@Override
@@ -92,7 +97,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 				AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
 						controller.appConfigData.userPermissions(),
 						"New User Group", false);
-				ValueResourceHelper.setCreate(grp.isGroup(), true);
+				ValueResourceHelper.setCreate(grp.isGroup(), 1);
 				grp.activate(true);
 			}
 		};

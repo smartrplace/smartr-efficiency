@@ -53,7 +53,7 @@ public class AccessAdminController {
 		this.accessAdminApp = initApp;
 		this.appManPlus = new ApplicationManagerPlus(appMan);
 		appManPlus.setPermMan(initApp.permMan);
-		appManPlus.setUserPermService(userPermService);
+		//appManPlus.setUserPermService(userPermService);
 		
 		initConfigurationResource();
 		userPerms = appConfigData.userPermissions();
@@ -74,7 +74,7 @@ public class AccessAdminController {
 
 		WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
 		userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
-		initApp.menu.addEntry("User Group System Permissions", pageRes5);
+		initApp.menu.addEntry("User System Permissions", pageRes5);
 		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
 
 		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
@@ -84,7 +84,7 @@ public class AccessAdminController {
 
 		WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
 		userConfigPage = new UserConfigPage(pageRes4, this);
-		initApp.menu.addEntry("User Group Configuration", pageRes4);
+		initApp.menu.addEntry("User Attribute Configuration", pageRes4);
 		initApp.configMenuConfig(pageRes4.getMenuConfiguration());
 
 		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
@@ -127,9 +127,20 @@ public class AccessAdminController {
 
 	//TODO: Provide user and room group access via service
 	public List<AccessConfigUser> getUserGroups(boolean includeNaturalUsers) {
+		return getUserGroups(includeNaturalUsers, true);
+		/*List<AccessConfigUser> result = new ArrayList<>();
+		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
+			if(includeNaturalUsers || (user.isGroup().getValue() > 0))
+				result.add(user);
+		}
+		return result ;*/
+	}
+	public List<AccessConfigUser> getUserGroups(boolean includeNaturalUsers, boolean includetype2Groups) {
 		List<AccessConfigUser> result = new ArrayList<>();
 		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
-			if(includeNaturalUsers || user.isGroup().getValue())
+			if(!includetype2Groups && (user.isGroup().getValue() == 2))
+				continue;
+			if(includeNaturalUsers || (user.isGroup().getValue() > 0))
 				result.add(user);
 		}
 		return result ;

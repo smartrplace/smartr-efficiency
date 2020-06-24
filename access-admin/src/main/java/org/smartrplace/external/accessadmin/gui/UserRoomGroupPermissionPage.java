@@ -18,8 +18,6 @@ import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomGroupTbl;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.UserFiltering2Steps;
-import org.smartrplace.gui.filtering.util.UserFilteringBase;
-import org.smartrplace.gui.filtering.util.UserFilteringWithGroups;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -49,6 +47,11 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 		triggerPageBuild();
 	}
 
+	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "Room Group Access Permissions per User";
+	}
+	
 	@Override
 	protected String getTypeName(OgemaLocale locale) {
 		return "Room Group";
@@ -105,7 +108,7 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 				AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
 						controller.appConfigData.userPermissions(),
 						"New User Group", false);
-				ValueResourceHelper.setCreate(grp.isGroup(), true);
+				ValueResourceHelper.setCreate(grp.isGroup(), 1);
 				grp.activate(true);
 			}
 		};
@@ -125,7 +128,7 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User App Access Configuration",
 				"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
-		topTable.setContent(0, 1, userFilter.getFirstDropdown()).setContent(0, 2, userFilter); //.setContent(0,  2, roomFilter);
+		topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
 		topTable.setContent(1, 0, addUserGroup).setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
