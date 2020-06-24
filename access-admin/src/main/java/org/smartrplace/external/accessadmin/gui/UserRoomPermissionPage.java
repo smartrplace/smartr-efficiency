@@ -48,7 +48,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Room Access Permissions per User";
+		return "Single Room Access Permissions";
 	}
 	
 	@Override

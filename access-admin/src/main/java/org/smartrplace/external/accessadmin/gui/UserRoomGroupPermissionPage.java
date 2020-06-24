@@ -50,7 +50,7 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Room Group Access Permissions per User";
+		return "Room Group Access Permissions";
 	}
 	
 	@Override

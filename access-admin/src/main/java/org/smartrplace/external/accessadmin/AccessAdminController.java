@@ -64,35 +64,36 @@ public class AccessAdminController {
 		//mainPage = new MainPage(page, appMan);
 
 		//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");
-		WidgetPage<?> pageRes1 = page; //initApp.widgetApp.createWidgetPage("userroomperm.html");
-		userRoomPermPage = new UserRoomPermissionPage(pageRes1, this);
-		initApp.menu.addEntry("User Room Permissions", pageRes1);
-		initApp.configMenuConfig(pageRes1.getMenuConfiguration());
+		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
+		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
+		initApp.menu.addEntry("User Type App Access", pageRes6);
+		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
 
 		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
 		userRoomGroupPermPage = new UserRoomGroupPermissionPage(pageRes2, this);
-		initApp.menu.addEntry("Room Group Permissions", pageRes2);
+		initApp.menu.addEntry("Room Group Access Permissions", pageRes2);
 		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
-
-		WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
-		userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
-		initApp.menu.addEntry("User System Permissions", pageRes5);
-		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
 
 		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
 		roomConfigPage = new RoomConfigPage(pageRes3, this);
 		initApp.menu.addEntry("Room Group Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 
+		WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
+		userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
+		initApp.menu.addEntry("User Appstore Permissions", pageRes5);
+		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
+
 		WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
 		userConfigPage = new UserConfigPage(pageRes4, this);
 		initApp.menu.addEntry("User Attribute Configuration", pageRes4);
 		initApp.configMenuConfig(pageRes4.getMenuConfiguration());
 
-		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
-		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
-		initApp.menu.addEntry("User Type App Access", pageRes6);
-		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
+		WidgetPage<?> pageRes1 = page; //initApp.widgetApp.createWidgetPage("userroomperm.html");
+		userRoomPermPage = new UserRoomPermissionPage(pageRes1, this);
+		initApp.menu.addEntry("Single Room Access Permissions", pageRes1);
+		initApp.configMenuConfig(pageRes1.getMenuConfiguration());
+
 
 		initDemands();
 	}
