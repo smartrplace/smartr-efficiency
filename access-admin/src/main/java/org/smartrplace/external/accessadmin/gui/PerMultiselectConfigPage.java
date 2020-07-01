@@ -53,7 +53,9 @@ public abstract class PerMultiselectConfigPage<T, G, R extends Resource> extends
 			Row row, ApplicationManager appMan) {
 		
 		addNameLabel(object, vh, id, row);
-		//vh.stringLabel("Name", id, object.userName(), row);
+
+		addWidgetsBeforeMultiSelect(object, vh, id, req, row, appMan);
+
 		if(req == null) {
 			vh.registerHeaderEntry(getGroupColumnLabel());
 			return;
@@ -88,5 +90,7 @@ public abstract class PerMultiselectConfigPage<T, G, R extends Resource> extends
 				}
 			});
 		row.addCell(WidgetHelper.getValidWidgetId(getGroupColumnLabel()), groupSelect);
+		
+		addWidgetsAfterMultiSelect(object, vh, id, req, row, appMan);
 	}
 }

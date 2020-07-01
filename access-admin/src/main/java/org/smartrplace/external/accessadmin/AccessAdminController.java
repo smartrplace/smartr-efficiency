@@ -16,15 +16,13 @@ import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.MainPage;
 import org.smartrplace.external.accessadmin.gui.RoomConfigPage;
 import org.smartrplace.external.accessadmin.gui.RoomSetupPage;
-import org.smartrplace.external.accessadmin.gui.UserSetupPage;
-import org.smartrplace.external.accessadmin.gui.UserConfigPage;
 import org.smartrplace.external.accessadmin.gui.UserGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
-import org.smartrplace.external.accessadmin.gui.UserSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 
+import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 
@@ -44,7 +42,7 @@ public class AccessAdminController {
 	public UserRoomPermissionPage userRoomPermPage;
 	public UserRoomGroupPermissionPage userRoomGroupPermPage;
 	public RoomConfigPage roomConfigPage;
-	public UserConfigPage userConfigPage;
+	//public UserConfigPage userConfigPage;
 	public UserGroupPermissionPage userGroupPermPage;
 	WidgetApp widgetApp;
 
@@ -52,7 +50,7 @@ public class AccessAdminController {
 	public final ResourceList<BuildingPropertyUnit> roomGroups;
 	public final UserStatusPermissionPage userStatusPage;
 	public final RoomSetupPage roomSetupPage;
-	public final UserSetupPage userSetupPage;
+	//public final UserSetupPage userSetupPage;
 	
 	public AccessAdminController(ApplicationManager appMan, AccessAdminApp initApp) {
 		this.appMan = appMan;
@@ -74,14 +72,14 @@ public class AccessAdminController {
 		initApp.menu.addEntry("Room Setup", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
-		WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html");
-		userSetupPage = new UserSetupPage(pageRes11, this);
-		initApp.menu.addEntry("User Setup", pageRes11);
-		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
+		//WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html");
+		//userSetupPage = new UserSetupPage(pageRes11, this);
+		//initApp.menu.addEntry("User Setup", pageRes11);
+		//initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 
 		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
 		roomConfigPage = new RoomConfigPage(pageRes3, this);
-		initApp.menu.addEntry("Room - Group Mapping", pageRes3);
+		initApp.menu.addEntry("Room - Attribute Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 
 		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
@@ -99,10 +97,10 @@ public class AccessAdminController {
 		initApp.menu.addEntry("User Appstore Mapping", pageRes5);
 		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
 
-		WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
-		userConfigPage = new UserConfigPage(pageRes4, this);
-		initApp.menu.addEntry("User Attribute Configuration", pageRes4);
-		initApp.configMenuConfig(pageRes4.getMenuConfiguration());
+		//WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
+		//userConfigPage = new UserConfigPage(pageRes4, this);
+		//initApp.menu.addEntry("User Attribute Configuration", pageRes4);
+		//initApp.configMenuConfig(pageRes4.getMenuConfiguration());
 
 		WidgetPage<?> pageRes1 =  initApp.widgetApp.createWidgetPage("singleroome.html");//initApp.widgetApp.createWidgetPage("userroomperm.html");
 		userRoomPermPage = new UserRoomPermissionPage(pageRes1, this);
@@ -117,11 +115,14 @@ public class AccessAdminController {
      * This app uses a central configuration resource, which is accessed here
      */
     private void initConfigurationResource() {
+    	appConfigData = getAppConfigDataInit(appMan);
+    }
+    public static AccessAdminConfig getAppConfigDataInit(ApplicationManager appMan) {
 		//TODO provide Util?
 		String name = AccessAdminConfig.class.getSimpleName().substring(0, 1).toLowerCase()+AccessAdminConfig.class.getSimpleName().substring(1);
-		appConfigData = appMan.getResourceAccess().getResource(name);
+		AccessAdminConfig appConfigData = appMan.getResourceAccess().getResource(name);
 		if (appConfigData != null) { // resource already exists (appears in case of non-clean start)
-			appMan.getLogger().debug("{} started with previously-existing config resource", getClass().getName());
+			appMan.getLogger().debug("{} started with previously-existing config resource", AccessAdminController.class.getName());
 		}
 		else {
 			appConfigData = (AccessAdminConfig) appMan.getResourceManagement().createResource(name, AccessAdminConfig.class);
@@ -129,8 +130,9 @@ public class AccessAdminController {
 			//TODO provide different sample, provide documentation in code
 			appConfigData.name().setValue("sampleName");
 			appConfigData.activate(true);
-			appMan.getLogger().debug("{} started with new config resource", getClass().getName());
+			appMan.getLogger().debug("{} started with new config resource", AccessAdminController.class.getName());
 		}
+		return appConfigData;
     }
     
     /*
@@ -154,6 +156,10 @@ public class AccessAdminController {
 		return result ;*/
 	}
 	public List<AccessConfigUser> getUserGroups(boolean includeNaturalUsers, boolean includetype2Groups) {
+		return getUserGroups(includeNaturalUsers, includetype2Groups, appConfigData);
+	}
+	public static List<AccessConfigUser> getUserGroups(boolean includeNaturalUsers, boolean includetype2Groups,
+			AccessAdminConfig appConfigData) {
 		List<AccessConfigUser> result = new ArrayList<>();
 		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
 			if(!includetype2Groups && (user.isGroup().getValue() == 2))
@@ -165,11 +171,13 @@ public class AccessAdminController {
 	}
 	
 	public AccessConfigUser getUserConfig(String userName) {
-		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
+		AccessConfigUser result = ResourceListHelper.getOrCreateNamedElement(userName, appConfigData.userPermissions());
+		return result;
+		/*for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
 			if(user.name().getValue().equals(userName))
 				return user;
 		}
-		return null;
+		return null;*/
 	}
 	
 	public List<BuildingPropertyUnit> getGroups(Room object) {

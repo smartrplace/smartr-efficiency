@@ -25,6 +25,7 @@ import org.smartrplace.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
+import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
@@ -107,6 +108,8 @@ public class MonitoringServiceBaseApp implements Application {
 	private DriverHandlerJMBus jmbusConfig;
 	protected ServiceRegistration<DriverHandlerProvider> mqttBrokerDriver = null;
 	private DriverHandlerMQTTBroker mqttBrokerConfig;
+	protected ServiceRegistration<DriverHandlerProvider> knxDriver = null;
+	private DriverHandlerKNX_IP knxConfig;
 	
 
 
@@ -162,6 +165,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
 	   mqttBrokerConfig = new DriverHandlerMQTTBroker(appManager, configAdmin);
 	   mqttBrokerDriver = bc.registerService(DriverHandlerProvider.class, mqttBrokerConfig, null);
+	   knxConfig = new DriverHandlerKNX_IP(appManager, configAdmin);
+	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
 	}
  	
      /*

@@ -35,7 +35,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Room - Group Mapping";
+		return "Room - Attribute Configuration";
 	}
 	
 	@Override

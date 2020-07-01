@@ -10,7 +10,6 @@ import java.util.List;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
-import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -19,7 +18,6 @@ import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomGroupTbl;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.UserFiltering2Steps;
-import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -28,10 +26,14 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
-import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.form.button.Button;
 
+@SuppressWarnings("serial")
 public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserFilter<RoomGroupTbl> {
+	protected static final String SINGLE_ROOM_MAPPING_LINK = "/org/smartrplace/external/actionadmin/singleroome.html";
+
 	protected final AccessAdminController controller;
 	
 	//protected UserFilteringBase<Room> userFilter;
@@ -88,7 +90,6 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
-		StaticTable topTable = new StaticTable(1, 5);
 		/*roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
 				OptionSavingMode.PER_USER, controller.appConfigData.roomGroups()) {
 			private static final long serialVersionUID = 1L;
@@ -117,10 +118,16 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 		//RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
 		//		"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
+		StaticTable topTable;
+		if(Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
+			topTable = new StaticTable(1, 5);
+		} else {
+			topTable = new StaticTable(2, 5);
+		}
 		topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
 		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
 			Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
-				private static final long serialVersionUID = 1L;
+
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
 					AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
@@ -136,6 +143,25 @@ public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserF
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);
+		Alert info = new Alert(page, "description","Explanation") {
+
+			@Override
+	    	public void onGET(OgemaHttpRequest req) {
+	    		String text = "Select a user via the dropdowns at the top of the page. Define which rooms the user can access "
+	    				+ "(UserRoomPermission) and which rooms are displayed to the user as default (User Room Priority). You can"
+	    				+ " also define for which the user may see data logs and perform administration access such as calendar "
+	    				+ "adminitration. This page defines such access based on room groups / room attributes, to add settings for"
+	    				+ " single room use the page "
+	    				+ "<a href=\"" + SINGLE_ROOM_MAPPING_LINK + "\"><b>Single Room Access Permissions</b></a>.";
+				setHtml(text, req);
+	    		allowDismiss(true, req);
+	    		autoDismiss(-1, req);
+	    	}
+	    	
+	    };
+	    info.addDefaultStyle(AlertData.BOOTSTRAP_INFO);
+	    info.setDefaultVisibility(true);
+	    page.append(info);
 	}
 	
 	//@Override

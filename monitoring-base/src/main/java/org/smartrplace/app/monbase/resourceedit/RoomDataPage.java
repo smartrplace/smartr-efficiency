@@ -53,7 +53,7 @@ public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 		if(bu != null) {
 			vh.floatEdit("Area(m2)", id, bu.groundArea(), row, alert, 0, Float.MAX_VALUE, "Area must be positive !");			
 		}
-		for(UtilityType util: getTypes(req)) {
+		if(roomId == null || roomId.equals(DPRoom.BUILDING_OVERALL_ROOM_LABEL)) for(UtilityType util: getTypes(req)) {
 			FloatResource refCon = KPIResourceAccess.getDefaultYearlyConsumptionReferenceResource(util, roomId, appMan);
 			if(refCon == null) {
 				continue;
@@ -79,7 +79,10 @@ public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 		List<Room> rooms = KPIResourceAccess.getRealRooms(appMan.getResourceAccess());
 		List<DPRoom> result = new ArrayList<>();
 		for(Room room: rooms) {
-			result.add(dpService.getRoom(room.getLocation()));
+			DPRoom dproom = dpService.getRoom(room.getLocation());
+			if(dproom.getResource() == null)
+				dproom.setResource(room);
+			result.add(dproom);
 		}
 		result.add(dpService.getRoom(DPRoom.BUILDING_OVERALL_ROOM_LABEL));
 		return result ;

@@ -29,9 +29,15 @@ public class UserAdminBaseUtil {
 		GUEST_APPS.add("org.smartrplace.apps.smartrplace-heatcontrol-servlet");
 	}
 
-	public static Collection<String> USER_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
-		return getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
+	public static Collection<String> DISPLAY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
+		return getPermissionsCoordinates(UserStatus.DISPLAY, userPermService, useWorkingCopy);
 		
+	}
+
+	public static Collection<String> USER_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
+		List<String> result = getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
+		result.add("org.smartrplace.apps.overview-src");
+		return result;
 	}
 
 	public static Collection<String> SECRETARY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
@@ -139,6 +145,8 @@ public class UserAdminBaseUtil {
 			return UserStatus.SECRETARY;
 		if(hasAllPerms(appPermissions, USER_APPS(userPermService, useWorkingCopy)))
 			return UserStatus.USER_STD;
+		if(hasAllPerms(appPermissions, DISPLAY_APPS(userPermService, useWorkingCopy)))
+			return UserStatus.DISPLAY;
 		//if(hasAllPerms(appPermissions, GUEST_APPS))
 		//	return UserStatus.GUEST;
 		//if(hasAllPerms(appPermissions, BASE_APPS))
@@ -167,6 +175,8 @@ public class UserAdminBaseUtil {
 			return getAdditionalPerms(appPermissions, SECRETARY_APPS(userPermService, useWorkingCopy));
 		case USER_STD:
 			return getAdditionalPerms(appPermissions, USER_APPS(userPermService, useWorkingCopy));
+		case DISPLAY:
+			return getAdditionalPerms(appPermissions, DISPLAY_APPS(userPermService, useWorkingCopy));
 		//case GUEST:
 		//	return getAdditionalPerms(appPermissions, GUEST_APPS);
 		//case RAW:
@@ -202,6 +212,9 @@ public class UserAdminBaseUtil {
 					appManPlus);
 		case USER_STD:
 			return setPerms(userData, currentUserPerms, USER_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
+					appManPlus);
+		case DISPLAY:
+			return setPerms(userData, currentUserPerms, DISPLAY_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
 					appManPlus);
 		//case GUEST:
 		//	return setPerms(userData, currentUserPerms, GUEST_APPS, additionalPermissionstoMaintain);

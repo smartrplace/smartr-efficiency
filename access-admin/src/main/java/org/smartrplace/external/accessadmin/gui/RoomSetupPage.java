@@ -23,11 +23,16 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
+@SuppressWarnings("serial")
 public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, BooleanResource> {
+	protected static final String ROOM_GROUP_MAPPING_LINK = "/org/smartrplace/external/actionadmin/roomconfig.html";
+
 	protected final AccessAdminController controller;
 	
 	protected ResourceList<AccessConfigUser> userPerms;
@@ -60,7 +65,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		StaticTable topTable = new StaticTable(2, 5);
 		
 		Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
-			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				BuildingPropertyUnit grp = ResourceListHelper.createNewNamedElement(
@@ -76,7 +81,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		//topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
 		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
 			Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
-				private static final long serialVersionUID = 1L;
+
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
 					AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
@@ -92,6 +97,21 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);
+		Alert info = new Alert(page, "description","Explanation") {
+
+			@Override
+	    	public void onGET(OgemaHttpRequest req) {
+	    		String text = "Change the label of room attributes here. The mapping of individual rooms to the attributes can be set on the page "
+	    				+ "<a href=\"" + ROOM_GROUP_MAPPING_LINK + "\"><b>Room - Attribute Configuration</b></a>.";
+				setHtml(text, req);
+	    		allowDismiss(true, req);
+	    		autoDismiss(-1, req);
+	    	}
+	    	
+	    };
+	    info.addDefaultStyle(AlertData.BOOTSTRAP_INFO);
+	    info.setDefaultVisibility(true);
+	    page.append(info);
 	}
 	
 	@Override

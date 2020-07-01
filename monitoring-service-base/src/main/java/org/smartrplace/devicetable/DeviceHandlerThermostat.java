@@ -19,8 +19,11 @@ import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
+import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
+import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond.SetpointToFeedbackSimSimple;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -179,4 +182,13 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		return appMan.getResourcePatternAccess();
 	}
 
+	@Override
+	public RoomInsideSimulationBase startSimulationForDevice(Thermostat deviceResource,
+			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		//Return value is currently not used anyways
+		new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
+				deviceResource.temperatureSensor().reading(), appMan);
+		return new SetpointToFeedbackSimSimple(deviceResource.temperatureSensor().settings().setpoint(),
+				deviceResource.temperatureSensor().deviceFeedback().setpoint(), appMan);
+	}
 }

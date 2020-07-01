@@ -118,10 +118,11 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		return AirconditionerPattern.class;
 	}
 
-	public class AirConditionerSimSimple implements RoomInsideSimulationBase {
+	public static class SetpointToFeedbackSimSimple implements RoomInsideSimulationBase {
 		ResourceValueListener<TemperatureResource> setPointListener = null;
 		protected final TemperatureResource setPoint;
 		protected final TemperatureResource setPointFeedback;
+		ResourceValueListener<TemperatureResource> measurementListener = null;
 		
 		
 		@Override
@@ -130,7 +131,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 				setPoint.removeValueListener(setPointListener);
 		}
 
-		public AirConditionerSimSimple(TemperatureResource setPoint, TemperatureResource setPointFeedback,
+		public SetpointToFeedbackSimSimple(TemperatureResource setPoint, TemperatureResource setPointFeedback,
 				final ApplicationManager appMan) {
 			this.setPoint = setPoint;
 			this.setPointFeedback = setPointFeedback;
@@ -154,7 +155,10 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 	public	RoomInsideSimulationBase startSimulationForDevice(AirConditioner resource,
 			SingleRoomSimulationBase roomSimulation,
 			DatapointService dpService) {
-		return new AirConditionerSimSimple(resource.temperatureSensor().settings().setpoint(),
+		//Return value is currently not used anyways
+		new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
+				resource.temperatureSensor().reading(), appMan);
+		return new SetpointToFeedbackSimSimple(resource.temperatureSensor().settings().setpoint(),
 				resource.temperatureSensor().deviceFeedback().setpoint(), appMan);
 	}
 	
