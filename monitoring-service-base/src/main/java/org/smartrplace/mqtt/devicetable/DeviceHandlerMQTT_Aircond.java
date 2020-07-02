@@ -156,7 +156,8 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 			SingleRoomSimulationBase roomSimulation,
 			DatapointService dpService) {
 		//Return value is currently not used anyways
-		new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
+		if(roomSimulation != null)
+			new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
 				resource.temperatureSensor().reading(), appMan);
 		return new SetpointToFeedbackSimSimple(resource.temperatureSensor().settings().setpoint(),
 				resource.temperatureSensor().deviceFeedback().setpoint(), appMan);

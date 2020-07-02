@@ -186,8 +186,9 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 	public RoomInsideSimulationBase startSimulationForDevice(Thermostat deviceResource,
 			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
 		//Return value is currently not used anyways
-		new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
-				deviceResource.temperatureSensor().reading(), appMan);
+		if(roomSimulation != null)
+			new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
+					deviceResource.temperatureSensor().reading(), appMan);
 		return new SetpointToFeedbackSimSimple(deviceResource.temperatureSensor().settings().setpoint(),
 				deviceResource.temperatureSensor().deviceFeedback().setpoint(), appMan);
 	}
