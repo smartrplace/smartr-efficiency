@@ -17,6 +17,8 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
+import de.iwes.util.format.StringFormatHelper;
+
 public class UserAdminBaseUtil {
 	protected static final String WEB_ACCESS_PERM_STARTSTRING = "(org.ogema.accesscontrol.WebAccessPermission \"name=";
 	public static Collection<String> BASE_APPS = Arrays.asList(new String[]{"org.ogema.widgets.ogema-js-bundle",
@@ -27,6 +29,7 @@ public class UserAdminBaseUtil {
 	static {
 		GUEST_APPS = new ArrayList<String>(BASE_APPS);
 		GUEST_APPS.add("org.smartrplace.apps.smartrplace-heatcontrol-servlet");
+		GUEST_APPS.add("org.smartrplace.apps.heatcontrol-frontend");
 	}
 
 	public static Collection<String> DISPLAY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
@@ -34,14 +37,19 @@ public class UserAdminBaseUtil {
 		
 	}
 
+	protected static void addGeneralUserApps(List<String> result) {
+		result.add("org.smartrplace.apps.overview-src");		
+	}
+	
 	public static Collection<String> USER_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
 		List<String> result = getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
-		result.add("org.smartrplace.apps.overview-src");
+		addGeneralUserApps(result);
 		return result;
 	}
 
 	public static Collection<String> SECRETARY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
 		List<String> result = getPermissionsCoordinates(UserStatus.SECRETARY, userPermService, useWorkingCopy);
+		addGeneralUserApps(result);
 		//Just to identify the user level, has no GUI
 		result.add("org.smartrplace.api.smartr-efficiency-api");
 		return result;		
@@ -49,6 +57,7 @@ public class UserAdminBaseUtil {
 
 	public static Collection<String> ADMIN_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
 		List<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService, useWorkingCopy);
+		addGeneralUserApps(result);
 		//Just to identify the user level, has no GUI
 		result.add("org.smartrplace.apps.smartr-efficiency-util");
 		return result;
@@ -56,6 +65,7 @@ public class UserAdminBaseUtil {
 	
 	public static Collection<String> SUPERADMIN_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
 		List<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService, useWorkingCopy);
+		addGeneralUserApps(result);
 		result.add("org.ogema.ref-impl.framework-administration");
 		result.add("org.ogema.messaging.message-settings");
 		result.add("org.ogema.apps.room-link");
@@ -232,6 +242,11 @@ public class UserAdminBaseUtil {
 			ApplicationManagerPlus appManPlus) {
 		List<String> missingPerms = getAdditionalPerms(require, currentUserPerms);
 		List<String> toRemovePerms = getAdditionalPerms(currentUserPerms, require);
+System.out.println("CurrentPerms:"+StringFormatHelper.getListToPrint(currentUserPerms));
+System.out.println("RequiredPerms:"+StringFormatHelper.getListToPrint(require));
+System.out.println("Missing["+(missingPerms!=null?""+missingPerms.size():"!null!")+"]:"+StringFormatHelper.getListToPrint(missingPerms));
+System.out.println("ToRemoveAll:"+StringFormatHelper.getListToPrint(toRemovePerms));
+
 		toRemovePerms.removeAll(additionalPermissionstoMaintain);
 		removePerms(userData, toRemovePerms, appManPlus);
 		
@@ -275,6 +290,7 @@ public class UserAdminBaseUtil {
 						.toString());
 						// appID.getOwnerUser(), appID.getOwnerGroup(), appID.getVersion() 
 		try {
+System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+"::"+props.getFilterString());
 			appManPlus.permMan().getAccessManager().removePermission(userName, props);
 		} catch (Exception e) {
 			appManPlus.appMan().getLogger().error("Could not add permissions for user {}",userName,e);
