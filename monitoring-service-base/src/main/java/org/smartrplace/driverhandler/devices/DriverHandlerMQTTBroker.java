@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -74,10 +75,12 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 		protected void putAllData(Configuration configPrev) {
 			try {
         	Dictionary<String, Object> dict = configPrev.getProperties();
+        	if(dict == null)
+        		dict = new Hashtable<>();
         	DriverHandlerJMBus.putDict(dict, "url", url);
-        	DriverHandlerJMBus.putDict(dict, "username", username);
+         	DriverHandlerJMBus.putDict(dict, "username", username);
         	DriverHandlerJMBus.putDict(dict, ".password", password);
-        	DriverHandlerJMBus.putDict(dict, "username", clientId);
+        	DriverHandlerJMBus.putDict(dict, "clientId", clientId);
 			configPrev.update(dict);			
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -105,13 +108,17 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 	        try {
 				//TODO: Check if this can be automated not only for reading on startup in activate method, but reading the current
 	        	//configuration any time
-	        	String filter = "(service.pid=com.smartrplace.mqtt.PahoClientService*)";
+	        	String filter = "(service.pid="+BASE_CONFIG_ID+"*)";
 	        	Configuration[] configs = configAdmin.listConfigurations(filter);
 	        	if(configs != null) for(Configuration config: configs) {
 	        		//TODO
 	        		DriverConfigMQTTBroker data = new DriverConfigMQTTBroker();
-	        		data.brokerConfigId = config.getFactoryPid();
-	        		data.brokerConfigId = config.getPid();
+	        		String fullPid = config.getPid();
+	        		int index = fullPid.indexOf('~');
+	        		if((index >= 0) && (fullPid.length() > (index+1))) {
+	        			data.brokerConfigId = fullPid.substring(index+1);
+	        		} else
+	        			data.brokerConfigId = fullPid;
 	        		if(data.brokerConfigId.startsWith("b")) {
 	        			try {
 	        				int numId = Integer.parseInt(data.brokerConfigId.substring(1));

@@ -69,7 +69,7 @@ public class AccessAdminController {
 		//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");
 		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("roomsetup.html", true);
 		roomSetupPage = new RoomSetupPage(pageRes10, this);
-		initApp.menu.addEntry("Room Setup", pageRes10);
+		initApp.menu.addEntry("Room Attribute Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
 		//WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html");
@@ -79,7 +79,7 @@ public class AccessAdminController {
 
 		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
 		roomConfigPage = new RoomConfigPage(pageRes3, this);
-		initApp.menu.addEntry("Room - Attribute Configuration", pageRes3);
+		initApp.menu.addEntry("Room Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 
 		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");

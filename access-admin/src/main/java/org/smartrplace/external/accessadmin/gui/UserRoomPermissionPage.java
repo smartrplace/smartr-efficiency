@@ -67,12 +67,10 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		String userName = userFilter.getSelectedUser(req);
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
 				userPerms, userName);
-		//AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
-		//		userPerms, userName);
 		ConfigurablePermission result = new ConfigurablePermission();
 		//We have to choose the right permission data for the page here
-		//if(userAcc == null)
-		//	userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);
+		if(userAcc == null)
+			userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);
 		result.accessConfig = userAcc.roompermissionData();
 		result.resourceId = object.room.getLocation();
 		result.permissionId = permissionID;

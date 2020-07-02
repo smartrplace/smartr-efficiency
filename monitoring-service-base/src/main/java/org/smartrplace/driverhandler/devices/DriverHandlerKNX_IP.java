@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +35,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 
 public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 	
-	public static final String BASE_CONFIG_ID = "com.smartrplace.mqtt.PahoClientService";
+	public static final String BASE_CONFIG_ID = "com.smartrplace.knx.baseservice";
 
 	protected static int maxIdx = 0;
 	public static class DriverConfigKNX_IP_IF implements DriverDeviceConfig {
@@ -71,6 +72,8 @@ public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 		protected void putAllData(Configuration configPrev) {
 			try {
         	Dictionary<String, Object> dict = configPrev.getProperties();
+        	if(dict == null)
+        		dict = new Hashtable<>();
         	DriverHandlerJMBus.putDict(dict, "url", url);
 			configPrev.update(dict);			
 			} catch (IOException e) {
@@ -92,20 +95,24 @@ public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 		}
 	}
 
-	public static class DriverConfigMQTT {
+	public static class DriverConfigKNX {
 		public Map<String, DriverConfigKNX_IP_IF> brokerData = new HashMap<>();
 
-		public DriverConfigMQTT(ConfigurationAdmin configAdmin) {
+		public DriverConfigKNX(ConfigurationAdmin configAdmin) {
 	        try {
 				//TODO: Check if this can be automated not only for reading on startup in activate method, but reading the current
 	        	//configuration any time
-	        	String filter = "(service.pid=com.smartrplace.mqtt.PahoClientService*)";
+	        	String filter = "(service.pid="+BASE_CONFIG_ID+"*)";
 	        	Configuration[] configs = configAdmin.listConfigurations(filter);
 	        	if(configs != null) for(Configuration config: configs) {
 	        		//TODO
 	        		DriverConfigKNX_IP_IF data = new DriverConfigKNX_IP_IF();
-	        		data.brokerConfigId = config.getFactoryPid();
-	        		data.brokerConfigId = config.getPid();
+	        		String fullPid = config.getPid();
+	        		int index = fullPid.indexOf('~');
+	        		if((index >= 0) && (fullPid.length() > (index+1))) {
+	        			data.brokerConfigId = fullPid.substring(index+1);
+	        		} else
+	        			data.brokerConfigId = fullPid;
 	        		if(data.brokerConfigId.startsWith("b")) {
 	        			try {
 	        				int numId = Integer.parseInt(data.brokerConfigId.substring(1));
@@ -154,7 +161,7 @@ public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 
 	@Override
 	public List<DriverDeviceConfig> getDeviceConfigs() {
-		DriverConfigMQTT config = new DriverConfigMQTT(configAdmin);
+		DriverConfigKNX config = new DriverConfigKNX(configAdmin);
 
 		List<DriverDeviceConfig> result = new ArrayList<>();
 		for(DriverConfigKNX_IP_IF devConfig: config.brokerData.values()) {
@@ -196,7 +203,7 @@ public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 					vh.registerHeaderEntry("Client ID");
 
 					vh.registerHeaderEntry("Delete");
-					vh.registerHeaderEntry("Copy");
+					//vh.registerHeaderEntry("Copy");
 					
 					return;
 				}
@@ -247,7 +254,7 @@ public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 
 			@Override
 			protected String getTableTitle() {
-				return "KNO IP Configuration";
+				return "KNX IP Configuration";
 			}
 			
 			@Override

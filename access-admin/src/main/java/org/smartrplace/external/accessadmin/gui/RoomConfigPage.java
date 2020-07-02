@@ -1,8 +1,11 @@
 package org.smartrplace.external.accessadmin.gui;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
@@ -10,15 +13,27 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
+import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
 public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPropertyUnit, Room> {
+	public final static Map<String, String> valuesToSet = new HashMap<>();
+	static {
+		int[] ks = RoomHelper.getRoomTypeKeys();
+		for(int type: ks) {
+			String label = RoomHelper.getRoomTypeString(type, OgemaLocale.ENGLISH);
+			valuesToSet.put(""+type, label);
+		}
+	}
+	
 	protected final AccessAdminController controller;
 	protected RoomFilteringWithGroups<Room> roomFilter;
 
@@ -34,8 +49,14 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	}
 
 	@Override
+	protected void addWidgetsBeforeMultiSelect(Room object, ObjectResourceGUIHelper<Room, Room> vh, String id,
+			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
+		vh.dropdown("Room Type", id, object.type(), row, valuesToSet);
+	}
+	
+	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Room - Attribute Configuration";
+		return "Room Configuration";
 	}
 	
 	@Override
@@ -68,7 +89,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 
 	@Override
 	protected String getGroupColumnLabel() {
-		return "Room Groups";
+		return "Room Attributes";
 	}
 
 	/*@Override

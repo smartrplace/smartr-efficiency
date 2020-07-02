@@ -46,12 +46,12 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Room Setup";
+		return "Room Attribute Configuration";
 	}
 	
 	@Override
 	protected String getTypeName(OgemaLocale locale) {
-		return "Room Group";
+		return "Room Attribute";
 	}
 
 	@Override
@@ -64,22 +64,22 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(2, 5);
 		
-		Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
+		Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Attribute") {
 
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				BuildingPropertyUnit grp = ResourceListHelper.createNewNamedElement(
 						controller.appConfigData.roomGroups(),
-						"New Room Group", false);
+						"New Room Attribute", false);
 				grp.activate(true);
 			}
 		};
 		addRoomGroup.registerDependentWidget(mainTable);
-		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
-				"/de/iwes/ogema/apps/logtransfermodus/index.html");
+		//RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
+		//		"/de/iwes/ogema/apps/logtransfermodus/index.html");
 		
 		//topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
-		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
+		/*if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
 			Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
 
 				@Override
@@ -92,8 +92,8 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 				}
 			};
 			topTable.setContent(1, 0, addUserGroup);
-		}
-		topTable.setContent(1, 1, addRoomGroup).setContent(1, 2, userAdminLink);
+		}*/
+		topTable.setContent(1, 1, addRoomGroup); //.setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);
