@@ -18,7 +18,8 @@ public interface AlarmConfigBase extends SmartEffResource {
 	 * If the respective resource or schedule has an active subresource of type IntegerResource named
 	 * alarmStatus then this resource shall be set by the alarming logic.
 	 */
-	SmartEffTimeSeries supervisedTS();
+	SmartEffTimeSeries supervisedTS();  // ignore for now
+
 	/** TODO: Change this to SingleValueResource in the future! Currently no alarming is possible e.g.
 	 * for input from drivers not providing as sensors like JMBUS
 	 * @return
