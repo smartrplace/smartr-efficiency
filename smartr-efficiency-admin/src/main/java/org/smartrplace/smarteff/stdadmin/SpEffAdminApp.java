@@ -32,6 +32,7 @@ import org.smartrplace.smarteff.util.SPPageUtil;
 import de.iwes.timeseries.eval.base.provider.BasicEvaluationProvider;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
+import de.iwes.widgets.api.widgets.WidgetPage;
 
 /**
  * Template OGEMA application class
@@ -109,7 +110,7 @@ public class SpEffAdminApp implements Application, ServiceAccess {
         BaseDataServiceAdmin dataService = new BaseDataServiceAdmin(controller);
         sr = bc.registerService(SmartEffExtensionService.class, dataService, null);
         srAppManSPMin = bc.registerService(ApplicationManagerSpExtMinimal.class, controller.appManExtMin, null);
-	
+        
         initDone = true;
         controller.processOpenServices();
  	}
