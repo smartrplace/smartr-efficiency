@@ -17,6 +17,8 @@ import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 
 public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<T, BooleanResource> {
+	protected void finishPermissionButton(Button perm) {}
+	
 	public static class ConfigurablePermission implements PermissionCellData {
 		String resourceId;
 		String permissionId;
@@ -105,6 +107,7 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 					acc.setOwnStatus(status);
 				}
 			};
+			finishPermissionButton(perm);
 			row.addCell(WidgetHelper.getValidWidgetId(label), perm);
 			perm.registerDependentWidget(perm);
 		}

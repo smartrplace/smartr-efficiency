@@ -5,11 +5,13 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.hw.install.gui.RoomEditHelper;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomGroupTbl;
@@ -17,7 +19,6 @@ import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
-import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
@@ -27,7 +28,6 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
-import de.iwes.widgets.html.form.button.RedirectButton;
 
 @SuppressWarnings("serial")
 public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, BooleanResource> {
@@ -59,6 +59,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		return ResourceUtils.getHumanReadableShortName(obj.roomGrp);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
@@ -94,6 +95,9 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 			topTable.setContent(1, 0, addUserGroup);
 		}*/
 		topTable.setContent(1, 1, addRoomGroup); //.setContent(1, 2, userAdminLink);
+		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.suppresscreateroom"))
+			RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
+					alert, appMan, 1, 2);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);
