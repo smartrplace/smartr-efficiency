@@ -23,7 +23,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)
 public class AlarmingConfigApp implements Application {
-	public static final String urlPath = "/org/smartrplace/external/actionadmin";
+	public static final String urlPath = "/org/smartrplace/alarmingconfig";
 
     private OgemaLogger log;
     private ApplicationManager appMan;
@@ -64,6 +64,7 @@ public class AlarmingConfigApp implements Application {
 		menu = new NavigationMenu("Select Page");
 
         controller = new AlarmingConfigAppController(appMan, this);
+        log.info("{} started", getClass().getName());
      }
 
      /*

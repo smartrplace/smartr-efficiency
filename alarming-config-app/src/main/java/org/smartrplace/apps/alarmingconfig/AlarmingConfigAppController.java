@@ -4,6 +4,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
+import org.ogema.core.model.Resource;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 
@@ -36,7 +37,8 @@ public class AlarmingConfigAppController {
 		appManPlus.setUserPermService(userPermService);
 		
 		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html", true);
-		mainPage = new MainPage(pageRes10, this);
+		Resource base = appMan.getResourceAccess().getResource("master");
+		mainPage = new MainPage(pageRes10, appMan, null, base);
 		initApp.menu.addEntry("Room Setup", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
@@ -49,6 +51,7 @@ public class AlarmingConfigAppController {
 		//initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 
 		initDemands();
+
 	}
 
      /*
