@@ -30,6 +30,7 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.form.button.Button;
 
+@Deprecated
 @SuppressWarnings("serial")
 public class UserRoomGroupPermissionPage extends StandardPermissionPageWithUserFilter<RoomGroupTbl> {
 	protected static final String SINGLE_ROOM_MAPPING_LINK = "/org/smartrplace/external/actionadmin/singleroome.html";
