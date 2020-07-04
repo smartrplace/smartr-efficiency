@@ -3,9 +3,11 @@ package org.smartrplace.gui.filtering.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.smartrplace.external.accessadmin.AccessAdminController;
+import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.DualFiltering2Steps;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
@@ -18,18 +20,22 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessConfigUser, T> {
 	private static final long serialVersionUID = 1L;
-	protected final AccessAdminController controller;
+	//protected final AccessAdminController controller;
+	protected final ApplicationManagerPlus appManPlus;
+	protected final AccessAdminConfig appConfigData;
 
 	public UserFiltering2Steps(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode, long optionSetUpdateRate,
-			AccessAdminController controller) {
+			AccessAdminConfig appConfigData, ApplicationManagerPlus appManPlus) {
 		super(page, id, saveOptionMode, optionSetUpdateRate, false);
-		this.controller = controller;
+		//this.controller = controller;
+		this.appManPlus = appManPlus;
+		this.appConfigData = appConfigData;
 	}
 
 	@Override
 	protected List<GenericFilterOption<String>> getOptionsDynamic(AccessConfigUser group) {
 		List<GenericFilterOption<String>> result = new ArrayList<>();
-		for(UserAccount ac: controller.getAllNaturalUsers()) { //controller.appMan.getAdministrationManager().getAllUsers()) {
+		for(UserAccount ac: AccessAdminController.getAllNaturalUsers(true, appManPlus)) { //controller.appMan.getAdministrationManager().getAllUsers()) {
 			if(group != null && (!firstDropDown.isInSelection(ac.getName(), group)))
 				continue;
 			GenericFilterOption<String> newOption = new SingleUserOption(ac.getName(), LocaleHelper.getLabelMap(ac.getName()));
@@ -41,7 +47,7 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	@Override
 	protected List<GenericFilterFixedGroup<String, AccessConfigUser>> getGroupOptionsDynamic() {
 		List<GenericFilterFixedGroup<String, AccessConfigUser>> result = new ArrayList<>();
-		for(AccessConfigUser grp: controller.getUserGroups(false)) {
+		for(AccessConfigUser grp: AccessAdminController.getUserGroups(false, true, appConfigData)) {
 			GenericFilterFixedGroup<String, AccessConfigUser> newOption = getGroupOptionDynamic(grp);
 			if(newOption == null)
 				continue;
@@ -54,7 +60,7 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	protected GenericFilterFixedGroup<String, AccessConfigUser> getGroupOptionDynamic(AccessConfigUser grp) {
 		String name = grp.name().getValue();
 		if(grp.isGroup().getValue() >= 2) {
-			GenericFilterFixedGroup<String, AccessConfigUser> filter = controller.userPermService.getUserGroupFiler(name);
+			GenericFilterFixedGroup<String, AccessConfigUser> filter = appManPlus.userPermService().getUserGroupFiler(name);
 			return filter;
 		}
 		GenericFilterFixedGroup<String, AccessConfigUser> newOption = new GenericFilterFixedGroup<String, AccessConfigUser>(
@@ -62,7 +68,7 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 
 			@Override
 			public boolean isInSelection(String object, AccessConfigUser group) {
-				AccessConfigUser userConfig = controller.getUserConfig(object);
+				AccessConfigUser userConfig = AccessAdminController.getUserConfig(object, appConfigData);
 				return ResourceHelper.containsLocation(userConfig.superGroups().getAllElements(), grp);
 			}
 		};
@@ -97,9 +103,9 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 
 	@Override
 	protected List<AccessConfigUser> getGroups(String object) {
-		AccessConfigUser userConfig = controller.getUserConfig(object);
+		AccessConfigUser userConfig = AccessAdminController.getUserConfig(object, appConfigData);
 		List<AccessConfigUser> result = new ArrayList<>();
-		result.addAll(controller.getAllGroupsForUser(userConfig)); //.superGroups().getAllElements());
+		result.addAll(AccessAdminController.getAllGroupsForUser(userConfig, appConfigData, appManPlus.userPermService())); //.superGroups().getAllElements());
 		return result ;
 	}
 	
@@ -122,7 +128,7 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	
 	@Override
 	protected long getFrameworkTime() {
-		return controller.appMan.getFrameworkTime();
+		return appManPlus.appMan().getFrameworkTime();
 	}
 
 	@Override

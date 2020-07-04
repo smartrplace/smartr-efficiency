@@ -89,7 +89,7 @@ public abstract class PerMultiselectConfigPage<T, G, R extends Resource> extends
 					return result;
 				}
 			});
-		row.addCell(WidgetHelper.getValidWidgetId(getGroupColumnLabel()), groupSelect);
+		row.addCell(WidgetHelper.getValidWidgetId(getGroupColumnLabel()), groupSelect, 3);
 		
 		addWidgetsAfterMultiSelect(object, vh, id, req, row, appMan);
 	}

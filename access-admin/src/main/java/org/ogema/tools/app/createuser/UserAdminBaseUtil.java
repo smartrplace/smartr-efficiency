@@ -16,8 +16,12 @@ import org.osgi.framework.Version;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionInfo;
+import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
+import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 
 import de.iwes.util.format.StringFormatHelper;
+import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.resourcelist.ResourceListHelper;
 
 public class UserAdminBaseUtil {
 	protected static final String WEB_ACCESS_PERM_STARTSTRING = "(org.ogema.accesscontrol.WebAccessPermission \"name=";
@@ -377,4 +381,13 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		}
 		return setPerms(userData, userPerms, destStatus, currentStatusRes.addPerms, appManPlus, true);	
 	}
+	
+	public static void initAcc(AccessAdminConfig appConfigData) {
+		for(UserStatus status: UserStatus.values()) {
+			AccessConfigUser userGrp = ResourceListHelper.getOrCreateNamedElement(UserStatus.getLabel(status, null),
+					appConfigData.userPermissions());
+			ValueResourceHelper.setCreate(userGrp.isGroup(), 2);
+		}
+	}
+
 }

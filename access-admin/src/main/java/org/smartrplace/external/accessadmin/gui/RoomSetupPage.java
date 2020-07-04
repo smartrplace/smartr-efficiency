@@ -5,13 +5,11 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
-import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.apps.hw.install.gui.RoomEditHelper;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomGroupTbl;
@@ -46,7 +44,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Room Attribute Configuration";
+		return "1. Room Attribute Configuration";
 	}
 	
 	@Override
@@ -95,9 +93,6 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 			topTable.setContent(1, 0, addUserGroup);
 		}*/
 		topTable.setContent(1, 1, addRoomGroup); //.setContent(1, 2, userAdminLink);
-		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.suppresscreateroom"))
-			RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
-					alert, appMan, 1, 2);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(
 		//		userFilter, roomFilter);
@@ -106,7 +101,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 			@Override
 	    	public void onGET(OgemaHttpRequest req) {
 	    		String text = "Change the label of room attributes here. The mapping of individual rooms to the attributes can be set on the page "
-	    				+ "<a href=\"" + ROOM_GROUP_MAPPING_LINK + "\"><b>Room - Attribute Configuration</b></a>.";
+	    				+ "<a href=\"" + ROOM_GROUP_MAPPING_LINK + "\"><b>Room Configuration</b></a>.";
 				setHtml(text, req);
 	    		allowDismiss(true, req);
 	    		autoDismiss(-1, req);

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
@@ -11,6 +12,7 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
+import org.ogema.tools.app.createuser.UserAdminBaseUtil;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.MainPage;
@@ -18,7 +20,9 @@ import org.smartrplace.external.accessadmin.gui.RoomConfigPage;
 import org.smartrplace.external.accessadmin.gui.RoomSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
+import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage2;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
+import org.smartrplace.external.accessadmin.gui.UserSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 
@@ -41,7 +45,9 @@ public class AccessAdminController {
 	public MainPage mainPage;
 	public UserRoomPermissionPage userRoomPermPage;
 	public UserRoomGroupPermissionPage userRoomGroupPermPage;
+	public UserRoomGroupPermissionPage2 userRoomGroupPermPage2;
 	public RoomConfigPage roomConfigPage;
+	public UserSetupPage userSetupPage;
 	//public UserConfigPage userConfigPage;
 	public UserGroupPermissionPage userGroupPermPage;
 	WidgetApp widgetApp;
@@ -64,47 +70,54 @@ public class AccessAdminController {
 		userPerms = appConfigData.userPermissions();
 		roomGroups = appConfigData.roomGroups();
 
+		UserAdminBaseUtil.initAcc(appConfigData);
+		
 		//mainPage = new MainPage(page, appMan);
 
 		//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");
 		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("roomsetup.html", true);
 		roomSetupPage = new RoomSetupPage(pageRes10, this);
-		initApp.menu.addEntry("Room Attribute Configuration", pageRes10);
+		initApp.menu.addEntry("1. Room Attribute Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
-
-		//WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html");
-		//userSetupPage = new UserSetupPage(pageRes11, this);
-		//initApp.menu.addEntry("User Setup", pageRes11);
-		//initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 
 		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
 		roomConfigPage = new RoomConfigPage(pageRes3, this);
-		initApp.menu.addEntry("Room Configuration", pageRes3);
+		initApp.menu.addEntry("2. Room Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 
+		WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html");
+		userSetupPage = new UserSetupPage(pageRes11, appConfigData, appMan);
+		initApp.menu.addEntry("3. User Attribute Configuration", pageRes11);
+		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
+
 		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
-		userRoomGroupPermPage = new UserRoomGroupPermissionPage(pageRes2, this);
-		initApp.menu.addEntry("User - Room Group Mapping", pageRes2);
+		userRoomGroupPermPage2 = new UserRoomGroupPermissionPage2(pageRes2, this);
+		initApp.menu.addEntry("4. User - Room Group Mapping", pageRes2);
 		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
+
+		WidgetPage<?> pageRes2V = initApp.widgetApp.createWidgetPage("userroompermv1.html");
+		userRoomGroupPermPage = new UserRoomGroupPermissionPage(pageRes2V, this);
+		initApp.menu.addEntry("4. User - Room Group Mapping (V1)", pageRes2V);
+		initApp.configMenuConfig(pageRes2V.getMenuConfiguration());
 
 		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
 		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
-		initApp.menu.addEntry("User App Mapping", pageRes6);
+		initApp.menu.addEntry("5. User App Mapping", pageRes6);
 		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
 
 		WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
 		userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
-		initApp.menu.addEntry("User Appstore Mapping", pageRes5);
+		initApp.menu.addEntry("6. User Appstore Mapping", pageRes5);
 		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
 
 		//WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
 		//userConfigPage = new UserConfigPage(pageRes4, this);
-		//initApp.menu.addEntry("User Attribute Configuration", pageRes4);
+		//initApp.menu.addEntry("User Configuration", pageRes4);
 		//initApp.configMenuConfig(pageRes4.getMenuConfiguration());
 
-		WidgetPage<?> pageRes1 =  initApp.widgetApp.createWidgetPage("singleroome.html");//initApp.widgetApp.createWidgetPage("userroomperm.html");
-		userRoomPermPage = new UserRoomPermissionPage(pageRes1, this);
-		initApp.menu.addEntry("Single Room Access Permissions", pageRes1);
+		WidgetPage<?> pageRes1 =  initApp.widgetApp.createWidgetPage("expert.html");//initApp.widgetApp.createWidgetPage("userroomperm.html");
+		userRoomPermPage = new UserRoomPermissionPage(pageRes1, appConfigData, appManPlus);
+		//initApp.menu.addEntry("Single Room Access Permissions", pageRes1);
 		initApp.configMenuConfig(pageRes1.getMenuConfiguration());
 
 
@@ -171,6 +184,9 @@ public class AccessAdminController {
 	}
 	
 	public AccessConfigUser getUserConfig(String userName) {
+		return getUserConfig(userName, appConfigData);
+	}
+	public static AccessConfigUser getUserConfig(String userName, AccessAdminConfig appConfigData) {
 		AccessConfigUser result = ResourceListHelper.getOrCreateNamedElement(userName, appConfigData.userPermissions());
 		return result;
 		/*for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
@@ -190,11 +206,16 @@ public class AccessAdminController {
 	}
 	
 	public List<AccessConfigUser> getAllGroupsForUser(AccessConfigUser naturalUser) {
-		List<AccessConfigUser> result = getLevel2GroupsForUser(naturalUser);
+		return getAllGroupsForUser(naturalUser, appConfigData, userPermService);
+	}
+	public static List<AccessConfigUser> getAllGroupsForUser(AccessConfigUser naturalUser,
+			AccessAdminConfig appConfigData, UserPermissionService userPermService) {
+		List<AccessConfigUser> result = getLevel2GroupsForUser(naturalUser, appConfigData, userPermService);
 		result.addAll(naturalUser.superGroups().getAllElements());
 		return result;
 	}
-	public List<AccessConfigUser> getLevel2GroupsForUser(AccessConfigUser naturalUser) {
+	public static List<AccessConfigUser> getLevel2GroupsForUser(AccessConfigUser naturalUser,
+			AccessAdminConfig appConfigData, UserPermissionService userPermService) {
 		List<AccessConfigUser> result = new ArrayList<>();
 		if(naturalUser.isGroup().getValue() > 0)
 			return result;
@@ -212,10 +233,10 @@ public class AccessAdminController {
 	}
 	
 	public List<UserAccount> getAllNaturalUsers() {
-		return getAllNaturalUsers(true);
+		return getAllNaturalUsers(true, appManPlus);
 	}
-	public List<UserAccount> getAllNaturalUsers(boolean includeMaster) {
-		List<UserAccount> allUsers = appMan.getAdministrationManager().getAllUsers();
+	public static List<UserAccount> getAllNaturalUsers(boolean includeMaster, ApplicationManagerPlus appManPlus) {
+		List<UserAccount> allUsers = appManPlus.appMan().getAdministrationManager().getAllUsers();
 		List<UserAccount> result = new ArrayList<>();
 		for(UserAccount ac: allUsers) {
 			if((!includeMaster) && (ac.getName().equals("master")||ac.getName().equals("guest2")))

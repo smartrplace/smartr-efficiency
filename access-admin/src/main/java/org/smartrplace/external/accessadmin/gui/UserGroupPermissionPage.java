@@ -41,7 +41,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "User Appstore Mapping";
+		return "6. User Appstore Mapping";
 	}
 	
 	@Override

@@ -18,6 +18,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
+@Deprecated
 public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, AccessConfigUser, AccessConfigUser> {
 	protected final AccessAdminController controller;
 
@@ -40,7 +41,7 @@ public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, Access
 	@Override
 	public Collection<UserDataTbl> getObjectsInTable(OgemaHttpRequest req) {
 		List<UserDataTbl> result = new ArrayList<>();
-		for(UserAccount ac: controller.getAllNaturalUsers(false)) { //appMan.getAdministrationManager().getAllUsers()) {
+		for(UserAccount ac: AccessAdminController.getAllNaturalUsers(false, controller.appManPlus)) { //appMan.getAdministrationManager().getAllUsers()) {
 			UserDataTbl obj = new UserDataTbl(ac);
 			obj.accessConfig = UserPermissionUtil.getOrCreateUserPermissions(controller.userPerms, ac.getName());
 			result.add(obj);

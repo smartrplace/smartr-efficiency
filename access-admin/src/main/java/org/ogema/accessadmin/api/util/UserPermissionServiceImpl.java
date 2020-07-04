@@ -58,10 +58,8 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 	public int getUserPermissionForRoom(String userName, Room room, String permissionType) {
 		return getUserPermissionForRoom(userName, room.getLocation(), permissionType, false);
 	}
-	/**
-	 * @param getSuperSetting if true the specific setting for the user and room will be ignored and
-	 * 		only the more general setting will be returned
-	 */
+	
+	@Override
 	public int getUserPermissionForRoom(String userName, String resourceId, String permissionType,
 			boolean getSuperSetting) {
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(userPerms, userName);

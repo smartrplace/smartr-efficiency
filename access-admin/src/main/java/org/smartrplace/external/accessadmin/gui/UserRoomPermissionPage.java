@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
@@ -13,7 +14,7 @@ import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.external.accessadmin.AccessAdminController;
+import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomTbl;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
@@ -27,17 +28,20 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter<RoomTbl> {
-	protected final AccessAdminController controller;
+	//protected final AccessAdminController controller;
+	protected final AccessAdminConfig appConfigData;
+	protected final ApplicationManagerPlus appManPlus;
 	
 	protected UserFiltering2Steps<Room> userFilter;
 	protected RoomFilteringWithGroups<Room> roomFilter;
 
 	protected ResourceList<AccessConfigUser> userPerms;
 	
-	public UserRoomPermissionPage(WidgetPage<?> page, AccessAdminController controller) {
-		super(page, controller.appMan, new RoomTbl(ResourceHelper.getSampleResource(Room.class), null));
-		this.controller = controller;
-		userPerms = controller.appConfigData.userPermissions();
+	public UserRoomPermissionPage(WidgetPage<?> page, AccessAdminConfig appConfigData, ApplicationManagerPlus appManPlus) {
+		super(page, appManPlus.appMan(), new RoomTbl(ResourceHelper.getSampleResource(Room.class), null));
+		this.appConfigData = appConfigData;
+		this.appManPlus = appManPlus;
+		userPerms = appConfigData.userPermissions();
 		triggerPageBuild();
 	}
 
@@ -75,7 +79,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		result.resourceId = object.room.getLocation();
 		result.permissionId = permissionID;
 		//String userName = userAcc.name().getValue();
-		result.defaultStatus = controller.userPermService.getUserPermissionForRoom(userName, result.resourceId,
+		result.defaultStatus = appManPlus.userPermService().getUserPermissionForRoom(userName, result.resourceId,
 				permissionID, true) > 0;
 		return result;
 	}
@@ -85,7 +89,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(1, 5);
 		roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
-				OptionSavingMode.PER_USER, TimeProcUtil.HOUR_MILLIS, controller.appConfigData.roomGroups()) {
+				OptionSavingMode.PER_USER, TimeProcUtil.HOUR_MILLIS, appConfigData.roomGroups()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -96,7 +100,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		//userFilter = new UserFilteringWithGroups<Room>(page, "userFilter",
 		//		OptionSavingMode.GENERAL, 5000, controller);
 		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
-				OptionSavingMode.GENERAL, 5000, controller);
+				OptionSavingMode.GENERAL, 5000, appConfigData, appManPlus);
 		
 		/*Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
 			private static final long serialVersionUID = 1L;
@@ -123,7 +127,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 
 	@Override
 	public Collection<RoomTbl> getObjectsInTable(OgemaHttpRequest req) {
-		List<Room> all = KPIResourceAccess.getRealRooms(controller.appMan.getResourceAccess()); //.getToplevelResources(Room.class);
+		List<Room> all = KPIResourceAccess.getRealRooms(appMan.getResourceAccess()); //.getToplevelResources(Room.class);
 		List<Room> result1 = roomFilter.getFiltered(all, req);
 		result1.sort(new Comparator<Room>() {
 

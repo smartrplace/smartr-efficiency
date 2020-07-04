@@ -123,7 +123,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		protected final TemperatureResource setPoint;
 		protected final TemperatureResource setPointFeedback;
 		ResourceValueListener<TemperatureResource> measurementListener = null;
-		
+		long lastUpdate = -1;
 		
 		@Override
 		public void close() {
@@ -132,7 +132,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		}
 
 		public SetpointToFeedbackSimSimple(TemperatureResource setPoint, TemperatureResource setPointFeedback,
-				final ApplicationManager appMan) {
+				final ApplicationManager appMan, SingleRoomSimulationBase roomSim) {
 			this.setPoint = setPoint;
 			this.setPointFeedback = setPointFeedback;
 			setPointListener = new ResourceValueListener<TemperatureResource>() {
@@ -145,6 +145,14 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 							setPointFeedback.setValue(value);
 						}
 					};
+					if(roomSim != null) {
+						long now = appMan.getFrameworkTime();
+						if(lastUpdate > 0) {
+							long stepSize = (now - lastUpdate);
+							roomSim.addThermalEnergy((293.15f  - value) * stepSize * 0.1f);
+						}
+						lastUpdate = now;
+					}
 				}
 			};
 			setPoint.addValueListener(setPointListener, true);
@@ -158,9 +166,9 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		//Return value is currently not used anyways
 		if(roomSimulation != null)
 			new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
-				resource.temperatureSensor().reading(), appMan);
+				resource.temperatureSensor().reading(), appMan, roomSimulation);
 		return new SetpointToFeedbackSimSimple(resource.temperatureSensor().settings().setpoint(),
-				resource.temperatureSensor().deviceFeedback().setpoint(), appMan);
+				resource.temperatureSensor().deviceFeedback().setpoint(), appMan, null);
 	}
 	
 	@Override
