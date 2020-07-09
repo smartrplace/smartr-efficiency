@@ -19,6 +19,7 @@ import org.ogema.model.devices.buildingtechnology.AirConditioner;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -149,7 +150,8 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 						long now = appMan.getFrameworkTime();
 						if(lastUpdate > 0) {
 							long stepSize = (now - lastUpdate);
-							roomSim.addThermalEnergy((293.15f  - value) * stepSize * 0.1f);
+							float joule = (293.15f  - value) * stepSize * 0.1f;
+							roomSim.addThermalEnergy(joule);
 						}
 						lastUpdate = now;
 					}

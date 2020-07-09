@@ -17,6 +17,7 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingle.ProcTsProvider;
 
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
@@ -109,6 +110,50 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 		};
 		
 		DatapointImpl dpIn = new DatapointImpl(inputSingle, resultLoction(input));
+		ProcTsProvider provider = new ProcTsProvider() {
+			
+			@Override
+			public ProcessedReadOnlyTimeSeries2 getTimeseries(Datapoint newtsdi) {
+				return new ProcessedReadOnlyTimeSeries2(dpIn) {
+					@Override
+					protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
+							long end, AggregationMode mode) {
+						Float[] values = new Float[input.size()];
+						List<SampledValue> resultLoc = new ArrayList<>();
+						for(SampledValue svalTs: tsdi.getTimeSeries().getValues(start, end)) {
+							long timestamp = svalTs.getTimestamp();
+							int idx = 0;
+							for(Datapoint dpLoc: input) {
+								SampledValue svLoc = dpLoc.getTimeSeries().getValue(timestamp);
+								if(svLoc == null) {
+									values[idx] = null;
+									List<SampledValue> svTest = dpLoc.getTimeSeries().getValues(timestamp-TEST_SHIFT, timestamp+TEST_SHIFT);
+									if(svTest != null && (!svTest.isEmpty())) {
+										System.out.println("  !!! Warning: Input time steps not aligned for:"+idx+" in "+label);
+									}
+								} else
+									values[idx] = svLoc.getValue().getFloatValue();
+								idx++;
+							}
+							float val = aggregateValues(values, timestamp, mode);
+							resultLoc.add(new SampledValue(new FloatValue(val), timestamp, Quality.GOOD));
+						}
+						debugCalculationResult(input, resultLoc);
+						return resultLoc;
+					}
+					
+					@Override
+					protected long getCurrentTime() {
+						return dpService.getFrameworkTime();
+					}
+				};
+			}
+		};
+
+		String location = dpIn.getLocation()+"";
+		Datapoint newtsdi = TimeseriesSetProcSingleToSingle.getOrUpdateTsDp(location, provider, dpService);
+		
+		/*DatapointImpl dpIn = new DatapointImpl(inputSingle, resultLoction(input));
 		ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(dpIn) {
 			@Override
 			protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
@@ -149,7 +194,7 @@ public abstract class TimeseriesSetProcMultiToSingle implements TimeseriesSetPro
 			//}
 		}; 
 		DatapointImpl newtsdi = newTs2.getResultSeriesDP(dpService);
-		newtsdi.setLabel(label, null);
+		newtsdi.setLabel(label, null);*/
 		result.add(newtsdi);
 		return result;
 	}

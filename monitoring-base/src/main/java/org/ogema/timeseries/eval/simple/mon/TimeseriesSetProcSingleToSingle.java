@@ -8,7 +8,6 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
-import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 
 public abstract class TimeseriesSetProcSingleToSingle implements TimeseriesSetProcessor {
@@ -42,26 +41,90 @@ public abstract class TimeseriesSetProcSingleToSingle implements TimeseriesSetPr
 		for(Datapoint tsdi: input) {
 			//if(nameProvider() != null)
 			//	tsdi.setLabel(nameProvider().getShortNameForTypeI(tsdi.getGaroDataType(), tsdi.getTimeSeriesDataImpl()));
-			ProcessedReadOnlyTimeSeries2 newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi) {
-				@Override
-				protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
-						long end, AggregationMode mode) {
-					return calculateValues(timeSeries, start, end, mode, this);						
-				}
-				@Override
-				protected String getLabelPostfix() {
-					return labelPostfix;
-				}
+			String location = ProcessedReadOnlyTimeSeries2.getDpLocation(tsdi, labelPostfix);
+			ProcTsProvider provider = new ProcTsProvider() {
 				
 				@Override
-				protected long getCurrentTime() {
-					return dpService.getFrameworkTime();
+				public ProcessedReadOnlyTimeSeries2 getTimeseries(Datapoint newtsdi) {
+					return new ProcessedReadOnlyTimeSeries2(tsdi) {
+						@Override
+						protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
+								long end, AggregationMode mode) {
+							return calculateValues(timeSeries, start, end, mode, this);						
+						}
+						@Override
+						protected String getLabelPostfix() {
+							return labelPostfix;
+						}
+						
+						@Override
+						protected long getCurrentTime() {
+							return dpService.getFrameworkTime();
+						}
+					};
 				}
-			}; 
-			DatapointImpl newtsdi = newTs2.getResultSeriesDP(dpService);
+			};
+			Datapoint newtsdi = getOrUpdateTsDp(location, provider , dpService);
+			
+			/*ProcessedReadOnlyTimeSeries2 newTs2 = null;
+			Datapoint newtsdi = null;
+			if(dpService != null) {
+				String location = ProcessedReadOnlyTimeSeries2.getDpLocation(tsdi, labelPostfix);
+				newtsdi = dpService.getDataPointStandard(location);
+				ReadOnlyTimeSeries dpts = newtsdi.getTimeSeries();
+				if((dpts != null) && (dpts instanceof ProcessedReadOnlyTimeSeries2))
+					newTs2 = (ProcessedReadOnlyTimeSeries2) dpts; 
+			}
+			if(newTs2 == null) {
+				newTs2 = new ProcessedReadOnlyTimeSeries2(tsdi) {
+					@Override
+					protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
+							long end, AggregationMode mode) {
+						return calculateValues(timeSeries, start, end, mode, this);						
+					}
+					@Override
+					protected String getLabelPostfix() {
+						return labelPostfix;
+					}
+					
+					@Override
+					protected long getCurrentTime() {
+						return dpService.getFrameworkTime();
+					}
+				}; 
+				newtsdi = newTs2.getResultSeriesDP(dpService);
+			}*/
 			result.add(newtsdi);
 		}
 		return result;
 	}
 
+	public interface ProcTsProvider {
+		ProcessedReadOnlyTimeSeries2 getTimeseries(Datapoint newtsdi);
+	}
+	
+	/**
+	 * 
+	 * @param resultLocation result location, usually generated based on tsdi location and postfix
+	 * @param tsdi data point used as input
+	 * @param provider
+	 * @param dpService
+	 * @return
+	 */
+	public static Datapoint getOrUpdateTsDp(String resultLocation, ProcTsProvider provider, DatapointService dpService) {
+		ProcessedReadOnlyTimeSeries2 newTs2 = null;
+		Datapoint newtsdi = null;
+		if(dpService != null) {
+			//String location = ProcessedReadOnlyTimeSeries2.getDpLocation(tsdi, labelPostfix);
+			newtsdi = dpService.getDataPointStandard(resultLocation);
+			ReadOnlyTimeSeries dpts = newtsdi.getTimeSeries();
+			if((dpts != null) && (dpts instanceof ProcessedReadOnlyTimeSeries2))
+				newTs2 = (ProcessedReadOnlyTimeSeries2) dpts; 
+		}
+		if(newTs2 == null) {
+			newTs2 = provider.getTimeseries(newtsdi);
+			newtsdi = newTs2.getResultSeriesDP(dpService);
+		}
+		return newtsdi;
+	}
 }
