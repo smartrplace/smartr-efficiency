@@ -2,12 +2,13 @@ package org.smartrplace.monbase.alarming;
 
 import java.util.concurrent.RejectedExecutionException;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
-import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.monbase.alarming.AlarmingManagement.AlarmValueListenerI;
+import org.smartrplace.monbase.alarming.AlarmingManagement.TsNameProvider;
 import org.smartrplace.monbase.alarming.AlarmingManagement.ValueListenerData;
 
 import de.iwes.widgets.api.messaging.MessagePriority;
@@ -21,7 +22,8 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 	final ValueListenerData vl;
 	final AlarmConfigBase ac;
 
-	final MonitoringController controller;
+	final ApplicationManagerPlus appManPlus;
+	protected final TsNameProvider tsNameProv;
 	final String alarmID;
 	
 	protected abstract void releaseAlarm(AlarmConfigBase ac, float value, float upper, float lower,
@@ -32,8 +34,9 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 	
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
 	public AlarmValueListenerBase(AlarmConfigBase ac, ValueListenerData vl,
-			String alarmID, MonitoringController controller) {
-		this.controller = controller;
+			String alarmID, ApplicationManagerPlus appManPlus, TsNameProvider tsNameProv) {
+		this.appManPlus = appManPlus;
+		this.tsNameProv = tsNameProv;
 		this.alarmID = alarmID;
 		upper = ac.upperLimit().getValue();
 		lower = ac.lowerLimit().getValue();
@@ -47,8 +50,9 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 	/** This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision*/
 	public AlarmValueListenerBase(float upper, float lower, int retard, int resendRetard,
 			AlarmConfigBase ac, ValueListenerData vl,
-			String alarmID, MonitoringController controller) {
-		this.controller = controller;
+			String alarmID, ApplicationManagerPlus appManPlus, TsNameProvider tsNameProv) {
+		this.appManPlus = appManPlus;
+		this.tsNameProv = tsNameProv;
 		this.alarmID = alarmID;
 		this.upper = upper;
 		this.lower = lower;
@@ -67,10 +71,10 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 			//we just got the callback after writing NaN
 			if(vl.isNoValueAlarmActive)
 				return;
-			controller.log.warn("Received Nan value in FloatResource:"+resource.getLocation());
+			appManPlus.appMan().getLogger().warn("Received Nan value in FloatResource:"+resource.getLocation());
 			val = -999;
 		}
-		resourceChanged(val, alarmStatus, controller.appMan.getFrameworkTime());
+		resourceChanged(val, alarmStatus, appManPlus.appMan().getFrameworkTime());
 	}
 	public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp) {
 		long now = timeStamp;
@@ -80,14 +84,14 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 		}
 		
 		if(AlarmingManagement.isViolated(value, lower, upper)) {
-			if(AlarmingManagement.isNewAlarmRetardPhaseAllowed(vl, controller)) {
-				vl.timer = new CountDownDelayedExecutionTimer(controller.appMan, 
+			if(AlarmingManagement.isNewAlarmRetardPhaseAllowed(vl, appManPlus.appMan())) {
+				vl.timer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
 						retard) {
 					@Override
 					public void delayedExecution() {
 						executeAlarm(ac, value, upper, lower, alarmStatus);
 						vl.isAlarmActive = true;
-						vl.nextTimeAlarmAllowed = controller.appMan.getFrameworkTime() +
+						vl.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
 							resendRetard;
 						vl.timer = null;
 					}
@@ -97,7 +101,7 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 			vl.timer.destroy();
 			vl.timer = null;
 		} else if(vl.isAlarmActive && vl.alarmReleaseTimer == null) {
-			vl.alarmReleaseTimer = new CountDownDelayedExecutionTimer(controller.appMan, 
+			vl.alarmReleaseTimer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
 					retard) {
 				@Override
 				public void delayedExecution() {
@@ -114,7 +118,7 @@ public abstract class AlarmValueListenerBase<T extends SingleValueResource> impl
 	
 	public void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
-		String title = alarmID+": "+controller.getTsName(ac)+" (Alarming Wert)";
+		String title = alarmID+": "+tsNameProv.getTsName(ac)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}

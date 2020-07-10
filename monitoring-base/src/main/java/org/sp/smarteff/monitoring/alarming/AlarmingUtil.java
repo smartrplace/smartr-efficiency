@@ -84,4 +84,12 @@ public class AlarmingUtil {
 			room = "Anlage";
 		return room;
 	}
+	
+	public static String getTsName(AlarmConfigBase ac) {
+		String baseName = ac.name().getValue();
+		if(baseName.contains("-")) return baseName;
+		String room = getRoomNameFromSub(ac);
+		return room+"-"+baseName;
+	}
+
 }
