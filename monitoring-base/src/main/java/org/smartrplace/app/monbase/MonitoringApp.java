@@ -16,11 +16,8 @@ import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.util.jsonresult.management.api.EvalResultManagement;
 import org.smartrplace.app.monbase.gui.OfflineControlGUI;
-import org.smartrplace.app.monbase.servlet.SensorServlet;
-import org.smartrplace.app.monbase.servlet.UserServletTestMon;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.util.format.WidgetPageFormatter;
-import org.smartrplace.util.frontend.servlet.UserServlet;
 
 import com.iee.app.evaluationofflinecontrol.OfflineEvalServiceAccess;
 import com.iee.app.evaluationofflinecontrol.gui.MainPage;

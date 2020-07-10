@@ -95,7 +95,7 @@ public class InitUtil {
 		initAlarmForSensor(dev, bu, user, controller);
 	}*/
 	public static void initAlarmForSensor(Sensor dev, BuildingUnit bu, SmartEffUserDataNonEdit user,
-			MonitoringController controller) {
+			RoomLabelProvider roomLabelProv) {
 		@SuppressWarnings("unchecked")
 		ResourceList<AlarmConfigBase> alarms = bu.getSubResource("alarmConfig", ResourceList.class);
 		alarms.create();
@@ -111,7 +111,7 @@ public class InitUtil {
 			dev.addDecorator(AlarmingManagement.ALARMSTATUS_RES_NAME, IntegerResource.class);
 		}
 		//ValueResourceHelper.setCreate(ac.name(), controller.getLabel(ac, bu.name().getValue().equals("gesamt")));
-		if(ValueResourceHelper.setIfNew(ac.name(), controller.getLabel(ac, bu.name().getValue().equals("gesamt"))))
+		if(ValueResourceHelper.setIfNew(ac.name(), roomLabelProv.getLabel(ac, bu.name().getValue().equals("gesamt"))))
 			ac.activate(true);
 	}
 	

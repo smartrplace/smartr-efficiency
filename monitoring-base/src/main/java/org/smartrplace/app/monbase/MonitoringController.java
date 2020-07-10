@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
@@ -18,8 +17,8 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.externalviewer.extensions.DefaultDedicatedTSSessionConfiguration;
@@ -76,7 +75,7 @@ import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 // here the controller logic is implemented
 public abstract class MonitoringController extends OfflineEvaluationControlController implements AlarmingUpdater,
-		AggregationModeProvider, RoomLabelProvider {
+AggregationModeProvider, RoomLabelProvider {
 	private HardwareInstallConfig hardwareConfig = null;
 	public HardwareInstallConfig getHardwareConfig() {
 		if(hardwareConfig == null) {
@@ -84,11 +83,9 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		}
 		return hardwareConfig;
 	}
-
 	protected AlarmingManagement alarmMan = null;
 	public final DatapointService dpService;
 	public final ConsumptionEvalAdmin evalAdm;
-	protected final ApplicationManagerPlus appManPlus;
 	
 	/** Implementation must be able to deal with a null value for locale
 	 * TODO: getRoomLabel should have default implementation finding the room based on the resource structure
@@ -293,8 +290,6 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 		this.dpService = dpService;
 		EvalProviderMonitoringBase.controller = this;
 		evalAdm = new ConsumptionEvalAdmin(this);
-		this.appManPlus = new ApplicationManagerPlus(appMan);
-		this.appManPlus.setMessagingService(evaluationOCApp.messageService());
 		//if(dpService != null)
 		//	DeviceFinderInit.getAllDatapoints(this);
 		
@@ -388,8 +383,7 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 					log.warn("Resource for RecordedData not found"+rec.getPath());
 					continue;
 				}
-				initValueResourceAlarming(reading, user, roomSensors, done, this);
-				/*if(done.contains(reading.getLocation())) {
+				if(done.contains(reading.getLocation())) {
 					System.out.println("Already in done:"+reading.getLocation());
 					continue;
 				} else done.add(reading.getLocation());
@@ -410,40 +404,10 @@ public abstract class MonitoringController extends OfflineEvaluationControlContr
 					roomSensors.put(bu.getLocation(), buSensors);
 				}
 				buSensors.add(sensor.getLocation());
-				InitUtil.initAlarmForSensor(sensor, bu, user, this);*/
+				InitUtil.initAlarmForSensor(sensor, bu, user, this);
 			}
 		}
-		finishInitSensors(user, roomSensors, done, appMan);
-	}
-	
-	public static void initValueResourceAlarming(SingleValueResource reading, SmartEffUserDataNonEdit user, Map<String, List<String>> roomSensors,
-			List<String> done, RoomLabelProvider roomLabelProv) {
-		if(done.contains(reading.getLocation())) {
-			System.out.println("Already in done:"+reading.getLocation());
-			return;
-		} else done.add(reading.getLocation());
-		System.out.println("Added to done:"+reading.getLocation());
-		Sensor sensor = ResourceHelper.getFirstParentOfType(reading, Sensor.class);
-		String room = roomLabelProv.getRoomLabel(reading.getLocation(), null);
-		BuildingUnit bu = InitUtil.getBuildingUnitByRoom(room, user.editableData());
-		if(bu == null) {
-			if(room.toLowerCase().equals("gesamt"))
-				return;
-			bu = InitUtil.getBuildingUnitByRoom("Gesamt", user.editableData());
-			if(bu == null)
-				return;
-		}
-		List<String> buSensors = roomSensors.get(bu.getLocation());
-		if(buSensors == null) {
-			buSensors = new ArrayList<>();
-			roomSensors.put(bu.getLocation(), buSensors);
-		}
-		buSensors.add(sensor.getLocation());
-		InitUtil.initAlarmForSensor(sensor, bu, user, roomLabelProv);		
-	}
-	
-	public static void finishInitSensors(SmartEffUserDataNonEdit user, Map<String, List<String>> roomSensors,
-			List<String> done, ApplicationManager appMan) {
+
 		//clean up sensor entries
 		for(BuildingData build: user.editableData().buildingData().getAllElements()) {
 			for(BuildingUnit bu: build.buildingUnit().getAllElements()) {
