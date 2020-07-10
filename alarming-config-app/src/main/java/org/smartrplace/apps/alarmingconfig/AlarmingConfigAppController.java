@@ -10,14 +10,27 @@ import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
+import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary;
+import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary_de;
+import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary_en;
+import org.ogema.messaging.basic.services.config.model.ReceiverConfiguration;
+import org.ogema.messaging.configuration.PageInit;
+import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.sensors.Sensor;
 import org.smartrplace.app.monbase.RoomLabelProvider;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
+import org.smartrplace.apps.alarmingconfig.gui.PageBuilderSimple;
+import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary;
+import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_de;
+import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_en;
+import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
@@ -27,6 +40,7 @@ import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import de.iwes.widgets.messaging.model.MessagingApp;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
@@ -51,6 +65,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
     public final ApplicationManagerPlus appManPlus;
 	
 	public MainPage mainPage;
+	public final PageBuilderSimple messagePage;
+	public final PageInit forwardingPage;
+	public final ReceiverPageBuilder receiverPage;
 	WidgetApp widgetApp;
 
 	protected AlarmingManager alarmMan = null;
@@ -85,13 +102,26 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		initApp.menu.addEntry("Room Setup", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
-		// TODO: If you need more than one page see how to add more pages as the template commented out below
-		// You have to implement a class for each page.
+		WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
+		pageRes11.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
+		messagePage = new PageBuilderSimple(pageRes11, initApp.mr, appMan);
+		initApp.menu.addEntry("Alarm Messages", pageRes11);
+		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 		
-		//WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html", false);
-		//mainPage2 = new MainPage2(pageRes11, this);
-		//initApp.menu.addEntry("User Setup", pageRes11);
-		//initApp.configMenuConfig(pageRes11.getMenuConfiguration());
+		WidgetPage<SelectConnectorDictionary> pageRes2 = initApp.widgetApp.createWidgetPage("forwarding.html", false);
+		@SuppressWarnings("unchecked")
+		final ResourceList<MessagingApp> appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
+		appList.setElementType(MessagingApp.class);
+		forwardingPage = new PageInit(pageRes2, appMan, appList, initApp.mr);
+		initApp.menu.addEntry("Message Forwarding Configuration", pageRes2);
+		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
+
+		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", false);
+		pageRes3.registerLocalisation(MessageSettingsDictionary_de.class).registerLocalisation(MessageSettingsDictionary_en.class);
+		receiverPage = new ReceiverPageBuilder(pageRes3, appMan);
+		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
+		initApp.menu.addEntry("Message Receiver Configuration", pageRes3);
+		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 	}
 
      protected void initAlarmingResources() {

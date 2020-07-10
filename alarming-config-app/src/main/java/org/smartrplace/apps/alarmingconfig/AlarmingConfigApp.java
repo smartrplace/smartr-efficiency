@@ -17,6 +17,7 @@ import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
+import de.iwes.widgets.messaging.MessageReader;
 
 /**
  * Template OGEMA application class
@@ -48,6 +49,9 @@ public class AlarmingConfigApp implements Application {
 	@Reference
 	public DatapointService dpService;
 	
+	@Reference
+	MessageReader mr;
+
 	@Activate
 	   void activate(BundleContext bc) {
 	    this.bc = bc;
