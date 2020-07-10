@@ -33,7 +33,7 @@ public class AlarmingConfigApp implements Application {
 	public NavigationMenu menu;
 
 	@Reference
-	private OgemaGuiService guiService;
+	public OgemaGuiService guiService;
 
 	@Reference
 	public PermissionManager permMan;

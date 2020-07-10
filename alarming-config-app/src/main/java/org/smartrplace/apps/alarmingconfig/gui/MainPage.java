@@ -1,6 +1,5 @@
 package org.smartrplace.apps.alarmingconfig.gui;
 
-import java.io.ObjectInputStream.GetField;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,7 +121,6 @@ public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBas
 
 	@Override
 	public AlarmConfigBase getResource(AlarmConfigBase arg0, OgemaHttpRequest arg1) {
-		// TODO Auto-generated method stub
-		return null;
+		return arg0;
 	}
 }
