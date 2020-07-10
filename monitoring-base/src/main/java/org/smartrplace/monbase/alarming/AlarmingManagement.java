@@ -28,6 +28,9 @@ import de.iwes.util.format.StringFormatHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
+@Deprecated
+/** Still used by the Fimon project, moved to alarming-config-app
+ */
 public class AlarmingManagement {
 	public static final String ALARMSTATUS_RES_NAME = "alarmStatus";
 	

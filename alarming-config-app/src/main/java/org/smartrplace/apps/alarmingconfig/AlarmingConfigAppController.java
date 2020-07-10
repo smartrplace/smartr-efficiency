@@ -12,13 +12,13 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.model.sensors.Sensor;
-import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.app.monbase.RoomLabelProvider;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
-import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingUtiH;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 
@@ -40,10 +40,11 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		return hardwareConfig;
 	}
 
-	public OgemaLogger log;
-    public ApplicationManager appMan;
+	public final OgemaLogger log;
+    public final ApplicationManager appMan;
     /** This will not be available in the constructor*/
-    public UserPermissionService userPermService;
+    public final UserPermissionService userPermService;
+    public final DatapointService dpService;
     
 	public AccessAdminConfig appConfigData;
 	public AlarmingConfigApp accessAdminApp;
@@ -63,10 +64,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		this.log = appMan.getLogger();
 		this.accessAdminApp = initApp;
 		this.userPermService = initApp.userAccService;
+		this.dpService = initApp.dpService;
 		this.appManPlus = new ApplicationManagerPlus(appMan);
 		appManPlus.setPermMan(initApp.permMan);
 		appManPlus.setUserPermService(userPermService);
 		appManPlus.setGuiService(initApp.guiService);
+		appManPlus.setDpService(dpService);
 		
 		initDemands();
 		
@@ -78,7 +81,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 
 		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html", true);
 		Resource base = appMan.getResourceAccess().getResource("master");
-		mainPage = new MainPage(pageRes10, appMan, null, base);
+		mainPage = new MainPage(pageRes10, appMan, base);
 		initApp.menu.addEntry("Room Setup", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
@@ -98,11 +101,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
  		List<String> done = new ArrayList<>();
  		Map<String, List<String>> roomSensors = new HashMap<>();
  		for(Sensor sens: appMan.getResourceAccess().getResources(Sensor.class)) {
+ 			if(sens.getLocation().contains("valve/connection/powerSensor"))
+ 				continue;
  			ValueResource vr = sens.reading();
  			if(!(vr instanceof SingleValueResource))
  				continue;
  			SingleValueResource reading = (SingleValueResource) vr;
-			AlarmingManager.initValueResourceAlarming(reading, user, roomSensors, done, this);
+			AlarmingManager.initValueResourceAlarming(reading, roomSensors, done, this, appMan);
  		}
  		AlarmingManager.finishInitSensors(user, roomSensors, done, appMan);
  	}
@@ -150,7 +155,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 
 	@Override
 	public String getLabel(AlarmConfigBase ac, boolean isOverall) {
-		String shortLab = RoomLabelProvider.getDatapointShortLabelDefault(ac.supervisedSensor().getLocationResource(), false, this);
-		return shortLab+"-Temperature";
+		Datapoint dp = dpService.getDataPointStandard(ac.supervisedSensor().reading());
+		return dp.label(null);
+		//String shortLab = RoomLabelProvider.getDatapointShortLabelDefault(ac.supervisedSensor().getLocationResource(), false, this);
+		//return shortLab+"-Temperature";
 	}
 }

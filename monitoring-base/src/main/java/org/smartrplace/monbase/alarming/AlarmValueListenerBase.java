@@ -13,6 +13,9 @@ import org.smartrplace.monbase.alarming.AlarmingManagement.ValueListenerData;
 import de.iwes.widgets.api.messaging.MessagePriority;
 import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
+@Deprecated
+/** Still used by the Fimon project, moved to alarming-config-app
+ */
 public abstract class AlarmValueListenerBase<T extends SingleValueResource> implements ResourceValueListener<T>, AlarmValueListenerI {
 	final float upper;
 	final float lower;

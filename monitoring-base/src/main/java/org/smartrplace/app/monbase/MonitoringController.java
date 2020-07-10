@@ -17,8 +17,8 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DPRoom;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.externalviewer.extensions.DefaultDedicatedTSSessionConfiguration;
@@ -335,6 +335,9 @@ AggregationModeProvider, RoomLabelProvider {
 		InitUtil.initAlarmingForManual(this);
 	}
 	
+	@Deprecated
+	/** Still used by the Fimon project, moved to alarming-config-app
+	 */
 	public void initAlarmingForSensors() {
 		SmartEffUserDataNonEdit user = appMan.getResourceAccess().getResource("master");
 		if(user == null) return;
@@ -404,7 +407,7 @@ AggregationModeProvider, RoomLabelProvider {
 					roomSensors.put(bu.getLocation(), buSensors);
 				}
 				buSensors.add(sensor.getLocation());
-				InitUtil.initAlarmForSensor(sensor, bu, user, this);
+				InitUtil.initAlarmForSensor(sensor, bu, this);
 			}
 		}
 

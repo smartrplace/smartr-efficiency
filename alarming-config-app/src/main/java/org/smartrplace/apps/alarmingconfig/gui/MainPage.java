@@ -6,10 +6,14 @@ import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -42,9 +46,8 @@ public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBas
 	private final Resource baseResource;
 	
 
-	public MainPage(WidgetPage<?> page, ApplicationManager
-	appMan, AlarmConfigBase initSampleObject, Resource baseResource) {
-		super(page, appMan, initSampleObject);
+	public MainPage(WidgetPage<?> page, ApplicationManager appMan, Resource baseResource) {
+		super(page, appMan, ResourceHelper.getSampleResource(AlarmConfigBase.class));
 		this.baseResource = baseResource;
 		appMan.getLogger().info("Alarming Config page created at {}", page.getFullUrl());
 	}
@@ -53,9 +56,12 @@ public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBas
 	@Override
 	public void addWidgets(AlarmConfigBase sr, ObjectResourceGUIHelper<AlarmConfigBase, AlarmConfigBase> vh,
 			String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-		if (null == sr) return;
-		// TODO add relevant widgets
-		vh.stringLabel( "Name", id, ResourceUtils.getHumanReadableShortName(sr), row);
+
+		if(req == null)
+			vh.registerHeaderEntry("Name");
+		else {
+			vh.stringLabel( "Name", id, ResourceUtils.getHumanReadableShortName(sr), row);
+		}
 		vh.booleanEdit("Alarm active", id, sr.sendAlarm(), row);
 		vh.floatEdit("Lower Limit",
 				id, sr.lowerLimit(), row, alert,
@@ -71,9 +77,18 @@ public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBas
 				id, sr.alarmRepetitionTime(), row, alert,
 				Float.MIN_VALUE, Float.MAX_VALUE, "");
 		vh.floatEdit("Maximum duration until new value is received (min)",
-				id, sr.alarmRepetitionTime(), row, alert,
+				id, sr.maxIntervalBetweenNewValues(), row, alert,
 				Float.MIN_VALUE, Float.MAX_VALUE, "");
 		vh.booleanEdit("Monitoring Switch active", id, sr.performAdditinalOperations(), row);
+		if(req == null)
+			vh.registerHeaderEntry("Status");
+		else {
+			FloatResource res = (FloatResource) sr.supervisedSensor().reading().getLocationResource();
+			IntegerResource statusRes = AlarmingManager.getAlarmStatus(res);
+			if(statusRes == null)
+				return;
+			vh.intLabel("Status", id, statusRes, row, 0);
+		}
 	}
 
 

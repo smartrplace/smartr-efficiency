@@ -14,6 +14,9 @@ import de.iwes.util.resource.ResourceHelper;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
+@Deprecated
+/** Still used by the Fimon project, moved to alarming-config-app
+ */
 public class AlarmingUtil {
 	public static final String ACTIVESTATUS_RES_NAME = "activeStatus";
 	

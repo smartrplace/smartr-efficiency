@@ -9,6 +9,7 @@ import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
+import org.ogema.devicefinder.api.DatapointService;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -44,6 +45,9 @@ public class AlarmingConfigApp implements Application {
 	@Reference
 	public UserPermissionService userAccService;
 
+	@Reference
+	public DatapointService dpService;
+	
 	@Activate
 	   void activate(BundleContext bc) {
 	    this.bc = bc;
