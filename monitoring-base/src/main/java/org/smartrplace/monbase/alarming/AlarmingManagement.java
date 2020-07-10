@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
-import org.ogema.accessadmin.api.ApplicationManagerPlus;
-import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.channelmanager.measurements.SampledValue;
@@ -20,6 +18,7 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.message.MessageImpl;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
@@ -38,16 +37,10 @@ public class AlarmingManagement {
 	public static final long DAY_MILLIS = 24*HOUR_MILLIS;
 	public static final long MINUTE_MILLIS = 60000;
 	protected final List<AlarmConfigBase> configs;
-	//protected final MonitoringController controller;
-	protected final ApplicationManagerPlus appManPlus;
-	protected final TsNameProvider tsNameProv;
+	protected final MonitoringController controller;
 	public static final Integer maxMessageBeforeBulk = Integer.getInteger("org.smartrplace.util.alarming.maxMessageBeforeBulk");
 	
 	protected final String alarmID;
-	
-	public interface TsNameProvider {
-		String getTsName(AlarmConfigBase ac);
-	}
 	
 	protected class ValueListenerData {
 		public ValueListenerData(FloatResource res) {
@@ -78,22 +71,19 @@ public class AlarmingManagement {
 	protected long lastTimeStamp = -1;
 	protected Timer noValueTimer = null;
 
-	public AlarmingManagement(List<AlarmConfigBase> configs, ApplicationManagerPlus appManPlus,
-			TsNameProvider tsNameProv, String alarmID) {
+	public AlarmingManagement(List<AlarmConfigBase> configs, MonitoringController controller, String alarmID) {
 		this.configs = configs;
-		//this.controller = controller;
-		this.appManPlus = appManPlus;
-		this.tsNameProv = tsNameProv;
+		this.controller = controller;
 		this.alarmID = alarmID;	
 		
-		List<IntegerResource> allAlarmStats = appManPlus.appMan().getResourceAccess().getResources(IntegerResource.class);
+		List<IntegerResource> allAlarmStats = controller.appMan.getResourceAccess().getResources(IntegerResource.class);
 		for(IntegerResource intr: allAlarmStats) {
 			if(!intr.getName().equals(ALARMSTATUS_RES_NAME))
 				continue;
 			//intr.setValue(0);
 		}
 		
-		long now = appManPlus.appMan().getFrameworkTime();
+		long now = controller.appMan.getFrameworkTime();
 		for(AlarmConfigBase ac: configs) {
 			//configure if not existing
 			//FIXME: !! Change this back after alarming init is done !!
@@ -108,15 +98,15 @@ public class AlarmingManagement {
 				if(sched.exists())
 					val = sched.getPreviousValue(Long.MAX_VALUE);
 				else
-					appManPlus.appMan().getLogger().warn("Schedule in "+ac.supervisedTS().getLocation()+" does not exist!");
+					controller.log.warn("Schedule in "+ac.supervisedTS().getLocation()+" does not exist!");
 				if(val == null)
 					vl.lastTimeOfNewData = now;
 				else
 					vl.lastTimeOfNewData = val.getTimestamp();
-				vl.listener = new AlarmValueListener(ac, vl, appManPlus, tsNameProv);
+				vl.listener = new AlarmValueListener(ac, vl, controller);
 				scheduleConfigs.add(vl);
 				if(scheduleTimer == null) {
-					scheduleTimer = appManPlus.appMan().createTimer(SCHEDULE_CHECK_RATE, new TimerListener() {
+					scheduleTimer = controller.appMan.createTimer(SCHEDULE_CHECK_RATE, new TimerListener() {
 						@Override
 						public void timerElapsed(Timer timer) {
 							for(ValueListenerData vl: scheduleConfigs) {
@@ -143,14 +133,14 @@ public class AlarmingManagement {
 					BooleanResource res = (BooleanResource) ac.supervisedSensor().reading().getLocationResource();
 					ValueListenerData vl = new ValueListenerData(res);
 					vl.lastTimeOfNewData = now;
-					AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, tsNameProv);
+					AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, controller);
 					vl.listener = mylistener;
 					valueListeners.add(vl);
 					res.addValueListener(mylistener, true);
 					continue;
 				}
 				if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
-					appManPlus.appMan().getLogger().warn("Sensor reading not of type FloatResource:"+
+					controller.log.warn("Sensor reading not of type FloatResource:"+
 							ac.supervisedSensor().reading().getLocation());
 					continue;
 				}
@@ -158,7 +148,7 @@ public class AlarmingManagement {
 					FloatResource res = (FloatResource) ac.supervisedSensor().reading().getLocationResource();
 					ValueListenerData vl = new ValueListenerData(res);
 					vl.lastTimeOfNewData = now;
-					AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, tsNameProv);
+					AlarmValueListener mylistener = new AlarmValueListener(ac, vl, controller);
 					vl.listener = mylistener;
 					valueListeners.add(vl);
 					
@@ -173,8 +163,7 @@ public class AlarmingManagement {
 				if(onOff != null) {
 					BooleanResource bres = onOff.stateFeedback().getLocationResource();
 					ValueListenerData vl = new ValueListenerData(bres);
-					AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vl,
-							appManPlus, tsNameProv) {
+					AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vl, controller) {
 						@Override
 						public void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower,
 								IntegerResource alarmStatus) {
@@ -189,7 +178,7 @@ public class AlarmingManagement {
 			}
 		}
 		
-		noValueTimer = appManPlus.appMan().createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
+		noValueTimer = controller.appMan.createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
 		
 		System.out.println("New AlarmingManagement started.");
 	}
@@ -257,14 +246,14 @@ public class AlarmingManagement {
 		
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBase<FloatResource> {
-		public AlarmValueListener(AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, TsNameProvider tsNameProv) {
-			super(ac, vl, AlarmingManagement.this.alarmID, appManPlus, tsNameProv);
+		public AlarmValueListener(AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(ac, vl, AlarmingManagement.this.alarmID, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListener(float upper, float lower, int retard, int resendRetard,
-				AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, TsNameProvider tsNameProv) {
-			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManagement.this.alarmID, appManPlus, tsNameProv);
+				AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManagement.this.alarmID, controller);
 		}
 
 		@Override
@@ -285,14 +274,14 @@ public class AlarmingManagement {
 		}
 	}
 	protected class AlarmValueListenerBoolean extends AlarmValueListenerBase<BooleanResource> {
-		public AlarmValueListenerBoolean(AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, TsNameProvider tsNameProv) {
-			super(ac, vl, AlarmingManagement.this.alarmID, appManPlus, tsNameProv);
+		public AlarmValueListenerBoolean(AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(ac, vl, AlarmingManagement.this.alarmID, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListenerBoolean(float upper, float lower, int retard, int resendRetard,
-				AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, TsNameProvider tsNameProv) {
-			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManagement.this.alarmID, appManPlus, tsNameProv);
+				AlarmConfigBase ac, ValueListenerData vl, MonitoringController controller) {
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManagement.this.alarmID, controller);
 		}
 
 		@Override
@@ -430,13 +419,13 @@ public class AlarmingManagement {
 		protected final AlarmValueListener alarmValListenerBase;
 		
 		public AlarmValueListenerBooleanOnOff(float upper, float lower, int retard, int resendRetard, AlarmConfigBase ac, ValueListenerData vl,
-				ApplicationManagerPlus appManPlus, TsNameProvider tsNameProv) {
-			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, appManPlus, tsNameProv);
+				MonitoringController controller) {
+			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, controller);
 		}
 		@Override
 		public void resourceChanged(BooleanResource resource) {
 			IntegerResource alarmStatus = getAlarmStatus(resource);
-			alarmValListenerBase.resourceChanged(resource.getValue()?1.0f:0.0f, alarmStatus, appManPlus.appMan().getFrameworkTime());
+			alarmValListenerBase.resourceChanged(resource.getValue()?1.0f:0.0f, alarmStatus, controller.appMan.getFrameworkTime());
 		}
 
 		@Override
@@ -467,10 +456,10 @@ public class AlarmingManagement {
 	}
 	
 	protected static boolean isNewAlarmRetardPhaseAllowed(ValueListenerData vl,
-			ApplicationManager appMan) {
+			MonitoringController controller) {
 		if(vl.timer != null) return false;
 		if(vl.nextTimeAlarmAllowed <= 0) return true;
-		if(vl.nextTimeAlarmAllowed < appMan.getFrameworkTime()) {
+		if(vl.nextTimeAlarmAllowed < controller.appMan.getFrameworkTime()) {
 			vl.nextTimeAlarmAllowed = -1;
 			return true;
 		} else return false;
@@ -481,7 +470,7 @@ public class AlarmingManagement {
 			if(vl.res != null) vl.res.removeValueListener(vl.listener.getListener());
 			else if(vl.bres != null) vl.bres.removeValueListener(vl.listener.getListener());
 			else {
-				appManPlus.appMan().getLogger().warn("ValueListenerData registered without res");
+				controller.log.warn("ValueListenerData registered without res");
 			}
 			if(vl.timer != null) vl.timer.destroy();
 		}
@@ -498,7 +487,7 @@ public class AlarmingManagement {
 
 	protected void executeNoValueAlarm(AlarmConfigBase ac, float value, long lastTime, long maxInterval,
 			IntegerResource alarmStatus) {
-		String tsName = tsNameProv.getTsName(ac);
+		String tsName = controller.getTsName(ac);
 		String title = alarmID+": Kein neuer Wert:"+tsName+" (Alarming)";
 		String message = "Letzter Wert wurde empfangen um: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nWert: "+value+"\r\n"
 				+"\r\nMaximales Intervall: "+(maxInterval/MINUTE_MILLIS)+"min";
@@ -529,7 +518,7 @@ public class AlarmingManagement {
 	protected int numBulkMessage = 0;
 	protected String bulkMessage = null;
 	protected void sendMessage(String title, String message, MessagePriority prio) throws RejectedExecutionException, IllegalStateException {
-		long now = appManPlus.appMan().getFrameworkTime();
+		long now = controller.appMan.getFrameworkTime();
 
 		if((maxMessageBeforeBulk != null)&&(numSingleMessage >= maxMessageBeforeBulk)) {
 			if(firstBulkMessage < 0)
@@ -544,7 +533,7 @@ public class AlarmingManagement {
 			if(((now-firstBulkMessage) > HOUR_MILLIS) && (bulkMessage != null)) {
 				firstBulkMessage = -1;
 				title = numBulkMessage+" Alarme zusammgengefasst";
-				appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
+				controller.serviceAccess.messageService().sendMessage(controller.appMan.getAppID(),
 						new MessageImpl(title, message, prio));
 				System.out.println("         SENT BULKMESSAGE "+title+":\r\n"+bulkMessage);		
 				if(numBulkMessage < 5) {
@@ -562,7 +551,7 @@ public class AlarmingManagement {
 				firstSingleMessage = -1;
 				numSingleMessage = 0;
 			}
-			appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
+			controller.serviceAccess.messageService().sendMessage(controller.appMan.getAppID(),
 					new MessageImpl(title, message, prio));
 			System.out.println("         SENT MESSAGE "+title+":\r\n"+message);		
 		}
