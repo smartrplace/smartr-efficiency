@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.model.locations.BuildingPropertyUnit;
@@ -14,6 +15,8 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -24,7 +27,10 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.alert.AlertData;
+import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.multiselect.TemplateMultiselect;
+import de.iwes.widgets.template.DefaultDisplayTemplate;
 
 @SuppressWarnings("serial")
 public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<AccessConfigUser, BuildingPropertyUnit, BooleanResource> {
@@ -166,23 +172,17 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 			}
 		});
 		return all;
-		//String userName = userFilter.getSelectedUser(req);
-		//if(userName == null)
-		//	return Collections.emptyList();
-		//List<BuildingPropertyUnit> result = new ArrayList<>();
-		//for(BuildingPropertyUnit room: all) {
-		//	result.add(new BuildingPropertyUnit(room, null));
-		//}
-
-		//return result;
 	}
 
 	@Override
 	protected List<BuildingPropertyUnit> getGroups(AccessConfigUser object, OgemaHttpRequest req) {
+		return getGroups(object, UserPermissionService.USER_ROOM_PERM);
+	}
+	protected List<BuildingPropertyUnit> getGroups(AccessConfigUser object, String permissionType) {
 		List<BuildingPropertyUnit> result = new ArrayList<>();
 		AccessConfigBase configRes = object.roompermissionData();
 		for(BuildingPropertyUnit roomGrp: controller.appConfigData.roomGroups().getAllElements()) {
-			Boolean status = UserPermissionUtil.getPermissionStatus(roomGrp.getLocation(), UserPermissionService.USER_ROOM_PERM, configRes);
+			Boolean status = UserPermissionUtil.getPermissionStatus(roomGrp.getLocation(), permissionType, configRes);
 			if(status != null && status)
 				result.add(roomGrp);
 		}
@@ -191,6 +191,9 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 
 	@Override
 	protected void setGroups(AccessConfigUser object, List<BuildingPropertyUnit> groups, OgemaHttpRequest req) {
+		setGroups(object, groups, UserPermissionService.USER_ROOM_PERM);
+	}
+	protected void setGroups(AccessConfigUser object, List<BuildingPropertyUnit> groups, String permissionType) {
 		AccessConfigBase configRes = object.roompermissionData();
 		for(BuildingPropertyUnit roomGrp: controller.appConfigData.roomGroups().getAllElements()) {
 			boolean status = false;
@@ -201,14 +204,74 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 				}
 			}
 			if(status)
-				UserPermissionUtil.addPermission(roomGrp.getLocation(), UserPermissionService.USER_ROOM_PERM, configRes);
+				UserPermissionUtil.addPermission(roomGrp.getLocation(), permissionType, configRes);
 			else
-				UserPermissionUtil.removePermissionSetting(roomGrp.getLocation(), UserPermissionService.USER_ROOM_PERM, configRes);
+				UserPermissionUtil.removePermissionSetting(roomGrp.getLocation(), permissionType, configRes);
 		}
 	}
 
 	@Override
 	protected String getGroupLabel(BuildingPropertyUnit object) {
 		return ResourceUtils.getHumanReadableShortName(object);
+	}
+	
+	@Override
+	protected void addWidgetsAfterMultiSelect(AccessConfigUser object,
+			ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id, OgemaHttpRequest req, Row row,
+			ApplicationManager appMan) {
+		if(req == null) {
+			vh.registerHeaderEntry("Read Historical Data");
+			vh.registerHeaderEntry("Room Administration");
+			return;
+		}
+		TemplateMultiselect<BuildingPropertyUnit> groupSelectHist = new TemplateMultiselect<BuildingPropertyUnit>(mainTable, "groupSelectHist"+id, req) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				List<BuildingPropertyUnit> selected = getGroups(object, UserPermissionService.USER_READ_HISTORICALDATA_PERM);
+				//TODO: Maybe a caching could be implemented
+				List<BuildingPropertyUnit> all = getAllGroups(req);
+				update(all, req);
+				selectItems(selected, req);
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				List<BuildingPropertyUnit> selected = getSelectedItems(req);
+				setGroups(object, selected , UserPermissionService.USER_READ_HISTORICALDATA_PERM);
+			}
+		};
+		TemplateMultiselect<BuildingPropertyUnit> groupSelectAdmin = new TemplateMultiselect<BuildingPropertyUnit>(mainTable, "groupSelectAdmin"+id, req) {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				List<BuildingPropertyUnit> selected = getGroups(object, UserPermissionService.USER_ADMIN_PERM);
+				//TODO: Maybe a caching could be implemented
+				List<BuildingPropertyUnit> all = getAllGroups(req);
+				update(all, req);
+				selectItems(selected, req);
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				List<BuildingPropertyUnit> selected = getSelectedItems(req);
+				setGroups(object, selected , UserPermissionService.USER_ADMIN_PERM);
+			}
+		};
+		DefaultDisplayTemplate<BuildingPropertyUnit> displayTemplate = new DefaultDisplayTemplate<BuildingPropertyUnit>() {
+			@Override
+			public String getLabel(BuildingPropertyUnit object, OgemaLocale locale) {
+				String result = groupLabels.get(object);
+				if(result != null)
+					return result;
+				result = getGroupLabel(object);
+				groupLabels.put(object, result);
+				return result;
+			}
+		};
+		groupSelectHist.setTemplate(displayTemplate);
+		groupSelectAdmin.setTemplate(displayTemplate);
+		row.addCell(WidgetHelper.getValidWidgetId("Read Historical Data"), groupSelectHist, 3);
+		row.addCell(WidgetHelper.getValidWidgetId("Room Administration"), groupSelectAdmin, 3);
 	}
 }

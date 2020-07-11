@@ -58,6 +58,7 @@ public abstract class PerMultiselectConfigPage<T, G, R extends Resource> extends
 
 		if(req == null) {
 			vh.registerHeaderEntry(getGroupColumnLabel());
+			addWidgetsAfterMultiSelect(object, vh, id, req, row, appMan);
 			return;
 		}
 		//TemplateMultiselect<G> groupSelect = getMultiselect(object, id, req);
@@ -81,10 +82,10 @@ public abstract class PerMultiselectConfigPage<T, G, R extends Resource> extends
 			groupSelect.setTemplate(new DefaultDisplayTemplate<G>() {
 				@Override
 				public String getLabel(G object, OgemaLocale locale) {
-					String result = groupLabels.get(object);
-					if(result != null)
-						return result;
-					result = getGroupLabel(object);
+					//String result = groupLabels.get(object);
+					//if(result != null)
+					//	return result;
+					String result = getGroupLabel(object);
 					groupLabels.put(object, result);
 					return result;
 				}
