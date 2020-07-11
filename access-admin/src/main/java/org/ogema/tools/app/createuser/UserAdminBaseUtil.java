@@ -74,6 +74,7 @@ public class UserAdminBaseUtil {
 		result.add("org.ogema.messaging.message-settings");
 		result.add("org.ogema.apps.room-link");
 		result.add("com.example.app.evaluation-offline-control");
+		result.add("org.ogema.tools.log-transfer-control-sp");
 		return result;
 		
 	};
@@ -94,16 +95,17 @@ public class UserAdminBaseUtil {
 				result.add("org.ogema.tools.schedule-viewer-expert");
 				break;
 			case UserPermissionService.ALARMING:
+				result.add("org.smartrplace.apps.alarming-config-app");
 				result.add("org.ogema.apps.window-opened-sp");
 				result.add("de.iee.ogema.batterystatemonitoring");
-				result.add("org.smartrplace.internal.message-reader-v2");
+				/*result.add("org.smartrplace.internal.message-reader-v2");
 				result.add("org.ogema.messaging.message-forwarding");
 				result.add("org.ogema.messaging.message-settings");
 				result.add("org.smartrplace.apps.smartr-efficiency-fimon");
-				result.add("org.smartrplace.apps.smartr-efficiency-admin");
+				result.add("org.smartrplace.apps.smartr-efficiency-admin");*/
 				break;
 			case UserPermissionService.USER_MANAGEMENT:
-				result.add("org.ogema.tools.log-transfer-control-sp");
+				result.add("org.ogema.tools.user-administration");
 				break;
 			case UserPermissionService.INSTALLATION_SETUP:
 				result.add("org.smartrplace.apps.hardware-installation");

@@ -51,9 +51,9 @@ public class UserRegisterHelper {
 					
 					if(newUserHandler != null) newUserHandler.newUserCreated(data, name, req);
 					
-					alert.showAlert("New user "+userName+" created. Please log out and login as the new user. "
-							+ "This will be done automatically in the future (if not already available).",
-							true, 60*60000, req);
+					//alert.showAlert("New user "+userName+" created. Please log out and login as the new user. "
+					//		+ "This will be done automatically in the future (if not already available).",
+					//		true, 60*60000, req);
 
 					// XXX: Problem: If we were to just invalidate the session
 					// right here, the GET to the alert would fail as it is
@@ -61,7 +61,7 @@ public class UserRegisterHelper {
 					// workaround, chances are the user will see the alert and
 					// then get their session invalidated.  This is still far
 					// from ideal though.
-					req.getReq().getSession().setMaxInactiveInterval(1);
+					//req.getReq().getSession().setMaxInactiveInterval(1);
 					//req.getReq().getSession().invalidate();
 
 					//finally we should log out here ?

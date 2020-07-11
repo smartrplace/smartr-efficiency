@@ -99,7 +99,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html", true);
 		Resource base = appMan.getResourceAccess().getResource("master");
 		mainPage = new MainPage(pageRes10, appMan, base);
-		initApp.menu.addEntry("Room Setup", pageRes10);
+		initApp.menu.addEntry("Alarming Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
 		WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
@@ -122,6 +122,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
 		initApp.menu.addEntry("Message Receiver Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
+		
+		initApp.menu.addEntry("Battery State Alarming", "/de/iee/ogema/batterystatemonitoring/index.html");
+		initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
 	}
 
      protected void initAlarmingResources() {
