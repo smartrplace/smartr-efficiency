@@ -1,5 +1,6 @@
 package org.smartrplace.external.accessadmin.gui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -40,7 +41,19 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 	
 	@Override
 	protected List<String> getPermissionNames() {
-		return Arrays.asList(UserPermissionService.APP_ACCESS_PERMISSIONS);
+		List<String> result = getPermissionNamesBase();
+		if(System.getProperty("org.ogema.drivers.bacnet.processOnlyFirstIamMessagePerDevice") != null) {
+			ArrayList<String> result2 = new ArrayList<String>(result);
+			result2.add(UserPermissionService.BACNET);
+			return result2;
+		}
+		return result;
+	}
+	protected List<String> getPermissionNamesBase() {
+		if(Boolean.getBoolean("org.ogema.accessadmin.api.isappstore"))
+			return Arrays.asList(UserPermissionService.APP_ACCESS_PERMISSIONS_WITHAPPSTORE);
+		else
+			return Arrays.asList(UserPermissionService.APP_ACCESS_PERMISSIONS);
 	}
 
 	@Override
