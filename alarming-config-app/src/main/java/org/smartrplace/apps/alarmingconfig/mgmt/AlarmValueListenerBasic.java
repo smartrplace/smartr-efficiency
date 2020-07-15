@@ -1,11 +1,16 @@
 package org.smartrplace.apps.alarmingconfig.mgmt;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
+import org.ogema.devicefinder.api.AlarmingExtension;
+import org.ogema.devicefinder.api.AlarmingExtensionListener;
+import org.ogema.devicefinder.api.AlarmingExtensionListener.AlarmResult;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.app.monbase.RoomLabelProvider;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
@@ -21,6 +26,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	final int resendRetard;
 	final ValueListenerData vl;
 	final AlarmConfigBase ac;
+	final List<AlarmingExtensionListener> extensions = new ArrayList<>();
 
 	final ApplicationManagerPlus appManPlus;
 	protected final RoomLabelProvider tsNameProv;
@@ -61,6 +67,17 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		this.vl = vl;
 		this.ac = ac;
 		vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
+		String[] exts = ac.alarmingExtensions().getValues();
+		if(ac.supervisedSensor().reading().exists() && ac.supervisedSensor().reading() instanceof SingleValueResource) {
+			SingleValueResource target = (SingleValueResource)ac.supervisedSensor().reading();
+			if(exts != null) for(String ext: exts) {
+				AlarmingExtension extDef = appManPlus.dpService().alarming().getAlarmingExtension(ext);
+				if(extDef == null)
+					return;
+				AlarmingExtensionListener extListener = extDef.getListener(target, ac);
+				extensions.add(extListener);
+			}
+		}
 	}
 	
 	@Override
@@ -74,7 +91,15 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			appManPlus.appMan().getLogger().warn("Received Nan value in FloatResource:"+resource.getLocation());
 			val = -999;
 		}
-		resourceChanged(val, alarmStatus, appManPlus.appMan().getFrameworkTime());
+		long now = appManPlus.appMan().getFrameworkTime();
+		resourceChanged(val, alarmStatus, now);
+		for(AlarmingExtensionListener ext: extensions) {
+			AlarmResult result = ext.resourceChanged(resource, val, now);
+			if(result != null) {
+				executeAlarm(ac, result.message(), alarmStatus, result.alarmValue());
+				vl.isAlarmActive = true;				
+			}
+		}
 	}
 	public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp) {
 		long now = timeStamp;
@@ -128,6 +153,18 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		
 		if(alarmStatus != null) {
 			alarmStatus.setValue(ac.alarmLevel().getValue());
+		}
+	}
+	public void executeAlarm(AlarmConfigBase ac, String message,
+			IntegerResource alarmStatus, int alarmValue) {
+		String title = alarmID+": "+tsNameProv.getTsName(ac)+" (Alarming Special)";
+		if(upper == 1.0f && lower == 1.0f) {
+			title += "(Schalter)";
+		}
+		sendMessage(title, message, MessagePriority.HIGH);
+		
+		if(alarmStatus != null) {
+			alarmStatus.setValue(alarmValue);
 		}
 	}
 	@Override

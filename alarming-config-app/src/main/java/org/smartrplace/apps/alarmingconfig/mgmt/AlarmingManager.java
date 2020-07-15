@@ -516,7 +516,7 @@ public class AlarmingManager {
 		for(BuildingData build: user.editableData().buildingData().getAllElements()) {
 			for(BuildingUnit bu: build.buildingUnit().getAllElements()) {
 				@SuppressWarnings("unchecked")
-				ResourceList<AlarmConfigBase> alarms = bu.getSubResource("alarmConfig", ResourceList.class);
+				ResourceList<AlarmConfigBase> alarms = bu.getSubResource("alarmConfigs", ResourceList.class);
 				for(AlarmConfigBase ac: alarms.getAllElements()) {
 					if(ac.supervisedTS().exists()) continue;
 					if(!ac.supervisedSensor().exists()) continue;
