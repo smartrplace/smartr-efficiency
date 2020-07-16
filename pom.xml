@@ -78,7 +78,9 @@
 		<module>monitoring-service-base</module>
 		<module>access-admin</module>
 		<module>alarming-config-app</module>
-    </modules>
+		<module>hardware-installation</module>
+		<module>hardware-installation-expert</module>
+   </modules>
 
     <build>
         <plugins>
