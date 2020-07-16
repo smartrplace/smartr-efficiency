@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.accessadmin.api.UserPermissionService.UserStatusResult;
 import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.accesscontrol.AppPermissionFilter;
 import org.ogema.accesscontrol.PermissionManager;
@@ -126,10 +127,6 @@ public class UserAdminBaseUtil {
 		return result ;
 	}
 	
-	public static class UserStatusResult {
-		public UserStatus status = null;
-		public List<String> addPerms = null;
-	}
 	public static UserStatusResult getUserStatus(UserAccount userAccount, ApplicationManagerPlus appManPlus, boolean useWorkingCopy) {
 		String userName = userAccount.getName();
 		UserStatusResult result = new UserStatusResult();
@@ -154,6 +151,12 @@ public class UserAdminBaseUtil {
 		return result;
 	}
 
+	public static UserStatusResult getUserStatus(String userName, ApplicationManagerPlus appManPlus) {
+		UserAccount userAccount = appManPlus.appMan().getAdministrationManager().getUser(userName);
+		UserStatusResult status = UserAdminBaseUtil.getUserStatus(userAccount, appManPlus, false);
+		return status;
+	}
+	
 	public static UserStatus getUserStatus(List<String> appPermissions, UserPermissionService userPermService, boolean useWorkingCopy) {
 		if(hasAllPerms(appPermissions, SUPERADMIN_APPS(userPermService, useWorkingCopy)))
 			return UserStatus.SUPERADMIN;

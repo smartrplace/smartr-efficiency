@@ -13,7 +13,6 @@ import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.app.createuser.UserAdminBaseUtil;
-import org.ogema.tools.app.createuser.UserAdminBaseUtil.UserStatusResult;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
@@ -223,5 +222,10 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 			}
 		}
 		return null;
+	}
+	
+	@Override
+	public UserStatusResult getUserStatus(String userName) {
+		return UserAdminBaseUtil.getUserStatus(userName, controller.appManPlus);
 	}
 }
