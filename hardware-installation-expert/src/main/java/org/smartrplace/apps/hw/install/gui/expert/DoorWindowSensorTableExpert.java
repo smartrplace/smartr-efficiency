@@ -13,7 +13,8 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
-public class DoorWindowSensorTableExpert extends DoorWindowSensorTable {
+@Deprecated
+public abstract class DoorWindowSensorTableExpert extends DoorWindowSensorTable {
 
 	public DoorWindowSensorTableExpert(WidgetPage<?> page, HardwareInstallControllerExpert controller,
 			InstalledAppsSelector instAppSelector, Alert alert) {

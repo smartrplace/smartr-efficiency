@@ -28,7 +28,7 @@ public abstract class UserTaggedTbl {
 		public RoomGroupTbl(BuildingPropertyUnit roomGrp, String userName) {
 			super(userName);
 			String name = roomGrp.name().getValue();
-			if(name.startsWith("New Room Group"))
+			if(name.startsWith("New Room Attribute"))
 				index = String.format("%011d", 0);
 			this.roomGrp = roomGrp;
 		}

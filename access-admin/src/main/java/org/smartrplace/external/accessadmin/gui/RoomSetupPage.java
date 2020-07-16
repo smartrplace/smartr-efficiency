@@ -16,7 +16,6 @@ import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomGroupTbl;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
-import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
@@ -140,7 +139,6 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		return result;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public void addWidgets(RoomGroupTbl object, ObjectResourceGUIHelper<RoomGroupTbl, BooleanResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {

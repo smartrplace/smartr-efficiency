@@ -3,7 +3,6 @@ package org.smartrplace.apps.hw.install.gui;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -16,27 +15,23 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
-import de.iwes.widgets.html.form.button.RedirectButton;
-import de.iwes.widgets.html.form.label.Header;
-import de.iwes.widgets.html.form.label.HeaderData;
 
 public abstract class DeviceTablePageFragment extends DeviceTableBase implements InstalledAppsSelector { //extends ObjectGUITablePage<InstallAppDevice,InstallAppDevice> {
 	public static final long DEFAULT_POLL_RATE = 5000;
 	
 	protected abstract Class<? extends Resource> getResourceType();
-	protected String getHeader() {return "Device Setup and Configuration";}
+	//protected String getHeader() {return "Device Setup and Configuration";}
 	
 	protected HardwareInstallController controller;
-	private Header header;
+	//private Header header;
 	//private Alert alert;
-	protected RoomSelectorDropdown roomsDrop;
+	/*protected RoomSelectorDropdown roomsDrop;
 	protected InstallationStatusFilterDropdown installFilterDrop;
 	protected final InstalledAppsSelector instAppsSelector;
-	protected final boolean isParentTable;
+	protected final boolean isParentTable;*/
 	
 	public DeviceTablePageFragment(WidgetPage<?> page, HardwareInstallController controller,
 			InstalledAppsSelector instAppsSelector, Alert alert) {
@@ -44,13 +39,13 @@ public abstract class DeviceTablePageFragment extends DeviceTableBase implements
 		//super(page, controller.appMan, null, null, InstallAppDevice.class, false, true, alert);
 		super(page, controller.appMan, null, instAppsSelector);
 		this.controller = controller;
-		if(instAppsSelector != null) {
+		/*if(instAppsSelector != null) {
 			this.instAppsSelector = instAppsSelector;
 			isParentTable = false;
 		} else {
 			this.instAppsSelector = this;
 			isParentTable = true;
-		}
+		}*/
 		//this.roomsDrop = roomsDrop;
 		//retardationOnGET = 2000;
 		
@@ -90,8 +85,7 @@ public abstract class DeviceTablePageFragment extends DeviceTableBase implements
 		return source;
 	}
 	
-	@SuppressWarnings("unchecked")
-	@Override
+	/*@Override
 	public void addWidgetsAboveTable() {
 		if(!isParentTable) return;
 		header = new Header(page, "header", getHeader());
@@ -126,7 +120,7 @@ public abstract class DeviceTablePageFragment extends DeviceTableBase implements
 		//		alert, appMan, 0, 3);
 		topTable.setContent(0, 5, calendarConfigButton);
 		page.append(topTable);
-	}
+	}*/
 	
 	/*@Override
 	public List<InstallAppDevice> getObjectsInTable(OgemaHttpRequest req) {

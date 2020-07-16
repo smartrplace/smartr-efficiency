@@ -13,7 +13,6 @@ import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
-import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -76,14 +75,9 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 			}
 		};
 		addUserGroup.registerDependentWidget(mainTable);
-		//RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
-		//		"/de/iwes/ogema/apps/logtransfermodus/index.html");
-		
-		//topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
+
 		topTable.setContent(1, 1, addUserGroup); //.setContent(1, 2, userAdminLink);
 		page.append(topTable);
-		//dualFiltering = new DualFiltering<String, Room, Room>(
-		//		userFilter, roomFilter);
 		
 		Alert info = new Alert(page, "description_user","Explanation") {
 
@@ -101,29 +95,16 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 	    info.addDefaultStyle(AlertData.BOOTSTRAP_INFO);
 	    info.setDefaultVisibility(true);
 	    page.append(info);
-	    
-		/*String text = "Change the label of user attributes here. User types are defined in the User Administration, these"
-				+ " labels cannot be edited. The mapping of individual users to the attributes can be set on the page "
-				+ "<a href=\"" + USER_GROUP_MAPPING_LINK + "\"><b>User Attribute Configuration</b></a>.";
-		alert.setDefaultTextAsHtml(true);
-		alert.setDefaultText(text);
-		alert.setDefaultAllowDismiss(true);
-		alert.autoDismiss(-1, null);
-	    alert.addDefaultStyle(AlertData.BOOTSTRAP_INFO);
-	    alert.setDefaultVisibility(true);*/
-	    //page.append(alert);
 	}
 	
-	@Override
-	protected void addNameLabel(AccessConfigUser object,
+	protected boolean addNameLabelExtended(AccessConfigUser object,
 			ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id, Row row) {
 		OgemaWidget edit = vh.valueEdit(getTypeName(null), id, object.name(), row, alert);
-		if(object.isGroup().getValue() > 1)
+		if(object.isGroup().getValue() > 1) {
 			edit.disable(vh.getReq());
-		//if(object.isGroup().getValue() > 1)
-		//	vh.stringLabel(getTypeName(null), id, object.name(), row);
-		//else
-		//	vh.valueEdit(getTypeName(null), id, object.name(), row, alert);
+			return false;
+		}
+		return true;
 	}
 
 	@Override
@@ -132,12 +113,18 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 		return all;
 	}
 
-	@SuppressWarnings("rawtypes")
 	@Override
 	public void addWidgets(AccessConfigUser object, ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-		addNameLabel(object, vh, id, row);
-		GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row,
+		if(addNameLabelExtended(object, vh, id, row))
+			GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row,
 				vh, req);
+	}
+	
+	@Override
+	public String getLineId(AccessConfigUser object) {
+		if(object.name().getValue().startsWith("New User Attribute"))
+			return "0000"+super.getLineId(object);
+		return "9999"+super.getLineId(object);
 	}
 }

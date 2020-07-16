@@ -6,6 +6,7 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.internationalization.util.LocaleHelper;
+import org.ogema.tools.app.createuser.UserAdminBaseUtil;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
@@ -33,9 +34,9 @@ public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessCo
 	}
 
 	@Override
-	protected List<GenericFilterOption<String>> getOptionsDynamic(AccessConfigUser group) {
+	protected List<GenericFilterOption<String>> getOptionsDynamic(AccessConfigUser group, OgemaHttpRequest req) {
 		List<GenericFilterOption<String>> result = new ArrayList<>();
-		for(UserAccount ac: AccessAdminController.getAllNaturalUsers(true, appManPlus)) { //controller.appMan.getAdministrationManager().getAllUsers()) {
+		for(UserAccount ac: UserAdminBaseUtil.getNaturalUsers(appManPlus, req)) { //controller.appMan.getAdministrationManager().getAllUsers()) {
 			if(group != null && (!firstDropDown.isInSelection(ac.getName(), group)))
 				continue;
 			GenericFilterOption<String> newOption = new SingleUserOption(ac.getName(), LocaleHelper.getLabelMap(ac.getName()));

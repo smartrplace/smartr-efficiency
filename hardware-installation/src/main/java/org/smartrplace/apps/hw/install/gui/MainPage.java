@@ -21,43 +21,92 @@ import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableBase;
-import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
-import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
-import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.simulation.service.apiplus.SimulationConfigurationModel;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
-import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.HeaderData;
-import de.iwes.widgets.html.form.label.Label;
-import de.iwes.widgets.html.form.textfield.TextField;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
-public class MainPage extends DeviceTablePageFragment implements InstalledAppsSelector {
+public class MainPage implements InstalledAppsSelector { //extends DeviceTablePageFragment
+	protected final HardwareInstallController controller;
+	protected final WidgetPage<?> page;
+	protected final Alert alert;
+	protected final ApplicationManager appMan;
 
-	public MainPage(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller, null, null);
-		super.addWidgetsAboveTable();
+	private Header header;
+	protected RoomSelectorDropdown roomsDrop;
+	protected InstallationStatusFilterDropdown installFilterDrop;
+	protected final InstalledAppsSelector instAppsSelector;
+
+	protected String pid() {
+		return WidgetHelper.getValidWidgetId(this.getClass().getName());
+	}
+	protected String getHeader() {return "Device Setup and Configuration";}
+
+	public MainPage(WidgetPage<?> page, final HardwareInstallController controller) {
+		this.page = page;
+		this.appMan = controller.appMan;
+		this.controller = controller;
+		//init all widgets
+		this.alert = new Alert(page, WidgetHelper.getValidWidgetId("alert"+pid()), "");
+		
+		this.instAppsSelector = this;
+
+		header = new Header(page, "header", getHeader());
+		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
+		page.append(header).linebreak();
+		
+		StaticTable topTable = new StaticTable(1, 6, new int[] {2, 2, 2, 2, 2, 2});
+		BooleanResourceButton installMode = new BooleanResourceButton(page, "installMode", "Installation Mode",
+				controller.appConfigData.isInstallationActive()) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onPrePOST(String data, OgemaHttpRequest req) {
+				super.onPrePOST(data, req);
+				controller.checkDemands();
+			}
+		};
+		roomsDrop = new RoomSelectorDropdown(page, "roomsDrop", controller);
+		installFilterDrop = new InstallationStatusFilterDropdown(page, "installFilterDrop", controller);
+		
+		//RedirectButton roomLinkButton = new RedirectButton(page, "roomLinkButton", "Room Administration", "/de/iwes/apps/roomlink/gui/index.html");
+		
+		RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
+				"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
+		
+		topTable.setContent(0, 0, roomsDrop)
+				.setContent(0, 1, installFilterDrop)
+				.setContent(0, 2, installMode);//setContent(0, 2, roomLinkButton).
+		RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/actionadmin/roomconfig.html");
+		topTable.setContent(0, 3, addRoomLink);
+		//RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
+		//		alert, appMan, 0, 3);
+		topTable.setContent(0, 5, calendarConfigButton);
+		page.append(topTable);
+		
 		finishConstructor();
 	}
 	
 	protected void finishConstructor() {
 		updateTables();
-		DoorWindowSensorTable winSensTable = new DoorWindowSensorTable(page, controller, this, alert);
-		winSensTable.triggerPageBuild();
-		triggerPageBuild();		
+		//DoorWindowSensorTable winSensTable = new DoorWindowSensorTable(page, controller, this, alert);
+		//winSensTable.triggerPageBuild();
+		//triggerPageBuild();		
 	}
 	
 	Set<String> tableProvidersDone = new HashSet<>();
@@ -96,13 +145,12 @@ public class MainPage extends DeviceTablePageFragment implements InstalledAppsSe
 		return result;
 	}
 
-	
-	@Override
+	/*@Override
 	protected Class<? extends Resource> getResourceType() {
 		return Thermostat.class;
-	}
+	}*/
 	
-	@Override
+	/*@Override
 	public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		addWidgetsInternal(object, vh, id, req, row, appMan);
@@ -166,15 +214,15 @@ public class MainPage extends DeviceTablePageFragment implements InstalledAppsSe
 			lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 		}
 		return device;
-	}
+	}*/
 	
-	@Override
+	/*@Override
 	public void addWidgetsAboveTable() {
 		//super.addWidgetsAboveTable();
-		Header headerThermostat = new Header(page, "headerThermostat", "Thermostats");
-		headerThermostat.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
-		page.append(headerThermostat);
-	}
+		//Header headerThermostat = new Header(page, "headerThermostat", "Thermostats");
+		//headerThermostat.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
+		//page.append(headerThermostat);
+	}*/
 
 	@Override
 	public List<InstallAppDevice> getDevicesSelected() {

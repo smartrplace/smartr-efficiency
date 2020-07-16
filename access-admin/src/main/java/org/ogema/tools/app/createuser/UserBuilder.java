@@ -48,29 +48,4 @@ public class UserBuilder {
 			appMan.getLogger().error("Could not add permissions for user {}",userName,e);
 		}
 	}
-
-	/*private void addAllBundlePermissions(String userName) {
-		addBundlePermissionForUser(userName, "de.iwes.widgets.ogema-js-bundle");
-		addBundlePermissionForUser(userName, "org.ogema.ref-impl.framework-gui");
-		addBundlePermissionForUser(userName, "de.iwes.widgets.widget-experimental");
-		addBundlePermissionForUser(userName, "de.iwes.widgets.widget-collection");
-		addBundlePermissionForUser(userName, "org.smartrplace.apps.smartr-efficiency-admin-multi");
-	}
-	private void initUserPermissions() {
-		// it may take some time until all user bundles are available
-		// if an exception is thrown nevertheless, it is caught downstream
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			return;
-		}
-		List<UserAccount> allAccounts = appMan.getAdministrationManager().getAllUsers();
-		for(UserAccount acc: allAccounts) {
-			if (acc.getName().equals("master") || acc.getName().equals("rest")) 
-				continue;
-			addAllBundlePermissions(acc.getName()); 
-		}
-	}*/
-
 }

@@ -29,6 +29,7 @@ import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 // here the controller logic is implemented
 public class AccessAdminController {
@@ -234,19 +235,7 @@ public class AccessAdminController {
 		return result ;
 	}
 	
-	public List<UserAccount> getAllNaturalUsers() {
-		return getAllNaturalUsers(true, appManPlus);
-	}
-	public static List<UserAccount> getAllNaturalUsers(boolean includeMaster, ApplicationManagerPlus appManPlus) {
-		List<UserAccount> allUsers = appManPlus.appMan().getAdministrationManager().getAllUsers();
-		List<UserAccount> result = new ArrayList<>();
-		for(UserAccount ac: allUsers) {
-			if((!includeMaster) && (ac.getName().equals("master")||ac.getName().equals("guest2")))
-				continue;
-			if(!appManPlus.permMan().getAccessManager().isNatural(ac.getName()))
-				continue;
-			result.add(ac);
-		}
-		return result;
+	public List<UserAccount> getAllNaturalUsers(OgemaHttpRequest req) {
+		return UserAdminBaseUtil.getNaturalUsers(appManPlus, req);
 	}
 }

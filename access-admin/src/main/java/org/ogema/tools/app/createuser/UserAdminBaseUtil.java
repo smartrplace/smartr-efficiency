@@ -11,17 +11,21 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.accesscontrol.AppPermissionFilter;
+import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.administration.UserAccount;
+import org.ogema.core.application.ApplicationManager;
 import org.osgi.framework.Version;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public class UserAdminBaseUtil {
 	protected static final String WEB_ACCESS_PERM_STARTSTRING = "(org.ogema.accesscontrol.WebAccessPermission \"name=";
@@ -392,4 +396,34 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		}
 	}
 
+	public static List<UserAccount> getNaturalUsers(ApplicationManagerPlus appManPlus,
+			OgemaHttpRequest req) {
+		return getNaturalUsers(appManPlus.appMan(), appManPlus.permMan(), req);
+	}
+	public static List<UserAccount> getNaturalUsers(ApplicationManager appMan, PermissionManager permMan,
+			OgemaHttpRequest req) {
+		String userLoggedIn = GUIUtilHelper.getUserLoggedIn(req);
+		List<UserAccount> result = new ArrayList<UserAccount>();
+		for(UserAccount ac: appMan.getAdministrationManager().getAllUsers()) {
+			if((ac.getName().equals("master")||ac.getName().equals("guest2")) && (!userLoggedIn.equals("master")))
+				continue;
+			if(permMan.getAccessManager().isNatural(ac.getName())) {
+				result .add(ac);
+			}
+		}
+		return result;
+	}
+	
+	public static List<UserAccount> getAllNaturalUsers(boolean includeMaster, ApplicationManagerPlus appManPlus) {
+		List<UserAccount> allUsers = appManPlus.appMan().getAdministrationManager().getAllUsers();
+		List<UserAccount> result = new ArrayList<>();
+		for(UserAccount ac: allUsers) {
+			if((!includeMaster) && (ac.getName().equals("master")||ac.getName().equals("guest2")))
+				continue;
+			if(!appManPlus.permMan().getAccessManager().isNatural(ac.getName()))
+				continue;
+			result.add(ac);
+		}
+		return result;
+	}
 }

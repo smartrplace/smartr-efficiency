@@ -19,7 +19,8 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
 
-public class DoorWindowSensorTableRSSI extends DoorWindowSensorTableExpert {
+@Deprecated
+public abstract class DoorWindowSensorTableRSSI extends DoorWindowSensorTableExpert {
 
 	public DoorWindowSensorTableRSSI(WidgetPage<?> page, HardwareInstallControllerExpert controller,
 			InstalledAppsSelector instAppsSelector, Alert alert) {

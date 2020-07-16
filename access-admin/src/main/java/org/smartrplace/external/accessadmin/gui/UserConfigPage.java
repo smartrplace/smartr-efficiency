@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.administration.UserAccount;
+import org.ogema.tools.app.createuser.UserAdminBaseUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
@@ -42,7 +43,7 @@ public class UserConfigPage extends PerMultiselectConfigPage<UserDataTbl, Access
 	@Override
 	public Collection<UserDataTbl> getObjectsInTable(OgemaHttpRequest req) {
 		List<UserDataTbl> result = new ArrayList<>();
-		for(UserAccount ac: AccessAdminController.getAllNaturalUsers(false, controller.appManPlus)) { //appMan.getAdministrationManager().getAllUsers()) {
+		for(UserAccount ac: UserAdminBaseUtil.getAllNaturalUsers(false, controller.appManPlus)) { //appMan.getAdministrationManager().getAllUsers()) {
 			UserDataTbl obj = new UserDataTbl(ac);
 			obj.accessConfig = UserPermissionUtil.getOrCreateUserPermissions(controller.userPerms, ac.getName());
 			result.add(obj);

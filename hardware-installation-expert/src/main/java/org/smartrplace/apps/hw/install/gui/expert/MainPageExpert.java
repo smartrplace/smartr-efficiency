@@ -28,15 +28,15 @@ public class MainPageExpert extends MainPage {
 		//DoorWindowSensorTableExpert winSensTable = new DoorWindowSensorTableExpert(page,
 		//		(HardwareInstallControllerExpert) controller, this, alert);
 		//winSensTable.triggerPageBuild();
-		triggerPageBuild();
+		//triggerPageBuild();
 	}
 
-	@Override
+	/*@Override
 	public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		//Thermostat device = super.addWidgetsInternal(object, vh, id, req, row, appMan);
 		//vh.booleanEdit("Bang", id, device.getSubResource("bangBangControlActive", BooleanResource.class), row);
 		//addWidgetsCommonExpert(object, vh, id, req, row, appMan, device.location().room());
-	}
+	}*/
 	
 }	

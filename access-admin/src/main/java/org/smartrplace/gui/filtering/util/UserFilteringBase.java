@@ -59,7 +59,7 @@ public class UserFilteringBase<T> extends SingleFiltering<String, T> {
 	@Override
 	protected List<GenericFilterOption<String>> getOptionsDynamic(OgemaHttpRequest req) {
 		List<GenericFilterOption<String>> result = new ArrayList<>();
-		for(UserAccount ac: controller.getAllNaturalUsers()) { //appMan.getAdministrationManager().getAllUsers()) {
+		for(UserAccount ac: controller.getAllNaturalUsers(req)) { //appMan.getAdministrationManager().getAllUsers()) {
 			GenericFilterOption<String> newOption = new SingleUserOption(ac.getName(), LocaleHelper.getLabelMap(ac.getName()));
 			result.add(newOption);
 		}

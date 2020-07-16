@@ -67,47 +67,19 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 
-	//@Override
-	//protected List<String> getPermissionNames() {
-	//	return Arrays.asList(UserPermissionService.ROOMPERMISSONS);
-	//}
-
-	/*@Override
-	protected ConfigurablePermission getAccessConfig(BuildingPropertyUnit object, String permissionID,
-			OgemaHttpRequest req) {
-		String userName = userFilter.getSelectedUser(req);
-		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
-				userPerms, userName);
-		ConfigurablePermission result = new ConfigurablePermission();
-		//We have to choose the right permission data for the page here
-		if(userAcc == null)
-			userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);
-		result.accessConfig = userAcc.roompermissionData();
-		result.resourceId = object.roomGrp.getLocation();
-		result.permissionId = permissionID;
-		result.defaultStatus = controller.userPermService.getUserPermissionForRoom(userName, result.resourceId,
-				permissionID, true) > 0;
-		return result;
-	}*/
-
 	@Override
 	public void addWidgetsAboveTable() {
 		// TODO Auto-generated method stub
 		super.addWidgetsAboveTable();
 	
-		//userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
-		//		OptionSavingMode.GENERAL, 5000, controller.appConfigData, controller.appManPlus);
-		
-		//userFilter.registerDependentWidget(mainTable);
-		
 		StaticTable topTable;
-		if(Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
-			topTable = new StaticTable(1, 5);
-		} else {
-			topTable = new StaticTable(2, 5);
-		}
+		//if(Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
+		topTable = new StaticTable(1, 5);
+		//} else {
+		//	topTable = new StaticTable(2, 5);
+		//}
 		//topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
-		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
+		/*if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
 			Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
 
 				@Override
@@ -120,7 +92,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 				}
 			};
 			topTable.setContent(1, 0, addUserGroup);
-		}
+		}*/
 		page.append(topTable);
 
 		Alert info = new Alert(page, "description","Explanation") {
@@ -144,12 +116,6 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 	    page.append(info);
 	}
 	
-	//@Override
-	//protected void addNameLabel(BuildingPropertyUnit object,
-	//		ObjectResourceGUIHelper<BuildingPropertyUnit, BooleanResource> vh, String id, Row row) {
-	//	vh.valueEdit(getTypeName(null), id, object.roomGrp.name(), row, alert);
-	//}
-
 	@Override
 	public Collection<AccessConfigUser> getObjectsInTable(OgemaHttpRequest req) {
 		List<AccessConfigUser> all = AccessAdminController.getUserGroups(false, true, controller.appConfigData);

@@ -120,7 +120,7 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 			}
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				List<UserAccount> allUsers = controller.getAllNaturalUsers(); //controller.appMan.getAdministrationManager().getAllUsers();
+				List<UserAccount> allUsers = controller.getAllNaturalUsers(req); //controller.appMan.getAdministrationManager().getAllUsers();
 				for(UserAccount ac: allUsers) {
 					//if((ac.getName().equals("master")||ac.getName().equals("guest2")))
 					//	continue;

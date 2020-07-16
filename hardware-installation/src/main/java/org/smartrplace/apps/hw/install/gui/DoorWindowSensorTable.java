@@ -25,7 +25,7 @@ import de.iwes.widgets.html.form.label.HeaderData;
 import de.iwes.widgets.html.form.label.Label;
 
 @Deprecated
-public class DoorWindowSensorTable extends DeviceTablePageFragment {
+public abstract class DoorWindowSensorTable extends DeviceTablePageFragment {
 
 	public DoorWindowSensorTable(WidgetPage<?> page, HardwareInstallController controller,
 			InstalledAppsSelector instAppsSelector, Alert alert) {
@@ -86,7 +86,7 @@ public class DoorWindowSensorTable extends DeviceTablePageFragment {
 		page.append(headerWinSens);
 	}
 
-	@Override
+	/*@Override
 	public List<InstallAppDevice> getDevicesSelected() {
 		return instAppsSelector.getDevicesSelected();
 	}
@@ -109,5 +109,5 @@ public class DoorWindowSensorTable extends DeviceTablePageFragment {
 	@Override
 	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
 		instAppsSelector.startSimulation(tableProvider, device);
-	}
+	}*/
 }
