@@ -101,20 +101,24 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		initApp.menu.addEntry("Alarming Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
-		WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
-		pageRes11.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
-		messagePage = new PageBuilderSimple(pageRes11, initApp.mr, appMan);
-		initApp.menu.addEntry("Alarm Messages", pageRes11);
-		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
-		
-		WidgetPage<SelectConnectorDictionary> pageRes2 = initApp.widgetApp.createWidgetPage("forwarding.html", false);
-		@SuppressWarnings("unchecked")
-		final ResourceList<MessagingApp> appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
-		appList.setElementType(MessagingApp.class);
-		forwardingPage = new PageInit(pageRes2, appMan, appList, initApp.mr);
-		initApp.menu.addEntry("Message Forwarding Configuration", pageRes2);
-		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
-
+		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
+			WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
+			pageRes11.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
+			messagePage = new PageBuilderSimple(pageRes11, initApp.mr, appMan);
+			initApp.menu.addEntry("Alarm Messages", pageRes11);
+			initApp.configMenuConfig(pageRes11.getMenuConfiguration());
+			
+			WidgetPage<SelectConnectorDictionary> pageRes2 = initApp.widgetApp.createWidgetPage("forwarding.html", false);
+			@SuppressWarnings("unchecked")
+			final ResourceList<MessagingApp> appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
+			appList.setElementType(MessagingApp.class);
+			forwardingPage = new PageInit(pageRes2, appMan, appList, initApp.mr);
+			initApp.menu.addEntry("Message Forwarding Configuration", pageRes2);
+			initApp.configMenuConfig(pageRes2.getMenuConfiguration());
+		} else {
+			messagePage = null;
+			forwardingPage = null;
+		}
 		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", false);
 		pageRes3.registerLocalisation(MessageSettingsDictionary_de.class).registerLocalisation(MessageSettingsDictionary_en.class);
 		receiverPage = new ReceiverPageBuilder(pageRes3, appMan);
@@ -122,8 +126,10 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		initApp.menu.addEntry("Message Receiver Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 		
-		initApp.menu.addEntry("Battery State Alarming", "/de/iee/ogema/batterystatemonitoring/index.html");
-		initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
+		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
+			initApp.menu.addEntry("Battery State Alarming", "/de/iee/ogema/batterystatemonitoring/index.html");
+			initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
+		}
 	}
 
      protected void initAlarmingResources() {
