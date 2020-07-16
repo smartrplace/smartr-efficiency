@@ -11,13 +11,13 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.AlarmingExtensionListener;
 import org.ogema.devicefinder.api.AlarmingExtensionListener.AlarmResult;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
-import org.smartrplace.app.monbase.RoomLabelProvider;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.ValueListenerData;
+import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
 
 import de.iwes.widgets.api.messaging.MessagePriority;
-import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 public abstract class AlarmValueListenerBasic<T extends SingleValueResource> implements ResourceValueListener<T>, AlarmValueListenerI {
 	final float upper;
@@ -25,21 +25,21 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	final int retard;
 	final int resendRetard;
 	final ValueListenerData vl;
-	final AlarmConfigBase ac;
+	final AlarmConfiguration ac;
 	final List<AlarmingExtensionListener> extensions = new ArrayList<>();
 
 	final ApplicationManagerPlus appManPlus;
 	protected final RoomLabelProvider tsNameProv;
 	final String alarmID;
 	
-	protected abstract void releaseAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+	protected abstract void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus);
 	protected abstract void sendMessage(String title, String message, MessagePriority prio)
 			throws RejectedExecutionException, IllegalStateException;
 	protected abstract float getHumanValue(T resource);
 	
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
-	public AlarmValueListenerBasic(AlarmConfigBase ac, ValueListenerData vl,
+	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
 			String alarmID, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
 		this.appManPlus = appManPlus;
 		this.tsNameProv = tsNameProv;
@@ -55,7 +55,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	/** This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision*/
 	public AlarmValueListenerBasic(float upper, float lower, int retard, int resendRetard,
-			AlarmConfigBase ac, ValueListenerData vl,
+			AlarmConfiguration ac, ValueListenerData vl,
 			String alarmID, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
 		this.appManPlus = appManPlus;
 		this.tsNameProv = tsNameProv;
@@ -141,7 +141,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.lastTimeOfNewData = now;
 	}
 	
-	public void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
 		String title = alarmID+": "+tsNameProv.getTsName(ac)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
@@ -155,7 +155,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			alarmStatus.setValue(ac.alarmLevel().getValue());
 		}
 	}
-	public void executeAlarm(AlarmConfigBase ac, String message,
+	public void executeAlarm(AlarmConfiguration ac, String message,
 			IntegerResource alarmStatus, int alarmValue) {
 		String title = alarmID+": "+tsNameProv.getTsName(ac)+" (Alarming Special)";
 		if(upper == 1.0f && lower == 1.0f) {
@@ -168,7 +168,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		}
 	}
 	@Override
-	public AlarmConfigBase getAc() {
+	public AlarmConfiguration getAc() {
 		return ac;
 	}
 	@Override

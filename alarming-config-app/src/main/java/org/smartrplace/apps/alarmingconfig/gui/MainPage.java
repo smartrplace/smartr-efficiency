@@ -1,34 +1,39 @@
 package org.smartrplace.apps.alarmingconfig.gui;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.devicefinder.api.AlarmingExtension;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
-import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
+import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.WindowCloseButton;
-import de.iwes.widgets.html.form.label.Header;
-import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 
 /**
  * An HTML page, generated from the Java code.
  */
-public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBase>  {
+public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, AlarmingExtension, AlarmConfiguration>  {
 
 	public static final Map<String, String> ALARM_LEVEL_EN = new HashMap<>();
 	static {
@@ -44,46 +49,53 @@ public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBas
 	public static AlarmingUpdater alarmingUpdater = null;
 	
 	private final Resource baseResource;
+	protected final ApplicationManagerPlus appManPlus;
 	
 
-	public MainPage(WidgetPage<?> page, ApplicationManager appMan, Resource baseResource) {
-		super(page, appMan, ResourceHelper.getSampleResource(AlarmConfigBase.class));
+	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, Resource baseResource) {
+		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(AlarmConfiguration.class));
 		this.baseResource = baseResource;
+		this.appManPlus = appManPlus;
 		appMan.getLogger().info("Alarming Config page created at {}", page.getFullUrl());
+		triggerPageBuild();
 	}
 
 
 	@Override
-	public void addWidgets(AlarmConfigBase sr, ObjectResourceGUIHelper<AlarmConfigBase, AlarmConfigBase> vh,
-			String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
+	protected void addWidgetsBeforeMultiSelect(AlarmConfiguration sr,
+			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
+			Row row, ApplicationManager appMan) {
+	//@Override
+	//public void addWidgets(AlarmConfiguration sr, ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh,
+	//		String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 
-		if(req == null)
-			vh.registerHeaderEntry("Name");
-		else {
-			vh.stringLabel( "Name", id, ResourceUtils.getHumanReadableShortName(sr), row);
-		}
+		//if(req == null)
+		//	vh.registerHeaderEntry("Name");
+		//else {
+		//	vh.stringLabel( "Name", id, ResourceUtils.getHumanReadableShortName(sr), row);
+		//}
 		vh.booleanEdit("Alarm active", id, sr.sendAlarm(), row);
 		vh.floatEdit("Lower Limit",
 				id, sr.lowerLimit(), row, alert,
-				Float.MIN_VALUE, Float.MAX_VALUE, "");
+				-Float.MAX_VALUE, Float.MAX_VALUE, "");
 		vh.floatEdit("Upper Limit",
 				id, sr.upperLimit(), row, alert,
-				Float.MIN_VALUE, Float.MAX_VALUE, "");
+				-Float.MAX_VALUE, Float.MAX_VALUE, "");
 		vh.floatEdit("Delay until the alarm is triggered (minutes)",
 				id, sr.maxViolationTimeWithoutAlarm(), row, alert,
-				Float.MIN_VALUE, Float.MAX_VALUE, "");
+				-Float.MAX_VALUE, Float.MAX_VALUE, "");
 		vh.dropdown("Priority", id, sr.alarmLevel(), row, ALARM_LEVEL_EN);
 		vh.floatEdit("Duration Blocking Sending the same alarm (minutes)",
 				id, sr.alarmRepetitionTime(), row, alert,
-				Float.MIN_VALUE, Float.MAX_VALUE, "");
+				-Float.MAX_VALUE, Float.MAX_VALUE, "");
 		vh.floatEdit("Maximum duration until new value is received (min)",
 				id, sr.maxIntervalBetweenNewValues(), row, alert,
-				Float.MIN_VALUE, Float.MAX_VALUE, "");
+				-Float.MAX_VALUE, Float.MAX_VALUE, "");
 		vh.booleanEdit("Monitoring Switch active", id, sr.performAdditinalOperations(), row);
 		if(req == null)
 			vh.registerHeaderEntry("Status");
 		else {
-			FloatResource res = (FloatResource) sr.supervisedSensor().reading().getLocationResource();
+			ValueResource res = sr.supervisedSensor().reading().getLocationResource();
 			IntegerResource statusRes = AlarmingManager.getAlarmStatus(res);
 			if(statusRes == null)
 				return;
@@ -93,9 +105,15 @@ public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBas
 
 
 	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "Alarming Configuration";
+	}
+	
+	@Override
 	public void addWidgetsAboveTable() {
-		Header h = new Header(page, "header", "Alarming Configuration");
-		page.append(h);
+		super.addWidgetsAboveTable();
+		//Header h = new Header(page, "header", "Alarming Configuration");
+		//page.append(h);
 
 		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
 				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig")) {
@@ -129,13 +147,64 @@ public class MainPage extends ObjectGUITablePage<AlarmConfigBase, AlarmConfigBas
 
 
 	@Override
-	public Collection<AlarmConfigBase> getObjectsInTable(OgemaHttpRequest arg0) {
-		return baseResource.getSubResources(AlarmConfigBase.class, true);
+	public Collection<AlarmConfiguration> getObjectsInTable(OgemaHttpRequest arg0) {
+		return baseResource.getSubResources(AlarmConfiguration.class, true);
 	}
 
 
 	@Override
-	public AlarmConfigBase getResource(AlarmConfigBase arg0, OgemaHttpRequest arg1) {
+	public AlarmConfiguration getResource(AlarmConfiguration arg0, OgemaHttpRequest arg1) {
 		return arg0;
+	}
+
+
+	@Override
+	protected String getGroupColumnLabel() {
+		return "Extensions";
+	}
+
+
+	@Override
+	protected Collection<AlarmingExtension> getAllGroups(OgemaHttpRequest req) {
+		return appManPlus.dpService().alarming().getAlarmingExtionsions();
+	}
+
+
+	@Override
+	protected List<AlarmingExtension> getGroups(AlarmConfiguration object, OgemaHttpRequest req) {
+		List<AlarmingExtension> result = new ArrayList<>();
+		for(String id: object.alarmingExtensions().getValues()) {
+			AlarmingExtension ext = appManPlus.dpService().alarming().getAlarmingExtension(id);
+			if(ext != null)
+				result.add(ext);
+		}
+		return result;
+	}
+
+
+	@Override
+	protected void setGroups(AlarmConfiguration object, List<AlarmingExtension> groups, OgemaHttpRequest req) {
+		String[] result = new String[groups.size()];
+		for(int i=0; i<groups.size(); i++)
+			result[i] = groups.get(i).id();
+		ValueResourceHelper.setCreate(object.alarmingExtensions(), result);
+	}
+
+
+	@Override
+	protected String getGroupLabel(AlarmingExtension object) {
+		return object.label(null);
+	}
+
+
+	@Override
+	protected String getTypeName(OgemaLocale locale) {
+		return "Datapoint";
+	}
+
+
+	@Override
+	protected String getLabel(AlarmConfiguration obj) {
+		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 }

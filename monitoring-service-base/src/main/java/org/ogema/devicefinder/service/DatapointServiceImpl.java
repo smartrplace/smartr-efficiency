@@ -17,6 +17,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
+import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
@@ -28,6 +29,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.api.GatewayResource;
+import org.ogema.devicefinder.util.AlarmingServiceImpl;
 import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointGroupImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
@@ -71,7 +73,6 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 //@Service(DatapointService.class)
 //@Component
 public abstract class DatapointServiceImpl implements DatapointService {
-	@SuppressWarnings("unchecked")
 	public DatapointServiceImpl(ApplicationManager appMan) {
 		this.appMan = appMan;
 	}
@@ -91,17 +92,18 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	}
 	
 	/** GatewayId -> Resource-location -> Datapoint object*/
-	Map<String, Map<String, Datapoint>> knownDps = new HashMap<>();
+	protected final Map<String, Map<String, Datapoint>> knownDps = new HashMap<>();
 	
 	/** GatewayId -> GatewayResource-location -> GatewayResource object*/
-	Map<String, Map<String, GatewayResource>> knownGWRes = new HashMap<>();
+	protected final Map<String, Map<String, GatewayResource>> knownGWRes = new HashMap<>();
 
 	/** GatewayId -> Connection-location -> Connection object*/
-	Map<String, Map<String, DpConnection>> knownConnections = new HashMap<>();
+	protected final Map<String, Map<String, DpConnection>> knownConnections = new HashMap<>();
 
 	/** Group-Id -> Group object*/
-	Map<String, DatapointGroup> knownGroups = new HashMap<>();
+	protected final Map<String, DatapointGroup> knownGroups = new HashMap<>();
 	
+	protected final AlarmingService alarming = new AlarmingServiceImpl();
 	
 	@Override
 	public Datapoint getDataPointStandard(String resourceLocation) {
@@ -533,5 +535,10 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	@Override
 	public boolean hasGroup(String id) {
 		return knownGroups.containsKey(id);
+	}
+	
+	@Override
+	public AlarmingService alarming() {
+		return alarming;
 	}
 }

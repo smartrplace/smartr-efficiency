@@ -15,6 +15,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 

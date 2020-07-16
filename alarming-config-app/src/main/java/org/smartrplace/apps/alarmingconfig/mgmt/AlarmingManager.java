@@ -9,7 +9,6 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
-import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
@@ -22,14 +21,14 @@ import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
 import org.ogema.model.actors.OnOffSwitch;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
-import org.smartrplace.app.monbase.InitUtil;
-import org.smartrplace.app.monbase.RoomLabelProvider;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.message.MessageImpl;
-import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
+import org.smatrplace.apps.alarmconfig.util.InitUtil;
+import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -37,17 +36,16 @@ import de.iwes.widgets.api.messaging.MessagePriority;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
 import extensionmodel.smarteff.api.common.BuildingUnit;
-import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 public class AlarmingManager {
 	public static final String ALARMSTATUS_RES_NAME = "alarmStatus";
 	
-	private static final long SCHEDULE_CHECK_RATE = 60000;
+	//private static final long SCHEDULE_CHECK_RATE = 60000;
 	private static final long NOVALUE_CHECK_RATE = 10000;
 	public static final long HOUR_MILLIS = 60*60000;
 	public static final long DAY_MILLIS = 24*HOUR_MILLIS;
 	public static final long MINUTE_MILLIS = 60000;
-	protected final List<AlarmConfigBase> configs;
+	protected final List<AlarmConfiguration> configs;
 	//protected final MonitoringController controller;
 	protected final ApplicationManagerPlus appManPlus;
 	protected final RoomLabelProvider tsNameProv;
@@ -84,7 +82,7 @@ public class AlarmingManager {
 	protected long lastTimeStamp = -1;
 	protected Timer noValueTimer = null;
 
-	public AlarmingManager(List<AlarmConfigBase> configs, ApplicationManagerPlus appManPlus,
+	public AlarmingManager(List<AlarmConfiguration> configs, ApplicationManagerPlus appManPlus,
 			RoomLabelProvider tsNameProv, String alarmID) {
 		this.configs = configs;
 		//this.controller = controller;
@@ -100,12 +98,12 @@ public class AlarmingManager {
 		}*/
 		
 		long now = appManPlus.appMan().getFrameworkTime();
-		for(AlarmConfigBase ac: configs) {
+		for(AlarmConfiguration ac: configs) {
 			//configure if not existing
 			//FIXME: !! Change this back after alarming init is done !!
-			AlarmingEditPage.setDefaultValuesStatic(ac, DefaultSetModes.SET_IF_NEW);
+			AlarmingUtiH.setDefaultValuesStatic(ac, DefaultSetModes.SET_IF_NEW);
 			
-			if(ac.supervisedTS().exists()) {
+			/*if(ac.supervisedTS().exists()) {
 				if((!ac.sendAlarm().getValue()))
 					continue;
 				ValueListenerData vl = new ValueListenerData((FloatResource)null);
@@ -144,57 +142,57 @@ public class AlarmingManager {
 						}
 					});
 				}
-			} else {
-				if(ac.supervisedSensor().reading() instanceof BooleanResource) {
-					BooleanResource res = (BooleanResource) ac.supervisedSensor().reading().getLocationResource();
-					ValueListenerData vl = new ValueListenerData(res);
-					vl.lastTimeOfNewData = now;
-					AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, tsNameProv);
-					vl.listener = mylistener;
-					valueListeners.add(vl);
-					res.addValueListener(mylistener, true);
-					continue;
-				}
-				if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
-					appManPlus.appMan().getLogger().warn("Sensor reading not of type FloatResource:"+
-							ac.supervisedSensor().reading().getLocation());
-					continue;
-				}
-				if(ac.sendAlarm().getValue()) {
-					FloatResource res = (FloatResource) ac.supervisedSensor().reading().getLocationResource();
-					ValueListenerData vl = new ValueListenerData(res);
-					vl.lastTimeOfNewData = now;
-					AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, tsNameProv);
-					vl.listener = mylistener;
-					valueListeners.add(vl);
-					
-					IntegerResource alarmStatus = getAlarmStatus(res);
-					if(alarmStatus == null)
-						return;
-					if(alarmStatus.getValue() > 1000)
-						vl.isNoValueAlarmActive = true;
-					
-					res.addValueListener(mylistener, true);
-				}
-				if(!ac.performAdditinalOperations().getValue()) continue;
-				OnOffSwitch onOff = AlarmingUtiH.getSwitchFromSensor(ac.supervisedSensor());
-				if(onOff != null) {
-					BooleanResource bres = onOff.stateFeedback().getLocationResource();
-					ValueListenerData vl = new ValueListenerData(bres);
-					AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vl,
-							appManPlus, tsNameProv) {
-						@Override
-						public void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower,
-								IntegerResource alarmStatus) {
-							onOff.stateControl().setValue(true);
-							super.executeAlarm(ac, value, upper, lower, alarmStatus);
-						}
-					};
-					vl.listener = onOffListener;
-					valueListeners.add(vl);
-					bres.addValueListener(onOffListener, false);					
-				}
+			} else {*/
+			if(ac.supervisedSensor().reading() instanceof BooleanResource) {
+				BooleanResource res = (BooleanResource) ac.supervisedSensor().reading().getLocationResource();
+				ValueListenerData vl = new ValueListenerData(res);
+				vl.lastTimeOfNewData = now;
+				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, tsNameProv);
+				vl.listener = mylistener;
+				valueListeners.add(vl);
+				res.addValueListener(mylistener, true);
+				continue;
 			}
+			if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
+				appManPlus.appMan().getLogger().warn("Sensor reading not of type FloatResource:"+
+						ac.supervisedSensor().reading().getLocation());
+				continue;
+			}
+			if(ac.sendAlarm().getValue()) {
+				FloatResource res = (FloatResource) ac.supervisedSensor().reading().getLocationResource();
+				ValueListenerData vl = new ValueListenerData(res);
+				vl.lastTimeOfNewData = now;
+				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, tsNameProv);
+				vl.listener = mylistener;
+				valueListeners.add(vl);
+				
+				IntegerResource alarmStatus = getAlarmStatus(res);
+				if(alarmStatus == null)
+					return;
+				if(alarmStatus.getValue() > 1000)
+					vl.isNoValueAlarmActive = true;
+				
+				res.addValueListener(mylistener, true);
+			}
+			if(!ac.performAdditinalOperations().getValue()) continue;
+			OnOffSwitch onOff = AlarmingUtiH.getSwitchFromSensor(ac.supervisedSensor());
+			if(onOff != null) {
+				BooleanResource bres = onOff.stateFeedback().getLocationResource();
+				ValueListenerData vl = new ValueListenerData(bres);
+				AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vl,
+						appManPlus, tsNameProv) {
+					@Override
+					public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
+							IntegerResource alarmStatus) {
+						onOff.stateControl().setValue(true);
+						super.executeAlarm(ac, value, upper, lower, alarmStatus);
+					}
+				};
+				vl.listener = onOffListener;
+				valueListeners.add(vl);
+				bres.addValueListener(onOffListener, false);					
+			}
+//			}
 		}
 		
 		noValueTimer = appManPlus.appMan().createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
@@ -225,8 +223,8 @@ public class AlarmingManager {
 					} else 	if(vl.bres != null) {
 						//TODO: OnOffSwitches do not have alarmStatus yet. This should not be activated yet
 						IntegerResource alarmStatus = getAlarmStatus(vl.res);
-						if(alarmStatus == null)
-							alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
+						//if(alarmStatus == null)
+						//	alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
 						float val = vl.bres.getValue()?1.0f:0.0f;
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
 								vl.maxIntervalBetweenNewValues, alarmStatus);
@@ -234,9 +232,9 @@ public class AlarmingManager {
 						//if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
 						//	vl.bres.setValue(Float.NaN);
 					} else {
-						IntegerResource alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
-						executeNoValueAlarm(vl.listener.getAc(), Float.NaN, vl.lastTimeOfNewData,
-								vl.maxIntervalBetweenNewValues, alarmStatus);						
+						//IntegerResource alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
+						//executeNoValueAlarm(vl.listener.getAc(), Float.NaN, vl.lastTimeOfNewData,
+						//		vl.maxIntervalBetweenNewValues, alarmStatus);						
 					}
 				}
 			}
@@ -258,25 +256,25 @@ public class AlarmingManager {
 	
 	protected interface AlarmValueListenerI {
 		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp);		
-		void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+		void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus);
-		AlarmConfigBase getAc();
+		AlarmConfiguration getAc();
 		ResourceValueListener<?> getListener();
 		
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBasic<FloatResource> {
-		public AlarmValueListener(AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
+		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListener(float upper, float lower, int retard, int resendRetard,
-				AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
 			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
 		}
 
 		@Override
-		protected void releaseAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus) {
 			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
 		}
@@ -293,18 +291,18 @@ public class AlarmingManager {
 		}
 	}
 	protected class AlarmValueListenerBoolean extends AlarmValueListenerBasic<BooleanResource> {
-		public AlarmValueListenerBoolean(AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
+		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListenerBoolean(float upper, float lower, int retard, int resendRetard,
-				AlarmConfigBase ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
 			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
 		}
 
 		@Override
-		protected void releaseAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus) {
 			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
 		}
@@ -325,7 +323,7 @@ public class AlarmingManager {
 			implements ResourceValueListener<BooleanResource>, AlarmValueListenerI {
 		protected final AlarmValueListener alarmValListenerBase;
 		
-		public AlarmValueListenerBooleanOnOff(float upper, float lower, int retard, int resendRetard, AlarmConfigBase ac, ValueListenerData vl,
+		public AlarmValueListenerBooleanOnOff(float upper, float lower, int retard, int resendRetard, AlarmConfiguration ac, ValueListenerData vl,
 				ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
 			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, appManPlus, tsNameProv);
 		}
@@ -342,12 +340,12 @@ public class AlarmingManager {
 
 		//TODO: override
 		@Override
-		public void executeAlarm(AlarmConfigBase ac, float value, float upper, float lower, IntegerResource alarmStatus) {
+		public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, IntegerResource alarmStatus) {
 			alarmValListenerBase.executeAlarm(ac, value, upper, lower, alarmStatus);
 		}	
 		
 		@Override
-		public AlarmConfigBase getAc() {
+		public AlarmConfiguration getAc() {
 			return alarmValListenerBase.ac;
 		}
 		@Override
@@ -392,7 +390,7 @@ public class AlarmingManager {
 		valueListeners.clear();
 	}
 
-	protected void executeNoValueAlarm(AlarmConfigBase ac, float value, long lastTime, long maxInterval,
+	protected void executeNoValueAlarm(AlarmConfiguration ac, float value, long lastTime, long maxInterval,
 			IntegerResource alarmStatus) {
 		String tsName = tsNameProv.getTsName(ac);
 		String title = alarmID+": Kein neuer Wert:"+tsName+" (Alarming)";
@@ -405,7 +403,7 @@ public class AlarmingManager {
 		}
 	}
 	
-	protected void releaseAlarm(AlarmConfigBase ac, float value, float upper, float lower,
+	protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
 		String title = alarmID+": Release:"+ac.name().getValue()+" (Alarming)";
 		String message = "Wert: "+value;
@@ -516,9 +514,9 @@ public class AlarmingManager {
 		for(BuildingData build: user.editableData().buildingData().getAllElements()) {
 			for(BuildingUnit bu: build.buildingUnit().getAllElements()) {
 				@SuppressWarnings("unchecked")
-				ResourceList<AlarmConfigBase> alarms = bu.getSubResource("alarmConfigs", ResourceList.class);
-				for(AlarmConfigBase ac: alarms.getAllElements()) {
-					if(ac.supervisedTS().exists()) continue;
+				ResourceList<AlarmConfiguration> alarms = bu.getSubResource("alarmConfigs", ResourceList.class);
+				for(AlarmConfiguration ac: alarms.getAllElements()) {
+					//if(ac.supervisedTS().exists()) continue;
 					if(!ac.supervisedSensor().exists()) continue;
 					List<String> buSensors = roomSensors.get(bu.getLocation());
 					if(buSensors == null) {

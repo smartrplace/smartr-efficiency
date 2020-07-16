@@ -859,7 +859,7 @@ public abstract class EditPageGeneric<T extends Resource> extends EditPageBase<T
 	 * @param mode
 	 * @return true if value was written
 	 */
-	protected static <K extends Resource, V> boolean setDefault(K res, V val, DefaultSetModes mode) {
+	public static <K extends Resource, V> boolean setDefault(K res, V val, DefaultSetModes mode) {
 		if (mode == DefaultSetModes.OVERWRITE) {
 			if(!res.exists()) res.create();
 			return setValue((ValueResource) res, val);

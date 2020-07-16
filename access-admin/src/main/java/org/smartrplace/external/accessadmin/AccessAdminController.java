@@ -105,10 +105,12 @@ public class AccessAdminController {
 		initApp.menu.addEntry("5. User App Mapping", pageRes6);
 		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
 
-		WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
-		userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
-		initApp.menu.addEntry("6. User Appstore Mapping", pageRes5);
-		initApp.configMenuConfig(pageRes5.getMenuConfiguration());
+		if(Boolean.getBoolean("org.ogema.accessadmin.api.isappstore")) {
+			WidgetPage<?> pageRes5 = initApp.widgetApp.createWidgetPage("usergrouperm.html");
+			userGroupPermPage = new UserGroupPermissionPage(pageRes5, this);
+			initApp.menu.addEntry("6. User Appstore Mapping", pageRes5);
+			initApp.configMenuConfig(pageRes5.getMenuConfiguration());
+		}
 
 		//WidgetPage<?> pageRes4 = initApp.widgetApp.createWidgetPage("userconfig.html");
 		//userConfigPage = new UserConfigPage(pageRes4, this);

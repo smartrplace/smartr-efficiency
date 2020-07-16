@@ -10,8 +10,10 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
-import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
+import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.directresourcegui.GUIHelperExtension;
+import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -130,9 +132,12 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 		return all;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void addWidgets(AccessConfigUser object, ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		addNameLabel(object, vh, id, row);
+		GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row,
+				vh, req);
 	}
 }

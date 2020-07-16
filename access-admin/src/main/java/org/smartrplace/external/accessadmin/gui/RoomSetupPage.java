@@ -13,8 +13,10 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.UserTaggedTbl.RoomGroupTbl;
-import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
+import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.directresourcegui.GUIHelperExtension;
+import org.smartrplace.util.directresourcegui.ResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
@@ -57,7 +59,6 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		return ResourceUtils.getHumanReadableShortName(obj.roomGrp);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
@@ -135,14 +136,17 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 		for(BuildingPropertyUnit room: all) {
 			result.add(new RoomGroupTbl(room, "noUser"));
 		}
-
+		
 		return result;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void addWidgets(RoomGroupTbl object, ObjectResourceGUIHelper<RoomGroupTbl, BooleanResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		addNameLabel(object, vh, id, row);
+		GUIHelperExtension.addDeleteButton(null, object.roomGrp, mainTable, id, alert, row,
+				vh, req);
 	}
 	
 	@Override

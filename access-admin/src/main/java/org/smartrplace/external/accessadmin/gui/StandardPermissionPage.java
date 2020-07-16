@@ -6,7 +6,7 @@ import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.BooleanResource;
 import org.smartrplace.external.accessadmin.config.AccessConfigBase;
-import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
+import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 

@@ -9,7 +9,7 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
-import org.smartrplace.gui.filtering.ObjectGUITablePageNamed;
+import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;

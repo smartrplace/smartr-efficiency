@@ -5,15 +5,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.util.RoomEditHelper;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.apps.hw.install.gui.RoomEditHelper;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
+import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 
 import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -58,6 +59,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		return "2. Room Configuration";
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();

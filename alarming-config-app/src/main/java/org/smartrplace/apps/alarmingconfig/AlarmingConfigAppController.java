@@ -22,8 +22,9 @@ import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDic
 import org.ogema.messaging.basic.services.config.model.ReceiverConfiguration;
 import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.sensors.Sensor;
-import org.smartrplace.app.monbase.RoomLabelProvider;
+import org.ogema.model.sensors.TemperatureSensor;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
 import org.smartrplace.apps.alarmingconfig.gui.PageBuilderSimple;
@@ -34,15 +35,13 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
-
-import com.iee.app.evaluationofflinecontrol.util.ExportBulkData;
+import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
 
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.messaging.model.MessagingApp;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
-import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 // here the controller logic is implemented
 public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelProvider {
@@ -98,7 +97,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 
 		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html", true);
 		Resource base = appMan.getResourceAccess().getResource("master");
-		mainPage = new MainPage(pageRes10, appMan, base);
+		mainPage = new MainPage(pageRes10, appManPlus, base);
 		initApp.menu.addEntry("Alarming Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
@@ -133,7 +132,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
  		
  		List<String> done = new ArrayList<>();
  		Map<String, List<String>> roomSensors = new HashMap<>();
- 		for(Sensor sens: appMan.getResourceAccess().getResources(Sensor.class)) {
+ 		List<Sensor> allSensors;
+ 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.tempsensonly"))
+ 			allSensors = new ArrayList<Sensor>(appMan.getResourceAccess().getResources(TemperatureSensor.class));
+ 		else
+ 			allSensors = appMan.getResourceAccess().getResources(Sensor.class);
+ 		for(Sensor sens: allSensors) {
  			if(sens.getLocation().contains("valve/connection/powerSensor"))
  				continue;
  			ValueResource vr = sens.reading();
@@ -164,12 +168,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		if(alarmMan != null) {
 			alarmMan.close();
 		}
-		List<AlarmConfigBase> configs = appMan.getResourceAccess().getResources(AlarmConfigBase.class);
+		List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
 		alarmMan = new AlarmingManager(configs, appManPlus, this, getAlarmingDomain());
 	}
 
 	@Override
-	public String getTsName(AlarmConfigBase ac) {
+	public String getTsName(AlarmConfiguration ac) {
 		return RoomLabelProvider.getTsNameDefault(ac);
 	}
 
@@ -180,14 +184,15 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 			return null;
 		//TODO: handle res==null
 		String result = RoomLabelProvider.getDatapointShortLabelDefault(res, false, this);
-		if(result == null) {
-			return ExportBulkData.getDeviceShortId(resLocation);
-		} else
-			return result;
+		return result;
+		//if(result == null) {
+		//	return ExportBulkData.getDeviceShortId(resLocation);
+		//} else
+		//	return result;
 	}
 
 	@Override
-	public String getLabel(AlarmConfigBase ac, boolean isOverall) {
+	public String getLabel(AlarmConfiguration ac, boolean isOverall) {
 		Datapoint dp = dpService.getDataPointStandard(ac.supervisedSensor().reading());
 		return dp.label(null);
 		//String shortLab = RoomLabelProvider.getDatapointShortLabelDefault(ac.supervisedSensor().getLocationResource(), false, this);
