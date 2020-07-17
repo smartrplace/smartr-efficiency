@@ -1,5 +1,6 @@
 package org.smartrplace.gui.filtering.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.core.model.ResourceList;
@@ -16,16 +17,23 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 public abstract class RoomFilteringWithGroups<T> extends RoomFilteringByType<T> {
 	private static final long serialVersionUID = 1L;
 	protected final ResourceList<BuildingPropertyUnit> roomGroups;
+	protected final boolean includeTypes;
 	
 	public RoomFilteringWithGroups(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
-			long updateChoicesRate, ResourceList<BuildingPropertyUnit> roomGroups) {
+			long updateChoicesRate, ResourceList<BuildingPropertyUnit> roomGroups,
+			boolean includeTypes) {
 		super(page, id, saveOptionMode, updateChoicesRate);
 		this.roomGroups = roomGroups;
+		this.includeTypes = includeTypes;
 	}
 
 	@Override
 	protected List<GenericFilterOption<Room>> getOptionsDynamic(OgemaHttpRequest req) {
-		List<GenericFilterOption<Room>> result = super.getOptionsDynamic(req);
+		List<GenericFilterOption<Room>> result;
+		if(includeTypes)
+			result = super.getOptionsDynamic(req);
+		else
+			result = new ArrayList<>();
 		for(BuildingPropertyUnit bu: roomGroups.getAllElements()) {
 			GenericFilterOption<Room> other = new GenericFilterBase<Room>(LocaleHelper.getLabelMap(ResourceUtils.getHumanReadableShortName(bu))) {
 	

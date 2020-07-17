@@ -37,7 +37,7 @@ public abstract class DeviceTablePageFragmentRaw<T, R extends Resource> extends 
 	public void addWidgetsAboveTable() {
 		if(!isParentTable) return;
 		header = new Header(page, "header", getHeader());
-		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_CENTERED);
+		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
 		page.append(header).linebreak();
 		
 		StaticTable topTable = new StaticTable(1, 6, new int[] {2, 2, 2, 2, 2, 2});
