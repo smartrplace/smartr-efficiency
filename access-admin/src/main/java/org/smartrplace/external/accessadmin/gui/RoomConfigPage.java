@@ -23,6 +23,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.form.button.RedirectButton;
 
 public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPropertyUnit, Room> {
 	public final static Map<String, String> valuesToSet = new HashMap<>();
@@ -77,9 +78,13 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		roomFilter.registerDependentWidget(mainTable);
 		
 		topTable.setContent(0, 1, "").setContent(0,  2, roomFilter);
-		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.suppresscreateroom"))
+		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.suppresscreateroom")) {
 			RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
-					alert, appMan, 0, 3);
+					alert, appMan, 0, 2);
+			RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
+					"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
+			topTable.setContent(0, 4, calendarConfigButton);
+		}
 		page.append(topTable);
 		
 	}

@@ -81,7 +81,7 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		page.append(header).linebreak();
 		
 		StaticTable topTable = new StaticTable(1, 6, new int[] {2, 2, 2, 2, 2, 2});
-		BooleanResourceButton installMode = new BooleanResourceButton(page, "installMode", "Installation Mode",
+		BooleanResourceButton installMode = new BooleanResourceButton(page, "installMode", "Search for new devices",
 				controller.appConfigData.isInstallationActive()) {
 			private static final long serialVersionUID = 1L;
 
@@ -109,8 +109,8 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		
 		//RedirectButton roomLinkButton = new RedirectButton(page, "roomLinkButton", "Room Administration", "/de/iwes/apps/roomlink/gui/index.html");
 		
-		RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
-				"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
+		//RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
+		//		"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 		
 		topTable.setContent(0, 0, roomsDrop)
 				.setContent(0, 1, installFilterDrop)
@@ -119,7 +119,7 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		topTable.setContent(0, 3, addRoomLink);
 		//RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
 		//		alert, appMan, 0, 3);
-		topTable.setContent(0, 5, calendarConfigButton);
+		//topTable.setContent(0, 5, calendarConfigButton);
 		page.append(topTable);
 		
 		finishConstructor();
