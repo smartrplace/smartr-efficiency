@@ -52,6 +52,16 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 	protected InstallationStatusFilterDropdown installFilterDrop;
 	protected final InstalledAppsSelector instAppsSelector;
 
+	class SubTableData {
+		DeviceHandlerProvider<?> pe;
+		DeviceTableBase table;
+		public SubTableData(DeviceHandlerProvider<?> pe, DeviceTableBase table) {
+			this.pe = pe;
+			this.table = table;
+		}
+	}
+	protected final List<SubTableData> subTables = new ArrayList<>();
+	
 	protected String pid() {
 		return WidgetHelper.getValidWidgetId(this.getClass().getName());
 	}
@@ -74,6 +84,19 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		BooleanResourceButton installMode = new BooleanResourceButton(page, "installMode", "Installation Mode",
 				controller.appConfigData.isInstallationActive()) {
 			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void updateDependentWidgets(OgemaHttpRequest req) {
+				for(SubTableData tabData: subTables) {
+					if(isObjectsInTableEmpty(tabData.pe)) {
+						tabData.table.getMainTable().setWidgetVisibility(false, req);
+						tabData.table.getHeaderWidget().setWidgetVisibility(false, req);
+					} else {
+						tabData.table.getMainTable().setWidgetVisibility(true, req);						
+						tabData.table.getHeaderWidget().setWidgetVisibility(true, req);
+					}
+				}
+			}
 
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
@@ -113,14 +136,16 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 	public void updateTables() {
 		synchronized(tableProvidersDone) {
 		if(controller.hwInstApp != null) for(DeviceHandlerProvider<?> pe: controller.hwInstApp.getTableProviders().values()) {
-			if(isObjectsInTableEmpty(pe))
-				continue;
+			//if(isObjectsInTableEmpty(pe))
+			//	continue;
 			String id = pe.id();
 			if(tableProvidersDone.contains(id))
 				continue;
 			tableProvidersDone.add(id);
 			DeviceTableBase tableLoc = pe.getDeviceTable(page, alert, this);
 			tableLoc.triggerPageBuild();
+			installFilterDrop.registerDependentWidget(tableLoc.getMainTable());
+			subTables.add(new SubTableData(pe, tableLoc));
 		}
 		}
 	}
