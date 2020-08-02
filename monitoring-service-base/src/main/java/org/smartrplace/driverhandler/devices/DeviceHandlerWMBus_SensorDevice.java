@@ -46,7 +46,7 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 	@Override
 	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
 			InstalledAppsSelector appSelector) {
-		return new DeviceTableBase(page, appMan, alert, appSelector) {
+		return new DeviceTableBase(page, appMan, alert, appSelector, this) {
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
@@ -101,7 +101,7 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 
 	@Override
 	protected Class<? extends ResourcePattern<SensorDevice>> getPatternClass() {
-		return SensorDevicePattern.class;
+		return SensorDeviceGenericPattern.class;
 	}
 
 	@Override

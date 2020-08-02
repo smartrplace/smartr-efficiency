@@ -21,13 +21,14 @@ import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
-import org.smartrplace.devicetable.DeviceHandlerDoorWindowSensor;
-import org.smartrplace.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
+import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
+import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
+import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_MultiSwBox;
@@ -95,6 +96,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srThermostat = null;
 	private DeviceHandlerThermostat devHandThermostat;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srTempHumSens = null;
+	private TemperatureOrHumiditySensorDeviceHandler devHandTempHumSens;
 	
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
@@ -151,6 +155,9 @@ public class MonitoringServiceBaseApp implements Application {
 
 	   devHandThermostat = new DeviceHandlerThermostat(appMan);
 	   srThermostat = bc.registerService(DeviceHandlerProvider.class, devHandThermostat, null);
+	   
+	   devHandTempHumSens = new TemperatureOrHumiditySensorDeviceHandler(appMan);
+	   srTempHumSens = bc.registerService(DeviceHandlerProvider.class, devHandTempHumSens, null);
 
 	   devHandDoorWindowSensor = new DeviceHandlerDoorWindowSensor(appMan);
 	   srDoorWindowSensor = bc.registerService(DeviceHandlerProvider.class, devHandDoorWindowSensor, null);
@@ -177,12 +184,19 @@ public class MonitoringServiceBaseApp implements Application {
     	if (widgetApp != null) widgetApp.close();
 
     	if (srDpservice != null) srDpservice.unregister();
+    	
     	if (srAircond != null) srAircond.unregister();
     	if (srElecConn != null) srElecConn.unregister();
     	if (srSwBox != null) srSwBox.unregister();
     	if (srPv != null) srPv.unregister();
+    	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
     	if (srThermostat != null) srThermostat.unregister();
+    	if (srTempHumSens != null) srTempHumSens.unregister();
+    	
+    	if (jmbusDriver != null) jmbusDriver.unregister();
+    	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
+    	if (knxDriver != null) knxDriver.unregister();
 
 		if (controller != null)
     		controller.close();

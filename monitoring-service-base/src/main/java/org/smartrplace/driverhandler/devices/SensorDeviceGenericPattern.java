@@ -17,14 +17,31 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 
-public class SensorDevicePattern extends ResourcePattern<SensorDevice> {
+public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public SensorDevicePattern(Resource device) {
+	public SensorDeviceGenericPattern(Resource device) {
 		super(device);
+	}
+	
+	@Override
+	public boolean accept() {
+		if(DeviceTableRaw.isTempHumSens(model))
+			return false;
+		//If more special SensorDevices are supported in the future add check here
+		return true;
+		/*if(model.getLocation().startsWith("JMBUS_BASE"))
+			return true;
+		for(Sensor sens: model.getSubResources(Sensor.class, false)) {
+			if(sens instanceof TemperatureSensor || sens instanceof HumiditySensor)
+				continue;
+			return true;
+		}
+		return false;*/
 	}
 }

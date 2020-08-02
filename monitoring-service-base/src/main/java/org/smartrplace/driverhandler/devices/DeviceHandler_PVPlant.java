@@ -43,7 +43,7 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 	@Override
 	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
 			InstalledAppsSelector appSelector) {
-		return new DeviceTableBase(page, appMan, alert, appSelector) {
+		return new DeviceTableBase(page, appMan, alert, appSelector, this) {
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,

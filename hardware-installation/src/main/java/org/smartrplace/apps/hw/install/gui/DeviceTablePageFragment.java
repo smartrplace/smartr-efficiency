@@ -7,6 +7,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.locations.Room;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
@@ -34,10 +35,11 @@ public abstract class DeviceTablePageFragment extends DeviceTableBase implements
 	protected final boolean isParentTable;*/
 	
 	public DeviceTablePageFragment(WidgetPage<?> page, HardwareInstallController controller,
-			InstalledAppsSelector instAppsSelector, Alert alert) {
+			InstalledAppsSelector instAppsSelector, Alert alert,
+			DeviceHandlerBase<?> devHand) {
 			//RoomSelectorDropdown roomsDrop, Alert alert) {
 		//super(page, controller.appMan, null, null, InstallAppDevice.class, false, true, alert);
-		super(page, controller.appMan, null, instAppsSelector);
+		super(page, controller.appMan, null, instAppsSelector, devHand);
 		this.controller = controller;
 		/*if(instAppsSelector != null) {
 			this.instAppsSelector = instAppsSelector;
