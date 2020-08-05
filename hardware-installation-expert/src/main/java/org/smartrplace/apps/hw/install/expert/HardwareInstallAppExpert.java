@@ -21,19 +21,24 @@ import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
-import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.util.controllerprovider.GenericControllerReceiver;
+import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
+import org.smartrplace.apps.hw.install.gui.expert.RSSIPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
+import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 /**
  * Template OGEMA application class
  */
 @Component(specVersion = "1.2", immediate = true)
-@Service(Application.class)
-public class HardwareInstallAppExpert implements Application {
+@Service({Application.class, HWInstallExtensionProvider.class})
+public class HardwareInstallAppExpert implements Application, HWInstallExtensionProvider {
 	protected OgemaLogger log;
     protected ApplicationManager appMan;
     protected HardwareInstallController controller;
@@ -44,8 +49,29 @@ public class HardwareInstallAppExpert implements Application {
 	@Reference
 	private OgemaGuiService guiService;
 
-	@Reference
-	DatapointService dpService;
+	//@Reference
+	//DatapointService dpService;
+	
+	GenericControllerReceiver<HardwareInstallController> controllerRecv =
+			new GenericControllerReceiver<HardwareInstallController>() {
+
+		@Override
+		protected void controllerAndAppmanAvailable(HardwareInstallController controller,
+				ApplicationManager appMan) {
+			widgetApp = guiService.createWidgetApp(urlPath, appMan);
+			final WidgetPage<?> page = widgetApp.createStartPage();
+			controller.mainPageExts.add(new MainPageExpert(page, controller));
+			
+			WidgetPage<LocaleDictionary> rssiPageBase = widgetApp.createWidgetPage("rssipage.hmtl");
+			new RSSIPage(rssiPageBase, controller);
+
+			final NavigationMenu menu = new NavigationMenu(" Browse pages");
+			menu.addEntry("Expert page", page);
+			menu.addEntry("Communication quality page", rssiPageBase);
+			page.getMenuConfiguration().setCustomNavigation(menu);
+			rssiPageBase.getMenuConfiguration().setCustomNavigation(menu);
+		}
+	};
 	
     /*
      * This is the entry point to the application.
@@ -56,12 +82,8 @@ public class HardwareInstallAppExpert implements Application {
         // Remember framework references for later.
         appMan = appManager;
         log = appManager.getLogger();
-
-		//register a web page with dynamically generated HTML
-		widgetApp = guiService.createWidgetApp(urlPath, appManager);
-		final WidgetPage<?> page = widgetApp.createStartPage();
-		
-		controller = new HardwareInstallControllerExpert(appMan, page, widgetApp, dpService);
+		controllerRecv.setAppman(appManager);
+		//controller = new HardwareInstallControllerExpert(appMan, page, widgetApp, dpService);
      }
 
      /*
@@ -74,4 +96,20 @@ public class HardwareInstallAppExpert implements Application {
     		controller.close();
         log.info("{} stopped", getClass().getName());
     }
+
+	@Override
+	public void setController(HardwareInstallController controller) {
+ 		controllerRecv.setController(controller);
+		/*if(this.controller != null)
+ 			return;
+ 		this.controller = controller;
+		
+ 		//Init
+		//register a web page with dynamically generated HTML
+		while(appMan == null) try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}*/
+	}
 }

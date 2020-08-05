@@ -108,6 +108,11 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 	public Collection<InstallAppDevice> getObjectsInTable(OgemaHttpRequest req) {
 		throw new UnsupportedOperationException("getObjectsInTable not relevant for DeviceConfigPage!");
 	}
+
+	@Override
+	public void addWidgetsExpert(InstallAppDevice object,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
+			ApplicationManager appMan) {}
 }
 
 

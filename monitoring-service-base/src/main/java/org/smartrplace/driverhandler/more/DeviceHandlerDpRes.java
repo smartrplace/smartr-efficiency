@@ -78,6 +78,7 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 				addComment(object, vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
 
+				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}
 			
 			@Override

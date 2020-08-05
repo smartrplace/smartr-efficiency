@@ -63,6 +63,8 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 						addPowerEnergySensor(c, vh, id, req, row);
 						break;
 					}
+
+					appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 					/*Label voltage = vh.floatLabel("Voltage (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 							id, c.voltageSensor().reading(), row, "%.1f");
 					Label power = vh.floatLabel("Power (" + ResourceUtils.getHumanReadableShortName(c) + ")",

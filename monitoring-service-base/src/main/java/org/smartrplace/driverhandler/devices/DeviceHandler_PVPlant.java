@@ -67,6 +67,7 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 				addComment(object, vh, id, req, row, appMan, null);
 				addSubLocation(object, vh, id, req, row, appMan, null);
 
+				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}
 			
 			@Override

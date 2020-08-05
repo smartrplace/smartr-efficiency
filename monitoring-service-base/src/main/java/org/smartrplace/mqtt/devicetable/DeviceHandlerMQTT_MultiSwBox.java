@@ -68,6 +68,7 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 				addComment(object, vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
 
+				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}
 			
 			@Override

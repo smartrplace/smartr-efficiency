@@ -56,6 +56,7 @@ public class HardwareInstallController {
 	public final HardwareInstallApp hwInstApp;
 	
 	public MainPage mainPage;
+	public List<MainPage> mainPageExts = new ArrayList<>();
 	public DeviceConfigPage deviceConfigPage;
 	//WidgetApp widgetApp;
 

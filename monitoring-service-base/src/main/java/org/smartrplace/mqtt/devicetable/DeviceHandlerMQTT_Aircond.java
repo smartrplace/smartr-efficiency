@@ -94,6 +94,8 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 				addInstallationStatus(object, vh, id, req, row, appMan, deviceRoom);
 				addComment(object, vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
+
+				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}
 			
 			@Override

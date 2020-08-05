@@ -32,6 +32,8 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
+import org.ogema.util.controllerprovider.GenericControllerProvider;
+import org.smartrplace.apps.hw.install.gui.MainPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -57,6 +59,13 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addDriverProvider",
 		unbind="removeDriverProvider"),
+	@Reference(
+		name="servletProviders",
+		referenceInterface=HWInstallExtensionProvider.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addExtProvider",
+		unbind="removeExtProvider")
 })
 
 @Component(specVersion = "1.2", immediate = true)
@@ -90,7 +99,12 @@ public class HardwareInstallApp implements Application {
 	@Reference
 	DatapointService dpService;
 	
-    /*
+    protected final GenericControllerProvider<HardwareInstallController> controllerProvider;
+    public HardwareInstallApp() {
+		controllerProvider = new GenericControllerProvider<HardwareInstallController>(
+				"org.smartrplace.apps.hw.install.expert.HardwareInstallAppExpert");
+	}
+	/*
      * This is the entry point to the application.
      */
  	@Override
@@ -110,6 +124,7 @@ public class HardwareInstallApp implements Application {
 			for(DeviceHandlerProvider<?> tableP: tableProviders.values()) {
 	    		controller.startSimulations(tableP);			
 			}
+			controllerProvider.setController(controller);
 		}
      }
 
@@ -135,6 +150,9 @@ public class HardwareInstallApp implements Application {
 	    	}
 	    	if(controller != null && controller.mainPage != null) {
 	    		controller.mainPage.updateTables();
+	    		for(MainPage mp: controller.mainPageExts) {
+	    			mp.updateTables();
+	    		}
 	    	}
     	}
     }
@@ -164,4 +182,11 @@ public class HardwareInstallApp implements Application {
 		mc.setLanguageSelectionVisible(false);
 		mc.setNavigationVisible(false); 		
  	}
+ 	
+    protected void addExtProvider(HWInstallExtensionProvider  provider) {
+    	controllerProvider.addExtProvider(provider);
+    }
+    protected void removeExtProvider(HWInstallExtensionProvider provider) {
+       	controllerProvider.removeExtProvider(provider);
+    }
  }

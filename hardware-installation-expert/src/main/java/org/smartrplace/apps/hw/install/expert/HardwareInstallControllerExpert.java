@@ -28,6 +28,7 @@ import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 // here the controller logic is implemented
+@Deprecated
 public class HardwareInstallControllerExpert extends HardwareInstallController {
 	protected final WidgetApp widgetApp;
 	

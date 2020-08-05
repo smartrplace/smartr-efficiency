@@ -57,6 +57,7 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 					Row row, ApplicationManager appMan) {
 				id = id + "_DeviceHandlerDoorWindowSensor";  // avoid duplicates for now
 				addWidgetsInternal(object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}
 
 			@Override
@@ -87,7 +88,6 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 					row.addCell(WidgetHelper.getValidWidgetId("Last Contact"), lastContact);
 				} else if(req == null) {
 					vh.registerHeaderEntry("Temperature");
-					vh.registerHeaderEntry("Last Contact");
 				}
 				if(device.humSens != null) {
 					stateHum = vh.floatLabel("Humidity", id, device.humSens.reading(), row, "%.1f");
@@ -95,8 +95,10 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 						lastContact = new LastContactLabel(device.humSens.reading(), appMan, mainTable, "lastContact"+id, req);
 						row.addCell(WidgetHelper.getValidWidgetId("Last Contact"), lastContact);						
 					}
-				} else if(req == null)
+				} else if(req == null) {
 					vh.registerHeaderEntry("Humidity");
+					vh.registerHeaderEntry("Last Contact");
+				}
 				VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(device2,
 						"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
 				if(batteryVoltage != null)
@@ -106,9 +108,9 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 				BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(device2,
 						"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
 				if(batteryStatus != null)
-					vh.booleanLabel("Bat.Status", id, batteryStatus, row, 0);
+					vh.booleanLabel("Bat.Low", id, batteryStatus, row, 0);
 				else if(req == null)
-					vh.registerHeaderEntry("Bat.Status");
+					vh.registerHeaderEntry("Bat.Low");
 
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device2.location().room();
@@ -148,6 +150,7 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 			}
 			SensorElements getElements(SensorDevice dev) {
 				SensorElements result = new SensorElements();
+				//List<Resource> allSubs = dev.sensors().getSubResources(false);
 				List<TemperatureSensor> tss = dev.sensors().getSubResources(TemperatureSensor.class, false);
 				if(tss.size() == 1)
 					result.tempSens = tss.get(0);
