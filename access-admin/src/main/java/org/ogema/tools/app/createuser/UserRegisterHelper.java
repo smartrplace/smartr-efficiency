@@ -11,9 +11,12 @@ import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.form.checkbox.Checkbox2;
+import de.iwes.widgets.html.form.checkbox.DefaultCheckboxEntry;
 import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.object.widget.popup.ClosingPopup;
 import de.iwes.widgets.object.widget.popup.ClosingPopup.ClosingMode;
+import org.ogema.core.administration.UserConstants;
 
 public class UserRegisterHelper {
 	public static interface NewUserHandler {
@@ -24,17 +27,25 @@ public class UserRegisterHelper {
 		final TextField textLoginName = new TextField(page, "textLoginName");
 		final TextField textFullUserName = new TextField(page, "textFullUserName");
 		final TextField textPw = new TextField(page, "textPw");
+        final TextField textEmail = new TextField(page, "textEmail");
+        final Checkbox2 cbSendInvite = new Checkbox2(page, "cbInvite");
+        DefaultCheckboxEntry cbe = new DefaultCheckboxEntry("sendInvite", "", true);
+        cbSendInvite.addDefaultEntry(cbe);
 		final ClosingPopup<Object> addUserPop = new ClosingPopup<Object>(page, "addUserPop", true, ClosingMode.OK_CANCEL) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public List<OgemaWidget> providePopupWidgets(OgemaHttpRequest req) {
-				StaticTable dualTable = new StaticTable(3, 2);
+				StaticTable dualTable = new StaticTable(5, 2);
 				int c = 0;
 				dualTable.setContent(c, 0, "Login name:").setContent(c, 1, textLoginName);
 				c++;
 				dualTable.setContent(c, 0, "Full User name:").setContent(c, 1, textFullUserName);
 				c++; //3
 				dualTable.setContent(c, 0, "Password:").setContent(c, 1, textPw);
+                c++;
+                dualTable.setContent(c, 0, "Email:").setContent(c, 1, textEmail);
+                c++;
+                dualTable.setContent(c, 0, "Send Invitation:").setContent(c, 1, cbSendInvite);
 				getPopupSnippet().append(dualTable, null);
 				return null;
 			}
@@ -48,7 +59,11 @@ public class UserRegisterHelper {
 						alert.showAlert("User name "+name+" could not be created, maybe already exists!", false, req);
 						return;
 					}
-					
+					data.getProperties().put(UserConstants.EMAIL, textEmail.getValue(req));
+                    data.getProperties().put(UserConstants.FORMATTED_NAME, textFullUserName.getValue(req));
+                    if (cbSendInvite.isChecked("sendInvite", req)) {
+                        data.getProperties().put("user.inviteByMail", "true");
+                    }
 					if(newUserHandler != null) newUserHandler.newUserCreated(data, name, req);
 					
 					//alert.showAlert("New user "+userName+" created. Please log out and login as the new user. "
