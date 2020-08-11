@@ -1,6 +1,5 @@
 package org.smartrplace.apps.hw.install.gui;
 
-import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
@@ -27,7 +26,7 @@ public abstract class DeviceTablePageFragmentRaw<T, R extends Resource> extends 
 	
 	public DeviceTablePageFragmentRaw(WidgetPage<?> page, HardwareInstallController controller,
 			boolean isParentTable, Alert alert) {
-		super(page, controller.appMan, alert, null);
+		super(page, controller.appManPlus, alert, null);
 		this.controller = controller;
 		this.isParentTable = isParentTable;
 	}

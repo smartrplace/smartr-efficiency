@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -150,12 +151,12 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 		}
 	}
 		
-	public DriverHandlerMQTTBroker(ApplicationManager appMan, ConfigurationAdmin configAdmin) {
+	public DriverHandlerMQTTBroker(ApplicationManagerPlus appMan, ConfigurationAdmin configAdmin) {
 		this.appMan = appMan;
 		this.configAdmin = configAdmin;
 	}
 
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	private final ConfigurationAdmin configAdmin;
 
 	@Override

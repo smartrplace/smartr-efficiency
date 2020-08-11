@@ -24,6 +24,7 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.RSSIPage;
 
@@ -70,6 +71,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Communication quality page", rssiPageBase);
 			page.getMenuConfiguration().setCustomNavigation(menu);
 			rssiPageBase.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> configPagebase = widgetApp.createWidgetPage("configPage.hmtl");
+			new ConfigurationPageHWInstall(configPagebase, controller);
+			menu.addEntry("Configuration Page", configPagebase);
+			configPagebase.getMenuConfiguration().setCustomNavigation(menu);
 		}
 	};
 	

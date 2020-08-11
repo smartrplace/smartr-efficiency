@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
@@ -29,9 +30,9 @@ import de.iwes.widgets.html.form.label.Label;
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<ElectricityConnectionBox> {
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-	public DeviceHandlerMQTT_ElecConnBox(ApplicationManager appMan) {
+	public DeviceHandlerMQTT_ElecConnBox(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 	}
 	
@@ -63,20 +64,6 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 						addPowerEnergySensor(c, vh, id, req, row);
 						break;
 					}
-
-					appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
-					/*Label voltage = vh.floatLabel("Voltage (" + ResourceUtils.getHumanReadableShortName(c) + ")",
-							id, c.voltageSensor().reading(), row, "%.1f");
-					Label power = vh.floatLabel("Power (" + ResourceUtils.getHumanReadableShortName(c) + ")",
-							id, c.powerSensor().reading(), row, "%.1f");
-					if (req != null) {
-						voltage.setPollingInterval(DEFAULT_POLL_RATE, req);
-						power.setPollingInterval(DEFAULT_POLL_RATE, req);
-					}
-					if (lastContact == null) {
-						lastContact = addLastContact(null, vh, id, req, row, appMan, deviceRoom,
-								c.voltageSensor().reading());
-					}*/
 				}
 
 				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
@@ -84,6 +71,7 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 				addComment(object, vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
 
+				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}
 			
 			@Override

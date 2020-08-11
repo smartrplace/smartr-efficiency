@@ -39,7 +39,7 @@ public abstract class DeviceTablePageFragment extends DeviceTableBase implements
 			DeviceHandlerBase<?> devHand) {
 			//RoomSelectorDropdown roomsDrop, Alert alert) {
 		//super(page, controller.appMan, null, null, InstallAppDevice.class, false, true, alert);
-		super(page, controller.appMan, null, instAppsSelector, devHand);
+		super(page, controller.appManPlus, null, instAppsSelector, devHand);
 		this.controller = controller;
 		/*if(instAppsSelector != null) {
 			this.instAppsSelector = instAppsSelector;

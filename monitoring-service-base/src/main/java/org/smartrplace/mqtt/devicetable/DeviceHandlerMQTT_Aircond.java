@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.units.TemperatureResource;
@@ -33,9 +34,9 @@ import de.iwes.widgets.html.form.textfield.TextField;
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner> {
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-	public DeviceHandlerMQTT_Aircond(ApplicationManager appMan) {
+	public DeviceHandlerMQTT_Aircond(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 	}
 
@@ -134,14 +135,14 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		}
 
 		public SetpointToFeedbackSimSimple(TemperatureResource setPoint, TemperatureResource setPointFeedback,
-				final ApplicationManager appMan, SingleRoomSimulationBase roomSim) {
+				final ApplicationManagerPlus appMan, SingleRoomSimulationBase roomSim) {
 			this.setPoint = setPoint;
 			this.setPointFeedback = setPointFeedback;
 			setPointListener = new ResourceValueListener<TemperatureResource>() {
 				@Override
 				public void resourceChanged(TemperatureResource resource) {
 					float value = setPoint.getValue();
-					new CountDownDelayedExecutionTimer(appMan, 2000l) {
+					new CountDownDelayedExecutionTimer(appMan.appMan(), 2000l) {
 						@Override
 						public void delayedExecution() {
 							setPointFeedback.setValue(value);

@@ -22,24 +22,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
-import org.ogema.core.recordeddata.RecordedDataConfiguration;
-import org.ogema.core.recordeddata.RecordedDataConfiguration.StorageType;
-import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
+import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
@@ -49,24 +52,32 @@ public class HardwareInstallController {
 
 	public final OgemaLogger log;
     public final ApplicationManager appMan;
-    private final ResourcePatternAccess advAcc;
+    public final ApplicationManagerPlus appManPlus;
+    //private final ResourcePatternAccess advAcc;
     public final DatapointService dpService;
 
 	public HardwareInstallConfig appConfigData;
 	public final HardwareInstallApp hwInstApp;
 	
+	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
+	public final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
+	
 	public MainPage mainPage;
 	public List<MainPage> mainPageExts = new ArrayList<>();
 	public DeviceConfigPage deviceConfigPage;
+	public ResourceList<DataLogTransferInfo> datalogs;
 	//WidgetApp widgetApp;
 
 	public HardwareInstallController(ApplicationManager appMan, WidgetPage<?> page, HardwareInstallApp hardwareInstallApp,
 			DatapointService dpService) {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
-		this.advAcc = appMan.getResourcePatternAccess();
+		//this.advAcc = appMan.getResourcePatternAccess();
 		this.hwInstApp = hardwareInstallApp;		
 		this.dpService = dpService;
+		this.datalogs = LogTransferUtil.getDataLogTransferInfo(appMan);
+		this.appManPlus = new ApplicationManagerPlus(appMan);
+		this.appManPlus.setDpService(dpService);
 		
 		initConfigurationResource();
 		cleanupOnStart();
@@ -163,6 +174,10 @@ public class HardwareInstallController {
 		initializeDevice(install, device, tableProvider);
 		if(tableProvider != null)
 			startSimulation(tableProvider, install);
+		updateDatapoints(tableProvider, install);
+		if(appConfigData.autoLoggingActivation().getValue() == 1) {
+			activateLogging(tableProvider, install, true, false);
+		}
 		return install;
 	}
 	public InstallAppDevice removeDevice(Resource device) {
@@ -209,8 +224,11 @@ public class HardwareInstallController {
 	@SuppressWarnings("unchecked")
 	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
 			T device) {
-		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.autologging")) {
-			activateLogging(tableProvider, appDevice);
+		handlerByDevice.put(appDevice.getLocation(), tableProvider);
+		//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.autologging")) {
+		updateDatapoints(tableProvider, appDevice);
+		if(appConfigData.autoLoggingActivation().getValue() == 2) {
+			activateLogging(tableProvider, appDevice, true, false);
 		}
 		if(!Boolean.getBoolean("org.ogema.devicefinder.api.simulateRemoteGateway"))
 			return;
@@ -226,72 +244,42 @@ public class HardwareInstallController {
 				mainPage.getRoomSimulation(device), dpService);
 	}
 	
-	protected  <T extends Resource> void activateLogging(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
+	public <T extends Resource> void updateDatapoints(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
+		DatapointGroup dev = dpService.getGroup(appDevice.device().getLocation());
+		String devName = DeviceTableRaw.getName(appDevice, appManPlus);
+		dev.setLabel(null, devName);
+		dev.setType("DEVICE");
 		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
-			if(!tableProvider.relevantForDefaultLogging(dp))
+			dev.addDatapoint(dp);
+			dp.setDeviceResource(appDevice.device().getLocationResource());
+		}
+	}
+	public <T extends Resource> void activateLogging(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
+			boolean onylDefaultLoggingDps, boolean disable) {
+		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
+			if((!tableProvider.relevantForDefaultLogging(dp)) && onylDefaultLoggingDps)
 				continue;
 			ReadOnlyTimeSeries ts = dp.getTimeSeries();
 			if(ts == null || (!(ts instanceof RecordedData)))
 				continue;
-			//TODO: activate logging
-			if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
-				//TODO: Activate also log transfer
-				//startTransmitLogData(dp.getDeviceResource());
-				activateLogging((RecordedData)ts, -2);
-			} else
-				activateLogging((RecordedData)ts, -2);
+			RecordedData rec = (RecordedData)ts;
+			if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway") &&
+					(appConfigData.autoTransferActivation().getValue() || disable)) {
+				Resource res = appMan.getResourceAccess().getResource(rec.getPath());
+				if(res != null && res instanceof SingleValueResource) {
+					if(disable)
+						LogTransferUtil.stopTransmitLogData((SingleValueResource) res, datalogs);
+					else
+						LogTransferUtil.startTransmitLogData((SingleValueResource) res, datalogs);
+				}
+			}
+			if(disable)
+				LoggingUtils.deactivateLogging(rec);
+			else
+				LoggingUtils.activateLogging(rec, -2);
 		}		
 	}
 	
-	/**TODO: Move this into LoggingUtils and use in
-	 * {@link LoggingUtils#activateLogging(SingleValueResource, long)}
-	 * @param rd
-	 * @param updateInterval
-	 * @throws IllegalArgumentException
-	 */
-	public static void activateLogging(RecordedData rd, long updateInterval)
-			throws IllegalArgumentException {
-		RecordedDataConfiguration rcd = new RecordedDataConfiguration();
-		switch ((int) updateInterval) {
-		case -1:
-			rcd.setStorageType(StorageType.ON_VALUE_CHANGED);
-			break;
-		case -2:
-			rcd.setStorageType(StorageType.ON_VALUE_UPDATE);
-			break;
-		default:
-			if (updateInterval <= 0)
-				throw new IllegalArgumentException("Logging interval must be positive");
-			rcd.setStorageType(StorageType.FIXED_INTERVAL);
-			rcd.setFixedInterval(updateInterval);
-			break;
-		}
-		rd.setConfiguration(rcd);
-		//write initial value
-		//		if(updateInterval == -2) {
-		//			res.setValue(res.getValue());
-		//		}
-	}
-
-	
-	/*private void startTransmitLogData(SingleValueResource resource) {
-		DataLogTransferInfo log = null;
-		for(DataLogTransferInfo dl : dataLogs.getAllElements()) {
-			if(dl.clientLocation().getValue().equals(resource.getPath()))
-				log = dl;
-		}
-
-		if(log == null) log = dataLogs.add();
-		
-		StringResource clientLocation = log.clientLocation().create();
-		clientLocation.setValue(resource.getPath());
-	
-		TimeIntervalLength tLength = log.transferInterval().timeIntervalLength().create();
-		IntegerResource type = tLength.type().create();
-		type.setValue(10);
-		log.activate(true);
-	}*/
-
 	public void cleanupOnStart() {
 		List<String> knownDevLocs = new ArrayList<>();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {

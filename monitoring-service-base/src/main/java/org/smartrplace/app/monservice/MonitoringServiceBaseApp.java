@@ -146,33 +146,33 @@ public class MonitoringServiceBaseApp implements Application {
 	   
 	   srDpservice = bc.registerService(DatapointService.class, dpService, null);
 	   
-	   devHandAircond = new DeviceHandlerMQTT_Aircond(appMan);
+	   devHandAircond = new DeviceHandlerMQTT_Aircond(controller.appManPlus);
 	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
-	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(appMan);
+	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(controller.appManPlus);
 	   srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
-	   devHandSwBox = new DeviceHandlerMQTT_MultiSwBox(appMan);
+	   devHandSwBox = new DeviceHandlerMQTT_MultiSwBox(controller.appManPlus);
 	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
 
-	   devHandThermostat = new DeviceHandlerThermostat(appMan);
+	   devHandThermostat = new DeviceHandlerThermostat(controller.appManPlus);
 	   srThermostat = bc.registerService(DeviceHandlerProvider.class, devHandThermostat, null);
 	   
-	   devHandTempHumSens = new TemperatureOrHumiditySensorDeviceHandler(appMan);
+	   devHandTempHumSens = new TemperatureOrHumiditySensorDeviceHandler(controller.appManPlus);
 	   srTempHumSens = bc.registerService(DeviceHandlerProvider.class, devHandTempHumSens, null);
 
-	   devHandDoorWindowSensor = new DeviceHandlerDoorWindowSensor(appMan);
+	   devHandDoorWindowSensor = new DeviceHandlerDoorWindowSensor(controller.appManPlus);
 	   srDoorWindowSensor = bc.registerService(DeviceHandlerProvider.class, devHandDoorWindowSensor, null);
 	   
-	   devVirtDpRes = new DeviceHandlerDpRes(appMan);
+	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
 	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
 
-	   devHandPv = new DeviceHandler_PVPlant(appMan);
+	   devHandPv = new DeviceHandler_PVPlant(controller.appManPlus);
 	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
 
-	   jmbusConfig = new DriverHandlerJMBus(appManager, configAdmin);
+	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
-	   mqttBrokerConfig = new DriverHandlerMQTTBroker(appManager, configAdmin);
+	   mqttBrokerConfig = new DriverHandlerMQTTBroker(controller.appManPlus, configAdmin);
 	   mqttBrokerDriver = bc.registerService(DriverHandlerProvider.class, mqttBrokerConfig, null);
-	   knxConfig = new DriverHandlerKNX_IP(appManager, configAdmin);
+	   knxConfig = new DriverHandlerKNX_IP(controller.appManPlus, configAdmin);
 	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
 	}
  	

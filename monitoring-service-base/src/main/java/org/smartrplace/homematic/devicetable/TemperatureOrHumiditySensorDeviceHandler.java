@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
@@ -40,9 +41,9 @@ import de.iwes.widgets.html.form.label.Label;
 //@Service(DeviceHandlerProvider.class)
 public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<SensorDevice> {
 
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-	public TemperatureOrHumiditySensorDeviceHandler(ApplicationManager appMan) {
+	public TemperatureOrHumiditySensorDeviceHandler(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 		appMan.getLogger().info("{} created :)", this.getClass().getSimpleName());
 	}
@@ -176,7 +177,7 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 				if(device.getLocation().toLowerCase().contains("homematic")) {
 					name = "TH HM:"+ScheduleViewerOpenButtonEval.getDeviceShortId(device.getLocation());
 				} else
-					name = getName(object); //ResourceUtils.getHumanReadableShortName(device);
+					name = getName(object, appManPlus); //ResourceUtils.getHumanReadableShortName(device);
 				vh.stringLabel("Name", id, name, row);
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 				return device;
@@ -198,6 +199,7 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 			if(sens.reading() instanceof SingleValueResource)
 				addDatapoint((SingleValueResource) sens.reading(), result, dpService);			
 		}
+		addtStatusDatapointsHomematic(dev, dpService, result);
 		return result;
 	}
 

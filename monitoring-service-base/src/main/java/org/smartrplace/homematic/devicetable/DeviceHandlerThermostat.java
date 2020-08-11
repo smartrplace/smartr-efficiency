@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
@@ -39,9 +40,9 @@ import de.iwes.widgets.html.form.textfield.TextField;
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 
-	public DeviceHandlerThermostat(ApplicationManager appMan) {
+	public DeviceHandlerThermostat(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 		appMan.getLogger().info("{} created :)", this.getClass().getSimpleName());
 	}
@@ -170,6 +171,9 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		if (null == dev) return result;
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().reading()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
+		if(dev.battery().internalVoltage().reading().isActive())
+			result.add(dpService.getDataPointStandard(dev.battery().internalVoltage().reading()));
+		addtStatusDatapointsHomematic(dev, dpService, result);
 		return result;
 	}
 

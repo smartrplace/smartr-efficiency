@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
@@ -29,9 +30,9 @@ import de.iwes.widgets.html.form.label.Label;
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-	public DeviceHandler_PVPlant(ApplicationManager appMan) {
+	public DeviceHandler_PVPlant(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 	}
 	

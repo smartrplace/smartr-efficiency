@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
@@ -35,9 +36,9 @@ import de.iwes.widgets.html.form.label.Label;
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowSensor> {
 
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-	public DeviceHandlerDoorWindowSensor(ApplicationManager appMan) {
+	public DeviceHandlerDoorWindowSensor(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 		appMan.getLogger().info("{} created :)", this.getClass().getSimpleName());
 	}
@@ -141,6 +142,9 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		DoorWindowSensor dev = (DoorWindowSensor) installDeviceRes.device();
 		if (null == dev) return result;
 		result.add(dpService.getDataPointStandard(dev.reading()));
+		if(dev.battery().internalVoltage().reading().isActive())
+			result.add(dpService.getDataPointStandard(dev.battery().internalVoltage().reading()));
+		addtStatusDatapointsHomematic(dev, dpService, result);
 		return result;
 	}
 

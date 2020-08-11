@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
@@ -32,9 +33,9 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitchBox> {
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-	public DeviceHandlerMQTT_MultiSwBox(ApplicationManager appMan) {
+	public DeviceHandlerMQTT_MultiSwBox(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 	}
 	
@@ -130,7 +131,7 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 			SingleRoomSimulationBase roomSimulation,
 			DatapointService dpService) {
 		return new AirConditionerSimSimple(resource.onOffSwitch().stateControl(),
-				resource.onOffSwitch().stateFeedback(), appMan);
+				resource.onOffSwitch().stateFeedback(), appMan.appMan());
 	}
 	
 

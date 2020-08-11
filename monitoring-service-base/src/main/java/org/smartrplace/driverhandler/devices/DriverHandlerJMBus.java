@@ -10,6 +10,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
@@ -156,13 +157,13 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 		
 	}
 	
-	public DriverHandlerJMBus(ApplicationManager appMan, ConfigurationAdmin configAdmin) {
+	public DriverHandlerJMBus(ApplicationManagerPlus appMan, ConfigurationAdmin configAdmin) {
 		this.appMan = appMan;
 		this.configAdmin = configAdmin;
 		this.deviceHandlerSensDev = new DeviceHandlerWMBus_SensorDevice(appMan);
 	}
 
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	private final ConfigurationAdmin configAdmin;
 	private final DeviceHandlerWMBus_SensorDevice deviceHandlerSensDev;
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
@@ -32,9 +33,9 @@ import de.iwes.widgets.html.form.label.Label;
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-	public DeviceHandlerDpRes(ApplicationManager appMan) {
+	public DeviceHandlerDpRes(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 	}
 	
