@@ -73,7 +73,7 @@ public class UserAdminBaseUtil {
 	}
 	
 	public static Collection<String> SUPERADMIN_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
-		List<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService, useWorkingCopy);
+		List<String> result = getPermissionsCoordinates(UserStatus.SUPERADMIN, userPermService, useWorkingCopy);
 		addGeneralUserApps(result);
 		result.add("org.ogema.ref-impl.framework-administration");
 		result.add("org.ogema.messaging.message-settings");
