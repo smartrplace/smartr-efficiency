@@ -143,7 +143,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                         //System.out.printf("have %d configurations%n", configs.length);
                         Stream.of(configs).forEach(cfg -> flex.addItem(createConfigWidget(cfg, ocd, page, req, rb), req));
                     }
-                    flex.addItem(createNewConfigWidget(ocd, page, req, rb), req);
+                    flex.addItem(createNewConfigWidget(ocd, page, mainTable, req, rb), req);
                     row.addCell(flex);
                 } catch (IOException | InvalidSyntaxException ex) {
                     logger.warn("could not load config", ex);
@@ -158,7 +158,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
         return dtr;
     }
     
-    OgemaWidget createNewConfigWidget(ObjectClassDefinition ocd, WidgetPage<?> page, OgemaHttpRequest req, ResourceBundle rb) {
+    OgemaWidget createNewConfigWidget(ObjectClassDefinition ocd, WidgetPage<?> page, OgemaWidget parent, OgemaHttpRequest req, ResourceBundle rb) {
         SimpleGrid grid = new SimpleGrid(page, "_" + UUID.randomUUID().toString(), false);
         AttributeDefinition[] attrDef = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
         final Map<String, Object> props = new HashMap<>();
@@ -215,6 +215,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                     Configuration conf = isFactoryPid
                             ? ca.getFactoryConfiguration(ocdPid, cfgName[0])
                             : ca.getConfiguration(ocdPid);
+                    conf.setBundleLocation(null); //set unbound, will be set to this bundle otherwise
                     Dictionary<String, Object> cfgProps = conf.getProperties();
                     if (cfgProps == null) {
                         cfgProps = new Hashtable<>();
@@ -230,6 +231,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                 }
             }
         };
+        btCreate.triggerOnPOST(parent);
         Label lbNewName = new Label(page, "_" + UUID.randomUUID().toString(), rb.getString("new_config_name"));
         Accordion acc = new Accordion(page, "_" + UUID.randomUUID().toString());
         if (isFactoryPid) {
@@ -335,6 +337,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
             public void onPOSTComplete(String data, OgemaHttpRequest req) {
                 try {
                     cfg.delete();
+                    acc.setVisible(false, req);
                 } catch (IOException ex) {
                     //TODO
                     System.out.println(ex);
@@ -354,35 +357,6 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                     InstalledAppsSelector selector,
                     boolean addUnfoundDevices) {
         return null;
-    	/*System.out.println("getDriverPerDeviceConfigurationTable");
-        DeviceTableRaw<DriverDeviceConfig, InstallAppDevice> dtr = new DeviceTableRaw<DriverDeviceConfig, InstallAppDevice>(page, null, alert, null) {
-            @Override
-            protected String id() {
-                return pid(); //"_" + UUID.randomUUID().toString();
-            }
-
-            @Override
-            protected String pid() {
-            	return ocdPid+"X";
-            }
-
-            @Override
-            protected String getTableTitle() {
-                return "Superflous Table (cannot return null)";
-            }
-
-            @Override
-            public Collection<DriverDeviceConfig> getObjectsInTable(OgemaHttpRequest req) {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public void addWidgets(DriverDeviceConfig object, ObjectResourceGUIHelper<DriverDeviceConfig, InstallAppDevice> vh, String id, OgemaHttpRequest req, RowTemplate.Row row, ApplicationManager appMan) {
-                System.out.println("getDriverPerDeviceConfigurationTable().addWidgets");
-            }
-
-        };
-        return dtr;*/
     }
 
     @Override
