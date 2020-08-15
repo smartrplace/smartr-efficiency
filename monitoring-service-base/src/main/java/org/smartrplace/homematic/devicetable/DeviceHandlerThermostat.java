@@ -72,7 +72,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 
 			@Override
 			protected String getTableTitle() {
-				return "Thermostats*";
+				return "Thermostats";
 			}
 			
 			public Thermostat addWidgetsInternal(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
@@ -97,7 +97,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 						private static final long serialVersionUID = 1L;
 						@Override
 						public void onGET(OgemaHttpRequest req) {
-							setValue(String.format("%.1f", device.temperatureSensor().deviceFeedback().setpoint().getCelsius()), req);
+							setValue(String.format("%.1f", device.temperatureSensor().settings().setpoint().getCelsius()), req);
 						}
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {

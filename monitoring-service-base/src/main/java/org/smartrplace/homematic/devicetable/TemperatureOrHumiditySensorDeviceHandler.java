@@ -9,9 +9,7 @@ import java.util.Map;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.SingleValueResource;
-import org.ogema.core.model.units.VoltageResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -100,18 +98,20 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 					vh.registerHeaderEntry("Humidity");
 					vh.registerHeaderEntry("Last Contact");
 				}
-				VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(device2,
+				addBatteryVoltage(vh, id, req, row, device2);
+				/*VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(device2,
 						"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
 				if(batteryVoltage != null)
 					vh.floatLabel("Battery", id, batteryVoltage, row, "%.1f#min:0.1");
 				else if(req == null)
-					vh.registerHeaderEntry("Battery");
-				BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(device2,
+					vh.registerHeaderEntry("Battery");*/
+				addBatteryStatus(vh, id, req, row, device2);
+				/*BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(device2,
 						"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
 				if(batteryStatus != null)
 					vh.booleanLabel("Bat.Low", id, batteryStatus, row, 0);
 				else if(req == null)
-					vh.registerHeaderEntry("Bat.Low");
+					vh.registerHeaderEntry("Bat.Low");*/
 
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device2.location().room();

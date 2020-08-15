@@ -4,6 +4,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.basedata.DeviceFinderInit;
+import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 
 // here the controller logic is implemented
 public class MonitoringServiceBaseController {
@@ -12,6 +13,8 @@ public class MonitoringServiceBaseController {
 	public final MonitoringServiceBaseApp baseApp;
 	
 	public final ApplicationManagerPlus appManPlus;
+	
+	public final BatteryAlarmingExtension batAlarmExt;
 	
 	public MonitoringServiceBaseController(ApplicationManager appMan, MonitoringServiceBaseApp evaluationOCApp) {
 		this(appMan, evaluationOCApp, evaluationOCApp.dpService);
@@ -24,6 +27,9 @@ public class MonitoringServiceBaseController {
 		appManPlus.setDpService(dpService);
 		this.baseApp = evaluationOCApp;
 		DeviceFinderInit.initAllDatapoints(appMan, dpService);
+		
+		batAlarmExt = new BatteryAlarmingExtension();
+		dpService.alarming().registerAlarmingExtension(batAlarmExt);
 	}
 	public void close() {
 		// TODO Auto-generated method stub

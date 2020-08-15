@@ -11,9 +11,11 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -74,6 +76,17 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		//else {
 		//	vh.stringLabel( "Name", id, ResourceUtils.getHumanReadableShortName(sr), row);
 		//}
+		String text;
+		if(sr.supervisedSensor().isActive() && sr.supervisedSensor().reading() instanceof SingleValueResource) {
+			try {
+				text = String.format("%.1f",
+					ValueResourceUtils.getFloatValue((SingleValueResource)sr.supervisedSensor().reading()));
+			} catch(Exception e) {
+				text = "Ex!";
+			}
+		} else
+			text = "--";
+		vh.stringLabel("Measured", id, text, row);
 		vh.booleanEdit("Alarm active", id, sr.sendAlarm(), row);
 		vh.floatEdit("Lower Limit",
 				id, sr.lowerLimit(), row, alert,

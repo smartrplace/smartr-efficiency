@@ -24,9 +24,11 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.RSSIPage;
+import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -42,7 +44,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 public class HardwareInstallAppExpert implements Application, HWInstallExtensionProvider {
 	protected OgemaLogger log;
     protected ApplicationManager appMan;
-    protected HardwareInstallController controller;
+    //protected HardwareInstallController controller;
 
     protected WidgetApp widgetApp;
 	public static final String urlPath = "/org/smartrplace/hardwareinstall/expert";
@@ -76,6 +78,17 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			new ConfigurationPageHWInstall(configPagebase, controller);
 			menu.addEntry("Configuration Page", configPagebase);
 			configPagebase.getMenuConfiguration().setCustomNavigation(menu);
+			
+			WidgetPage<?> thermPage = widgetApp.createWidgetPage("thermostatDetails.hmtl");
+			new ThermostatPage(thermPage, controller);
+			menu.addEntry("Thermostat Debugging", thermPage);
+			thermPage.getMenuConfiguration().setCustomNavigation(menu);
+			
+			WidgetPage<?> batteryPage = widgetApp.createWidgetPage("batteryStates.hmtl");
+			new BatteryPage(batteryPage, controller);
+			menu.addEntry("Battery Overview", batteryPage);
+			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
+
 		}
 	};
 	
@@ -98,24 +111,13 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
     @Override
     public void stop(AppStopReason reason) {
     	if (widgetApp != null) widgetApp.close();
-		if (controller != null)
-    		controller.close();
+		//if (controller != null)
+    	//	controller.close();
         log.info("{} stopped", getClass().getName());
     }
 
 	@Override
 	public void setController(HardwareInstallController controller) {
  		controllerRecv.setController(controller);
-		/*if(this.controller != null)
- 			return;
- 		this.controller = controller;
-		
- 		//Init
-		//register a web page with dynamically generated HTML
-		while(appMan == null) try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}*/
 	}
 }

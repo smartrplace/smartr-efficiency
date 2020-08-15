@@ -75,7 +75,8 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				final DoorWindowSensor device = addNameWidget(object, vh, id, req, row, appMan);
 				Label state = vh.booleanLabel("Measured State", id, device.reading(), row, 0);
-				vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
+				addBatteryStatus(vh, id, req, row, device);
+				//vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
 				Label lastContact = null;
 				if(req != null) {
 					lastContact = new LastContactLabel(device.reading(), appMan, mainTable, "lastContact"+id, req);
@@ -116,7 +117,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 				if(req == null)
 					device = ResourceHelper.getSampleResource(DoorWindowSensor.class);
 				else
-					device = (DoorWindowSensor) object.device();
+					device = (DoorWindowSensor) object.device().getLocationResource();
 				//if(!(object.device() instanceof Thermostat)) return;
 				final String name;
 				if(device.getLocation().toLowerCase().contains("homematic")) {
