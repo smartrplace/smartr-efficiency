@@ -68,7 +68,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 
 			@Override
 			protected String getTableTitle() {
-				return "Window and Door Opening Sensors*";
+				return "Window and Door Opening Sensors";
 			}
 
 			public DoorWindowSensor addWidgetsInternal(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
