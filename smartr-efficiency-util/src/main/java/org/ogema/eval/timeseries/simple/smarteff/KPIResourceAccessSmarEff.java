@@ -35,8 +35,10 @@ public class KPIResourceAccessSmarEff {
 						"editableData/buildingData/E_0/buildingUnit/"+ResourceUtils.getValidResourceName(roomId)+"/",
 						BuildingUnit.class);			
 			}
-			baseRes.create();
-			baseRes.activate(false);
+			if(baseRes != null) {
+				baseRes.create();
+				baseRes.activate(false);
+			}
 		}
 		if(baseRes == null || (!(baseRes instanceof BuildingUnit)))
 			return null;
