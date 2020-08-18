@@ -8,13 +8,13 @@ import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
-import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.devicefinder.api.AlarmingExtension;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
@@ -50,14 +50,16 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 	//Set this to enable alarming updates
 	public static AlarmingUpdater alarmingUpdater = null;
 	
-	private final Resource baseResource;
+	//private final Resource baseResource;
 	protected final ApplicationManagerPlus appManPlus;
+	protected final DatapointService dpService;
 	
 
-	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, Resource baseResource) {
+	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) { //, Resource baseResource) {
 		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(AlarmConfiguration.class));
-		this.baseResource = baseResource;
+		//this.baseResource = baseResource;
 		this.appManPlus = appManPlus;
+		this.dpService = appManPlus.dpService();
 		appMan.getLogger().info("Alarming Config page created at {}", page.getFullUrl());
 		triggerPageBuild();
 	}
@@ -76,17 +78,21 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		//else {
 		//	vh.stringLabel( "Name", id, ResourceUtils.getHumanReadableShortName(sr), row);
 		//}
-		String text;
-		if(sr.supervisedSensor().isActive() && sr.supervisedSensor().reading() instanceof SingleValueResource) {
-			try {
-				text = String.format("%.1f",
-					ValueResourceUtils.getFloatValue((SingleValueResource)sr.supervisedSensor().reading()));
-			} catch(Exception e) {
-				text = "Ex!";
-			}
-		} else
-			text = "--";
-		vh.stringLabel("Measured", id, text, row);
+		if(sr.sensorVal() instanceof FloatResource) 
+			vh.floatLabel("Measured", id, (FloatResource) sr.sensorVal(), row, "%.1f");
+		else {
+			String text;
+			if(sr.sensorVal().isActive()) { // && sr.supervisedSensor().reading() instanceof SingleValueResource) {
+				try {
+					text = String.format("%.1f",
+						ValueResourceUtils.getFloatValue(sr.sensorVal()));
+				} catch(Exception e) {
+					text = "Ex!";
+				}
+			} else
+				text = "--";
+			vh.stringLabel("Measured", id, text, row);
+		}
 		vh.booleanEdit("Alarm active", id, sr.sendAlarm(), row);
 		vh.floatEdit("Lower Limit",
 				id, sr.lowerLimit(), row, alert,
@@ -108,7 +114,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		if(req == null)
 			vh.registerHeaderEntry("Status");
 		else {
-			ValueResource res = sr.supervisedSensor().reading().getLocationResource();
+			ValueResource res = sr.sensorVal().getLocationResource();
 			IntegerResource statusRes = AlarmingManager.getAlarmStatus(res);
 			if(statusRes == null)
 				return;
@@ -161,7 +167,8 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 	@Override
 	public Collection<AlarmConfiguration> getObjectsInTable(OgemaHttpRequest arg0) {
-		return baseResource.getSubResources(AlarmConfiguration.class, true);
+		return appMan.getResourceAccess().getResources(AlarmConfiguration.class);
+		//return baseResource.getSubResources(AlarmConfiguration.class, true);
 	}
 
 
@@ -218,6 +225,10 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 	@Override
 	protected String getLabel(AlarmConfiguration obj) {
-		return ResourceUtils.getHumanReadableShortName(obj);
+		//InstallAppDevice dev = ResourceHelper.getFirstParentOfType(obj, InstallAppDevice.class);
+		//if(dev == null)
+		//	return ResourceUtils.getHumanReadableShortName(obj);
+		Datapoint dp = dpService.getDataPointStandard(obj.sensorVal().getLocation());
+		return dp.label(OgemaLocale.ENGLISH);
 	}
 }

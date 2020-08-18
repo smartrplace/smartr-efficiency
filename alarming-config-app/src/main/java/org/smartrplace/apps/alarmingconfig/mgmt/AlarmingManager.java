@@ -2,7 +2,6 @@ package org.smartrplace.apps.alarmingconfig.mgmt;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -10,35 +9,27 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
-import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
-import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
+import org.ogema.devicefinder.api.AlarmingService;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
-import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.message.MessageImpl;
-import org.smatrplace.apps.alarmconfig.util.InitUtil;
 import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
 
 import de.iwes.util.format.StringFormatHelper;
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
-import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
-import extensionmodel.smarteff.api.common.BuildingData;
-import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class AlarmingManager {
-	public static final String ALARMSTATUS_RES_NAME = "alarmStatus";
 	
 	//private static final long SCHEDULE_CHECK_RATE = 60000;
 	private static final long NOVALUE_CHECK_RATE = 10000;
@@ -143,8 +134,9 @@ public class AlarmingManager {
 					});
 				}
 			} else {*/
-			if(ac.supervisedSensor().reading() instanceof BooleanResource) {
-				BooleanResource res = (BooleanResource) ac.supervisedSensor().reading().getLocationResource();
+			//if(ac.supervisedSensor().reading() instanceof BooleanResource) {
+			if(ac.sensorVal() instanceof BooleanResource) {
+				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
 				ValueListenerData vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
 				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, tsNameProv);
@@ -153,13 +145,14 @@ public class AlarmingManager {
 				res.addValueListener(mylistener, true);
 				continue;
 			}
-			if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
+			//if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
+			if(!(ac.sensorVal() instanceof FloatResource)) {
 				appManPlus.appMan().getLogger().warn("Sensor reading not of type FloatResource:"+
-						ac.supervisedSensor().reading().getLocation());
+						ac.sensorVal().getLocation());
 				continue;
 			}
 			if(ac.sendAlarm().getValue()) {
-				FloatResource res = (FloatResource) ac.supervisedSensor().reading().getLocationResource();
+				FloatResource res = (FloatResource) ac.sensorVal().getLocationResource();
 				ValueListenerData vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
 				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, tsNameProv);
@@ -175,7 +168,7 @@ public class AlarmingManager {
 				res.addValueListener(mylistener, true);
 			}
 			if(!ac.performAdditinalOperations().getValue()) continue;
-			OnOffSwitch onOff = AlarmingUtiH.getSwitchFromSensor(ac.supervisedSensor());
+			OnOffSwitch onOff = AlarmingUtiH.getSwitchFromSensor(ac.sensorVal());
 			if(onOff != null) {
 				BooleanResource bres = onOff.stateFeedback().getLocationResource();
 				ValueListenerData vl = new ValueListenerData(bres);
@@ -243,13 +236,13 @@ public class AlarmingManager {
 	
 	public static IntegerResource getAlarmStatus(ValueResource reading) {
 		Resource parent = reading.getParent();
-		IntegerResource alarmStatus = parent.getSubResource(AlarmingManager.ALARMSTATUS_RES_NAME,
+		IntegerResource alarmStatus = parent.getSubResource(AlarmingService.ALARMSTATUS_RES_NAME,
 				IntegerResource.class);
 		return alarmStatus.isActive()?alarmStatus:null;		
 	}
 
 	protected IntegerResource getAlarmStatus(Schedule sched) {
-		IntegerResource alarmStatus = sched.getLocationResource().getSubResource(AlarmingManager.ALARMSTATUS_RES_NAME,
+		IntegerResource alarmStatus = sched.getLocationResource().getSubResource(AlarmingService.ALARMSTATUS_RES_NAME,
 				IntegerResource.class);
 		return alarmStatus.isActive()?alarmStatus:null;	
 	}
@@ -482,14 +475,14 @@ public class AlarmingManager {
 		}
 	}
 	
-	public static void initValueResourceAlarming(SingleValueResource reading, Map<String, List<String>> roomSensors,
+	/*public static void initValueResourceAlarming(SingleValueResource reading, Map<String, List<String>> roomSensors,
 			List<String> done, RoomLabelProvider roomLabelProv, ApplicationManager appMan) {
 		if(done.contains(reading.getLocation())) {
 			System.out.println("Already in done:"+reading.getLocation());
 			return;
 		} else done.add(reading.getLocation());
 		System.out.println("Added to done:"+reading.getLocation());
-		Sensor sensor = ResourceHelper.getFirstParentOfType(reading, Sensor.class);
+		//Sensor sensor = ResourceHelper.getFirstParentOfType(reading, Sensor.class);
 		String room = roomLabelProv.getRoomLabel(reading.getLocation(), null);
 		BuildingUnit bu = KPIResourceAccessSmarEff.getRoomConfigResource(room, appMan, true); //InitUtil.getBuildingUnitByRoom(room, user.editableData());
 		if(bu == null) {
@@ -504,11 +497,13 @@ public class AlarmingManager {
 			buSensors = new ArrayList<>();
 			roomSensors.put(bu.getLocation(), buSensors);
 		}
-		buSensors.add(sensor.getLocation());
-		InitUtil.initAlarmForSensor(sensor, bu, roomLabelProv);		
-	}
+		//buSensors.add(sensor.getLocation());
+		//InitUtil.initAlarmForSensor(sensor, bu, roomLabelProv);		
+		buSensors.add(reading.getLocation());
+		InitUtil.initAlarmForSensor2(reading, bu, roomLabelProv);		
+	}*/
 	
-	public static void finishInitSensors(SmartEffUserDataNonEdit user, Map<String, List<String>> roomSensors,
+	/*public static void finishInitSensorVals(SmartEffUserDataNonEdit user, Map<String, List<String>> roomSensorVals,
 			List<String> done, ApplicationManager appMan) {
 		//clean up sensor entries
 		for(BuildingData build: user.editableData().buildingData().getAllElements()) {
@@ -517,32 +512,21 @@ public class AlarmingManager {
 				ResourceList<AlarmConfiguration> alarms = bu.getSubResource("alarmConfigs", ResourceList.class);
 				for(AlarmConfiguration ac: alarms.getAllElements()) {
 					//if(ac.supervisedTS().exists()) continue;
-					if(!ac.supervisedSensor().exists()) continue;
-					List<String> buSensors = roomSensors.get(bu.getLocation());
+					if(!ac.sensorVal().exists())
+						throw new IllegalStateException("Sensor for alarm does not exist!");
+					List<String> buSensors = roomSensorVals.get(bu.getLocation());
 					if(buSensors == null) {
 						ac.delete();
 						continue;
 					}
-					if(!buSensors.contains(ac.supervisedSensor().getLocation())) {
+					if(!buSensors.contains(ac.sensorVal().getLocation())) {
 						ac.delete();
 					}
 				}
 			}
 		}
 		
-		/*List<Sensor> allSensors = appMan.getResourceAccess().getResources(Sensor.class);
-		
-		//TODO: This is a workaround or may be extended in the future
-		for(Sensor sens: allSensors) {
-			if(!sens.reading().isActive()) continue;
-			if(sens.isReference(false)) continue;
-			String loc = sens.reading().getLocation();
-			if(done.contains(loc)) continue;
-			System.out.println("** For "+loc+" adding alarmStatus without configuration!");
-			sens.addDecorator(ALARMSTATUS_RES_NAME, IntegerResource.class).activate(false);
-			done.add(loc);
-		}*/
-	}
+	}*/
 
 
 }

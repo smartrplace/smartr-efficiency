@@ -20,8 +20,6 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
-import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -29,7 +27,6 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
-import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 import de.iwes.widgets.template.DefaultDisplayTemplate;
 
@@ -178,7 +175,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 	}
 
 	@Override
-	protected String getGroupLabel(BuildingPropertyUnit object) {
+	protected String getGroupLabel(BuildingPropertyUnit object, OgemaLocale locale) {
 		return ResourceUtils.getHumanReadableShortName(object);
 	}
 	
@@ -231,7 +228,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 				String result = groupLabels.get(object);
 				if(result != null)
 					return result;
-				result = getGroupLabel(object);
+				result = getGroupLabel(object, locale);
 				groupLabels.put(object, result);
 				return result;
 			}

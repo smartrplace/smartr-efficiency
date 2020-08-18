@@ -27,21 +27,28 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.AlarmingService;
+import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
+import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -249,11 +256,21 @@ public class HardwareInstallController {
 		String devName = DeviceTableRaw.getName(appDevice, appManPlus);
 		dev.setLabel(null, devName);
 		dev.setType("DEVICE");
+		Room roomRes = appDevice.device().location().room();
+		DPRoom room;
+		if(roomRes.exists()) {
+			room = dpService.getRoom(roomRes.getLocation());
+			room.setResource(roomRes);
+		} else 
+			room = null;
 		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
 			dev.addDatapoint(dp);
 			dp.setDeviceResource(appDevice.device().getLocationResource());
+			if(room != null)
+				dp.setRoom(room);
 			if(appDevice.installationLocation().isActive())
 				dp.setSubRoomLocation(null, null, appDevice.installationLocation().getValue());
+			initAlarming(tableProvider, appDevice, dp);
 		}
 	}
 	public <T extends Resource> void activateLogging(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
@@ -282,6 +299,30 @@ public class HardwareInstallController {
 		}		
 	}
 	
+	protected <T extends Resource> void initAlarming(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice, Datapoint dp) {
+		if(!appDevice.alarms().isActive()) {
+			appDevice.alarms().create().activate(false);
+		}
+		Resource dpRes1 = dp.getResource();
+		if(dpRes1 == null || (!(dpRes1 instanceof SingleValueResource)))
+			return;
+		SingleValueResource dpRes = (SingleValueResource)dpRes1;
+		AlarmConfiguration config = getOrCreateReferencingSensorVal(dpRes, appDevice.alarms());
+		dpRes.addDecorator(AlarmingService.ALARMSTATUS_RES_NAME, IntegerResource.class).activate(false);
+	}
+	
+	public static AlarmConfiguration getOrCreateReferencingSensorVal(SingleValueResource sensVal, ResourceList<AlarmConfiguration> list) {
+		for(AlarmConfiguration el: list.getAllElements()) {
+			if(el.sensorVal().equalsLocation(sensVal))
+				return el;
+		}
+		AlarmConfiguration result = list.add();
+		result.sensorVal().setAsReference(sensVal);
+		AlarmingUtiH.setDefaultValuesStatic(result, DefaultSetModes.OVERWRITE);
+		result.activate(true);
+		return result;
+	}
+
 	public void cleanupOnStart() {
 		List<String> knownDevLocs = new ArrayList<>();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {

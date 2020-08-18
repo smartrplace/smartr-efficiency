@@ -19,7 +19,6 @@ import org.smartrplace.external.accessadmin.gui.MainPage;
 import org.smartrplace.external.accessadmin.gui.RoomConfigPage;
 import org.smartrplace.external.accessadmin.gui.RoomSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserGroupPermissionPage;
-import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage2;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserSetupPage;
@@ -45,7 +44,6 @@ public class AccessAdminController {
 	
 	public MainPage mainPage;
 	public UserRoomPermissionPage userRoomPermPage;
-	public UserRoomGroupPermissionPage userRoomGroupPermPage;
 	public UserRoomGroupPermissionPage2 userRoomGroupPermPage2;
 	public RoomConfigPage roomConfigPage;
 	public UserSetupPage userSetupPage;

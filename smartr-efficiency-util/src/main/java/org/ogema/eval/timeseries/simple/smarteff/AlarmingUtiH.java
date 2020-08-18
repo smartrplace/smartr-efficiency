@@ -1,9 +1,11 @@
-package org.smartrplace.apps.alarmingconfig.mgmt;
+package org.ogema.eval.timeseries.simple.smarteff;
 
 import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.units.PowerResource;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.sensors.PowerSensor;
@@ -27,9 +29,9 @@ public class AlarmingUtiH {
 		}
 		return null;
 	}*/
-	public static AlarmConfiguration getAlarmConfig(ResourceList<AlarmConfiguration> configs, Sensor dev) {
+	public static AlarmConfiguration getAlarmConfig2(ResourceList<AlarmConfiguration> configs, SingleValueResource dev) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
-			if(ac.supervisedSensor().equalsLocation(dev)) {
+			if(ac.sensorVal().equalsLocation(dev)) {
 				return ac;
 			}
 		}
@@ -38,7 +40,7 @@ public class AlarmingUtiH {
 	
 	public static void cleanUpAlarmConfigs(ResourceList<AlarmConfiguration> configs) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
-			if((!ac.supervisedSensor().exists())) //&&(!ac.supervisedTS().exists()))
+			if((!ac.sensorVal().exists())) //&&(!ac.supervisedTS().exists()))
 				ac.delete();
 		}		
 	}
@@ -51,15 +53,19 @@ public class AlarmingUtiH {
 		return null;
 	}
 	
-	public static Resource getSupervised(AlarmConfiguration ac) {
+	/*public static Resource getSupervised(AlarmConfiguration ac) {
 		//if(ac.supervisedTS().exists()) return ac.supervisedTS();
 		return ac.supervisedSensor();
-	}
+	}*/
 	
-	public static OnOffSwitch getSwitchFromSensor(Sensor sens) {
-		if(!(sens instanceof PowerSensor)) {
+	public static OnOffSwitch getSwitchFromSensor(SingleValueResource sensVal) {
+		if(!(sensVal instanceof PowerResource)) {
 			return null;
 		}
+		Sensor sensValP = ResourceHelper.getFirstParentOfType(sensVal, Sensor.class);
+		if(sensValP == null || (!(sensValP instanceof PowerSensor)))
+			return null;
+		PowerSensor sens = (PowerSensor)sensValP;
 		Resource hm = ResourceHelper.getFirstParentOfType(sens, "org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice");
 		if(hm == null) return null;
 		List<OnOffSwitch> onOffs = hm.getSubResources(OnOffSwitch.class, true);
@@ -95,8 +101,8 @@ public class AlarmingUtiH {
 		EditPageGeneric.setDefault(data.upperLimit(), 100, mode);
 		EditPageGeneric.setDefault(data.maxIntervalBetweenNewValues(), -1, mode);
 		EditPageGeneric.setDefault(data.sendAlarm(), false, mode);
-		if(data.supervisedSensor().exists() &&
-				AlarmingUtiH.getSwitchFromSensor(data.supervisedSensor()) != null) {
+		if(data.sensorVal().exists() &&
+				AlarmingUtiH.getSwitchFromSensor(data.sensorVal()) != null) {
 			EditPageGeneric.setDefault(data.performAdditinalOperations(), true, mode);
 		} else
 			EditPageGeneric.setDefault(data.performAdditinalOperations(), false, mode);

@@ -68,13 +68,13 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		this.ac = ac;
 		vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
 		String[] exts = ac.alarmingExtensions().getValues();
-		if(ac.supervisedSensor().reading().exists() && ac.supervisedSensor().reading() instanceof SingleValueResource) {
-			SingleValueResource target = (SingleValueResource)ac.supervisedSensor().reading();
+		if(ac.sensorVal().exists() ) { //&& ac.supervisedSensor().reading() instanceof SingleValueResource) {
+			//SingleValueResource target = ac.sensorVal();
 			if(exts != null) for(String ext: exts) {
 				AlarmingExtension extDef = appManPlus.dpService().alarming().getAlarmingExtension(ext);
 				if(extDef == null)
 					return;
-				AlarmingExtensionListener extListener = extDef.getListener(target, ac);
+				AlarmingExtensionListener extListener = extDef.getListener(ac.sensorVal(), ac);
 				extensions.add(extListener);
 			}
 		}

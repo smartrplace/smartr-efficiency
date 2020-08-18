@@ -1,10 +1,10 @@
 package org.smatrplace.apps.alarmconfig.util;
 
 import org.ogema.core.model.Resource;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingUtiH;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 

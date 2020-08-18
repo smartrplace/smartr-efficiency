@@ -47,7 +47,7 @@
             <groupId>org.ogema.core</groupId>
             <artifactId>models</artifactId>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.smartrplace.apps</groupId>
             <artifactId>hardware-installation</artifactId>
             <version>${project.version}</version>
