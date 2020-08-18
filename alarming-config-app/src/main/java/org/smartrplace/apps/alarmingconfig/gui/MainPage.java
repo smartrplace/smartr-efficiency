@@ -205,8 +205,8 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 
 	@Override
-	protected String getGroupLabel(AlarmingExtension object) {
-		return object.label(null);
+	protected String getGroupLabel(AlarmingExtension object, OgemaLocale locale) {
+		return object.label(locale);
 	}
 
 

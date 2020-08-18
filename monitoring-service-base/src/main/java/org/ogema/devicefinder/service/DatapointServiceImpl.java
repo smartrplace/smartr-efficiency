@@ -119,7 +119,7 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	public Datapoint getDataPointStandard(String resourceLocation, String gatewayId) {
 		Datapoint result = getDataPointAsIs(resourceLocation);
 		if(result == null) {
-			result = new DatapointImpl(resourceLocation, gatewayId, null, null) {
+			result = new DatapointImpl(resourceLocation, gatewayId, null, null, this) {
 				@Override
 				public boolean setRoom(DPRoom room) {
 					if(room != null)
@@ -197,7 +197,7 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	public Datapoint getDataPointStandard(ValueResource valRes) {
 		Datapoint result = getDataPointAsIs(valRes);
 		if(result == null) {
-			result = new DatapointImpl(valRes.getLocation(), null, valRes, null) {
+			result = new DatapointImpl(valRes.getLocation(), null, valRes, null, this) {
 				@Override
 				public boolean setRoom(DPRoom room) {
 					if(room != null)

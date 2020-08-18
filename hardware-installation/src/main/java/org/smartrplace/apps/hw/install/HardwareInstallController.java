@@ -252,6 +252,8 @@ public class HardwareInstallController {
 		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
 			dev.addDatapoint(dp);
 			dp.setDeviceResource(appDevice.device().getLocationResource());
+			if(appDevice.installationLocation().isActive())
+				dp.setSubRoomLocation(null, null, appDevice.installationLocation().getValue());
 		}
 	}
 	public <T extends Resource> void activateLogging(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,

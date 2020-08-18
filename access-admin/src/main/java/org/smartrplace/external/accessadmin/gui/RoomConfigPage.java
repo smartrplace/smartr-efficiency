@@ -144,7 +144,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	}
 
 	@Override
-	protected String getGroupLabel(BuildingPropertyUnit object) {
+	protected String getGroupLabel(BuildingPropertyUnit object, OgemaLocale locale) {
 		return ResourceUtils.getHumanReadableShortName(object);
 	}
 

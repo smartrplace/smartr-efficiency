@@ -55,6 +55,7 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 	protected RoomSelectorDropdown roomsDrop;
 	protected InstallationStatusFilterDropdown installFilterDrop;
 	protected final InstalledAppsSelector instAppsSelector;
+	protected final StaticTable topTable;
 
 	class SubTableData {
 		DeviceHandlerProvider<?> pe;
@@ -84,7 +85,6 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
 		page.append(header).linebreak();
 		
-		StaticTable topTable = new StaticTable(1, 6, new int[] {2, 2, 2, 2, 2, 2});
 		OgemaWidget installMode;
 		if(controller.hwInstApp == null) {
 			installMode = new Label(page, "installModeLab", "Search for new devices: "+
@@ -122,6 +122,7 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		//RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
 		//		"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 		
+		topTable = new StaticTable(1, 6, new int[] {2, 2, 2, 2, 2, 2});
 		topTable.setContent(0, 0, roomsDrop)
 				.setContent(0, 1, installFilterDrop)
 				.setContent(0, 2, installMode);//setContent(0, 2, roomLinkButton).

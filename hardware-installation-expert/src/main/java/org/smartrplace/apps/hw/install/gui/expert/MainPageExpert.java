@@ -31,8 +31,19 @@ public class MainPageExpert extends MainPage {
 	@Override
 	protected String getHeader() {return "Smartrplace Hardware InstallationApp Expert";}
 
-	public MainPageExpert(WidgetPage<?> page, HardwareInstallController controller) {
+	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller) {
 		super(page, controller);
+		
+		Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				for(InstallAppDevice iad: controller.appConfigData.knownDevices().getAllElements()) {
+					DeviceHandlerProvider<?> tableProvider = controller.handlerByDevice.get(iad.getLocation());
+					if(tableProvider != null)
+						controller.updateDatapoints(tableProvider, iad);
+				}
+			}
+		};
+		topTable.setContent(0, 4, updateDatapoints);
 	}
 
 	@Override
@@ -107,5 +118,6 @@ public class MainPageExpert extends MainPage {
 			resetButton.setDefaultText("Reset");
 			row.addCell("Reset", resetButton);
 		}
+		
 	}
 }

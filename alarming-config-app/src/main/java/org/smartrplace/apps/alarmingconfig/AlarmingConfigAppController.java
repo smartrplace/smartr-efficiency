@@ -200,7 +200,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 	@Override
 	public String getLabel(AlarmConfiguration ac, boolean isOverall) {
 		Datapoint dp = dpService.getDataPointStandard(ac.supervisedSensor().reading());
-		return dp.label(null);
+		return dp.label(OgemaLocale.ENGLISH);
 		//String shortLab = RoomLabelProvider.getDatapointShortLabelDefault(ac.supervisedSensor().getLocationResource(), false, this);
 		//return shortLab+"-Temperature";
 	}
