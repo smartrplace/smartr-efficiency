@@ -171,6 +171,8 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		if (null == dev) return result;
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().reading()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
+		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
+		result.add(dpService.getDataPointStandard(dev.valve().setting().stateFeedback()));
 		if(dev.battery().internalVoltage().reading().isActive())
 			result.add(dpService.getDataPointStandard(dev.battery().internalVoltage().reading()));
 		addtStatusDatapointsHomematic(dev, dpService, result);

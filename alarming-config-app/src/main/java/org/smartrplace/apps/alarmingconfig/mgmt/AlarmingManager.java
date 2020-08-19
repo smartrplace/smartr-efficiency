@@ -17,11 +17,13 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.AlarmingService;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.TimeUtils;
-import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.message.MessageImpl;
 import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
@@ -39,32 +41,19 @@ public class AlarmingManager {
 	protected final List<AlarmConfiguration> configs;
 	//protected final MonitoringController controller;
 	protected final ApplicationManagerPlus appManPlus;
-	protected final RoomLabelProvider tsNameProv;
+	//protected final RoomLabelProvider tsNameProv;
 	public static final Integer maxMessageBeforeBulk = Integer.getInteger("org.smartrplace.util.alarming.maxMessageBeforeBulk");
 	
 	protected final String alarmID;
 	
-	protected class ValueListenerData {
+	protected class ValueListenerData extends ValueListenerDataBase {
 		public ValueListenerData(FloatResource res) {
-			this.res = res;
-			this.bres = null;
+			super(res);
 		}
 		public ValueListenerData(BooleanResource bres) {
-			this.res = null;
-			this.bres = bres;
+			super(bres);
 		}
 		public AlarmValueListenerI listener;
-		public final FloatResource res;
-		public final BooleanResource bres;
-		public CountDownDelayedExecutionTimer timer = null;
-		public CountDownDelayedExecutionTimer alarmReleaseTimer = null;
-		public long nextTimeAlarmAllowed = -1;
-		public boolean isAlarmActive = false;
-		public boolean isNoValueAlarmActive = false;
-		
-		//supervision for last data received
-		public long lastTimeOfNewData = -1;
-		public long maxIntervalBetweenNewValues;
 	}
 	protected final List<ValueListenerData> valueListeners  =
 			new ArrayList<>();
@@ -74,11 +63,11 @@ public class AlarmingManager {
 	protected Timer noValueTimer = null;
 
 	public AlarmingManager(List<AlarmConfiguration> configs, ApplicationManagerPlus appManPlus,
-			RoomLabelProvider tsNameProv, String alarmID) {
+			String alarmID) {
 		this.configs = configs;
 		//this.controller = controller;
 		this.appManPlus = appManPlus;
-		this.tsNameProv = tsNameProv;
+		//this.tsNameProv = tsNameProv;
 		this.alarmID = alarmID;	
 		
 		/*List<IntegerResource> allAlarmStats = appManPlus.appMan().getResourceAccess().getResources(IntegerResource.class);
@@ -135,11 +124,12 @@ public class AlarmingManager {
 				}
 			} else {*/
 			//if(ac.supervisedSensor().reading() instanceof BooleanResource) {
+			Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
 				ValueListenerData vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, tsNameProv);
+				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -155,7 +145,7 @@ public class AlarmingManager {
 				FloatResource res = (FloatResource) ac.sensorVal().getLocationResource();
 				ValueListenerData vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, tsNameProv);
+				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				
@@ -173,7 +163,7 @@ public class AlarmingManager {
 				BooleanResource bres = onOff.stateFeedback().getLocationResource();
 				ValueListenerData vl = new ValueListenerData(bres);
 				AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vl,
-						appManPlus, tsNameProv) {
+						appManPlus, dp) {
 					@Override
 					public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 							IntegerResource alarmStatus) {
@@ -256,14 +246,14 @@ public class AlarmingManager {
 		
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBasic<FloatResource> {
-		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
-			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
+		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListener(float upper, float lower, int retard, int resendRetard,
-				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
-			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
 		}
 
 		@Override
@@ -284,14 +274,14 @@ public class AlarmingManager {
 		}
 	}
 	protected class AlarmValueListenerBoolean extends AlarmValueListenerBasic<BooleanResource> {
-		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
-			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
+		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListenerBoolean(float upper, float lower, int retard, int resendRetard,
-				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
-			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, tsNameProv);
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
 		}
 
 		@Override
@@ -317,8 +307,8 @@ public class AlarmingManager {
 		protected final AlarmValueListener alarmValListenerBase;
 		
 		public AlarmValueListenerBooleanOnOff(float upper, float lower, int retard, int resendRetard, AlarmConfiguration ac, ValueListenerData vl,
-				ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
-			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, appManPlus, tsNameProv);
+				ApplicationManagerPlus appManPlus, Datapoint dp) {
+			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, appManPlus, dp);
 		}
 		@Override
 		public void resourceChanged(BooleanResource resource) {
@@ -385,7 +375,8 @@ public class AlarmingManager {
 
 	protected void executeNoValueAlarm(AlarmConfiguration ac, float value, long lastTime, long maxInterval,
 			IntegerResource alarmStatus) {
-		String tsName = tsNameProv.getTsName(ac);
+		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
+		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
 		String title = alarmID+": Kein neuer Wert:"+tsName+" (Alarming)";
 		String message = "Letzter Wert wurde empfangen um: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nWert: "+value+"\r\n"
 				+"\r\nMaximales Intervall: "+(maxInterval/MINUTE_MILLIS)+"min";

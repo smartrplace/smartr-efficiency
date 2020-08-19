@@ -6,9 +6,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
-import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary;
@@ -28,15 +26,13 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
-import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
 
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.messaging.model.MessagingApp;
 
 // here the controller logic is implemented
-public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelProvider {
+public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLabelProvider {
 	private HardwareInstallConfig hardwareConfig = null;
 	public HardwareInstallConfig getHardwareConfig() {
 		if(hardwareConfig == null) {
@@ -180,10 +176,10 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 			alarmMan.close();
 		}
 		List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
-		alarmMan = new AlarmingManager(configs, appManPlus, this, getAlarmingDomain());
+		alarmMan = new AlarmingManager(configs, appManPlus, getAlarmingDomain());
 	}
 
-	@Override
+	/*@Override
 	public String getTsName(AlarmConfiguration ac) {
 		return RoomLabelProvider.getTsNameDefault(ac);
 	}
@@ -208,5 +204,5 @@ public class AlarmingConfigAppController implements AlarmingUpdater, RoomLabelPr
 		return dp.label(OgemaLocale.ENGLISH);
 		//String shortLab = RoomLabelProvider.getDatapointShortLabelDefault(ac.supervisedSensor().getLocationResource(), false, this);
 		//return shortLab+"-Temperature";
-	}
+	}*/
 }

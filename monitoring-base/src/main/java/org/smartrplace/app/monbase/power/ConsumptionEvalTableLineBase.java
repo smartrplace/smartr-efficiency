@@ -190,6 +190,8 @@ public class ConsumptionEvalTableLineBase implements ConsumptionEvalTableLineI {
 	
 	@Override
 	public String getLabel() {
+		if(datapoint != null)
+			return datapoint.label(null);
 		return label;
 	}
 	

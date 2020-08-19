@@ -228,7 +228,11 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		//InstallAppDevice dev = ResourceHelper.getFirstParentOfType(obj, InstallAppDevice.class);
 		//if(dev == null)
 		//	return ResourceUtils.getHumanReadableShortName(obj);
-		Datapoint dp = dpService.getDataPointStandard(obj.sensorVal().getLocation());
-		return dp.label(OgemaLocale.ENGLISH);
+		Datapoint dp = getDatapoint(obj, dpService);
+		return dp.label(null);
+	}
+	
+	public static Datapoint getDatapoint(AlarmConfiguration ac, DatapointService dpService) {
+		return dpService.getDataPointStandard(ac.sensorVal().getLocation());
 	}
 }

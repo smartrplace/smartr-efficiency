@@ -28,6 +28,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.label.Label;
 
 
 //@Component(specVersion = "1.2", immediate = true)
@@ -60,9 +61,11 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 				//int nSwitchboxes = box.switchboxes().size();
 				//Label switchboxCount = vh.stringLabel("Switchbox Count", id, Integer.toString(nSwitchboxes), row);
 
-				vh.booleanLabel("StateFB", id, box.onOffSwitch().stateFeedback(), row, 0);
+				Label stateFB = vh.booleanLabel("StateFB", id, box.onOffSwitch().stateFeedback(), row, 0);
+				Label lastFB = addLastContact("Last FB", vh, "LFB"+id, req, row, box.onOffSwitch().stateFeedback());
 				vh.booleanEdit("Control", id, box.onOffSwitch().stateControl(), row);
-				vh.floatLabel("Power", id, box.electricityConnection().powerSensor().reading(), row, "%.1f");
+				Label power = vh.floatLabel("Power", id, box.electricityConnection().powerSensor().reading(), row, "%.1f");
+				Label lastPower = addLastContact("Last Power", vh, "LPower"+id, req, row, box.electricityConnection().powerSensor().reading());
 				
 				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
 				addInstallationStatus(object, vh, id, req, row, appMan, deviceRoom);
@@ -70,6 +73,16 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
 
 				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
+				
+				if(stateFB != null)
+					stateFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);
+				if(power != null)
+					power.setDefaultPollingInterval(DEFAULT_POLL_RATE);
+
+				if(lastFB != null)
+					lastFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);
+				if(lastPower != null)
+					lastPower.setDefaultPollingInterval(DEFAULT_POLL_RATE);
 			}
 			
 			@Override
@@ -147,6 +160,12 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 		addDatapoint(dev.onOffSwitch().stateControl(), result, dpService);
 		addDatapoint(dev.onOffSwitch().stateFeedback(), result, dpService);
 		addDatapoint(dev.electricityConnection().powerSensor().reading(), result, dpService);
+		addDatapoint(dev.electricityConnection().energySensor().reading(), result, dpService);
+		addDatapoint(dev.electricityConnection().reactivePowerSensor().reading(), result, dpService);
+		addDatapoint(dev.electricityConnection().voltageSensor().reading(), result, dpService);
+		addDatapoint(dev.electricityConnection().currentSensor().reading(), result, dpService);
+		addDatapoint(dev.electricityConnection().frequencySensor().reading(), result, dpService);
+		addDatapoint(dev.electricityConnection().reactiveAngleSensor().reading(), result, dpService);
 		return result;
 	}
 }

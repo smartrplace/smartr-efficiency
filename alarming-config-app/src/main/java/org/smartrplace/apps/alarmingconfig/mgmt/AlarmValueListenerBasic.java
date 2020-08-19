@@ -11,6 +11,7 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.AlarmingExtensionListener;
 import org.ogema.devicefinder.api.AlarmingExtensionListener.AlarmResult;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
@@ -29,7 +30,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	final List<AlarmingExtensionListener> extensions = new ArrayList<>();
 
 	final ApplicationManagerPlus appManPlus;
-	protected final RoomLabelProvider tsNameProv;
+	//protected final RoomLabelProvider tsNameProv2;
+	protected final Datapoint dp;
 	final String alarmID;
 	
 	protected abstract void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
@@ -40,9 +42,9 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
 	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
-			String alarmID, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
+			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp) {
 		this.appManPlus = appManPlus;
-		this.tsNameProv = tsNameProv;
+		this.dp = dp;
 		this.alarmID = alarmID;
 		upper = ac.upperLimit().getValue();
 		lower = ac.lowerLimit().getValue();
@@ -56,9 +58,9 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	/** This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision*/
 	public AlarmValueListenerBasic(float upper, float lower, int retard, int resendRetard,
 			AlarmConfiguration ac, ValueListenerData vl,
-			String alarmID, ApplicationManagerPlus appManPlus, RoomLabelProvider tsNameProv) {
+			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp) {
 		this.appManPlus = appManPlus;
-		this.tsNameProv = tsNameProv;
+		this.dp = dp;
 		this.alarmID = alarmID;
 		this.upper = upper;
 		this.lower = lower;
@@ -143,7 +145,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
-		String title = alarmID+": "+tsNameProv.getTsName(ac)+" (Alarming Wert)";
+		String title = alarmID+": "+dp.label(null)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}
@@ -157,7 +159,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	}
 	public void executeAlarm(AlarmConfiguration ac, String message,
 			IntegerResource alarmStatus, int alarmValue) {
-		String title = alarmID+": "+tsNameProv.getTsName(ac)+" (Alarming Special)";
+		String title = alarmID+": "+dp.label(null)+" : "+ message;
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}
