@@ -232,52 +232,21 @@ AggregationModeProvider, RoomLabelProvider {
 		return buttonTable;
 	}
 	
-    public static final String ALL_DATA = "All Data";
-    public static final String ONE_DAY = "One Day";
-    public static final String ONE_WEEK = "One Week";
-    public static final String THREE_WEEKS = "Three Weeks";
-    public static final String[] OPTIONS = {ALL_DATA, ONE_DAY, ONE_WEEK, THREE_WEEKS};
 	/** Overwrite if necesary*/
     public String getAllDataLabel() {
-    	return ALL_DATA;
+    	return IntervalConfiguration.ALL_DATA;
     }
 	/** Overwrite if necesary*/
 	public String[] getIntervalOptions( ) {
-		return OPTIONS;
+		return IntervalConfiguration.OPTIONS;
 	}
 	public String getRoomOptionLineTitle() {
 		return System.getProperty("org.smartrplace.app.monbase.gui.datatypelabel", "Auswahl Räume");
 	}
 	public IntervalConfiguration getConfigDuration(String config, ApplicationManager appMan) {
-    	switch(config) {
-    	case ALL_DATA:
-        	IntervalConfiguration r = new IntervalConfiguration();
-			r.start = 0;
-			//r.end = startEnd[1];
-			r.end = appMan.getFrameworkTime();
-        	return r;
-		case ONE_DAY:
-			r = new IntervalConfiguration();
-			long now = appMan.getFrameworkTime();
-			long startOfDay = AbsoluteTimeHelper.getIntervalStart(now, AbsoluteTiming.DAY);
-			r.start = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, -1, AbsoluteTiming.DAY);
-			r.end = now;
-			return r;
-		case ONE_WEEK:
-			r = new IntervalConfiguration();
-			now = appMan.getFrameworkTime();
-			startOfDay = AbsoluteTimeHelper.getIntervalStart(now, AbsoluteTiming.DAY);
-			r.start = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, -7, AbsoluteTiming.DAY);
-			r.end = now;
-			return r;
-		case THREE_WEEKS:
-			r = new IntervalConfiguration();
-			now = appMan.getFrameworkTime();
-			startOfDay = AbsoluteTimeHelper.getIntervalStart(now, AbsoluteTiming.DAY);
-			r.start = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, -21, AbsoluteTiming.DAY);
-			r.end = now;
-			return r;
-    	}
+    	IntervalConfiguration result = IntervalConfiguration.getDefaultDuration(config, appMan);
+    	if(result != null)
+    		return result;
     	return StandardConfigurations.getConfigDuration(config, appMan);
     }
 	

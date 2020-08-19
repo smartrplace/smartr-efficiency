@@ -71,7 +71,12 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		String userName = userFilter.getSelectedUser(req);
 		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
 				userPerms, userName);
-		ConfigurablePermission result = new ConfigurablePermission();
+		ConfigurablePermission result = new ConfigurablePermission() {
+			@Override
+			public boolean supportsUnset() {
+				return true;
+			}
+		};
 		//We have to choose the right permission data for the page here
 		if(userAcc == null)
 			userAcc = UserPermissionUtil.getOrCreateUserPermissions(userPerms, userName);

@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.ogema.util.extended.eval.widget.MultiSelectByButtons;
 import org.smartrplace.app.monbase.MonitoringController;
@@ -82,7 +83,7 @@ public class OfflineControlGUI {
 			if(System.getProperty("org.smartrplace.smarteff.util.editgeneric.fixedlanguage", "english").equals("german"))
 				return "Eine Woche";
 			else
-				return MonitoringController.OPTIONS[2];
+				return IntervalConfiguration.OPTIONS[2];
 		}
 		
 		@Override

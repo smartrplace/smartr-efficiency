@@ -1,6 +1,8 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -9,15 +11,24 @@ import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.externalviewer.extensions.IntervalConfiguration;
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.apps.hw.install.gui.expert.ScheduleViwerOpenTemp.SchedOpenDataProvider;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
+import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -56,6 +67,7 @@ public class MainPageExpert extends MainPage {
 			vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
 			vh.registerHeaderEntry("Log All");
 			vh.registerHeaderEntry("Log None");
+			vh.registerHeaderEntry("Plot");
 			vh.registerHeaderEntry("Delete");
 			vh.registerHeaderEntry("Reset");
 			return;
@@ -63,7 +75,7 @@ public class MainPageExpert extends MainPage {
 
 		final DeviceHandlerProvider<?> devHand = controller.handlerByDevice.get(object.getLocation());
 		if(devHand != null) {
-			Collection<Datapoint> datapoints = devHand.getDatapoints(object, controller.dpService);
+			final Collection<Datapoint> datapoints = devHand.getDatapoints(object, controller.dpService);
 			int logged = 0;
 			int transferred = 0;
 			for(Datapoint dp: datapoints) {
@@ -97,6 +109,29 @@ public class MainPageExpert extends MainPage {
 				}
 			};
 			row.addCell(WidgetHelper.getValidWidgetId("Log None"), logNone);
+			
+			SchedOpenDataProvider provider = new SchedOpenDataProvider() {
+				
+				@Override
+				public IntervalConfiguration getITVConfiguration() {
+					return IntervalConfiguration.getDefaultDuration(IntervalConfiguration.ONE_DAY, controller.appMan);
+				}
+				
+				@Override
+				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
+					List<TimeSeriesData> result = new ArrayList<>();
+					OgemaLocale locale = req!=null?req.getLocale():null;
+					for(Datapoint dp: datapoints) {
+						TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(locale);
+						TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, tsd.label(null), tsd.description(null));
+						tsdExt.type = dp.getGaroDataType();
+						result.add(tsdExt);
+					}
+					return result;
+				}
+			};
+			ScheduleViewerOpenButton plotButton = ScheduleViwerOpenTemp.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id, provider, req);
+			row.addCell("Plot", plotButton);
 			
 			ButtonConfirm deleteButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {
 				@Override

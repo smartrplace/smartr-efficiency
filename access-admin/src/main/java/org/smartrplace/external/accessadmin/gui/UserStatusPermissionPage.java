@@ -64,6 +64,10 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 				super.setOwnStatus(newStatus);
 				controller.appConfigData.userStatusPermissionChanged().<BooleanResource>create().setValue(true);
 			}
+			@Override
+			public boolean supportsUnset() {
+				return false;
+			}
 		};
 		CopyParams copyParams = new CopyParams(appMan, true, 0);
 		if(!controller.appConfigData.userStatusPermissionWorkingCopy().isActive())

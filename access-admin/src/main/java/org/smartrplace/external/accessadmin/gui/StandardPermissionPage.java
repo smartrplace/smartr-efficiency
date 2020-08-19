@@ -18,6 +18,7 @@ import de.iwes.widgets.html.form.button.ButtonData;
 
 public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<T, BooleanResource> {
 	protected void finishPermissionButton(Button perm) {}
+	//protected final boolean noImplicitNullStatus;
 	
 	public static class ConfigurablePermission implements PermissionCellData {
 		String resourceId;
@@ -26,7 +27,7 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 		boolean defaultStatus;
 		//ResourceList<AccessConfigUser> userPerms;
 		//String userName;
-		boolean supportsUnset = true;
+		//boolean supportsUnset = true;
 		
 		@Override
 		public Boolean getOwnstatus() {
@@ -47,7 +48,10 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 		}
 		@Override
 		public boolean supportsUnset() {
-			return supportsUnset;
+			return true;
+		}
+		
+		public ConfigurablePermission() {
 		}
 	}
 	protected abstract List<String> getPermissionNames();
@@ -56,6 +60,7 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 	
 	public StandardPermissionPage(WidgetPage<?> page, ApplicationManager appMan, T sampleObject) {
 		super(page, appMan, sampleObject);
+		//this.noImplicitNullStatus = noImplicitNullStatus;
 		//Trigger has to be done by implementing page
 		//triggerPageBuild();
 	}
@@ -76,6 +81,8 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 				@Override
 				public void onGET(OgemaHttpRequest req) {
 					Boolean status = acc.getOwnstatus();
+					if((!acc.supportsUnset()) && (status == null))
+						status = false;
 					if (status == null) {
 						boolean inheritedStatus = acc.getEffectiveStatus();
 						setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
