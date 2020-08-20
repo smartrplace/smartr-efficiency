@@ -52,6 +52,9 @@ public class AlarmingManager {
 		public ValueListenerData(BooleanResource bres) {
 			super(bres);
 		}
+		public ValueListenerData(IntegerResource ires) {
+			super(ires);
+		}
 		public AlarmValueListenerI listener;
 	}
 	protected final List<ValueListenerData> valueListeners  =
@@ -134,6 +137,16 @@ public class AlarmingManager {
 				res.addValueListener(mylistener, true);
 				continue;
 			}
+			if(ac.sensorVal() instanceof IntegerResource) {
+				IntegerResource res = (IntegerResource) ac.sensorVal().getLocationResource();
+				ValueListenerData vl = new ValueListenerData(res);
+				vl.lastTimeOfNewData = now;
+				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp);
+				vl.listener = mylistener;
+				valueListeners.add(vl);
+				res.addValueListener(mylistener, true);
+				continue;
+			}
 			//if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
 			if(!(ac.sensorVal() instanceof FloatResource)) {
 				appManPlus.appMan().getLogger().warn("Sensor reading not of type FloatResource:"+
@@ -150,7 +163,7 @@ public class AlarmingManager {
 				
 				IntegerResource alarmStatus = getAlarmStatus(res);
 				if(alarmStatus == null)
-					return;
+					continue;
 				if(alarmStatus.getValue() > 1000)
 					vl.isNoValueAlarmActive = true;
 				
@@ -203,16 +216,15 @@ public class AlarmingManager {
 						if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
 							vl.res.setValue(Float.NaN);
 					} else 	if(vl.bres != null) {
-						//TODO: OnOffSwitches do not have alarmStatus yet. This should not be activated yet
-						IntegerResource alarmStatus = getAlarmStatus(vl.res);
-						//if(alarmStatus == null)
-						//	alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
+						IntegerResource alarmStatus = getAlarmStatus(vl.bres);
 						float val = vl.bres.getValue()?1.0f:0.0f;
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
 								vl.maxIntervalBetweenNewValues, alarmStatus);
-						//reset value
-						//if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
-						//	vl.bres.setValue(Float.NaN);
+					} else 	if(vl.ires != null) {
+						IntegerResource alarmStatus = getAlarmStatus(vl.ires);
+						float val = vl.ires.getValue();
+						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
+								vl.maxIntervalBetweenNewValues, alarmStatus);
 					} else {
 						//IntegerResource alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
 						//executeNoValueAlarm(vl.listener.getAc(), Float.NaN, vl.lastTimeOfNewData,
@@ -336,6 +348,35 @@ public class AlarmingManager {
 		}
 	}
 	
+	protected class AlarmValueListenerInteger extends AlarmValueListenerBasic<IntegerResource> {
+		public AlarmValueListenerInteger(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+		}
+		
+		// This constructor is used by the inherited class AlarmListenerInteger used for OnOffSwitch supervision
+		public AlarmValueListenerInteger(float upper, float lower, int retard, int resendRetard,
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+		}
+
+		@Override
+		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
+				IntegerResource alarmStatus) {
+			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
+		}
+
+		@Override
+		protected void sendMessage(String title, String message, MessagePriority prio)
+				throws RejectedExecutionException, IllegalStateException {
+			AlarmingManager.this.sendMessage(title, message, prio);
+		}
+
+		@Override
+		protected float getHumanValue(IntegerResource resource) {
+			return resource.getValue();
+		}
+	}
+
 	protected static boolean isViolated(float value, float lower, float upper) {
 		if(value < lower) return true;
 		if(value > upper) return true;
@@ -356,6 +397,7 @@ public class AlarmingManager {
 		for(ValueListenerData vl: valueListeners) {
 			if(vl.res != null) vl.res.removeValueListener(vl.listener.getListener());
 			else if(vl.bres != null) vl.bres.removeValueListener(vl.listener.getListener());
+			else if(vl.ires != null) vl.ires.removeValueListener(vl.listener.getListener());
 			else {
 				appManPlus.appMan().getLogger().warn("ValueListenerData registered without res");
 			}

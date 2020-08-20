@@ -23,9 +23,11 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 
 import com.fasterxml.jackson.databind.deser.std.NumberDeserializers.IntegerDeserializer;
 
+import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
@@ -58,8 +60,10 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 		
+		String ipText = IPNetworkHelper.getLocalIPAddress();
+		Label localIP = new Label(page, "localIP", ipText);
 		
-		StaticTable configTable = new StaticTable(2, 2);
+		StaticTable configTable = new StaticTable(3, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -67,6 +71,9 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Activate data transfer to backup server when logging is activated").
 				setContent(i, 1, autoTransfer);
 		i++;
+		configTable.setContent(i, 0, "Local IP Address:").
+		setContent(i, 1, localIP);
+i++;
 		
 		page.append(configTable);
 	}
