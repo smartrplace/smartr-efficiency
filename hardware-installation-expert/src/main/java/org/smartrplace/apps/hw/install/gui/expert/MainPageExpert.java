@@ -65,9 +65,9 @@ public class MainPageExpert extends MainPage {
 		vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
 		if(req == null) {
 			vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
+			vh.registerHeaderEntry("Plot");
 			vh.registerHeaderEntry("Log All");
 			vh.registerHeaderEntry("Log None");
-			vh.registerHeaderEntry("Plot");
 			vh.registerHeaderEntry("Delete");
 			vh.registerHeaderEntry("Reset");
 			return;
@@ -130,7 +130,8 @@ public class MainPageExpert extends MainPage {
 					return result;
 				}
 			};
-			ScheduleViewerOpenButton plotButton = ScheduleViwerOpenTemp.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id, provider, req);
+			ScheduleViewerOpenButton plotButton = ScheduleViwerOpenTemp.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
+					"Plot", provider, req);
 			row.addCell("Plot", plotButton);
 			
 			ButtonConfirm deleteButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {

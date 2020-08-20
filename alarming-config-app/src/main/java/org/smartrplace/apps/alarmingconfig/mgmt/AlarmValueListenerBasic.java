@@ -111,6 +111,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		}
 		
 		if(AlarmingManager.isViolated(value, lower, upper)) {
+System.out.println("Detected alarming violation:"+value+" for "+ac.getLocation()+", starting time for "+String.format("%.1f seconds", retard*0.001f));			
 			if(AlarmingManager.isNewAlarmRetardPhaseAllowed(vl, appManPlus.appMan())) {
 				vl.timer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
 						retard) {
@@ -151,7 +152,9 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		}
 		String message = "Aktueller Wert: "+value+"\r\n"+"  Untere Grenze: "+lower+
 				"\r\n"+"  Obere Grenze: "+upper;
-		sendMessage(title, message, MessagePriority.HIGH);
+		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
+		if(prio != null)
+			sendMessage(title, message, prio);
 		
 		if(alarmStatus != null) {
 			alarmStatus.setValue(ac.alarmLevel().getValue());
@@ -163,7 +166,9 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}
-		sendMessage(title, message, MessagePriority.HIGH);
+		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
+		if(prio != null)
+			sendMessage(title, message, prio);
 		
 		if(alarmStatus != null) {
 			alarmStatus.setValue(alarmValue);
@@ -176,6 +181,19 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	@Override
 	public ResourceValueListener<?> getListener() {
 		return this;
+	}
+	
+	public static MessagePriority getMessagePrio(int resourceValue) {
+		switch(resourceValue) {
+		case 1:
+			return MessagePriority.LOW;
+		case 2:
+			return MessagePriority.MEDIUM;
+		case 3:
+			return MessagePriority.HIGH;
+		default:
+			return null;
+		}
 	}
 
 }

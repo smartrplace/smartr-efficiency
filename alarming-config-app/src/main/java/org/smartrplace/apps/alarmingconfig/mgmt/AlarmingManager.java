@@ -26,7 +26,6 @@ import org.ogema.tools.resource.util.TimeUtils;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.message.MessageImpl;
-import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
@@ -380,7 +379,9 @@ public class AlarmingManager {
 		String title = alarmID+": Kein neuer Wert:"+tsName+" (Alarming)";
 		String message = "Letzter Wert wurde empfangen um: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nWert: "+value+"\r\n"
 				+"\r\nMaximales Intervall: "+(maxInterval/MINUTE_MILLIS)+"min";
-		sendMessage(title, message, MessagePriority.HIGH);
+		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
+		if(prio != null)
+			sendMessage(title, message, prio);
 		
 		if(alarmStatus != null) {
 			alarmStatus.setValue(ac.alarmLevel().getValue()+1000);
@@ -394,7 +395,9 @@ public class AlarmingManager {
 		if(!Float.isNaN(lower))
 			message += "\r\n"+"  Untere Grenze: "+lower+
 				"\r\n"+"  Obere Grenze: "+upper;
-		sendMessage(title, message, MessagePriority.MEDIUM);
+		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
+		if(prio != null)
+			sendMessage(title, message, prio);
 		if(alarmStatus != null) {
 			alarmStatus.setValue(0);
 		}

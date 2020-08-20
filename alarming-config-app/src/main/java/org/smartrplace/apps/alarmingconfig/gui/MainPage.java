@@ -39,9 +39,10 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 	public static final Map<String, String> ALARM_LEVEL_EN = new HashMap<>();
 	static {
-		ALARM_LEVEL_EN.put("0", "Keine Alarme");
-		ALARM_LEVEL_EN.put("1", "Normal");
-		ALARM_LEVEL_EN.put("2", "Hoch");
+		ALARM_LEVEL_EN.put("0", "No Alarms");
+		ALARM_LEVEL_EN.put("1", "Low");
+		ALARM_LEVEL_EN.put("2", "Normal");
+		ALARM_LEVEL_EN.put("3", "High");
 	}
 	public static interface AlarmingUpdater {
 		void updateAlarming();

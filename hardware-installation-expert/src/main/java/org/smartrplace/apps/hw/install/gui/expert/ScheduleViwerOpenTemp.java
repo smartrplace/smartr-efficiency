@@ -26,8 +26,8 @@ public class ScheduleViwerOpenTemp {
 	//	
 	//}
 	public static ScheduleViewerOpenButton getScheduleViewerOpenButton(OgemaWidget parent, String widgetId,
-			final SchedOpenDataProvider provider, OgemaHttpRequest req) {
-		ScheduleViewerOpenButtonEval schedOpenButtonEval = new ScheduleViewerOpenButtonEval(parent, widgetId, "Data Viewer",
+			String text, final SchedOpenDataProvider provider, OgemaHttpRequest req) {
+		ScheduleViewerOpenButtonEval schedOpenButtonEval = new ScheduleViewerOpenButtonEval(parent, widgetId, text,
 				ScheduleViewerConfigProvHWI.PROVIDER_ID,
 				ScheduleViewerConfigProvHWI.getInstance(), req) {
 			private static final long serialVersionUID = 1L;
