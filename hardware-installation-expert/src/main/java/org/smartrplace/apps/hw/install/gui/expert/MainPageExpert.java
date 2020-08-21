@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -25,19 +27,28 @@ import org.smartrplace.util.format.WidgetHelper;
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
-import de.iwes.util.timer.AbsoluteTimeHelper;
-import de.iwes.util.timer.AbsoluteTiming;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 
 @SuppressWarnings("serial")
 public class MainPageExpert extends MainPage {
 
-	private static final String DATAPOINT_INFO_HEADER = "DP/Log/Transfer";
+	private static final String DATAPOINT_INFO_HEADER = "DP/Log/Transfer/Tmpl";
+	private static final String LOG_ALL = "Log All";
+	private static final String LOG_NONE = "Log None";
+	private static final String DELETE = "Delete";
+	private static final String RESET = "Reset";
+	private static final String TRASH = "Mark as Trash";
+	private static final String MAKE_TEMPLATE = "Make Template";
+	private static final String APPLY_TEMPLATE = "Apply Template To Devices";
+	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, MAKE_TEMPLATE});
+	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, APPLY_TEMPLATE});
 
 	@Override
 	protected String getHeader() {return "Smartrplace Hardware InstallationApp Expert";}
@@ -66,10 +77,12 @@ public class MainPageExpert extends MainPage {
 		if(req == null) {
 			vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
 			vh.registerHeaderEntry("Plot");
-			vh.registerHeaderEntry("Log All");
+			vh.registerHeaderEntry("Action");
+			vh.registerHeaderEntry("Perform");
+			/*vh.registerHeaderEntry("Log All");
 			vh.registerHeaderEntry("Log None");
 			vh.registerHeaderEntry("Delete");
-			vh.registerHeaderEntry("Reset");
+			vh.registerHeaderEntry("Reset");*/
 			return;
 		}
 
@@ -94,21 +107,11 @@ public class MainPageExpert extends MainPage {
 				}
 			}
 			String text = ""+datapoints.size()+"/"+logged+"/"+transferred;
+			final boolean isTemplate = object.isTemplate().isActive() && object.isTemplate().getValue().equals(devHand.id());
+			if(isTemplate) {
+				text += "/T";
+			}
 			vh.stringLabel(DATAPOINT_INFO_HEADER, id, text, row);
-			Button logAll = new Button(vh.getParent(), "logAll"+id, "Log All", req) {
-				@Override
-				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					controller.activateLogging(devHand, object, false, false);
-				}
-			};
-			row.addCell(WidgetHelper.getValidWidgetId("Log All"), logAll);
-			Button logNone = new Button(vh.getParent(), "logNone"+id, "Log None", req) {
-				@Override
-				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					controller.activateLogging(devHand, object, false, true);
-				}
-			};
-			row.addCell(WidgetHelper.getValidWidgetId("Log None"), logNone);
 			
 			SchedOpenDataProvider provider = new SchedOpenDataProvider() {
 				
@@ -134,6 +137,104 @@ public class MainPageExpert extends MainPage {
 					"Plot", provider, req);
 			row.addCell("Plot", plotButton);
 			
+			final TemplateDropdown<String> actionDrop = new TemplateDropdown<String>(vh.getParent(), "actionDrop"+id, req) {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					if(isTemplate) {
+						update(ACTIONS_TEMPLATE, req);
+					} else {
+						update(ACTIONS, req);
+					}
+				}
+			};
+			actionDrop.setDefaultItems(ACTIONS);
+			row.addCell("Action", actionDrop);
+			ButtonConfirm performButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					String sel = actionDrop.getSelectedItem(req);
+					switch(sel) {
+					case LOG_ALL:
+						setConfirmMsg("Really log all datapoints for "+object.device().getLocation()+" ?", req);
+						break;
+					case LOG_NONE:
+						setConfirmMsg("Really log no datapoints for "+object.device().getLocation()+" ?", req);
+						break;
+					case DELETE:
+						setConfirmMsg("Really delete "+object.device().getLocation()+" ?", req);
+						break;
+					case RESET:
+						setConfirmMsg("Really delete installation&setup configuration for "+object.device().getLocation()+
+								" ? Search for new devices to recreate clean configuration.", req);
+						break;
+					case TRASH:
+						setConfirmMsg(getTrashConfirmation(object), req);
+						break;
+					case MAKE_TEMPLATE:
+						setConfirmMsg("Really move template status to "+object.device().getLocation()+" ?", req);
+						break;
+					case APPLY_TEMPLATE:
+						setConfirmMsg("Really apply settings of "+object.device().getLocation()+
+								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!", req);
+						break;
+					}
+					setText(sel, req);
+				}
+				
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					String sel = getText(req);
+					switch(sel) {
+					case LOG_ALL:
+						controller.activateLogging(devHand, object, false, false);
+						break;
+					case LOG_NONE:
+						controller.activateLogging(devHand, object, false, true);
+						break;
+					case DELETE:
+						object.device().getLocationResource().delete();
+						object.delete();
+						break;
+					case RESET:
+						object.delete();
+						break;
+					case TRASH:
+						performTrashOperation(object, devHand);
+						break;
+					case MAKE_TEMPLATE:
+						InstallAppDevice currentTemplate = getTemplateDevice(devHand);
+						currentTemplate.isTemplate().deactivate(false);
+						ValueResourceHelper.setCreate(object.isTemplate(), devHand.id());
+						if(!object.isTemplate().isActive())
+							object.isTemplate().activate(false);
+						break;
+					case APPLY_TEMPLATE:
+						for(InstallAppDevice dev: controller.getDevices(devHand)) {
+							if(dev.equalsLocation(object))
+								continue;
+							controller.copySettings(object, dev);
+						}
+					}
+				}
+			};
+			row.addCell("Perform", performButton);
+			actionDrop.registerDependentWidget(performButton, req);
+			
+			/*Button logAll = new Button(vh.getParent(), "logAll"+id, "Log All", req) {
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					controller.activateLogging(devHand, object, false, false);
+				}
+			};
+			row.addCell(WidgetHelper.getValidWidgetId("Log All"), logAll);
+			Button logNone = new Button(vh.getParent(), "logNone"+id, "Log None", req) {
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					controller.activateLogging(devHand, object, false, true);
+				}
+			};
+			row.addCell(WidgetHelper.getValidWidgetId("Log None"), logNone);
+
 			ButtonConfirm deleteButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -152,8 +253,35 @@ public class MainPageExpert extends MainPage {
 			};
 			resetButton.setDefaultConfirmMsg("Really delete installation&setup configuration for "+object.device().getLocation()+" ? Search for new devices to recreate clean configuration.");
 			resetButton.setDefaultText("Reset");
-			row.addCell("Reset", resetButton);
+			row.addCell("Reset", resetButton);*/
 		}
 		
+	}
+	
+	protected InstallAppDevice getTemplateDevice(InstallAppDevice source) {
+		DeviceHandlerProvider<?> devHand = controller.handlerByDevice.get(source.getLocation());
+		return getTemplateDevice(devHand);
+	}
+	protected InstallAppDevice getTemplateDevice(DeviceHandlerProvider<?> devHand) {
+		for(InstallAppDevice dev: controller.getDevices(devHand)) {
+			if(dev.isTemplate().isActive() && dev.isTemplate().getValue().equals(devHand.id()))
+				return dev;
+		}
+		return null;
+	}
+	
+	protected String getTrashConfirmation(InstallAppDevice object) {
+		return "Really mark "+object.device().getLocation()+" as trash?";
+	}
+
+	protected void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
+		//deactivate logging
+		controller.activateLogging(devHand, object, false, true);
+		//remove all alarming
+		for(AlarmConfiguration alarm: object.alarms().getAllElements()) {
+			alarm.delete();
+		}
+		object.device().getLocationResource().deactivate(true);
+		ValueResourceHelper.setCreate(object.isTrash(), true);		
 	}
 }

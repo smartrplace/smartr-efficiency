@@ -27,9 +27,15 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.array.StringArrayResource;
+import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.recordeddata.RecordedData;
+import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.DPRoom;
@@ -48,9 +54,11 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
+import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
 
@@ -89,6 +97,7 @@ public class HardwareInstallController {
 		initConfigurationResource();
 		cleanupOnStart();
 		mainPage = getMainPage(page);
+		initConfigResourceForOperation();
         initDemands();
 		if(hardwareInstallApp == null)
 			return;
@@ -206,15 +215,25 @@ public class HardwareInstallController {
 	}
 	
 	public <T extends Resource> void startSimulations(DeviceHandlerProvider<T> tableProvider) {
-		Class<?> tableType = tableProvider.getResourceType();
+		//Class<?> tableType = tableProvider.getResourceType();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
-			if(install.device().getResourceType().equals(tableType)) {
-				startSimulation(tableProvider, install);
+			if(install.isTrash().getValue())
+				continue;
+			for(ResourcePattern<?> pat: tableProvider.getAllPatterns()) {
+				if(pat.model.equalsLocation(install.device())) {
+					startSimulation(tableProvider, install);
+					break;
+				}
 			}
+			//if(install.device().getResourceType().equals(tableType)) {
+			//	startSimulation(tableProvider, install);
+			//}
 		}
 	}
 	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
+			if(install.isTrash().getValue())
+				continue;
 			if(install.device().equalsLocation(device)) {
 				startSimulation(tableProvider, install, device);
 				break;
@@ -252,10 +271,18 @@ public class HardwareInstallController {
 	}
 	
 	public <T extends Resource> void updateDatapoints(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
-		DatapointGroup dev = dpService.getGroup(appDevice.device().getLocation());
+		String deviceLocation = appDevice.device().getLocation();
+		DatapointGroup dev = dpService.getGroup(deviceLocation);
 		String devName = DeviceTableRaw.getName(appDevice, appManPlus);
 		dev.setLabel(null, devName);
 		dev.setType("DEVICE");
+		
+		DatapointGroup devType = dpService.getGroup(tableProvider.id());
+		devType.setLabel(null, tableProvider.label(null));
+		devType.setType("DEVICE_TYPE");
+		if(devType.getSubGroup(deviceLocation) != null)
+			devType.addSubGroup(dev);
+		
 		Room roomRes = appDevice.device().location().room();
 		DPRoom room;
 		if(roomRes.exists()) {
@@ -263,6 +290,7 @@ public class HardwareInstallController {
 			room.setResource(roomRes);
 		} else 
 			room = null;
+		
 		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
 			dev.addDatapoint(dp);
 			dp.setDeviceResource(appDevice.device().getLocationResource());
@@ -323,7 +351,7 @@ public class HardwareInstallController {
 		return result;
 	}
 
-	public void cleanupOnStart() {
+	protected void cleanupOnStart() {
 		List<String> knownDevLocs = new ArrayList<>();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if(knownDevLocs.contains(install.device().getLocation()))
@@ -332,5 +360,134 @@ public class HardwareInstallController {
 				knownDevLocs.add(install.device().getLocation());
 		}
 		
+	}
+	
+	protected void initConfigResourceForOperation() {
+		if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.init.startoperation"))
+			return;
+		String status = appConfigData.initDoneStatus().getValue();
+		if(status != null && status.contains("A,"))
+			return;
+		if(!appConfigData.autoTransferActivation().exists())
+			ValueResourceHelper.setCreate(appConfigData.autoTransferActivation(), true);
+		if(!appConfigData.autoLoggingActivation().exists())
+			ValueResourceHelper.setCreate(appConfigData.autoLoggingActivation(), 2);
+		addString("A,", appConfigData.initDoneStatus());
+	}
+	
+	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider) {
+		List<InstallAppDevice> result = new ArrayList<>();
+		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
+			if(install.isTrash().getValue())
+				continue;
+			for(ResourcePattern<?> pat: tableProvider.getAllPatterns()) {
+				if(pat.model.equalsLocation(install.device())) {
+					result.add(install);
+					break;
+				}
+			}
+		}
+		return result;
+	}
+
+	public void copySettings(InstallAppDevice source, InstallAppDevice destination) {
+		for(AlarmConfiguration alarmSource: source.alarms().getAllElements()) {
+			String relPath = ResourceCSVUtil.getRelativePath(source.device().getLocation(),
+					alarmSource.sensorVal().getLocation());
+			String destPath = destination.device().getLocation() + relPath;
+			for(AlarmConfiguration alarmDest: destination.alarms().getAllElements()) {
+				if(alarmDest.sensorVal().getLocation().equals(destPath)) {
+					copySettings(alarmSource, alarmDest);
+					break;
+				}
+			}
+		}
+	}
+	
+	public void copySettings(AlarmConfiguration source, AlarmConfiguration destination) {
+		copyValue(source.sendAlarm(), destination.sendAlarm());
+		copyValue(source.lowerLimit(), destination.lowerLimit());
+		copyValue(source.upperLimit(), destination.upperLimit());
+		copyValue(source.alarmLevel(), destination.alarmLevel());
+		copyValue(source.maxIntervalBetweenNewValues(), destination.maxIntervalBetweenNewValues());
+		copyValue(source.maxViolationTimeWithoutAlarm(), destination.maxViolationTimeWithoutAlarm());
+		copyValue(source.alarmRepetitionTime(), destination.alarmRepetitionTime());
+		copyValue(source.performAdditinalOperations(), destination.performAdditinalOperations());
+		copyValue(source.alarmingExtensions(), destination.alarmingExtensions());
+	}
+	
+	public static void copyValue(FloatResource source, FloatResource destination) {
+		if(source.isActive()) {
+			if(destination.isActive())
+				destination.setValue(source.getValue());
+			else {
+				destination.create();
+				destination.setValue(source.getValue());
+				destination.activate(false);
+			}
+		}
+	}
+	public static void copyValue(BooleanResource source, BooleanResource destination) {
+		if(source.isActive()) {
+			if(destination.isActive())
+				destination.setValue(source.getValue());
+			else {
+				destination.create();
+				destination.setValue(source.getValue());
+				destination.activate(false);
+			}
+		}
+	}
+	public static void copyValue(IntegerResource source, IntegerResource destination) {
+		if(source.isActive()) {
+			if(destination.isActive())
+				destination.setValue(source.getValue());
+			else {
+				destination.create();
+				destination.setValue(source.getValue());
+				destination.activate(false);
+			}
+		}
+	}
+	public static void copyValue(TimeResource source, TimeResource destination) {
+		if(source.isActive()) {
+			if(destination.isActive())
+				destination.setValue(source.getValue());
+			else {
+				destination.create();
+				destination.setValue(source.getValue());
+				destination.activate(false);
+			}
+		}
+	}
+	public static void copyValue(StringResource source, StringResource destination) {
+		if(source.isActive()) {
+			if(destination.isActive())
+				destination.setValue(source.getValue());
+			else {
+				destination.create();
+				destination.setValue(source.getValue());
+				destination.activate(false);
+			}
+		}
+	}
+	public static void copyValue(StringArrayResource source, StringArrayResource destination) {
+		if(source.isActive()) {
+			if(destination.isActive())
+				destination.setValues(source.getValues());
+			else {
+				destination.create();
+				destination.setValues(source.getValues());
+				destination.activate(false);
+			}
+		}
+	}
+	public static void addString(String toAdd, StringResource res) {
+		if(!res.exists()) {
+			ValueResourceHelper.setCreate(res, toAdd);
+		} else {
+			String exist = res.getValue();
+			res.setValue(exist+toAdd);
+		}
 	}
 }

@@ -27,6 +27,7 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
+import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.RSSIPage;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
 
@@ -89,6 +90,10 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Battery Overview", batteryPage);
 			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
 
+			WidgetPage<?> trashPage = widgetApp.createWidgetPage("trashDevices.hmtl");
+			new MainPageExpertTrash(trashPage, controller);
+			menu.addEntry("Trash Devices", trashPage);
+			trashPage.getMenuConfiguration().setCustomNavigation(menu);
 		}
 	};
 	

@@ -187,7 +187,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 	@Override
 	protected Collection<AlarmingExtension> getAllGroups(OgemaHttpRequest req) {
-		return appManPlus.dpService().alarming().getAlarmingExtionsions();
+		return appManPlus.dpService().alarming().getAlarmingExtensions();
 	}
 
 

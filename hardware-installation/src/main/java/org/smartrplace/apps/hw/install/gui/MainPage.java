@@ -183,6 +183,11 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		List<InstallAppDevice> all = roomsDrop.getDevicesSelected();
 		if (installFilterDrop != null)  // FIXME seems to always be null here
 			all = installFilterDrop.getDevicesSelected(all);
+		List<InstallAppDevice> allNonTrash = new ArrayList<>();
+		for(InstallAppDevice dev: all) {
+			if(!dev.isTrash().getValue())
+				allNonTrash.add(dev);
+		}
 		return all;
 	}
 

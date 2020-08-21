@@ -85,9 +85,9 @@ public class AlarmingManager {
 			//FIXME: !! Change this back after alarming init is done !!
 			AlarmingUtiH.setDefaultValuesStatic(ac, DefaultSetModes.SET_IF_NEW);
 			
+			if((!ac.sendAlarm().getValue()))
+				continue;
 			/*if(ac.supervisedTS().exists()) {
-				if((!ac.sendAlarm().getValue()))
-					continue;
 				ValueListenerData vl = new ValueListenerData((FloatResource)null);
 				Schedule sched = ac.supervisedTS().schedule();
 				SampledValue val = null;
@@ -432,7 +432,9 @@ public class AlarmingManager {
 	
 	protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
-		String title = alarmID+": Release:"+ac.name().getValue()+" (Alarming)";
+		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
+		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
+		String title = alarmID+": Release:"+tsName+" (Alarming)";
 		String message = "Wert: "+value;
 		if(!Float.isNaN(lower))
 			message += "\r\n"+"  Untere Grenze: "+lower+

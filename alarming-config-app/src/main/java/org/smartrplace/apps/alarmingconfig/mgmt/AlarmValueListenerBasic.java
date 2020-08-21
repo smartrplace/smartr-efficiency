@@ -111,7 +111,6 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		}
 		
 		if(AlarmingManager.isViolated(value, lower, upper)) {
-System.out.println("Detected alarming violation:"+value+" for "+ac.getLocation()+", starting time for "+String.format("%.1f seconds", retard*0.001f));			
 			if(AlarmingManager.isNewAlarmRetardPhaseAllowed(vl, appManPlus.appMan())) {
 				vl.timer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
 						retard) {
