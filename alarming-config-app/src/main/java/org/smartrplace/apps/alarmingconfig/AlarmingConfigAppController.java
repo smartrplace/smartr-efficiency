@@ -16,6 +16,7 @@ import org.ogema.messaging.basic.services.config.model.ReceiverConfiguration;
 import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
 import org.smartrplace.apps.alarmingconfig.gui.PageBuilderSimple;
@@ -52,6 +53,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
     public final ApplicationManagerPlus appManPlus;
 	
 	public MainPage mainPage;
+	public DeviceTypePage devicePage;
 	public final PageBuilderSimple messagePage;
 	public final PageInit forwardingPage;
 	public final ReceiverPageBuilder receiverPage;
@@ -88,6 +90,11 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		mainPage = new MainPage(pageRes10, appManPlus); //, base);
 		initApp.menu.addEntry("Alarming Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
+
+		WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("devices.html", true);
+		devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
+		initApp.menu.addEntry("Alarming Template Devices Configuration", pageRes12);
+		initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 
 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
 			WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);

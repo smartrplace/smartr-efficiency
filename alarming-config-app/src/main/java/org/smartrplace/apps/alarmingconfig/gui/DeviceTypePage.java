@@ -53,7 +53,7 @@ public class DeviceTypePage extends MainPage {
 					return null;
 				String devLoc = iad.device().getLocation();
 				for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
-					if(dpGrp.getType().equals("DEVICE_TYPE") && (dpGrp.getSubGroup(devLoc) != null)) {
+					if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE") && (dpGrp.getSubGroup(devLoc) != null)) {
 						return dpGrp.id();
 					}
 				}
@@ -64,13 +64,18 @@ public class DeviceTypePage extends MainPage {
 			protected List<GenericFilterOption<String>> getOptionsDynamic(OgemaHttpRequest req) {
 				List<GenericFilterOption<String>> result = new ArrayList<>();
 				for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
-					if(dpGrp.getType().equals("DEVICE_TYPE")) {
+					if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE")) {
 						GenericFilterOption<String> option = new GenericFilterFixedSingle<String>(
 								dpGrp.id(), LocaleHelper.getLabelMap(dpGrp.label(null)));
 						result.add(option );
 					}
 				}
 				return result;
+			}
+			
+			@Override
+			protected long getFrameworkTime() {
+				return appMan.getFrameworkTime();
 			}
 		};
 		deviceDrop.registerDependentWidget(mainTable);

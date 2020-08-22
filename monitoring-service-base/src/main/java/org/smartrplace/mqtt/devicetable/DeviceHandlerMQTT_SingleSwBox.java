@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
@@ -16,11 +17,15 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.model.communication.CommunicationStatus;
+import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -33,10 +38,10 @@ import de.iwes.widgets.html.form.label.Label;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitchBox> {
+public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitchBox> {
 	private final ApplicationManagerPlus appMan;
 	
-	public DeviceHandlerMQTT_MultiSwBox(ApplicationManagerPlus appMan) {
+	public DeviceHandlerMQTT_SingleSwBox(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 	}
 	
@@ -87,12 +92,12 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 			
 			@Override
 			protected Class<? extends Resource> getResourceType() {
-				return DeviceHandlerMQTT_MultiSwBox.this.getResourceType();
+				return DeviceHandlerMQTT_SingleSwBox.this.getResourceType();
 			}
 			
 			@Override
 			protected String id() {
-				return DeviceHandlerMQTT_MultiSwBox.this.id();
+				return DeviceHandlerMQTT_SingleSwBox.this.id();
 			}
 
 			@Override
@@ -166,6 +171,26 @@ public class DeviceHandlerMQTT_MultiSwBox extends DeviceHandlerBase<SingleSwitch
 		addDatapoint(dev.electricityConnection().currentSensor().reading(), result, dpService);
 		addDatapoint(dev.electricityConnection().frequencySensor().reading(), result, dpService);
 		addDatapoint(dev.electricityConnection().reactiveAngleSensor().reading(), result, dpService);
+		CommunicationStatus comStat = dev.getSubResource("communicationStatus", CommunicationStatus.class);
+		if(comStat.isActive()) {
+			addDatapoint(comStat.quality(), result, dpService);
+			addDatapoint(comStat.getSubResource("RSSI", FloatResource.class), result, dpService);
+			addDatapoint(comStat.getSubResource("Signal", FloatResource.class), result, dpService);
+		}
 		return result;
+	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		SingleSwitchBox device = (SingleSwitchBox) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
+			0.0f, 1000.0f, 10, 20);
+		CommunicationStatus comStat = device.getSubResource("communicationStatus", CommunicationStatus.class);
+		if(comStat.isActive()) {
+			AlarmingUtiH.setTemplateValues(appDevice, comStat.quality(),
+					0.1f, 1.0f, 30, 30);
+			
+		}
 	}
 }

@@ -143,7 +143,8 @@ public class ThermostatPage extends MainPage {
 			
 			@Override
 			public List<InstallAppDevice> getObjectsInTable(OgemaHttpRequest req) {
-				List<InstallAppDevice> all = appSelector.getDevicesSelected();
+				List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, installFilterDrop);
+				//List<InstallAppDevice> all = appSelector.getDevicesSelected();
 				List<InstallAppDevice> result = new ArrayList<InstallAppDevice>();
 				for(InstallAppDevice dev: all) {
 					if(dev.device() instanceof Thermostat) {

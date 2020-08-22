@@ -31,7 +31,7 @@ import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
-import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_MultiSwBox;
+import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_SingleSwBox;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -89,7 +89,7 @@ public class MonitoringServiceBaseApp implements Application {
 	private DeviceHandlerMQTT_ElecConnBox devHandElecConn;
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srSwBox = null;
-	private DeviceHandlerMQTT_MultiSwBox devHandSwBox;
+	private DeviceHandlerMQTT_SingleSwBox devHandSwBox;
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srDoorWindowSensor = null;
 	private DeviceHandlerDoorWindowSensor devHandDoorWindowSensor;
@@ -150,7 +150,7 @@ public class MonitoringServiceBaseApp implements Application {
 	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
 	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(controller.appManPlus);
 	   srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
-	   devHandSwBox = new DeviceHandlerMQTT_MultiSwBox(controller.appManPlus);
+	   devHandSwBox = new DeviceHandlerMQTT_SingleSwBox(controller.appManPlus);
 	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
 
 	   devHandThermostat = new DeviceHandlerThermostat(controller.appManPlus);

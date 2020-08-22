@@ -73,10 +73,10 @@ public class RoomSelectorDropdown extends TemplateDropdown<String> {
 		items.add(room.getLocation());
 	}
 	
-	public List<InstallAppDevice> getDevicesSelected() {
+	public List<InstallAppDevice> getDevicesSelected(List<InstallAppDevice> devices) {
 		List<InstallAppDevice> devicesSelected = new ArrayList<>();
 		String arg0 = controller.appConfigData.room().getValue();
-		for(InstallAppDevice dev: controller.appConfigData.knownDevices().getAllElements()) {
+		for(InstallAppDevice dev: devices) {
 			if(arg0.equals(ALL_DEVICES_ID))
 				devicesSelected.add(dev);
 			else if(arg0.equals(DEVICES_IN_ROOMS_ID)) {

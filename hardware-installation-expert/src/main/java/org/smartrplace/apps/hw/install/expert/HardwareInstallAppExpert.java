@@ -91,7 +91,7 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> trashPage = widgetApp.createWidgetPage("trashDevices.hmtl");
-			new MainPageExpertTrash(trashPage, controller);
+			controller.mainPageExts.add(new MainPageExpertTrash(trashPage, controller));
 			menu.addEntry("Trash Devices", trashPage);
 			trashPage.getMenuConfiguration().setCustomNavigation(menu);
 		}

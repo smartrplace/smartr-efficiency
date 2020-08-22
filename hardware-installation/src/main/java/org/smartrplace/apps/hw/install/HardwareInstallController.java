@@ -51,11 +51,11 @@ import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.devicetypes.InitialConfig;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -194,6 +194,22 @@ public class HardwareInstallController {
 		if(appConfigData.autoLoggingActivation().getValue() == 1) {
 			activateLogging(tableProvider, install, true, false);
 		}
+		if(appConfigData.autoConfigureNewDevicesBasedOnTemplate().getValue()) {
+			InstallAppDevice currentTemplate = getTemplateDevice(tableProvider);
+			if(currentTemplate != null && (!currentTemplate.equalsLocation(install)))
+				copySettings(currentTemplate, install);
+		}
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.startalarming")) {
+			String shortID = tableProvider.getDeviceTypeShortId(install, dpService);
+			if((!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus())) &&
+					(getDevices(tableProvider).size() <= 1)) {
+				tableProvider.initAlarmingForDevice(install, appConfigData);
+				ValueResourceHelper.setCreate(install.isTemplate(), tableProvider.id());
+			}
+			//mark init done for sure
+			if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
+				InitialConfig.addString(shortID, appConfigData.initDoneStatus());			
+		}
 		return install;
 	}
 	public InstallAppDevice removeDevice(Resource device) {
@@ -280,8 +296,9 @@ public class HardwareInstallController {
 		DatapointGroup devType = dpService.getGroup(tableProvider.id());
 		devType.setLabel(null, tableProvider.label(null));
 		devType.setType("DEVICE_TYPE");
-		if(devType.getSubGroup(deviceLocation) != null)
+		if(devType.getSubGroup(deviceLocation) == null)
 			devType.addSubGroup(dev);
+		String devTypeShort = tableProvider.getDeviceTypeShortId(appDevice, dpService);
 		
 		Room roomRes = appDevice.device().location().room();
 		DPRoom room;
@@ -296,8 +313,16 @@ public class HardwareInstallController {
 			dp.setDeviceResource(appDevice.device().getLocationResource());
 			if(room != null)
 				dp.setRoom(room);
-			if(appDevice.installationLocation().isActive())
-				dp.setSubRoomLocation(null, null, appDevice.installationLocation().getValue());
+			if(devTypeShort != null && devTypeShort.equals("UNK"))
+				devTypeShort = null;
+			if(appDevice.installationLocation().isActive()) {
+				String subLoc = null;
+				if(devTypeShort != null)
+					subLoc = devTypeShort+"-"+appDevice.installationLocation().getValue();
+				else
+					subLoc = appDevice.installationLocation().getValue();
+				dp.setSubRoomLocation(null, null, subLoc);
+			}
 			initAlarming(tableProvider, appDevice, dp);
 		}
 	}
@@ -335,22 +360,10 @@ public class HardwareInstallController {
 		if(dpRes1 == null || (!(dpRes1 instanceof SingleValueResource)))
 			return;
 		SingleValueResource dpRes = (SingleValueResource)dpRes1;
-		AlarmConfiguration config = getOrCreateReferencingSensorVal(dpRes, appDevice.alarms());
+		AlarmingUtiH.getOrCreateReferencingSensorVal(dpRes, appDevice.alarms());
 		dpRes.addDecorator(AlarmingService.ALARMSTATUS_RES_NAME, IntegerResource.class).activate(false);
 	}
 	
-	public static AlarmConfiguration getOrCreateReferencingSensorVal(SingleValueResource sensVal, ResourceList<AlarmConfiguration> list) {
-		for(AlarmConfiguration el: list.getAllElements()) {
-			if(el.sensorVal().equalsLocation(sensVal))
-				return el;
-		}
-		AlarmConfiguration result = list.add();
-		result.sensorVal().setAsReference(sensVal);
-		AlarmingUtiH.setDefaultValuesStatic(result, DefaultSetModes.OVERWRITE);
-		result.activate(true);
-		return result;
-	}
-
 	protected void cleanupOnStart() {
 		List<String> knownDevLocs = new ArrayList<>();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
@@ -365,29 +378,67 @@ public class HardwareInstallController {
 	protected void initConfigResourceForOperation() {
 		if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.init.startoperation"))
 			return;
-		String status = appConfigData.initDoneStatus().getValue();
-		if(status != null && status.contains("A,"))
+		//String status = appConfigData.initDoneStatus().getValue();
+		//if(status != null && status.contains("A,"))
+		if(InitialConfig.isInitDone("A", appConfigData.initDoneStatus()))
 			return;
 		if(!appConfigData.autoTransferActivation().exists())
 			ValueResourceHelper.setCreate(appConfigData.autoTransferActivation(), true);
 		if(!appConfigData.autoLoggingActivation().exists())
 			ValueResourceHelper.setCreate(appConfigData.autoLoggingActivation(), 2);
-		addString("A,", appConfigData.initDoneStatus());
+		if(!appConfigData.autoConfigureNewDevicesBasedOnTemplate().exists())
+			ValueResourceHelper.setCreate(appConfigData.autoConfigureNewDevicesBasedOnTemplate(), true);
+		InitialConfig.addString("A", appConfigData.initDoneStatus());
 	}
 	
 	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider) {
+		boolean includeInactiveDevices = appConfigData.includeInactiveDevices().getValue();
+		return getDevices(tableProvider, includeInactiveDevices, false);
+	}
+	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
+			boolean includeInactiveDevices, boolean includeTrash) {
 		List<InstallAppDevice> result = new ArrayList<>();
+		Class<T> tableType = null;
+		List<ResourcePattern<T>> allPatterns = null;
+		if(tableProvider != null) {
+			if(includeInactiveDevices)
+				tableType = tableProvider.getResourceType();
+			else
+				allPatterns = tableProvider.getAllPatterns();
+		}
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
-			if(install.isTrash().getValue())
+			if((!includeTrash) && install.isTrash().getValue())
 				continue;
-			for(ResourcePattern<?> pat: tableProvider.getAllPatterns()) {
-				if(pat.model.equalsLocation(install.device())) {
+			if(tableProvider == null) {
+				result.add(install);
+				continue;
+			}
+			if(includeInactiveDevices) {
+				if(install.device().getResourceType().equals(tableType)) {				
 					result.add(install);
-					break;
+				}
+			} else 	{
+				for(ResourcePattern<?> pat: allPatterns) {
+					if(pat.model.equalsLocation(install.device())) {
+						result.add(install);
+						break;
+					}
 				}
 			}
 		}
 		return result;
+	}
+
+	public InstallAppDevice getTemplateDevice(InstallAppDevice source) {
+		DeviceHandlerProvider<?> devHand = handlerByDevice.get(source.getLocation());
+		return getTemplateDevice(devHand);
+	}
+	public InstallAppDevice getTemplateDevice(DeviceHandlerProvider<?> devHand) {
+		for(InstallAppDevice dev: getDevices(devHand)) {
+			if(dev.isTemplate().isActive() && dev.isTemplate().getValue().equals(devHand.id()))
+				return dev;
+		}
+		return null;
 	}
 
 	public void copySettings(InstallAppDevice source, InstallAppDevice destination) {
@@ -480,14 +531,6 @@ public class HardwareInstallController {
 				destination.setValues(source.getValues());
 				destination.activate(false);
 			}
-		}
-	}
-	public static void addString(String toAdd, StringResource res) {
-		if(!res.exists()) {
-			ValueResourceHelper.setCreate(res, toAdd);
-		} else {
-			String exist = res.getValue();
-			res.setValue(exist+toAdd);
 		}
 	}
 }

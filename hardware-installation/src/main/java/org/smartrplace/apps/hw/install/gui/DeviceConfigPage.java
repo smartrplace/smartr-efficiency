@@ -62,8 +62,9 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 			return "Hardware Driver Configuration";
 		}
 	@Override
-	public List<InstallAppDevice> getDevicesSelected() {
-		List<InstallAppDevice> all = roomsDrop.getDevicesSelected();
+	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand) {
+		List<InstallAppDevice> all = controller.getDevices(devHand);
+		all = roomsDrop.getDevicesSelected(all);
 		if (installFilterDrop != null)  // FIXME seems to always be null here
 			all = installFilterDrop.getDevicesSelected(all);
 		return all;

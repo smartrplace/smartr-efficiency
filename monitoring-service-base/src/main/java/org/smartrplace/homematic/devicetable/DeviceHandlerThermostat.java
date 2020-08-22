@@ -9,6 +9,9 @@ import java.util.Map;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -17,18 +20,24 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond.SetpointToFeedbackSimSimple;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
+import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -199,5 +208,36 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		}
 		return new SetpointToFeedbackSimSimple(deviceResource.temperatureSensor().settings().setpoint(),
 				deviceResource.temperatureSensor().deviceFeedback().setpoint(), appMan, null);
+	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		Thermostat device = (Thermostat) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceSettings().setpoint(),
+				4.5f, 30.5f, 1, 240);
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
+				4.5f, 30.5f, 1, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
+				0f, 100f, 1, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.battery().internalVoltage().reading(),
+				1.5f, 3.5f, 1, 70);
+		//BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(device,
+		//		"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
+		//if(comDisturbed != null && comDisturbed.exists())
+		//	AlarmingUtiH.setTemplateValues(appDevice, comDisturbed,
+		//			0.0f, 1.0f, 60, -1);
+		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		if(rssiDevice != null && rssiDevice.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
+					-30f, -85f, 600, 300);
+		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(device,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
+		if(rssiPeer != null && rssiPeer.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
+					-30f, -85f, 600, 300);
+		appDevice.alarms().activate(true);
 	}
 }

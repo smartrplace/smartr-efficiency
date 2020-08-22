@@ -9,6 +9,7 @@ import java.util.Map;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -17,10 +18,13 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
+import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -159,4 +163,20 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		return appMan.getResourcePatternAccess();
 	}
 
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		DoorWindowSensor device = (DoorWindowSensor) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.reading(), 0.0f, 1.0f, 1, 30);
+		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		if(rssiDevice != null && rssiDevice.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
+					-30f, -85f, 600, 300);
+		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(device,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
+		if(rssiPeer != null && rssiPeer.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
+					-30f, -85f, 600, 300);
+	}
 }

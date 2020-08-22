@@ -122,6 +122,6 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 			setInstallationLocation(device, defaultSubLoc, dpService);
 			//ValueResourceHelper.setCreate(device.installationLocation(), defaultSubLoc);
 		}
-		return super.getDeviceTypeShortId(device, dpService);
+		return "PVP";
 	}
 }

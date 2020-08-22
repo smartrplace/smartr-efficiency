@@ -202,8 +202,9 @@ public class MainPageExpert extends MainPage {
 						performTrashOperation(object, devHand);
 						break;
 					case MAKE_TEMPLATE:
-						InstallAppDevice currentTemplate = getTemplateDevice(devHand);
-						currentTemplate.isTemplate().deactivate(false);
+						InstallAppDevice currentTemplate = controller.getTemplateDevice(devHand);
+						if(currentTemplate != null)
+							currentTemplate.isTemplate().deactivate(false);
 						ValueResourceHelper.setCreate(object.isTemplate(), devHand.id());
 						if(!object.isTemplate().isActive())
 							object.isTemplate().activate(false);
@@ -256,18 +257,6 @@ public class MainPageExpert extends MainPage {
 			row.addCell("Reset", resetButton);*/
 		}
 		
-	}
-	
-	protected InstallAppDevice getTemplateDevice(InstallAppDevice source) {
-		DeviceHandlerProvider<?> devHand = controller.handlerByDevice.get(source.getLocation());
-		return getTemplateDevice(devHand);
-	}
-	protected InstallAppDevice getTemplateDevice(DeviceHandlerProvider<?> devHand) {
-		for(InstallAppDevice dev: controller.getDevices(devHand)) {
-			if(dev.isTemplate().isActive() && dev.isTemplate().getValue().equals(devHand.id()))
-				return dev;
-		}
-		return null;
 	}
 	
 	protected String getTrashConfirmation(InstallAppDevice object) {

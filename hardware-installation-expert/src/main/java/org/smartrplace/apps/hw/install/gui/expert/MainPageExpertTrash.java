@@ -3,7 +3,6 @@ package org.smartrplace.apps.hw.install.gui.expert;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -15,18 +14,24 @@ public class MainPageExpertTrash extends MainPageExpert {
 	public MainPageExpertTrash(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller);
 	}
+	
+	@Override
+	protected String getHeader() {
+		return "Trash-marked Devices";
+	}
 
 	@Override
-	public List<InstallAppDevice> getDevicesSelected() {
-		List<InstallAppDevice> all = roomsDrop.getDevicesSelected();
+	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand) {
+		List<InstallAppDevice> all = controller.getDevices(devHand, true, true);
+		all = roomsDrop.getDevicesSelected(all);
 		if (installFilterDrop != null)  // FIXME seems to always be null here
 			all = installFilterDrop.getDevicesSelected(all);
-		List<InstallAppDevice> allNonTrash = new ArrayList<>();
+		List<InstallAppDevice> allTrash = new ArrayList<>();
 		for(InstallAppDevice dev: all) {
 			if(dev.isTrash().getValue())
-				allNonTrash.add(dev);
+				allTrash.add(dev);
 		}
-		return all;
+		return allTrash;
 	}
 	
 	protected String getTrashConfirmation(InstallAppDevice object) {

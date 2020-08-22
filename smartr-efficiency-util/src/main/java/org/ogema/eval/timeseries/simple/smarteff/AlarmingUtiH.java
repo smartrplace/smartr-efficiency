@@ -11,6 +11,7 @@ import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
@@ -101,6 +102,46 @@ public class AlarmingUtiH {
 		EditPageGeneric.setDefault(data.upperLimit(), 100, mode);
 		EditPageGeneric.setDefault(data.maxIntervalBetweenNewValues(), -1, mode);
 		EditPageGeneric.setDefault(data.sendAlarm(), false, mode);
+		if(data.sensorVal().exists() &&
+				AlarmingUtiH.getSwitchFromSensor(data.sensorVal()) != null) {
+			EditPageGeneric.setDefault(data.performAdditinalOperations(), true, mode);
+		} else
+			EditPageGeneric.setDefault(data.performAdditinalOperations(), false, mode);
+	}
+	
+	public static AlarmConfiguration getOrCreateReferencingSensorVal(SingleValueResource sensVal, ResourceList<AlarmConfiguration> list) {
+		for(AlarmConfiguration el: list.getAllElements()) {
+			if(el.sensorVal().equalsLocation(sensVal))
+				return el;
+		}
+		AlarmConfiguration result = list.add();
+		result.sensorVal().setAsReference(sensVal);
+		AlarmingUtiH.setDefaultValuesStatic(result, DefaultSetModes.OVERWRITE);
+		result.activate(true);
+		return result;
+	}
+
+	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
+			 float min, float max,
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
+		if(!res.exists())
+			return;
+		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
+				res, appDevice.alarms());
+		setTemplateValues(alarm, 5.0f, 35.0f, 15, 20);		
+	}
+	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
+		DefaultSetModes mode = DefaultSetModes.OVERWRITE;
+		EditPageGeneric.setDefault(data.alarmLevel(), 1, mode);
+		EditPageGeneric.setDefault(data.alarmRepetitionTime(), 60, mode);
+		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), maxViolationTimeWithoutAlarm, mode);
+		EditPageGeneric.setDefault(data.lowerLimit(), min, mode);
+		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
+		EditPageGeneric.setDefault(data.maxIntervalBetweenNewValues(), maxIntervalBetweenNewValues, mode);
+		EditPageGeneric.setDefault(data.sendAlarm(), true, mode);
+		
+		//TODO: By default we perform switch supervision, may not really work
 		if(data.sensorVal().exists() &&
 				AlarmingUtiH.getSwitchFromSensor(data.sensorVal()) != null) {
 			EditPageGeneric.setDefault(data.performAdditinalOperations(), true, mode);

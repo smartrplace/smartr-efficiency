@@ -271,7 +271,7 @@ public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 				for(DriverDeviceConfig devIn: all) {
 					DriverConfigKNX_IP_IF dev = (DriverConfigKNX_IP_IF) devIn;
 					boolean found = false;
-					for(InstallAppDevice inst: selector.getDevicesSelected()) {
+					for(InstallAppDevice inst: selector.getDevicesSelected(null)) {
 						if(inst.device().equalsLocation(dev.deviceRes)) {
 							dev.installAppDevice = inst;
 							result.add(dev);

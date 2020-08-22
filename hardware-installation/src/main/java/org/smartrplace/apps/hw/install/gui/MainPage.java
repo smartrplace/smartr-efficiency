@@ -159,13 +159,14 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 	}
 	
 	protected boolean isObjectsInTableEmpty(DeviceHandlerProvider<?> pe) {
-		List<InstallAppDevice> all = getDevicesSelected();
-		for(InstallAppDevice dev: all) {
+		List<InstallAppDevice> all = getDevicesSelected(pe);
+		return all.isEmpty();
+		/*for(InstallAppDevice dev: all) {
 			if(pe.getResourceType().isAssignableFrom(dev.device().getResourceType())) {
 				return false;
 			}
 		}
-		return true;
+		return true;*/
 	}
 	/*protected  List<InstallAppDevice> getObjectsInTable(DeviceHandlerProvider<?> pe) {
 		List<InstallAppDevice> all = getDevicesSelected();
@@ -179,16 +180,35 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 	}*/
 
 	@Override
-	public List<InstallAppDevice> getDevicesSelected() {
-		List<InstallAppDevice> all = roomsDrop.getDevicesSelected();
+	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand) {
+		return getDevicesSelectedDefault(devHand, controller, roomsDrop, installFilterDrop);
+		/*List<InstallAppDevice> all = controller.getDevices(devHand);
+		all = roomsDrop.getDevicesSelected(all);
 		if (installFilterDrop != null)  // FIXME seems to always be null here
 			all = installFilterDrop.getDevicesSelected(all);
 		List<InstallAppDevice> allNonTrash = new ArrayList<>();
 		for(InstallAppDevice dev: all) {
-			if(!dev.isTrash().getValue())
+			if((!dev.isTrash().getValue()))
 				allNonTrash.add(dev);
 		}
-		return all;
+		return allNonTrash;*/
+	}
+	
+	public static List<InstallAppDevice> getDevicesSelectedDefault(DeviceHandlerProvider<?> devHand,
+			HardwareInstallController controller,
+			RoomSelectorDropdown roomsDrop,
+			InstallationStatusFilterDropdown  installFilterDrop) {
+		List<InstallAppDevice> all = controller.getDevices(devHand);
+		if(roomsDrop != null)
+			all = roomsDrop.getDevicesSelected(all);
+		if (installFilterDrop != null)  // FIXME seems to always be null here
+			all = installFilterDrop.getDevicesSelected(all);
+		/*List<InstallAppDevice> allNonTrash = new ArrayList<>();
+		for(InstallAppDevice dev: all) {
+			if((!dev.isTrash().getValue()))
+				allNonTrash.add(dev);
+		}*/
+		return all;		
 	}
 
 	@Override
