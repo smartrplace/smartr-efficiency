@@ -83,7 +83,7 @@ public class AlarmingManager {
 		for(AlarmConfiguration ac: configs) {
 			//configure if not existing
 			//FIXME: !! Change this back after alarming init is done !!
-			AlarmingUtiH.setDefaultValuesStatic(ac, DefaultSetModes.SET_IF_NEW);
+			//AlarmingUtiH.setDefaultValuesStatic(ac, DefaultSetModes.SET_IF_NEW);
 			
 			if((!ac.sendAlarm().getValue()))
 				continue;
