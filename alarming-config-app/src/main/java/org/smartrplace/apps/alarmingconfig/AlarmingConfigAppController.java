@@ -16,6 +16,7 @@ import org.ogema.messaging.basic.services.config.model.ReceiverConfiguration;
 import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
@@ -28,6 +29,7 @@ import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.messaging.model.MessagingApp;
@@ -62,7 +64,10 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	protected AlarmingManager alarmMan = null;
 	
 	public String getAlarmingDomain() {
-		return "SRCA";
+		LocalGatewayInformation ogGw = ResourceHelper.getLocalGwInfo(appMan.getResourceAccess());
+		if(ogGw != null && ogGw.id().exists())
+			return ogGw.id().getValue();
+		return System.getProperty("org.smartrplace.remotesupervision.gateway.id", "SRCA");
 	}
 	
 	public AlarmingConfigAppController(ApplicationManager appMan, AlarmingConfigApp initApp) {

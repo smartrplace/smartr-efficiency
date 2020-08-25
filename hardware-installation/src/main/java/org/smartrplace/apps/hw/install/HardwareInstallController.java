@@ -457,8 +457,11 @@ public class HardwareInstallController {
 			} else
 				destPath = destination.device().getLocation() + "/" + relPath;*/
 			SingleValueResource destSens = ResourceHelper.getRelativeResource(source.device(),alarmSource.sensorVal(), destination.device(), appMan.getResourceAccess());
-			if(destSens == null)
-				throw new IllegalStateException("Alarming "+alarmSource.sensorVal().getLocation()+" not found as relative path: "+source.device().getLocation());
+			if(destSens == null) {
+				appMan.getLogger().warn("Alarming "+alarmSource.sensorVal().getLocation()+" not found as relative path for: "+destination.device().getLocation());
+				//throw new IllegalStateException("Alarming "+alarmSource.sensorVal().getLocation()+" not found as relative path for: "+destination.device().getLocation());
+				continue;
+			}
 			String destPath = destSens.getLocation();
 			for(AlarmConfiguration alarmDest: destination.alarms().getAllElements()) {
 				if(alarmDest.sensorVal().getLocation().equals(destPath)) {
