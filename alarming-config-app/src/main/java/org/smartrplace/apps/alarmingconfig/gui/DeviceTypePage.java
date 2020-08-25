@@ -7,6 +7,7 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -49,7 +50,7 @@ public class DeviceTypePage extends MainPage {
 				InstallAppDevice iad = ResourceHelper.getFirstParentOfType(attr, InstallAppDevice.class);
 				if(iad == null)
 					return null;
-				if(showOnlyPrototype && (!iad.isTemplate().isActive()))
+				if(showOnlyPrototype && (!DeviceTableRaw.isTemplate(iad, null))) //(!iad.isTemplate().isActive()))
 					return null;
 				String devLoc = iad.device().getLocation();
 				for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {

@@ -12,6 +12,7 @@ import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
@@ -107,7 +108,7 @@ public class MainPageExpert extends MainPage {
 				}
 			}
 			String text = ""+datapoints.size()+"/"+logged+"/"+transferred;
-			final boolean isTemplate = object.isTemplate().isActive() && object.isTemplate().getValue().equals(devHand.id());
+			final boolean isTemplate = DeviceTableRaw.isTemplate(object, devHand);
 			if(isTemplate) {
 				text += "/T";
 			}
