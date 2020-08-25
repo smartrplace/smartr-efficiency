@@ -90,7 +90,7 @@ public class AccessAdminController {
 		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 
 		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
-		userRoomGroupPermPage2 = new UserRoomGroupPermissionPage2(pageRes2, this);
+		userRoomGroupPermPage2 = new UserRoomGroupPermissionPage2(pageRes2, this, false);
 		initApp.menu.addEntry("4. User - Room Group Mapping", pageRes2);
 		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
 

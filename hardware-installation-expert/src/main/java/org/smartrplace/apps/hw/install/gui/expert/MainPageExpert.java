@@ -215,6 +215,7 @@ public class MainPageExpert extends MainPage {
 								continue;
 							controller.copySettings(object, dev);
 						}
+						break;
 					}
 				}
 			};

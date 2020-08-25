@@ -126,7 +126,7 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		topTable.setContent(0, 0, roomsDrop)
 				.setContent(0, 1, installFilterDrop)
 				.setContent(0, 2, installMode);//setContent(0, 2, roomLinkButton).
-		RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/actionadmin/roomconfig.html");
+		RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
 		topTable.setContent(0, 3, addRoomLink);
 		//RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
 		//		alert, appMan, 0, 3);

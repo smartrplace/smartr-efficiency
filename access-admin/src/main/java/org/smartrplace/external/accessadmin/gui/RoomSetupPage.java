@@ -30,7 +30,7 @@ import de.iwes.widgets.html.form.button.Button;
 
 @SuppressWarnings("serial")
 public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, BooleanResource> {
-	protected static final String ROOM_GROUP_MAPPING_LINK = "/org/smartrplace/external/actionadmin/roomconfig.html";
+	protected static final String ROOM_GROUP_MAPPING_LINK = "/org/smartrplace/external/accessadmin/roomconfig.html";
 
 	protected final AccessAdminController controller;
 	

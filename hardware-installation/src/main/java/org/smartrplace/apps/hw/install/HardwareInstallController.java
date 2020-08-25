@@ -55,9 +55,9 @@ import org.smartrplace.apps.hw.install.devicetypes.InitialConfig;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
-import org.smartrplace.smarteff.resourcecsv.util.ResourceCSVUtil;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
@@ -313,7 +313,7 @@ public class HardwareInstallController {
 			dp.setDeviceResource(appDevice.device().getLocationResource());
 			if(room != null)
 				dp.setRoom(room);
-			if(devTypeShort != null && devTypeShort.equals("UNK"))
+			if(devTypeShort != null && (!devTypeShort.equals("UNK")))
 				devTypeShort = null;
 			if(appDevice.installationLocation().isActive()) {
 				String subLoc = null;
@@ -443,9 +443,23 @@ public class HardwareInstallController {
 
 	public void copySettings(InstallAppDevice source, InstallAppDevice destination) {
 		for(AlarmConfiguration alarmSource: source.alarms().getAllElements()) {
-			String relPath = ResourceCSVUtil.getRelativePath(source.device().getLocation(),
-					alarmSource.sensorVal().getLocation());
-			String destPath = destination.device().getLocation() + relPath;
+			/*String parentPath = source.device().getLocation();
+			String childPath =  alarmSource.sensorVal().getLocation();
+			if(!childPath.startsWith(parentPath))
+				throw new IllegalStateException("Alarming "+childPath+" is not below resource: "+parentPath);
+			String relPath = childPath.substring(parentPath.length());
+			//String relPath = ResourceCSVUtil.getRelativePath(,
+			//		alarmSource.sensorVal().getLocation());
+			
+			String destPath;
+			if(relPath.startsWith( "/")) {
+				destPath = destination.device().getLocation() + relPath;
+			} else
+				destPath = destination.device().getLocation() + "/" + relPath;*/
+			SingleValueResource destSens = ResourceHelper.getRelativeResource(source.device(),alarmSource.sensorVal(), destination.device(), appMan.getResourceAccess());
+			if(destSens == null)
+				throw new IllegalStateException("Alarming "+alarmSource.sensorVal().getLocation()+" not found as relative path: "+source.device().getLocation());
+			String destPath = destSens.getLocation();
 			for(AlarmConfiguration alarmDest: destination.alarms().getAllElements()) {
 				if(alarmDest.sensorVal().getLocation().equals(destPath)) {
 					copySettings(alarmSource, alarmDest);

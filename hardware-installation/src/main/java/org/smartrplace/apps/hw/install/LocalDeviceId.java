@@ -40,7 +40,7 @@ public abstract class LocalDeviceId {
 			typeId = "*" + dev.device().getClass().getSimpleName().replaceAll("[^A-Z]", "");
 		}
 
-        int maxSerial = 1;
+        int maxSerial = 0;
         for(InstallAppDevice d : cfg.knownDevices().getAllElements()) {
             if (d.device().getClass() == dev.device().getClass()) {
                 String id = d.deviceId().getValue();

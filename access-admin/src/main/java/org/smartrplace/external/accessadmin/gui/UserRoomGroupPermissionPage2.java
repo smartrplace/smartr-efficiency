@@ -35,6 +35,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 	protected static final String SINGLE_ROOM_MAPPING_LINK = "/de/iwes/ogema/apps/logtransfermodus/singleroom.html";
 
 	protected final AccessAdminController controller;
+	protected final boolean isExpertPage;
 	
 	//protected UserFilteringBase<Room> userFilter;
 	//protected UserFiltering2Steps<Room> userFilter;
@@ -42,9 +43,11 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 
 	protected ResourceList<AccessConfigUser> userPerms;
 	
-	public UserRoomGroupPermissionPage2(WidgetPage<?> page, AccessAdminController controller) {
+	public UserRoomGroupPermissionPage2(WidgetPage<?> page, AccessAdminController controller,
+			boolean isExpertpage) {
 		super(page, controller.appMan, ResourceHelper.getSampleResource(AccessConfigUser.class));
 		this.controller = controller;
+		this.isExpertPage = isExpertpage;
 		userPerms = controller.appConfigData.userPermissions();
 		triggerPageBuild();
 	}
@@ -183,6 +186,8 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 	protected void addWidgetsAfterMultiSelect(AccessConfigUser object,
 			ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan) {
+		if(!isExpertPage)
+			return;
 		if(req == null) {
 			vh.registerHeaderEntry("Read Historical Data");
 			vh.registerHeaderEntry("Room Administration");

@@ -37,7 +37,7 @@ public class DeviceTypePage extends MainPage {
 		super.addWidgetsAboveTable();
 		
 		deviceDrop = new SingleFiltering<String, AlarmConfiguration>(
-				page, "deviceDrop", OptionSavingMode.GENERAL, 10000, true) {
+				page, "deviceDrop", OptionSavingMode.GENERAL, 10000, false) {
 
 			@Override
 			protected boolean isAttributeSinglePerDestinationObject() {

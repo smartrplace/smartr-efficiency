@@ -3,6 +3,9 @@ package org.smartrplace.external.accessadmin;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
@@ -10,22 +13,30 @@ import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
+import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
-import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 /**
  * Template OGEMA application class
  */
-@Component(specVersion = "1.2", immediate = true)
+@References({
+	@Reference(
+		name="servletProviders",
+		referenceInterface=AccessAdminExtensionProvider.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addExtProvider",
+		unbind="removeExtProvider")
+})@Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)
 public class AccessAdminApp implements Application {
-	public static final String urlPath = "/org/smartrplace/external/actionadmin";
+	public static final String urlPath = "/org/smartrplace/external/accessadmin";
 
     private OgemaLogger log;
     private ApplicationManager appMan;
@@ -70,6 +81,7 @@ public class AccessAdminApp implements Application {
 	    controller.appManPlus.setUserPermService(userAccService);
         srUserAccService = bc.registerService(UserPermissionService.class, userAccService, null);
 
+		controllerProvider.setController(controller);
 		
      }
 
@@ -89,6 +101,17 @@ public class AccessAdminApp implements Application {
 		mc.setLanguageSelectionVisible(false);
 		mc.setNavigationVisible(false); 		
  	}
-
+	
+    protected final GenericControllerProvider<AccessAdminController> controllerProvider;
+    public AccessAdminApp() {
+		controllerProvider = new GenericControllerProvider<AccessAdminController>(
+				"org.smartrplace.external.expert.accessadmin.AccessAdminAppExpert");
+	}
+    protected void addExtProvider(AccessAdminExtensionProvider  provider) {
+    	controllerProvider.addExtProvider(provider);
+    }
+    protected void removeExtProvider(AccessAdminExtensionProvider provider) {
+       	controllerProvider.removeExtProvider(provider);
+    }
 
 }
