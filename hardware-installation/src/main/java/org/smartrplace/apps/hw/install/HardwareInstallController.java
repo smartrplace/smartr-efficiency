@@ -48,6 +48,7 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.model.locations.Room;
+import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -76,6 +77,8 @@ public class HardwareInstallController {
 	
 	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
 	public final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
+	/** Location of InstallAppDevice -> Device simulations*/
+	public final Map<String, List<RoomInsideSimulationBase>> simByDevice = new HashMap<>();
 	
 	public MainPage mainPage;
 	public List<MainPage> mainPageExts = new ArrayList<>();
@@ -212,8 +215,19 @@ public class HardwareInstallController {
 		}
 		return install;
 	}
+	
 	public InstallAppDevice removeDevice(Resource device) {
-		//TODO
+		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
+			if(install.device().equalsLocation(device)) {
+				List<RoomInsideSimulationBase> sims = simByDevice.get(install.getLocation());
+				if(sims != null) {
+					for(RoomInsideSimulationBase sim: sims)
+						sim.close();
+					simByDevice.remove(install.getLocation());
+				}
+				return install;
+			}
+		}
 		return null;
 	}
 	
@@ -282,8 +296,15 @@ public class HardwareInstallController {
 		if(deviceSimsStarted.contains(device.getLocation()))
 			return;
 		deviceSimsStarted.add(device.getLocation());
-		tableProvider.startSimulationForDevice((T) device.getLocationResource(),
+		List<RoomInsideSimulationBase> sims = simByDevice.get(appDevice.getLocation());
+		if(sims != null) {
+			for(RoomInsideSimulationBase sim: sims)
+				sim.close();
+		}
+		sims = tableProvider.startSimulationForDevice(appDevice, (T) device.getLocationResource(),
 				mainPage.getRoomSimulation(device), dpService);
+		if(sims != null)
+			simByDevice.put(appDevice.getLocation(), sims);
 	}
 	
 	public <T extends Resource> void updateDatapoints(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {

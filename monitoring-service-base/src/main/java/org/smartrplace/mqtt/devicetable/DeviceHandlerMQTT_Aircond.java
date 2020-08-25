@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
@@ -163,16 +164,34 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		}
 		
 	}
+	
+	public static class TimerSimSimple implements RoomInsideSimulationBase {
+		protected final Timer timer;
+		
+		public TimerSimSimple(Timer timer) {
+			this.timer = timer;
+		}
+
+		@Override
+		public void close() {
+			if(timer != null)
+				timer.destroy();
+		}
+	}
+	
 	@Override
-	public	RoomInsideSimulationBase startSimulationForDevice(AirConditioner resource,
+	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, AirConditioner resource,
 			SingleRoomSimulationBase roomSimulation,
 			DatapointService dpService) {
+		List<RoomInsideSimulationBase> result = new ArrayList<>();
+
 		//Return value is currently not used anyways
 		if(roomSimulation != null)
-			new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
-				resource.temperatureSensor().reading(), appMan, roomSimulation);
-		return new SetpointToFeedbackSimSimple(resource.temperatureSensor().settings().setpoint(),
-				resource.temperatureSensor().deviceFeedback().setpoint(), appMan, null);
+			result.add(new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
+				resource.temperatureSensor().reading(), appMan, roomSimulation));
+		result.add(new SetpointToFeedbackSimSimple(resource.temperatureSensor().settings().setpoint(),
+				resource.temperatureSensor().deviceFeedback().setpoint(), appMan, null));
+		return result;
 	}
 	
 	@Override

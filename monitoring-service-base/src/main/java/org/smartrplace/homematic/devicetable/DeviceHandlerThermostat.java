@@ -8,10 +8,10 @@ import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.application.Timer;
+import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
-import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -23,21 +23,19 @@ import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
-import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond.SetpointToFeedbackSimSimple;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
-import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -199,15 +197,34 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 	}
 
 	@Override
-	public RoomInsideSimulationBase startSimulationForDevice(Thermostat deviceResource,
+	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, Thermostat deviceResource,
 			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		List<RoomInsideSimulationBase> result = new ArrayList<>();
+
+		//start controlMode setter
+		IntegerResource setManualMode = deviceResource.getSubResource("controlMode", IntegerResource.class);
+		if(setManualMode.isActive()) {
+			ThermostatPattern pat = (ThermostatPattern) getPattern(deviceResource);
+			if((pat != null) && (pat.controlModeTimer == null)) {
+				Timer timer = appMan.appMan().createTimer(1*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+					
+					@Override
+					public void timerElapsed(Timer arg0) {
+						setManualMode.setValue(1);					
+					}
+				});
+				result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
+			}
+		}
+		
 		//Return value is currently not used anyways
 		if(roomSimulation != null) {
-			new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
-					deviceResource.temperatureSensor().reading(), appMan, roomSimulation);
+			result.add(new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),
+					deviceResource.temperatureSensor().reading(), appMan, roomSimulation));
 		}
-		return new SetpointToFeedbackSimSimple(deviceResource.temperatureSensor().settings().setpoint(),
-				deviceResource.temperatureSensor().deviceFeedback().setpoint(), appMan, null);
+		result.add(new SetpointToFeedbackSimSimple(deviceResource.temperatureSensor().settings().setpoint(),
+				deviceResource.temperatureSensor().deviceFeedback().setpoint(), appMan, null));
+		return result;
 	}
 	
 	@Override

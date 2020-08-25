@@ -15,12 +15,14 @@
  */
 package org.smartrplace.homematic.devicetable;
 
+import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 
 public class ThermostatPattern extends ResourcePattern<Thermostat> { 
-
+	Timer controlModeTimer = null;
+	
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */

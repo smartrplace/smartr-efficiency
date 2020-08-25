@@ -19,7 +19,6 @@ import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.communication.CommunicationStatus;
-import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
@@ -145,11 +144,14 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 		
 	}
 	@Override
-	public	RoomInsideSimulationBase startSimulationForDevice(SingleSwitchBox resource,
+	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, SingleSwitchBox resource,
 			SingleRoomSimulationBase roomSimulation,
 			DatapointService dpService) {
-		return new AirConditionerSimSimple(resource.onOffSwitch().stateControl(),
-				resource.onOffSwitch().stateFeedback(), appMan.appMan());
+		List<RoomInsideSimulationBase> result = new ArrayList<>();
+
+		result.add(new AirConditionerSimSimple(resource.onOffSwitch().stateControl(),
+				resource.onOffSwitch().stateFeedback(), appMan.appMan()));
+		return result;
 	}
 	
 
