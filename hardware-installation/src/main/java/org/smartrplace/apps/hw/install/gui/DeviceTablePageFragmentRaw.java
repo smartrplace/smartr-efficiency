@@ -55,22 +55,23 @@ public abstract class DeviceTablePageFragmentRaw<T, R extends Resource> extends 
 				controller.checkDemands();
 			}
 		};
-		roomsDrop = new RoomSelectorDropdown(page, "roomsDrop", controller);
 		installFilterDrop = new InstallationStatusFilterDropdown(page, "installFilterDrop", controller);
-		
 		//RedirectButton roomLinkButton = new RedirectButton(page, "roomLinkButton", "Room Administration", "/de/iwes/apps/roomlink/gui/index.html");
 		
-		RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
-				"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
+		//RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
+		//		"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 		
 		topTable.setContent(0, 0, roomsDrop)
 				.setContent(0, 1, installFilterDrop)
 				.setContent(0, 2, installMode);//setContent(0, 2, roomLinkButton).
 		RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
-		topTable.setContent(0, 3, addRoomLink);
+		if(showRoomSelector) {
+			roomsDrop = new RoomSelectorDropdown(page, "roomsDrop", controller);
+			topTable.setContent(0, 3, addRoomLink);
+		}
 		//RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
 		//		alert, appMan, 0, 3);
-		topTable.setContent(0, 5, calendarConfigButton);
+		//topTable.setContent(0, 5, calendarConfigButton);
 		page.append(topTable);
 	}
 	

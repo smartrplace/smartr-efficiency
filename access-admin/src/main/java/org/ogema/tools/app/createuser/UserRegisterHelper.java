@@ -1,49 +1,102 @@
 package org.ogema.tools.app.createuser;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.ogema.core.administration.UserAccount;
+import org.ogema.core.administration.UserConstants;
+import org.ogema.model.locations.Room;
+import org.ogema.tools.resource.util.ResourceUtils;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.checkbox.Checkbox2;
 import de.iwes.widgets.html.form.checkbox.DefaultCheckboxEntry;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.object.widget.popup.ClosingPopup;
 import de.iwes.widgets.object.widget.popup.ClosingPopup.ClosingMode;
-import org.ogema.core.administration.UserConstants;
+import de.iwes.widgets.template.DefaultDisplayTemplate;
 
+@SuppressWarnings("serial")
 public class UserRegisterHelper {
 	public static interface NewUserHandler {
 		void newUserCreated(UserAccount user, String fullName, OgemaHttpRequest req);
 	}
+	
+	/** Provide popup to create new user
+	 * 
+	 * @param page
+	 * @param userBuilder
+	 * @param alert
+	 * @param newUserHandler
+	 * @param requestUserNameAsEmail if true only for an email address is asked. If not a valid email is detected a password is
+	 * 		requested, then also non-email-address-user-names are accepted. Otherwise a login name is requested, but it is treated
+	 * 		as the email address
+	 * @return
+	 */
 	public static ClosingPopup<Object> registerUserAddPopup(WidgetPage<?> page, UserBuilder userBuilder,
-			Alert alert, NewUserHandler newUserHandler) {
+			Alert alert, NewUserHandler newUserHandler, boolean requestUserNameAsEmail) {
+		return registerUserAddPopup(page, userBuilder, alert, newUserHandler, requestUserNameAsEmail, null);
+	}
+	public static ClosingPopup<Object> registerUserAddPopup(WidgetPage<?> page, UserBuilder userBuilder,
+			Alert alert, NewUserHandler newUserHandler, boolean requestUserNameAsEmail,
+			Collection<Room> primaryRoomOptions) {
 		final TextField textLoginName = new TextField(page, "textLoginName");
 		final TextField textFullUserName = new TextField(page, "textFullUserName");
-		final TextField textPw = new TextField(page, "textPw");
-        final TextField textEmail = new TextField(page, "textEmail");
+		final TextField textPw = new TextField(page, "textPw") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String userName = textLoginName.getValue(req);
+				if(isValidEmail(userName))
+					disable(req);
+				else
+					enable(req);
+			}
+		};
+		textLoginName.registerDependentWidget(textPw);
+        //final TextField textEmail = new TextField(page, "textEmail");
         final Checkbox2 cbSendInvite = new Checkbox2(page, "cbInvite");
         DefaultCheckboxEntry cbe = new DefaultCheckboxEntry("sendInvite", "", true);
         cbSendInvite.addDefaultEntry(cbe);
-		final ClosingPopup<Object> addUserPop = new ClosingPopup<Object>(page, "addUserPop", true, ClosingMode.OK_CANCEL) {
+		
+        String loginNameTitle = requestUserNameAsEmail?"Email:":"Login name:";
+        
+        final ClosingPopup<Object> addUserPop = new ClosingPopup<Object>(page, "addUserPop", true, ClosingMode.OK_CANCEL) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public List<OgemaWidget> providePopupWidgets(OgemaHttpRequest req) {
 				StaticTable dualTable = new StaticTable(5, 2);
 				int c = 0;
-				dualTable.setContent(c, 0, "Login name:").setContent(c, 1, textLoginName);
+				dualTable.setContent(c, 0, loginNameTitle).setContent(c, 1, textLoginName);
 				c++;
 				dualTable.setContent(c, 0, "Full User name:").setContent(c, 1, textFullUserName);
 				c++; //3
+		        if(primaryRoomOptions != null) {
+			        final TemplateDropdown<Room> dropPrimaryRoom = new TemplateDropdown<Room>(page, "dropPrimaryRoom") {
+			        	@Override
+			        	public void onGET(OgemaHttpRequest req) {
+			        		update(primaryRoomOptions, req);
+			        		setAddEmptyOption(true, "No primary room", req);
+			        	}
+			        };
+			        dropPrimaryRoom.setTemplate(new DefaultDisplayTemplate<Room>() {
+			        	@Override
+			        	public String getLabel(Room object, OgemaLocale locale) {
+			        		return ResourceUtils.getHumanReadableShortName(object);
+			        	}
+			        });
+					dualTable.setContent(c, 0, "Select primary room:").setContent(c, 1, dropPrimaryRoom);
+					c++; //3
+		        }
 				dualTable.setContent(c, 0, "Password:").setContent(c, 1, textPw);
-                c++;
-                dualTable.setContent(c, 0, "Email:").setContent(c, 1, textEmail);
                 c++;
                 dualTable.setContent(c, 0, "Send Invitation:").setContent(c, 1, cbSendInvite);
 				getPopupSnippet().append(dualTable, null);
@@ -53,16 +106,18 @@ public class UserRegisterHelper {
 			public void onOK(Object selected, OgemaHttpRequest req) {
 				try {
 					String userName = textLoginName.getValue(req);
+					boolean hasEmail = isValidEmail(userName);
 					String name = textFullUserName.getValue(req);
 					UserAccount data = userBuilder.addUser(userName, textPw.getValue(req), false);
 					if(data == null) {
 						alert.showAlert("User name "+name+" could not be created, maybe already exists!", false, req);
 						return;
 					}
-					data.getProperties().put(UserConstants.EMAIL, textEmail.getValue(req));
+					if(hasEmail)
+						data.getProperties().put(UserConstants.EMAIL, userName);
                     data.getProperties().put(UserConstants.FORMATTED_NAME, textFullUserName.getValue(req));
-                    if (cbSendInvite.isChecked("sendInvite", req)) {
-                        data.getProperties().put("user.inviteByMail", "true");
+                    if (cbSendInvite.isChecked("sendInvite", req) && hasEmail) {
+                        data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
                     }
 					if(newUserHandler != null) newUserHandler.newUserCreated(data, name, req);
 					
@@ -90,4 +145,18 @@ public class UserRegisterHelper {
 		page.append(addUserPop);
 		return addUserPop;
 	}
+
+
+    public static boolean isValidEmail(String email) 
+    { 
+        String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\."+ 
+                            "[a-zA-Z0-9_+&*-]+)*@" + 
+                            "(?:[a-zA-Z0-9-]+\\.)+[a-z" + 
+                            "A-Z]{2,7}$"; 
+                              
+        Pattern pat = Pattern.compile(emailRegex); 
+        if (email == null) 
+            return false; 
+        return pat.matcher(email).matches(); 
+    } 
 }

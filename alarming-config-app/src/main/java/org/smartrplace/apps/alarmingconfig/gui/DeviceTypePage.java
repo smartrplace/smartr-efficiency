@@ -7,6 +7,7 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
@@ -21,6 +22,7 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
 @SuppressWarnings("serial")
@@ -52,13 +54,17 @@ public class DeviceTypePage extends MainPage {
 					return null;
 				if(showOnlyPrototype && (!DeviceTableRaw.isTemplate(iad, null))) //(!iad.isTemplate().isActive()))
 					return null;
-				String devLoc = iad.device().getLocation();
+				DatapointGroup devTypeGrp = getDeviceTypeGroup(iad);
+				if(devTypeGrp != null)
+					return devTypeGrp.id();
+				return null;
+				/*String devLoc = iad.device().getLocation();
 				for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
 					if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE") && (dpGrp.getSubGroup(devLoc) != null)) {
 						return dpGrp.id();
 					}
 				}
-				return null;
+				return null;*/
 			}
 			
 			@Override
@@ -68,7 +74,7 @@ public class DeviceTypePage extends MainPage {
 					if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE")) {
 						GenericFilterOption<String> option = new GenericFilterFixedSingle<String>(
 								dpGrp.id(), LocaleHelper.getLabelMap(dpGrp.label(null)));
-						result.add(option );
+						result.add(option);
 					}
 				}
 				return result;
@@ -80,8 +86,37 @@ public class DeviceTypePage extends MainPage {
 			}
 		};
 		deviceDrop.registerDependentWidget(mainTable);
-		StaticTable secondTable = new StaticTable(1, 2);
+		
+		ButtonConfirm applyTemplateButton = new ButtonConfirm(page, "applyTemplateButton") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				List<InstallAppDevice> allDev = new ArrayList<>();
+				InstallAppDevice template = null;
+				for(InstallAppDevice dev: appMan.getResourceAccess().getResources(InstallAppDevice.class)) {
+					DatapointGroup devTypeGrp = getDeviceTypeGroup(dev);
+					GenericFilterFixedSingle<String> selected = (GenericFilterFixedSingle<String>) deviceDrop.getSelectedItem(req);
+					if(devTypeGrp == null || (!devTypeGrp.id().equals(selected.getValue())))
+						continue;
+					if(DeviceTableRaw.isTemplate(dev, null)) {
+						template = dev;
+						continue;
+					}
+					allDev.add(dev);
+				}
+				if(template == null)
+					return;
+				for(InstallAppDevice dev: allDev) {
+					AlarmingConfigUtil.copySettings(template, dev, appMan);
+				}
+			}
+		};
+		applyTemplateButton.setDefaultConfirmMsg("Really apply settings of template"+
+								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!");
+		applyTemplateButton.setDefaultText("Apply template");
+		
+		StaticTable secondTable = new StaticTable(1, 4);
 		secondTable.setContent(0, 0, deviceDrop);
+		secondTable.setContent(0, 1, applyTemplateButton);
 		
 		page.append(secondTable);
 
@@ -99,5 +134,16 @@ public class DeviceTypePage extends MainPage {
 			Row row, ApplicationManager appMan) {
 		// TODO Auto-generated method stub
 		super.addWidgetsBeforeMultiSelect(sr, vh, id, req, row, appMan);
+	}
+	
+	public DatapointGroup getDeviceTypeGroup(InstallAppDevice iad) {
+		String devLoc = iad.device().getLocation();
+		for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
+			if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE") && (dpGrp.getSubGroup(devLoc) != null)) {
+				return dpGrp;
+			}
+		}
+		return null;
+		
 	}
 }

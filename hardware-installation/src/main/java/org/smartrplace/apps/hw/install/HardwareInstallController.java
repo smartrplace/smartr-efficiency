@@ -43,6 +43,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
@@ -200,7 +201,7 @@ public class HardwareInstallController {
 		if(appConfigData.autoConfigureNewDevicesBasedOnTemplate().getValue()) {
 			InstallAppDevice currentTemplate = getTemplateDevice(tableProvider);
 			if(currentTemplate != null && (!currentTemplate.equalsLocation(install)))
-				copySettings(currentTemplate, install);
+				AlarmingConfigUtil.copySettings(currentTemplate, install, appMan);
 		}
 		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.startalarming")) {
 			String shortID = tableProvider.getDeviceTypeShortId(install, dpService);
@@ -462,113 +463,4 @@ public class HardwareInstallController {
 		return null;
 	}
 
-	public void copySettings(InstallAppDevice source, InstallAppDevice destination) {
-		for(AlarmConfiguration alarmSource: source.alarms().getAllElements()) {
-			/*String parentPath = source.device().getLocation();
-			String childPath =  alarmSource.sensorVal().getLocation();
-			if(!childPath.startsWith(parentPath))
-				throw new IllegalStateException("Alarming "+childPath+" is not below resource: "+parentPath);
-			String relPath = childPath.substring(parentPath.length());
-			//String relPath = ResourceCSVUtil.getRelativePath(,
-			//		alarmSource.sensorVal().getLocation());
-			
-			String destPath;
-			if(relPath.startsWith( "/")) {
-				destPath = destination.device().getLocation() + relPath;
-			} else
-				destPath = destination.device().getLocation() + "/" + relPath;*/
-			SingleValueResource destSens = ResourceHelper.getRelativeResource(source.device(),alarmSource.sensorVal(), destination.device(), appMan.getResourceAccess());
-			if(destSens == null) {
-				appMan.getLogger().warn("Alarming "+alarmSource.sensorVal().getLocation()+" not found as relative path for: "+destination.device().getLocation());
-				//throw new IllegalStateException("Alarming "+alarmSource.sensorVal().getLocation()+" not found as relative path for: "+destination.device().getLocation());
-				continue;
-			}
-			String destPath = destSens.getLocation();
-			for(AlarmConfiguration alarmDest: destination.alarms().getAllElements()) {
-				if(alarmDest.sensorVal().getLocation().equals(destPath)) {
-					copySettings(alarmSource, alarmDest);
-					break;
-				}
-			}
-		}
-	}
-	
-	public void copySettings(AlarmConfiguration source, AlarmConfiguration destination) {
-		copyValue(source.sendAlarm(), destination.sendAlarm());
-		copyValue(source.lowerLimit(), destination.lowerLimit());
-		copyValue(source.upperLimit(), destination.upperLimit());
-		copyValue(source.alarmLevel(), destination.alarmLevel());
-		copyValue(source.maxIntervalBetweenNewValues(), destination.maxIntervalBetweenNewValues());
-		copyValue(source.maxViolationTimeWithoutAlarm(), destination.maxViolationTimeWithoutAlarm());
-		copyValue(source.alarmRepetitionTime(), destination.alarmRepetitionTime());
-		copyValue(source.performAdditinalOperations(), destination.performAdditinalOperations());
-		copyValue(source.alarmingExtensions(), destination.alarmingExtensions());
-	}
-	
-	public static void copyValue(FloatResource source, FloatResource destination) {
-		if(source.isActive()) {
-			if(destination.isActive())
-				destination.setValue(source.getValue());
-			else {
-				destination.create();
-				destination.setValue(source.getValue());
-				destination.activate(false);
-			}
-		}
-	}
-	public static void copyValue(BooleanResource source, BooleanResource destination) {
-		if(source.isActive()) {
-			if(destination.isActive())
-				destination.setValue(source.getValue());
-			else {
-				destination.create();
-				destination.setValue(source.getValue());
-				destination.activate(false);
-			}
-		}
-	}
-	public static void copyValue(IntegerResource source, IntegerResource destination) {
-		if(source.isActive()) {
-			if(destination.isActive())
-				destination.setValue(source.getValue());
-			else {
-				destination.create();
-				destination.setValue(source.getValue());
-				destination.activate(false);
-			}
-		}
-	}
-	public static void copyValue(TimeResource source, TimeResource destination) {
-		if(source.isActive()) {
-			if(destination.isActive())
-				destination.setValue(source.getValue());
-			else {
-				destination.create();
-				destination.setValue(source.getValue());
-				destination.activate(false);
-			}
-		}
-	}
-	public static void copyValue(StringResource source, StringResource destination) {
-		if(source.isActive()) {
-			if(destination.isActive())
-				destination.setValue(source.getValue());
-			else {
-				destination.create();
-				destination.setValue(source.getValue());
-				destination.activate(false);
-			}
-		}
-	}
-	public static void copyValue(StringArrayResource source, StringArrayResource destination) {
-		if(source.isActive()) {
-			if(destination.isActive())
-				destination.setValues(source.getValues());
-			else {
-				destination.create();
-				destination.setValues(source.getValues());
-				destination.activate(false);
-			}
-		}
-	}
 }

@@ -12,6 +12,7 @@ import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
@@ -214,7 +215,7 @@ public class MainPageExpert extends MainPage {
 						for(InstallAppDevice dev: controller.getDevices(devHand)) {
 							if(dev.equalsLocation(object))
 								continue;
-							controller.copySettings(object, dev);
+							AlarmingConfigUtil.copySettings(object, dev, controller.appMan);
 						}
 						break;
 					}
