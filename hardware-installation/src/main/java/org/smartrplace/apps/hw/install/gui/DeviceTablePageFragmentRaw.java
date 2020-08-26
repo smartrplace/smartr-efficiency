@@ -23,15 +23,20 @@ public abstract class DeviceTablePageFragmentRaw<T, R extends Resource> extends 
 	protected RoomSelectorDropdown roomsDrop;
 	protected InstallationStatusFilterDropdown installFilterDrop;
 	protected final boolean isParentTable;
+	protected final boolean showRoomSelector;
 	
 	public DeviceTablePageFragmentRaw(WidgetPage<?> page, HardwareInstallController controller,
 			boolean isParentTable, Alert alert) {
+		this(page, controller, isParentTable, alert, true);
+	}
+	public DeviceTablePageFragmentRaw(WidgetPage<?> page, HardwareInstallController controller,
+			boolean isParentTable, Alert alert, boolean showRoomSelector) {
 		super(page, controller.appManPlus, alert, null);
 		this.controller = controller;
 		this.isParentTable = isParentTable;
+		this.showRoomSelector = showRoomSelector;
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void addWidgetsAboveTable() {
 		if(!isParentTable) return;

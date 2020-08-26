@@ -26,10 +26,8 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 	//protected final WidgetPage<?> page;
 	
 	public DeviceConfigPage(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller, true, null);
-		//this.page = page;
-		//this.controller = controller;
-		
+		super(page, controller, true, null, false);
+
 		//build page: As we do not call triggerBuild we have to do these steps here
 		addWidgetsAboveTable();
 		if(isAlertNew) page.append(alert);
@@ -114,6 +112,12 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 	public void addWidgetsExpert(InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan) {}
+	
+	@Override
+	public void addWidgetsAboveTable() {
+		// TODO Auto-generated method stub
+		super.addWidgetsAboveTable();
+	}
 }
 
 

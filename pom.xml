@@ -77,6 +77,7 @@
 		<module>monitoring-base</module>
 		<module>monitoring-service-base</module>
 		<module>access-admin</module>
+		<module>access-admin-expert</module>
 		<module>alarming-config-app</module>
 		<module>hardware-installation</module>
 		<module>hardware-installation-expert</module>
