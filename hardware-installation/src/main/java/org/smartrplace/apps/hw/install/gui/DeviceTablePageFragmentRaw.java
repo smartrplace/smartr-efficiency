@@ -61,12 +61,12 @@ public abstract class DeviceTablePageFragmentRaw<T, R extends Resource> extends 
 		//RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
 		//		"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 		
+		roomsDrop = new RoomSelectorDropdown(page, "roomsDrop", controller);
 		topTable.setContent(0, 0, roomsDrop)
 				.setContent(0, 1, installFilterDrop)
 				.setContent(0, 2, installMode);//setContent(0, 2, roomLinkButton).
-		RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
 		if(showRoomSelector) {
-			roomsDrop = new RoomSelectorDropdown(page, "roomsDrop", controller);
+			RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
 			topTable.setContent(0, 3, addRoomLink);
 		}
 		//RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,

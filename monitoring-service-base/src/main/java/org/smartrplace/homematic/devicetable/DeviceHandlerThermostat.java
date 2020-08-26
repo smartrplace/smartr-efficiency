@@ -204,17 +204,17 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		//start controlMode setter
 		IntegerResource setManualMode = deviceResource.getSubResource("controlMode", IntegerResource.class);
 		if(setManualMode.isActive()) {
-			ThermostatPattern pat = (ThermostatPattern) getPattern(deviceResource);
-			if((pat != null) && (pat.controlModeTimer == null)) {
-				Timer timer = appMan.appMan().createTimer(1*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
-					
-					@Override
-					public void timerElapsed(Timer arg0) {
-						setManualMode.setValue(1);					
-					}
-				});
-				result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
-			}
+			//ThermostatPattern pat = (ThermostatPattern) getPattern(deviceResource);
+			//if((pat != null) && (pat.controlModeTimer == null)) {
+			Timer timer = appMan.appMan().createTimer(1*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+				
+				@Override
+				public void timerElapsed(Timer arg0) {
+					setManualMode.setValue(1);					
+				}
+			});
+			result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
+			//}
 		}
 		
 		//Return value is currently not used anyways

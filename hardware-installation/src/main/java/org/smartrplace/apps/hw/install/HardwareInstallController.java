@@ -242,20 +242,26 @@ public class HardwareInstallController {
 		if (install.deviceId().getValue().isEmpty())
 			install.deviceId().setValue(LocalDeviceId.generateDeviceId(install, appConfigData, tableProvider,
 					dpService));
+		if(!install.devHandlerInfo().exists()) {
+			install.devHandlerInfo().create();
+			install.devHandlerInfo().setValue(tableProvider.id());
+		}
 		install.activate(true);
 	}
 	
 	public <T extends Resource> void startSimulations(DeviceHandlerProvider<T> tableProvider) {
 		//Class<?> tableType = tableProvider.getResourceType();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
+			if(!tableProvider.id().equals(install.devHandlerInfo().getValue()))
+				continue;
 			if(install.isTrash().getValue())
 				continue;
-			for(ResourcePattern<?> pat: tableProvider.getAllPatterns()) {
+			/*for(ResourcePattern<?> pat: tableProvider.getAllPatterns()) {
 				if(pat.model.equalsLocation(install.device())) {
 					startSimulation(tableProvider, install);
 					break;
 				}
-			}
+			}*/
 			//if(install.device().getResourceType().equals(tableType)) {
 			//	startSimulation(tableProvider, install);
 			//}
@@ -439,14 +445,19 @@ public class HardwareInstallController {
 				if(install.device().getResourceType().equals(tableType)) {				
 					result.add(install);
 				}
-			} else 	{
+			} else {
+				if(tableProvider.id().equals(install.devHandlerInfo().getValue()))	{
+					result.add(install);
+				}
+			}
+			/*} else 	{
 				for(ResourcePattern<?> pat: allPatterns) {
 					if(pat.model.equalsLocation(install.device())) {
 						result.add(install);
 						break;
 					}
 				}
-			}
+			}*/
 		}
 		return result;
 	}
