@@ -341,7 +341,7 @@ public class HardwareInstallController {
 			dp.setDeviceResource(appDevice.device().getLocationResource());
 			if(room != null)
 				dp.setRoom(room);
-			if(devTypeShort != null && (!devTypeShort.equals("UNK")))
+			if(devTypeShort != null && (devTypeShort.equals("UNK")))
 				devTypeShort = null;
 			if(appDevice.installationLocation().isActive()) {
 				String subLoc = null;
