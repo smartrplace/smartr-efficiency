@@ -197,8 +197,8 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 	}
 
 	@Override
-	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, Thermostat deviceResource,
-			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
+			Thermostat deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
 		List<RoomInsideSimulationBase> result = new ArrayList<>();
 
 		//start controlMode setter
@@ -216,7 +216,14 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 			result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
 			//}
 		}
-		
+		return result;
+	}
+	
+	@Override
+	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, Thermostat deviceResource,
+			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		List<RoomInsideSimulationBase> result = new ArrayList<>();
+
 		//Return value is currently not used anyways
 		if(roomSimulation != null) {
 			result.add(new SetpointToFeedbackSimSimple(roomSimulation.getTemperature(),

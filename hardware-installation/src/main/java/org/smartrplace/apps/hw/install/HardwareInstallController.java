@@ -293,8 +293,6 @@ public class HardwareInstallController {
 		if(appConfigData.autoLoggingActivation().getValue() == 2) {
 			activateLogging(tableProvider, appDevice, true, false);
 		}
-		if(!Boolean.getBoolean("org.ogema.devicefinder.api.simulateRemoteGateway"))
-			return;
 		Set<String> deviceSimsStarted = simulationsStarted.get(tableProvider.id());
 		if(deviceSimsStarted == null) {
 			deviceSimsStarted = new HashSet<>();
@@ -308,8 +306,16 @@ public class HardwareInstallController {
 			for(RoomInsideSimulationBase sim: sims)
 				sim.close();
 		}
-		sims = tableProvider.startSimulationForDevice(appDevice, (T) device.getLocationResource(),
+		sims = tableProvider.startSupportingLogicForDevice(appDevice, (T) device.getLocationResource(),
 				mainPage.getRoomSimulation(device), dpService);
+		if(sims == null)
+			sims = new ArrayList<>();
+		
+		if(!Boolean.getBoolean("org.ogema.devicefinder.api.simulateRemoteGateway"))
+			return;
+		
+		sims.addAll(tableProvider.startSimulationForDevice(appDevice, (T) device.getLocationResource(),
+				mainPage.getRoomSimulation(device), dpService));
 		if(sims != null)
 			simByDevice.put(appDevice.getLocation(), sims);
 	}
