@@ -4,10 +4,17 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.administration.UserConstants;
+import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.model.locations.Room;
+import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
+import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -44,13 +51,26 @@ public class UserRegisterHelper {
 	 */
 	public static ClosingPopup<Object> registerUserAddPopup(WidgetPage<?> page, UserBuilder userBuilder,
 			Alert alert, NewUserHandler newUserHandler, boolean requestUserNameAsEmail) {
-		return registerUserAddPopup(page, userBuilder, alert, newUserHandler, requestUserNameAsEmail, null);
+		return registerUserAddPopup(page, userBuilder, alert, newUserHandler, requestUserNameAsEmail, false, null);
 	}
 	public static ClosingPopup<Object> registerUserAddPopup(WidgetPage<?> page, UserBuilder userBuilder,
 			Alert alert, NewUserHandler newUserHandler, boolean requestUserNameAsEmail,
-			Collection<Room> primaryRoomOptions) {
+			boolean hasPrimaryRoomOptions, ApplicationManagerPlus appManPlus) {
 		final TextField textLoginName = new TextField(page, "textLoginName");
 		final TextField textFullUserName = new TextField(page, "textFullUserName");
+		final TemplateDropdown<Room> dropPrimaryRoom;
+		if(hasPrimaryRoomOptions) {
+			dropPrimaryRoom = new TemplateDropdown<Room>(page, "dropPrimaryRoom") {
+	        	@Override
+	        	public void onGET(OgemaHttpRequest req) {
+	        		Collection<? extends Room> primaryRoomOptions = KPIResourceAccess.getRealRooms(appManPlus.getResourceAccess());
+					update(primaryRoomOptions , req);
+	        		setAddEmptyOption(true, "No primary room", req);
+	        	}
+	        };
+		} else {
+			dropPrimaryRoom = null;
+		}
 		final TextField textPw = new TextField(page, "textPw") {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -79,14 +99,7 @@ public class UserRegisterHelper {
 				c++;
 				dualTable.setContent(c, 0, "Full User name:").setContent(c, 1, textFullUserName);
 				c++; //3
-		        if(primaryRoomOptions != null) {
-			        final TemplateDropdown<Room> dropPrimaryRoom = new TemplateDropdown<Room>(page, "dropPrimaryRoom") {
-			        	@Override
-			        	public void onGET(OgemaHttpRequest req) {
-			        		update(primaryRoomOptions, req);
-			        		setAddEmptyOption(true, "No primary room", req);
-			        	}
-			        };
+		        if(hasPrimaryRoomOptions) {
 			        dropPrimaryRoom.setTemplate(new DefaultDisplayTemplate<Room>() {
 			        	@Override
 			        	public String getLabel(Room object, OgemaLocale locale) {
@@ -120,6 +133,16 @@ public class UserRegisterHelper {
                         data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
                     }
 					if(newUserHandler != null) newUserHandler.newUserCreated(data, name, req);
+					
+					if(hasPrimaryRoomOptions) {
+		        		Room sel = dropPrimaryRoom.getSelectedItem(req);
+		        		String nameAcc = AccessAdminConfig.class.getSimpleName().substring(0, 1).toLowerCase()+AccessAdminConfig.class.getSimpleName().substring(1);
+		        		AccessAdminConfig appConfigData = appManPlus.getResourceAccess().getResource(nameAcc);
+		        		AccessConfigUser accessConfig = UserPermissionUtil.getOrCreateUserPermissions(
+		        				appConfigData.userPermissions(), userName);
+		        		UserPermissionUtil.addPermission(sel.getLocation(),
+		        				UserPermissionService.USER_PRIORITY_PERM, accessConfig.roompermissionData());
+					}
 					
 					//alert.showAlert("New user "+userName+" created. Please log out and login as the new user. "
 					//		+ "This will be done automatically in the future (if not already available).",
