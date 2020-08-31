@@ -1,6 +1,7 @@
 package org.smartrplace.apps.alarmingconfig;
 
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
@@ -13,6 +14,7 @@ import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDic
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary_de;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary_en;
 import org.ogema.messaging.basic.services.config.model.ReceiverConfiguration;
+import org.ogema.messaging.configuration.MessagePriorityDropdown;
 import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
@@ -28,10 +30,14 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.widgets.api.messaging.listener.MessageListener;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.messaging.model.MessagingApp;
 
 // here the controller logic is implemented
@@ -82,8 +88,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		appManPlus.setGuiService(initApp.guiService);
 		appManPlus.setDpService(dpService);
 		
-		initDemands();
-		
 		appManPlus.getMessagingService().registerMessagingApp(appMan.getAppID(), getAlarmingDomain()+"_Alarming");
 
 		//initAlarmingResources();
@@ -101,6 +105,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		initApp.menu.addEntry("Alarming Template Devices Configuration", pageRes12);
 		initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 
+		@SuppressWarnings("unchecked")
+		final ResourceList<MessagingApp> appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
+		appList.setElementType(MessagingApp.class);
 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
 			WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
 			pageRes11.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
@@ -109,9 +116,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 			
 			WidgetPage<SelectConnectorDictionary> pageRes2 = initApp.widgetApp.createWidgetPage("forwarding.html", false);
-			@SuppressWarnings("unchecked")
-			final ResourceList<MessagingApp> appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
-			appList.setElementType(MessagingApp.class);
 			forwardingPage = new PageInit(pageRes2, appMan, appList, initApp.mr);
 			initApp.menu.addEntry("Message Forwarding Configuration", pageRes2);
 			initApp.configMenuConfig(pageRes2.getMenuConfiguration());
@@ -121,7 +125,48 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", false);
 		pageRes3.registerLocalisation(MessageSettingsDictionary_de.class).registerLocalisation(MessageSettingsDictionary_en.class);
-		receiverPage = new ReceiverPageBuilder(pageRes3, appMan);
+		de.iwes.widgets.messaging.MessagingApp app1 = null;
+		for(de.iwes.widgets.messaging.MessagingApp mapp: initApp.mr.getMessageSenders()) {
+			if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming Configuration".equals(mapp.getName())) {
+				app1 = mapp;
+				break;
+			}
+		}
+		de.iwes.widgets.messaging.MessagingApp app = app1;
+		receiverPage = new ReceiverPageBuilder(pageRes3, appMan) {
+			@Override
+			protected void addAdditionalColumns(Map<String, Object> receiverHeader) {
+				receiverHeader.put("alarmingAppForwardingEmail", "Alarm-level Email:");		
+				receiverHeader.put("alarmingAppForwardingSMS", "Alarm-level SMS:");							
+			}
+			
+			@Override
+			protected void addAdditionalRowWidgets(ReceiverConfiguration config, String id, Row row,
+					OgemaHttpRequest req) {
+				if(app == null)
+					return;
+				String userName = config.userName().getValue();
+				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, initApp.mr);
+				
+				String messageListenerName = "Email-connector";
+				MessageListener l = initApp.mr.getMessageListeners().get(messageListenerName);
+				if(userListeners.contains(l)) {
+					MessagePriorityDropdown alarmingPrioDrop = new MessagePriorityDropdown(pageRes3,
+							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
+							l, userName, appList, app);
+					row.addCell("alarmingAppForwardingEmail", alarmingPrioDrop);
+				}
+
+				messageListenerName = "Sms-connector";
+				l = initApp.mr.getMessageListeners().get(messageListenerName);
+				if(userListeners.contains(l)) {
+					MessagePriorityDropdown alarmingPrioDropSMS = new MessagePriorityDropdown(pageRes3,
+							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
+							l, userName, appList, app);
+					row.addCell("alarmingAppForwardingSMS", alarmingPrioDropSMS);
+				}
+			}
+		};
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
 		initApp.menu.addEntry("Message Receiver Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
@@ -130,8 +175,11 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			initApp.menu.addEntry("Battery State Alarming", "/de/iee/ogema/batterystatemonitoring/index.html");
 			initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
 		}
+
+		initDemands();		
 	}
 
+	
      /*protected void initAlarmingResources() {
   		List<String> done = new ArrayList<>();
   		Map<String, List<String>> roomSensors = new HashMap<>();

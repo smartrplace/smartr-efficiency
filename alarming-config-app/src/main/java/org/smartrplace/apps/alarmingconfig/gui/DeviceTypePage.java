@@ -90,36 +90,58 @@ public class DeviceTypePage extends MainPage {
 		ButtonConfirm applyTemplateButton = new ButtonConfirm(page, "applyTemplateButton") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				List<InstallAppDevice> allDev = new ArrayList<>();
-				InstallAppDevice template = null;
-				for(InstallAppDevice dev: appMan.getResourceAccess().getResources(InstallAppDevice.class)) {
-					DatapointGroup devTypeGrp = getDeviceTypeGroup(dev);
-					GenericFilterFixedSingle<String> selected = (GenericFilterFixedSingle<String>) deviceDrop.getSelectedItem(req);
-					if(devTypeGrp == null || (!devTypeGrp.id().equals(selected.getValue())))
-						continue;
-					if(DeviceTableRaw.isTemplate(dev, null)) {
-						template = dev;
-						continue;
-					}
-					allDev.add(dev);
-				}
-				if(template == null)
-					return;
-				for(InstallAppDevice dev: allDev) {
-					AlarmingConfigUtil.copySettings(template, dev, appMan);
-				}
+				applyTemplate(req);
+				if(alarmingUpdater != null) {
+					alarmingUpdater.updateAlarming();
+					alert.showAlert("Updated and restarted alarming", true, req);
+				} else
+					alert.showAlert("Could not find alarmingManagement for update", false, req);
 			}
 		};
 		applyTemplateButton.setDefaultConfirmMsg("Really apply settings of template"+
 								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!");
 		applyTemplateButton.setDefaultText("Apply template");
 		
+		ButtonConfirm applyAndCommitButton = new ButtonConfirm(page, "applyAndCommitButton") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				applyTemplate(req);
+				
+			}
+		};
+		applyTemplateButton.setDefaultConfirmMsg("Really apply settings of template"+
+								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!");
+		applyTemplateButton.setDefaultText("Apply template");
+
 		StaticTable secondTable = new StaticTable(1, 4);
 		secondTable.setContent(0, 0, deviceDrop);
 		secondTable.setContent(0, 1, applyTemplateButton);
+		secondTable.setContent(0, 2, applyAndCommitButton);
 		
 		page.append(secondTable);
 
+	}
+
+	protected void applyTemplate(OgemaHttpRequest req) {
+		List<InstallAppDevice> allDev = new ArrayList<>();
+		InstallAppDevice template = null;
+		for(InstallAppDevice dev: appMan.getResourceAccess().getResources(InstallAppDevice.class)) {
+			DatapointGroup devTypeGrp = getDeviceTypeGroup(dev);
+			GenericFilterFixedSingle<String> selected = (GenericFilterFixedSingle<String>) deviceDrop.getSelectedItem(req);
+			if(devTypeGrp == null || (!devTypeGrp.id().equals(selected.getValue())))
+				continue;
+			if(DeviceTableRaw.isTemplate(dev, null)) {
+				template = dev;
+				continue;
+			}
+			allDev.add(dev);
+		}
+		if(template == null)
+			return;
+		for(InstallAppDevice dev: allDev) {
+			AlarmingConfigUtil.copySettings(template, dev, appMan);
+		}
+		
 	}
 	
 	@Override

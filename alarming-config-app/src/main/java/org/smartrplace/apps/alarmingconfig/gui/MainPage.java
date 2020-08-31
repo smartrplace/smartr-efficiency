@@ -148,13 +148,15 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
 
 		Button saveButton = new Button(page, "saveButton",
-				System.getProperty("org.ogema.app.navigation.alarmchangesactivate", "Speichern")) {
+				System.getProperty("org.ogema.app.navigation.alarmchangesactivate", "Neustart Alarming (Änderungen werden aktiv)")) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
 				if(alarmingUpdater != null) {
 					alarmingUpdater.updateAlarming();
-				}
+					alert.showAlert("Restarted alarming", true, req);
+				} else
+					alert.showAlert("Could not find alarmingManagement for update", false, req);
 			}
 		};
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
