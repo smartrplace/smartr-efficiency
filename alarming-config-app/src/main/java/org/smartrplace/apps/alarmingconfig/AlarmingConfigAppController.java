@@ -76,13 +76,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		return System.getProperty("org.smartrplace.remotesupervision.gateway.id", "SRCA");
 	}
 	
-	protected class MessageSettingsDictAlarming_de extends MessageSettingsDictionary_de {
+	public static class MessageSettingsDictAlarming_de extends MessageSettingsDictionary_de {
 		@Override
 		public String headerReceivers() {
 			return "3. Message Receiver Configuration";
 		}
 	}
-	protected class MessageSettingsDictAlarming_en extends MessageSettingsDictionary_en {
+	public static class MessageSettingsDictAlarming_en extends MessageSettingsDictionary_en {
 		@Override
 		public String headerReceivers() {
 			return "3. Message Receiver Configuration";
@@ -107,13 +107,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		updateAlarming();
 		MainPage.alarmingUpdater = this;
 
-		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html", true);
+		WidgetPage<?> pageRes10 = initApp.widgetApp.createStartPage(); //.createWidgetPage("mainpage.html", true);
 		//Resource base = appMan.getResourceAccess().getResource("master");
 		mainPage = new MainPage(pageRes10, appManPlus); //, base);
 		initApp.menu.addEntry("1. Alarming Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
-		WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("devices.html", true);
+		WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("devices.html");
 		devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
 		initApp.menu.addEntry("2. Alarming Template Devices Configuration", pageRes12);
 		initApp.configMenuConfig(pageRes12.getMenuConfiguration());
@@ -137,7 +137,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			forwardingPage = null;
 		}
 		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", false);
-		pageRes3.registerLocalisation(MessageSettingsDictionary_de.class).registerLocalisation(MessageSettingsDictionary_en.class);
 		de.iwes.widgets.messaging.MessagingApp app1 = null;
 		for(de.iwes.widgets.messaging.MessagingApp mapp: initApp.mr.getMessageSenders()) {
 			if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming Configuration".equals(mapp.getName())) {
@@ -146,6 +145,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			}
 		}
 		de.iwes.widgets.messaging.MessagingApp app = app1;
+		pageRes3.registerLocalisation(MessageSettingsDictAlarming_de.class).
+				registerLocalisation(MessageSettingsDictAlarming_en.class);
 		receiverPage = new ReceiverPageBuilder(pageRes3, appMan) {
 			
 			
@@ -182,8 +183,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				}
 			}
 		};
-		pageRes3.registerLocalisation(MessageSettingsDictAlarming_de.class).
-			registerLocalisation(MessageSettingsDictAlarming_en.class);
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
 		initApp.menu.addEntry("3. Message Receiver Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());

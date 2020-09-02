@@ -27,13 +27,8 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
-import org.ogema.core.model.array.StringArrayResource;
-import org.ogema.core.model.simple.BooleanResource;
-import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
-import org.ogema.core.model.simple.StringResource;
-import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
@@ -46,7 +41,6 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
-import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
@@ -59,7 +53,6 @@ import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
@@ -256,6 +249,7 @@ public class HardwareInstallController {
 				continue;
 			if(install.isTrash().getValue())
 				continue;
+			startSimulation(tableProvider, install);
 			/*for(ResourcePattern<?> pat: tableProvider.getAllPatterns()) {
 				if(pat.model.equalsLocation(install.device())) {
 					startSimulation(tableProvider, install);
@@ -308,14 +302,16 @@ public class HardwareInstallController {
 		}
 		sims = tableProvider.startSupportingLogicForDevice(appDevice, (T) device.getLocationResource(),
 				mainPage.getRoomSimulation(device), dpService);
-		if(sims == null)
-			sims = new ArrayList<>();
 		
-		if(!Boolean.getBoolean("org.ogema.devicefinder.api.simulateRemoteGateway"))
-			return;
-		
-		sims.addAll(tableProvider.startSimulationForDevice(appDevice, (T) device.getLocationResource(),
-				mainPage.getRoomSimulation(device), dpService));
+		if(Boolean.getBoolean("org.ogema.devicefinder.api.simulateRemoteGateway")) {
+			List<RoomInsideSimulationBase> newSims = tableProvider.startSimulationForDevice(appDevice, (T) device.getLocationResource(),
+					mainPage.getRoomSimulation(device), dpService);
+			if(newSims != null && (!newSims.isEmpty())) {
+				if(sims == null)
+					sims = new ArrayList<>();
+				sims.addAll(newSims);
+			}
+		}
 		if(sims != null)
 			simByDevice.put(appDevice.getLocation(), sims);
 	}
