@@ -12,11 +12,11 @@ import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.AlarmingExtensionListener;
 import org.ogema.devicefinder.api.AlarmingExtensionListener.AlarmResult;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.ValueListenerData;
-import org.smatrplace.apps.alarmconfig.util.RoomLabelProvider;
 
 import de.iwes.widgets.api.messaging.MessagePriority;
 
@@ -84,7 +84,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	@Override
 	public void resourceChanged(T resource) {
-		IntegerResource alarmStatus = AlarmingManager.getAlarmStatus(resource);
+		IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(resource);
 		float val = getHumanValue(resource);
 		if(Float.isNaN(val)) {
 			//we just got the callback after writing NaN

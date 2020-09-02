@@ -14,6 +14,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
@@ -116,7 +117,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 			vh.registerHeaderEntry("Status");
 		else {
 			ValueResource res = sr.sensorVal().getLocationResource();
-			IntegerResource statusRes = AlarmingManager.getAlarmStatus(res);
+			IntegerResource statusRes = AlarmingConfigUtil.getAlarmStatus(res);
 			if(statusRes == null)
 				return;
 			vh.intLabel("Status", id, statusRes, row, 0);
@@ -160,6 +161,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 			}
 		};
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
+		saveButton.registerDependentWidget(alert);
 		
 		StaticTable topTable = new StaticTable(1, 2);
 		topTable.setContent(0, 0, closeTabButton).setContent(0, 1, saveButton);

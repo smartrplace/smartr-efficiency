@@ -8,8 +8,6 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
-import org.ogema.core.model.Resource;
-import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
@@ -18,16 +16,15 @@ import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.message.MessageImpl;
 
-import de.iwes.util.format.StringFormatHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 
 public class AlarmingManager {
@@ -161,7 +158,7 @@ public class AlarmingManager {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				
-				IntegerResource alarmStatus = getAlarmStatus(res);
+				IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(res);
 				if(alarmStatus == null)
 					continue;
 				if(alarmStatus.getValue() > 1000)
@@ -208,7 +205,7 @@ public class AlarmingManager {
 				if((waiting > vl.maxIntervalBetweenNewValues) &&(!vl.isNoValueAlarmActive)) {
 					vl.isNoValueAlarmActive = true;
 					if(vl.res != null) {
-						IntegerResource alarmStatus = getAlarmStatus(vl.res);
+						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.res);
 						float val = getHumanValue(vl.res);
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
 								vl.maxIntervalBetweenNewValues, alarmStatus);
@@ -216,12 +213,12 @@ public class AlarmingManager {
 						if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
 							vl.res.setValue(Float.NaN);
 					} else 	if(vl.bres != null) {
-						IntegerResource alarmStatus = getAlarmStatus(vl.bres);
+						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.bres);
 						float val = vl.bres.getValue()?1.0f:0.0f;
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
 								vl.maxIntervalBetweenNewValues, alarmStatus);
 					} else 	if(vl.ires != null) {
-						IntegerResource alarmStatus = getAlarmStatus(vl.ires);
+						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.ires);
 						float val = vl.ires.getValue();
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
 								vl.maxIntervalBetweenNewValues, alarmStatus);
@@ -235,13 +232,6 @@ public class AlarmingManager {
 		}
 	}
 	
-	public static IntegerResource getAlarmStatus(ValueResource reading) {
-		Resource parent = reading.getParent();
-		IntegerResource alarmStatus = parent.getSubResource(AlarmingService.ALARMSTATUS_RES_NAME,
-				IntegerResource.class);
-		return alarmStatus.isActive()?alarmStatus:null;		
-	}
-
 	protected IntegerResource getAlarmStatus(Schedule sched) {
 		IntegerResource alarmStatus = sched.getLocationResource().getSubResource(AlarmingService.ALARMSTATUS_RES_NAME,
 				IntegerResource.class);
@@ -323,7 +313,7 @@ public class AlarmingManager {
 		}
 		@Override
 		public void resourceChanged(BooleanResource resource) {
-			IntegerResource alarmStatus = getAlarmStatus(resource);
+			IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(resource);
 			alarmValListenerBase.resourceChanged(resource.getValue()?1.0f:0.0f, alarmStatus, appManPlus.appMan().getFrameworkTime());
 		}
 
@@ -503,68 +493,4 @@ public class AlarmingManager {
 			val = resource.getValue();
 		return val;
 	}
-	
-	private void debugPrintingForNoValueAlarm(ValueListenerData vl, long waiting) {
-		//if(vl.res != null && vl.res.getLocation().contains("JMBUS_BASE/_22009444/USER_DEFINED_0_0")) {
-		//	System.out.println("Last A-CO2 time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);
-		//} else 
-		if((waiting > (vl.maxIntervalBetweenNewValues/2)) &&(!vl.isNoValueAlarmActive)) {
-			System.out.println("Last "+vl.listener.getAc().getLocation()+" time:"+StringFormatHelper.getFullTimeDateInLocalTimeZone(vl.lastTimeOfNewData)+"   Diff:"+waiting/1000+"    Max:"+vl.maxIntervalBetweenNewValues/1000+"   Active:"+vl.isNoValueAlarmActive);	
-		}
-	}
-	
-	/*public static void initValueResourceAlarming(SingleValueResource reading, Map<String, List<String>> roomSensors,
-			List<String> done, RoomLabelProvider roomLabelProv, ApplicationManager appMan) {
-		if(done.contains(reading.getLocation())) {
-			System.out.println("Already in done:"+reading.getLocation());
-			return;
-		} else done.add(reading.getLocation());
-		System.out.println("Added to done:"+reading.getLocation());
-		//Sensor sensor = ResourceHelper.getFirstParentOfType(reading, Sensor.class);
-		String room = roomLabelProv.getRoomLabel(reading.getLocation(), null);
-		BuildingUnit bu = KPIResourceAccessSmarEff.getRoomConfigResource(room, appMan, true); //InitUtil.getBuildingUnitByRoom(room, user.editableData());
-		if(bu == null) {
-			if(room.toLowerCase().equals("gesamt"))
-				return;
-			bu = KPIResourceAccessSmarEff.getRoomConfigResource(null, appMan, true); //InitUtil.getBuildingUnitByRoom("Gesamt", user.editableData());
-			if(bu == null)
-				return;
-		}
-		List<String> buSensors = roomSensors.get(bu.getLocation());
-		if(buSensors == null) {
-			buSensors = new ArrayList<>();
-			roomSensors.put(bu.getLocation(), buSensors);
-		}
-		//buSensors.add(sensor.getLocation());
-		//InitUtil.initAlarmForSensor(sensor, bu, roomLabelProv);		
-		buSensors.add(reading.getLocation());
-		InitUtil.initAlarmForSensor2(reading, bu, roomLabelProv);		
-	}*/
-	
-	/*public static void finishInitSensorVals(SmartEffUserDataNonEdit user, Map<String, List<String>> roomSensorVals,
-			List<String> done, ApplicationManager appMan) {
-		//clean up sensor entries
-		for(BuildingData build: user.editableData().buildingData().getAllElements()) {
-			for(BuildingUnit bu: build.buildingUnit().getAllElements()) {
-				@SuppressWarnings("unchecked")
-				ResourceList<AlarmConfiguration> alarms = bu.getSubResource("alarmConfigs", ResourceList.class);
-				for(AlarmConfiguration ac: alarms.getAllElements()) {
-					//if(ac.supervisedTS().exists()) continue;
-					if(!ac.sensorVal().exists())
-						throw new IllegalStateException("Sensor for alarm does not exist!");
-					List<String> buSensors = roomSensorVals.get(bu.getLocation());
-					if(buSensors == null) {
-						ac.delete();
-						continue;
-					}
-					if(!buSensors.contains(ac.sensorVal().getLocation())) {
-						ac.delete();
-					}
-				}
-			}
-		}
-		
-	}*/
-
-
 }

@@ -128,6 +128,8 @@ public class MainPageExpert extends MainPage {
 					OgemaLocale locale = req!=null?req.getLocale():null;
 					for(Datapoint dp: datapoints) {
 						TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(locale);
+						if(tsd == null)
+							continue;
 						TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, tsd.label(null), tsd.description(null));
 						tsdExt.type = dp.getGaroDataType();
 						result.add(tsdExt);

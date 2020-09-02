@@ -96,27 +96,29 @@ public class DeviceTypePage extends MainPage {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				applyTemplate(req);
-				if(alarmingUpdater != null) {
-					alarmingUpdater.updateAlarming();
-					alert.showAlert("Updated and restarted alarming", true, req);
-				} else
-					alert.showAlert("Could not find alarmingManagement for update", false, req);
+				alert.showAlert("Applied template", true, req);
 			}
 		};
 		applyTemplateButton.setDefaultConfirmMsg("Really apply settings of template"+
 								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!");
 		applyTemplateButton.setDefaultText("Apply template");
+		applyTemplateButton.registerDependentWidget(alert);
 		
 		ButtonConfirm applyAndCommitButton = new ButtonConfirm(page, "applyAndCommitButton") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				applyTemplate(req);
-				
+				if(alarmingUpdater != null) {
+					alarmingUpdater.updateAlarming();
+					alert.showAlert("Updated and restarted alarming", true, req);
+				} else
+					alert.showAlert("Could not find alarmingManagement for update", false, req);				
 			}
 		};
-		applyTemplateButton.setDefaultConfirmMsg("Really apply settings of template"+
+		applyAndCommitButton.setDefaultConfirmMsg("Really apply settings of template"+
 								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!");
-		applyTemplateButton.setDefaultText("Apply template");
+		applyAndCommitButton.setDefaultText("Apply template");
+		applyAndCommitButton.registerDependentWidget(alert);
 
 		StaticTable secondTable = new StaticTable(1, 4);
 		secondTable.setContent(0, 0, deviceDrop);

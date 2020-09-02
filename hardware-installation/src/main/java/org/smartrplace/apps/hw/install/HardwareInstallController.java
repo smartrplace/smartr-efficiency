@@ -30,9 +30,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
-import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
@@ -391,7 +389,12 @@ public class HardwareInstallController {
 			return;
 		SingleValueResource dpRes = (SingleValueResource)dpRes1;
 		AlarmingUtiH.getOrCreateReferencingSensorVal(dpRes, appDevice.alarms());
-		dpRes.addDecorator(AlarmingService.ALARMSTATUS_RES_NAME, IntegerResource.class).activate(false);
+		IntegerResource alarmStat = AlarmingConfigUtil.getAlarmStatus(dpRes, false);
+		if(!alarmStat.isActive()) {
+			ValueResourceHelper.setCreate(alarmStat, 0);
+			alarmStat.activate(true);
+		}
+		//dpRes.addDecorator(AlarmingService.ALARMSTATUS_RES_NAME, IntegerResource.class).activate(false);
 	}
 	
 	protected void cleanupOnStart() {
@@ -429,12 +432,12 @@ public class HardwareInstallController {
 			boolean includeInactiveDevices, boolean includeTrash) {
 		List<InstallAppDevice> result = new ArrayList<>();
 		Class<T> tableType = null;
-		List<ResourcePattern<T>> allPatterns = null;
+		//List<ResourcePattern<T>> allPatterns = null;
 		if(tableProvider != null) {
 			if(includeInactiveDevices)
 				tableType = tableProvider.getResourceType();
-			else
-				allPatterns = tableProvider.getAllPatterns();
+			//else
+			//	allPatterns = tableProvider.getAllPatterns();
 		}
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if((!includeTrash) && install.isTrash().getValue())

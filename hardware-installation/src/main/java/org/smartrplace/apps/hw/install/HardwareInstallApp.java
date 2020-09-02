@@ -32,6 +32,7 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
+import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 
@@ -65,7 +66,14 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addExtProvider",
-		unbind="removeExtProvider")
+		unbind="removeExtProvider"),
+	@Reference(
+		name="propertyServices",
+		referenceInterface=OGEMADriverPropertyService.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addDriverPropertyProvider",
+		unbind="removeDriverPropertyProvider")
 })
 
 @Component(specVersion = "1.2", immediate = true)
@@ -90,6 +98,12 @@ public class HardwareInstallApp implements Application {
 	public Map<String,DriverHandlerProvider> getDriverProviders() {
 		synchronized (driverProviders) {
 			return new LinkedHashMap<>(driverProviders);
+		}
+	}
+	private final Map<String,OGEMADriverPropertyService<?>> dPropertyProviders = Collections.synchronizedMap(new LinkedHashMap<String,OGEMADriverPropertyService<?>>());
+	public LinkedHashMap<String, OGEMADriverPropertyService<?>> getDPropertyProviders() {
+		synchronized (dPropertyProviders) {
+			return new LinkedHashMap<>(dPropertyProviders);
 		}
 	}
 
@@ -189,4 +203,12 @@ public class HardwareInstallApp implements Application {
     protected void removeExtProvider(HWInstallExtensionProvider provider) {
        	controllerProvider.removeExtProvider(provider);
     }
+    
+    protected void addDriverPropertyProvider(OGEMADriverPropertyService<?>  provider) {
+    	dPropertyProviders.put(provider.getClass().getName(), provider);
+    }
+    protected void removeDriverPropertyProvider(OGEMADriverPropertyService<?> provider) {
+    	dPropertyProviders.remove(provider.getClass().getName());
+    }
+
  }

@@ -9,11 +9,15 @@ import org.json.JSONObject;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
+import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
+import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.frontend.servlet.ServletResourceDataProvider;
 import org.smartrplace.util.frontend.servlet.UserServletParamData;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
@@ -52,9 +56,12 @@ public class SensorServlet implements ServletPageProvider<Room> {
 					String roomName = controller.getRoomLabel(sens.reading().getLocation(), null);
 					if(roomName != null)
 						result.put("monitoringRoomName", roomName);
-					IntegerResource alarmStatus = sens.getSubResource("alarmStatus");
-					if (alarmStatus != null)
-						result.put("alarmStatus", alarmStatus.getValue());
+					IntegerResource alarmStatusOld = sens.getSubResource(AlarmingService.ALARMSTATUS_RES_NAME);
+					if (alarmStatusOld != null)
+						result.put("alarmStatus", alarmStatusOld.getValue());
+					IntegerResource alarmStatusNew = AlarmingConfigUtil.getAlarmStatus(sens.reading()); //sens.getSubResource(AlarmingService.ALARMSTATUS_RES_NAME);
+					if (alarmStatusNew != null)
+						result.put("alarmStatusNew", alarmStatusNew.getValue());
 					if (reading instanceof PhysicalUnitResource) {
 						String unit = ((PhysicalUnitResource) reading).getUnit().toString();
 						result.put("unit", unit);

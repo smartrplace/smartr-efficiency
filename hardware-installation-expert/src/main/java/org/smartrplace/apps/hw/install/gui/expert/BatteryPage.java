@@ -3,10 +3,12 @@ package org.smartrplace.apps.hw.install.gui.expert;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.units.VoltageResource;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -78,7 +80,8 @@ public class BatteryPage extends MainPage {
 			@Override
 			public PhysicalElement addNameWidget(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-				final PhysicalElement device;
+				return addNameWidgetStatic(object, vh, id, req, row, appManPlus);
+				/*final PhysicalElement device;
 				if(req == null) {
 					device = ResourceHelper.getSampleResource(SensorDevice.class);
 				} else
@@ -87,7 +90,7 @@ public class BatteryPage extends MainPage {
 				name = getName(object, appManPlus); //ResourceUtils.getHumanReadableShortName(device);
 				vh.stringLabel("Name", id, name, row);
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
-				return device;
+				return device;*/
 			}	
 
 			@Override
@@ -125,4 +128,17 @@ public class BatteryPage extends MainPage {
 		
 	}
 	
+	public static PhysicalElement addNameWidgetStatic(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
+			OgemaHttpRequest req, Row row, ApplicationManagerPlus appManPlus) {
+		final PhysicalElement device;
+		if(req == null) {
+			device = ResourceHelper.getSampleResource(SensorDevice.class);
+		} else
+			device = object.device().getLocationResource();
+		final String name;
+		name = DeviceTableRaw.getName(object, appManPlus); //ResourceUtils.getHumanReadableShortName(device);
+		vh.stringLabel("Name", id, name, row);
+		vh.stringLabel("ID", id, object.deviceId().getValue(), row);
+		return device;
+	}	
 }
