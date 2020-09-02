@@ -203,7 +203,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 
 		//start controlMode setter
 		IntegerResource setManualMode = deviceResource.getSubResource("controlMode", IntegerResource.class);
-		if(setManualMode.isActive()) {
+		/*if(setManualMode.isActive()) {
 			//ThermostatPattern pat = (ThermostatPattern) getPattern(deviceResource);
 			//if((pat != null) && (pat.controlModeTimer == null)) {
 			Timer timer = appMan.appMan().createTimer(1*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
@@ -215,7 +215,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 			});
 			result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
 			//}
-		}
+		}*/
 		return result;
 	}
 	

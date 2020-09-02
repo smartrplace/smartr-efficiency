@@ -76,6 +76,19 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		return System.getProperty("org.smartrplace.remotesupervision.gateway.id", "SRCA");
 	}
 	
+	protected class MessageSettingsDictAlarming_de extends MessageSettingsDictionary_de {
+		@Override
+		public String headerReceivers() {
+			return "3. Message Receiver Configuration";
+		}
+	}
+	protected class MessageSettingsDictAlarming_en extends MessageSettingsDictionary_en {
+		@Override
+		public String headerReceivers() {
+			return "3. Message Receiver Configuration";
+		}
+	}
+	
 	public AlarmingConfigAppController(ApplicationManager appMan, AlarmingConfigApp initApp) {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
@@ -97,12 +110,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html", true);
 		//Resource base = appMan.getResourceAccess().getResource("master");
 		mainPage = new MainPage(pageRes10, appManPlus); //, base);
-		initApp.menu.addEntry("Alarming Configuration", pageRes10);
+		initApp.menu.addEntry("1. Alarming Configuration", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
 		WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("devices.html", true);
 		devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
-		initApp.menu.addEntry("Alarming Template Devices Configuration", pageRes12);
+		initApp.menu.addEntry("2. Alarming Template Devices Configuration", pageRes12);
 		initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 
 		@SuppressWarnings("unchecked")
@@ -134,6 +147,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 		de.iwes.widgets.messaging.MessagingApp app = app1;
 		receiverPage = new ReceiverPageBuilder(pageRes3, appMan) {
+			
+			
 			@Override
 			protected void addAdditionalColumns(Map<String, Object> receiverHeader) {
 				receiverHeader.put("alarmingAppForwardingEmail", "Alarm-level Email:");		
@@ -167,8 +182,10 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				}
 			}
 		};
+		pageRes3.registerLocalisation(MessageSettingsDictAlarming_de.class).
+			registerLocalisation(MessageSettingsDictAlarming_en.class);
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
-		initApp.menu.addEntry("Message Receiver Configuration", pageRes3);
+		initApp.menu.addEntry("3. Message Receiver Configuration", pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 		
 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {

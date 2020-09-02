@@ -126,7 +126,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Alarming Configuration";
+		return "1. Alarming Configuration";
 	}
 	
 	@Override

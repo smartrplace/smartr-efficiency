@@ -21,6 +21,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -35,6 +36,10 @@ public class DeviceTypePage extends MainPage {
 		this.showOnlyPrototype = showOnlyPrototype;
 	}
 
+	protected String getHeader(OgemaLocale locale) {
+		return "2. Alarming Template Devices Configuration";
+	}
+	
 	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
