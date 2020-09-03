@@ -25,6 +25,7 @@ import org.ogema.tools.resource.util.TimeUtils;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.util.message.MessageImpl;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 
 public class AlarmingManager {
@@ -41,6 +42,7 @@ public class AlarmingManager {
 	public static final Integer maxMessageBeforeBulk = Integer.getInteger("org.smartrplace.util.alarming.maxMessageBeforeBulk");
 	
 	protected final String alarmID;
+	protected final String baseUrl;
 	
 	protected class ValueListenerData extends ValueListenerDataBase {
 		public ValueListenerData(FloatResource res) {
@@ -68,7 +70,8 @@ public class AlarmingManager {
 		this.appManPlus = appManPlus;
 		//this.tsNameProv = tsNameProv;
 		this.alarmID = alarmID;	
-		
+		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
+				
 		/*List<IntegerResource> allAlarmStats = appManPlus.appMan().getResourceAccess().getResources(IntegerResource.class);
 		for(IntegerResource intr: allAlarmStats) {
 			if(!intr.getName().equals(ALARMSTATUS_RES_NAME))
@@ -248,13 +251,15 @@ public class AlarmingManager {
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBasic<FloatResource> {
 		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
-			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
+					dp, AlarmingManager.this.baseUrl);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListener(float upper, float lower, int retard, int resendRetard,
 				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
-			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus,
+					dp, AlarmingManager.this.baseUrl);
 		}
 
 		@Override
@@ -276,13 +281,15 @@ public class AlarmingManager {
 	}
 	protected class AlarmValueListenerBoolean extends AlarmValueListenerBasic<BooleanResource> {
 		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
-			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
+					dp, AlarmingManager.this.baseUrl);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListenerBoolean(float upper, float lower, int retard, int resendRetard,
 				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
-			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus,
+					dp, AlarmingManager.this.baseUrl);
 		}
 
 		@Override
@@ -340,13 +347,15 @@ public class AlarmingManager {
 	
 	protected class AlarmValueListenerInteger extends AlarmValueListenerBasic<IntegerResource> {
 		public AlarmValueListenerInteger(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
-			super(ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
+					dp, AlarmingManager.this.baseUrl);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerInteger used for OnOffSwitch supervision
 		public AlarmValueListenerInteger(float upper, float lower, int retard, int resendRetard,
 				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
-			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus, dp);
+			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus,
+					dp, AlarmingManager.this.baseUrl);
 		}
 
 		@Override
@@ -408,9 +417,11 @@ public class AlarmingManager {
 			IntegerResource alarmStatus) {
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
-		String title = alarmID+": Kein neuer Wert:"+tsName+" (Alarming)";
-		String message = "Letzter Wert wurde empfangen um: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nWert: "+value+"\r\n"
-				+"\r\nMaximales Intervall: "+(maxInterval/MINUTE_MILLIS)+"min";
+		String title = alarmID+": No more values received:"+tsName+" (Alarming)";
+		String message = "Last value received at: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nValue: "+value+"\r\n"
+				+"\r\nMaximum interval: "+(maxInterval/MINUTE_MILLIS)+"min";
+		if(baseUrl != null)
+			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(title, message, prio);
@@ -425,10 +436,12 @@ public class AlarmingManager {
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
 		String title = alarmID+": Release:"+tsName+" (Alarming)";
-		String message = "Wert: "+value;
+		String message = "Value: "+value;
 		if(!Float.isNaN(lower))
-			message += "\r\n"+"  Untere Grenze: "+lower+
-				"\r\n"+"  Obere Grenze: "+upper;
+			message += "\r\n"+"  Lower limit: "+lower+
+				"\r\n"+"  Upper limit: "+upper;
+		if(baseUrl != null)
+			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(title, message, prio);

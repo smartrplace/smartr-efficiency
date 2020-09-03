@@ -29,7 +29,12 @@ public class UserBuilder {
 		//if(appMan.getAdministrationManager().getUser(userName) != null) throw new IllegalStateException("User name "+userName+" already exists!");
 		//if(!pw.equals(userName)) throw new UnsupportedOperationException("Change password does not work for default admin");
 		UserAccount account = appMan.getAdministrationManager().createUserAccount(userName, true);
-		if(!pw.equals(userName)) account.setNewPassword(userName, pw);
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+		}
+		if(!pw.equals(userName))
+			account.setNewPassword(userName, pw);
 		//if(doInituserPermissions)
 		//	initUserPermissions();
 		return account;

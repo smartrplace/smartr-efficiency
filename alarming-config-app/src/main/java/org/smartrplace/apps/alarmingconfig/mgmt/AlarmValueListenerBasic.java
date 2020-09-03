@@ -33,6 +33,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	//protected final RoomLabelProvider tsNameProv2;
 	protected final Datapoint dp;
 	final String alarmID;
+	protected final String baseUrl;
 	
 	protected abstract void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus);
@@ -42,10 +43,11 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
 	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
-			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl) {
 		this.appManPlus = appManPlus;
 		this.dp = dp;
 		this.alarmID = alarmID;
+		this.baseUrl = baseUrl;
 		upper = ac.upperLimit().getValue();
 		lower = ac.lowerLimit().getValue();
 		retard = (int) (ac.maxViolationTimeWithoutAlarm().getValue()*60000);
@@ -58,10 +60,11 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	/** This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision*/
 	public AlarmValueListenerBasic(float upper, float lower, int retard, int resendRetard,
 			AlarmConfiguration ac, ValueListenerData vl,
-			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp) {
+			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl) {
 		this.appManPlus = appManPlus;
 		this.dp = dp;
 		this.alarmID = alarmID;
+		this.baseUrl = baseUrl;
 		this.upper = upper;
 		this.lower = lower;
 		this.retard = retard;
@@ -143,14 +146,17 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.lastTimeOfNewData = now;
 	}
 	
+	@Override
 	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
 		String title = alarmID+": "+dp.label(null)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}
-		String message = "Aktueller Wert: "+value+"\r\n"+"  Untere Grenze: "+lower+
-				"\r\n"+"  Obere Grenze: "+upper;
+		String message = "Current value: "+value+"\r\n"+"  Lower limit: "+lower+
+				"\r\n"+"  Upper limit: "+upper;
+		if(baseUrl != null)
+			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(title, message, prio);
@@ -163,7 +169,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			IntegerResource alarmStatus, int alarmValue) {
 		String title = alarmID+": "+dp.label(null)+" : "+ message;
 		if(upper == 1.0f && lower == 1.0f) {
-			title += "(Schalter)";
+			title += "(switch)";
 		}
 		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)

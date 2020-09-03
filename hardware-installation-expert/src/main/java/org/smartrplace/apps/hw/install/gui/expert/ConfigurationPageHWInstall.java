@@ -19,20 +19,26 @@ import java.util.Arrays;
 
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.StringResource;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
+import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
+import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 public class ConfigurationPageHWInstall {
 	//private final WidgetPage<?> page;
 	private final HardwareInstallController controller;
 
+	@SuppressWarnings("serial")
 	public ConfigurationPageHWInstall(final WidgetPage<?> page, final HardwareInstallController app) {
 		
 		//this.page = page;
@@ -45,7 +51,6 @@ public class ConfigurationPageHWInstall {
 		
 		BooleanResourceCheckbox autoTransfer = new BooleanResourceCheckbox(page, "autoTransfer",
 				"", app.appConfigData.autoTransferActivation()) {
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
@@ -59,7 +64,6 @@ public class ConfigurationPageHWInstall {
 		
 		BooleanResourceCheckbox autoApplyTemplate = new BooleanResourceCheckbox(page, "autoApplyTemplate",
 				"", app.appConfigData.autoConfigureNewDevicesBasedOnTemplate()) {
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
@@ -73,7 +77,6 @@ public class ConfigurationPageHWInstall {
 
 		BooleanResourceCheckbox includeInactiveDevices = new BooleanResourceCheckbox(page, "includeInactiveDevices",
 				"", app.appConfigData.includeInactiveDevices()) {
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
@@ -85,6 +88,11 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 
+		LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan.getResourceAccess());
+		StringResource baseUrlRes = gwInfo.gatewayBaseUrl();
+		ResourceTextField<StringResource> baseUrl = new ValueResourceTextField<StringResource>(page,
+				"baseUrlEdit", baseUrlRes);
+		
 		String ipText = IPNetworkHelper.getLocalIPAddress();
 		Label localIP = new Label(page, "localIP", ipText);
 		
@@ -101,6 +109,9 @@ public class ConfigurationPageHWInstall {
 		i++;
 		configTable.setContent(i, 0, "Include inactive devices: This may lead to showing devices in more than one DeviceHandlerProvider").
 		setContent(i, 1, includeInactiveDevices);
+		i++;
+		configTable.setContent(i, 0, "Base URL for access via internet, e.g. https://customer.manufacturer.de:2000").
+		setContent(i, 1, baseUrl);
 		i++;
 		configTable.setContent(i, 0, "Local IP Address:").
 		setContent(i, 1, localIP);

@@ -33,7 +33,8 @@ public class UserAdminBaseUtil {
 	public static Collection<String> BASE_APPS = Arrays.asList(new String[]{"org.ogema.widgets.ogema-js-bundle",
 		"org.ogema.ref-impl.framework-gui",
 		"org.ogema.widgets.widget-experimental",
-		"org.ogema.widgets.widget-collection"});
+		"org.ogema.widgets.widget-collection",
+		"org.smartrplace.internal.user-invitation"});
 	public static Collection<String> GUEST_APPS;
 	static {
 		GUEST_APPS = new ArrayList<String>(BASE_APPS);
@@ -172,8 +173,8 @@ public class UserAdminBaseUtil {
 			return UserStatus.DISPLAY;
 		//if(hasAllPerms(appPermissions, GUEST_APPS))
 		//	return UserStatus.GUEST;
-		//if(hasAllPerms(appPermissions, BASE_APPS))
-		//	return UserStatus.RAW;
+		if(hasAllPerms(appPermissions, BASE_APPS))
+			return UserStatus.PUBLIC;
 		return UserStatus.DISABLED;
 	}
 
@@ -204,6 +205,8 @@ public class UserAdminBaseUtil {
 		//	return getAdditionalPerms(appPermissions, GUEST_APPS);
 		//case RAW:
 		//	return getAdditionalPerms(appPermissions, BASE_APPS);
+		case PUBLIC:
+			return getAdditionalPerms(appPermissions, BASE_APPS);
 		case DISABLED:
 			return appPermissions;
 		}
@@ -243,6 +246,9 @@ public class UserAdminBaseUtil {
 		//	return setPerms(userData, currentUserPerms, GUEST_APPS, additionalPermissionstoMaintain);
 		//case RAW:
 		//	return setPerms(userData, currentUserPerms, BASE_APPS, additionalPermissionstoMaintain);
+		case PUBLIC:
+			return setPerms(userData, currentUserPerms, BASE_APPS, additionalPermissionstoMaintain,
+					appManPlus);
 		case DISABLED:
 			return setPerms(userData, currentUserPerms, Collections.emptyList(), additionalPermissionstoMaintain,
 					appManPlus);
@@ -408,7 +414,7 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		String userLoggedIn = GUIUtilHelper.getUserLoggedIn(req);
 		List<UserAccount> result = new ArrayList<UserAccount>();
 		for(UserAccount ac: appMan.getAdministrationManager().getAllUsers()) {
-			if((ac.getName().equals("master")||ac.getName().equals("guest2")) && (!userLoggedIn.equals("master")))
+			if((ac.getName().equals("master")||ac.getName().equals("guest2")||ac.getName().equals("guest")) && (!userLoggedIn.equals("master")))
 				continue;
 			if(permMan.getAccessManager().isNatural(ac.getName())) {
 				result .add(ac);
@@ -417,7 +423,7 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		return result;
 	}
 	
-	public static List<UserAccount> getAllNaturalUsers(boolean includeMaster, ApplicationManagerPlus appManPlus) {
+	/*public static List<UserAccount> getAllNaturalUsers(boolean includeMaster, ApplicationManagerPlus appManPlus) {
 		List<UserAccount> allUsers = appManPlus.appMan().getAdministrationManager().getAllUsers();
 		List<UserAccount> result = new ArrayList<>();
 		for(UserAccount ac: allUsers) {
@@ -428,5 +434,5 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 			result.add(ac);
 		}
 		return result;
-	}
+	}*/
 }
