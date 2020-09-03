@@ -30,6 +30,8 @@ import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.RSSIPage;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
+import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
+import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -94,6 +96,16 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			controller.mainPageExts.add(new MainPageExpertTrash(trashPage, controller));
 			menu.addEntry("Trash Devices", trashPage);
 			trashPage.getMenuConfiguration().setCustomNavigation(menu);
+			
+			WidgetPage<?> dpropPage = widgetApp.createWidgetPage("driverPropServices.hmtl");
+			new DriverPropertyPageAll(dpropPage, controller);
+			menu.addEntry("DriverProperty Services Overivew", dpropPage);
+			dpropPage.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> propResPage = widgetApp.createWidgetPage("driverPropRes.hmtl");
+			new PropertyPage(propResPage, controller);
+			menu.addEntry("DriverProperties per Resource", propResPage);
+			propResPage.getMenuConfiguration().setCustomNavigation(menu);
 		}
 	};
 	

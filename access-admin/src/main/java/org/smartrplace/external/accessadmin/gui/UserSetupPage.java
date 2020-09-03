@@ -54,7 +54,7 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 	}
 
 	@Override
-	protected String getLabel(AccessConfigUser obj) {
+	protected String getLabel(AccessConfigUser obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 

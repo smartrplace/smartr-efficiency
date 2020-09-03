@@ -229,7 +229,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 
 	@Override
-	protected String getLabel(AlarmConfiguration obj) {
+	protected String getLabel(AlarmConfiguration obj, OgemaHttpRequest req) {
 		//InstallAppDevice dev = ResourceHelper.getFirstParentOfType(obj, InstallAppDevice.class);
 		//if(dev == null)
 		//	return ResourceUtils.getHumanReadableShortName(obj);

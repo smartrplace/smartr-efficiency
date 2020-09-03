@@ -50,7 +50,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 	}
 
 	@Override
-	protected String getLabel(AccessConfigUser obj) {
+	protected String getLabel(AccessConfigUser obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 
@@ -119,7 +119,8 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 	
 	@Override
 	protected void addNameLabel(AccessConfigUser object,
-			ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id, Row row) {
+			ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id, Row row,
+			OgemaHttpRequest req) {
 		vh.valueEdit(getTypeName(null), id, object.name(), row, alert);
 	}
 

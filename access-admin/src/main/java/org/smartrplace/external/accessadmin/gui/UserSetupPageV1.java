@@ -47,7 +47,7 @@ public class UserSetupPageV1 extends ObjectGUITablePageNamed<AccessConfigUser, B
 	}
 
 	@Override
-	protected String getLabel(AccessConfigUser obj) {
+	protected String getLabel(AccessConfigUser obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 
@@ -80,7 +80,8 @@ public class UserSetupPageV1 extends ObjectGUITablePageNamed<AccessConfigUser, B
 	
 	@Override
 	protected void addNameLabel(AccessConfigUser object,
-			ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id, Row row) {
+			ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id, Row row,
+			OgemaHttpRequest req) {
 		vh.valueEdit(getTypeName(null), id, object.name(), row, alert);
 	}
 
@@ -93,6 +94,6 @@ public class UserSetupPageV1 extends ObjectGUITablePageNamed<AccessConfigUser, B
 	@Override
 	public void addWidgets(AccessConfigUser object, ObjectResourceGUIHelper<AccessConfigUser, BooleanResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-		addNameLabel(object, vh, id, row);
+		addNameLabel(object, vh, id, row, req);
 	}
 }

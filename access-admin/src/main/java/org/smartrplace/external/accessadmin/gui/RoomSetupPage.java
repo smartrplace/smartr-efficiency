@@ -54,7 +54,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 	}
 
 	@Override
-	protected String getLabel(RoomGroupTbl obj) {
+	protected String getLabel(RoomGroupTbl obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj.roomGrp);
 	}
 
@@ -115,7 +115,8 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 	
 	@Override
 	protected void addNameLabel(RoomGroupTbl object,
-			ObjectResourceGUIHelper<RoomGroupTbl, BooleanResource> vh, String id, Row row) {
+			ObjectResourceGUIHelper<RoomGroupTbl, BooleanResource> vh, String id, Row row,
+			OgemaHttpRequest req) {
 		vh.valueEdit(getTypeName(null), id, object.roomGrp.name(), row, alert);
 	}
 
@@ -142,7 +143,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 	@Override
 	public void addWidgets(RoomGroupTbl object, ObjectResourceGUIHelper<RoomGroupTbl, BooleanResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-		addNameLabel(object, vh, id, row);
+		addNameLabel(object, vh, id, row, req);
 		GUIHelperExtension.addDeleteButton(null, object.roomGrp, mainTable, id, alert, row,
 				vh, req);
 	}

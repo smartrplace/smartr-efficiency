@@ -56,7 +56,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 	}
 
 	@Override
-	protected String getLabel(RoomTbl obj) {
+	protected String getLabel(RoomTbl obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj.room);
 	}
 

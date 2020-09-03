@@ -195,6 +195,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srElecConn != null) srElecConn.unregister();
     	if (srSwBox != null) srSwBox.unregister();
     	if (srPv != null) srPv.unregister();
+    	if (srGhl != null) srGhl.unregister();
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
     	if (srThermostat != null) srThermostat.unregister();

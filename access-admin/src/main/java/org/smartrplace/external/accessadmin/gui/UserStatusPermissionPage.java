@@ -87,7 +87,7 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 	}
 
 	@Override
-	protected String getLabel(UserStatus obj) {
+	protected String getLabel(UserStatus obj, OgemaHttpRequest req) {
 		return UserStatus.getLabel(obj, null);
 	}
 

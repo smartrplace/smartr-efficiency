@@ -129,7 +129,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	}
 
 	@Override
-	protected String getLabel(Room obj) {
+	protected String getLabel(Room obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 

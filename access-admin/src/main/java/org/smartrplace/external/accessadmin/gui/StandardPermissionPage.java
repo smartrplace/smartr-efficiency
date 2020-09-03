@@ -69,7 +69,7 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 	public void addWidgets(T object, ObjectResourceGUIHelper<T, BooleanResource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		//TODO: The type name and the permissions labels should depend on locale
-		addNameLabel(object, vh, id, row);
+		addNameLabel(object, vh, id, row, req);
 		for(String label: getPermissionNames()) {
 			if(req == null) {
 				vh.registerHeaderEntry(label);

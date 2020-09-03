@@ -36,6 +36,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -78,6 +79,26 @@ public class HardwareInstallController {
 	public ResourceList<DataLogTransferInfo> datalogs;
 	//WidgetApp widgetApp;
 
+	//OGEMADriverPropertyService administration
+	// Resource location -> services that have added at least one property to the resource
+	public Map<String, Set<OGEMADriverPropertyService<?>>> knownResources = new HashMap<>();
+	// Service -> Resource locations for which the service added at least one property to the resource
+	public Map<OGEMADriverPropertyService<?>, Set<String>> usedServices = new HashMap<>();
+	public <R extends Resource> void addPropServiceEntry(R res, OGEMADriverPropertyService<R> object) {
+		Set<OGEMADriverPropertyService<?>> services = knownResources.get(res.getLocation());
+		if(services == null) {
+			services = new HashSet<>();
+			knownResources.put(res.getLocation(), services);
+		}
+		services.add(object);
+		Set<String> ress = usedServices.get(object);
+		if(ress == null) {
+			ress = new HashSet<>();
+			usedServices.put(object, ress);
+		}
+		ress.add(res.getLocation());
+	}
+	
 	public HardwareInstallController(ApplicationManager appMan, WidgetPage<?> page, HardwareInstallApp hardwareInstallApp,
 			DatapointService dpService) {
 		this.appMan = appMan;
@@ -478,5 +499,4 @@ public class HardwareInstallController {
 		}
 		return null;
 	}
-
 }

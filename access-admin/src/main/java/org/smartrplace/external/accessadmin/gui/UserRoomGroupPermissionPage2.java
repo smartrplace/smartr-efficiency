@@ -63,7 +63,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 	}
 
 	@Override
-	protected String getLabel(AccessConfigUser obj) {
+	protected String getLabel(AccessConfigUser obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 
