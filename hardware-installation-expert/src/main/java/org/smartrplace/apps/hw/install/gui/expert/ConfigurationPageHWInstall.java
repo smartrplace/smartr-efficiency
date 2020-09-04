@@ -96,7 +96,7 @@ public class ConfigurationPageHWInstall {
 		String ipText = IPNetworkHelper.getLocalIPAddress();
 		Label localIP = new Label(page, "localIP", ipText);
 		
-		StaticTable configTable = new StaticTable(5, 2);
+		StaticTable configTable = new StaticTable(6, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
