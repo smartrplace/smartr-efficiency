@@ -12,7 +12,6 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService.AccessAvailability;
-import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
@@ -27,7 +26,7 @@ import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 
-public class PropertyPage extends ObjectGUITablePage<PropertyData, PhysicalElement> {
+public class PropertyPage extends ObjectGUITablePage<PropertyData, Resource> {
 	public static final long UPDATE_RATE = 4000;
 	private final HardwareInstallController app;
 	private ResourceDropdown<Resource> deviceDrop;
@@ -44,7 +43,7 @@ public class PropertyPage extends ObjectGUITablePage<PropertyData, PhysicalEleme
 	}
 
 	@Override
-	public void addWidgets(final PropertyData object, ObjectResourceGUIHelper<PropertyData, PhysicalElement> vh, String id,
+	public void addWidgets(final PropertyData object, ObjectResourceGUIHelper<PropertyData, Resource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		vh.stringLabel("Name", id, object.propertyName, row);
 		Label valueLabel = vh.stringLabel("Value", id, object.propertyValue, row);
@@ -167,7 +166,7 @@ public class PropertyPage extends ObjectGUITablePage<PropertyData, PhysicalEleme
 	}
 
 	@Override
-	public PhysicalElement getResource(PropertyData object, OgemaHttpRequest req) {
+	public Resource getResource(PropertyData object, OgemaHttpRequest req) {
 		return appMan.getResourceAccess().getResource(object.dataPointResourceLocation);
 	}
 	
