@@ -121,7 +121,9 @@ public class UserRegisterHelper {
 					String userName = textLoginName.getValue(req);
 					boolean hasEmail = isValidEmail(userName);
 					String name = textFullUserName.getValue(req);
+					System.out.println("User to be created :"+userName+" (in onOK)");
 					UserAccount data = userBuilder.addUser(userName, textPw.getValue(req), false);
+					System.out.println("User account adUser finished :"+userName+" (in onOK)");
 					if(data == null) {
 						alert.showAlert("User name "+name+" could not be created, maybe already exists!", false, req);
 						return;
@@ -132,6 +134,7 @@ public class UserRegisterHelper {
                     if (cbSendInvite.isChecked("sendInvite", req) && hasEmail) {
                         data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
                     }
+					System.out.println("User account propertySetting finished :"+userName+" (in onOK)");
 					if(newUserHandler != null) newUserHandler.newUserCreated(data, name, req);
 					
 					if(hasPrimaryRoomOptions) {
@@ -143,20 +146,8 @@ public class UserRegisterHelper {
 		        		UserPermissionUtil.addPermission(sel.getLocation(),
 		        				UserPermissionService.USER_PRIORITY_PERM, accessConfig.roompermissionData());
 					}
+					System.out.println("User account primary Room Setting finished :"+userName+" (in onOK)");
 					
-					//alert.showAlert("New user "+userName+" created. Please log out and login as the new user. "
-					//		+ "This will be done automatically in the future (if not already available).",
-					//		true, 60*60000, req);
-
-					// XXX: Problem: If we were to just invalidate the session
-					// right here, the GET to the alert would fail as it is
-					// executed after the session invalidation.  With this
-					// workaround, chances are the user will see the alert and
-					// then get their session invalidated.  This is still far
-					// from ideal though.
-					//req.getReq().getSession().setMaxInactiveInterval(1);
-					//req.getReq().getSession().invalidate();
-
 					//finally we should log out here ?
 				} catch(Exception e) {
 					e.printStackTrace();
