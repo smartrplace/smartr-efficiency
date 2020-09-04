@@ -50,6 +50,7 @@ import org.smartrplace.apps.hw.install.devicetypes.InitialConfig;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
+import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -97,6 +98,26 @@ public class HardwareInstallController {
 			usedServices.put(object, ress);
 		}
 		ress.add(res.getLocation());
+	}
+	public <T extends Resource> void initKnownResources(OGEMADriverPropertyService<T> dPropService) {
+		List<T> ress = DriverPropertyUtils.getResourcesWithProperties(appMan, dPropService.getDataPointResourceType());
+
+		Set<String> existing = usedServices.get(dPropService);
+		if(existing == null) {
+			existing = new HashSet<>();
+			usedServices.put(dPropService, existing);
+		}
+		for(T res: ress) {
+			Set<OGEMADriverPropertyService<?>> services = knownResources.get(res.getLocation());
+			if(services == null) {
+				services = new HashSet<>();
+				knownResources.put(res.getLocation(), services);
+			}
+			services.add(dPropService);
+
+			existing.add(res.getLocation());
+		}
+		
 	}
 	
 	public HardwareInstallController(ApplicationManager appMan, WidgetPage<?> page, HardwareInstallApp hardwareInstallApp,

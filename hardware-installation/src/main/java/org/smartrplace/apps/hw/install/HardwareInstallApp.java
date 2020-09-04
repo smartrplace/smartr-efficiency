@@ -138,6 +138,9 @@ public class HardwareInstallApp implements Application {
 			for(DeviceHandlerProvider<?> tableP: tableProviders.values()) {
 	    		controller.startSimulations(tableP);			
 			}
+			for(OGEMADriverPropertyService<?> dPProv: dPropertyProviders.values()) {
+	    		controller.initKnownResources(dPProv);			
+			}
 			controllerProvider.setController(controller);
 		}
      }
@@ -206,6 +209,8 @@ public class HardwareInstallApp implements Application {
     
     protected void addDriverPropertyProvider(OGEMADriverPropertyService<?>  provider) {
     	dPropertyProviders.put(provider.getClass().getName(), provider);
+    	if(controller != null)
+    		controller.initKnownResources(provider);
     }
     protected void removeDriverPropertyProvider(OGEMADriverPropertyService<?> provider) {
     	dPropertyProviders.remove(provider.getClass().getName());
