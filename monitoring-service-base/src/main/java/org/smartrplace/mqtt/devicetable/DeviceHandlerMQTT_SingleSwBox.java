@@ -71,10 +71,10 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 				Label power = vh.floatLabel("Power", id, box.electricityConnection().powerSensor().reading(), row, "%.1f");
 				Label lastPower = addLastContact("Last Power", vh, "LPower"+id, req, row, box.electricityConnection().powerSensor().reading());
 				
-				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
-				addInstallationStatus(object, vh, id, req, row, appMan, deviceRoom);
-				addComment(object, vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+				addSubLocation(object, vh, id, req, row);
+				addInstallationStatus(object, vh, id, req, row);
+				addComment(object, vh, id, req, row);
 
 				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 				

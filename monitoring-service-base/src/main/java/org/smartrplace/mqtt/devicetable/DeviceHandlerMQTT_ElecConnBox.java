@@ -66,10 +66,10 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 					}
 				}
 
-				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
-				addInstallationStatus(object, vh, id, req, row, appMan, deviceRoom);
-				addComment(object, vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+				addSubLocation(object, vh, id, req, row);
+				addInstallationStatus(object, vh, id, req, row);
+				addComment(object, vh, id, req, row);
 
 				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}
@@ -95,7 +95,7 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 						id, c.voltageSensor().reading(), row, "%.1f");
 				Label power = vh.floatLabel("Power", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 						id, c.powerSensor().reading(), row, "%.1f");
-				Label lastContact = addLastContact(null, vh, id, req, row, appMan, null,
+				Label lastContact = addLastContact(vh, id, req, row,
 							c.voltageSensor().reading());
 				if (req != null) {
 					voltage.setPollingInterval(DEFAULT_POLL_RATE, req);

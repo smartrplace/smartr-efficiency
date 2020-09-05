@@ -68,16 +68,16 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 				if(sampleSensor != null) {
 					Label value = vh.floatLabel("Sensor value (" + ResourceUtils.getHumanReadableShortName(sampleSensor) + ")",
 								id, reading, row, "%.1f");
-					Label lastContact = addLastContact(object, vh, id, req, row, appMan, deviceRoom, reading);
+					Label lastContact = addLastContact(vh, id, req, row, reading);
 					if (req != null) {
 						value.setPollingInterval(DEFAULT_POLL_RATE, req);
 						lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
 				}
-				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
-				addInstallationStatus(object, vh, id, req, row, appMan, deviceRoom);
-				addComment(object, vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+				addSubLocation(object, vh, id, req, row);
+				addInstallationStatus(object, vh, id, req, row);
+				addComment(object, vh, id, req, row);
 
 				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}

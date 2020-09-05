@@ -58,15 +58,15 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 				if(sampleSensor != null) {
 					Label value = vh.floatLabel("Power",
 								id, reading, row, "%.1f");
-					Label lastContact = addLastContact(object, vh, id, req, row, appMan, null, reading);
+					Label lastContact = addLastContact(vh, id, req, row, reading);
 					if (req != null) {
 						value.setPollingInterval(DEFAULT_POLL_RATE, req);
 						lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
 				}
-				addInstallationStatus(object, vh, id, req, row, appMan, null);
-				addComment(object, vh, id, req, row, appMan, null);
-				addSubLocation(object, vh, id, req, row, appMan, null);
+				addSubLocation(object, vh, id, req, row);
+				addInstallationStatus(object, vh, id, req, row);
+				addComment(object, vh, id, req, row);
 
 				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}

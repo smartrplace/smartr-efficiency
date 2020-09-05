@@ -86,16 +86,16 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 				
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Room deviceRoom = device.location().room();
-				Label lastContact = addLastContact(object, vh, id, req, row, appMan, deviceRoom,  device.temperatureSensor().reading());
-				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
+				Label lastContact = addLastContact(vh, id, req, row, device.temperatureSensor().reading());
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+				addSubLocation(object, vh, id, req, row);
+				addInstallationStatus(object, vh, id, req, row);
+				addComment(object, vh, id, req, row);
 				if(req != null) {
 					tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
 					setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
-				addInstallationStatus(object, vh, id, req, row, appMan, deviceRoom);
-				addComment(object, vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
 
 				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
 			}

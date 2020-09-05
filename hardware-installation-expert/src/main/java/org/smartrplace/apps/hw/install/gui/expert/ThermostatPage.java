@@ -105,8 +105,8 @@ public class ThermostatPage extends MainPage {
 				
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device.location().room();
-				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
-			 	addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+			 	addSubLocation(object, vh, id, req, row);
 				if(req != null) {
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);

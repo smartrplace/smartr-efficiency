@@ -59,8 +59,8 @@ public class BatteryPage extends MainPage {
 				else if(statusLab != null)
 					lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
 				Room deviceRoom = device2.location().room();
-				addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
-			 	addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+			 	addSubLocation(object, vh, id, req, row);
 				if(req != null) {
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);

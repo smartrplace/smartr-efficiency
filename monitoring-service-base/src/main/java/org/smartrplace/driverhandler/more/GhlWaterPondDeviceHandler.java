@@ -2,9 +2,7 @@ package org.smartrplace.driverhandler.more;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -100,19 +98,12 @@ public class GhlWaterPondDeviceHandler extends DeviceHandlerBase<GhlWaterPond> {
 						lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 
 						Room deviceRoom = device.readings().getSubResource("pH_Wert_1", PondSensorReading.class).location().room();
-						addRoomWidget(object, vh, id, req, row, appMan, deviceRoom);
-					 	addSubLocation(object, vh, id, req, row, appMan, deviceRoom);
+						addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+						addSubLocation(object, vh, id, req, row);
 					}
 				}
-				Map<String, String> valuesToSet = new HashMap<>();
-				valuesToSet.put("0", "unknown");
-				valuesToSet.put("1", "Device installed physically");
-				valuesToSet.put("10", "Physical installation done including all on-site tests");
-				valuesToSet.put("20", "All configuration finished, device is in full operation");
-				valuesToSet.put("-10", "Error in physical installation and/or testing (explain in comment)");
-				valuesToSet.put("-20", "Error in configuration, device cannot be used/requires action for real usage");
-				vh.dropdown("Status", id, object.installationStatus(), row, valuesToSet );
-				vh.stringEdit("Comment", id, object.installationComment(), row, alert);
+				addInstallationStatus(object, vh, id, req, row);
+				addComment(object, vh, id, req, row);
 				
 				return device;
 			}

@@ -448,10 +448,10 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 					return;
 				PhysicalElement device = (PhysicalElement) addNameWidgetRaw(object.installAppDevice, vh, id, req, row, appMan);
 				Room deviceRoom = device.location().room();
-				addRoomWidget(object.installAppDevice, vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object.installAppDevice, vh, id, req, row, appMan, deviceRoom);
-				addInstallationStatus(object.installAppDevice, vh, id, req, row, appMan, deviceRoom);
-				addComment(object.installAppDevice, vh, id, req, row, appMan, deviceRoom);
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+				addSubLocation(object.installAppDevice, vh, id, req, row);
+				addInstallationStatus(object.installAppDevice, vh, id, req, row);
+				addComment(object.installAppDevice, vh, id, req, row);
 			}
 			
 			@Override
