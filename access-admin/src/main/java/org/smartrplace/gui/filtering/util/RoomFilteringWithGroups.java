@@ -3,6 +3,7 @@ package org.smartrplace.gui.filtering.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.model.locations.BuildingPropertyUnit;
@@ -18,13 +19,15 @@ public abstract class RoomFilteringWithGroups<T> extends RoomFilteringByType<T> 
 	private static final long serialVersionUID = 1L;
 	protected final ResourceList<BuildingPropertyUnit> roomGroups;
 	protected final boolean includeTypes;
+	protected final ApplicationManager appMan;
 	
 	public RoomFilteringWithGroups(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
 			long updateChoicesRate, ResourceList<BuildingPropertyUnit> roomGroups,
-			boolean includeTypes) {
+			boolean includeTypes, ApplicationManager appMan) {
 		super(page, id, saveOptionMode, updateChoicesRate);
 		this.roomGroups = roomGroups;
 		this.includeTypes = includeTypes;
+		this.appMan = appMan;
 	}
 
 	@Override
@@ -46,5 +49,10 @@ public abstract class RoomFilteringWithGroups<T> extends RoomFilteringByType<T> 
 			result.add(other);
 		}
 		return result;
+	}
+	
+	@Override
+	protected long getFrameworkTime() {
+		return appMan.getFrameworkTime();
 	}
 }

@@ -60,7 +60,7 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 			return "Hardware Driver Configuration";
 		}
 	@Override
-	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand) {
+	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
 		List<InstallAppDevice> all = controller.getDevices(devHand);
 		all = roomsDrop.getDevicesSelected(all);
 		if (installFilterDrop != null)  // FIXME seems to always be null here

@@ -412,7 +412,7 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 				for(DriverDeviceConfig devIn: all) {
 					DriverConfigMQTTBroker dev = (DriverConfigMQTTBroker) devIn;
 					boolean found = false;
-					for(InstallAppDevice inst: selector.getDevicesSelected(null)) {
+					for(InstallAppDevice inst: selector.getDevicesSelected(null, req)) {
 						if(inst.device().equalsLocation(dev.deviceRes)) {
 							dev.installAppDevice = inst;
 							result.add(dev);

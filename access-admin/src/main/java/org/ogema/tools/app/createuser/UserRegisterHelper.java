@@ -156,6 +156,7 @@ public class UserRegisterHelper {
 			}
 		};
 		addUserPop.okButton.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		addUserPop.okButton.setDefaultText("Create (be patient)");
 		page.append(addUserPop);
 		return addUserPop;
 	}

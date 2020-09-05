@@ -8,6 +8,7 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public class MainPageExpertTrash extends MainPageExpert {
 
@@ -21,17 +22,18 @@ public class MainPageExpertTrash extends MainPageExpert {
 	}
 
 	@Override
-	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand) {
+	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
 		List<InstallAppDevice> all = controller.getDevices(devHand, true, true);
-		all = roomsDrop.getDevicesSelected(all);
+		/*all = roomsDrop.getDevicesSelected(all, req);
 		if (installFilterDrop != null)  // FIXME seems to always be null here
-			all = installFilterDrop.getDevicesSelected(all);
+			all = installFilterDrop.getDevicesSelected(all, req);*/
 		List<InstallAppDevice> allTrash = new ArrayList<>();
 		for(InstallAppDevice dev: all) {
 			if(dev.isTrash().getValue())
 				allTrash.add(dev);
 		}
-		return allTrash;
+		return finalFilter.getFiltered(allTrash, req);
+		//return allTrash;
 	}
 	
 	protected String getTrashConfirmation(InstallAppDevice object) {

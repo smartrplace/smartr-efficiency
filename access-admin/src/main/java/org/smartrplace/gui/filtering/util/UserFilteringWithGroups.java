@@ -13,7 +13,7 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
-public class UserFilteringWithGroups<T> extends UserFilteringBase<T> {
+public abstract class UserFilteringWithGroups<T> extends UserFilteringBase<T> {
 	private static final long serialVersionUID = 1L;
 
 	public UserFilteringWithGroups(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,

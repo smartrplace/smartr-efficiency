@@ -46,9 +46,6 @@ public abstract class RoomFilteringByType<T> extends SingleFiltering<Room, T> {
 	}
 
 	@Override
-	protected abstract Room getAttribute(T object);
-	
-	@Override
 	protected List<GenericFilterOption<Room>> getOptionsDynamic(OgemaHttpRequest req) {
 		//see RoomHelper.getRoomTypeKeys();
 		List<GenericFilterOption<Room>> result = new ArrayList<>();

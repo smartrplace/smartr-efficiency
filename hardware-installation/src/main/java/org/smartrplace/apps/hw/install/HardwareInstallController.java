@@ -51,6 +51,7 @@ import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
+import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -67,6 +68,7 @@ public class HardwareInstallController {
     public final DatapointService dpService;
 
 	public HardwareInstallConfig appConfigData;
+	public final AccessAdminConfig accessAdminConfigRes;
 	public final HardwareInstallApp hwInstApp;
 	
 	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
@@ -131,6 +133,8 @@ public class HardwareInstallController {
 		this.appManPlus = new ApplicationManagerPlus(appMan);
 		this.appManPlus.setDpService(dpService);
 		
+		this.accessAdminConfigRes = appMan.getResourceAccess().getResource("accessAdminConfig");
+				
 		initConfigurationResource();
 		cleanupOnStart();
 		mainPage = getMainPage(page);

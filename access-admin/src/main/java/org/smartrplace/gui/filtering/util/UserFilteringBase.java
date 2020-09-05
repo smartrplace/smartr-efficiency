@@ -18,7 +18,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
-public class UserFilteringBase<T> extends SingleFiltering<String, T> {
+public abstract class UserFilteringBase<T> extends SingleFiltering<String, T> {
 	private static final long serialVersionUID = 1L;
 	//TODO: Add this as constructor parameter
 	public static final long UPDATE_RATE = 5000;

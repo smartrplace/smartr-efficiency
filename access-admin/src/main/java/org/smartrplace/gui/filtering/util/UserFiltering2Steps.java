@@ -19,7 +19,7 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
-public class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessConfigUser, T> {
+public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessConfigUser, T> {
 	private static final long serialVersionUID = 1L;
 	//protected final AccessAdminController controller;
 	protected final ApplicationManagerPlus appManPlus;

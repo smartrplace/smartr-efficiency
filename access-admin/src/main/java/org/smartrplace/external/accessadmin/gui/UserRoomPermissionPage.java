@@ -27,6 +27,7 @@ import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
+@SuppressWarnings("serial")
 public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter<RoomTbl> {
 	//protected final AccessAdminController controller;
 	protected final AccessAdminConfig appConfigData;
@@ -94,9 +95,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(1, 5);
 		roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
-				OptionSavingMode.PER_USER, TimeProcUtil.HOUR_MILLIS, appConfigData.roomGroups(), false) {
-			private static final long serialVersionUID = 1L;
-
+				OptionSavingMode.PER_USER, TimeProcUtil.HOUR_MILLIS, appConfigData.roomGroups(), false, appMan) {
 			@Override
 			protected Room getAttribute(Room object) {
 				return object;
@@ -105,7 +104,14 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		//userFilter = new UserFilteringWithGroups<Room>(page, "userFilter",
 		//		OptionSavingMode.GENERAL, 5000, controller);
 		userFilter = new UserFiltering2Steps<Room>(page, "userFilter",
-				OptionSavingMode.GENERAL, 5000, appConfigData, appManPlus);
+				OptionSavingMode.GENERAL, 5000, appConfigData, appManPlus) {
+
+					@Override
+					protected String getAttribute(Room object) {
+						throw new IllegalStateException("GetAttribute should never be called on this UserFiltering! This does not really filter for room(s)...");
+					}
+			
+		};
 		
 		/*Button addRoomGroup = new Button(page, "addRoomGroup", "Add Room Group") {
 			private static final long serialVersionUID = 1L;
