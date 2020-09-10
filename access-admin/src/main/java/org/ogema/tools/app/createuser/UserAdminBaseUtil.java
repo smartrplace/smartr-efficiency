@@ -414,12 +414,31 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 	}
 	public static List<UserAccount> getNaturalUsers(ApplicationManager appMan, PermissionManager permMan,
 			OgemaHttpRequest req) {
-		String userLoggedIn = GUIUtilHelper.getUserLoggedIn(req);
+		final boolean showMasterUsers;
+		if(req == null)
+			showMasterUsers = true;
+		else {
+			String userLoggedIn = GUIUtilHelper.getUserLoggedIn(req);
+			showMasterUsers = userLoggedIn.equals("master");
+		}
 		List<UserAccount> result = new ArrayList<UserAccount>();
 		for(UserAccount ac: appMan.getAdministrationManager().getAllUsers()) {
-			if((ac.getName().equals("master")||ac.getName().equals("guest2")||ac.getName().equals("guest")) && (!userLoggedIn.equals("master")))
+			if((ac.getName().equals("master")||ac.getName().equals("guest2")||ac.getName().equals("guest")) && (!showMasterUsers))
 				continue;
 			if(permMan.getAccessManager().isNatural(ac.getName())) {
+				result .add(ac);
+			}
+		}
+		return result;
+	}
+	public static List<UserAccount> getRESTUsers(ApplicationManagerPlus appManPlus) {
+		return getRESTUsers(appManPlus.appMan(), appManPlus.permMan());
+	}
+	public static List<UserAccount> getRESTUsers(ApplicationManager appMan, PermissionManager permMan) {
+		//String userLoggedIn = GUIUtilHelper.getUserLoggedIn(req);
+		List<UserAccount> result = new ArrayList<UserAccount>();
+		for(UserAccount ac: appMan.getAdministrationManager().getAllUsers()) {
+			if(!permMan.getAccessManager().isNatural(ac.getName())) {
 				result .add(ac);
 			}
 		}
