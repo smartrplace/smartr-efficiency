@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -47,18 +49,18 @@ public class UserAdminBaseUtil {
 		
 	}
 
-	protected static void addGeneralUserApps(List<String> result) {
+	protected static void addGeneralUserApps(Collection<String> result) {
 		result.add("org.smartrplace.apps.overview-src");		
 	}
 	
 	public static Collection<String> USER_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
-		List<String> result = getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
+		Collection<String> result = getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
 		addGeneralUserApps(result);
 		return result;
 	}
 
 	public static Collection<String> SECRETARY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
-		List<String> result = getPermissionsCoordinates(UserStatus.SECRETARY, userPermService, useWorkingCopy);
+		Collection<String> result = getPermissionsCoordinates(UserStatus.SECRETARY, userPermService, useWorkingCopy);
 		addGeneralUserApps(result);
 		//Just to identify the user level, has no GUI
 		result.add("org.smartrplace.api.smartr-efficiency-api");
@@ -66,7 +68,7 @@ public class UserAdminBaseUtil {
 	}
 
 	public static Collection<String> ADMIN_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
-		List<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService, useWorkingCopy);
+		Collection<String> result = getPermissionsCoordinates(UserStatus.ADMIN, userPermService, useWorkingCopy);
 		addGeneralUserApps(result);
 		//Just to identify the user level, has no GUI
 		result.add("org.smartrplace.apps.smartr-efficiency-util");
@@ -74,7 +76,7 @@ public class UserAdminBaseUtil {
 	}
 	
 	public static Collection<String> SUPERADMIN_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
-		List<String> result = getPermissionsCoordinates(UserStatus.SUPERADMIN, userPermService, useWorkingCopy);
+		Collection<String> result = getPermissionsCoordinates(UserStatus.SUPERADMIN, userPermService, useWorkingCopy);
 		addGeneralUserApps(result);
 		result.add("org.ogema.ref-impl.framework-administration");
 		result.add("org.ogema.messaging.message-settings");
@@ -84,9 +86,9 @@ public class UserAdminBaseUtil {
 		return result;
 		
 	};
-	protected static List<String> getPermissionsCoordinates(UserStatus status,
+	protected static Collection<String> getPermissionsCoordinates(UserStatus status,
 			UserPermissionService userPermService, boolean useWorkingCopy) {
-		List<String> result = new ArrayList<>(GUEST_APPS);
+		Set<String> result = new HashSet<>(GUEST_APPS); //new ArrayList<>(GUEST_APPS);
 		for(String permType: UserPermissionService.APP_ACCESS_PERMISSIONS) {
 			int hasPerm = userPermService.getUserStatusAppPermission(status, permType,
 					useWorkingCopy);
@@ -118,6 +120,7 @@ public class UserAdminBaseUtil {
 				result.add("org.smartrplace.drivers.bacnet-ogema-sp-gui");
 				break;
 			case UserPermissionService.GROUP_AND_PERMISSION_MANAGEMENT:
+				result.add("org.smartrplace.apps.smartrplace-heatcontrol-v2");
 				result.add("org.smartrplace.apps.access-admin");
 				break;
 			case UserPermissionService.APPSTORE:

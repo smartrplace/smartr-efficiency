@@ -117,7 +117,7 @@ public class DeviceTypePage extends MainPage {
 		};
 		applyAndCommitButton.setDefaultConfirmMsg("Really apply settings of template"+
 								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!");
-		applyAndCommitButton.setDefaultText("Apply template");
+		applyAndCommitButton.setDefaultText("Apply template and Commit (Restart)");
 		applyAndCommitButton.registerDependentWidget(alert);
 
 		StaticTable secondTable = new StaticTable(1, 4);

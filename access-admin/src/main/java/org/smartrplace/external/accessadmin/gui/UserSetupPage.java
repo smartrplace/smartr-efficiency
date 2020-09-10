@@ -29,7 +29,7 @@ import de.iwes.widgets.html.form.button.Button;
 
 @SuppressWarnings("serial")
 public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, BooleanResource> {
-	protected static final String USER_GROUP_MAPPING_LINK = "/de/iwes/ogema/apps/logtransfermodus/index.html";
+	protected static final String USER_ADMINISTRATION_LINK = "/de/iwes/ogema/apps/useradminsp/index.html";
 
 	//protected final SPSystemBaseMgmtController controller;
 	protected final AccessAdminConfig appConfigData;
@@ -85,7 +85,7 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 	    	public void onGET(OgemaHttpRequest req) {
 	    		String text = "Change the label of user attributes here. User types are defined in the User Administration, these"
 	    				+ " labels cannot be edited. The mapping of individual users to the attributes can be set on the page "
-	    				+ "<a href=\"" + USER_GROUP_MAPPING_LINK + "\"><b>User Administration</b></a>.";
+	    				+ "<a href=\"" + USER_ADMINISTRATION_LINK + "\"><b>User Administration</b></a>.";
 				setHtml(text, req);
 	    		allowDismiss(true, req);
 	    		autoDismiss(-1, req);

@@ -95,7 +95,9 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(1, 5);
 		roomFilter = new RoomFilteringWithGroups<Room>(page, "roomFilter",
-				OptionSavingMode.PER_USER, TimeProcUtil.HOUR_MILLIS, appConfigData.roomGroups(), false, appMan) {
+				OptionSavingMode.PER_USER,
+				10000, //TimeProcUtil.HOUR_MILLIS,
+				appConfigData.roomGroups(), false, appMan) {
 			@Override
 			protected Room getAttribute(Room object) {
 				return object;

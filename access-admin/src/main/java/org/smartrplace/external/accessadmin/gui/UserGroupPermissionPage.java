@@ -94,7 +94,7 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 		//roomFilter.registerDependentWidget(mainTable);
 		//userFilter.registerDependentWidget(mainTable);
 		RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
-				"/de/iwes/ogema/apps/logtransfermodus/index.html");
+				UserSetupPage.USER_ADMINISTRATION_LINK);
 		
 		//topTable.setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
 		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
