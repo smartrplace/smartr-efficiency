@@ -226,7 +226,6 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	}
 
 	protected GenericFloatSensor registerAsVirtualSensor(DatapointImpl dp, String sensorDeviceName) {
-		@SuppressWarnings("deprecation")
 		EvalCollection ec = EvalHelper.getEvalCollection(appMan);
 		String devName;
 		if(sensorDeviceName == null)
@@ -430,14 +429,18 @@ public abstract class DatapointServiceImpl implements DatapointService {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	//TODO: Current implementation supports only a single DeviceHandlerProvider per type
 	public <T extends Resource> DeviceHandlerProviderDP<T> getDeviceHandlerProvider(
 			InstallAppDevice installAppDeviceRes) {
-		Class<? extends Resource> deviceType = installAppDeviceRes.device().getResourceType();
+		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
+			if(prov.id().equals(installAppDeviceRes.devHandlerInfo().getValue()))
+				return (DeviceHandlerProviderDP<T>) prov;
+		}
+		
+		/*Class<? extends Resource> deviceType = installAppDeviceRes.device().getResourceType();
 		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
 			if(prov.getResourceType().isAssignableFrom(deviceType))
 				return (DeviceHandlerProviderDP<T>) prov;
-		}
+		}*/
 		return null;
 	}
 

@@ -17,6 +17,7 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
+import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -46,6 +47,13 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addTableProvider",
 		unbind="removeTableProvider"),
+	@Reference(
+		name="propertyServices",
+		referenceInterface=OGEMADriverPropertyService.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addDriverPropertyProvider",
+		unbind="removeDriverPropertyProvider")
 })
 
 @Component(specVersion = "1.2", immediate = true)
@@ -75,6 +83,13 @@ public class MonitoringServiceBaseApp implements Application {
 	public Map<String, DeviceHandlerProvider<?>> getTableProviders() {
 		synchronized (tableProviders) {
 			return new LinkedHashMap<>(tableProviders);
+		}
+	}
+
+	private final Map<String,OGEMADriverPropertyService<?>> dPropertyProviders = Collections.synchronizedMap(new LinkedHashMap<String,OGEMADriverPropertyService<?>>());
+	public LinkedHashMap<String, OGEMADriverPropertyService<?>> getDPropertyProviders() {
+		synchronized (dPropertyProviders) {
+			return new LinkedHashMap<>(dPropertyProviders);
 		}
 	}
 
@@ -143,6 +158,11 @@ public class MonitoringServiceBaseApp implements Application {
 			@Override
 			protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
 				return MonitoringServiceBaseApp.this.getTableProviders();
+			}
+			
+			@Override
+			public Map<String, OGEMADriverPropertyService<?>> driverpropertyServices() {
+				return MonitoringServiceBaseApp.this.getDPropertyProviders();
 			}
 		   
 	   };
@@ -216,4 +236,12 @@ public class MonitoringServiceBaseApp implements Application {
     protected void removeTableProvider(DeviceHandlerProvider<?> provider) {
     	tableProviders.remove(provider.id());
     }
+    
+    protected void addDriverPropertyProvider(OGEMADriverPropertyService<?>  provider) {
+    	dPropertyProviders.put(provider.id(), provider);
+    }
+    protected void removeDriverPropertyProvider(OGEMADriverPropertyService<?> provider) {
+    	dPropertyProviders.remove(provider.id());
+    }
+
 }

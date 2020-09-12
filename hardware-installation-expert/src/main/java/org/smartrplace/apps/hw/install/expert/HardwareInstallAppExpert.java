@@ -27,6 +27,7 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
+import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.RSSIPage;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
@@ -106,6 +107,12 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			new PropertyPage(propResPage, controller);
 			menu.addEntry("DriverProperties per Resource", propResPage);
 			propResPage.getMenuConfiguration().setCustomNavigation(menu);
+			
+			WidgetPage<?> propDevicePage = widgetApp.createWidgetPage("deviceProperties.hmtl");
+			controller.mainPageExts.add(new MainPageExpertProps(propDevicePage, controller));
+			menu.addEntry("Device Setup and Installation with Properties",propDevicePage);
+			propDevicePage.getMenuConfiguration().setCustomNavigation(menu);
+
 		}
 	};
 	

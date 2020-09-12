@@ -39,12 +39,14 @@ public class DriverPropertyPageAll extends ObjectGUITablePageNamed<OGEMADriverPr
 			Row row, final ApplicationManager appMan) {
 		addNameLabel(object, vh, id, row, req);
 		if(req == null) {
+			vh.registerHeaderEntry("ID");
 			vh.registerHeaderEntry("Type");
 			vh.registerHeaderEntry("Started");
 			vh.registerHeaderEntry("Known resources");
 			vh.registerHeaderEntry("Update resource tree");
 			return;
 		}
+		vh.stringLabel("ID", id, object.id(), row);
 		vh.stringLabel("Type", id, object.getDataPointResourceType().getName(), row);
 		Set<String> ress = controller.usedServices.get(object);
 		vh.stringLabel("Started", id, ""+(ress != null), row);

@@ -6,23 +6,37 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.application.Timer;
+import org.ogema.core.application.TimerListener;
+import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DriverPropertySuccessHandler;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
+import org.ogema.devicefinder.api.OGEMADriverPropertyService;
+import org.ogema.devicefinder.api.PropType;
+import org.ogema.devicefinder.api.PropertyService;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.locations.Room;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.DoorWindowSensor;
+import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
+import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
+import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -38,6 +52,7 @@ import de.iwes.widgets.html.form.label.Label;
 public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowSensor> {
 
 	private final ApplicationManagerPlus appMan;
+	//private final OGEMADriverPropertyService<Resource> hmPropService;
 	
 	public DeviceHandlerDoorWindowSensor(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
@@ -168,5 +183,111 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		if(rssiPeer != null && rssiPeer.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
 					-30f, -85f, 600, 300);
+	}
+
+	@Override
+	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
+			DoorWindowSensor deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		List<RoomInsideSimulationBase> result = new ArrayList<>();
+
+		//start aesMode setter
+		Timer timer = appMan.appMan().createTimer(30*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+				
+			@Override
+			public void timerElapsed(Timer arg0) {
+				getPropertyService();
+				if(propService == null)
+					return;
+				Resource propDev = getMainChannelPropRes(deviceResource);
+				propService.setProperty(propDev, PropType.ENCRYPTION_ENABLED, "false", null);
+			}
+		});
+		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
+		return result;
+	}
+	
+	PropertyService propService = null;
+	@Override
+	public PropertyService getPropertyService() {
+		if(propService != null)
+			return propService;
+		@SuppressWarnings("unchecked")
+		OGEMADriverPropertyService<Resource> hmPropService = (OGEMADriverPropertyService<Resource>)
+				appMan.dpService().driverpropertyServices().get("HmPropertyServiceProvider");
+		if(hmPropService == null)
+			return null;
+		propService = new PropertyService() {
+			
+			@Override
+			public void setProperty(Resource anchorResource, PropType propType, String value,
+					DriverPropertySuccessHandler<?> successHandler, String... argument) {
+				Resource propDev = getMainChannelPropRes(anchorResource);
+				writeProperty(propDev, propType, value, successHandler, hmPropService, appMan.getLogger());
+				/*if(propDev == null)
+					return;
+				String propertyId = getPropId(propType);
+				hmPropService.writeProperty(propDev, propertyId , appMan.getLogger(), value,
+						(DriverPropertySuccessHandler<Resource>)successHandler);*/
+			}
+			
+			@SuppressWarnings("unchecked")
+			@Override
+			public String getProperty(Resource anchorResource, PropType propType,
+					DriverPropertySuccessHandler<?> successHandler, String... arguments) {
+				Resource propDev = getMainChannelPropRes(anchorResource);
+				if(propDev == null)
+					return null;
+				String propertyId = getPropId(propType);
+				if(propertyId == null)
+					return null;
+				if(successHandler != null)
+					hmPropService.updateProperty(propDev, propertyId , appMan.getLogger(),
+						(DriverPropertySuccessHandler<Resource>)successHandler);
+				return DriverPropertyUtils.getPropertyValue(propDev, propertyId);
+			}
+		};
+		return propService;
+	}
+	
+	protected Resource getMainChannelPropRes(Resource anchorResource) {
+		if(!(anchorResource instanceof DoorWindowSensor))
+			return null;
+		return getAnchorResource((PhysicalElement) anchorResource, "HM_SHUTTER_CONTACT");
+	}
+	
+	public static String getPropId(PropType propType) {
+		if(propType.id.equals(PropType.ENCRYPTION_ENABLED.id))
+			return "MASTER/AES_ACTIVE:BOOL(7)";
+		else
+			return null;
+	}
+	
+	public static Resource getAnchorResource(PhysicalElement device, String channelName) {
+		Resource hmDevice = ResourceHelper.getFirstParentOfType(device, "org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice");
+		if(hmDevice == null)
+			return null;
+		ResourceList<?> channels = hmDevice.getSubResource("channels", ResourceList.class);
+		if(!channels.exists())
+			return null;
+		for(Resource res: channels.getAllElements()) {
+			if(res.getName().startsWith(channelName))
+				return res;
+		}
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static void writeProperty(Resource propDev, PropType propType, String value,
+			DriverPropertySuccessHandler<?> successHandler,
+			OGEMADriverPropertyService<Resource> hmPropService,
+			OgemaLogger logger) {
+		if(propDev == null)
+			return;
+		String propertyId = getPropId(propType);
+		if(propertyId == null)
+			return;
+		hmPropService.writeProperty(propDev, propertyId , logger, value,
+				(DriverPropertySuccessHandler<Resource>)successHandler);
+		
 	}
 }

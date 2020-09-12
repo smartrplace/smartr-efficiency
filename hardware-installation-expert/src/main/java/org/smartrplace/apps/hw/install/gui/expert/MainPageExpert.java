@@ -37,6 +37,7 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.html.form.label.Label;
 
 @SuppressWarnings("serial")
 public class MainPageExpert extends MainPage {
@@ -53,7 +54,7 @@ public class MainPageExpert extends MainPage {
 	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, APPLY_TEMPLATE});
 
 	@Override
-	protected String getHeader() {return "Smartrplace Hardware InstallationApp Expert";}
+	protected String getHeader() {return "Device Setup and Configuration Expert";}
 
 	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller) {
 		super(page, controller);
@@ -88,7 +89,9 @@ public class MainPageExpert extends MainPage {
 			return;
 		}
 
-		final DeviceHandlerProvider<?> devHand = controller.handlerByDevice.get(object.getLocation());
+		final GetPlotButtonResult logResult = getPlotButton(id, object, controller, true, vh, row, req);
+		if(logResult.devHand != null) {
+		/*final DeviceHandlerProvider<?> devHand = controller.handlerByDevice.get(object.getLocation());
 		if(devHand != null) {
 			final Collection<Datapoint> datapoints = devHand.getDatapoints(object, controller.dpService);
 			int logged = 0;
@@ -138,9 +141,11 @@ public class MainPageExpert extends MainPage {
 				}
 			};
 			ScheduleViewerOpenButton plotButton = ScheduleViwerOpenTemp.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
-					"Plot", provider, req);
-			row.addCell("Plot", plotButton);
+					"Plot", provider, req);*/
+			//row.addCell("Plot", plotButton);
+			row.addCell("Plot", logResult.plotButton);
 			
+			final boolean isTemplate = DeviceTableRaw.isTemplate(object, logResult.devHand);
 			final TemplateDropdown<String> actionDrop = new TemplateDropdown<String>(vh.getParent(), "actionDrop"+id, req) {
 				@Override
 				public void onGET(OgemaHttpRequest req) {
@@ -190,10 +195,10 @@ public class MainPageExpert extends MainPage {
 					String sel = getText(req);
 					switch(sel) {
 					case LOG_ALL:
-						controller.activateLogging(devHand, object, false, false);
+						controller.activateLogging(logResult.devHand, object, false, false);
 						break;
 					case LOG_NONE:
-						controller.activateLogging(devHand, object, false, true);
+						controller.activateLogging(logResult.devHand, object, false, true);
 						break;
 					case DELETE:
 						object.device().getLocationResource().delete();
@@ -203,18 +208,18 @@ public class MainPageExpert extends MainPage {
 						object.delete();
 						break;
 					case TRASH:
-						performTrashOperation(object, devHand);
+						performTrashOperation(object, logResult.devHand);
 						break;
 					case MAKE_TEMPLATE:
-						InstallAppDevice currentTemplate = controller.getTemplateDevice(devHand);
+						InstallAppDevice currentTemplate = controller.getTemplateDevice(logResult.devHand);
 						if(currentTemplate != null)
 							currentTemplate.isTemplate().deactivate(false);
-						ValueResourceHelper.setCreate(object.isTemplate(), devHand.id());
+						ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
 						if(!object.isTemplate().isActive())
 							object.isTemplate().activate(false);
 						break;
 					case APPLY_TEMPLATE:
-						for(InstallAppDevice dev: controller.getDevices(devHand)) {
+						for(InstallAppDevice dev: controller.getDevices(logResult.devHand)) {
 							if(dev.equalsLocation(object))
 								continue;
 							AlarmingConfigUtil.copySettings(object, dev, controller.appMan);
@@ -277,5 +282,83 @@ public class MainPageExpert extends MainPage {
 		}
 		object.device().getLocationResource().deactivate(true);
 		ValueResourceHelper.setCreate(object.isTrash(), true);		
+	}
+	
+	public static class GetPlotButtonResult {
+		DeviceHandlerProvider<?> devHand;
+		Collection<Datapoint> datapoints;
+		Label dataPointInfoLabel;
+		ScheduleViewerOpenButton plotButton;
+	}
+	
+	/** Create widgets. The dataPointInfoLabel is directly added to the row if requested,
+	 * the plotButton needs to be added to the row by separate operation
+	 * 
+	 * @param id
+	 * @param controller
+	 * @param vh
+	 * @param req
+	 * @return
+	 */
+	public static GetPlotButtonResult getPlotButton(String id, InstallAppDevice object,
+			final HardwareInstallController controller,
+			boolean addDataPointInfoLabel,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, Row row, OgemaHttpRequest req) {
+		final GetPlotButtonResult resultMain = new GetPlotButtonResult();
+		
+		resultMain.devHand = controller.handlerByDevice.get(object.getLocation());
+		if(resultMain.devHand != null) {
+			resultMain.datapoints = resultMain.devHand.getDatapoints(object, controller.dpService);
+			int logged = 0;
+			int transferred = 0;
+			for(Datapoint dp: resultMain.datapoints) {
+				ReadOnlyTimeSeries ts = dp.getTimeSeries();
+				if(ts == null || (!(ts instanceof RecordedData)))
+					continue;
+				RecordedData rec = (RecordedData)ts;
+				if(LoggingUtils.isLoggingEnabled(rec))
+					logged++;
+				if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+					Resource res = controller.appMan.getResourceAccess().getResource(rec.getPath());
+					if(res != null && (res instanceof SingleValueResource) &&
+							LogTransferUtil.isResourceTransferred((SingleValueResource) res, controller.datalogs)) {
+						transferred++;
+					}
+				}
+			}
+			String text = ""+resultMain.datapoints.size()+"/"+logged+"/"+transferred;
+			final boolean isTemplate = DeviceTableRaw.isTemplate(object, resultMain.devHand);
+			if(isTemplate) {
+				text += "/T";
+			}
+			if(addDataPointInfoLabel)
+				resultMain.dataPointInfoLabel = vh.stringLabel(DATAPOINT_INFO_HEADER, id, text, row);
+			
+			SchedOpenDataProvider provider = new SchedOpenDataProvider() {
+				
+				@Override
+				public IntervalConfiguration getITVConfiguration() {
+					return IntervalConfiguration.getDefaultDuration(IntervalConfiguration.ONE_DAY, controller.appMan);
+				}
+				
+				@Override
+				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
+					List<TimeSeriesData> result = new ArrayList<>();
+					OgemaLocale locale = req!=null?req.getLocale():null;
+					for(Datapoint dp: resultMain.datapoints) {
+						TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(locale);
+						if(tsd == null)
+							continue;
+						TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, tsd.label(null), tsd.description(null));
+						tsdExt.type = dp.getGaroDataType();
+						result.add(tsdExt);
+					}
+					return result;
+				}
+			};
+			resultMain.plotButton = ScheduleViwerOpenTemp.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
+					"Plot", provider, req);
+		}
+		return resultMain;
 	}
 }

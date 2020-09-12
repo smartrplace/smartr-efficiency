@@ -208,12 +208,12 @@ public class HardwareInstallApp implements Application {
     }
     
     protected void addDriverPropertyProvider(OGEMADriverPropertyService<?>  provider) {
-    	dPropertyProviders.put(provider.getClass().getName(), provider);
+    	dPropertyProviders.put(provider.id(), provider);
     	if(controller != null)
     		controller.initKnownResources(provider);
     }
     protected void removeDriverPropertyProvider(OGEMADriverPropertyService<?> provider) {
-    	dPropertyProviders.remove(provider.getClass().getName());
+    	dPropertyProviders.remove(provider.id());
     }
 
  }
