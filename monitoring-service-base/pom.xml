@@ -10,7 +10,7 @@
     
     <artifactId>monitoring-service-base</artifactId>
     <version>0.9.0-SNAPSHOT</version>
-    <name>Monitoring Service Base App</name>
+    <name>Smartrplace :: Efficiency :: Monitoring Service Base</name>
     <description>Monitoring service Base App</description>
     
     <packaging>bundle</packaging>
