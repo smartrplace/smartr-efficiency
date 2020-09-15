@@ -34,6 +34,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.ogema.core.application.ApplicationManager;
@@ -42,6 +44,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceRegistration;
@@ -71,6 +74,8 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
     final boolean isFactoryPid;
     final BundleContext bundleContext;
 
+    Flexbox flex;
+    AtomicBoolean rebuild = new AtomicBoolean(true);
     List<ServiceRegistration<DriverHandlerProvider>> services = new ArrayList<>();
 
     public ConfigurationHandlerProvider(ConfigurationAdmin ca, MetaTypeService mts, BundleContext bundle, String ocdPid, boolean isFactoryPid) {
@@ -122,7 +127,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
             public Collection<DriverHandlerProvider> getObjectsInTable(OgemaHttpRequest req) {
                 return Collections.singletonList(ConfigurationHandlerProvider.this);
             }
-
+            
             @Override
             public void addWidgets(
                     DriverHandlerProvider object,
@@ -131,28 +136,42 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                 if (req == null) { //why?
                     return;
                 }
+                rebuild.set(true);
                 ResourceBundle rb = ResourceBundle.getBundle(RESOURCEBUNDLE,
                         req.getLocale().getLocale(),
                         ConfigurationHandlerProvider.class.getClassLoader());
                 try {
-                    ObjectClassDefinition ocd = mti.getObjectClassDefinition(ocdPid, req.getLocaleString());
-                    String filter = isFactoryPid
-                            ? String.format("(service.factoryPid=%s)", ocdPid)
-                            : String.format("(service.pid=%s)", ocdPid);
-                    Configuration[] configs = ca.listConfigurations(filter);
-                    Flexbox flex = new Flexbox(mainTable, "_" + UUID.randomUUID().toString(), req);
+
+                    flex = new Flexbox(mainTable, "_" + UUID.randomUUID().toString(), req) {
+                        @Override
+                        public void onGET(OgemaHttpRequest req) {
+                            if (!rebuild.compareAndSet(true, false) && req.isPolling()) {
+                                return;
+                            }
+                            ObjectClassDefinition ocd = mti.getObjectClassDefinition(ocdPid, req.getLocaleString());
+                            String filter = isFactoryPid
+                                    ? String.format("(service.factoryPid=%s)", ocdPid)
+                                    : String.format("(service.pid=%s)", ocdPid);
+                            try {
+                                Configuration[] configs = ca.listConfigurations(filter);
+                                addItem(new Label(mainTable, "_" + UUID.randomUUID().toString(), ocd.getDescription(), req), req);
+                                if (configs == null) {
+                                    //System.out.println("no configurations");
+                                } else {
+                                    //System.out.printf("have %d configurations%n", configs.length);
+                                    Stream.of(configs).forEach(cfg -> addItem(createEditConfigWidget(cfg, ocd, page, req, rb), req));
+                                }
+                                if (isFactoryPid || configs == null || configs.length == 0) {
+                                    addItem(createNewConfigWidget(ocd, page, mainTable, req, rb), req);
+                                }
+                            } catch (IOException | InvalidSyntaxException ex) {
+                                logger.warn("could not load configurations for {}", ocdPid, ex);
+                            }
+                        }
+                    };
                     flex.setFlexDirection(FlexDirection.COLUMN, req);
-                    flex.addItem(new Label(mainTable, "_" + UUID.randomUUID().toString(), ocd.getDescription(), req), req);
-                    if (configs == null) {
-                        //System.out.println("no configurations");
-                    } else {
-                        //System.out.printf("have %d configurations%n", configs.length);
-                        Stream.of(configs).forEach(cfg -> flex.addItem(createEditConfigWidget(cfg, ocd, page, req, rb), req));
-                    }
-                    flex.addItem(createNewConfigWidget(ocd, page, mainTable, req, rb), req);
+                    flex.onGET(req);
                     row.addCell(flex);
-                } catch (IOException | InvalidSyntaxException ex) {
-                    logger.warn("could not load config", ex);
                 } catch (IllegalArgumentException | IllegalStateException e) {
                     //XXX the using page does not clean up deregistered widgets!
                     System.out.println(e);
@@ -162,6 +181,11 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
 
         };
         return dtr;
+    }
+    
+    private void rebuild(OgemaHttpRequest req) {
+        flex.clear(req);
+        rebuild.set(true);
     }
     
     TextField createParsedTextField(WidgetPage<?> page, String id, AttributeDefinition ad, Map<String, Object> props, Function<String, Object> parseFun, Object value) {
@@ -233,9 +257,24 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
         }
 
         SimpleGrid listGrid = new SimpleGrid(page, "_" + UUID.randomUUID().toString(), false) {
+            
+            AtomicBoolean rebuild = new AtomicBoolean(true);
+            
+            void rebuild(OgemaHttpRequest req) {
+                clear(req);
+                rebuild.set(true);
+            }
+            
             @Override
             public void onGET(OgemaHttpRequest req) {
+                if (req.isPolling() && !rebuild.get()) {
+                    return;
+                }
+                if (!rebuild.compareAndSet(true, false)) {
+                    return;
+                }
                 int row = 0;
+                String gridId = getId();
                 for (Object o : values) {
                     final int idx = row;
                     Function<String, Object> parse = s -> {
@@ -250,7 +289,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                         public void onPOSTComplete(String data, OgemaHttpRequest req) {
                             values.add(idx, null);
                             props.put(ad.getID(), values);
-                            clear(req); //clear grid before next GET
+                            rebuild(req);
                         }
                     };
                     addRowButton.triggerOnPOST(this);
@@ -262,7 +301,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                         public void onPOSTComplete(String data, OgemaHttpRequest req) {
                             values.remove(idx);
                             props.put(ad.getID(), values);
-                            clear(req); //clear grid before next GET
+                            rebuild(req);
                         }
                     };
                     removeRowButton.setDefaultToolTip(rb.getString("list_remove_tt"));
@@ -278,9 +317,10 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                         values.add(null);
                         //do not insert into config here, only after actual edit
                         //props.put(ad.getID(), values);
-                        clear(req); //clear grid before next GET
+                        rebuild(req);
                     }
                 };
+                newItem.triggerOnPOST(this);
                 addItem(newItem, true, req);
             }
         };
@@ -444,6 +484,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                             : ca.getConfiguration(ocdPid);
                     conf.setBundleLocation(null); //set unbound, will be set to this bundle otherwise
                     updateConfiguration(ocd, conf, props, info, req, rb);
+                    rebuild(req);
                 } catch (IOException ex) {
                     //TODO
                     System.out.println(ex);
@@ -452,7 +493,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
         };
         btCreate.triggerOnPOST(info);
         //TODO: display new configuration after create
-        //btCreate.triggerOnPOST(parent);
+        btCreate.triggerOnPOST(flex);
         Label lbNewName = new Label(page, "_" + UUID.randomUUID().toString(), rb.getString("new_config_name"));
         Accordion acc = new Accordion(page, "_" + UUID.randomUUID().toString());
         if (isFactoryPid) {
@@ -495,19 +536,151 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
     
     //TODO: type checks & conversion
     Object parseValue(AttributeDefinition ad, Object val, Alert info, OgemaHttpRequest req, ResourceBundle rb) {
-        System.out.printf("parsing %s as %s%n", val, ad);
+        if (ad.getCardinality() == 0) {
+            return parseSingleValue(ad, val, info, req, rb);
+        } else {
+            return parseListValue(ad, val, info, req, rb);
+        }
+    }
+    
+    Object parseListValue(AttributeDefinition ad, Object val, Alert info, OgemaHttpRequest req, ResourceBundle rb) {
+        boolean outputAsArray = ad.getCardinality() > 0;
+        @SuppressWarnings("unchecked")
+        List<String> input = (List<String>) val;
+        List<Object> output = new ArrayList<>(input.size());
+        for (String s: input) {
+            output.add(parseSingleValue(ad, s, info, req, rb));
+        }
+        if (outputAsArray) {
+            //TODO
+        }
+        return output;
+    }
+    
+    Object parseSingleValue(AttributeDefinition ad, Object val, Alert info, OgemaHttpRequest req, ResourceBundle rb) {
+        logger.trace("parsing {} as {}", val, ad);
+        if (val == null) {
+            return null;
+        }
         switch (ad.getType()) {
             case AttributeDefinition.BOOLEAN:
-                break;
-            default: ;
+                if (val instanceof Boolean) {
+                    return val;
+                } else {
+                    String s = val.toString().toLowerCase();
+                    switch (s) {
+                        case "true" : return Boolean.TRUE;
+                        case "false" : return Boolean.FALSE;
+                        default:
+                            info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                            throw new IllegalArgumentException("Not a boolean value: " + s);
+                    }
+                }
+            case AttributeDefinition.BYTE:
+                if (val instanceof Number) {
+                    return ((Number)val).byteValue();
+                } else {
+                    String s = val.toString();
+                    try {
+                        return Byte.parseByte(s);
+                    } catch (RuntimeException ex) {
+                        info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                        throw ex;
+                    }
+                }
+            case AttributeDefinition.CHARACTER:
+                if (val instanceof Character) {
+                    return val;
+                } else {
+                    String s = val.toString();
+                    if (s.length() > 1) {
+                        info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                        throw new IllegalArgumentException("Not a Character value: " + s);
+                    } else if (s.length() == 0) {
+                            return null;
+                    } else {
+                        return s.charAt(0);
+                    }
+                }
+            case AttributeDefinition.DOUBLE:
+                if (val instanceof Number) {
+                    return ((Number)val).doubleValue();
+                } else {
+                    String s = val.toString();
+                    try {
+                        return Double.parseDouble(s);
+                    } catch (RuntimeException ex) {
+                        info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                        throw ex;
+                    }
+                }
+            case AttributeDefinition.FLOAT:
+                if (val instanceof Number) {
+                    return ((Number)val).floatValue();
+                } else {
+                    String s = val.toString();
+                    try {
+                        return Float.parseFloat(s);
+                    } catch (RuntimeException ex) {
+                        info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                        throw ex;
+                    }
+                }
+            case AttributeDefinition.INTEGER:
+                if (val instanceof Number) {
+                    return ((Number)val).intValue();
+                } else {
+                    String s = val.toString();
+                    try {
+                        return Integer.parseInt(s);
+                    } catch (RuntimeException ex) {
+                        info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                        throw ex;
+                    }
+                }
+            case AttributeDefinition.LONG:
+                if (val instanceof Number) {
+                    return ((Number)val).longValue();
+                } else {
+                    String s = val.toString();
+                    try {
+                        return Long.parseLong(s);
+                    } catch (RuntimeException ex) {
+                        info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                        throw ex;
+                    }
+                }
+            case AttributeDefinition.PASSWORD:
+            case AttributeDefinition.STRING:
+                if (val instanceof String) {
+                    return val;
+                } else {
+                    return val.toString();
+                }
+            case AttributeDefinition.SHORT:
+                if (val instanceof Number) {
+                    return ((Number)val).shortValue();
+                } else {
+                    String s = val.toString();
+                    try {
+                        return Short.parseShort(s);
+                    } catch (RuntimeException ex) {
+                        info.showAlert(String.format(rb.getString("parse_failed"), ad.getID(), getAttributeTypeString(ad), s), false, req);
+                        throw ex;
+                    }
+                }
+            default:
+                // includes the deprecated BIGINTEGER and BIGDECIMAL attribute types
+                logger.warn("unsupported attribute type in configuration: {}", ad);
         }
-        //info.showAlert("OK", true, req);
         return val;
     }
+    
+    static AtomicInteger count = new AtomicInteger();
 
     OgemaWidget createEditConfigWidget(Configuration cfg, ObjectClassDefinition ocd,
             WidgetPage<?> page, OgemaHttpRequest req, ResourceBundle rb) {
-        Accordion acc = new Accordion(page, "_" + UUID.randomUUID().toString());
+        Accordion acc = new Accordion(page, ResourceUtils.getValidResourceName("editConfig_" + cfg.getPid() + "_" + count.getAndIncrement()));
         SimpleGrid grid = new SimpleGrid(page, "_" + UUID.randomUUID().toString(), false);
         AttributeDefinition[] attrDef = ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
         int rowNum = 0;
@@ -578,12 +751,14 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
                 try {
                     cfg.delete();
                     acc.setVisible(false, req);
+                    rebuild(req);
                 } catch (IOException ex) {
                     //TODO
                     System.out.println(ex);
                 }
             }
         };
+        btDelete.triggerOnPOST(flex);
         grid.addItem(btUpdate, true, req);
         grid.addItem(rowNum, 1, btDelete, req);
         grid.addItem(rowNum++, 2, info, req);
