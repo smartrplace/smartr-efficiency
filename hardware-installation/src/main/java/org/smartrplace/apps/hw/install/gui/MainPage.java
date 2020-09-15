@@ -22,6 +22,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
+import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
@@ -43,6 +44,7 @@ import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.HeaderData;
@@ -142,10 +144,22 @@ public class MainPage implements InstalledAppsSelector { //extends DeviceTablePa
 		//RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
 		//		"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 		
+		Button commitBtn = new Button(page, "commitBtn", "Commit changes") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				EvalCollection ec = ResourceHelper.getEvalCollection(appMan);
+				if(!ec.roomDeviceUpdateCounter().isActive()) {
+					ec.roomDeviceUpdateCounter().create().activate(false);
+				}
+				ec.roomDeviceUpdateCounter().getAndAdd(1);
+			}
+		};
+		
 		topTable = new StaticTable(1, 7, new int[] {2, 2, 1, 2, 1, 2, 2});
 		int installFilterCol=3;
 		topTable.setContent(0, 0, roomsDrop.getFirstDropdown())
 				.setContent(0, 1, roomsDrop)
+				.setContent(0, 2, commitBtn)
 				.setContent(0, installFilterCol, installFilterDrop)
 				.setContent(0, installFilterCol+2, installMode);//setContent(0, 2, roomLinkButton).
 		RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
