@@ -39,7 +39,7 @@ public class ConfigurationUiHandler {
     public static @interface Config {
 
         @AttributeDefinition(description = "%uicfg_bsnlist")
-        String[] bsnList() default {"org.smartrplace.internal.smart-school"};
+        String[] bsnList() default {"org.smartrplace.internal.smart-school", "org.smartrplace.apps.monitoring-service-base"};
 
         @AttributeDefinition(description = "%uicfg_bsnlistdeny")
         boolean bsnListIsDeny() default false;

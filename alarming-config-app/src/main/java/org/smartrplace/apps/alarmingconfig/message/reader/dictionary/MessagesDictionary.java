@@ -20,7 +20,7 @@ import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
 public abstract class MessagesDictionary implements LocaleDictionary {
 	
 	public String getTitle() {
-		return "OGEMA Messages"; // default value
+		return "Messages"; // default value
 	}
 	
 	public String getColTitleAbstract() {
