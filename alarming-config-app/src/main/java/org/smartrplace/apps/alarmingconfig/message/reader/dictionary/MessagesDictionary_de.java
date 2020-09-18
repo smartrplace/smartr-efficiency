@@ -26,7 +26,7 @@ public class MessagesDictionary_de extends MessagesDictionary {
 	
 	@Override
 	public String getTitle() {
-		return "OGEMA Nachrichten";
+		return "Nachrichten";
 	}
 	
 	@Override
