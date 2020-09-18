@@ -47,7 +47,6 @@ import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.metatype.AttributeDefinition;
@@ -76,7 +75,6 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
 
     Flexbox flex;
     AtomicBoolean rebuild = new AtomicBoolean(true);
-    List<ServiceRegistration<DriverHandlerProvider>> services = new ArrayList<>();
 
     public ConfigurationHandlerProvider(ConfigurationAdmin ca, MetaTypeService mts, BundleContext bundle, String ocdPid, boolean isFactoryPid) {
         this.ca = ca;
@@ -343,8 +341,10 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
         if (ad.getType() == AttributeDefinition.BOOLEAN) {
             String wId = "_" + UUID.randomUUID();
             String cbId = wId + "_Item";
-            Boolean defaultVal = Boolean.valueOf(def);
-            final CheckboxEntry e = new DefaultCheckboxEntry(cbId, "", defaultVal);
+            Boolean v = value == null
+                    ? Boolean.valueOf(def)
+                    : (Boolean) value;
+            final CheckboxEntry e = new DefaultCheckboxEntry(cbId, "", v);
             Checkbox2 cb = new Checkbox2(page, "_" + UUID.randomUUID().toString()) {
                 @Override
                 public void onPOSTComplete(String data, OgemaHttpRequest req) {

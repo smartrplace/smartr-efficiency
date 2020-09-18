@@ -39,14 +39,19 @@ public class ConfigurationUiHandler {
     public static @interface Config {
 
         @AttributeDefinition(description = "%uicfg_bsnlist")
-        String[] bsnList() default {"org.smartrplace.internal.smart-school", "org.smartrplace.apps.monitoring-service-base"};
+        String[] bsnList() default {
+            "org.ogema.drivers.openweathermap-connector",
+            "org.smartrplace.drivers.caldav-query",
+            "org.smartrplace.drivers.email-caldav-forwarder",
+            "org.smartrplace.drivers.growatt-http-api",
+            "org.smartrplace.drivers.mail-session-service",
+            "org.smartrplace.internal.smart-school",
+            "org.smartrplace.internal.user-invitation"
+        };
 
         @AttributeDefinition(description = "%uicfg_bsnlistdeny")
         boolean bsnListIsDeny() default false;
 
-        //String[] ocdList() default {};
-
-        //boolean ocdListIsDeny() default true;
     }
 
     @Reference
@@ -59,7 +64,7 @@ public class ConfigurationUiHandler {
     Config cfg;
     BundleContext ctx;
     BundleListener l = this::bundleChanged;
-    
+
     Logger logger = LoggerFactory.getLogger(getClass());
 
     @Activate
