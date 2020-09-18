@@ -37,7 +37,7 @@ public class DeviceTypePage extends MainPage {
 	}
 
 	protected String getHeader(OgemaLocale locale) {
-		return "2. Alarming Template Devices Configuration";
+		return "1. Alarming Configuration Per Device";
 	}
 	
 	@Override

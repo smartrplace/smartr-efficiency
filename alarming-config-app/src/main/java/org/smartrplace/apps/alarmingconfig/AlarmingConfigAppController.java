@@ -107,15 +107,15 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		updateAlarming();
 		MainPage.alarmingUpdater = this;
 
-		WidgetPage<?> pageRes10 = initApp.widgetApp.createStartPage(); //.createWidgetPage("mainpage.html", true);
+		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
 		//Resource base = appMan.getResourceAccess().getResource("master");
 		mainPage = new MainPage(pageRes10, appManPlus); //, base);
-		initApp.menu.addEntry("1. Alarming Configuration", pageRes10);
+		initApp.menu.addEntry("2. Alarming Configuration Details", pageRes10);
 		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 
-		WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("devices.html");
+		WidgetPage<?> pageRes12 = initApp.widgetApp.createStartPage(); //initApp.widgetApp.createWidgetPage("devices.html");
 		devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
-		initApp.menu.addEntry("2. Alarming Template Devices Configuration", pageRes12);
+		initApp.menu.addEntry("1. Alarming Configuration Per Device", pageRes12);
 		initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 
 		@SuppressWarnings("unchecked")
