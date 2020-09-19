@@ -191,7 +191,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		List<RoomInsideSimulationBase> result = new ArrayList<>();
 
 		//start aesMode setter
-		Timer timer = appMan.appMan().createTimer(30*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+		Timer timer = appMan.appMan().createTimer(2*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
 				
 			@Override
 			public void timerElapsed(Timer arg0) {
@@ -223,6 +223,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 					DriverPropertySuccessHandler<?> successHandler, String... argument) {
 				Resource propDev = getMainChannelPropRes(anchorResource);
 				writeProperty(propDev, propType, value, successHandler, hmPropService, appMan.getLogger());
+System.out.println("  ++++ Wrote Property "+propType.id()+" for "+propDev.getLocation()+ "value:"+value);
 				/*if(propDev == null)
 					return;
 				String propertyId = getPropId(propType);

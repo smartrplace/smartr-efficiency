@@ -396,6 +396,9 @@ public class HardwareInstallController {
 				else
 					subLoc = appDevice.installationLocation().getValue();
 				dp.setSubRoomLocation(null, null, subLoc);
+			} else if(devTypeShort != null) {
+				String subLoc = devTypeShort;
+				dp.setSubRoomLocation(null, null, subLoc);
 			}
 			initAlarming(tableProvider, appDevice, dp);
 		}
