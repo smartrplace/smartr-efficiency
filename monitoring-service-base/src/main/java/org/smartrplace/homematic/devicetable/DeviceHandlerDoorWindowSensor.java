@@ -191,7 +191,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		List<RoomInsideSimulationBase> result = new ArrayList<>();
 
 		//start aesMode setter
-		Timer timer = appMan.appMan().createTimer(2*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+		Timer timer = appMan.appMan().createTimer(30*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
 				
 			@Override
 			public void timerElapsed(Timer arg0) {
