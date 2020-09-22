@@ -213,8 +213,8 @@ public class AlarmingManager {
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
 								vl.maxIntervalBetweenNewValues, alarmStatus);
 						//reset value
-						if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
-							vl.res.setValue(Float.NaN);
+						//if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
+						//	vl.res.setValue(Float.NaN);
 					} else 	if(vl.bres != null) {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.bres);
 						float val = vl.bres.getValue()?1.0f:0.0f;

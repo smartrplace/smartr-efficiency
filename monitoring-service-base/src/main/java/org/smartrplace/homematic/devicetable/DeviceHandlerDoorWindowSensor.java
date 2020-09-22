@@ -198,8 +198,8 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 				getPropertyService();
 				if(propService == null)
 					return;
-				Resource propDev = getMainChannelPropRes(deviceResource);
-				propService.setProperty(propDev, PropType.ENCRYPTION_ENABLED, "false", null);
+				//Resource propDev = getMainChannelPropRes(deviceResource);
+				propService.setProperty(deviceResource, PropType.ENCRYPTION_ENABLED, "false", null);
 			}
 		});
 		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
