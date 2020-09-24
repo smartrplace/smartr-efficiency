@@ -16,12 +16,13 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
+import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil;
+import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil.SchedOpenDataProvider;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
-import org.smartrplace.apps.hw.install.gui.expert.ScheduleViwerOpenTemp.SchedOpenDataProvider;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -356,8 +357,8 @@ public class MainPageExpert extends MainPage {
 					return result;
 				}
 			};
-			resultMain.plotButton = ScheduleViwerOpenTemp.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
-					"Plot", provider, req);
+			resultMain.plotButton = ScheduleViwerOpenUtil.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
+					"Plot", provider, ScheduleViewerConfigProvHWI.getInstance(), req);
 		}
 		return resultMain;
 	}

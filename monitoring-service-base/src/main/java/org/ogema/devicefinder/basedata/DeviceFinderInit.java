@@ -271,7 +271,7 @@ public class DeviceFinderInit {
 			dp = new DatapointImpl(valRes.getLocation(), null, valRes, null);
 			DatapointServiceImpl.addStandardData(dp);
 		}
-		dp.setSensorActorResource(sensorActorResource);
+		dp.setDeviceResource(sensorActorResource);
 		if(room != null)
 			dp.setRoom(room);
 		return dp;

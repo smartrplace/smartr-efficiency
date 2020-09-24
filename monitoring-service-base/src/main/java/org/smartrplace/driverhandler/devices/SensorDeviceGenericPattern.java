@@ -31,7 +31,7 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 	
 	@Override
 	public boolean accept() {
-		if(DeviceTableRaw.isTempHumSens(model))
+		if(DeviceTableRaw.isTempHumSens(model.getLocation()))
 			return false;
 		//If more special SensorDevices are supported in the future add check here
 		return true;

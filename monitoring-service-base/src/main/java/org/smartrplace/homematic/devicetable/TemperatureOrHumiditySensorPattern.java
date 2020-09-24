@@ -24,6 +24,6 @@ public class TemperatureOrHumiditySensorPattern extends ResourcePattern<SensorDe
 
 	@Override
 	public boolean accept() {
-		return DeviceTableRaw.isTempHumSens(model);
+		return DeviceTableRaw.isTempHumSens(model.getLocation());
 	}
 }

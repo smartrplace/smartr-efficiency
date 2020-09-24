@@ -223,7 +223,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 					DriverPropertySuccessHandler<?> successHandler, String... argument) {
 				Resource propDev = getMainChannelPropRes(anchorResource);
 				writeProperty(propDev, propType, value, successHandler, hmPropService, appMan.getLogger());
-System.out.println("  ++++ Wrote Property "+propType.id()+" for "+propDev.getLocation()+ "value:"+value);
+System.out.println("  ++++ Wrote Property "+propType.id()+" for "+propDev.getLocation()+ " value:"+value);
 				/*if(propDev == null)
 					return;
 				String propertyId = getPropId(propType);

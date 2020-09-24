@@ -111,7 +111,8 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 	/** We are using this for configuration*/
 	@Override
 	public String getDeviceTypeShortId(InstallAppDevice device, DatapointService dpService) {
-		if(!device.installationLocation().exists() || device.installationLocation().getValue().isEmpty()) {			
+		if((device != null) &&
+				((!device.installationLocation().exists()) || device.installationLocation().getValue().isEmpty())) {			
 			String devName = device.device().getLocationResource().getName();
 			String defaultSubLoc;
 			if(devName.contains("_")) {

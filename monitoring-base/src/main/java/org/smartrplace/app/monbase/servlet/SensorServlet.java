@@ -11,17 +11,16 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
-import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
-import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.util.frontend.servlet.ServletResourceDataProvider;
-import org.smartrplace.util.frontend.servlet.UserServletParamData;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
+import org.smartrplace.util.frontend.servlet.UserServletParamData;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
@@ -78,9 +77,9 @@ public class SensorServlet implements ServletPageProvider<Room> {
 						if(subRoomLoc != null)
 							result.put("subRoomLocation", subRoomLoc);
 						if(dp.getDeviceResource() != null)
-							result.put("deviceResourceLocation", dp.getDeviceResource().getLocation());
+							result.put("deviceResourceLocation", dp.getDeviceResource().id());
 						if(dp.getDeviceResource() != null)
-							result.put("deviceResourceType", dp.getDeviceResource().getResourceType().getName());
+							result.put("deviceResourceType", dp.getDeviceResource().getParameter(DatapointGroup.DEVICE_TYPE_FULL_PARAM));
 						if(dp.getTimeSeriesID() != null)
 							result.put("timeSeries", dp.getTimeSeriesID());
 					}

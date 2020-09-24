@@ -303,6 +303,15 @@ public class HardwareInstallController {
 			//if(install.device().getResourceType().equals(tableType)) {
 			//	startSimulation(tableProvider, install);
 			//}
+	       	if(!Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+	    		DatapointGroup devType = dpService.getGroup(tableProvider.id());
+	    		devType.setLabel(null, tableProvider.label(null));
+	    		devType.setType("DEVICE_TYPE");
+	    		String devTypeShort = tableProvider.getDeviceTypeShortId(null, dpService);
+	    		devType.setParameter(DatapointGroup.DEVICE_TYPE_SHORT_PARAM, devTypeShort);
+	    		//devType.setParameter("PROVIDER", provider);
+	    	}
+
 		}
 	}
 	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
@@ -365,6 +374,7 @@ public class HardwareInstallController {
 		DatapointGroup dev = dpService.getGroup(deviceLocation);
 		String devName = DeviceTableRaw.getName(appDevice, appManPlus);
 		dev.setLabel(null, devName);
+		dev.setParameter(DatapointGroup.DEVICE_TYPE_FULL_PARAM, appDevice.device().getResourceType().getName());
 		dev.setType("DEVICE");
 		
 		DatapointGroup devType = dpService.getGroup(tableProvider.id());

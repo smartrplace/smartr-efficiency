@@ -88,15 +88,28 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 
-		LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan.getResourceAccess());
+		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan.getResourceAccess());
 		StringResource baseUrlRes = gwInfo.gatewayBaseUrl();
 		ResourceTextField<StringResource> baseUrl = new ValueResourceTextField<StringResource>(page,
 				"baseUrlEdit", baseUrlRes);
 		
-		String ipText = IPNetworkHelper.getLocalIPAddress();
-		Label localIP = new Label(page, "localIP", ipText);
+		Label localIP = new Label(page, "localIP") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String ipText = IPNetworkHelper.getLocalIPAddress();
+				setText(ipText, req);
+			}
+		};
 		
-		StaticTable configTable = new StaticTable(6, 2);
+		Label gwIdLabel = new Label(page, "gwIdLabel") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String gwId = gwInfo.id().getValue();
+				setText(gwId, req);
+			}
+		};
+
+		StaticTable configTable = new StaticTable(7, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -115,6 +128,9 @@ public class ConfigurationPageHWInstall {
 		i++;
 		configTable.setContent(i, 0, "Local IP Address:").
 		setContent(i, 1, localIP);
+		i++;
+		configTable.setContent(i, 0, "GatewayId:").
+		setContent(i, 1, gwIdLabel);
 		i++;
 		
 		page.append(configTable);
