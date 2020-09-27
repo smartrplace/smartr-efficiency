@@ -26,6 +26,7 @@ import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
+import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
@@ -126,6 +127,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srGhl = null;
 	private GhlWaterPondDeviceHandler devHandGhl;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srBacnet = null;
+	private BacnetDeviceHandler devHandBacnet;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -193,6 +197,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
 	   devHandGhl = new GhlWaterPondDeviceHandler(controller.appManPlus);
 	   srGhl = bc.registerService(DeviceHandlerProvider.class, devHandGhl, null);
+	   devHandBacnet = new BacnetDeviceHandler(controller.appManPlus);
+	   srBacnet = bc.registerService(DeviceHandlerProvider.class, devHandBacnet, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -216,6 +222,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srSwBox != null) srSwBox.unregister();
     	if (srPv != null) srPv.unregister();
     	if (srGhl != null) srGhl.unregister();
+    	if (srBacnet != null) srGhl.unregister();
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
     	if (srThermostat != null) srThermostat.unregister();

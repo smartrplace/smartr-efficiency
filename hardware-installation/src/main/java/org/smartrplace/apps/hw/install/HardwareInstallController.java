@@ -38,6 +38,7 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
@@ -375,6 +376,7 @@ public class HardwareInstallController {
 		String devName = DeviceTableRaw.getName(appDevice, appManPlus);
 		dev.setLabel(null, devName);
 		dev.setParameter(DatapointGroup.DEVICE_TYPE_FULL_PARAM, appDevice.device().getResourceType().getName());
+		dev.setParameter(DatapointGroup.DEVICE_UNIQUE_ID_PARAM, appDevice.deviceId().getValue());
 		dev.setType("DEVICE");
 		
 		DatapointGroup devType = dpService.getGroup(tableProvider.id());
@@ -385,31 +387,36 @@ public class HardwareInstallController {
 		String devTypeShort = tableProvider.getDeviceTypeShortId(appDevice, dpService);
 		
 		Room roomRes = appDevice.device().location().room();
-		DPRoom room;
+		final DPRoom room;
 		if(roomRes.exists()) {
 			room = dpService.getRoom(roomRes.getLocation());
 			room.setResource(roomRes);
 		} else 
 			room = null;
 		
+		if(devTypeShort != null && (devTypeShort.equals("UNK")))
+			devTypeShort = null;
+		
+		String subLoc = null;
+		if(appDevice.installationLocation().isActive()) {
+			if(devTypeShort != null)
+				subLoc = devTypeShort+"-"+appDevice.installationLocation().getValue();
+			else
+				subLoc = appDevice.installationLocation().getValue();
+		} else if(devTypeShort != null) {
+			subLoc = devTypeShort;
+		}
+		
+		String devName2 = DatapointImpl.getDeviceLabel(null,
+				room!=null?room.label(null):Datapoint.UNKNOWN_ROOM_NAME, subLoc, null);
+		dev.setLabel(null, devName2);			
+
 		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
 			dev.addDatapoint(dp);
 			dp.setDeviceResource(appDevice.device().getLocationResource());
+			dp.setSubRoomLocation(null, null, subLoc);
 			if(room != null)
 				dp.setRoom(room);
-			if(devTypeShort != null && (devTypeShort.equals("UNK")))
-				devTypeShort = null;
-			if(appDevice.installationLocation().isActive()) {
-				String subLoc = null;
-				if(devTypeShort != null)
-					subLoc = devTypeShort+"-"+appDevice.installationLocation().getValue();
-				else
-					subLoc = appDevice.installationLocation().getValue();
-				dp.setSubRoomLocation(null, null, subLoc);
-			} else if(devTypeShort != null) {
-				String subLoc = devTypeShort;
-				dp.setSubRoomLocation(null, null, subLoc);
-			}
 			initAlarming(tableProvider, appDevice, dp);
 		}
 	}
