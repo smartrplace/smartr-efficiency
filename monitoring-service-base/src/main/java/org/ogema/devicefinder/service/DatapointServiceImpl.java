@@ -117,7 +117,7 @@ public abstract class DatapointServiceImpl implements DatapointService {
 
 	@Override
 	public Datapoint getDataPointStandard(String resourceLocation, String gatewayId) {
-		Datapoint result = getDataPointAsIs(resourceLocation);
+		Datapoint result = getDataPointAsIs(resourceLocation, gatewayId);
 		if(result == null) {
 			result = new DatapointImpl(resourceLocation, gatewayId, null, null, this) {
 				@Override
