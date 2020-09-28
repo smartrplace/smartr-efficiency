@@ -82,7 +82,9 @@ public class HardwareInstallController {
 	public DeviceConfigPage deviceConfigPage;
 	public ResourceList<DataLogTransferInfo> datalogs;
 	//WidgetApp widgetApp;
-
+	public volatile boolean cleanUpOnStartDone = false;
+	
+	
 	//OGEMADriverPropertyService administration
 	// Resource location -> services that have added at least one property to the resource
 	public Map<String, Set<OGEMADriverPropertyService<?>>> knownResources = new HashMap<>();
@@ -138,6 +140,7 @@ public class HardwareInstallController {
 				
 		initConfigurationResource();
 		cleanupOnStart();
+		cleanUpOnStartDone = true;
 		mainPage = getMainPage(page);
 		initConfigResourceForOperation();
         initDemands();
@@ -466,7 +469,9 @@ public class HardwareInstallController {
 	protected void cleanupOnStart() {
 		List<String> knownDevLocs = new ArrayList<>();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
-			if(knownDevLocs.contains(install.device().getLocation()))
+			if(!install.device().exists())
+				install.delete();
+			else if(knownDevLocs.contains(install.device().getLocation()))
 				install.delete();
 			else
 				knownDevLocs.add(install.device().getLocation());
