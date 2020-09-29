@@ -101,6 +101,7 @@ public class UserAdminBaseUtil {
 			case UserPermissionService.MONITORING:
 				result.add("org.smartrplace.apps.srcmon-app");
 				result.add("org.ogema.tools.schedule-viewer-expert");
+				//result.add("org.ogema.apps.grafana-logging-sp");
 				break;
 			case UserPermissionService.ALARMING:
 				result.add("org.smartrplace.apps.alarming-config-app");
@@ -118,6 +119,7 @@ public class UserAdminBaseUtil {
 			case UserPermissionService.INSTALLATION_SETUP:
 				result.add("org.smartrplace.apps.hardware-installation");
 				result.add("org.smartrplace.drivers.bacnet-ogema-sp-gui");
+				//result.add("org.ogema.tools.modbus-sever-viewer");
 				break;
 			case UserPermissionService.GROUP_AND_PERMISSION_MANAGEMENT:
 				result.add("org.smartrplace.apps.smartrplace-heatcontrol-v2");

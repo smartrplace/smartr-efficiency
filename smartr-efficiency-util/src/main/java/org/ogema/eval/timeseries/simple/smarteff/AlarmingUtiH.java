@@ -139,7 +139,10 @@ public class AlarmingUtiH {
 		EditPageGeneric.setDefault(data.lowerLimit(), min, mode);
 		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
 		EditPageGeneric.setDefault(data.maxIntervalBetweenNewValues(), maxIntervalBetweenNewValues, mode);
-		EditPageGeneric.setDefault(data.sendAlarm(), true, mode);
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.sendAlarmsinitially"))
+			EditPageGeneric.setDefault(data.sendAlarm(), true, mode);
+		else
+			EditPageGeneric.setDefault(data.sendAlarm(), false, mode);
 		
 		//TODO: By default we perform switch supervision, may not really work
 		if(data.sensorVal().exists() &&

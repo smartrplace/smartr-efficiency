@@ -96,15 +96,23 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 						if(obj instanceof Sensor && (((Sensor)obj).reading() instanceof FloatResource)) {
 							sampleRes = (FloatResource) ((Sensor)obj).reading();
 							break;
+						} else {
+							for(Sensor sens: obj.getSubResources(Sensor.class, true)) {
+								if(sens instanceof Sensor && (((Sensor)sens).reading() instanceof FloatResource)) {
+									sampleRes = (FloatResource) ((Sensor)sens).reading();
+									break;
+								}
+							}
+							if(sampleRes != null)
+								break;
 						}
 					}
-					if(sampleRes == null || (!sampleRes.exists()))
-						return device;
-					Label tempmes = vh.floatLabel("SampleValue", id, sampleRes, row, "%.1f");
-					Label lastContact = addLastContact("Last Value", vh, id, req, row, sampleRes);
-					tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
-					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
-
+					if(sampleRes != null && sampleRes.exists()) {
+						Label tempmes = vh.floatLabel("SampleValue", id, sampleRes, row, "%.1f");
+						Label lastContact = addLastContact("Last Value", vh, id, req, row, sampleRes);
+						tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
+						lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+					}
 					Room deviceRoom = device.location().room();
 					addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 					addSubLocation(object, vh, id, req, row);

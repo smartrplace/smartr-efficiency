@@ -4,7 +4,6 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 
 import de.iwes.ogema.bacnet.models.BACnetDevice;
-import de.smartrplace.ghl.ogema.resources.GhlWaterPond;
 
 public class BacnetDevicePattern extends ResourcePattern<BACnetDevice> { 
 	
@@ -15,4 +14,10 @@ public class BacnetDevicePattern extends ResourcePattern<BACnetDevice> {
 		super(device);
 	}
 
+	@Override
+	public boolean accept() {
+		if(!model.getLocation().contains("remoteDevice"))
+			return false;
+		return true;
+	}
 }
