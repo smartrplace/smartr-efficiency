@@ -79,14 +79,21 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public static class MessageSettingsDictAlarming_de extends MessageSettingsDictionary_de {
 		@Override
 		public String headerReceivers() {
-			return "3. Message Receiver Configuration";
+			return messageSettingsHeader();
 		}
 	}
 	public static class MessageSettingsDictAlarming_en extends MessageSettingsDictionary_en {
 		@Override
 		public String headerReceivers() {
-			return "3. Message Receiver Configuration";
+			return messageSettingsHeader();
 		}
+	}
+	
+	public static String messageSettingsHeader() {
+		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway"))
+			return "3. Message Receiver Configuration";
+		else
+			return "1. Message Receiver Configuration";		
 	}
 	
 	public AlarmingConfigAppController(ApplicationManager appMan, AlarmingConfigApp initApp) {
@@ -107,17 +114,20 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		updateAlarming();
 		MainPage.alarmingUpdater = this;
 
-		WidgetPage<?> pageRes12 = initApp.widgetApp.createStartPage(); //initApp.widgetApp.createWidgetPage("devices.html");
-		devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
-		initApp.menu.addEntry("1. Alarming Configuration Per Device", pageRes12);
-		initApp.configMenuConfig(pageRes12.getMenuConfiguration());
-
-		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
-		//Resource base = appMan.getResourceAccess().getResource("master");
-		mainPage = new MainPage(pageRes10, appManPlus); //, base);
-		initApp.menu.addEntry("2. Alarming Configuration Details", pageRes10);
-		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
-
+		boolean isGw = false;
+		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+			WidgetPage<?> pageRes12 = initApp.widgetApp.createStartPage(); //initApp.widgetApp.createWidgetPage("devices.html");
+			devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
+			initApp.menu.addEntry("1. Alarming Configuration Per Device", pageRes12);
+			initApp.configMenuConfig(pageRes12.getMenuConfiguration());
+	
+			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
+			//Resource base = appMan.getResourceAccess().getResource("master");
+			mainPage = new MainPage(pageRes10, appManPlus); //, base);
+			initApp.menu.addEntry("2. Alarming Configuration Details", pageRes10);
+			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
+			isGw = true;
+		}
 		@SuppressWarnings("unchecked")
 		final ResourceList<MessagingApp> appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
 		appList.setElementType(MessagingApp.class);
@@ -136,12 +146,19 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			messagePage = null;
 			forwardingPage = null;
 		}
-		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", false);
+		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", !isGw);
 		de.iwes.widgets.messaging.MessagingApp app1 = null;
 		for(de.iwes.widgets.messaging.MessagingApp mapp: initApp.mr.getMessageSenders()) {
-			if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming Configuration".equals(mapp.getName())) {
-				app1 = mapp;
-				break;
+			if(isGw) {
+				if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming Configuration".equals(mapp.getName())) {
+					app1 = mapp;
+					break;
+				}
+			} else {
+				if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Remote gateway heartbeat server".equals(mapp.getName())) {
+					app1 = mapp;
+					break;
+				}				
 			}
 		}
 		de.iwes.widgets.messaging.MessagingApp app = app1;
@@ -184,7 +201,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			}
 		};
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
-		initApp.menu.addEntry("3. Message Receiver Configuration", pageRes3);
+		initApp.menu.addEntry(messageSettingsHeader(), pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 		
 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {

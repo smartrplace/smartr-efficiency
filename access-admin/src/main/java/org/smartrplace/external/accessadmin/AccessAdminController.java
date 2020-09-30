@@ -73,27 +73,34 @@ public class AccessAdminController {
 		
 		//mainPage = new MainPage(page, appMan);
 
-		//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");
-		WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("roomsetup.html", true);
-		roomSetupPage = new RoomSetupPage(pageRes10, this);
-		initApp.menu.addEntry("1. Room Attribute Configuration", pageRes10);
-		initApp.configMenuConfig(pageRes10.getMenuConfiguration());
-
-		WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
-		roomConfigPage = new RoomConfigPage(pageRes3, this);
-		initApp.menu.addEntry("2. Room Configuration", pageRes3);
-		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
-
-		WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html");
+		boolean isGw = Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway");
+		if(isGw) {
+			//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");
+			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("roomsetup.html", true);
+			roomSetupPage = new RoomSetupPage(pageRes10, this);
+			initApp.menu.addEntry("1. Room Attribute Configuration", pageRes10);
+			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
+	
+			WidgetPage<?> pageRes3 = initApp.widgetApp.createWidgetPage("roomconfig.html");
+			roomConfigPage = new RoomConfigPage(pageRes3, this);
+			initApp.menu.addEntry("2. Room Configuration", pageRes3);
+			initApp.configMenuConfig(pageRes3.getMenuConfiguration());
+		} else {
+			roomSetupPage = null;
+			roomConfigPage = null;
+		}
+		WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html", !isGw);
 		userSetupPage = new UserSetupPage(pageRes11, appConfigData, appMan);
-		initApp.menu.addEntry("3. User Attribute Configuration", pageRes11);
+		initApp.menu.addEntry(isGw?"3.":"1."+" User Attribute Configuration", pageRes11);
 		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 
-		WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
-		userRoomGroupPermPage2 = new UserRoomGroupPermissionPage2(pageRes2, this, false);
-		initApp.menu.addEntry("4. User - Room Group Mapping", pageRes2);
-		initApp.configMenuConfig(pageRes2.getMenuConfiguration());
-
+		if(isGw) {
+			WidgetPage<?> pageRes2 = initApp.widgetApp.createWidgetPage("userroomperm.html");
+			userRoomGroupPermPage2 = new UserRoomGroupPermissionPage2(pageRes2, this, false);
+			initApp.menu.addEntry("4. User - Room Group Mapping", pageRes2);
+			initApp.configMenuConfig(pageRes2.getMenuConfiguration());
+		} else
+			userRoomGroupPermPage2 = null;
 		//WidgetPage<?> pageRes2V = initApp.widgetApp.createWidgetPage("userroompermv1.html");
 		//userRoomGroupPermPage = new UserRoomGroupPermissionPage(pageRes2V, this);
 		//initApp.menu.addEntry("4. User - Room Group Mapping (V1)", pageRes2V);
@@ -101,7 +108,7 @@ public class AccessAdminController {
 
 		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
 		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
-		initApp.menu.addEntry("5. User App Mapping", pageRes6);
+		initApp.menu.addEntry(isGw?"5.":"2."+" User App Mapping", pageRes6);
 		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
 
 		if(Boolean.getBoolean("org.ogema.accessadmin.api.isappstore")) {
