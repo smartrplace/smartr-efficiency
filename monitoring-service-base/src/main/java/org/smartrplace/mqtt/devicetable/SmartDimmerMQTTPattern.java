@@ -13,37 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.driverhandler.devices;
+package org.smartrplace.mqtt.devicetable;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 
-public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
+public class SmartDimmerMQTTPattern extends ResourcePattern<SensorDevice> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public SensorDeviceGenericPattern(Resource device) {
+	public SmartDimmerMQTTPattern(Resource device) {
 		super(device);
 	}
 	
 	@Override
 	public boolean accept() {
-		if(DeviceTableRaw.isTempHumSens(model.getLocation()))
-			return false;
 		if(DeviceTableRaw.isDimmerSensorDevice(model.getLocation()))
-			return false;
-		//If more special SensorDevices are supported in the future add check here
-		return true;
-		/*if(model.getLocation().startsWith("JMBUS_BASE"))
 			return true;
-		for(Sensor sens: model.getSubResources(Sensor.class, false)) {
-			if(sens instanceof TemperatureSensor || sens instanceof HumiditySensor)
-				continue;
-			return true;
-		}
-		return false;*/
+		return false;
 	}
 }
