@@ -190,6 +190,9 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 			DoorWindowSensor deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
 		List<RoomInsideSimulationBase> result = new ArrayList<>();
 
+		if(deviceResource.getLocation().toLowerCase().contains("homematicip"))
+			return result;
+		
 		//start aesMode setter
 		Timer timer = appMan.appMan().createTimer(30*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
 				
