@@ -22,12 +22,15 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
@@ -109,7 +112,21 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 
-		StaticTable configTable = new StaticTable(7, 2);
+		Label frameworkTimeLabel = new Label(page, "frameworkTimeLabel") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String text = StringFormatHelper.getFullTimeDateInLocalTimeZone(controller.dpService.getFrameworkTime());
+				setText(text, req);
+			}
+		};
+
+		Button updateViaHeartbeat = new Button(page, "updateViaHeartbeat", "Update Datapoints") {
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				ViaHeartbeatUtil.updateAllTransferRegistrations(controller.dpService, Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway"));
+			};
+		};
+		
+		StaticTable configTable = new StaticTable(9, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -131,6 +148,12 @@ public class ConfigurationPageHWInstall {
 		i++;
 		configTable.setContent(i, 0, "GatewayId:").
 		setContent(i, 1, gwIdLabel);
+		i++;
+		configTable.setContent(i, 0, "Framework Time:").
+		setContent(i, 1, frameworkTimeLabel);
+		i++;
+		configTable.setContent(i, 0, "Update datapoints for transfer via heartbeat from datapoint groups").
+		setContent(i, 1, updateViaHeartbeat);
 		i++;
 		
 		page.append(configTable);
