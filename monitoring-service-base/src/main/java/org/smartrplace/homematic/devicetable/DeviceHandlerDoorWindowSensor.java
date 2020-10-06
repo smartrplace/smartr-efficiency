@@ -11,7 +11,6 @@ import org.ogema.core.application.TimerListener;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
-import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -173,16 +172,18 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		appDevice.alarms().create();
 		DoorWindowSensor device = (DoorWindowSensor) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.reading(), 0.0f, 1.0f, 1, 30);
-		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
+		AlarmingUtiH.addAlarmingHomematic(device, appDevice);
+		/*IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
 		if(rssiDevice != null && rssiDevice.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
-					-30f, -85f, 600, 300);
+					-30f, -94f, 10, 300);
 		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(device,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
 		if(rssiPeer != null && rssiPeer.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
-					-30f, -85f, 600, 300);
+					-30f, -94f, 10, 300);
+		*/
 	}
 
 	@Override

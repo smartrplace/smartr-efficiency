@@ -3,6 +3,9 @@ package org.smartrplace.apps.alarmingconfig;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
+import org.apache.felix.scr.annotations.ReferenceCardinality;
+import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accesscontrol.PermissionManager;
@@ -10,6 +13,7 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
@@ -22,6 +26,15 @@ import de.iwes.widgets.messaging.MessageReader;
 /**
  * Template OGEMA application class
  */
+@References({
+	@Reference(
+		name="servletProviders",
+		referenceInterface=AlarmingExtensionProvider.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addExtProvider",
+		unbind="removeExtProvider")
+})
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)
 public class AlarmingConfigApp implements Application {
@@ -73,7 +86,9 @@ public class AlarmingConfigApp implements Application {
 
         controller = new AlarmingConfigAppController(appMan, this);
         log.info("{} started", getClass().getName());
-     }
+ 
+		controllerProvider.setController(controller);
+ 	}
 
      /*
      * Callback called when the application is going to be stopped.
@@ -91,4 +106,16 @@ public class AlarmingConfigApp implements Application {
 		mc.setLanguageSelectionVisible(false);
 		mc.setNavigationVisible(false); 		
  	}
+ 	
+    protected final GenericControllerProvider<AlarmingConfigAppController> controllerProvider;
+    public AlarmingConfigApp() {
+ 		controllerProvider = new GenericControllerProvider<AlarmingConfigAppController>(
+ 				"org.smartrplace.apps.alarmingconfig.expert.AlarmingConfigAppExpert");
+ 	}
+     protected void addExtProvider(AlarmingExtensionProvider  provider) {
+     	controllerProvider.addExtProvider(provider);
+     }
+     protected void removeExtProvider(AlarmingExtensionProvider provider) {
+        	controllerProvider.removeExtProvider(provider);
+     }
 }

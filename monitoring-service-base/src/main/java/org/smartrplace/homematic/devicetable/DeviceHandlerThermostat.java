@@ -2,9 +2,7 @@ package org.smartrplace.homematic.devicetable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -233,28 +231,29 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		Thermostat device = (Thermostat) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, 20);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceSettings().setpoint(),
-				4.5f, 30.5f, 1, 240);
+				4.5f, 30.5f, 1, 1500);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
 				4.5f, 30.5f, 1, 20);
 		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
 				0f, 100f, 1, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.battery().internalVoltage().reading(),
+		AlarmingUtiH.addAlarmingHomematic(device, appDevice);
+		/*AlarmingUtiH.setTemplateValues(appDevice, device.battery().internalVoltage().reading(),
 				1.5f, 3.5f, 1, 70);
 		//BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(device,
 		//		"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
 		//if(comDisturbed != null && comDisturbed.exists())
 		//	AlarmingUtiH.setTemplateValues(appDevice, comDisturbed,
 		//			0.0f, 1.0f, 60, -1);
-		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
+		/*IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
 		if(rssiDevice != null && rssiDevice.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
-					-30f, -85f, 600, 300);
+					-30f, -94f, 10, 300);
 		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(device,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
 		if(rssiPeer != null && rssiPeer.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
-					-30f, -85f, 600, 300);
+					-30f, -94f, 10, 300);*/
 		appDevice.alarms().activate(true);
 	}
 }

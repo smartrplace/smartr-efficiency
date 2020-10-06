@@ -79,6 +79,7 @@
 		<module>access-admin</module>
 		<module>access-admin-expert</module>
 		<module>alarming-config-app</module>
+		<module>alarming-config-expert</module>
 		<module>hardware-installation</module>
 		<module>hardware-installation-expert</module>
    </modules>

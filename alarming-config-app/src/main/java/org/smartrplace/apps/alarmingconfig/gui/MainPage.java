@@ -17,7 +17,6 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
-import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 

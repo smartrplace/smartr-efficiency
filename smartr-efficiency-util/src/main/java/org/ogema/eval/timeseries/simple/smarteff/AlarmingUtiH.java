@@ -1,13 +1,20 @@
 package org.ogema.eval.timeseries.simple.smarteff;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PowerResource;
+import org.ogema.core.model.units.VoltageResource;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -120,6 +127,20 @@ public class AlarmingUtiH {
 		result.activate(true);
 		return result;
 	}
+	
+	
+	public static List<AlarmConfiguration> getDoubletsForReferencingSensorVal(ResourceList<AlarmConfiguration> list) {
+		Set<String> knownSensValLocs = new HashSet<>();
+		List<AlarmConfiguration> toRemove = new ArrayList<>();
+		for(AlarmConfiguration el: list.getAllElements()) {
+			String loc = el.sensorVal().getLocation();
+			if(knownSensValLocs.contains(loc)) {
+				toRemove.add(el);
+			} else
+				knownSensValLocs.add(loc);
+		}
+		return toRemove;
+	}
 
 	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
@@ -128,7 +149,8 @@ public class AlarmingUtiH {
 			return;
 		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
 				res, appDevice.alarms());
-		setTemplateValues(alarm, 5.0f, 35.0f, 15, 20);		
+		setTemplateValues(alarm, min, max, maxViolationTimeWithoutAlarm,
+				maxIntervalBetweenNewValues);		
 	}
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
@@ -151,4 +173,34 @@ public class AlarmingUtiH {
 		} else
 			EditPageGeneric.setDefault(data.performAdditinalOperations(), false, mode);
 	}
+	
+	public static void addAlarmingHomematic(PhysicalElement dev, InstallAppDevice appDevice) {
+		dev = dev.getLocationResource();
+		VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(dev,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
+		if(batteryVoltage != null)
+			AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
+					1.5f, 3.5f, 10, 70);
+		BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(dev,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
+		if(batteryStatus != null && batteryStatus.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, batteryStatus,
+					0.0f, 0.0f, 10, -1);
+		//BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(dev,
+		//		"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
+		//if(comDisturbed != null && comDisturbed.exists())
+		//	AlarmingUtiH.setTemplateValues(appDevice, comDisturbed,
+		//			0.0f, 1.0f, 60, -1);
+		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(dev,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		if(rssiDevice != null && rssiDevice.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
+					-30f, -94f, 10, 300);
+		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(dev,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
+		if(rssiPeer != null && rssiPeer.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
+					-30f, -94f, 10, 300);
+	}
+
 }
