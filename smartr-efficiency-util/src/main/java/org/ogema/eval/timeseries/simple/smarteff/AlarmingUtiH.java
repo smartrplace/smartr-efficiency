@@ -17,6 +17,7 @@ import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
@@ -154,12 +155,20 @@ public class AlarmingUtiH {
 	}
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
+		
+		//Special handlings
+		if(data.sensorVal().getLocation().toLowerCase().contains("homematicip")) {
+			if(maxIntervalBetweenNewValues < 4*TimeProcUtil.HOUR_MILLIS)
+				maxIntervalBetweenNewValues = 4*TimeProcUtil.HOUR_MILLIS;
+		}
+
 		DefaultSetModes mode = DefaultSetModes.OVERWRITE;
 		EditPageGeneric.setDefault(data.alarmLevel(), 1, mode);
 		EditPageGeneric.setDefault(data.alarmRepetitionTime(), 60, mode);
 		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), maxViolationTimeWithoutAlarm, mode);
 		EditPageGeneric.setDefault(data.lowerLimit(), min, mode);
 		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
+		
 		EditPageGeneric.setDefault(data.maxIntervalBetweenNewValues(), maxIntervalBetweenNewValues, mode);
 		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.sendAlarmsinitially"))
 			EditPageGeneric.setDefault(data.sendAlarm(), true, mode);

@@ -91,32 +91,19 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 
-		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan.getResourceAccess());
-		StringResource baseUrlRes = gwInfo.gatewayBaseUrl();
-		ResourceTextField<StringResource> baseUrl = new ValueResourceTextField<StringResource>(page,
-				"baseUrlEdit", baseUrlRes);
-		
-		Label localIP = new Label(page, "localIP") {
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				String ipText = IPNetworkHelper.getLocalIPAddress();
-				setText(ipText, req);
-			}
-		};
-		
-		Label gwIdLabel = new Label(page, "gwIdLabel") {
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				String gwId = gwInfo.id().getValue();
-				setText(gwId, req);
-			}
-		};
-
 		Label frameworkTimeLabel = new Label(page, "frameworkTimeLabel") {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String text = StringFormatHelper.getFullTimeDateInLocalTimeZone(controller.dpService.getFrameworkTime());
 				setText(text, req);
+			}
+		};
+
+		Label localIP = new Label(page, "localIP") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String ipText = IPNetworkHelper.getLocalIPAddress();
+				setText(ipText, req);
 			}
 		};
 
@@ -140,15 +127,31 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Include inactive devices: This may lead to showing devices in more than one DeviceHandlerProvider").
 		setContent(i, 1, includeInactiveDevices);
 		i++;
-		configTable.setContent(i, 0, "Base URL for access via internet, e.g. https://customer.manufacturer.de:2000").
-		setContent(i, 1, baseUrl);
-		i++;
+		
+		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan.getResourceAccess());
+		if(gwInfo != null) {
+			StringResource baseUrlRes = gwInfo.gatewayBaseUrl();
+			ResourceTextField<StringResource> baseUrl = new ValueResourceTextField<StringResource>(page,
+					"baseUrlEdit", baseUrlRes);
+						
+			Label gwIdLabel = new Label(page, "gwIdLabel") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					String gwId = gwInfo.id().getValue();
+					setText(gwId, req);
+				}
+			};
+
+			configTable.setContent(i, 0, "Base URL for access via internet, e.g. https://customer.manufacturer.de:2000").
+			setContent(i, 1, baseUrl);
+			i++;
+			configTable.setContent(i, 0, "GatewayId:").
+			setContent(i, 1, gwIdLabel);
+			i++;
+		}
 		configTable.setContent(i, 0, "Local IP Address:").
 		setContent(i, 1, localIP);
-		i++;
-		configTable.setContent(i, 0, "GatewayId:").
-		setContent(i, 1, gwIdLabel);
-		i++;
+		i++;		
 		configTable.setContent(i, 0, "Framework Time:").
 		setContent(i, 1, frameworkTimeLabel);
 		i++;
