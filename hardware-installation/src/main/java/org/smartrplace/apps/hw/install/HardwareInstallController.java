@@ -461,7 +461,7 @@ public class HardwareInstallController {
 			appDevice.alarms().create().activate(false);
 		}
 		Resource dpRes1 = dp.getResource();
-		if(dpRes1 == null || (!(dpRes1 instanceof SingleValueResource)))
+		if(dpRes1 == null || (!dpRes1.exists()) || (!(dpRes1 instanceof SingleValueResource)))
 			return;
 		SingleValueResource dpRes = (SingleValueResource)dpRes1;
 		AlarmingUtiH.getOrCreateReferencingSensorVal(dpRes, appDevice.alarms());

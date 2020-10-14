@@ -32,11 +32,13 @@ import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 
@@ -71,7 +73,15 @@ public class MainPageExpert extends MainPage {
 		};
 		topTable.setContent(0, 4, updateDatapoints);
 	}
-
+	
+	@Override
+	protected void finishConstructor() {
+		StaticTable secondTable = new StaticTable(1, 4);
+		RedirectButton stdCharts = new RedirectButton(page, "stdCharts", "Chart Config", "/org/sp/app/srcmon/chartconfig.html");
+		secondTable.setContent(0, 1, stdCharts);
+		super.finishConstructor();
+	}
+	
 	@Override
 	public void addWidgetsExpert(final InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
