@@ -37,7 +37,7 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 	@Override
 	protected String getHeader(OgemaLocale locale) {
 		boolean isGw = Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway");
-		return isGw?"5.":"2."+" User App Mapping";
+		return (isGw?"5.":"2.")+" User App Mapping";
 	}
 	
 	@Override

@@ -46,7 +46,7 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 	@Override
 	protected String getHeader(OgemaLocale locale) {
 		boolean isGw = Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway");
-		return isGw?"3.":"1."+" User Attribute Configuration";
+		return (isGw?"3.":"1.")+" User Attribute Configuration";
 	}
 	
 	@Override

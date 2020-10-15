@@ -91,7 +91,7 @@ public class AccessAdminController {
 		}
 		WidgetPage<?> pageRes11 = initApp.widgetApp.createWidgetPage("usersetup.html", !isGw);
 		userSetupPage = new UserSetupPage(pageRes11, appConfigData, appMan);
-		initApp.menu.addEntry(isGw?"3.":"1."+" User Attribute Configuration", pageRes11);
+		initApp.menu.addEntry((isGw?"3.":"1.")+" User Attribute Configuration", pageRes11);
 		initApp.configMenuConfig(pageRes11.getMenuConfiguration());
 
 		if(isGw) {
@@ -108,7 +108,7 @@ public class AccessAdminController {
 
 		WidgetPage<?> pageRes6 = initApp.widgetApp.createWidgetPage("userstatus.html");
 		userStatusPage = new UserStatusPermissionPage(pageRes6, this);
-		initApp.menu.addEntry(isGw?"5.":"2."+" User App Mapping", pageRes6);
+		initApp.menu.addEntry((isGw?"5.":"2.")+" User App Mapping", pageRes6);
 		initApp.configMenuConfig(pageRes6.getMenuConfiguration());
 
 		if(Boolean.getBoolean("org.ogema.accessadmin.api.isappstore")) {
