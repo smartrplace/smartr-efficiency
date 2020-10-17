@@ -297,6 +297,10 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		}
 		return result;
 	}
+	@Override
+	public Collection<Datapoint> getAllDatapoints(String gwId) {
+		return knownDps.get(gwId).values();
+	}
 
 	static Map<DataTypeRegistrationStatus, Collection<String>> typeIds = new HashMap<>();
 	static Set<String> typeIdsKnown = new LinkedHashSet<String>(GaRoEvalHelper.recIdSnippets.keySet());
