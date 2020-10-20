@@ -1,7 +1,9 @@
 package org.smartrplace.apps.alarmingconfig;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
@@ -29,6 +31,7 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.format.WidgetHelper;
@@ -115,6 +118,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		appManPlus.getMessagingService().registerMessagingApp(appMan.getAppID(), getAlarmingDomain()+"_Alarming");
 
 		hwTableData = new HardwareTableData(appMan);
+		cleanupAlarming();
 		//initAlarmingResources();
 		updateAlarming();
 		MainPage.alarmingUpdater = this;
@@ -237,6 +241,24 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 	}
 
+	public void cleanupAlarming() {
+		for(InstallAppDevice dev: hwTableData.appConfigData.knownDevices().getAllElements()) {
+			cleanupAlarming(dev);
+		}
+	}
+	
+	public void cleanupAlarming(InstallAppDevice dev) {
+		Set<String> knownSensors = new HashSet<>();
+		for(AlarmConfiguration ac: dev.alarms().getAllElements()) {
+			if(knownSensors.contains(ac.sensorVal().getLocation())) {
+				log.warn(" Found double alarming entry for "+ac.sensorVal().getLocation()+ " in "+ac.getLocation());
+				ac.delete();
+			} else {
+				knownSensors.add(ac.sensorVal().getLocation());
+			}
+		}
+	}
+	
 	@Override
 	public void updateAlarming() {
 		if(alarmMan != null) {

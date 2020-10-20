@@ -176,7 +176,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				} else {
 					int alNum = 0;
 					for(AlarmConfiguration ac: object.alarms().getAllElements()) {
-						if(ac.sendAlarm().isActive())
+						if(ac.sendAlarm().getValue())
 							alNum++;
 					}
 					vh.intLabel("Active Alarms", id, alNum, row, 0);
