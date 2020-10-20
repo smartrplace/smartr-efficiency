@@ -40,7 +40,7 @@ public class MainPageExpertProps extends MainPage {
 	protected String getHeader() {return "Device Setup and Configuration with Properties";}
 
 	public MainPageExpertProps(WidgetPage<?> page, final HardwareInstallController controller) {
-		super(page, controller);
+		super(page, controller, true);
 		
 		//topTable.setContent(0, 4, updateDatapoints);
 	}

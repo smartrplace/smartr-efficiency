@@ -27,9 +27,11 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
+import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
@@ -47,12 +49,13 @@ import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.apps.hw.install.devicetypes.InitialConfig;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
+import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
+import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -71,6 +74,7 @@ public class HardwareInstallController {
 	public HardwareInstallConfig appConfigData;
 	public final AccessAdminConfig accessAdminConfigRes;
 	public final HardwareInstallApp hwInstApp;
+	public final HardwareTableData hwTableData;
 	
 	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
 	public final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
@@ -84,6 +88,7 @@ public class HardwareInstallController {
 	//WidgetApp widgetApp;
 	public volatile boolean cleanUpOnStartDone = false;
 	
+	ResourceValueListener<BooleanResource> searchForHwListener = null;
 	
 	//OGEMADriverPropertyService administration
 	// Resource location -> services that have added at least one property to the resource
@@ -137,8 +142,9 @@ public class HardwareInstallController {
 		this.appManPlus.setDpService(dpService);
 		
 		this.accessAdminConfigRes = appMan.getResourceAccess().getResource("accessAdminConfig");
-				
 		initConfigurationResource();
+		this.hwTableData = new HardwareTableData(appMan);
+		
 		cleanupOnStart();
 		cleanUpOnStartDone = true;
 		mainPage = getMainPage(page);
@@ -156,7 +162,7 @@ public class HardwareInstallController {
 	}
 
 	protected MainPage getMainPage(WidgetPage<?> page) {
-		return new MainPage(page, this);
+		return new MainPage(page, this, true);
 	}
 	
     /*
@@ -186,6 +192,14 @@ public class HardwareInstallController {
      * patterns in the OGEMA resource tree
      */
     public void initDemands() {
+    	searchForHwListener = new ResourceValueListener<BooleanResource>() {
+
+			@Override
+			public void resourceChanged(BooleanResource resource) {
+				checkDemands();
+			}
+		};
+		appConfigData.isInstallationActive().addValueListener(searchForHwListener, false);
 		if(appConfigData.isInstallationActive().getValue()) {
 			startDemands();
 		}
@@ -254,11 +268,12 @@ public class HardwareInstallController {
 	}
 	
 	protected <T extends Resource> void initAlarmingForDevice(InstallAppDevice install, DeviceHandlerProvider<T> tableProvider) {
-		String shortID = tableProvider.getDeviceTypeShortId(install, dpService);
-		if((!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus())) &&
-				(getDevices(tableProvider).size() <= 1)) {
+		String shortID = install.deviceId().getValue(); //tableProvider.getDeviceTypeShortId(install, dpService);
+		if((!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))) {// &&
+			//	(getDevices(tableProvider).size() <= 1)) {
 			tableProvider.initAlarmingForDevice(install, appConfigData);
-			ValueResourceHelper.setCreate(install.isTemplate(), tableProvider.id());
+			if(DeviceTableRaw.getTemplateForType(getDevices(tableProvider), tableProvider) == null)
+				ValueResourceHelper.setCreate(install.isTemplate(), tableProvider.id());
 		}
 		//mark init done for sure
 		if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
@@ -503,10 +518,15 @@ public class HardwareInstallController {
 	}
 	
 	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider) {
-		boolean includeInactiveDevices = appConfigData.includeInactiveDevices().getValue();
-		return getDevices(tableProvider, includeInactiveDevices, false);
+		return mainPage.getDevices(tableProvider);
+		/*boolean includeInactiveDevices = appConfigData.includeInactiveDevices().getValue();
+		return getDevices(tableProvider, includeInactiveDevices, false);*/
 	}
 	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
+			boolean includeInactiveDevices, boolean includeTrash) {
+		return mainPage.getDevices(tableProvider, includeInactiveDevices, includeTrash);
+	}
+	/*public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
 			boolean includeInactiveDevices, boolean includeTrash) {
 		List<InstallAppDevice> result = new ArrayList<>();
 		Class<T> tableType = null;
@@ -533,17 +553,9 @@ public class HardwareInstallController {
 					result.add(install);
 				}
 			}
-			/*} else 	{
-				for(ResourcePattern<?> pat: allPatterns) {
-					if(pat.model.equalsLocation(install.device())) {
-						result.add(install);
-						break;
-					}
-				}
-			}*/
 		}
 		return result;
-	}
+	}*/
 
 	public InstallAppDevice getTemplateDevice(InstallAppDevice source) {
 		DeviceHandlerProvider<?> devHand = handlerByDevice.get(source.getLocation());

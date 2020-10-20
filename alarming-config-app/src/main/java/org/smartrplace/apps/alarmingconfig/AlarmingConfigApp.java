@@ -1,6 +1,9 @@
 package org.smartrplace.apps.alarmingconfig;
 
-import org.apache.felix.scr.annotations.Activate;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -13,9 +16,10 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
+import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -28,6 +32,13 @@ import de.iwes.widgets.messaging.MessageReader;
  */
 @References({
 	@Reference(
+		name="tableProviders",
+		referenceInterface=DeviceHandlerProvider.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addTableProvider",
+		unbind="removeTableProvider"),
+	@Reference(
 		name="servletProviders",
 		referenceInterface=AlarmingExtensionProvider.class,
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
@@ -37,7 +48,7 @@ import de.iwes.widgets.messaging.MessageReader;
 })
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)
-public class AlarmingConfigApp implements Application {
+public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
 	public static final String urlPath = "/org/smartrplace/alarmingconfig";
 
     private OgemaLogger log;
@@ -53,7 +64,7 @@ public class AlarmingConfigApp implements Application {
 	@Reference
 	public PermissionManager permMan;
 
-	private BundleContext bc;
+	//private BundleContext bc;
 	protected ServiceRegistration<UserPermissionService> srUserAccService = null;
 	
 	@Reference
@@ -65,10 +76,10 @@ public class AlarmingConfigApp implements Application {
 	@Reference
 	MessageReader mr;
 
-	@Activate
+	/*@Activate
 	   void activate(BundleContext bc) {
 	    this.bc = bc;
-	 }
+	 }*/
 	
     /*
      * This is the entry point to the application.
@@ -118,4 +129,26 @@ public class AlarmingConfigApp implements Application {
      protected void removeExtProvider(AlarmingExtensionProvider provider) {
         	controllerProvider.removeExtProvider(provider);
      }
+     
+ 	private final Map<String, DeviceHandlerProvider<?>> tableProviders = Collections.synchronizedMap(new LinkedHashMap<String,DeviceHandlerProvider<?>>());
+ 	public Map<String, DeviceHandlerProvider<?>> getTableProviders() {
+ 		synchronized (tableProviders) {
+ 			return new LinkedHashMap<>(tableProviders);
+ 		}
+ 	}
+    protected void addTableProvider(DeviceHandlerProvider<?> provider) {
+     	tableProviders.put(provider.id(), provider);
+     	synchronized (this) {
+ 	    	if(controller != null && controller.mainPage != null) {
+ 	    		controller.deviceOverviewPage.updateTables();
+ 	    		//for(MainPage mp: controller.mainPageExts) {
+ 	    		//	mp.updateTables();
+ 	    		//}
+ 	    	}
+     	}
+     }
+     protected void removeTableProvider(DeviceHandlerProvider<?> provider) {
+     	tableProviders.remove(provider.id());
+     }
+
 }

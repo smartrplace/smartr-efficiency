@@ -29,13 +29,13 @@ import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
-import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -79,7 +79,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)
-public class HardwareInstallApp implements Application {
+public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 	public static final String urlPath = "/org/smartrplace/hardwareinstall";
 
 	protected OgemaLogger log;

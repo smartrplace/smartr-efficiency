@@ -32,12 +32,13 @@ public class ThermostatPage extends MainPage {
 	protected String getHeader() {return "Smartrplace Hardware InstallationApp Expert";}
 
 	public ThermostatPage(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller);
+		super(page, controller, false);
+		finishConstructor();
 	}
 
 	@Override
 	protected void finishConstructor() {
-		devTable = new DeviceTableBase(page, controller.appManPlus, alert, instAppsSelector, null) {
+		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
 			@Override
 			public String getLineId(InstallAppDevice object) {
 				Room deviceRoom = object.device().location().room();

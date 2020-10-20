@@ -31,12 +31,13 @@ public class BatteryPage extends MainPage {
 	protected String getHeader() {return "Smartrplace Hardware InstallationApp Expert";}
 
 	public BatteryPage(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller);
+		super(page, controller, false);
+		finishConstructor();
 	}
 
 	@Override
 	protected void finishConstructor() {
-		devTable = new DeviceTableBase(page, controller.appManPlus, alert, instAppsSelector, null) {
+		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
 			@Override
 			public String getLineId(InstallAppDevice object) {
 				return object.getName()+"_BAT";

@@ -29,7 +29,6 @@ import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
-import org.smartrplace.apps.hw.install.gui.expert.RSSIPage;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
 import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
@@ -37,7 +36,6 @@ import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 /**
@@ -69,14 +67,14 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			final WidgetPage<?> page = widgetApp.createStartPage();
 			controller.mainPageExts.add(new MainPageExpert(page, controller));
 			
-			WidgetPage<LocaleDictionary> rssiPageBase = widgetApp.createWidgetPage("rssipage.hmtl");
-			new RSSIPage(rssiPageBase, controller);
+			//WidgetPage<LocaleDictionary> rssiPageBase = widgetApp.createWidgetPage("rssipage.hmtl");
+			//new RSSIPage(rssiPageBase, controller);
 
 			final NavigationMenu menu = new NavigationMenu(" Browse pages");
 			menu.addEntry("Expert page", page);
-			menu.addEntry("Communication quality page", rssiPageBase);
+			//menu.addEntry("Communication quality page", rssiPageBase);
 			page.getMenuConfiguration().setCustomNavigation(menu);
-			rssiPageBase.getMenuConfiguration().setCustomNavigation(menu);
+			//rssiPageBase.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> configPagebase = widgetApp.createWidgetPage("configPage.hmtl");
 			new ConfigurationPageHWInstall(configPagebase, controller);

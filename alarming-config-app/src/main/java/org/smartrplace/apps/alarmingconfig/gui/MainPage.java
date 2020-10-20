@@ -50,6 +50,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 	
 	//Set this to enable alarming updates
 	public static AlarmingUpdater alarmingUpdater = null;
+	public static boolean hasOpenCommits = false;
 	
 	//private final Resource baseResource;
 	protected final ApplicationManagerPlus appManPlus;
@@ -126,7 +127,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "2. Alarming Configuration Details";
+		return "3. Alarming Configuration Details";
 	}
 	
 	@Override

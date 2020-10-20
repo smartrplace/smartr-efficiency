@@ -63,13 +63,6 @@ public class DeviceTypePage extends MainPage {
 				if(devTypeGrp != null)
 					return devTypeGrp.id();
 				return null;
-				/*String devLoc = iad.device().getLocation();
-				for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
-					if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE") && (dpGrp.getSubGroup(devLoc) != null)) {
-						return dpGrp.id();
-					}
-				}
-				return null;*/
 			}
 			
 			@Override
@@ -130,7 +123,10 @@ public class DeviceTypePage extends MainPage {
 	}
 
 	protected void applyTemplate(OgemaHttpRequest req) {
-		List<InstallAppDevice> allDev = new ArrayList<>();
+		GenericFilterFixedSingle<String> selected = (GenericFilterFixedSingle<String>) deviceDrop.getSelectedItem(req);
+		AlarmingConfigUtil.applyTemplate(selected.getValue(), appManPlus);
+		
+		/*List<InstallAppDevice> allDev = new ArrayList<>();
 		InstallAppDevice template = null;
 		for(InstallAppDevice dev: appMan.getResourceAccess().getResources(InstallAppDevice.class)) {
 			DatapointGroup devTypeGrp = getDeviceTypeGroup(dev);
@@ -147,7 +143,7 @@ public class DeviceTypePage extends MainPage {
 			return;
 		for(InstallAppDevice dev: allDev) {
 			AlarmingConfigUtil.copySettings(template, dev, appMan);
-		}
+		}*/
 		
 	}
 	

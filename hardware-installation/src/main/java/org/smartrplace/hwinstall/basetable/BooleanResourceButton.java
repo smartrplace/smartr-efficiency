@@ -1,7 +1,8 @@
-package org.smartrplace.apps.hw.install.gui;
+package org.smartrplace.hwinstall.basetable;
 
 import org.ogema.core.model.simple.BooleanResource;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -51,6 +52,6 @@ public class BooleanResourceButton extends Button {
 		if(res.getValue()) {
 			res.setValue(false);
 		} else
-			res.setValue(true);
+			ValueResourceHelper.setCreate(res, true);
 	}
 }

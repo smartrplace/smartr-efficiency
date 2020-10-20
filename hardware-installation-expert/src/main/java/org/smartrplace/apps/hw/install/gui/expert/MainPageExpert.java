@@ -60,7 +60,7 @@ public class MainPageExpert extends MainPage {
 	protected String getHeader() {return "Device Setup and Configuration Expert";}
 
 	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller) {
-		super(page, controller);
+		super(page, controller, true);
 		
 		Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {

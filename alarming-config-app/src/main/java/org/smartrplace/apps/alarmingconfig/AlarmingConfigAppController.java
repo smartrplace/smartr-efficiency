@@ -29,7 +29,8 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
-import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
+import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -56,12 +57,15 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
     public final UserPermissionService userPermService;
     public final DatapointService dpService;
     
-	public AccessAdminConfig appConfigData;
+	//public final AccessAdminConfig appConfigData;
+	public final HardwareTableData hwTableData;
+	
 	public AlarmingConfigApp accessAdminApp;
     public final ApplicationManagerPlus appManPlus;
 	
 	public MainPage mainPage;
 	public DeviceTypePage devicePage;
+	public DeviceAlarmingPage deviceOverviewPage;
 	public final PageBuilderSimple messagePage;
 	public final PageInit forwardingPage;
 	public final ReceiverPageBuilder receiverPage;
@@ -91,7 +95,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	
 	public static String messageSettingsHeader() {
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway"))
-			return "3. Message Receiver Configuration";
+			return "4. Message Receiver Configuration";
 		else
 			return "1. Message Receiver Configuration";		
 	}
@@ -110,6 +114,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		
 		appManPlus.getMessagingService().registerMessagingApp(appMan.getAppID(), getAlarmingDomain()+"_Alarming");
 
+		hwTableData = new HardwareTableData(appMan);
 		//initAlarmingResources();
 		updateAlarming();
 		MainPage.alarmingUpdater = this;
@@ -118,13 +123,19 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			WidgetPage<?> pageRes12 = initApp.widgetApp.createStartPage(); //initApp.widgetApp.createWidgetPage("devices.html");
 			devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
-			initApp.menu.addEntry("1. Alarming Configuration Per Device", pageRes12);
+			initApp.menu.addEntry("1. Device Template Alarming Configuration", pageRes12);
 			initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 	
+			WidgetPage<?> pageRes9 = initApp.widgetApp.createWidgetPage("devicealarm.html");
+			//Resource base = appMan.getResourceAccess().getResource("master");
+			deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
+			initApp.menu.addEntry("2. Device Alarming Overview", pageRes9);
+			initApp.configMenuConfig(pageRes9.getMenuConfiguration());
+
 			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
 			//Resource base = appMan.getResourceAccess().getResource("master");
 			mainPage = new MainPage(pageRes10, appManPlus); //, base);
-			initApp.menu.addEntry("2. Alarming Configuration Details", pageRes10);
+			initApp.menu.addEntry("3. Alarming Configuration Details", pageRes10);
 			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 			isGw = true;
 		}
@@ -212,43 +223,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		initDemands();		
 	}
 
-	
-     /*protected void initAlarmingResources() {
-  		List<String> done = new ArrayList<>();
-  		Map<String, List<String>> roomSensors = new HashMap<>();
-  		for(Sensor sens: allSensors) {
- 			if(sens.getLocation().contains("valve/connection/powerSensor"))
- 				continue;
- 			ValueResource vr = sens.reading();
- 			if(!(vr instanceof SingleValueResource))
- 				continue;
- 			SingleValueResource reading = (SingleValueResource) vr;
-			AlarmingManager.initValueResourceAlarming(reading, roomSensors, done, this, appMan);
- 		}
- 		AlarmingManager.finishInitSensors(user, roomSensors, done, appMan);
- 		SmartEffUserDataNonEdit user = appMan.getResourceAccess().getResource("master");
- 		if(user == null) return;
- 		
- 		List<String> done = new ArrayList<>();
- 		Map<String, List<String>> roomSensors = new HashMap<>();
- 		//List<Sensor> allSensors;
- 		List<SingleValueResource> allSensors;
- 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.tempsensonly"))
- 			allSensors = new ArrayList<Sensor>(appMan.getResourceAccess().getResources(TemperatureSensor.class));
- 		else
- 			allSensors = appMan.getResourceAccess().getResources(Sensor.class);
- 		for(Sensor sens: allSensors) {
- 			if(sens.getLocation().contains("valve/connection/powerSensor"))
- 				continue;
- 			ValueResource vr = sens.reading();
- 			if(!(vr instanceof SingleValueResource))
- 				continue;
- 			SingleValueResource reading = (SingleValueResource) vr;
-			AlarmingManager.initValueResourceAlarming(reading, roomSensors, done, this, appMan);
- 		}
- 		AlarmingManager.finishInitSensors(user, roomSensors, done, appMan);
- 	}*/
-
 	/*
      * register ResourcePatternDemands. The listeners will be informed about new and disappearing
      * patterns in the OGEMA resource tree
@@ -268,34 +242,10 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		if(alarmMan != null) {
 			alarmMan.close();
 		}
-		List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
-		alarmMan = new AlarmingManager(configs, appManPlus, getAlarmingDomain());
+		if(hwTableData.appConfigData.isAlarmingActive().getValue()) {
+			List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
+			alarmMan = new AlarmingManager(configs, appManPlus, getAlarmingDomain());
+		} else
+			alarmMan = null;
 	}
-
-	/*@Override
-	public String getTsName(AlarmConfiguration ac) {
-		return RoomLabelProvider.getTsNameDefault(ac);
-	}
-
-	@Override
-	public String getRoomLabel(String resLocation, OgemaLocale locale) {
-		Resource res = appMan.getResourceAccess().getResource(resLocation);
-		if(res == null)
-			return null;
-		//TODO: handle res==null
-		String result = RoomLabelProvider.getDatapointShortLabelDefault(res, false, this);
-		return result;
-		//if(result == null) {
-		//	return ExportBulkData.getDeviceShortId(resLocation);
-		//} else
-		//	return result;
-	}
-
-	@Override
-	public String getLabel(AlarmConfiguration ac, boolean isOverall) {
-		Datapoint dp = dpService.getDataPointStandard(ac.sensorVal());
-		return dp.label(OgemaLocale.ENGLISH);
-		//String shortLab = RoomLabelProvider.getDatapointShortLabelDefault(ac.supervisedSensor().getLocationResource(), false, this);
-		//return shortLab+"-Temperature";
-	}*/
 }
