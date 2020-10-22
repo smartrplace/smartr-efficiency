@@ -186,13 +186,14 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		SingleSwitchBox device = (SingleSwitchBox) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.onOffSwitch().stateFeedback(),
+			0.0f, 1.0f, 1, 20);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
-			0.0f, 1000.0f, 10, 20);
-		CommunicationStatus comStat = device.getSubResource("communicationStatus", CommunicationStatus.class);
-		if(comStat.isActive()) {
-			AlarmingUtiH.setTemplateValues(appDevice, comStat.quality(),
-					0.1f, 1.0f, 30, 30);
-			
-		}
+				0.0f, 4000.0f, 10, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().voltageSensor().reading(),
+				200f, 245f, 10, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().frequencySensor().reading(),
+				49.8f, 50.2f, 1, 20);
+		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 }

@@ -12,16 +12,21 @@ import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.smartrplace.alarming.extension.model.BatteryAlarmExtensionData;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.resource.widget.textfield.TimeResourceTextField;
+import de.iwes.widgets.resource.widget.textfield.TimeResourceTextField.Interval;
 
 public class BatteryPage extends MainPage {
 
@@ -33,6 +38,14 @@ public class BatteryPage extends MainPage {
 	public BatteryPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller, false);
 		finishConstructor();
+		
+		StaticTable configTable = new StaticTable(3, 2);
+		TimeResourceTextField retardEdit = new TimeResourceTextField(page, "retardEdit", Interval.hours);
+		BatteryAlarmExtensionData config = ResourceListHelper.getOrCreateNamedElementFlex(controller.appConfigData.alarmingConfig(),
+				BatteryAlarmExtensionData.class);
+		retardEdit.selectDefaultItem(config.alarmRetard());
+		configTable.setContent(0, 0, "Low time before sending alarm (hours)").setContent(0, 1, retardEdit);
+		page.append(configTable);
 	}
 
 	@Override
@@ -82,16 +95,6 @@ public class BatteryPage extends MainPage {
 			public PhysicalElement addNameWidget(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				return addNameWidgetStatic(object, vh, id, req, row, appManPlus);
-				/*final PhysicalElement device;
-				if(req == null) {
-					device = ResourceHelper.getSampleResource(SensorDevice.class);
-				} else
-					device = object.device().getLocationResource();
-				final String name;
-				name = getName(object, appManPlus); //ResourceUtils.getHumanReadableShortName(device);
-				vh.stringLabel("Name", id, name, row);
-				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
-				return device;*/
 			}	
 
 			@Override
@@ -141,5 +144,5 @@ public class BatteryPage extends MainPage {
 		vh.stringLabel("Name", id, name, row);
 		vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 		return device;
-	}	
+	}
 }

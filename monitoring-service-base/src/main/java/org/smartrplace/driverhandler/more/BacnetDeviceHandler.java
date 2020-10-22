@@ -16,11 +16,13 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -149,6 +151,26 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 
 		}
 		return result;
+	}
+
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		BACnetDevice device = (BACnetDevice) appDevice.device();
+		List<Resource> objects = device.objects().getAllElements();
+		for(Resource obj: objects) {
+			if(obj instanceof Sensor && (((Sensor)obj).reading() instanceof SingleValueResource)) {
+				AlarmingUtiH.setTemplateValues(appDevice, (SingleValueResource) ((Sensor)obj).reading(),
+					-Float.MAX_VALUE, Float.MAX_VALUE, 10, 240);
+			} else 	if(obj instanceof OnOffSwitch) {
+				AlarmingUtiH.setTemplateValues(appDevice, ((OnOffSwitch)obj).stateFeedback(),
+						0.0f, 1.0f, 1, 240);
+			} else 	if(obj instanceof MultiSwitch) {
+				AlarmingUtiH.setTemplateValues(appDevice, ((MultiSwitch)obj).stateFeedback(),
+						0.0f, 1.0f, 1, 240);
+			}
+
+		}
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package org.smartrplace.apps.alarmingconfig;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -7,9 +8,12 @@ import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.core.application.AppID;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary;
@@ -35,6 +39,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smatrplace.apps.alarmconfig.util.AppIDImpl;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.messaging.listener.MessageListener;
@@ -75,6 +80,26 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	WidgetApp widgetApp;
 
 	protected AlarmingManager alarmMan = null;
+	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
+	private final Map<String, AppID> appsToSend;
+	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
+	public static final String CUSTOMER_FIRST = "Customer First";
+	public static final String CUSTOMER_SP_SAME = "Both together";
+	public static final Map<String, String> ALARM_APP_TYPE_EN = new HashMap<>();
+	static {
+		ALARM_APP_TYPE_EN.put(SP_SUPPORT_FIRST, SP_SUPPORT_FIRST);
+		ALARM_APP_TYPE_EN.put(CUSTOMER_FIRST, CUSTOMER_FIRST);
+		ALARM_APP_TYPE_EN.put(CUSTOMER_SP_SAME, CUSTOMER_SP_SAME);
+	}
+	protected void registerMessagingApp(String typeName, String suffix) {
+		AppID appId;
+		if(suffix == null)
+			appId = appMan.getAppID();
+		else
+			appId = new AppIDImpl(appMan.getAppID(), suffix);
+		appManPlus.getMessagingService().registerMessagingApp(appId, getAlarmingDomain()+"_Alarming");
+		appsToSend.put(typeName, appId);		
+	}
 	
 	public String getAlarmingDomain() {
 		LocalGatewayInformation ogGw = ResourceHelper.getLocalGwInfo(appMan.getResourceAccess());
@@ -115,12 +140,25 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		appManPlus.setGuiService(initApp.guiService);
 		appManPlus.setDpService(dpService);
 		
-		appManPlus.getMessagingService().registerMessagingApp(appMan.getAppID(), getAlarmingDomain()+"_Alarming");
+		this.appsToSend = new HashMap<String, AppID>();
+		registerMessagingApp(SP_SUPPORT_FIRST, null);
+		registerMessagingApp(CUSTOMER_FIRST, "CustomerFirst");
+		registerMessagingApp(CUSTOMER_SP_SAME, "CustomerSpSame");
 
 		hwTableData = new HardwareTableData(appMan);
 		cleanupAlarming();
 		//initAlarmingResources();
+		alarmingActiveListener = new ResourceValueListener<BooleanResource>() {
+
+			@Override
+			public void resourceChanged(BooleanResource resource) {
+				updateAlarming();
+			}
+		};
 		updateAlarming();
+		hwTableData.appConfigData.isAlarmingActive().create().activate(false);
+		hwTableData.appConfigData.isAlarmingActive().addValueListener(alarmingActiveListener, false);
+		
 		MainPage.alarmingUpdater = this;
 
 		boolean isGw = false;
@@ -255,6 +293,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				ac.delete();
 			} else {
 				knownSensors.add(ac.sensorVal().getLocation());
+				//if(ValueResourceHelper.setIfNew(ac.alarmingAppId(), SP_SUPPORT_FIRST))
+				//	ac.alarmingAppId().activate(false);
 			}
 		}
 	}
@@ -266,7 +306,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 		if(hwTableData.appConfigData.isAlarmingActive().getValue()) {
 			List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
-			alarmMan = new AlarmingManager(configs, appManPlus, getAlarmingDomain());
+			alarmMan = new AlarmingManager(configs, appManPlus, appsToSend, getAlarmingDomain());
 		} else
 			alarmMan = null;
 	}

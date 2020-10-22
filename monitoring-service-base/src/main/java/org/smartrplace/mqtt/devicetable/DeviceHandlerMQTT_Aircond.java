@@ -17,11 +17,13 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.buildingtechnology.AirConditioner;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -207,5 +209,17 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().reading()));
 		return result;
+	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		AirConditioner device = (AirConditioner) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 45.0f, 15, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceSettings().setpoint(),
+				4.5f, 30.5f, 1, 1500);
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
+				4.5f, 30.5f, 1, 20);
+		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 }

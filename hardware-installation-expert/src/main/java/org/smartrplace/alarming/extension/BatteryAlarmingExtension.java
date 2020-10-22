@@ -1,14 +1,26 @@
 package org.smartrplace.alarming.extension;
 
+import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.AlarmingExtensionListener;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.smartrplace.alarming.extension.model.BatteryAlarmExtensionData;
+import org.smartrplace.hwinstall.basetable.HardwareTableData;
 
+import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class BatteryAlarmingExtension implements AlarmingExtension {
+	protected final BatteryAlarmExtensionData batAlarmExt;
+	
+	public BatteryAlarmingExtension(ApplicationManager appMan) {
+		HardwareTableData hwData = new HardwareTableData(appMan);
+		this.batAlarmExt = ResourceListHelper.getOrCreateNamedElementFlex(hwData.appConfigData.alarmingConfig(),
+				BatteryAlarmExtensionData.class);
+	}
 
 	@Override
 	public String id() {
@@ -21,7 +33,8 @@ public class BatteryAlarmingExtension implements AlarmingExtension {
 	}
 
 	@Override
-	public boolean offerInGeneralAlarmingConfiguration(SingleValueResource res) {
+	public boolean offerInGeneralAlarmingConfiguration(AlarmConfiguration ac) {
+		Resource res = ac.sensorVal().getLocationResource();
 		if(res.getName().equals("batteryLow") && res instanceof BooleanResource)
 			return true;
 		return false;
@@ -33,7 +46,7 @@ public class BatteryAlarmingExtension implements AlarmingExtension {
 			boolean isInAlarm = false;
 			
 			@Override
-			public <T extends SingleValueResource> AlarmResult resourceChanged(T resource, float value, long now) {
+			public <T extends SingleValueResource> AlarmResult resourceChanged(final T resource, float value, long now) {
 				if(isInAlarm && value < 0.5) {
 					isInAlarm = false;
 					return new AlarmResult() {
@@ -59,17 +72,24 @@ public class BatteryAlarmingExtension implements AlarmingExtension {
 						
 						@Override
 						public String message() {
-							return "Release: Battery Alarm for "+resource.getLocation();
+							return "Battery Alarm for "+resource.getLocation();
 						}
 						
 						@Override
 						public boolean isRelease() {
-							return true;
+							return false;
 						}
 						
 						@Override
 						public int alarmValue() {
 							return 1;
+						}
+						
+						@Override
+						public Long retard() {
+							if(batAlarmExt.alarmRetard().isActive())
+								return batAlarmExt.alarmRetard().getValue();
+							return null;
 						}
 					};
 				}

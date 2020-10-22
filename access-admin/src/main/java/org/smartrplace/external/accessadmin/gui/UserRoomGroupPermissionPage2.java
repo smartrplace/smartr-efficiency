@@ -128,7 +128,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 	}
 
 	@Override
-	protected List<BuildingPropertyUnit> getAllGroups(OgemaHttpRequest req) {
+	protected List<BuildingPropertyUnit> getAllGroups(AccessConfigUser object, OgemaHttpRequest req) {
 		List<BuildingPropertyUnit> all = controller.appConfigData.roomGroups().getAllElements();
 		//List<Room> result = roomFilter.getFiltered(all, req);
 		all.sort(new Comparator<BuildingPropertyUnit>() {
@@ -199,7 +199,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 			public void onGET(OgemaHttpRequest req) {
 				List<BuildingPropertyUnit> selected = getGroups(object, UserPermissionService.USER_READ_HISTORICALDATA_PERM);
 				//TODO: Maybe a caching could be implemented
-				List<BuildingPropertyUnit> all = getAllGroups(req);
+				List<BuildingPropertyUnit> all = getAllGroups(null, req);
 				update(all, req);
 				selectItems(selected, req);
 			}
@@ -216,7 +216,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 			public void onGET(OgemaHttpRequest req) {
 				List<BuildingPropertyUnit> selected = getGroups(object, UserPermissionService.USER_ADMIN_PERM);
 				//TODO: Maybe a caching could be implemented
-				List<BuildingPropertyUnit> all = getAllGroups(req);
+				List<BuildingPropertyUnit> all = getAllGroups(null, req);
 				update(all, req);
 				selectItems(selected, req);
 			}

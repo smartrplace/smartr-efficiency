@@ -1,10 +1,13 @@
 package org.smartrplace.apps.alarmingconfig.mgmt;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.application.AppID;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
@@ -12,17 +15,22 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.AlarmingExtensionBase.AlarmListenerDataBase;
 import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.TimeUtils;
+import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
+import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.message.MessageImpl;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -32,15 +40,18 @@ public class AlarmingManager {
 	
 	//private static final long SCHEDULE_CHECK_RATE = 60000;
 	private static final long NOVALUE_CHECK_RATE = 10000;
-	public static final long HOUR_MILLIS = 60*60000;
-	public static final long DAY_MILLIS = 24*HOUR_MILLIS;
+	//public static final long HOUR_MILLIS = 60*60000;
+	//public static final long DAY_MILLIS = 24*HOUR_MILLIS;
 	public static final long MINUTE_MILLIS = 60000;
 	protected final List<AlarmConfiguration> configs;
 	//protected final MonitoringController controller;
 	protected final ApplicationManagerPlus appManPlus;
+	protected final Map<String, AppID> appsForSending;
 	//protected final RoomLabelProvider tsNameProv;
-	public static final Integer maxMessageBeforeBulk = Integer.getInteger("org.smartrplace.util.alarming.maxMessageBeforeBulk");
 	
+	public final Integer maxMessageBeforeBulk;
+	public final long bulkMessageInterval;
+
 	protected final String alarmID;
 	protected final String baseUrl;
 	
@@ -64,14 +75,22 @@ public class AlarmingManager {
 	protected Timer noValueTimer = null;
 
 	public AlarmingManager(List<AlarmConfiguration> configs, ApplicationManagerPlus appManPlus,
+			Map<String, AppID> appsForSending,
 			String alarmID) {
 		this.configs = configs;
 		//this.controller = controller;
 		this.appManPlus = appManPlus;
+		this.appsForSending = appsForSending;
 		//this.tsNameProv = tsNameProv;
 		this.alarmID = alarmID;	
 		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
-				
+		
+		HardwareTableData hwTableData = new HardwareTableData(appManPlus.appMan());
+		maxMessageBeforeBulk = Math.min(2, Integer.getInteger("org.smartrplace.util.alarming.maxMessageBeforeBulk", hwTableData.appConfigData.maxMessageNumBeforeBulk().getValue()));
+		if(hwTableData.appConfigData.bulkMessageIntervalDuration().isActive())
+			bulkMessageInterval = Long.getLong("org.smartrplace.util.alarming.bulkMessageInterval", hwTableData.appConfigData.bulkMessageIntervalDuration().getValue());
+		else
+			bulkMessageInterval = Long.getLong("org.smartrplace.util.alarming.bulkMessageInterval", TimeProcUtil.HOUR_MILLIS);
 		/*List<IntegerResource> allAlarmStats = appManPlus.appMan().getResourceAccess().getResources(IntegerResource.class);
 		for(IntegerResource intr: allAlarmStats) {
 			if(!intr.getName().equals(ALARMSTATUS_RES_NAME))
@@ -81,51 +100,8 @@ public class AlarmingManager {
 		
 		long now = appManPlus.appMan().getFrameworkTime();
 		for(AlarmConfiguration ac: configs) {
-			//configure if not existing
-			//FIXME: !! Change this back after alarming init is done !!
-			//AlarmingUtiH.setDefaultValuesStatic(ac, DefaultSetModes.SET_IF_NEW);
-			
 			if((!ac.sendAlarm().getValue()))
 				continue;
-			/*if(ac.supervisedTS().exists()) {
-				ValueListenerData vl = new ValueListenerData((FloatResource)null);
-				Schedule sched = ac.supervisedTS().schedule();
-				SampledValue val = null;
-				if(sched.exists())
-					val = sched.getPreviousValue(Long.MAX_VALUE);
-				else
-					appManPlus.appMan().getLogger().warn("Schedule in "+ac.supervisedTS().getLocation()+" does not exist!");
-				if(val == null)
-					vl.lastTimeOfNewData = now;
-				else
-					vl.lastTimeOfNewData = val.getTimestamp();
-				vl.listener = new AlarmValueListener(ac, vl, appManPlus, tsNameProv);
-				scheduleConfigs.add(vl);
-				if(scheduleTimer == null) {
-					scheduleTimer = appManPlus.appMan().createTimer(SCHEDULE_CHECK_RATE, new TimerListener() {
-						@Override
-						public void timerElapsed(Timer timer) {
-							for(ValueListenerData vl: scheduleConfigs) {
-								Schedule sched = ac.supervisedTS().schedule();
-								try {
-								SampledValue val = sched.getPreviousValue(Long.MAX_VALUE);
-								if(val == null) continue;
-								if(val.getTimestamp() > vl.lastTimeOfNewData) {
-									float fval = val.getValue().getFloatValue();
-									IntegerResource alarmStatus = getAlarmStatus(sched);
-									vl.listener.resourceChanged(fval, alarmStatus, val.getTimestamp());
-								}
-								} catch(Exception e) {
-									//TODO: we have to work on this later
-									System.out.println(" !! Needs FIXING");
-								}
-							}
-							lastTimeStamp = timer.getExecutionTime();
-						}
-					});
-				}
-			} else {*/
-			//if(ac.supervisedSensor().reading() instanceof BooleanResource) {
 			Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
@@ -205,8 +181,11 @@ public class AlarmingManager {
 				if(vl.lastTimeOfNewData < 0 || vl.maxIntervalBetweenNewValues <= 0) continue;
 				long waiting = now - vl.lastTimeOfNewData;
 //debugPrintingForNoValueAlarm(vl, waiting);
-				if((waiting > vl.maxIntervalBetweenNewValues) &&(!vl.isNoValueAlarmActive)) {
+				if((waiting > vl.maxIntervalBetweenNewValues) &&
+						((!vl.isNoValueAlarmActive) || (now > vl.nextTimeNoValueAlarmAllowed))) {
 					vl.isNoValueAlarmActive = true;
+					vl.nextTimeNoValueAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
+							vl.resendRetard;
 					if(vl.res != null) {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.res);
 						float val = getHumanValue(vl.res);
@@ -271,7 +250,7 @@ public class AlarmingManager {
 		@Override
 		protected void sendMessage(String title, String message, MessagePriority prio)
 				throws RejectedExecutionException, IllegalStateException {
-			AlarmingManager.this.sendMessage(title, message, prio);
+			AlarmingManager.this.sendMessage(title, message, prio, ac.alarmingAppId());
 		}
 
 		@Override
@@ -301,7 +280,7 @@ public class AlarmingManager {
 		@Override
 		protected void sendMessage(String title, String message, MessagePriority prio)
 				throws RejectedExecutionException, IllegalStateException {
-			AlarmingManager.this.sendMessage(title, message, prio);
+			AlarmingManager.this.sendMessage(title, message, prio, ac.alarmingAppId());
 		}
 
 		@Override
@@ -367,7 +346,7 @@ public class AlarmingManager {
 		@Override
 		protected void sendMessage(String title, String message, MessagePriority prio)
 				throws RejectedExecutionException, IllegalStateException {
-			AlarmingManager.this.sendMessage(title, message, prio);
+			AlarmingManager.this.sendMessage(title, message, prio, ac.alarmingAppId());
 		}
 
 		@Override
@@ -382,7 +361,7 @@ public class AlarmingManager {
 		return false;
 	}
 	
-	protected static boolean isNewAlarmRetardPhaseAllowed(ValueListenerData vl,
+	protected static boolean isNewAlarmRetardPhaseAllowed(AlarmListenerDataBase vl,
 			ApplicationManager appMan) {
 		if(vl.timer != null) return false;
 		if(vl.nextTimeAlarmAllowed <= 0) return true;
@@ -393,6 +372,13 @@ public class AlarmingManager {
 	}
 	
 	public void close() {
+		for(MessagePriority prio: MessagePriority.values()) {
+			SendMessageData sd = sendDataInternal.get(prio);
+			if(sd != null && sd.bulkTimer != null) {
+				sd.bulkTimer.destroy();
+				sd.bulkTimer.delayedExecution();
+			}
+		}
 		for(ValueListenerData vl: valueListeners) {
 			if(vl.res != null) vl.res.removeValueListener(vl.listener.getListener());
 			else if(vl.bres != null) vl.bres.removeValueListener(vl.listener.getListener());
@@ -424,7 +410,7 @@ public class AlarmingManager {
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
-			sendMessage(title, message, prio);
+			sendMessage(title, message, prio, ac.alarmingAppId());
 		
 		if(alarmStatus != null) {
 			alarmStatus.setValue(ac.alarmLevel().getValue()+1000);
@@ -444,57 +430,107 @@ public class AlarmingManager {
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
-			sendMessage(title, message, prio);
+			sendMessage(title, message, prio, ac.alarmingAppId());
 		if(alarmStatus != null) {
 			alarmStatus.setValue(0);
 		}
 	}
 	
-	protected long firstSingleMessage = -1;
-	protected int numSingleMessage = 0;
-
-	protected long firstBulkMessage = -1;
-	protected int numBulkMessage = 0;
-	protected String bulkMessage = null;
-	protected void sendMessage(String title, String message, MessagePriority prio) throws RejectedExecutionException, IllegalStateException {
+	protected class SendMessageData {
+		protected long firstSingleMessage = -1;
+		protected int numSingleMessage = 0;
+	
+		protected long firstBulkMessage = -1;
+		protected int numBulkMessage = 0;
+		protected String bulkMessage = null;
+		protected CountDownDelayedExecutionTimer bulkTimer = null;
+	}
+	private Map<MessagePriority, SendMessageData> sendDataInternal = new HashMap<>();
+	protected SendMessageData sendData(MessagePriority prio) {
+		SendMessageData result = sendDataInternal.get(prio);
+		if(result == null) {
+			result = new SendMessageData();
+			sendDataInternal.put(prio, result);
+		}
+		return result;
+	}
+	protected void sendMessage(String title, String message, MessagePriority prio,
+			StringResource appToUse) throws RejectedExecutionException, IllegalStateException {
 		long now = appManPlus.appMan().getFrameworkTime();
-
-		if((maxMessageBeforeBulk != null)&&(numSingleMessage >= maxMessageBeforeBulk)) {
-			if(firstBulkMessage < 0)
-				firstBulkMessage = now;
-			numBulkMessage++;
-
-			if(bulkMessage == null)
-				bulkMessage = title+":"+message;
+		SendMessageData sd = sendData(prio);
+		if((maxMessageBeforeBulk != null)&&(sd.numSingleMessage >= this.maxMessageBeforeBulk)) {
+			if(sd.firstBulkMessage < 0) {
+				sd.firstBulkMessage = now;
+				sd.bulkTimer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), bulkMessageInterval) {
+					
+					@Override
+					public void delayedExecution() {
+						//if(isTimeToSendBulkMessages(now)) {
+						if(sd.bulkMessage != null)
+							sendBulkMessages(prio);
+						sd.bulkTimer = null;
+						//}
+					}
+				};
+			}
+			sd.numBulkMessage++;
+System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
+			if(sd.bulkMessage == null)
+				sd.bulkMessage = title+":"+message;
 			else
-				bulkMessage += "\r\n"+title+":"+message;
+				sd.bulkMessage += "\r\n"+title+":"+message;
 			
-			if(((now-firstBulkMessage) > HOUR_MILLIS) && (bulkMessage != null)) {
-				firstBulkMessage = -1;
-				title = numBulkMessage+" Alarme zusammgengefasst";
-				appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
-						new MessageImpl(title, message, prio));
-				System.out.println("         SENT BULKMESSAGE "+title+":\r\n"+bulkMessage);		
-				if(numBulkMessage < 5) {
-					numSingleMessage = 0;					
-				}
-				numBulkMessage = 0;
-				bulkMessage = null;
+			if(isTimeToSendBulkMessages(now, prio)) {
+				sendBulkMessages(prio);
+			} else if(sd.numBulkMessage == 2*maxMessageBeforeBulk) {
+				title = "More alarms occured...";
+				String infoMessage = "Number of alarms aggregated by now: "+(sd.numBulkMessage);
+				reallySendMessage(title, infoMessage , prio, appToUse);
+				System.out.println("         SENT BULKINFOMESSAGE "+title+":\r\n"+infoMessage);						
 			}
 		} else {
-			numSingleMessage++;
-			if(firstSingleMessage < 0) {
-				firstSingleMessage = now;
-				//numSingleMessage = 0;
-			} else if((now-firstSingleMessage)>HOUR_MILLIS) {
-				firstSingleMessage = -1;
-				numSingleMessage = 0;
+			sd.numSingleMessage++;
+			if(sd.firstSingleMessage < 0) {
+				sd.firstSingleMessage = now;
+			} else if((now-sd.firstSingleMessage)>bulkMessageInterval) {
+				sd.firstSingleMessage = -1;
+				sd.numSingleMessage = 0;
 			}
-			appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
-					new MessageImpl(title, message, prio));
+			if(sd.numSingleMessage >= (maxMessageBeforeBulk))
+				message += "\r\n (More messages may be aggregated, will be sent after "+(bulkMessageInterval/TimeProcUtil.MINUTE_MILLIS)+" minutes!)";
+			reallySendMessage(title, message, prio, appToUse);
 			System.out.println("         SENT MESSAGE "+title+":\r\n"+message);		
 		}
 		
+	}
+	
+	protected void reallySendMessage(String title, String message, MessagePriority prio, StringResource appToUse) {
+		AppID appId;
+		if(appToUse.isActive())
+			appId = appsForSending.get(appToUse.getValue());
+		else
+			appId = appManPlus.appMan().getAppID();
+		appManPlus.guiService().getMessagingService().sendMessage(appId,
+				new MessageImpl(title, message, prio));		
+	}
+	
+	protected boolean isTimeToSendBulkMessages(long now, MessagePriority prio) {
+		SendMessageData sd = sendData(prio);
+		return ((now-sd.firstBulkMessage) > bulkMessageInterval) && (sd.bulkMessage != null);
+	}
+	
+	protected void sendBulkMessages(MessagePriority prio) {
+		SendMessageData sd = sendData(prio);
+		sd.firstBulkMessage = -1;
+		String title = sd.numBulkMessage+" Aggregated alarms: ";
+		appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
+				new MessageImpl(title, sd.bulkMessage, prio));
+		System.out.println("         SENT BULKMESSAGE "+title+":\r\n"+sd.bulkMessage);		
+		if(sd.numBulkMessage < 5) {
+			sd.numSingleMessage = 0;					
+		}
+		sd.numBulkMessage = 0;
+		sd.bulkMessage = null;		
 	}
 	
 	//TODO: Provide this as general util method

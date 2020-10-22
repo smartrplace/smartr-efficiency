@@ -20,6 +20,7 @@ import java.util.Arrays;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
@@ -35,6 +36,8 @@ import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
+import de.iwes.widgets.resource.widget.textfield.TimeResourceTextField;
+import de.iwes.widgets.resource.widget.textfield.TimeResourceTextField.Interval;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 public class ConfigurationPageHWInstall {
@@ -113,7 +116,12 @@ public class ConfigurationPageHWInstall {
 			};
 		};
 		
-		StaticTable configTable = new StaticTable(9, 2);
+		ValueResourceTextField<IntegerResource> bulkNumEdit = new ValueResourceTextField<IntegerResource>(page, "bulkEditNum",
+				controller.appConfigData.maxMessageNumBeforeBulk());
+		ValueResourceTextField<TimeResource> bulkIntervalEdit = new TimeResourceTextField(page, "bulkIntervalEdit", Interval.minutes);
+		bulkIntervalEdit.selectDefaultItem(controller.appConfigData.bulkMessageIntervalDuration());
+		
+		StaticTable configTable = new StaticTable(11, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -126,6 +134,13 @@ public class ConfigurationPageHWInstall {
 		i++;
 		configTable.setContent(i, 0, "Include inactive devices: This may lead to showing devices in more than one DeviceHandlerProvider").
 		setContent(i, 1, includeInactiveDevices);
+		i++;
+		configTable.setContent(i, 0, "Bulk Alarm Messages: Maximum alarming messages to be sent within duration before\n" + 
+				"messages are aggregated into a single bulk message").
+		setContent(i, 1, bulkNumEdit);
+		i++;
+		configTable.setContent(i, 0, "Duration of bulk message aggregation before bulk messages are sent (minutes)").
+		setContent(i, 1, bulkIntervalEdit);
 		i++;
 		
 		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan.getResourceAccess());

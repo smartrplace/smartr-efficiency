@@ -16,14 +16,18 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.model.communication.CommunicationStatus;
 import org.ogema.model.devices.buildingtechnology.ElectricLight;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.LightSensor;
 import org.ogema.model.sensors.MotionSensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -181,4 +185,17 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 		addDatapoint(devM.reading(), result, dpService);
 		return result;
 	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		SensorDevice maindev = (SensorDevice ) appDevice.device();
+		for(ElectricLight dev: maindev.getSubResources(ElectricLight.class, false)) {
+			AlarmingUtiH.setTemplateValues(appDevice, dev.setting().stateFeedback(), 0.0f, 1.0f, 1, 20);			
+		}
+		AlarmingUtiH.setTemplateValues(appDevice, maindev.electricityConnection().powerSensor().reading(),
+				0.0f, 4000.0f, 10, 20);
+		AlarmingUtiH.addAlarmingMQTT(maindev, appDevice);
+	}
+
 }

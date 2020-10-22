@@ -1,7 +1,9 @@
 package org.smartrplace.apps.alarmingconfig.mgmt;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.RejectedExecutionException;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -13,6 +15,7 @@ import org.ogema.devicefinder.api.AlarmingExtensionListener;
 import org.ogema.devicefinder.api.AlarmingExtensionListener.AlarmResult;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.AlarmingExtensionBase.AlarmListenerDataBase;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
@@ -24,7 +27,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	final float upper;
 	final float lower;
 	final int retard;
-	final int resendRetard;
+	//final int resendRetard;
 	final ValueListenerData vl;
 	final AlarmConfiguration ac;
 	final List<AlarmingExtensionListener> extensions = new ArrayList<>();
@@ -51,10 +54,21 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		upper = ac.upperLimit().getValue();
 		lower = ac.lowerLimit().getValue();
 		retard = (int) (ac.maxViolationTimeWithoutAlarm().getValue()*60000);
-		resendRetard = (int)(ac.alarmRepetitionTime().getValue()*60000);
+		vl.resendRetard = (int)(ac.alarmRepetitionTime().getValue()*60000);
 		this.ac = ac;
 		this.vl = vl;
 		vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
+		String[] exts = ac.alarmingExtensions().getValues();
+		if(ac.sensorVal().exists() ) { //&& ac.supervisedSensor().reading() instanceof SingleValueResource) {
+			//SingleValueResource target = ac.sensorVal();
+			if(exts != null) for(String ext: exts) {
+				AlarmingExtension extDef = appManPlus.dpService().alarming().getAlarmingExtension(ext);
+				if(extDef == null)
+					return;
+				AlarmingExtensionListener extListener = extDef.getListener(ac.sensorVal(), ac);
+				extensions.add(extListener);
+			}
+		}
 	}
 	
 	/** This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision*/
@@ -68,21 +82,20 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		this.upper = upper;
 		this.lower = lower;
 		this.retard = retard;
-		this.resendRetard = resendRetard;
+		vl.resendRetard = resendRetard;
 		this.vl = vl;
 		this.ac = ac;
 		vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
-		String[] exts = ac.alarmingExtensions().getValues();
-		if(ac.sensorVal().exists() ) { //&& ac.supervisedSensor().reading() instanceof SingleValueResource) {
-			//SingleValueResource target = ac.sensorVal();
-			if(exts != null) for(String ext: exts) {
-				AlarmingExtension extDef = appManPlus.dpService().alarming().getAlarmingExtension(ext);
-				if(extDef == null)
-					return;
-				AlarmingExtensionListener extListener = extDef.getListener(ac.sensorVal(), ac);
-				extensions.add(extListener);
-			}
+	}
+	
+	protected Map<String, AlarmListenerDataBase> extData = new HashMap<>();
+	protected AlarmListenerDataBase getAlarmData(String listenerId) {
+		AlarmListenerDataBase result = extData.get(listenerId);
+		if(result == null) {
+			result = new AlarmListenerDataBase();
+			extData.put(listenerId, result);
 		}
+		return result;
 	}
 	
 	@Override
@@ -101,8 +114,27 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		for(AlarmingExtensionListener ext: extensions) {
 			AlarmResult result = ext.resourceChanged(resource, val, now);
 			if(result != null) {
-				executeAlarm(ac, result.message(), alarmStatus, result.alarmValue());
-				vl.isAlarmActive = true;				
+				AlarmListenerDataBase data = getAlarmData(ext.id());
+				if(result.isRelease()) {
+					if(data.timer != null) {
+						data.timer.destroy();
+						data.timer = null;
+					} else {
+						executeAlarm(ac, result.message(), alarmStatus, result.alarmValue());						
+					}
+				} else if(AlarmingManager.isNewAlarmRetardPhaseAllowed(data, appManPlus.appMan())) {
+					data.timer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
+							result.retard()!=null?result.retard():this.retard) {
+						@Override
+						public void delayedExecution() {
+							executeAlarm(ac, result.message(), alarmStatus, result.alarmValue());
+							//data.isAlarmActive = true;
+							data.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
+								vl.resendRetard;
+							data.timer = null;
+						}
+					};
+				}
 			}
 		}
 	}
@@ -122,7 +154,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 						executeAlarm(ac, value, upper, lower, alarmStatus);
 						vl.isAlarmActive = true;
 						vl.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
-							resendRetard;
+							vl.resendRetard;
 						vl.timer = null;
 					}
 				};

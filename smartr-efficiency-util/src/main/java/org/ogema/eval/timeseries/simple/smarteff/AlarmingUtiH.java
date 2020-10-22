@@ -13,6 +13,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.VoltageResource;
 import org.ogema.model.actors.OnOffSwitch;
+import org.ogema.model.communication.CommunicationStatus;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.PowerSensor;
@@ -156,15 +157,26 @@ public class AlarmingUtiH {
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
 		
+		Long shortIntervalForTesting = Long.getLong("org.smartrplace.apps.hw.install.init.alarmtesting.shortintervals");
+		if(shortIntervalForTesting != null) {
+			double floatVal = ((double)shortIntervalForTesting)/TimeProcUtil.MINUTE_MILLIS;
+			if(maxIntervalBetweenNewValues >  floatVal)
+				maxIntervalBetweenNewValues = (float) floatVal;
+		}
+
 		//Special handlings
 		if(data.sensorVal().getLocation().toLowerCase().contains("homematicip")) {
-			if(maxIntervalBetweenNewValues < 4*TimeProcUtil.HOUR_MILLIS)
-				maxIntervalBetweenNewValues = 4*TimeProcUtil.HOUR_MILLIS;
+			if(maxIntervalBetweenNewValues < 4*60)
+				maxIntervalBetweenNewValues = 4*60;
 		}
 
 		DefaultSetModes mode = DefaultSetModes.OVERWRITE;
 		EditPageGeneric.setDefault(data.alarmLevel(), 1, mode);
-		EditPageGeneric.setDefault(data.alarmRepetitionTime(), 60, mode);
+		Long shortResend = Long.getLong("org.smartrplace.apps.hw.install.init.alarmtesting.shortresend");
+		if(shortResend != null)
+			EditPageGeneric.setDefault(data.alarmRepetitionTime(), ((double)shortResend)/TimeProcUtil.MINUTE_MILLIS, mode);
+		else
+			EditPageGeneric.setDefault(data.alarmRepetitionTime(), 4*60, mode);
 		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), maxViolationTimeWithoutAlarm, mode);
 		EditPageGeneric.setDefault(data.lowerLimit(), min, mode);
 		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
@@ -212,4 +224,12 @@ public class AlarmingUtiH {
 					-30f, -94f, 10, 300);
 	}
 
+	public static void addAlarmingMQTT(PhysicalElement dev, InstallAppDevice appDevice) {
+		dev = dev.getLocationResource();
+		CommunicationStatus comStat = dev.getSubResource("communicationStatus", CommunicationStatus.class);
+		if(comStat.isActive()) {
+			AlarmingUtiH.setTemplateValues(appDevice, comStat.quality(),
+					0.1f, 1.0f, 30, 30);
+		}
+	}
 }

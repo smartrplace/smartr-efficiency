@@ -17,6 +17,7 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -105,6 +106,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		vh.floatEdit("Delay until the alarm is triggered (minutes)",
 				id, sr.maxViolationTimeWithoutAlarm(), row, alert,
 				-Float.MAX_VALUE, Float.MAX_VALUE, "");
+		vh.dropdown("Type", id, sr.alarmingAppId(), row, AlarmingConfigAppController.ALARM_APP_TYPE_EN);
 		vh.dropdown("Priority", id, sr.alarmLevel(), row, ALARM_LEVEL_EN);
 		vh.floatEdit("Duration Blocking Sending the same alarm (minutes)",
 				id, sr.alarmRepetitionTime(), row, alert,
@@ -190,8 +192,14 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 
 
 	@Override
-	protected Collection<AlarmingExtension> getAllGroups(OgemaHttpRequest req) {
-		return appManPlus.dpService().alarming().getAlarmingExtensions();
+	protected Collection<AlarmingExtension> getAllGroups(AlarmConfiguration ac, OgemaHttpRequest req) {
+		Collection<AlarmingExtension> all = appManPlus.dpService().alarming().getAlarmingExtensions();
+		List<AlarmingExtension> result = new ArrayList<>();
+		for(AlarmingExtension ext: all) {
+			if(ext.offerInGeneralAlarmingConfiguration(ac))
+				result.add(ext);
+		}
+		return result;
 	}
 
 

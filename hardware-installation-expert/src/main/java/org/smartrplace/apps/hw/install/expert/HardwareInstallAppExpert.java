@@ -22,6 +22,7 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
+import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
@@ -54,6 +55,8 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 	@Reference
 	private OgemaGuiService guiService;
 
+	public BatteryAlarmingExtension batAlarmExt;
+	
 	//@Reference
 	//DatapointService dpService;
 	
@@ -67,6 +70,9 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			final WidgetPage<?> page = widgetApp.createStartPage();
 			controller.mainPageExts.add(new MainPageExpert(page, controller));
 			
+			batAlarmExt = new BatteryAlarmingExtension(appMan);
+			controller.dpService.alarming().registerAlarmingExtension(batAlarmExt);
+
 			//WidgetPage<LocaleDictionary> rssiPageBase = widgetApp.createWidgetPage("rssipage.hmtl");
 			//new RSSIPage(rssiPageBase, controller);
 

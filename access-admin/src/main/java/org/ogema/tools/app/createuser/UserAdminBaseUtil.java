@@ -17,9 +17,15 @@ import org.ogema.accesscontrol.AppPermissionFilter;
 import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
+import org.osgi.service.condpermadmin.BundleLocationCondition;
+import org.osgi.service.condpermadmin.Condition;
+import org.osgi.service.condpermadmin.ConditionInfo;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
@@ -335,6 +341,7 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		Object[] arrObj = secRes.toArray();
 		//String[] arr = (String[]) secRes.toArray(new String[0]);
 		result = new ArrayList<>();
+System.out.println("In UserAdminBaseUtil: Found "+arrObj.length+" user perms for "+userName);
 		for(Object obj: arrObj) {
 			if(obj instanceof String) {
 				String fullStr = (String)obj;
@@ -353,6 +360,38 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		return result;
 	}
 	
+	public static List<ConditionalPermissionInfo> userPermissions2(String user, ConditionalPermissionAdmin cpa,
+			BundleContext ctx) {
+		final Bundle b = ctx.getBundle("urp:" + user);
+		if (b == null) {
+			System.out.println("User " + user + " not found");
+			return null;
+		}
+		return bundlePermissionsList(cpa, b);
+	}
+	
+	/** Copied from security/ShellCommands*/
+    private static List<ConditionalPermissionInfo> bundlePermissionsList(ConditionalPermissionAdmin cpa, Bundle b) {
+        final ConditionalPermissionUpdate cpu = cpa.newConditionalPermissionUpdate();
+        List<ConditionalPermissionInfo> l = new ArrayList<>();
+        for (ConditionalPermissionInfo cpi : cpu.getConditionalPermissionInfos()) {
+            ConditionInfo[] cis = cpi.getConditionInfos();
+            for (ConditionInfo ci : cis) {
+                if (ci.getType().equals("org.osgi.service.condpermadmin.BundleLocationCondition")) {
+                    Condition blc = BundleLocationCondition.getCondition(b, ci);
+                    if (blc.isSatisfied()) {
+                        l.add(cpi);
+                    }
+                }
+            }
+            if (cis.length == 0) {
+                l.add(cpi);
+            }
+        }
+        return l;
+    }
+
+
 	private static int getIndexOfExt(String str, char ch) {
 		int idx = str.indexOf(ch);
 		if(idx < 0)

@@ -90,7 +90,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				super.onPOSTComplete(data, req);
 				if(MainPage.alarmingUpdater != null) {
-					MainPage.alarmingUpdater.updateAlarming();
+					//MainPage.alarmingUpdater.updateAlarming();
 					MainPage.hasOpenCommits = false;
 					alert.showAlert("Updated and restarted alarming", true, req);
 				} else

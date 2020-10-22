@@ -15,8 +15,11 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.generators.PVPlant;
+import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.sensors.ElectricPowerSensor;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -106,6 +109,17 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 		addDatapoint(dev.electricityConnection().energySensor().reading(), result, dpService);
 		checkDpSubLocations(appDevice, result);
 		return result;
+	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		PVPlant device = (PVPlant) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
+				0.0f, 9999999f, 1, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().energySensor().reading(),
+				0f, Float.MAX_VALUE, 1, 20);
+		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 	
 	/** We are using this for configuration*/

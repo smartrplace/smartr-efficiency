@@ -46,7 +46,9 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.LoggingUtils;
+import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
@@ -182,9 +184,11 @@ public class HardwareInstallController {
 			appConfigData.room().setValue(RoomSelectorDropdown.ALL_DEVICES_ID);
 			//appConfigData.installationStatusFilter().create();
 			//appConfigData.installationStatusFilter().setValue(InstallationStatusFilterDropdown.FILTERS.ALL.name);
-			appConfigData.activate(true);
 			appMan.getLogger().debug("{} started with new config resource", getClass().getName());
 		}
+		ValueResourceHelper.setIfNew(appConfigData.bulkMessageIntervalDuration(), 4*TimeProcUtil.HOUR_MILLIS);
+		ValueResourceHelper.setIfNew(appConfigData.maxMessageNumBeforeBulk(), 3);
+		appConfigData.activate(true);
     }
     
     /*
@@ -502,6 +506,11 @@ public class HardwareInstallController {
 	}
 	
 	protected void initConfigResourceForOperation() {
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.reinitconfig"))  {
+			//TODO: Delete does not directly take effect
+			appConfigData.initDoneStatus().setValue("");
+			//appConfigData.initDoneStatus().delete();
+		}
 		if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.init.startoperation"))
 			return;
 		//String status = appConfigData.initDoneStatus().getValue();
@@ -514,6 +523,16 @@ public class HardwareInstallController {
 			ValueResourceHelper.setCreate(appConfigData.autoLoggingActivation(), 2);
 		if(!appConfigData.autoConfigureNewDevicesBasedOnTemplate().exists())
 			ValueResourceHelper.setCreate(appConfigData.autoConfigureNewDevicesBasedOnTemplate(), true);
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.alarmtesting.forcestartalarming")) {
+			//We have to configure all alarming resources first, it is not easy to determine when this is finished, though
+			//!! Note: This only works if isLAlarmingActive is not true before e.g. by loading from replay-on-clean
+			new CountDownDelayedExecutionTimer(appMan, 10000) {
+				@Override
+				public void delayedExecution() {
+					ValueResourceHelper.setCreate(appConfigData.isAlarmingActive(), true);
+				}
+			};
+		}
 		InitialConfig.addString("A", appConfigData.initDoneStatus());
 	}
 	

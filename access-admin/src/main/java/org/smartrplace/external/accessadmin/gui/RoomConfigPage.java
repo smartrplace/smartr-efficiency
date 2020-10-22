@@ -134,7 +134,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	}
 
 	@Override
-	protected List<BuildingPropertyUnit> getAllGroups(OgemaHttpRequest req) {
+	protected List<BuildingPropertyUnit> getAllGroups(Room object, OgemaHttpRequest req) {
 		return controller.roomGroups.getAllElements();
 	}
 
@@ -153,7 +153,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		for(BuildingPropertyUnit bu: groups) {
 			ResourceListHelper.addReferenceUnique(bu.rooms(), object);
 		}
-		for(BuildingPropertyUnit bu: getAllGroups(null)) {
+		for(BuildingPropertyUnit bu: getAllGroups(null, null)) {
 			if(ResourceHelper.containsLocation(groups, bu))
 				continue;
 			ResourceListHelper.removeReferenceOrObject(bu.rooms(), object);
