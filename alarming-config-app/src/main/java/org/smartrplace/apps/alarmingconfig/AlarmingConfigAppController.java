@@ -28,6 +28,7 @@ import org.ogema.model.gateway.LocalGatewayInformation;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
+import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
 import org.smartrplace.apps.alarmingconfig.gui.PageBuilderSimple;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_de;
@@ -82,6 +83,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	protected AlarmingManager alarmMan = null;
 	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
 	private final Map<String, AppID> appsToSend;
+	private OngoingBaseAlarmsPage ongoingBasePage;
 	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
 	public static final String CUSTOMER_FIRST = "Customer First";
 	public static final String CUSTOMER_SP_SAME = "Both together";
@@ -257,6 +259,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		initApp.menu.addEntry(messageSettingsHeader(), pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
 		
+		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("ongoingbase.html");
+			ongoingBasePage = new OngoingBaseAlarmsPage(pageRes10, appManPlus); //, base);
+			initApp.menu.addEntry("5. Active Alarms", pageRes10);
+			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
+		}
+
 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
 			initApp.menu.addEntry("Battery State Alarming", "/de/iee/ogema/batterystatemonitoring/index.html");
 			initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
@@ -290,6 +299,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		for(AlarmConfiguration ac: dev.alarms().getAllElements()) {
 			if(knownSensors.contains(ac.sensorVal().getLocation())) {
 				log.warn(" Found double alarming entry for "+ac.sensorVal().getLocation()+ " in "+ac.getLocation());
+				ac.delete();
+			} else if(!ac.sensorVal().exists()) {
+				log.warn(" Found empty alarming entry for "+ac.sensorVal().getLocation()+ " in "+ac.getLocation());
 				ac.delete();
 			} else {
 				knownSensors.add(ac.sensorVal().getLocation());

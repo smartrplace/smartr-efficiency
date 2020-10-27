@@ -18,6 +18,9 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
+import org.ogema.devicefinder.api.AlarmingExtension;
+import org.ogema.devicefinder.api.AlarmingExtension.AlarmNotificationResult;
+import org.ogema.devicefinder.api.AlarmingExtension.BaseAlarm;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
@@ -178,7 +181,7 @@ public class AlarmingManager {
 			appManPlus.dpService().alarming().registerRecReplayObserver(recReplay);
 		} else
 			recReplay = null;
-
+		
 		noValueTimer = appManPlus.appMan().createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
 	
 		System.out.println("New AlarmingManagement started.");
@@ -261,9 +264,9 @@ public class AlarmingManager {
 		}
 
 		@Override
-		protected void sendMessage(String title, String message, MessagePriority prio)
+		protected void sendMessage(String title, Integer status, String message, MessagePriority prio, AlarmingExtension ext)
 				throws RejectedExecutionException, IllegalStateException {
-			AlarmingManager.this.sendMessage(title, message, prio, ac.alarmingAppId());
+			AlarmingManager.this.sendMessage(ac, status, title, message, prio, ac.alarmingAppId(), ext);
 		}
 
 		@Override
@@ -291,9 +294,9 @@ public class AlarmingManager {
 		}
 
 		@Override
-		protected void sendMessage(String title, String message, MessagePriority prio)
+		protected void sendMessage(String title, Integer status, String message, MessagePriority prio, AlarmingExtension ext)
 				throws RejectedExecutionException, IllegalStateException {
-			AlarmingManager.this.sendMessage(title, message, prio, ac.alarmingAppId());
+			AlarmingManager.this.sendMessage(ac, status, title, message, prio, ac.alarmingAppId(), ext);
 		}
 
 		@Override
@@ -357,9 +360,9 @@ public class AlarmingManager {
 		}
 
 		@Override
-		protected void sendMessage(String title, String message, MessagePriority prio)
+		protected void sendMessage(String title, Integer status, String message, MessagePriority prio, AlarmingExtension ext)
 				throws RejectedExecutionException, IllegalStateException {
-			AlarmingManager.this.sendMessage(title, message, prio, ac.alarmingAppId());
+			AlarmingManager.this.sendMessage(ac, status, title, message, prio, ac.alarmingAppId(), ext);
 		}
 
 		@Override
@@ -422,14 +425,12 @@ public class AlarmingManager {
 		if(baseUrl != null)
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
-		if(prio != null)
-			sendMessage(title, message, prio, ac.alarmingAppId());
-		
+		int status = ac.alarmLevel().getValue()+1000;
 		if(alarmStatus != null) {
-			alarmStatus.setValue(ac.alarmLevel().getValue()+1000);
+			alarmStatus.setValue(status);
 		}
-		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase"))
-			recReplay.recordNewAlarm(ac, appManPlus.getFrameworkTime());
+		if(prio != null)
+			sendMessage(ac, status, title, message, prio, ac.alarmingAppId());
 	}
 	
 	protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
@@ -443,12 +444,12 @@ public class AlarmingManager {
 				"\r\n"+"  Upper limit: "+upper;
 		if(baseUrl != null)
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
-		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
-		if(prio != null)
-			sendMessage(title, message, prio, ac.alarmingAppId());
 		if(alarmStatus != null) {
 			alarmStatus.setValue(0);
 		}
+		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
+		if(prio != null)
+			sendMessage(ac, 0, title, message, prio, ac.alarmingAppId());
 	}
 	
 	protected class SendMessageData {
@@ -460,6 +461,42 @@ public class AlarmingManager {
 		protected String bulkMessage = null;
 		protected CountDownDelayedExecutionTimer bulkTimer = null;
 	}
+	
+	protected void sendMessage(AlarmConfiguration ac, Integer status, String title, String message, MessagePriority prio,
+			StringResource appToUse) {
+		sendMessage(ac, status, title, message, prio, appToUse, null);
+	}
+	protected void sendMessage(AlarmConfiguration ac, Integer status, String title, String message, MessagePriority prio,
+			StringResource appToUse,
+			AlarmingExtension extSource) {
+		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase"))
+			recReplay.recordNewAlarm(ac, appManPlus.getFrameworkTime());
+		BaseAlarm baseAlarm = new BaseAlarm() {
+			@Override
+			public void sendMessage(String title2, String message2, MessagePriority prio2) {
+				sendMessageIntern(title2, message2, prio2, appToUse);
+			}
+		};
+		baseAlarm.isNoValueAlarm = (status != null) && (status >= 1000);
+		baseAlarm.isRelease =  (status != null) && (status == 0);
+		baseAlarm.message = message;
+		baseAlarm.title = title;
+		baseAlarm.ac = ac;
+		baseAlarm.source = extSource;
+		boolean isConsumed = false;
+		for(AlarmingExtension ext: appManPlus.dpService().alarming().getAlarmingExtensions()) {
+			if(ext.getAlarmNotifications()) {
+				AlarmNotificationResult notResult = ext.newAlarmNotification(baseAlarm);
+				if(!notResult.sendAlarmDirectly)
+					isConsumed = true;
+			}
+		}
+		if(!isConsumed)
+			sendMessageIntern(title, message, prio, appToUse);
+		else
+			throw new UnsupportedOperationException("Messages shall not be consumed by now! Message sending in groups not implemented yet.");
+	}
+	
 	private Map<MessagePriority, SendMessageData> sendDataInternal = new HashMap<>();
 	protected SendMessageData sendData(MessagePriority prio) {
 		SendMessageData result = sendDataInternal.get(prio);
@@ -469,9 +506,10 @@ public class AlarmingManager {
 		}
 		return result;
 	}
-	protected void sendMessage(String title, String message, MessagePriority prio,
+	protected void sendMessageIntern(String title, String message, MessagePriority prio,
 			StringResource appToUse) throws RejectedExecutionException, IllegalStateException {
 		long now = appManPlus.appMan().getFrameworkTime();
+		
 		SendMessageData sd = sendData(prio);
 		if((maxMessageBeforeBulk != null)&&(sd.numSingleMessage >= this.maxMessageBeforeBulk)) {
 			if(sd.firstBulkMessage < 0) {

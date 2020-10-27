@@ -10,6 +10,7 @@ import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceTypePageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.MainPageExpert;
+import org.smartrplace.apps.alarmingconfig.gui.AlarmGroupPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -59,6 +60,11 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			new MainPageExpert(pageRes3, controller.appManPlus);
 			menu.addEntry("2. Alarming Configuration Details", pageRes3);
 			configMenuConfig(pageRes3.getMenuConfiguration());
+			
+			WidgetPage<?> pageRes4 = widgetApp.createWidgetPage("ongoinggroups.html");
+			new AlarmGroupPage(pageRes4, controller.appManPlus);
+			menu.addEntry("3. Groups of ongoing Alarms", pageRes4);
+			configMenuConfig(pageRes4.getMenuConfiguration());
 		}
 	};
 

@@ -40,7 +40,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	protected abstract void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus);
-	protected abstract void sendMessage(String title, String message, MessagePriority prio)
+	protected abstract void sendMessage(String title, Integer alarmValue, String message, MessagePriority prio,
+			AlarmingExtension extSource)
 			throws RejectedExecutionException, IllegalStateException;
 	protected abstract float getHumanValue(T resource);
 	
@@ -120,14 +121,14 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 						data.timer.destroy();
 						data.timer = null;
 					} else {
-						executeAlarm(ac, result.message(), alarmStatus, result.alarmValue());						
+						executeAlarm(ac, result.message(), alarmStatus, result.alarmValue(), ext.sourceExtension());						
 					}
 				} else if(AlarmingManager.isNewAlarmRetardPhaseAllowed(data, appManPlus.appMan())) {
 					data.timer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
 							result.retard()!=null?result.retard():this.retard) {
 						@Override
 						public void delayedExecution() {
-							executeAlarm(ac, result.message(), alarmStatus, result.alarmValue());
+							executeAlarm(ac, result.message(), alarmStatus, result.alarmValue(), ext.sourceExtension());
 							//data.isAlarmActive = true;
 							data.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
 								vl.resendRetard;
@@ -189,27 +190,28 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 				"\r\n"+"  Upper limit: "+upper;
 		if(baseUrl != null)
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
+		int status = ac.alarmLevel().getValue();
+		if(alarmStatus != null) {
+			alarmStatus.setValue(status);
+		}
 		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
-			sendMessage(title, message, prio);
-		
-		if(alarmStatus != null) {
-			alarmStatus.setValue(ac.alarmLevel().getValue());
-		}
+			sendMessage(title, status, message, prio, null);		
 	}
 	public void executeAlarm(AlarmConfiguration ac, String message,
-			IntegerResource alarmStatus, int alarmValue) {
+			IntegerResource alarmStatus, int alarmValue,
+			AlarmingExtension extSource) {
 		String title = alarmID+": "+dp.label(null)+" : "+ message;
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(switch)";
 		}
-		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
-		if(prio != null)
-			sendMessage(title, message, prio);
-		
 		if(alarmStatus != null) {
 			alarmStatus.setValue(alarmValue);
 		}
+
+		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
+		if(prio != null)
+			sendMessage(title, alarmValue, message, prio, extSource);
 	}
 	@Override
 	public AlarmConfiguration getAc() {

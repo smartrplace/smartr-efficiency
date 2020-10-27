@@ -16,6 +16,10 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 public class BatteryAlarmingExtension implements AlarmingExtension {
 	protected final BatteryAlarmExtensionData batAlarmExt;
 	
+	/** Note that the constructor is only called on system startup. Operations that shall be performed on every restart
+	 * of alarming need to be implemented in #onStartAlarming()
+	 * @param appMan
+	 */
 	public BatteryAlarmingExtension(ApplicationManager appMan) {
 		HardwareTableData hwData = new HardwareTableData(appMan);
 		this.batAlarmExt = ResourceListHelper.getOrCreateNamedElementFlex(hwData.appConfigData.alarmingConfig(),
@@ -44,6 +48,7 @@ public class BatteryAlarmingExtension implements AlarmingExtension {
 
 	@Override
 	public AlarmingExtensionListener getListener(SingleValueResource res, AlarmConfiguration ac) {
+		final AlarmingExtension superThis = this;
 		return new AlarmingExtensionListener() {
 			boolean isInAlarm = false;
 			
@@ -96,6 +101,11 @@ public class BatteryAlarmingExtension implements AlarmingExtension {
 					};
 				}
 				return null;
+			}
+
+			@Override
+			public AlarmingExtension sourceExtension() {
+				return superThis;
 			}
 			
 		};
