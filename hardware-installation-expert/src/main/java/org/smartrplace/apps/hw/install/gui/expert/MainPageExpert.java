@@ -79,6 +79,7 @@ public class MainPageExpert extends MainPage {
 		StaticTable secondTable = new StaticTable(1, 4);
 		RedirectButton stdCharts = new RedirectButton(page, "stdCharts", "Chart Config", "/org/sp/app/srcmon/chartconfig.html");
 		secondTable.setContent(0, 1, stdCharts);
+		page.append(secondTable);
 		super.finishConstructor();
 	}
 	

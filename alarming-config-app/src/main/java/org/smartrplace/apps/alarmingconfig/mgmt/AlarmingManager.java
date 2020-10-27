@@ -26,6 +26,7 @@ import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.recordreplay.testing.RecReplayAlarmingBaseObserver;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
@@ -74,6 +75,8 @@ public class AlarmingManager {
 	protected long lastTimeStamp = -1;
 	protected Timer noValueTimer = null;
 
+	protected final RecReplayAlarmingBaseObserver recReplay;
+	
 	public AlarmingManager(List<AlarmConfiguration> configs, ApplicationManagerPlus appManPlus,
 			Map<String, AppID> appsForSending,
 			String alarmID) {
@@ -98,10 +101,13 @@ public class AlarmingManager {
 			intr.setValue(0);
 		}*/
 		
+		List<AlarmConfiguration> activeAlarms = new ArrayList<>();
+		
 		long now = appManPlus.appMan().getFrameworkTime();
 		for(AlarmConfiguration ac: configs) {
 			if((!ac.sendAlarm().getValue()))
 				continue;
+			activeAlarms.add(ac);
 			Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
@@ -166,8 +172,15 @@ public class AlarmingManager {
 //			}
 		}
 		
+		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase")) {
+			recReplay = new RecReplayAlarmingBaseObserver(activeAlarms, appManPlus.appMan());
+			//recReplay.checkInitialReplay();
+			appManPlus.dpService().alarming().registerRecReplayObserver(recReplay);
+		} else
+			recReplay = null;
+
 		noValueTimer = appManPlus.appMan().createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
-		
+	
 		System.out.println("New AlarmingManagement started.");
 	}
 	
@@ -415,6 +428,8 @@ public class AlarmingManager {
 		if(alarmStatus != null) {
 			alarmStatus.setValue(ac.alarmLevel().getValue()+1000);
 		}
+		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase"))
+			recReplay.recordNewAlarm(ac, appManPlus.getFrameworkTime());
 	}
 	
 	protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,

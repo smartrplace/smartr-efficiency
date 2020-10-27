@@ -20,6 +20,7 @@ import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
@@ -144,19 +145,36 @@ public class AlarmingUtiH {
 		return toRemove;
 	}
 
+	/** Configure alarming parameters for a value. The alarm is set to "sendAlarm" status by default, but this can be
+	 * avoided with an additional last parameter. No alarms will be sent if the general configuration
+	 * {@link HardwareInstallConfig#isAlarmingActive()} is not set to true.
+	 * @param appDevice
+	 * @param res
+	 * @param min
+	 * @param max
+	 * @param maxViolationTimeWithoutAlarm
+	 * @param maxIntervalBetweenNewValues
+	 */
 	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
+		setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true);
+	}
+	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
+			 float min, float max,
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
+			boolean sendAlarminitially) {
 		if(!res.exists())
 			return;
 		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
 				res, appDevice.alarms());
 		setTemplateValues(alarm, min, max, maxViolationTimeWithoutAlarm,
-				maxIntervalBetweenNewValues);		
+				maxIntervalBetweenNewValues, sendAlarminitially);		
 	}
+	
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
-			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
-		
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
+			boolean sendAlarminitially) {		
 		Long shortIntervalForTesting = Long.getLong("org.smartrplace.apps.hw.install.init.alarmtesting.shortintervals");
 		if(shortIntervalForTesting != null) {
 			double floatVal = ((double)shortIntervalForTesting)/TimeProcUtil.MINUTE_MILLIS;
@@ -182,7 +200,8 @@ public class AlarmingUtiH {
 		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
 		
 		EditPageGeneric.setDefault(data.maxIntervalBetweenNewValues(), maxIntervalBetweenNewValues, mode);
-		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.sendAlarmsinitially"))
+		//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.sendAlarmsinitially"))
+		if(sendAlarminitially)
 			EditPageGeneric.setDefault(data.sendAlarm(), true, mode);
 		else
 			EditPageGeneric.setDefault(data.sendAlarm(), false, mode);

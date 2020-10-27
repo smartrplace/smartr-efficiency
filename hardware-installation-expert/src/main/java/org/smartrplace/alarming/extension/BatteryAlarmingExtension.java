@@ -34,6 +34,8 @@ public class BatteryAlarmingExtension implements AlarmingExtension {
 
 	@Override
 	public boolean offerInGeneralAlarmingConfiguration(AlarmConfiguration ac) {
+		if(ac == null)
+			return true;
 		Resource res = ac.sensorVal().getLocationResource();
 		if(res.getName().equals("batteryLow") && res instanceof BooleanResource)
 			return true;

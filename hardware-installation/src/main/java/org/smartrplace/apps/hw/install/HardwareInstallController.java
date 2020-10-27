@@ -260,12 +260,13 @@ public class HardwareInstallController {
 		if(appConfigData.autoLoggingActivation().getValue() == 1) {
 			activateLogging(tableProvider, install, true, false);
 		}
+		InstallAppDevice currentTemplate = null;
 		if(appConfigData.autoConfigureNewDevicesBasedOnTemplate().getValue()) {
-			InstallAppDevice currentTemplate = getTemplateDevice(tableProvider);
+			currentTemplate = getTemplateDevice(tableProvider);
 			if(currentTemplate != null && (!currentTemplate.equalsLocation(install)))
 				AlarmingConfigUtil.copySettings(currentTemplate, install, appMan);
 		}
-		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.startalarming")) {
+		if(currentTemplate == null && Boolean.getBoolean("org.smartrplace.apps.hw.install.init.startalarming")) {
 			initAlarmingForDevice(install, tableProvider);
 		}
 		return install;
@@ -529,6 +530,8 @@ public class HardwareInstallController {
 			new CountDownDelayedExecutionTimer(appMan, 10000) {
 				@Override
 				public void delayedExecution() {
+					if(appConfigData.isAlarmingActive().getValue())
+						throw new IllegalStateException("Alarming must not be activated e.g. via replay-on-clean when testing with special test configuration!");
 					ValueResourceHelper.setCreate(appConfigData.isAlarmingActive(), true);
 				}
 			};
