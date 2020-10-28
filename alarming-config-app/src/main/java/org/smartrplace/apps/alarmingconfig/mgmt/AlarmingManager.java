@@ -15,6 +15,7 @@ import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
@@ -112,67 +113,76 @@ public class AlarmingManager {
 				continue;
 			activeAlarms.add(ac);
 			Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
+			final SingleValueResource sres;
+			final ValueListenerData vl;
+			
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
-				ValueListenerData vl = new ValueListenerData(res);
+				sres = res;
+				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
 				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
-				continue;
-			}
-			if(ac.sensorVal() instanceof IntegerResource) {
+				//continue;
+			} else if(ac.sensorVal() instanceof IntegerResource) {
 				IntegerResource res = (IntegerResource) ac.sensorVal().getLocationResource();
-				ValueListenerData vl = new ValueListenerData(res);
+				sres = res;
+				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
 				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
-				continue;
-			}
-			//if(!(ac.supervisedSensor().reading() instanceof FloatResource)) {
-			if(!(ac.sensorVal() instanceof FloatResource)) {
-				appManPlus.appMan().getLogger().warn("Sensor reading not of type FloatResource:"+
-						ac.sensorVal().getLocation());
-				continue;
-			}
-			if(ac.sendAlarm().getValue()) {
+				//continue;
+			} else if(ac.sensorVal() instanceof FloatResource) {
 				FloatResource res = (FloatResource) ac.sensorVal().getLocationResource();
-				ValueListenerData vl = new ValueListenerData(res);
+				sres = res;
+				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
 				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
-				
-				IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(res);
-				if(alarmStatus == null)
-					continue;
-				if(alarmStatus.getValue() > 1000)
-					vl.isNoValueAlarmActive = true;
-				
 				res.addValueListener(mylistener, true);
-			}
-			if(!ac.performAdditinalOperations().getValue()) continue;
-			OnOffSwitch onOff = AlarmingUtiH.getSwitchFromSensor(ac.sensorVal());
-			if(onOff != null) {
-				BooleanResource bres = onOff.stateFeedback().getLocationResource();
-				ValueListenerData vl = new ValueListenerData(bres);
-				AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vl,
-						appManPlus, dp) {
-					@Override
-					public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-							IntegerResource alarmStatus) {
-						onOff.stateControl().setValue(true);
-						super.executeAlarm(ac, value, upper, lower, alarmStatus);
+
+				if(ac.performAdditinalOperations().getValue()) {
+					OnOffSwitch onOff = AlarmingUtiH.getSwitchFromSensor(ac.sensorVal());
+					if(onOff != null) {
+						BooleanResource bres = onOff.stateFeedback().getLocationResource();
+						ValueListenerData vlb = new ValueListenerData(bres);
+						AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vlb,
+								appManPlus, dp) {
+							@Override
+							public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
+									IntegerResource alarmStatus) {
+								onOff.stateControl().setValue(true);
+								super.executeAlarm(ac, value, upper, lower, alarmStatus);
+							}
+						};
+						vlb.listener = onOffListener;
+						valueListeners.add(vlb);
+						bres.addValueListener(onOffListener, false);					
 					}
-				};
-				vl.listener = onOffListener;
-				valueListeners.add(vl);
-				bres.addValueListener(onOffListener, false);					
+				}
+				
+			} else {
+				vl = null;
+				sres = null;
 			}
-//			}
+			if(sres == null) {
+				appManPlus.appMan().getLogger().warn("Sensor reading not of suppored type: "+ac.sensorVal().getResourceType().getName()+
+						ac.sensorVal().getLocation());
+				continue;
+			}
+				
+			IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(sres);
+			if(alarmStatus == null)
+				continue;
+			if(alarmStatus.getValue() > 1000)
+				vl.isNoValueAlarmActive = true;
+			else if(alarmStatus.getValue() > 0)
+				vl.isAlarmActive = true;
 		}
 		
 		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase")) {

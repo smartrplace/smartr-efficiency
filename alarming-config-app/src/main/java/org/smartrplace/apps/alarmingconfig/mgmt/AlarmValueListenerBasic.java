@@ -45,6 +45,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			throws RejectedExecutionException, IllegalStateException;
 	protected abstract float getHumanValue(T resource);
 	
+	protected final long maxValueAlarmReleaseRetard = Long.getLong("org.smartrplace.apps.alarmingconfig.mgmt.maxValueReleaseRetard", 5*60000);
+	
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
 	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
 			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl) {
@@ -164,8 +166,9 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.timer.destroy();
 			vl.timer = null;
 		} else if(vl.isAlarmActive && vl.alarmReleaseTimer == null) {
+			long retardLoc = Math.min(retard, maxValueAlarmReleaseRetard);
 			vl.alarmReleaseTimer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
-					retard) {
+					retardLoc) {
 				@Override
 				public void delayedExecution() {
 					releaseAlarm(ac, value, upper, lower, alarmStatus);
