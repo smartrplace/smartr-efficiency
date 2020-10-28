@@ -246,9 +246,10 @@ public class HardwareInstallController {
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if(install.device().equalsLocation(device)) {
 				initializeDevice(install, device, tableProvider); // only initialize missing resources
-				if(Boolean.getBoolean("org.smartrplace.apps.hw.install.existing.configalarming")) {
-					initAlarmingForDevice(install, tableProvider);
-				}
+					//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.existing.configalarming")) {
+				//The init process is done only if the InitialConfig.isInitDone method is false for the device
+				initAlarmingForDevice(install, tableProvider);
+					//}
 				return install;
 			}
 		}
@@ -273,7 +274,7 @@ public class HardwareInstallController {
 	}
 	
 	protected <T extends Resource> void initAlarmingForDevice(InstallAppDevice install, DeviceHandlerProvider<T> tableProvider) {
-		String shortID = install.deviceId().getValue(); //tableProvider.getDeviceTypeShortId(install, dpService);
+		String shortID = install.deviceId().getValue()+tableProvider.getInitVersion(); //tableProvider.getDeviceTypeShortId(install, dpService);
 		if((!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))) {// &&
 			//	(getDevices(tableProvider).size() <= 1)) {
 			tableProvider.initAlarmingForDevice(install, appConfigData);

@@ -296,7 +296,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					name = devGrp.label(null);
 				else
 					name = ResourceUtils.getHumanReadableShortName(device);
-				if(!InitialConfig.isInitDone(object.deviceId().getValue(), resData.appConfigData.initDoneStatus()))
+				if(!InitialConfig.isInitDone(object.deviceId().getValue()+pe.getInitVersion(), resData.appConfigData.initDoneStatus()))
 					name += "*";
 				vh.stringLabel("Name", id, name, row);
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);

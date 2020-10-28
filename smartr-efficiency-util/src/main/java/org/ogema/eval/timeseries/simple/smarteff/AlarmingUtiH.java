@@ -158,23 +158,36 @@ public class AlarmingUtiH {
 	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
-		setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true);
+		setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true);
 	}
 	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially) {
+		setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true);
+	}
+	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
+			 float min, float max,
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
+			boolean sendAlarminitially,
+			boolean overWriteExisting) {
 		if(!res.exists())
 			return;
 		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
 				res, appDevice.alarms());
 		setTemplateValues(alarm, min, max, maxViolationTimeWithoutAlarm,
-				maxIntervalBetweenNewValues, sendAlarminitially);		
+				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting);		
 	}
 	
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially) {		
+		setTemplateValues(data, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true);
+	}
+	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
+			boolean sendAlarminitially,
+			boolean overWriteExisting) {		
 		Long shortIntervalForTesting = Long.getLong("org.smartrplace.apps.hw.install.init.alarmtesting.shortintervals");
 		if(shortIntervalForTesting != null) {
 			double floatVal = ((double)shortIntervalForTesting)/TimeProcUtil.MINUTE_MILLIS;
@@ -188,7 +201,14 @@ public class AlarmingUtiH {
 				maxIntervalBetweenNewValues = 4*60;
 		}
 
-		DefaultSetModes mode = DefaultSetModes.OVERWRITE;
+		String defaultAlarmSetMode = System.getProperty("org.smartrplace.apps.hw.install.init.alarmtesting.defaultAlarmSetMode");
+		DefaultSetModes mode = overWriteExisting?DefaultSetModes.OVERWRITE:DefaultSetModes.SET_IF_NEW;
+		/*DefaultSetModes mode = null;
+		if(defaultAlarmSetMode != null) try {
+			mode = DefaultSetModes.valueOf(defaultAlarmSetMode);
+		} catch(IllegalArgumentException e) {}
+		if(mode == null)
+			mode = DefaultSetModes.OVERWRITE;*/
 		EditPageGeneric.setDefault(data.alarmLevel(), 1, mode);
 		Long shortResend = Long.getLong("org.smartrplace.apps.hw.install.init.alarmtesting.shortresend");
 		if(shortResend != null)
