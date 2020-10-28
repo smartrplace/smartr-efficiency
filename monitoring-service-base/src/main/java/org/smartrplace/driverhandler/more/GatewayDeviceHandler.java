@@ -7,6 +7,9 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -15,6 +18,9 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.model.prototypes.Configuration;
+import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
+import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -23,6 +29,7 @@ import org.smartrplace.gateway.device.GatewayDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -65,7 +72,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 
 			@Override
 			protected String getTableTitle() {
-				return "BACnet Devices";
+				return "Gateway Device";
 			}
 			
 			public GatewayDevice addWidgetsInternal(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
@@ -138,6 +145,40 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 				0, 1000, 1, TimeProcUtil.YEAR_MILLIS/(60*60000));
 	}
 
+	@Override
+	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
+			GatewayDevice deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		Configuration rundirUpdateStatus = ResourceHelper.getTopLevelResource("RundirUpdateStatus", Configuration.class, appMan.getResourceAccess());
+		if(rundirUpdateStatus == null)
+			return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);
+		BooleanResource failed = rundirUpdateStatus.getSubResource("failed", BooleanResource.class);
+		if(failed.isActive()) {
+			ResourceValueListener<BooleanResource> failedListener = new ResourceValueListener<BooleanResource>() {
+
+				@Override
+				public void resourceChanged(BooleanResource resource) {
+					ValueResourceHelper.setCreate(deviceResource.gitUpdateStatus(), resource.getValue()?-1:0);
+					
+				}
+			};
+			failed.addValueListener(failedListener, true);
+		}
+		StringResource result = rundirUpdateStatus.getSubResource("result", StringResource.class);
+		if(result.isActive()) {
+			ResourceValueListener<StringResource> resultListener = new ResourceValueListener<StringResource>() {
+
+				@Override
+				public void resourceChanged(StringResource resource) {
+					String val = resource.getValue();
+					ValueResourceHelper.setCreate(deviceResource.gitUpdateStatus(), val.startsWith("no update")?1:2);
+					
+				}
+			};
+			result.addValueListener(resultListener, true);
+		}
+		return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);
+	}
+	
 	@Override
 	protected Class<? extends ResourcePattern<GatewayDevice>> getPatternClass() {
 		return GatewayDevicePattern.class;

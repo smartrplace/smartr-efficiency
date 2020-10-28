@@ -28,6 +28,7 @@ import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
+import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
@@ -143,6 +144,9 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DriverHandlerProvider> knxDriver = null;
 	private DriverHandlerKNX_IP knxConfig;
 	
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srGwDev = null;
+	private GatewayDeviceHandler devHandGwDev;
 
 
 	
@@ -213,6 +217,9 @@ public class MonitoringServiceBaseApp implements Application {
 	   mqttBrokerDriver = bc.registerService(DriverHandlerProvider.class, mqttBrokerConfig, null);
 	   knxConfig = new DriverHandlerKNX_IP(controller.appManPlus, configAdmin);
 	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
+	   
+	   devHandGwDev = new GatewayDeviceHandler(controller.appManPlus);
+	   srGwDev = bc.registerService(DeviceHandlerProvider.class, devHandGwDev, null);
 	}
  	
      /*
@@ -239,7 +246,9 @@ public class MonitoringServiceBaseApp implements Application {
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
     	if (knxDriver != null) knxDriver.unregister();
 
-		if (controller != null)
+    	if (srGwDev != null) srGwDev.unregister();
+
+    	if (controller != null)
     		controller.close();
         log.info("{} stopped", getClass().getName());
     }
