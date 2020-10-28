@@ -142,7 +142,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 				0, 1000, 30, 120);
 		//TODO: We need alarming if values occur too often
 		AlarmingUtiH.setTemplateValues(appDevice, device.systemRestart(),
-				0, 1000, 1, TimeProcUtil.YEAR_MILLIS/(60*60000));
+				200, 200, 10, TimeProcUtil.YEAR_MILLIS/(60000));
 	}
 
 	@Override

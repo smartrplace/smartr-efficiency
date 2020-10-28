@@ -191,7 +191,7 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
 				0.0f, 4000.0f, 10, 20);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().voltageSensor().reading(),
-				200f, 245f, 10, 20);
+				180f, 350f, 10, 20);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().frequencySensor().reading(),
 				49.8f, 50.2f, 1, 20);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);

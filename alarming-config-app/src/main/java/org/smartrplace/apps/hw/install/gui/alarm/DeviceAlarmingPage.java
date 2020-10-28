@@ -2,6 +2,7 @@ package org.smartrplace.apps.hw.install.gui.alarm;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
@@ -175,11 +176,16 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					template = null;
 				} else {
 					int alNum = 0;
+					int alStatusNum = 0;
 					for(AlarmConfiguration ac: object.alarms().getAllElements()) {
-						if(ac.sendAlarm().getValue())
+						if(ac.sendAlarm().getValue()) {
 							alNum++;
+							IntegerResource status = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal().getLocationResource());
+							if(status != null && status.getValue() > 0)
+								alStatusNum++;
+						}
 					}
-					vh.intLabel("Active Alarms", id, alNum, row, 0);
+					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum, alStatusNum), row);
 
 					template = AlarmingConfigUtil.getTemplate(object, appManPlus);
 					Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);
