@@ -38,6 +38,7 @@ import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.message.MessageImpl;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 
@@ -538,15 +539,17 @@ public class AlarmingManager {
 			}
 			sd.numBulkMessage++;
 System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
+			String text = StringFormatHelper.getTimeDateInLocalTimeZone(now)+" : "+title+
+					"\r\n"+message;
 			if(sd.bulkMessage == null)
-				sd.bulkMessage = title+":"+message;
+				sd.bulkMessage = text;
 			else
-				sd.bulkMessage += "\r\n"+title+":"+message;
+				sd.bulkMessage += "\r\n\r\n"+text;
 			
 			if(isTimeToSendBulkMessages(now, prio)) {
 				sendBulkMessages(prio);
 			} else if(sd.numBulkMessage == 2*maxMessageBeforeBulk) {
-				title = "More alarms occured...";
+				title = "More "+sd.numBulkMessage+" alarms occured...";
 				String infoMessage = "Number of alarms aggregated by now: "+(sd.numBulkMessage);
 				reallySendMessage(title, infoMessage , prio, appToUse);
 				System.out.println("         SENT BULKINFOMESSAGE "+title+":\r\n"+infoMessage);						
