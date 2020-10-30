@@ -164,9 +164,13 @@ public class UserAdminBaseUtil {
 	}
 
 	public static UserStatusResult getUserStatus(String userName, ApplicationManagerPlus appManPlus) {
-		UserAccount userAccount = appManPlus.appMan().getAdministrationManager().getUser(userName);
-		UserStatusResult status = UserAdminBaseUtil.getUserStatus(userAccount, appManPlus, false);
-		return status;
+		try {
+			UserAccount userAccount = appManPlus.appMan().getAdministrationManager().getUser(userName);
+			UserStatusResult status = UserAdminBaseUtil.getUserStatus(userAccount, appManPlus, false);
+			return status;
+		} catch(NullPointerException e) {
+			return null;
+		}
 	}
 	
 	public static UserStatus getUserStatus(List<String> appPermissions, UserPermissionService userPermService, boolean useWorkingCopy) {
