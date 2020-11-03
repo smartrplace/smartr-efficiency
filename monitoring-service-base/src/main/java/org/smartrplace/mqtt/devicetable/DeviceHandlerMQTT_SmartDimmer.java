@@ -17,10 +17,8 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
-import org.ogema.model.communication.CommunicationStatus;
 import org.ogema.model.devices.buildingtechnology.ElectricLight;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
-import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.LightSensor;
 import org.ogema.model.sensors.MotionSensor;
@@ -175,8 +173,8 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 		SensorDevice maindev = (SensorDevice) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		for(ElectricLight dev: maindev.getSubResources(ElectricLight.class, false)) {
-			addDatapoint(dev.setting().stateControl(), result, dpService);
-			addDatapoint(dev.setting().stateFeedback(), result, dpService);			
+			addDatapoint(dev.setting().stateControl(), result, dev.getName(), dpService);
+			addDatapoint(dev.setting().stateFeedback(), result, dev.getName(), dpService);			
 		}
 		addDatapoint(maindev.electricityConnection().powerSensor().reading(), result, dpService);
 		LightSensor dev = maindev.getSubResource("lightSensor", LightSensor.class);

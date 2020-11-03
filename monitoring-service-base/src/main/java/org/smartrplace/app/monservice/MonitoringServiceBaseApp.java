@@ -26,6 +26,7 @@ import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
+import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
@@ -136,6 +137,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srBacnet = null;
 	private BacnetDeviceHandler devHandBacnet;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srEnServ = null;
+	private ESE_ElConnBoxDeviceHandler devHandEnServ;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -210,6 +214,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srGhl = bc.registerService(DeviceHandlerProvider.class, devHandGhl, null);
 	   devHandBacnet = new BacnetDeviceHandler(controller.appManPlus);
 	   srBacnet = bc.registerService(DeviceHandlerProvider.class, devHandBacnet, null);
+	   devHandEnServ = new ESE_ElConnBoxDeviceHandler(controller.appManPlus);
+	   srEnServ = bc.registerService(DeviceHandlerProvider.class, devHandEnServ, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -236,7 +242,9 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srSwBox != null) srSwBox.unregister();
     	if (srPv != null) srPv.unregister();
     	if (srGhl != null) srGhl.unregister();
-    	if (srBacnet != null) srGhl.unregister();
+    	if (srBacnet != null) srBacnet.unregister();
+    	if (srEnServ != null) srEnServ.unregister();
+
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
     	if (srThermostat != null) srThermostat.unregister();

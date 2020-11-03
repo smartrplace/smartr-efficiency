@@ -255,12 +255,12 @@ public class AlarmingUtiH {
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
 		if(rssiDevice != null && rssiDevice.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
-					-94f, -30f, 10, 300);
+					-94f, -10f, 10, 300);
 		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
 		if(rssiPeer != null && rssiPeer.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
-					-94f, -30f, 10, 300);
+					-94f, -10f, 10, 300);
 	}
 
 	public static void addAlarmingMQTT(PhysicalElement dev, InstallAppDevice appDevice) {
