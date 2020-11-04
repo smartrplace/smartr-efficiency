@@ -345,7 +345,7 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		Object[] arrObj = secRes.toArray();
 		//String[] arr = (String[]) secRes.toArray(new String[0]);
 		result = new ArrayList<>();
-System.out.println("In UserAdminBaseUtil: Found "+arrObj.length+" user perms for "+userName);
+//System.out.println("In UserAdminBaseUtil: Found "+arrObj.length+" user perms for "+userName);
 		for(Object obj: arrObj) {
 			if(obj instanceof String) {
 				String fullStr = (String)obj;

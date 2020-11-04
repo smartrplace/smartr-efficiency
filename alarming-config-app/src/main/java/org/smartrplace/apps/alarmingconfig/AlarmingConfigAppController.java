@@ -15,6 +15,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary_de;
@@ -166,7 +167,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		boolean isGw = false;
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			WidgetPage<?> pageRes12 = initApp.widgetApp.createStartPage(); //initApp.widgetApp.createWidgetPage("devices.html");
-			devicePage = new DeviceTypePage(pageRes12, appManPlus, true);
+			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this);
 			initApp.menu.addEntry("1. Device Template Alarming Configuration", pageRes12);
 			initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 	
@@ -321,5 +322,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			alarmMan = new AlarmingManager(configs, appManPlus, appsToSend, getAlarmingDomain());
 		} else
 			alarmMan = null;
+	}
+	
+	public DeviceHandlerProvider<?> getDeviceHandler(InstallAppDevice appDevice) {
+		return getDeviceHandler(appDevice.devHandlerInfo().getValue());
+	}
+	public DeviceHandlerProvider<?> getDeviceHandler(String id) {
+		return accessAdminApp.getTableProviders().get(id);
 	}
 }

@@ -541,9 +541,10 @@ public class AlarmingManager {
 System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 			String text = StringFormatHelper.getTimeDateInLocalTimeZone(now)+" : "+title+
 					"\r\n"+message;
-			if(sd.bulkMessage == null)
-				sd.bulkMessage = text;
-			else
+			if(sd.bulkMessage == null) {
+				//We put a return upfront as initial line will be filled with "Notification :" by EmailService, which disturbs when reading through the messages
+				sd.bulkMessage = "\r\n"+text;
+			} else
 				sd.bulkMessage += "\r\n\r\n"+text;
 			
 			if(isTimeToSendBulkMessages(now, prio)) {

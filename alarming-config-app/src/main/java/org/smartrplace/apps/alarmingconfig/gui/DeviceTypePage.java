@@ -7,10 +7,12 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.GenericFilterOption;
@@ -30,10 +32,13 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 public class DeviceTypePage extends MainPage {
 	protected final boolean showOnlyPrototype;
 	protected SingleFiltering<String, AlarmConfiguration> deviceDrop;
+	protected final AlarmingConfigAppController controller;
 	
-	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype) {
+	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype,
+			AlarmingConfigAppController controller) {
 		super(page, appManPlus);
 		this.showOnlyPrototype = showOnlyPrototype;
+		this.controller= controller;
 	}
 
 	protected String getHeader(OgemaLocale locale) {
@@ -113,10 +118,32 @@ public class DeviceTypePage extends MainPage {
 		applyAndCommitButton.setDefaultText("Apply template and Commit (Restart)");
 		applyAndCommitButton.registerDependentWidget(alert);
 
+		ButtonConfirm applyDefaultToTemplate = new ButtonConfirm(page, "applyDefaultToTemplate") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				GenericFilterFixedSingle<String> selected = (GenericFilterFixedSingle<String>) deviceDrop.getSelectedItem(req);
+				InstallAppDevice template = AlarmingConfigUtil.getTemplate(selected.getValue(), appManPlus);
+				if(template != null) {
+					DeviceHandlerProvider<?> devHand = controller.getDeviceHandler(template);
+					devHand.initAlarmingForDevice(template, controller.getHardwareConfig());
+					alert.showAlert("Default alarming settings applied to template for "+selected.getValue(), true, req);					
+				} else
+					alert.showAlert("Template for type "+selected.getValue()+" not found!", false, req);
+				//alert.showAlert("Currently only available as Installation&Setup Expert Dropdown Action!", false, req);
+				//AlarmingConfigUtil.applyDefaultValuesToTemplate(selected.getValue(), appManPlus);
+				//AlarmingConfigUtil.applyTemplate(selected.getValue(), appManPlus);
+			}
+		};
+		applyDefaultToTemplate.setDefaultConfirmMsg("Really overwrite settings of template"+
+								" with default alarming settings?");
+		applyDefaultToTemplate.setDefaultText("Apply default settings to template");
+		applyDefaultToTemplate.registerDependentWidget(alert);
+
 		StaticTable secondTable = new StaticTable(1, 4);
 		secondTable.setContent(0, 0, deviceDrop);
 		secondTable.setContent(0, 1, applyTemplateButton);
 		secondTable.setContent(0, 2, applyAndCommitButton);
+		secondTable.setContent(0, 3, applyDefaultToTemplate);
 		
 		page.append(secondTable);
 

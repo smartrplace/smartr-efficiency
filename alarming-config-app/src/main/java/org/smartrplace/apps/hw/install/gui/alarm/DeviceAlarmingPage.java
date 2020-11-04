@@ -8,6 +8,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
@@ -269,10 +270,13 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						if(template != null)
-							template.isTemplate().deactivate(false);
-						ValueResourceHelper.setCreate(object.isTemplate(), pe.id());
-						if(!object.isTemplate().isActive())
-							object.isTemplate().activate(false);
+							DeviceTableRaw.setTemplateStatus(template, null, false);
+						DeviceTableRaw.setTemplateStatus(object, pe, true);
+						//if(template != null)
+						//	template.isTemplate().deactivate(false);
+						//ValueResourceHelper.setCreate(object.isTemplate(), pe.id());
+						//if(!object.isTemplate().isActive())
+						//	object.isTemplate().activate(false);
 					}
 				};
 				selectTemplButton.setDefaultConfirmMsg("Really select as template "+object.device().getLocation()+" ?");

@@ -273,17 +273,26 @@ public class HardwareInstallController {
 		return install;
 	}
 	
-	protected <T extends Resource> void initAlarmingForDevice(InstallAppDevice install, DeviceHandlerProvider<T> tableProvider) {
-		String shortID = install.deviceId().getValue()+tableProvider.getInitVersion(); //tableProvider.getDeviceTypeShortId(install, dpService);
+	protected <T extends Resource> void initAlarmingForDevice(final InstallAppDevice install, final DeviceHandlerProvider<T> tableProvider) {
+		final String shortID = install.deviceId().getValue()+tableProvider.getInitVersion(); //tableProvider.getDeviceTypeShortId(install, dpService);
 		if((!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))) {// &&
 			//	(getDevices(tableProvider).size() <= 1)) {
 			tableProvider.initAlarmingForDevice(install, appConfigData);
+			//we call init again after 5 minutes as we expect that all datapoint resources have been set up after 5 minutes
+			//on test systems starting with replay-on-clean resources the delay usually is set to 10 to avoid interfereces with
+			//editing the values manually for testing
+			new CountDownDelayedExecutionTimer(appMan, Long.getLong("org.smartrplace.apps.hw.install.alarming.reinitdelay", 5*60000)) {
+				
+				@Override
+				public void delayedExecution() {
+					tableProvider.initAlarmingForDevice(install, appConfigData);
+					if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
+						InitialConfig.addString(shortID, appConfigData.initDoneStatus());			
+				}
+			};
 			if(DeviceTableRaw.getTemplateForType(getDevices(tableProvider), tableProvider) == null)
 				ValueResourceHelper.setCreate(install.isTemplate(), tableProvider.id());
 		}
-		//mark init done for sure
-		if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
-			InitialConfig.addString(shortID, appConfigData.initDoneStatus());			
 	}
 	
 	public InstallAppDevice removeDevice(Resource device) {

@@ -53,8 +53,9 @@ public class MainPageExpert extends MainPage {
 	private static final String TRASH = "Mark as Trash";
 	private static final String MAKE_TEMPLATE = "Make Template";
 	private static final String APPLY_TEMPLATE = "Apply Template To Devices";
-	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, MAKE_TEMPLATE});
-	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, APPLY_TEMPLATE});
+	private static final String APPLY_DEFAULT_ALARM = "Apply Default Alarm Settings";
+	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
+	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, APPLY_TEMPLATE, APPLY_DEFAULT_ALARM});
 
 	@Override
 	protected String getHeader() {return "Device Setup and Configuration Expert";}
@@ -78,7 +79,8 @@ public class MainPageExpert extends MainPage {
 	protected void finishConstructor() {
 		StaticTable secondTable = new StaticTable(1, 4);
 		RedirectButton stdCharts = new RedirectButton(page, "stdCharts", "Chart Config", "/org/sp/app/srcmon/chartconfig.html");
-		secondTable.setContent(0, 1, stdCharts);
+		RedirectButton alarming = new RedirectButton(page, "alarming", "Alarming Configuration", "/org/smartrplace/alarmingconfig/index.html");
+		secondTable.setContent(0, 1, stdCharts).setContent(0,  2, alarming);
 		page.append(secondTable);
 		super.finishConstructor();
 	}
@@ -198,6 +200,10 @@ public class MainPageExpert extends MainPage {
 						setConfirmMsg("Really apply settings of "+object.device().getLocation()+
 								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!", req);
 						break;
+					case APPLY_DEFAULT_ALARM:
+						setConfirmMsg("Really overwrite settings of " + object.device().getLocation() +
+									"with default alarming settings?", req);
+						break;
 					}
 					setText(sel, req);
 				}
@@ -225,10 +231,12 @@ public class MainPageExpert extends MainPage {
 					case MAKE_TEMPLATE:
 						InstallAppDevice currentTemplate = controller.getTemplateDevice(logResult.devHand);
 						if(currentTemplate != null)
-							currentTemplate.isTemplate().deactivate(false);
-						ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
-						if(!object.isTemplate().isActive())
-							object.isTemplate().activate(false);
+							DeviceTableRaw.setTemplateStatus(currentTemplate, null, false);
+							//currentTemplate.isTemplate().deactivate(false);
+						DeviceTableRaw.setTemplateStatus(object, logResult.devHand, true);
+						//ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
+						//if(!object.isTemplate().isActive())
+						//	object.isTemplate().activate(false);
 						break;
 					case APPLY_TEMPLATE:
 						for(InstallAppDevice dev: controller.getDevices(logResult.devHand)) {
@@ -236,6 +244,11 @@ public class MainPageExpert extends MainPage {
 								continue;
 							AlarmingConfigUtil.copySettings(object, dev, controller.appMan);
 						}
+						break;
+					case APPLY_DEFAULT_ALARM:
+						DeviceHandlerProvider<?> tableProvider = controller.handlerByDevice.get(object.getLocation());
+						if(tableProvider != null)
+							tableProvider.initAlarmingForDevice(object, controller.appConfigData);
 						break;
 					}
 				}

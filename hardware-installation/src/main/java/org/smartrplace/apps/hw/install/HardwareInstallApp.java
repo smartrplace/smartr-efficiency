@@ -158,8 +158,8 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     }
     
     protected void addTableProvider(DeviceHandlerProvider<?> provider) {
-    	tableProviders.put(provider.id(), provider);
     	synchronized (this) {
+    		tableProviders.put(provider.id(), provider);
 	    	if(controller != null && controller.demandsActivated) {
 	    		provider.addPatternDemand(controller.mainPage);
 	    	}

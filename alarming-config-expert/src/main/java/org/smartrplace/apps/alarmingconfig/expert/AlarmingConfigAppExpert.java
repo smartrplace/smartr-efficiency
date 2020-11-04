@@ -52,7 +52,7 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			
 			WidgetPage<?> pageRes2 = widgetApp.createStartPage();
 			//WidgetPage<?> pageRes2 = widgetApp.createWidgetPage("userroompermexpert.html");
-			new DeviceTypePageExpert(pageRes2, controller.appManPlus, true);
+			new DeviceTypePageExpert(pageRes2, controller.appManPlus, true, controller);
 			menu.addEntry("1. Alarming Configuration Per Device", pageRes2);
 			configMenuConfig(pageRes2.getMenuConfiguration());
 

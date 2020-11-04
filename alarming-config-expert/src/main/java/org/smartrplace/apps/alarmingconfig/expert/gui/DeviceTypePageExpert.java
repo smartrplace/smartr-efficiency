@@ -8,6 +8,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
@@ -22,8 +23,9 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 @SuppressWarnings("serial")
 public class DeviceTypePageExpert extends DeviceTypePage {
 
-	public DeviceTypePageExpert(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype) {
-		super(page, appManPlus, showOnlyPrototype);
+	public DeviceTypePageExpert(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
+			boolean showOnlyPrototype, AlarmingConfigAppController controller) {
+		super(page, appManPlus, showOnlyPrototype, controller);
 		// TODO Auto-generated constructor stub
 	}
 	
