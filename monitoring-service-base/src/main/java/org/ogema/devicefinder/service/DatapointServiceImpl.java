@@ -220,7 +220,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			};
 			Map<String, Datapoint> gwMap = getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 			gwMap.put(valRes.getLocation(), result);
-		}
+		} else if(result.getResource() == null)
+			((DatapointImpl)result).setResource(valRes);
 		addStandardData(result, valRes);
 		return result;
 	}
