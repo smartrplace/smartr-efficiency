@@ -454,7 +454,7 @@ public class HardwareInstallController {
 		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
 			dev.addDatapoint(dp);
 			dp.setDeviceResource(appDevice.device().getLocationResource());
-			dp.setSubRoomLocation(null, null, subLoc);
+			dp.addToSubRoomLocationAtomic(null, null, subLoc, true);
 			if(room != null)
 				dp.setRoom(room);
 			initAlarming(tableProvider, appDevice, dp);

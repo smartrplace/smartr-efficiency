@@ -240,7 +240,7 @@ public class DeviceFinderInit {
 			
 			Resource parentList = parent.getParent();
 			if(parentList != null && parentList.getName().equals("subPhaseConnections")) {
-				dp.setSubRoomLocation(null, null, parent.getName());
+				dp.addToSubRoomLocationAtomic(null, null, parent.getName(), false);
 				Resource nodeConnection = parentList.getParent();
 				boolean sumOfAllPhasesisMeasured = false;
 				if(nodeConnection != null && nodeConnection instanceof ElectricityConnection) {

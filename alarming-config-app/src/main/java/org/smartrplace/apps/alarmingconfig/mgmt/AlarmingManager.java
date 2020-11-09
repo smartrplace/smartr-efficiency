@@ -430,7 +430,7 @@ public class AlarmingManager {
 			IntegerResource alarmStatus) {
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
-		String title = alarmID+": No more values received:"+tsName+" (Alarming)";
+		String title = "No more values received:"+tsName+" (Alarming)";
 		String message = "Last value received at: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nValue: "+value+"\r\n"
 				+"\r\nMaximum interval: "+(maxInterval/MINUTE_MILLIS)+"min";
 		if(baseUrl != null)
@@ -448,7 +448,7 @@ public class AlarmingManager {
 			IntegerResource alarmStatus) {
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
-		String title = alarmID+": Release:"+tsName+" (Alarming)";
+		String title = "Release:"+tsName+" (Alarming)";
 		String message = "Value: "+value;
 		if(!Float.isNaN(lower))
 			message += "\r\n"+"  Lower limit: "+lower+
@@ -550,7 +550,7 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 			if(isTimeToSendBulkMessages(now, prio)) {
 				sendBulkMessages(prio);
 			} else if(sd.numBulkMessage == 2*maxMessageBeforeBulk) {
-				title = "More "+sd.numBulkMessage+" alarms occured...";
+				title = alarmID+": More "+sd.numBulkMessage+" alarms occured...";
 				String infoMessage = "Number of alarms aggregated by now: "+(sd.numBulkMessage);
 				reallySendMessage(title, infoMessage , prio, appToUse);
 				System.out.println("         SENT BULKINFOMESSAGE "+title+":\r\n"+infoMessage);						
@@ -565,8 +565,8 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 			}
 			if(sd.numSingleMessage >= (maxMessageBeforeBulk))
 				message += "\r\n (More messages may be aggregated, will be sent after "+(bulkMessageInterval/TimeProcUtil.MINUTE_MILLIS)+" minutes!)";
-			reallySendMessage(title, message, prio, appToUse);
-			System.out.println("         SENT MESSAGE "+title+":\r\n"+message);		
+			reallySendMessage(alarmID+": "+title, message, prio, appToUse);
+			System.out.println("         SENT MESSAGE "+alarmID+": "+title+":\r\n"+message);		
 		}
 		
 	}
@@ -589,7 +589,7 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 	protected void sendBulkMessages(MessagePriority prio) {
 		SendMessageData sd = sendData(prio);
 		sd.firstBulkMessage = -1;
-		String title = sd.numBulkMessage+" Aggregated alarms: ";
+		String title = alarmID+": "+sd.numBulkMessage+" Aggregated alarms: ";
 		appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
 				new MessageImpl(title, sd.bulkMessage, prio));
 		System.out.println("         SENT BULKMESSAGE "+title+":\r\n"+sd.bulkMessage);		

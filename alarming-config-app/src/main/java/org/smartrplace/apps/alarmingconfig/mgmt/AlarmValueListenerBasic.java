@@ -185,7 +185,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	@Override
 	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 			IntegerResource alarmStatus) {
-		String title = alarmID+": "+dp.label(null)+" (Alarming Wert)";
+		String title = dp.label(null)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}
@@ -204,7 +204,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	public void executeAlarm(AlarmConfiguration ac, String message,
 			IntegerResource alarmStatus, int alarmValue,
 			AlarmingExtension extSource) {
-		String title = alarmID+": "+dp.label(null)+" : "+ message;
+		String title = dp.label(null)+" : "+ message;
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(switch)";
 		}
