@@ -1,6 +1,7 @@
 package org.smartrplace.homematic.devicetable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -8,9 +9,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
-import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.ResourceList;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -26,7 +25,6 @@ import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.locations.Room;
-import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
@@ -191,7 +189,8 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 			DoorWindowSensor deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
 		List<RoomInsideSimulationBase> result = new ArrayList<>();
 
-		if(deviceResource.getLocation().toLowerCase().contains("homematicip"))
+		if(deviceResource.getLocation().toLowerCase().contains("homematicip") ||
+				(!deviceResource.getLocation().toLowerCase().contains("homematic")))
 			return result;
 		
 		//start aesMode setter
@@ -207,6 +206,24 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 			}
 		});
 		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
+		
+		Timer timerValue = appMan.appMan().createTimer(1*TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+			
+			@Override
+			public void timerElapsed(Timer arg0) {
+				getPropertyService();
+				if(propService == null)
+					return;
+				long now = appMan.getFrameworkTime();
+				long lastWrite = deviceResource.reading().getLastUpdateTime();
+				if(now - lastWrite > (TimeProcUtil.HOUR_MILLIS+5*TimeProcUtil.MINUTE_MILLIS)) {
+					appMan.getLogger().warn("Request value property for DoowWindowSensor "+deviceResource.getLocation());
+					propService.getProperty(deviceResource, PropType.CURRENT_SENSOR_VALUE, null);
+				}
+			}
+		});
+		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timerValue));
+
 		return result;
 	}
 	
@@ -223,11 +240,12 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		propService = new PropertyService() {
 			
 			@Override
-			public void setProperty(Resource anchorResource, PropType propType, String value,
+			public void setProperty(Resource deviceResource, PropType propType, String value,
 					DriverPropertySuccessHandler<?> successHandler, String... argument) {
-				Resource propDev = getMainChannelPropRes(anchorResource);
-				writeProperty(propDev, propType, value, successHandler, hmPropService, appMan.getLogger());
-System.out.println("  ++++ Wrote Property "+propType.id()+" for "+propDev.getLocation()+ " value:"+value);
+				//Resource propDev = getMainChannelPropRes(deviceResource);
+				PropAccessDataHm accData = getPropAccess(deviceResource, propType);
+				writePropertyHm(accData.propId, accData.anchorRes, value, successHandler, hmPropService, appMan.getLogger());
+System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchorRes.getLocation()+ " value:"+value);
 				/*if(propDev == null)
 					return;
 				String propertyId = getPropId(propType);
@@ -237,37 +255,70 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+propDev.getLoc
 			
 			@SuppressWarnings("unchecked")
 			@Override
-			public String getProperty(Resource anchorResource, PropType propType,
+			public String getProperty(Resource deviceResource, PropType propType,
 					DriverPropertySuccessHandler<?> successHandler, String... arguments) {
-				Resource propDev = getMainChannelPropRes(anchorResource);
-				if(propDev == null)
+				//Resource propDev = getMainChannelPropRes(deviceResource);
+				PropAccessDataHm accData = getPropAccess(deviceResource, propType);
+				if(accData == null)
 					return null;
-				String propertyId = getPropId(propType);
-				if(propertyId == null)
-					return null;
+				//String propertyId = getPropId(propType);
+				//if(propertyId == null)
+				//	return null;
 				if(successHandler != null)
-					hmPropService.updateProperty(propDev, propertyId , appMan.getLogger(),
+					hmPropService.updateProperty(accData.anchorRes, accData.propId , appMan.getLogger(),
 						(DriverPropertySuccessHandler<Resource>)successHandler);
-				return DriverPropertyUtils.getPropertyValue(propDev, propertyId);
+				return DriverPropertyUtils.getPropertyValue(accData.anchorRes, accData.propId);
+			}
+
+			@Override
+			public List<PropType> getPropTypesSupported() {
+				return PROPS_SUPPORTED;
+			}
+
+			@Override
+			public PropAccessDataHm getPropAccess(Resource devDataResource, PropType propType) {
+				//These are in HM_SHUTTER_CONTACT
+				if(!(devDataResource instanceof DoorWindowSensor))
+					return null;
+				DoorWindowSensor devRes = (DoorWindowSensor) devDataResource;
+				if(propType.id.equals(PropType.ENCRYPTION_ENABLED.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_SHUTTER_CONTACT"), "MASTER/AES_ACTIVE:BOOL(7)");
+				else if(propType.id.equals(PropType.CURRENT_SENSOR_VALUE.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_SHUTTER_CONTACT"), "VALUES/STATE:BOOL(5)");
+				//These are not really used yet
+				else if(propType.id.equals(PropType.DEVICE_ERROR.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_SHUTTER_CONTACT"), "VALUES/ERROR:ENUM(5)");
+				else if(propType.id.equals(PropType.TRANSMIT_TRY_MAX.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_SHUTTER_CONTACT"), "MASTER/TRANSMIT_TRY_MAX:INTEGER(7)");
+				else if(propType.id.equals(PropType.EXPECT_AES.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_SHUTTER_CONTACT"), "LINK/EXPECT_AES:BOOL(7)");
+				else if(propType.id.equals(PropType.PEER_NEEDS_BURST.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_SHUTTER_CONTACT"), "LINK/PEER_NEEDS_BURST:BOOL(7)");
+				
+				//These are in HM_Maintenance
+				else if(propType.id.equals(PropType.LOCAL_RESET_DISABLE.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/LOCAL_RESET_DISABLE:BOOL(7)");
+				else if(propType.id.equals(PropType.TRANSMIT_DEV_TRY_MAX.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/TRANSMIT_DEV_TRY_MAX:INTEGER(7)");
+
+				return null;
 			}
 		};
 		return propService;
 	}
 	
-	protected Resource getMainChannelPropRes(Resource anchorResource) {
-		if(!(anchorResource instanceof DoorWindowSensor))
+	protected static final List<PropType> PROPS_SUPPORTED = Arrays.asList(new PropType[] {PropType.ENCRYPTION_ENABLED,
+			PropType.CURRENT_SENSOR_VALUE, PropType.DEVICE_ERROR, PropType.TRANSMIT_TRY_MAX, PropType.TRANSMIT_DEV_TRY_MAX, PropType.EXPECT_AES,
+			PropType.PEER_NEEDS_BURST, PropType.LOCAL_RESET_DISABLE});
+
+	/*private Resource getMainChannelPropRes(Resource deviceResource) {
+		if(!(deviceResource instanceof DoorWindowSensor))
 			return null;
-		return getAnchorResource((PhysicalElement) anchorResource, "HM_SHUTTER_CONTACT");
-	}
+		return getAnchorResource((PhysicalElement) deviceResource, "HM_SHUTTER_CONTACT");
+	}*/
 	
-	public static String getPropId(PropType propType) {
-		if(propType.id.equals(PropType.ENCRYPTION_ENABLED.id))
-			return "MASTER/AES_ACTIVE:BOOL(7)";
-		else
-			return null;
-	}
 	
-	public static Resource getAnchorResource(PhysicalElement device, String channelName) {
+	/*public static Resource getAnchorResource(PhysicalElement device, String channelName) {
 		Resource hmDevice = ResourceHelper.getFirstParentOfType(device, "org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice");
 		if(hmDevice == null)
 			return null;
@@ -294,5 +345,5 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+propDev.getLoc
 		hmPropService.writeProperty(propDev, propertyId , logger, value,
 				(DriverPropertySuccessHandler<Resource>)successHandler);
 		
-	}
+	}*/
 }

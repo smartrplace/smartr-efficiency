@@ -13,6 +13,7 @@ import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService.AccessAvailability;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
 import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -96,12 +97,12 @@ public class PropertyPage extends ObjectGUITablePage<PropertyData, Resource> {
 		Resource device = deviceDrop.getSelectedItem(req);
 		if(device == null)
 			return Collections.emptyList();
-		StringArrayResource propNames = device.getSubResource("propertyNames", StringArrayResource.class);
-		StringArrayResource propValues = device.getSubResource("propertyValues", StringArrayResource.class);
+		StringArrayResource propNames = device.getSubResource(DriverPropertyUtils.RES_NAMES, StringArrayResource.class);
+		StringArrayResource propValues = device.getSubResource(DriverPropertyUtils.RES_VALUES, StringArrayResource.class);
 		if(!(propNames.isActive() && propValues.isActive())) {
 			propService.updateProperties(device, app.log);
-			propNames = device.getSubResource("propertyNames", StringArrayResource.class);
-			propValues = device.getSubResource("propertyValues", StringArrayResource.class);
+			propNames = device.getSubResource(DriverPropertyUtils.RES_NAMES, StringArrayResource.class);
+			propValues = device.getSubResource(DriverPropertyUtils.RES_VALUES, StringArrayResource.class);
 		}
 		String[] names = propNames.getValues();
 		String[] values = propValues.getValues();

@@ -52,7 +52,7 @@ public class MainPageExpertProps extends MainPage {
 		//vh.stringLabel("IAD", id, object.getName(), row);
 		//vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
 		if(req == null) {
-			vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
+			//vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
 			vh.registerHeaderEntry("Plot");
 			vh.registerHeaderEntry("Semantic properties");
 			vh.registerHeaderEntry("Read");
@@ -71,12 +71,12 @@ public class MainPageExpertProps extends MainPage {
 			final TemplateDropdown<PropType> propDrop = new TemplateDropdown<PropType>(vh.getParent(), "propDrop"+id, req) {
 				@Override
 				public void onGET(OgemaHttpRequest req) {
-					List<PropType> propsInDev = new ArrayList<>();
-					for(PropType prop: PropType.STD_PROPS) {
+					List<PropType> propsInDev = propHand.getPropTypesSupported();//new ArrayList<>();
+					/*for(PropType prop: PropType.STD_PROPS) {
 						String vals = propHand.getProperty(object.device(), prop, null);
 						if(vals != null)
 							propsInDev.add(prop);
-					}
+					}*/
 					update(propsInDev, req);
 				}
 			};
@@ -92,7 +92,7 @@ public class MainPageExpertProps extends MainPage {
 					}
 					if(sel.access == AccessAvailability.READ || sel.access == AccessAvailability.WRITE) {
 						setWidgetVisibility(true, req);
-						String vals = propHand.getProperty(object.device(), sel, null);
+						String vals = propHand.getPropertyCached(object.device(), sel);
 						setText(vals, req);
 					} else
 						setWidgetVisibility(false, req);
@@ -111,7 +111,7 @@ public class MainPageExpertProps extends MainPage {
 					}
 					if(sel.access == AccessAvailability.WRITE_ONLY || sel.access == AccessAvailability.WRITE) {
 						setWidgetVisibility(true, req);
-						String vals = propHand.getProperty(object.device(), sel, null);
+						String vals = propHand.getPropertyCached(object.device(), sel);
 						setValue(vals, req);
 					} else
 						setWidgetVisibility(false, req);
