@@ -37,8 +37,11 @@ import org.ogema.devicefinder.util.DpConnectionImpl;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.dpres.SensorDeviceDpRes;
+import org.smartrplace.autoconfig.api.OSGiConfigAccessService;
+import org.smartrplace.autoconfig.api.OSGiConfigAccessServiceImpl;
 import org.smartrplace.tissue.util.resource.ResourceHelperSP;
 import org.smartrplace.tissue.util.resource.ValueResourceHelperSP;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
@@ -73,7 +76,8 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 //@Service(DatapointService.class)
 //@Component
 public abstract class DatapointServiceImpl implements DatapointService {
-	public DatapointServiceImpl(ApplicationManager appMan) {
+	public DatapointServiceImpl(ApplicationManager appMan, ConfigurationAdmin configAdmin) {
+		this.configAdmin = configAdmin;
 		this.appMan = appMan;
 	}
 
@@ -81,6 +85,7 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	
 	//private final MonitoringServiceBaseController controller;
 	private final ApplicationManager appMan;
+	private final ConfigurationAdmin configAdmin;
 	private ResourceList<InstallAppDevice> installAppListInternal = null;
 	@SuppressWarnings("unchecked")
 	private ResourceList<InstallAppDevice> installAppList() {
@@ -548,5 +553,13 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	@Override
 	public AlarmingService alarming() {
 		return alarming;
+	}
+	
+	OSGiConfigAccessService configService;
+	@Override
+	public OSGiConfigAccessService configService() {
+		if(configService == null)
+			configService = new OSGiConfigAccessServiceImpl(configAdmin);
+		return configService;
 	}
 }

@@ -24,7 +24,6 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
-import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -176,7 +175,8 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					vh.registerHeaderEntry("Alarm Control");
 					template = null;
 				} else {
-					int alNum = 0;
+					int[] alNum = AlarmingConfigUtil.getActiveAlarms(object);
+					/*int alNum = 0;
 					int alStatusNum = 0;
 					for(AlarmConfiguration ac: object.alarms().getAllElements()) {
 						if(ac.sendAlarm().getValue()) {
@@ -186,7 +186,8 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 								alStatusNum++;
 						}
 					}
-					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum, alStatusNum), row);
+					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alStatusNum, alNum), row);*/
+					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum[0], alNum[1]), row);
 
 					template = AlarmingConfigUtil.getTemplate(object, appManPlus);
 					Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);

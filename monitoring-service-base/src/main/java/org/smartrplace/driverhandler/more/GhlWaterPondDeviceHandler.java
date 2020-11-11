@@ -102,6 +102,9 @@ public class GhlWaterPondDeviceHandler extends DeviceHandlerBase<GhlWaterPond> {
 						addSubLocation(object, vh, id, req, row);
 					}
 				}
+				Room deviceRoom = device.location().room();
+				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+				addSubLocation(object, vh, id, req, row);
 				addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
 				

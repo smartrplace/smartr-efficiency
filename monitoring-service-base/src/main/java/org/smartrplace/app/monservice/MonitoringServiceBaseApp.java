@@ -30,6 +30,7 @@ import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
+import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
@@ -151,6 +152,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srGwDev = null;
 	private GatewayDeviceHandler devHandGwDev;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srGwSup = null;
+	private GatewaySuperiorHandler devHandGwSup;
 
 
 	
@@ -170,7 +174,7 @@ public class MonitoringServiceBaseApp implements Application {
         log = appManager.getLogger();
 
         // 
-        dpService = new DatapointServiceImpl(appMan) {
+        dpService = new DatapointServiceImpl(appMan, configAdmin) {
 
 			@Override
 			protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
@@ -226,6 +230,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   
 	   devHandGwDev = new GatewayDeviceHandler(controller.appManPlus);
 	   srGwDev = bc.registerService(DeviceHandlerProvider.class, devHandGwDev, null);
+	   devHandGwSup = new GatewaySuperiorHandler(controller.appManPlus);
+	   srGwSup = bc.registerService(DeviceHandlerProvider.class, devHandGwSup, null);
 	}
  	
      /*
@@ -255,6 +261,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (knxDriver != null) knxDriver.unregister();
 
     	if (srGwDev != null) srGwDev.unregister();
+       	if (srGwSup != null) srGwSup.unregister();
 
     	if (controller != null)
     		controller.close();

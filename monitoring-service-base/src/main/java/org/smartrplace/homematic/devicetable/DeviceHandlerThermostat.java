@@ -1,6 +1,7 @@
 package org.smartrplace.homematic.devicetable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -14,20 +15,27 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DriverPropertySuccessHandler;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
+import org.ogema.devicefinder.api.OGEMADriverPropertyService;
+import org.ogema.devicefinder.api.PropType;
+import org.ogema.devicefinder.api.PropertyService;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
+import org.ogema.devicefinder.util.DeviceHandlerBase.PropAccessDataHm;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond.SetpointToFeedbackSimSimple;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -45,6 +53,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 
+	protected static final String MAIN_PROP = "HM_CLIMATECONTROL_RT_TRANSCEIVER";
 	private final ApplicationManagerPlus appMan;
 
 	public DeviceHandlerThermostat(ApplicationManagerPlus appMan) {
@@ -256,4 +265,119 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 					-30f, -94f, 10, 300);*/
 		appDevice.alarms().activate(true);
 	}
+	
+	PropertyService propService = null;
+	@Override
+	public PropertyService getPropertyService() {
+		if(propService != null)
+			return propService;
+		@SuppressWarnings("unchecked")
+		OGEMADriverPropertyService<Resource> hmPropService = (OGEMADriverPropertyService<Resource>)
+				appMan.dpService().driverpropertyServices().get("HmPropertyServiceProvider");
+		if(hmPropService == null)
+			return null;
+		propService = new PropertyService() {
+			
+			@Override
+			public void setProperty(Resource deviceResource, PropType propType, String value,
+					DriverPropertySuccessHandler<?> successHandler, String... argument) {
+				//Resource propDev = getMainChannelPropRes(deviceResource);
+				PropAccessDataHm accData = getPropAccess(deviceResource, propType);
+				writePropertyHm(accData.propId, accData.anchorRes, value, successHandler, hmPropService, appMan.getLogger());
+System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchorRes.getLocation()+ " value:"+value);
+				/*if(propDev == null)
+					return;
+				String propertyId = getPropId(propType);
+				hmPropService.writeProperty(propDev, propertyId , appMan.getLogger(), value,
+						(DriverPropertySuccessHandler<Resource>)successHandler);*/
+			}
+			
+			@SuppressWarnings("unchecked")
+			@Override
+			public String getProperty(Resource deviceResource, PropType propType,
+					DriverPropertySuccessHandler<?> successHandler, String... arguments) {
+				//Resource propDev = getMainChannelPropRes(deviceResource);
+				PropAccessDataHm accData = getPropAccess(deviceResource, propType);
+				if(accData == null)
+					return null;
+				//String propertyId = getPropId(propType);
+				//if(propertyId == null)
+				//	return null;
+				if(successHandler != null)
+					hmPropService.updateProperty(accData.anchorRes, accData.propId , appMan.getLogger(),
+						(DriverPropertySuccessHandler<Resource>)successHandler);
+				return DriverPropertyUtils.getPropertyValue(accData.anchorRes, accData.propId);
+			}
+
+			@Override
+			public List<PropType> getPropTypesSupported() {
+				return PROPS_SUPPORTED;
+			}
+
+			@Override
+			public PropAccessDataHm getPropAccess(Resource devDataResource, PropType propType) {
+				//These are in HM_SHUTTER_CONTACT
+				if(!(devDataResource instanceof DoorWindowSensor))
+					return null;
+				DoorWindowSensor devRes = (DoorWindowSensor) devDataResource;
+				if(propType.id.equals(PropType.ENCRYPTION_ENABLED.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, MAIN_PROP), "MASTER/AES_ACTIVE:BOOL(7)");
+				else if(propType.id.equals(PropType.CURRENT_SENSOR_VALUE.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, MAIN_PROP), "VALUES/ACTUAL_TEMPERATURE:FLOAT(5)");
+				//These are not really used yet
+				else if(propType.id.equals(PropType.BURST_RX.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, MAIN_PROP), "MASTER/BURST_RX:BOOL(7)");
+				
+				//These are in HM_Maintenance
+				else if(propType.id.equals(PropType.LOCAL_RESET_DISABLE.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/LOCAL_RESET_DISABLE:BOOL(7)");
+				else if(propType.id.equals(PropType.THERMOSTAT_WINDOWOPEN_MODE.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/TEMPERATUREFALL_MODUS:ENUM(7)");
+				else if(propType.id.equals(PropType.THERMOSTAT_WINDOWOPEN_TEMPERATURE.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/TEMPERATUREFALL_WINDOW_OPEN:FLOAT(7)");
+				else if(propType.id.equals(PropType.THERMOSTAT_WINDOWOPEN_MINUTES.id))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/TEMPERATUREFALL_WINDOW_OPEN_TIME_PERIOD:INTEGER(7)");
+
+				else if(propType.id.equals(PropType.THERMOSTAT_BOOST_MINUTES))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/VALVE_MAXIMUM_POSITION:INTEGER(7)");
+				else if(propType.id.equals(PropType.THERMOSTAT_BOOST_POSITION))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/BOOST_POSITION:INTEGER(7)");
+				else if(propType.id.equals(PropType.THERMOSTAT_VALVE_MAXPOSITION))
+					return new PropAccessDataHm(getAnchorResource(devRes, "HM_MAINTENANCE"), "MASTER/BOOST_TIME_PERIOD:ENUM(7)");
+				
+				return null;
+			}
+		};
+		return propService;
+	}
+	
+	protected static final List<PropType> PROPS_SUPPORTED = Arrays.asList(new PropType[] {PropType.ENCRYPTION_ENABLED,
+			PropType.CURRENT_SENSOR_VALUE,
+			PropType.BURST_RX, PropType.LOCAL_RESET_DISABLE,
+			PropType.THERMOSTAT_OPERATION_MODE,
+			PropType.THERMOSTAT_WINDOWOPEN_MODE, PropType.THERMOSTAT_WINDOWOPEN_TEMPERATURE, PropType.THERMOSTAT_WINDOWOPEN_MINUTES,
+			PropType.THERMOSTAT_BOOST_MINUTES, PropType.THERMOSTAT_BOOST_POSITION, PropType.THERMOSTAT_VALVE_MAXPOSITION});
+
+	/** Weitere interessante Paramter:
+	 * MASTER/ADAPTIVE_REGULATION:ENUM(7):
+	 * Vermutlich das Lernen der passenden Valve Position für unterschiedliche Zieltemperaturen
+	 * ADAPTIVE_REGULATION=
+	{
+		DEFAULT=2
+		FLAGS=1
+		ID=ADAPTIVE_REGULATION
+		MAX=2
+		MIN=0
+		OPERATIONS=7
+		TAB_ORDER=0
+		TYPE=ENUM
+		UNIT=
+		VALUE_LIST=
+		[
+			OFF with default values
+			OFF with determined values
+			ON
+		]
+	}
+	 */
 }

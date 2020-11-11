@@ -122,7 +122,15 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 			IntegerResource statusRes = AlarmingConfigUtil.getAlarmStatus(res);
 			if(statusRes == null)
 				return;
-			vh.intLabel("Status", id, statusRes, row, 0);
+			int val = statusRes.getValue();
+			String text;
+			if(val==0)
+				text = "OK("+val+")";
+			else if(val >= 1000)
+				text = "No Value("+val+")";
+			else
+				text = "Outside Limit("+val+")";
+			vh.stringLabel("Status", id, text, row);
 		}
 	}
 
@@ -151,7 +159,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
 
 		Button saveButton = new Button(page, "saveButton",
-				System.getProperty("org.ogema.app.navigation.alarmchangesactivate", "Neustart Alarming (Änderungen werden aktiv)")) {
+				System.getProperty("org.ogema.app.navigation.alarmchangesactivate", "Commit (Changes are activated)")) {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onPrePOST(String data, OgemaHttpRequest req) {
