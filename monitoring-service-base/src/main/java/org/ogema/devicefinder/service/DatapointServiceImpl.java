@@ -40,6 +40,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.dpres.SensorDeviceDpRes;
+import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.autoconfig.api.OSGiConfigAccessService;
 import org.smartrplace.autoconfig.api.OSGiConfigAccessServiceImpl;
 import org.smartrplace.tissue.util.resource.ResourceHelperSP;
@@ -153,6 +154,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 
 	@Override
 	public Datapoint getDataPointAsIs(String resourceLocation, String gatewayId) {
+		if(gatewayId != null)
+			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
 		Map<String, Datapoint> subMap = knownDps.get(gatewayId);
 		if(subMap == null)
 			return null;
@@ -163,6 +166,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		return getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 	}
 	protected Map<String, Datapoint> getGwMap(String gatewayId) {
+		if(gatewayId != null)
+			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
 		Map<String, Datapoint> subMap = knownDps.get(gatewayId);
 		if(subMap == null) {
 			subMap = new HashMap<String, Datapoint>();
@@ -305,7 +310,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	}
 	@Override
 	public Collection<Datapoint> getAllDatapoints(String gwId) {
-		return knownDps.get(gwId).values();
+		String gwToUse = ViaHeartbeatUtil.getBaseGwId(gwId);
+		return knownDps.get(gwToUse).values();
 	}
 
 	static Map<DataTypeRegistrationStatus, Collection<String>> typeIds = new HashMap<>();
@@ -461,6 +467,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 
 	@Override
 	public GatewayResource getStructure(String id, String gatewayId) {
+		if(gatewayId != null)
+			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
 		Map<String, GatewayResource> subMap = knownGWRes.get(gatewayId);
 		if(subMap == null)
 			return null;
@@ -477,6 +485,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	}
 
 	public void setStructure(GatewayResource gwRes, String id, String gatewayId) {
+		if(gatewayId != null)
+			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
 		Map<String, GatewayResource> subMap = knownGWRes.get(gatewayId);
 		if(subMap == null) {
 			subMap = new HashMap<>();
@@ -514,6 +524,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	
 	@Override
 	public List<DpConnection> getConnections(UtilityType type, String gatewayId) {
+		if(gatewayId != null)
+			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
 		Map<String, DpConnection> subData = knownConnections.get(gatewayId);
 		if(subData == null)
 			return Collections.emptyList();

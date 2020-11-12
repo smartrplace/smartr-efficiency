@@ -112,7 +112,8 @@ public class ConfigurationPageHWInstall {
 
 		Button updateViaHeartbeat = new Button(page, "updateViaHeartbeat", "Update Datapoints") {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				ViaHeartbeatUtil.updateAllTransferRegistrations(controller.dpService, Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway"));
+				ViaHeartbeatUtil.updateAllTransferRegistrations(controller.dpService, controller.appMan.getResourceAccess(),
+						Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway"));
 			};
 		};
 		
