@@ -19,6 +19,7 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.ElectricEnergySensor;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -142,6 +143,8 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		//addDatapoint(conn.voltageSensor().reading(), result, dpService);
 		addDatapoint(conn.powerSensor().reading(), result, dpService);
 		addDatapoint(conn.energySensor().reading(), result, dpService);
+		addDatapoint(conn.getSubResource("energyDaily", ElectricEnergySensor.class).reading(), result, dpService);
+		addDatapoint(conn.getSubResource("energyReactiveDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		//addDatapoint(conn.currentSensor().reading(), result, dpService);
 		//addDatapoint(conn.frequencySensor().reading(), result, dpService);		
 		addDatapoint(conn.reactivePowerSensor().reading(), result, dpService);
