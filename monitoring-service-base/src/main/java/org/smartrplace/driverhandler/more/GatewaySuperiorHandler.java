@@ -14,12 +14,9 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
-import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
-import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.gateway.device.GatewayDevice;
 import org.smartrplace.system.guiappstore.config.GatewayData;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -121,12 +118,9 @@ public class GatewaySuperiorHandler extends DeviceHandlerBase<GatewayData> {
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
-		GatewayDevice device = (GatewayDevice) appDevice.device();
-		AlarmingUtiH.setTemplateValues(appDevice, device.gitUpdateStatus(),
-				0, 1000, 30, 120);
-		//TODO: We need alarming if values occur too often
-		AlarmingUtiH.setTemplateValues(appDevice, device.systemRestart(),
-				200, 200, 10, TimeProcUtil.YEAR_MILLIS/(60000));
+		GatewayData device = (GatewayData) appDevice.device();
+		//AlarmingUtiH.setTemplateValues(appDevice, device.h.gitUpdateStatus(),
+		//		0, 1000, 30, 120);
 	}
 
 	@Override
