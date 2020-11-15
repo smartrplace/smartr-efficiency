@@ -34,6 +34,7 @@ import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
+import org.smartrplace.homematic.devicetable.SmokeDetector_DeviceHandler;
 import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
@@ -124,6 +125,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srTempHumSens = null;
 	private TemperatureOrHumiditySensorDeviceHandler devHandTempHumSens;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srSmoke = null;
+	private SmokeDetector_DeviceHandler devHandSmoke;
 	
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
@@ -208,6 +212,8 @@ public class MonitoringServiceBaseApp implements Application {
 
 	   devHandDoorWindowSensor = new DeviceHandlerDoorWindowSensor(controller.appManPlus);
 	   srDoorWindowSensor = bc.registerService(DeviceHandlerProvider.class, devHandDoorWindowSensor, null);
+	   devHandSmoke = new SmokeDetector_DeviceHandler(controller.appManPlus);
+	   srSmoke = bc.registerService(DeviceHandlerProvider.class, devHandSmoke, null);
 	   
 	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
 	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
@@ -255,6 +261,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
     	if (srThermostat != null) srThermostat.unregister();
     	if (srTempHumSens != null) srTempHumSens.unregister();
+    	if (srSmoke != null) srSmoke.unregister();
     	
     	if (jmbusDriver != null) jmbusDriver.unregister();
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
