@@ -214,7 +214,7 @@ public class AlarmingUtiH {
 		if(shortResend != null)
 			EditPageGeneric.setDefault(data.alarmRepetitionTime(), ((double)shortResend)/TimeProcUtil.MINUTE_MILLIS, mode);
 		else
-			EditPageGeneric.setDefault(data.alarmRepetitionTime(), 4*60, mode);
+			EditPageGeneric.setDefault(data.alarmRepetitionTime(), 48*60, mode);
 		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), maxViolationTimeWithoutAlarm, mode);
 		EditPageGeneric.setDefault(data.lowerLimit(), min, mode);
 		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
