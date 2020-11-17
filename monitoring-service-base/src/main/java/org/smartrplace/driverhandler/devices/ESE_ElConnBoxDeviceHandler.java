@@ -147,6 +147,8 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		addDatapoint(conn.getSubResource("energyReactiveDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("energyAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("energyReactiveAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
+		addDatapoint(conn.getSubResource("billedEnergy", ElectricEnergySensor.class).reading(), result, dpService);
+		addDatapoint(conn.getSubResource("billedEnergyReactive", ElectricEnergySensor.class).reading(), result, dpService);
 		//addDatapoint(conn.currentSensor().reading(), result, dpService);
 		//addDatapoint(conn.frequencySensor().reading(), result, dpService);		
 		addDatapoint(conn.reactivePowerSensor().reading(), result, dpService);
