@@ -4,12 +4,10 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.model.locations.Room;
 import org.ogema.widgets.configuration.service.OGEMAConfigurations;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
@@ -23,7 +21,7 @@ import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
 public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesDataImpl> {
-	List<Room> knownRooms = null;
+	//List<Room> knownRooms = null;
 	
 	/** Hash location or other ID -> Timeseries*/
 	//final Map<String, TimeSeriesDataImpl> knownTimeseries = UserServlet.knownTS;

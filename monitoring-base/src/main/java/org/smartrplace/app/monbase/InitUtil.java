@@ -9,6 +9,7 @@ import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.sensors.Sensor;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
 import org.smartrplace.app.monbase.servlet.ConsumptionEvalServlet;
+import org.smartrplace.app.monbase.servlet.DatapointServlet;
 import org.smartrplace.app.monbase.servlet.SensorServlet;
 import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
 import org.smartrplace.app.monbase.servlet.UserServletTestMon;
@@ -129,6 +130,8 @@ public class InitUtil {
 		userServlet.addPage("sensorsByRoom", sensServlet);
 		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);
 		userServlet.addPage("timeseries", timeSeriesServlet);
+		DatapointServlet dpServlet = new DatapointServlet(controller);
+		userServlet.addPage("datapoints", dpServlet);
 		if(includeSpecialTimeseriesServlet) {
 			TimeSeriesServlet timeSeriesServletExt = new TimeSeriesServlet(controller.appMan);
 			userServlet.addPage("timeseriesExtended", timeSeriesServletExt);

@@ -2,7 +2,6 @@ package org.smartrplace.apps.hw.install.gui.alarm;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
@@ -10,7 +9,6 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.DpGroupUtil;
-import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -190,64 +188,65 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum[0], alNum[1]), row);
 
 					template = AlarmingConfigUtil.getTemplate(object, appManPlus);
-					Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);
-					if(templateStatus == null)
-						throw new IllegalStateException("Template status cannot be null!");
-					Button perm = new Button(mainTable, WidgetHelper.getValidWidgetId("perm_"+id), "", req) {
-						private static final long serialVersionUID = 1L;
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
-							if(object.equalsLocation(template)) {
-								if(status == null)
-									throw new IllegalStateException("Template status cannot be null!");
-								setText(status ? "✓ Template": "✕ Templ.inactive", req);
-								if (status) {
-									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
-									disable(req);
-								} else {
-									setStyle(ButtonData.BOOTSTRAP_RED, req);
+					if(template != null) {
+						Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);
+						if(templateStatus == null)
+							throw new IllegalStateException("Template status cannot be null!");
+						Button perm = new Button(mainTable, WidgetHelper.getValidWidgetId("perm_"+id), "", req) {
+							private static final long serialVersionUID = 1L;
+							@Override
+							public void onGET(OgemaHttpRequest req) {
+								Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
+								if(object.equalsLocation(template)) {
+									if(status == null)
+										throw new IllegalStateException("Template status cannot be null!");
+									setText(status ? "✓ Template": "✕ Templ.inactive", req);
+									if (status) {
+										setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+										disable(req);
+									} else {
+										setStyle(ButtonData.BOOTSTRAP_RED, req);
+										enable(req);
+									}
+									setToolTip("Template is " + (status ? "active" : "inactive") + ".", req);
+									return;
+								}
+								if(templateStatus)
 									enable(req);
-								}
-								setToolTip("Template is " + (status ? "active" : "inactive") + ".", req);
-								return;
-							}
-							if(templateStatus)
-								enable(req);
-							else
-								disable(req);
-							if (status == null) {
-								setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
-								setText("(✓ special)", req);
-								setToolTip("Alarming is " + "special.", req);
-								
-							} else {
-								//setGlyphicon(status ? Glyphicons.CHECK : Glyphicons.OFF, req);
-								setText(status ? "✓ active": "✕ inactive", req);
-								if (status) {
-									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+								else
+									disable(req);
+								if (status == null) {
+									setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
+									setText("(✓ special)", req);
+									setToolTip("Alarming is " + "special.", req);
+									
 								} else {
-									setStyle(ButtonData.BOOTSTRAP_RED, req);
+									//setGlyphicon(status ? Glyphicons.CHECK : Glyphicons.OFF, req);
+									setText(status ? "✓ active": "✕ inactive", req);
+									if (status) {
+										setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+									} else {
+										setStyle(ButtonData.BOOTSTRAP_RED, req);
+									}
+									setToolTip("Alarming is " + (status ? "active" : "inactive") + ".", req);
 								}
-								setToolTip("Alarming is " + (status ? "active" : "inactive") + ".", req);
 							}
-						}
-						
-						@Override
-						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
-							MainPage.hasOpenCommits = true;
-							if(status == null || status)
-								AlarmingConfigUtil.deactivateAlarms(object);
-							else
-								AlarmingConfigUtil.copySettings(template, object, appManPlus.appMan(), false);
-						}
-					};
-					row.addCell(WidgetHelper.getValidWidgetId("Alarm Control"), perm);
-					perm.registerDependentWidget(perm);
-					perm.registerDependentWidget(commitButton);
-				}
-					
+							
+							@Override
+							public void onPOSTComplete(String data, OgemaHttpRequest req) {
+								Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
+								MainPage.hasOpenCommits = true;
+								if(status == null || status)
+									AlarmingConfigUtil.deactivateAlarms(object);
+								else
+									AlarmingConfigUtil.copySettings(template, object, appManPlus.appMan(), false);
+							}
+						};
+						row.addCell(WidgetHelper.getValidWidgetId("Alarm Control"), perm);
+						perm.registerDependentWidget(perm);
+						perm.registerDependentWidget(commitButton);
+					}
+				}					
 				Room deviceRoom = device.location().room();
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row);
@@ -259,7 +258,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				ButtonConfirm selectTemplButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("selectTemplBut"+id), req) {
 					@Override
 					public void onGET(OgemaHttpRequest req) {
-						if(object.equalsLocation(template)) {
+						if(template != null && object.equalsLocation(template)) {
 							setText("is Template", req);
 							disable(req);
 						} else {
