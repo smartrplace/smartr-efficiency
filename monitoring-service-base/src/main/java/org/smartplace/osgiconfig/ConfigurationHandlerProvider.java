@@ -343,7 +343,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
             String cbId = wId + "_Item";
             Boolean v = value == null
                     ? Boolean.valueOf(def)
-                    : (Boolean) value;
+                    : Boolean.valueOf(value.toString());
             final CheckboxEntry e = new DefaultCheckboxEntry(cbId, "", v);
             Checkbox2 cb = new Checkbox2(page, "_" + UUID.randomUUID().toString()) {
                 @Override
