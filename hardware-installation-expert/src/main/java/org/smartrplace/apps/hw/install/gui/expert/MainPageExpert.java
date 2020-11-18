@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
@@ -298,11 +299,14 @@ public class MainPageExpert extends MainPage {
 		return "Really mark "+object.device().getLocation()+" as trash?";
 	}
 
-	protected void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
+	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
 		//deactivate logging
 		controller.activateLogging(devHand, object, false, true);
 		//remove all alarming
 		for(AlarmConfiguration alarm: object.alarms().getAllElements()) {
+			IntegerResource status = AlarmingConfigUtil.getAlarmStatus(alarm.sensorVal());
+			if(status.exists())
+				status.delete();
 			alarm.delete();
 		}
 		object.device().getLocationResource().deactivate(true);

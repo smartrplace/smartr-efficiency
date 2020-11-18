@@ -41,7 +41,7 @@ public class MainPageExpertTrash extends MainPageExpert {
 	}
 
 	@Override
-	protected void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
+	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
 		object.device().getLocationResource().activate(true);
 		object.isTrash().setValue(false);
 		//re-init alarming and datapoints in general

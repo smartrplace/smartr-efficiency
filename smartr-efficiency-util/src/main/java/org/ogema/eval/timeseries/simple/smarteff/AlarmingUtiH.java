@@ -235,12 +235,21 @@ public class AlarmingUtiH {
 	}
 	
 	public static void addAlarmingHomematic(PhysicalElement dev, InstallAppDevice appDevice) {
+		addAlarmingHomematic(dev, appDevice, 2);
+	}
+	public static void addAlarmingHomematic(PhysicalElement dev, InstallAppDevice appDevice,
+			int batteryNum) {
 		dev = dev.getLocationResource();
 		VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
-		if(batteryVoltage != null)
-			AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
+		if(batteryVoltage != null) {
+			if(batteryNum == 2)
+				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
 					1.5f, 3.5f, 10, 70);
+			else
+				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
+						batteryNum*0.7f, batteryNum*1.8f, 10, 70);
+		}
 		BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
 		if(batteryStatus != null && batteryStatus.exists())

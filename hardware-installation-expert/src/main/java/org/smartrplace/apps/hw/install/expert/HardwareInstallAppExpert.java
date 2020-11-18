@@ -25,6 +25,7 @@ import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
@@ -68,7 +69,14 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 				ApplicationManager appMan) {
 			widgetApp = guiService.createWidgetApp(urlPath, appMan);
 			final WidgetPage<?> page = widgetApp.createStartPage();
-			controller.mainPageExts.add(new MainPageExpert(page, controller));
+			MainPageExpert expertPage = new MainPageExpert(page, controller);
+			controller.mainPageExts.add(expertPage);
+			
+			for(InstallAppDevice dev: controller.appConfigData.knownDevices().getAllElements()) {
+				if(dev.isTrash().getValue())
+					expertPage.performTrashOperation(dev, null);
+			}
+
 			
 			batAlarmExt = new BatteryAlarmingExtension(appMan);
 			controller.dpService.alarming().registerAlarmingExtension(batAlarmExt);
