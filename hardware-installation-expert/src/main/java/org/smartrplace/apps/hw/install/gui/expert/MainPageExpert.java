@@ -301,7 +301,8 @@ public class MainPageExpert extends MainPage {
 
 	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
 		//deactivate logging
-		controller.activateLogging(devHand, object, false, true);
+		if(devHand != null)
+			controller.activateLogging(devHand, object, false, true);
 		//remove all alarming
 		for(AlarmConfiguration alarm: object.alarms().getAllElements()) {
 			IntegerResource status = AlarmingConfigUtil.getAlarmStatus(alarm.sensorVal());

@@ -170,7 +170,10 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		appDevice.alarms().create();
 		DoorWindowSensor device = (DoorWindowSensor) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.reading(), 0.0f, 1.0f, 1, 70);
-		AlarmingUtiH.addAlarmingHomematic(device, appDevice, 1);
+		//TODO: This is not considered in template
+		//boolean has2batteries = device.getLocation().contains("_SWDM_");
+		//AlarmingUtiH.addAlarmingHomematic(device, appDevice, has2batteries?2:1);
+		AlarmingUtiH.addAlarmingHomematic(device, appDevice, 0);
 		/*IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
 		if(rssiDevice != null && rssiDevice.exists())

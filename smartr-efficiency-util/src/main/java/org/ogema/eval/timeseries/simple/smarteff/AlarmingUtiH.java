@@ -242,7 +242,7 @@ public class AlarmingUtiH {
 		dev = dev.getLocationResource();
 		VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
-		if(batteryVoltage != null) {
+		if(batteryVoltage != null && batteryNum > 0) {
 			if(batteryNum == 2)
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
 					1.5f, 3.5f, 10, 70);
