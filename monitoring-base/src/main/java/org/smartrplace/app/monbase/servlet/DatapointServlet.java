@@ -40,10 +40,23 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 	public Map<String, ServletValueProvider> getProviders(Datapoint object, String user, Map<String, String[]> parameters) {
 		Map<String, ServletValueProvider> result = new HashMap<>();
 		
-		ServletStringProvider location = new ServletStringProvider(object.getLocation());
+		String locationStr;
+		if(object.isLocal()) {
+			locationStr = object.getLocation();
+		} else {
+			String locloc = object.getLocation();
+			String gw = object.getGatewayId();
+			locationStr = DatapointGroup.getGroupIdForGw(locloc, gw);
+			ServletStringProvider gateway = new ServletStringProvider(gw);
+			result.put("gateway", gateway);
+			ServletStringProvider locationLocal = new ServletStringProvider(locloc);
+			result.put("locationLocal", locationLocal);
+		}
+		ServletStringProvider location = new ServletStringProvider(locationStr);
 		result.put("location", location);
-		ServletNumProvider id = new ServletNumProvider(getNumericalId(object.getLocation()));
+		ServletNumProvider id = new ServletNumProvider(getNumericalId(locationStr));
 		result.put("id", id);
+
 		ServletStringProvider labelStd = new ServletStringProvider(object.label(null));
 		result.put("labelStd", labelStd);
 		OgemaLocale locale = UserServlet.getLocale(parameters);
@@ -96,7 +109,11 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 	
 	@Override
 	public String getObjectId(Datapoint obj) {
-		return obj.id();
+		if(obj.isLocal()) {
+			return obj.id();
+		} else {
+			return DatapointGroup.getGroupIdForGw(obj.id(), obj.getGatewayId());
+		}
 	}
 	
 	@Override
