@@ -110,8 +110,12 @@ public class AlarmingManager {
 		
 		long now = appManPlus.appMan().getFrameworkTime();
 		for(AlarmConfiguration ac: configs) {
-			if((!ac.sendAlarm().getValue()))
+			if((!ac.sendAlarm().getValue())) {
+				IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal());
+				if(alarmStatus != null)
+					alarmStatus.setValue(0);
 				continue;
+			}
 			activeAlarms.add(ac);
 			Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 			final SingleValueResource sres;
