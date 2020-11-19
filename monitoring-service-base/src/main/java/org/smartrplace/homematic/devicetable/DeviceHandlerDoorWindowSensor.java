@@ -187,6 +187,9 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		*/
 	}
 
+	protected int valueRequestsentNum = 0;
+	protected int valueRequestSkippedNum = 0;
+	
 	@Override
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			DoorWindowSensor deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
@@ -219,10 +222,25 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 					return;
 				long now = appMan.getFrameworkTime();
 				long lastWrite = deviceResource.reading().getLastUpdateTime();
-				if(now - lastWrite > (TimeProcUtil.HOUR_MILLIS+5*TimeProcUtil.MINUTE_MILLIS)) {
-					appMan.getLogger().warn("Request value property for DoowWindowSensor "+deviceResource.getLocation());
+				if((now - lastWrite) > (TimeProcUtil.HOUR_MILLIS+5*TimeProcUtil.MINUTE_MILLIS)) {
+					int skipBeforeSend;
+					if(valueRequestsentNum > 100)
+						skipBeforeSend = 60;
+					else if(valueRequestsentNum > 10)
+						skipBeforeSend = 5;
+					else
+						skipBeforeSend = 0;
+					if(valueRequestSkippedNum < skipBeforeSend) {
+						skipBeforeSend++;
+						return;
+					}
+					String label = dpService.getDataPointStandard(deviceResource.reading()).label(null);
+					appMan.getLogger().warn("Request value property #"+valueRequestsentNum+" for DoowWindowSensor "+label+" ("+deviceResource.getLocation()+")");
 					propService.getProperty(deviceResource, PropType.CURRENT_SENSOR_VALUE, null);
-				}
+					valueRequestsentNum ++;
+					valueRequestSkippedNum= 0;
+				} else
+					valueRequestsentNum = 0;
 			}
 		});
 		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timerValue));
