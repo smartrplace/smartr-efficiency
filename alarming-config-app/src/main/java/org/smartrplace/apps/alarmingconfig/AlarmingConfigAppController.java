@@ -116,12 +116,28 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		public String headerReceivers() {
 			return messageSettingsHeader();
 		}
+
+		@Override
+		public String descriptionReceivers() {
+			return " Die Absenderadresse kann konfiguriert werden: <a href=\""
+					+  SENDER_LINK + "\"><b>Message Sender Page</b></a>.\n"
+					+ "Alle Nachrichten die erschickt wurden können auch im Browser angesehen werden: "
+					+ "<a href=\"" + MESSAGE_READER_LINK + "\"><b>Message Reader</b></a>.";
+     	}
 	}
 	public static class MessageSettingsDictAlarming_en extends MessageSettingsDictionary_en {
 		@Override
 		public String headerReceivers() {
 			return messageSettingsHeader();
 		}
+		
+		@Override
+		public String descriptionReceivers() {
+			return "The sender address can be configured <a href=\""
+					+  SENDER_LINK + "\"><b>on this page</b></a>.\n"
+					+ "Messages sent can also be viewed in the browser: "
+					+ "<a href=\"" + MESSAGE_READER_LINK + "\"><b>Message Reader</b></a>.";
+     	}
 	}
 	
 	public static String messageSettingsHeader() {
