@@ -22,6 +22,7 @@ import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.smartrplace.driverhandler.devices.ChargingPointDevHandler;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
@@ -145,6 +146,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srEnServ = null;
 	private ESE_ElConnBoxDeviceHandler devHandEnServ;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srCharge = null;
+	private ChargingPointDevHandler devHandCharge;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -226,6 +230,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srBacnet = bc.registerService(DeviceHandlerProvider.class, devHandBacnet, null);
 	   devHandEnServ = new ESE_ElConnBoxDeviceHandler(controller.appManPlus);
 	   srEnServ = bc.registerService(DeviceHandlerProvider.class, devHandEnServ, null);
+	   devHandCharge = new ChargingPointDevHandler(controller.appManPlus);
+	   srCharge = bc.registerService(DeviceHandlerProvider.class, devHandCharge, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -256,6 +262,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srGhl != null) srGhl.unregister();
     	if (srBacnet != null) srBacnet.unregister();
     	if (srEnServ != null) srEnServ.unregister();
+    	if (srCharge != null) srCharge.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
