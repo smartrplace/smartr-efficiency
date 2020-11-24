@@ -197,7 +197,7 @@ public class AlarmingUtiH {
 
 		//Special handlings
 		if(data.sensorVal().getLocation().toLowerCase().contains("homematicip")) {
-			if(maxIntervalBetweenNewValues < 4*60)
+			if((maxIntervalBetweenNewValues >= 0) && (maxIntervalBetweenNewValues < 4*60))
 				maxIntervalBetweenNewValues = 4*60;
 		}
 
