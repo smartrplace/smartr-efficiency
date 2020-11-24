@@ -290,6 +290,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	}
 
 	public void cleanupAlarming() {
+		if(hwTableData.appConfigData == null)
+			return;
 		for(InstallAppDevice dev: hwTableData.appConfigData.knownDevices().getAllElements()) {
 			cleanupAlarming(dev);
 		}
