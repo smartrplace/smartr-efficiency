@@ -15,7 +15,6 @@
  */
 package org.smartrplace.homematic.devicetable;
 
-import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.sensors.SmokeDetector;

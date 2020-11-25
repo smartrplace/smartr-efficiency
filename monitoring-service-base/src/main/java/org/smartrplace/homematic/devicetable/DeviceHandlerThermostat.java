@@ -23,7 +23,6 @@ import org.ogema.devicefinder.api.PropertyService;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
-import org.ogema.devicefinder.util.DeviceHandlerBase.PropAccessDataHm;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;

@@ -2,9 +2,7 @@ package org.smartrplace.homematic.devicetable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -18,12 +16,14 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.model.sensors.TemperatureSensor;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -138,22 +138,6 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 				return device2;
 			}
 			
-			class SensorElements {
-				public TemperatureSensor tempSens;
-				public HumiditySensor humSens;
-			}
-			SensorElements getElements(SensorDevice dev) {
-				SensorElements result = new SensorElements();
-				//List<Resource> allSubs = dev.sensors().getSubResources(false);
-				List<TemperatureSensor> tss = dev.sensors().getSubResources(TemperatureSensor.class, false);
-				if(tss.size() == 1)
-					result.tempSens = tss.get(0);
-				List<HumiditySensor> hss = dev.sensors().getSubResources(HumiditySensor.class, false);
-				if(hss.size() == 1)
-					result.humSens = hss.get(0);
-				return result ;
-			}
-			
 			@Override
 			public SensorDevice addNameWidget(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
@@ -179,6 +163,22 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 		};
 	}
 
+	class SensorElements {
+		public TemperatureSensor tempSens;
+		public HumiditySensor humSens;
+	}
+	SensorElements getElements(SensorDevice dev) {
+		SensorElements result = new SensorElements();
+		//List<Resource> allSubs = dev.sensors().getSubResources(false);
+		List<TemperatureSensor> tss = dev.sensors().getSubResources(TemperatureSensor.class, false);
+		if(tss.size() == 1)
+			result.tempSens = tss.get(0);
+		List<HumiditySensor> hss = dev.sensors().getSubResources(HumiditySensor.class, false);
+		if(hss.size() == 1)
+			result.humSens = hss.get(0);
+		return result ;
+	}
+	
 	@Override
 	public Class<SensorDevice> getResourceType() {
         return SensorDevice.class;
@@ -209,6 +209,22 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 	@Override
 	public String getDeviceTypeShortId(InstallAppDevice device, DatapointService dpService) {
 		return "TH";
+	}
+
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		SensorDevice device2 = (SensorDevice) appDevice.device();
+		final SensorElements device = getElements(device2);
+		AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.reading(), 5.0f, 35.0f, 15, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceSettings().setpoint(),
+				4.5f, 30.5f, 1, 1500);
+		AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceFeedback().setpoint(),
+				4.5f, 30.5f, 1, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.humSens.reading(),
+				0.0f, 1.0f, 1, 20);
+		AlarmingUtiH.addAlarmingHomematic(device2, appDevice);
+		appDevice.alarms().activate(true);
 	}
 
 }
