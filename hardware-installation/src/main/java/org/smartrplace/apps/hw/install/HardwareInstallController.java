@@ -33,7 +33,6 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
-import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
@@ -41,10 +40,10 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DatapointImpl;
+import org.ogema.devicefinder.util.DatapointImpl.DeviceLabelPlus;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
-import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.LoggingUtils;
@@ -413,8 +412,10 @@ public class HardwareInstallController {
 	public <T extends Resource> void updateDatapoints(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
 		String deviceLocation = appDevice.device().getLocation();
 		DatapointGroup dev = dpService.getGroup(deviceLocation);
-		String devName = DeviceTableRaw.getName(appDevice, appManPlus);
-		dev.setLabel(null, devName);
+		//String devName = DeviceTableRaw.getName(appDevice, appManPlus);
+		//dev.setLabel(null, devName);
+		DeviceLabelPlus dvNamPs = DatapointImpl.getDeviceLabelPlus(appDevice, null, dpService, tableProvider);
+		dev.setLabel(null, dvNamPs.deviceLabel);			
 		dev.setParameter(DatapointGroup.DEVICE_TYPE_FULL_PARAM, appDevice.device().getResourceType().getName());
 		dev.setParameter(DatapointGroup.DEVICE_UNIQUE_ID_PARAM, appDevice.deviceId().getValue());
 		dev.setType("DEVICE");
@@ -424,7 +425,7 @@ public class HardwareInstallController {
 		devType.setType("DEVICE_TYPE");
 		if(devType.getSubGroup(deviceLocation) == null)
 			devType.addSubGroup(dev);
-		String devTypeShort = tableProvider.getDeviceTypeShortId(appDevice, dpService);
+		/*String devTypeShort = tableProvider.getDeviceTypeShortId(appDevice, dpService);
 		
 		Room roomRes = appDevice.device().location().room();
 		final DPRoom room;
@@ -448,15 +449,14 @@ public class HardwareInstallController {
 		}
 		
 		String devName2 = DatapointImpl.getDeviceLabel(null,
-				room!=null?room.label(null):Datapoint.UNKNOWN_ROOM_NAME, subLoc, null);
-		dev.setLabel(null, devName2);			
+				room!=null?room.label(null):Datapoint.UNKNOWN_ROOM_NAME, subLoc, null);*/
 
 		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
 			dev.addDatapoint(dp);
 			dp.setDeviceResource(appDevice.device().getLocationResource());
-			dp.addToSubRoomLocationAtomic(null, null, subLoc, true);
-			if(room != null)
-				dp.setRoom(room);
+			dp.addToSubRoomLocationAtomic(null, null, dvNamPs.subLoc, true);
+			if(dvNamPs.room != null)
+				dp.setRoom(dvNamPs.room);
 			initAlarming(tableProvider, appDevice, dp);
 		}
 	}
