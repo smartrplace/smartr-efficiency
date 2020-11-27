@@ -146,7 +146,7 @@ public class MainPageExpertProps extends MainPage {
 					DriverPropertySuccessHandler<?> handler = new DriverPropertySuccessHandler<Resource>() {
 
 						@Override
-						public void operationFinished(Resource dataPointResource, String propertyId, boolean success,
+						public void operationFinished(Resource anchorResource, String propertyId, boolean success,
 								String message) {
 							String vals = propHand.getProperty(object.device(), sel, null);
 System.out.println("Post-Reading val: "+vals+ " after ms:"+(appMan.getFrameworkTime()-start));

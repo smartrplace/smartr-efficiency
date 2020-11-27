@@ -236,7 +236,32 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 					}
 					String label = dpService.getDataPointStandard(deviceResource.reading()).label(null);
 					appMan.getLogger().warn("Request value property #"+valueRequestsentNum+" for DoowWindowSensor "+label+" ("+deviceResource.getLocation()+")");
-					propService.getProperty(deviceResource, PropType.CURRENT_SENSOR_VALUE, null);
+					propService.getProperty(deviceResource, PropType.CURRENT_SENSOR_VALUE, 
+							new DriverPropertySuccessHandler<Resource>() {
+								@Override
+								public void operationFinished(Resource anchorResource, String propertyId,
+										boolean success, String message) {
+									long duration = appMan.getFrameworkTime() - now;
+									if(success) {
+										String value = DriverPropertyUtils.getPropertyValue(anchorResource, propertyId);
+										try {
+											boolean bval = Boolean.parseBoolean(value);
+											if((!bval) && (!value.toLowerCase().equals("false")))
+												appMan.getLogger().warn("Received value property not boolean:"+value);
+											else {
+												appMan.getLogger().warn("Received value property:"+bval);
+												deviceResource.reading().setValue(bval);
+											}
+										} catch(NumberFormatException e) {
+											appMan.getLogger().warn("Received value property not parsable:"+value);											
+										}
+									}
+									if(message != null)
+										appMan.getLogger().warn("Reading value property #"+valueRequestsentNum+" took "+duration+" msec, received message: "+message);
+									else
+										appMan.getLogger().warn("Reading value property #"+valueRequestsentNum+" took "+duration+" msec");
+								}
+							});
 					valueRequestsentNum ++;
 					valueRequestSkippedNum= 0;
 				} else

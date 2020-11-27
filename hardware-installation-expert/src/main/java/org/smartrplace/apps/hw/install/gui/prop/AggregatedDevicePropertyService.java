@@ -63,14 +63,14 @@ public class AggregatedDevicePropertyService implements OGEMADriverPropertyServi
 		}
 
 		@Override
-		public void operationFinished(Resource dataPointResource, String propertyId, boolean success,
+		public void operationFinished(Resource anchorResource, String propertyId, boolean success,
 				String message) {
 			if(!success)
 				osh.successAll = false;
 			osh.addMessage(message);
 			osh.finished++;
 			if(osh.finished == osh.serviceNum)
-				successHandler.operationFinished(dataPointResource, propertyId,
+				successHandler.operationFinished(anchorResource, propertyId,
 						osh.successAll, osh.messageAll);
 		}
 		

@@ -79,7 +79,7 @@ public class DriverPropertyPageAll extends ObjectGUITablePageNamed<OGEMADriverPr
 			DriverPropertySuccessHandler<R> sucHand = new DriverPropertySuccessHandler<R>() {
 
 				@Override
-				public void operationFinished(R dataPointResource, String propertyId, boolean success,
+				public void operationFinished(R anchorResource, String propertyId, boolean success,
 						String message) {
 					synchronized (finished) {
 					finished.increment();
