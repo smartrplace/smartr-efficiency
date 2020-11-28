@@ -17,7 +17,6 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
-import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.locations.Room;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -144,14 +143,12 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
-		SingleSwitchBox device = (SingleSwitchBox) appDevice.device();
-		AlarmingUtiH.setTemplateValues(appDevice, device.onOffSwitch().stateFeedback(),
-			0.0f, 1.0f, 1, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
+		ElectricityConnectionBox device = (ElectricityConnectionBox) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
 				0.0f, 4000.0f, 10, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().voltageSensor().reading(),
+		AlarmingUtiH.setTemplateValues(appDevice, device.connection().voltageSensor().reading(),
 				200f, 245f, 10, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().frequencySensor().reading(),
+		AlarmingUtiH.setTemplateValues(appDevice, device.connection().frequencySensor().reading(),
 				49.8f, 50.2f, 1, 20);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
