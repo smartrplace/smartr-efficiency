@@ -100,11 +100,12 @@ public class GhlWaterPondDeviceHandler extends DeviceHandlerBase<GhlWaterPond> {
 						Room deviceRoom = device.readings().getSubResource("pH_Wert_1", PondSensorReading.class).location().room();
 						addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 						addSubLocation(object, vh, id, req, row);
+					} else {
+						Room deviceRoom = device.location().room();
+						addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+						addSubLocation(object, vh, id, req, row);
 					}
 				}
-				Room deviceRoom = device.location().room();
-				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object, vh, id, req, row);
 				addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
 				

@@ -170,9 +170,12 @@ public abstract class ConsumptionEvalTableBaseWithEvalInterval<C extends Consump
 		//Label lab = vh.floatLabel("Gesamt", id, object.getPhaseValue(0), row, "%.1f");
 		if(object.getLineType() == SumType.SUM_LINE)
 			lab.addDefaultStyle(LabelData.BOOTSTRAP_GREEN);
-		addLabel("L1", object, id, 1, row, req, null);
-		addLabel("L2", object, id, 2, row, req, null);
-		addLabel("L3", object, id, 3, row, req, null);
+		if(object.hasSubPhaseNum() >= 1)
+			addLabel("L1", object, id, 1, row, req, null);
+		if(object.hasSubPhaseNum() >= 2)
+			addLabel("L2", object, id, 2, row, req, null);
+		if(object.hasSubPhaseNum() >= 3)
+			addLabel("L3", object, id, 3, row, req, null);
 		//vh.floatLabel("L1", id, object.getPhaseValue(1), row, "%.1f");
 		//vh.floatLabel("L2", id, object.getPhaseValue(2), row, "%.1f");
 		//vh.floatLabel("L3", id, object.getPhaseValue(3), row, "%.1f");

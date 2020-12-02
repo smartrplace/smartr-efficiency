@@ -216,13 +216,16 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 		appDevice.alarms().create();
 		SensorDevice device2 = (SensorDevice) appDevice.device();
 		final SensorElements device = getElements(device2);
-		AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.reading(), 5.0f, 35.0f, 15, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceSettings().setpoint(),
-				4.5f, 30.5f, 1, 1500);
-		AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceFeedback().setpoint(),
-				4.5f, 30.5f, 1, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.humSens.reading(),
-				0.0f, 1.0f, 1, 20);
+		if(device.tempSens != null) {
+			AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.reading(), 5.0f, 35.0f, 15, 20);
+			AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceSettings().setpoint(),
+					4.5f, 30.5f, 1, 1500);
+			AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceFeedback().setpoint(),
+					4.5f, 30.5f, 1, 20);
+		}
+		if(device.humSens != null)
+			AlarmingUtiH.setTemplateValues(appDevice, device.humSens.reading(),
+					0.0f, 1.0f, 1, 20);
 		AlarmingUtiH.addAlarmingHomematic(device2, appDevice);
 		appDevice.alarms().activate(true);
 	}

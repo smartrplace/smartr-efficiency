@@ -7,6 +7,7 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
@@ -20,6 +21,7 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -28,6 +30,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.ogema.bacnet.models.BACnetDevice;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -139,20 +142,40 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 		BACnetDevice device = (BACnetDevice) installDeviceRes.device();
 		List<Resource> objects = device.objects().getAllElements();
 		for(Resource obj: objects) {
+			Datapoint dp = null;
 			if(obj instanceof Sensor && (((Sensor)obj).reading() instanceof SingleValueResource)) {
-				result.add(dpService.getDataPointStandard(((Sensor)obj).reading()));
+				dp = dpService.getDataPointStandard(((Sensor)obj).reading());
 			} else 	if(obj instanceof OnOffSwitch) {
-				result.add(dpService.getDataPointStandard(((OnOffSwitch)obj).stateControl()));
-				result.add(dpService.getDataPointStandard(((OnOffSwitch)obj).stateFeedback()));
+				dp = dpService.getDataPointStandard(((OnOffSwitch)obj).stateControl());
+				addDpBacnetAndSimilar(obj, dp, result);
+				dp = dpService.getDataPointStandard(((OnOffSwitch)obj).stateFeedback());
 			} else 	if(obj instanceof MultiSwitch) {
-				result.add(dpService.getDataPointStandard(((MultiSwitch)obj).stateControl()));
-				result.add(dpService.getDataPointStandard(((MultiSwitch)obj).stateFeedback()));
+				dp = dpService.getDataPointStandard(((MultiSwitch)obj).stateControl());
+				addDpBacnetAndSimilar(obj, dp, result);
+				dp = dpService.getDataPointStandard(((MultiSwitch)obj).stateFeedback());
 			}
-
+			if(dp != null) {
+				addDpBacnetAndSimilar(obj, dp, result);
+			}
 		}
 		return result;
 	}
 
+	protected void addDpBacnetAndSimilar(Resource obj, Datapoint dp, List<Datapoint> result) {
+		result.add(dp);				
+		StringArrayResource descriptors = obj.getSubResource("descriptors", StringArrayResource.class);
+		boolean foundDesc = false;
+		if(descriptors.exists()) {
+			String[] descs = descriptors.getValues();
+			if(descs.length >= 1 && (!descs[0].isEmpty())) {
+				dp.addToSubRoomLocationAtomic(null, null, descs[0], false);
+				foundDesc = true;
+			}
+		}
+		if(!foundDesc)
+			dp.addToSubRoomLocationAtomic(null, null, ResourceUtils.getHumanReadableShortName(obj), false);		
+	}
+	
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
