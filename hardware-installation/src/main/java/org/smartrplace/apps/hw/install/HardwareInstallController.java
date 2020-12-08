@@ -472,7 +472,7 @@ public class HardwareInstallController {
 			if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway") &&
 					(appConfigData.autoTransferActivation().getValue() || disable)) {
 				Resource res = appMan.getResourceAccess().getResource(rec.getPath());
-				if(res != null && res instanceof SingleValueResource) {
+				if(res != null && res instanceof SingleValueResource && (datalogs != null)) {
 					if(disable)
 						LogTransferUtil.stopTransmitLogData((SingleValueResource) res, datalogs);
 					else

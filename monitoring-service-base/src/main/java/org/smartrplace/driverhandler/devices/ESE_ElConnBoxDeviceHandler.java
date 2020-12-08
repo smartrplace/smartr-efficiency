@@ -17,7 +17,6 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
-import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.ElectricEnergySensor;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -125,21 +124,24 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	@Override
 	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
 		ElectricityConnectionBox dev = (ElectricityConnectionBox) installDeviceRes.device();
+		return getDatapointsStatic(dev.connection(), dpService);
+	}
+	public static List<Datapoint> getDatapointsStatic(ElectricityConnection connection, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
-		addConnDatapoints(result, dev.connection(), dpService);
-		for(ElectricityConnection subConn: dev.connection().subPhaseConnections().getAllElements()) {
+		addConnDatapoints(result, connection, dpService);
+		for(ElectricityConnection subConn: connection.subPhaseConnections().getAllElements()) {
 			addConnDatapoints(result, subConn, subConn.getName(), dpService);			
 		}
 		//TODO: Workaround
 		for(int i=1; i<=3; i++) {
-			ElectricityConnection subConn = dev.connection().getSubResource("L"+i, ElectricityConnection.class);
+			ElectricityConnection subConn = connection.getSubResource("L"+i, ElectricityConnection.class);
 			addConnDatapoints(result, subConn, subConn.getName(), dpService);			
 		}
 		
 		return result;
 	}
 	
-	protected void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService) {
+	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService) {
 		//addDatapoint(conn.voltageSensor().reading(), result, dpService);
 		addDatapoint(conn.powerSensor().reading(), result, dpService);
 		addDatapoint(conn.energySensor().reading(), result, dpService);
@@ -149,12 +151,13 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		addDatapoint(conn.getSubResource("energyReactiveAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("billedEnergy", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("billedEnergyReactive", ElectricEnergySensor.class).reading(), result, dpService);
-		//addDatapoint(conn.currentSensor().reading(), result, dpService);
-		//addDatapoint(conn.frequencySensor().reading(), result, dpService);		
+		addDatapoint(conn.currentSensor().reading(), result, dpService);
+		addDatapoint(conn.voltageSensor().reading(), result, dpService);
+		addDatapoint(conn.frequencySensor().reading(), result, dpService);		
 		addDatapoint(conn.reactivePowerSensor().reading(), result, dpService);
 		addDatapoint(conn.reactiveAngleSensor().reading(), result, dpService);
 	}
-	protected void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
+	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
 			String ph, DatapointService dpService) {
 		addDatapoint(conn.powerSensor().reading(), result, ph, dpService);
 		addDatapoint(conn.energySensor().reading(), result, ph, dpService);

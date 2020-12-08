@@ -22,6 +22,7 @@ import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.smartrplace.driverhandler.devices.BatteryDevHandler;
 import org.smartrplace.driverhandler.devices.ChargingPointDevHandler;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
@@ -149,6 +150,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srCharge = null;
 	private ChargingPointDevHandler devHandCharge;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srBat = null;
+	private BatteryDevHandler devHandBat;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -232,6 +236,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srEnServ = bc.registerService(DeviceHandlerProvider.class, devHandEnServ, null);
 	   devHandCharge = new ChargingPointDevHandler(controller.appManPlus);
 	   srCharge = bc.registerService(DeviceHandlerProvider.class, devHandCharge, null);
+	   devHandBat = new BatteryDevHandler(controller.appManPlus);
+	   srBat = bc.registerService(DeviceHandlerProvider.class, devHandBat, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -263,6 +269,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srBacnet != null) srBacnet.unregister();
     	if (srEnServ != null) srEnServ.unregister();
     	if (srCharge != null) srCharge.unregister();
+    	if (srBat != null) srBat.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();

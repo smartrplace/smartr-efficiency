@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -17,8 +18,8 @@ import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.generators.PVPlant;
-import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.sensors.ElectricPowerSensor;
+import org.ogema.model.sensors.PowerSensor;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -104,9 +105,25 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 	@Override
 	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
 		PVPlant dev = (PVPlant) appDevice.device();
-		List<Datapoint> result = new ArrayList<>();
-		addDatapoint(dev.electricityConnection().powerSensor().reading(), result, dpService);
-		addDatapoint(dev.electricityConnection().energySensor().reading(), result, dpService);
+		List<Datapoint> result = ESE_ElConnBoxDeviceHandler.getDatapointsStatic(dev.electricityConnection(), dpService);
+		Datapoint dp = addDatapoint(dev.getSubResource("sma_type", IntegerResource.class), result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "smaType", false);
+			setBuildingAsRoom(dp, dpService);
+		}
+		//addDatapoint(dev.electricityConnection().powerSensor().reading(), result, dpService);
+		//addDatapoint(dev.electricityConnection().energySensor().reading(), result, dpService);
+		PowerSensor apparentPowerSens = dev.getSubResource("apparentPowerSensor", PowerSensor.class);
+		dp = addDatapoint(apparentPowerSens.deviceSettings().setpoint(), result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "apparentPowerSensor", false);
+			setBuildingAsRoom(dp, dpService);
+		}
+		dp = addDatapoint(apparentPowerSens.ratedValues().upperLimit(), result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "apparentPowerLimit", false);
+			setBuildingAsRoom(dp, dpService);
+		}
 		checkDpSubLocations(appDevice, result);
 		return result;
 	}
@@ -128,13 +145,13 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 		if((device != null) &&
 				((!device.installationLocation().exists()) || device.installationLocation().getValue().isEmpty())) {			
 			String devName = device.device().getLocationResource().getName();
-			String defaultSubLoc;
+			//String defaultSubLoc;
 			if(devName.contains("_")) {
 				int idx = devName.lastIndexOf('_');
-				defaultSubLoc = "PVPlant"+devName.substring(idx);
-			} else
-				defaultSubLoc = "PVPlant";				
-			setInstallationLocation(device, defaultSubLoc, dpService);
+				String defaultSubLoc = devName.substring(idx); //"PVPlant"+devName.substring(idx);
+				setInstallationLocation(device, defaultSubLoc, dpService);
+			} //else
+			//	defaultSubLoc = "PVPlant";				
 			//ValueResourceHelper.setCreate(device.installationLocation(), defaultSubLoc);
 		}
 		return "PVP";
