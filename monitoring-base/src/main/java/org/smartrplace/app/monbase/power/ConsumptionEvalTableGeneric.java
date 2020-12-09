@@ -33,10 +33,17 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 /** Standard KPI page template
- * The lines provided are determined either via suitable datapoints or via {@link DpConnection}s, depending
- * on {@link #useConnections()}. The lines use {@link EnergyEvalObjI} instances for evaluation. For
+ * The lines provided are determined as follows: If {@link #useConnections()} is true then only power and energy sensors from 
+ * all {@link DpConnection}s are checked, otherwise all datapoints on the system are checked. For each datapoint the method
+ * {@link #getDpLineInfo(GaRoDataType, Datapoint, Map)} is called (if certain basic conditions are met).
+ * If isInTable in the result is set then the datapoint is used to generate a line.<br>
+ * By default also a cost column is provdided. Cost data is just calculated based on the main value in the line
+ * via a {@link ColumnDataProvider}. It also uses the standard cost factors for the utilities provided via OGEMA resources,
+ * of course. This can also be used to provide {@link LineInfo#additionalDatapoints}.<br>
+ * <br>
+ * The lines use {@link EnergyEvalObjI} instances for evaluation. For
  * schedules and time series that are not RecordedData usually an {@link EnergyEvalObjSchedule} is used
- * that uses TimeseriesSimpleProcUtil.METER_EVAL. This is also used for other {@link AggregationMode}s
+ * that uses {@link TimeseriesSimpleProcUtil#getProcessor(TimeProcUtil#METER_EVAL)}. This is also used for other {@link AggregationMode}s
  * then {@link AggregationMode#Meter2Meter}.<br>
  * Otherwise an {@link EnergyEvalObjBase} is used that just reads the meter values at start and end and calculates the
  * difference.<br>
@@ -183,7 +190,7 @@ public class ConsumptionEvalTableGeneric extends ConsumptionEvalTableBase<Consum
 		nameProvider = new TimeSeriesNameProviderImpl(controller);
 	}
 	
-	/** Override if required, e.g. in order to determine shich lines shall be used, to change factors,
+	/** Override if required, e.g. in order to determine which lines shall be used, to change factors,
 	 *  assignment of lines to sim lines etc.
 	 * @param dpsPerUtilType */
 	protected LineInfoDp getDpLineInfo(GaRoDataType gaRoDataTypeI, Datapoint dp,
