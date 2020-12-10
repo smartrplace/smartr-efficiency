@@ -16,6 +16,7 @@
 package org.smartrplace.apps.hw.install;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -451,7 +452,8 @@ public class HardwareInstallController {
 		String devName2 = DatapointImpl.getDeviceLabel(null,
 				room!=null?room.label(null):Datapoint.UNKNOWN_ROOM_NAME, subLoc, null);*/
 
-		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
+		Collection<Datapoint> allDps = tableProvider.getDatapoints(appDevice, dpService);
+		for(Datapoint dp: allDps) {
 			dev.addDatapoint(dp);
 			dp.setDeviceResource(appDevice.device().getLocationResource());
 			dp.addToSubRoomLocationAtomic(null, null, dvNamPs.subLoc, true);
@@ -462,7 +464,8 @@ public class HardwareInstallController {
 	}
 	public <T extends Resource> void activateLogging(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
 			boolean onylDefaultLoggingDps, boolean disable) {
-		for(Datapoint dp: tableProvider.getDatapoints(appDevice, dpService)) {
+		Collection<Datapoint> allDps = tableProvider.getDatapoints(appDevice, dpService);
+		for(Datapoint dp: allDps) {
 			if((!tableProvider.relevantForDefaultLogging(dp)) && onylDefaultLoggingDps)
 				continue;
 			ReadOnlyTimeSeries ts = dp.getTimeSeries();

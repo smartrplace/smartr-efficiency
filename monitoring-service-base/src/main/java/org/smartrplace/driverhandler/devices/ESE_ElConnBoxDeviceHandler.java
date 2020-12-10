@@ -6,10 +6,16 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.units.EnergyResource;
+import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
@@ -19,8 +25,15 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.ElectricEnergySensor;
+import org.ogema.recordeddata.DataRecorder;
+import org.ogema.recordeddata.DataRecorderException;
+import org.ogema.recordeddata.RecordedDataStorage;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
+import org.ogema.tools.resource.util.LoggingUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.tissue.util.logconfig.LogConfigSP;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -34,9 +47,22 @@ import de.iwes.widgets.html.form.label.Label;
 //@Service(DeviceHandlerProvider.class)
 public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityConnectionBox> {
 	private final ApplicationManagerPlus appMan;
+	//private final TimeseriesSimpleProcUtil util;
+	private final EnergyAccumulationData util;
+	
+	public static class EnergyAccumulationData {
+		public EnergyAccumulationData(TimeseriesSimpleProcUtil util, DataRecorder dataRecorder) {
+			this.util = util;
+			this.dataRecorder = dataRecorder;
+		}
+		private final TimeseriesSimpleProcUtil util;
+		private final DataRecorder dataRecorder;
+	}
 	
 	public ESE_ElConnBoxDeviceHandler(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
+		util = new EnergyAccumulationData(
+				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.dataRecorder());
 	}
 	
 	@Override
@@ -124,11 +150,24 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	@Override
 	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
 		ElectricityConnectionBox dev = (ElectricityConnectionBox) installDeviceRes.device();
-		return getDatapointsStatic(dev.connection(), dpService);
+		return getDatapointsStatic(dev.connection(), dpService, util);
 	}
 	public static List<Datapoint> getDatapointsStatic(ElectricityConnection connection, DatapointService dpService) {
+		return getDatapointsStatic(connection, dpService, null);
+	}
+	/** Search for datapoints in an {@link ElectricityConnection}
+	 * 
+	 * @param connection
+	 * @param dpService
+	 * @param util set this to null if a special resource energyDaily shall NOT be summed up into a real
+	 * 		metering resource (see {@link #provideAccumulatedDatapoint(String, EnergyResource, Datapoint, List, ElectricityConnection, DatapointService, EnergyAccumulationData)}).
+	 * 		Not relevant if such a special decorator sub resource does not exist.
+	 * @return
+	 */
+	public static List<Datapoint> getDatapointsStatic(ElectricityConnection connection, DatapointService dpService,
+			EnergyAccumulationData util) {
 		List<Datapoint> result = new ArrayList<>();
-		addConnDatapoints(result, connection, dpService);
+		addConnDatapoints(result, connection, dpService, util);
 		for(ElectricityConnection subConn: connection.subPhaseConnections().getAllElements()) {
 			addConnDatapoints(result, subConn, subConn.getName(), dpService);			
 		}
@@ -141,16 +180,17 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		return result;
 	}
 	
-	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService) {
+	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService,
+			EnergyAccumulationData util) {
 		//addDatapoint(conn.voltageSensor().reading(), result, dpService);
 		addDatapoint(conn.powerSensor().reading(), result, dpService);
 		addDatapoint(conn.energySensor().reading(), result, dpService);
-		addDatapoint(conn.getSubResource("energyDaily", ElectricEnergySensor.class).reading(), result, dpService);
-		addDatapoint(conn.getSubResource("energyReactiveDaily", ElectricEnergySensor.class).reading(), result, dpService);
-		Datapoint dp = addDatapoint(conn.getSubResource("energyAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
-		if(dp != null) {
-			//add fully accumulated
-		}
+		EnergyResource energyDaily = conn.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
+		Datapoint dp = addDatapoint(energyDaily, result, dpService);
+		provideAccumulatedDatapoint("energyDailyAccumulatedFull", energyDaily, dp, result, conn, dpService, util);
+		//dp = addDatapoint(conn.getSubResource("energyReactiveDaily", ElectricEnergySensor.class).reading(), result, dpService);
+		//provideAccumulatedDatapoint("energyReactiveAccumulatedDailyFull", energyDaily, dp, result, conn, dpService, util);
+		addDatapoint(conn.getSubResource("energyAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("energyReactiveAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("billedEnergy", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("billedEnergyReactive", ElectricEnergySensor.class).reading(), result, dpService);
@@ -159,6 +199,75 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		addDatapoint(conn.frequencySensor().reading(), result, dpService);		
 		addDatapoint(conn.reactivePowerSensor().reading(), result, dpService);
 		addDatapoint(conn.reactiveAngleSensor().reading(), result, dpService);
+	}
+	
+	/** Generate a new datapoint AND FloatResource for an evaluation result.<br>
+	 * The method can be considered a template and provides the functionality of adding up
+	 * single consumption values (that follow the definition of Consumption2Meter) into a real
+	 * meter value with a constantly increading meter value
+	 * @param newSubResName
+	 * @param energyDailySource
+	 * @param dpSource
+	 * @param result
+	 * @param conn
+	 * @param dpService
+	 * @param util set util.dataRecorder to null if historical result data shall not directly be written into
+	 * 		the slotsDB of the new EnergyResource
+	 */
+	protected static void provideAccumulatedDatapoint(String newSubResName,
+			EnergyResource energyDailySource, Datapoint dpSource,
+			List<Datapoint> result, ElectricityConnection conn, DatapointService dpService,
+			EnergyAccumulationData util) {
+		if(dpSource != null && util != null) {
+			//add fully accumulated
+			dpSource.info().setAggregationMode(AggregationMode.Consumption2Meter);
+			Datapoint accRes1 = util.util.processSingle(TimeProcUtil.METER_EVAL, dpSource);
+			EnergyResource energyDailyRealAgg = conn.getSubResource(newSubResName, ElectricEnergySensor.class).reading();
+			energyDailyRealAgg.getSubResource("unit", StringResource.class).<StringResource>create().setValue("kWh");
+			energyDailyRealAgg.getParent().activate(true);
+			Datapoint accRes = dpService.getDataPointStandard(energyDailyRealAgg);
+			final ReadOnlyTimeSeries accTs = accRes1.getTimeSeries();
+			//accRes.setTimeSeries(accTs);
+			result.add(accRes);
+			ResourceValueListener<EnergyResource> aggListener = new ResourceValueListener<EnergyResource>() {
+				long lastVal = -1;
+				@Override
+				public void resourceChanged(EnergyResource resource) {
+					//we just have to perform a read to trigger an update
+					long now = dpService.getFrameworkTime();
+					SampledValue sv = accTs.getPreviousValue(now+1);
+					if(sv != null && (sv.getTimestamp() > lastVal)) {
+						lastVal = sv.getTimestamp();
+						energyDailyRealAgg.setValue(sv.getValue().getFloatValue());
+					}
+				}
+			};
+			if(util.dataRecorder != null) {
+				RecordedDataStorage recStor = LogConfigSP.getRecordedData(energyDailyRealAgg, util.dataRecorder, null);
+				if(recStor != null) {
+					long now = dpService.getFrameworkTime();
+					SampledValue lastVal = recStor.getPreviousValue(now+1);
+					final long start;
+					if(lastVal == null)
+						start = 0;
+					else if(lastVal.getTimestamp() < now)
+						start = lastVal.getTimestamp()+1;
+					else
+						start = -1;
+					if(start >= 0) {
+						LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
+						List<SampledValue> values = accTs.getValues(start, now+1);
+						try {
+							recStor.insertValues(values);
+						} catch (DataRecorderException e) {
+							e.printStackTrace();
+						}
+						LoggingUtils.activateLogging(recStor, -2);
+					}
+				}
+				energyDailySource.addValueListener(aggListener, true);
+			}
+		}
 	}
 	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
 			String ph, DatapointService dpService) {

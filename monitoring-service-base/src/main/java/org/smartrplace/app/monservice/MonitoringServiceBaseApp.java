@@ -19,6 +19,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.service.DatapointServiceImpl;
+import org.ogema.recordeddata.DataRecorder;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -84,6 +85,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@Reference
 	ConfigurationAdmin configAdmin;
 	
+    @Reference
+    DataRecorder dataRecorder;
+
 	//@Reference
 	//DatapointService dpService;
 	

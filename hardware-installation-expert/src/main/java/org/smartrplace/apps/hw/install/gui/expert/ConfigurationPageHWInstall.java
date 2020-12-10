@@ -22,6 +22,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.model.gateway.LocalGatewayInformation;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 
@@ -33,6 +34,7 @@ import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
@@ -102,6 +104,10 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 
+		DatepickerTimeResource defaultRefTime = new DatepickerTimeResource(page, "defaultRefTime");
+		TimeResource refRes = TimeProcUtil.getDefaultMeteringReferenceResource(controller.appMan.getResourceAccess());
+		defaultRefTime.selectDefaultItem(refRes);
+		
 		Label localIP = new Label(page, "localIP") {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -122,7 +128,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<TimeResource> bulkIntervalEdit = new TimeResourceTextField(page, "bulkIntervalEdit", Interval.minutes);
 		bulkIntervalEdit.selectDefaultItem(controller.appConfigData.bulkMessageIntervalDuration());
 		
-		StaticTable configTable = new StaticTable(11, 2);
+		StaticTable configTable = new StaticTable(12, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -171,6 +177,10 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Framework Time:").
 		setContent(i, 1, frameworkTimeLabel);
 		i++;
+		configTable.setContent(i, 0, "Standard Referenzzeit für virtuelle Zähler/Auswertungen:").
+		setContent(i, 1, defaultRefTime);
+		i++;
+		
 		configTable.setContent(i, 0, "Update datapoints for transfer via heartbeat from datapoint groups").
 		setContent(i, 1, updateViaHeartbeat);
 		i++;

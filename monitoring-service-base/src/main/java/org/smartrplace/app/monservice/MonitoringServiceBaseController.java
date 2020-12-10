@@ -25,6 +25,7 @@ public class MonitoringServiceBaseController {
 		this.dpService = dpService;
 		this.appManPlus = new ApplicationManagerPlus(appMan);
 		appManPlus.setDpService(dpService);
+		appManPlus.setDataRecorder(evaluationOCApp.dataRecorder);
 		this.baseApp = evaluationOCApp;
 		
 		this.stdGroupAlarms = new StandardGroupAlarms(appManPlus);

@@ -321,7 +321,7 @@ public class MainPageExpert extends MainPage {
 		ScheduleViewerOpenButton plotButton;
 	}
 	
-	/** Create widgets. The dataPointInfoLabel is directly added to the row if requested,
+	/** Create widgets for a plotButton. The dataPointInfoLabel is directly added to the row if requested,
 	 * the plotButton needs to be added to the row by separate operation
 	 * 
 	 * @param id

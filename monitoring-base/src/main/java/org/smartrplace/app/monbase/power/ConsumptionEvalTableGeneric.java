@@ -37,7 +37,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
  * all {@link DpConnection}s are checked, otherwise all datapoints on the system are checked. For each datapoint the method
  * {@link #getDpLineInfo(GaRoDataType, Datapoint, Map)} is called (if certain basic conditions are met).
  * If isInTable in the result is set then the datapoint is used to generate a line.<br>
- * By default also a cost column is provdided. Cost data is just calculated based on the main value in the line
+ * By default also a cost column is provided. Cost data is just calculated based on the main value in the line
  * via a {@link ColumnDataProvider}. It also uses the standard cost factors for the utilities provided via OGEMA resources,
  * of course. This can also be used to provide {@link LineInfo#additionalDatapoints}.<br>
  * <br>
@@ -48,7 +48,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
  * Otherwise an {@link EnergyEvalObjBase} is used that just reads the meter values at start and end and calculates the
  * difference.<br>
  * Note that METER_EVAL uses one of the resources provided in
- * {@link TimeseriesSimpleProcUtil#getDefaultMeteringReferenceResource(org.ogema.core.resourcemanager.ResourceAccess)}.
+ * {@link TimeProcUtil#getDefaultMeteringReferenceResource(org.ogema.core.resourcemanager.ResourceAccess)}.
  * to determine the reference time. If the resource does not exist it is created and set to the start time of the initial
  * evaluation.
  *
