@@ -256,14 +256,19 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 			} else
 				recStor = null;
 			ResourceValueListener<EnergyResource> aggListener = new ResourceValueListener<EnergyResource>() {
-				long lastVal = -1;
+				long lastVal = 0;
 				@Override
 				public void resourceChanged(EnergyResource resource) {
 					//we just have to perform a read to trigger an update
 					long now = dpService.getFrameworkTime();
-					SampledValue sv = accTs.getPreviousValue(now+1);
-System.out.println("   Consumption2Meter: Found:"+(sv!=null?sv.getValue().getFloatValue():"no value"));					
-					if(sv != null && (sv.getTimestamp() > lastVal)) {
+					if(lastVal <= 0) {
+						SampledValue lastSv = recStor.getPreviousValue(now+1);
+						if(lastSv != null)
+							lastVal = lastSv.getTimestamp();  
+					}
+					List<SampledValue> svs = accTs.getValues(lastVal, now+1);
+System.out.println("   Consumption2Meter: Found new vals:"+svs.size());					
+					for(SampledValue sv: svs) {
 						lastVal = sv.getTimestamp();
 						if(recStor != null) try {
 								LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
