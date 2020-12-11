@@ -229,21 +229,9 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 			final ReadOnlyTimeSeries accTs = accRes1.getTimeSeries();
 			//accRes.setTimeSeries(accTs);
 			result.add(accRes);
-			ResourceValueListener<EnergyResource> aggListener = new ResourceValueListener<EnergyResource>() {
-				long lastVal = -1;
-				@Override
-				public void resourceChanged(EnergyResource resource) {
-					//we just have to perform a read to trigger an update
-					long now = dpService.getFrameworkTime();
-					SampledValue sv = accTs.getPreviousValue(now+1);
-					if(sv != null && (sv.getTimestamp() > lastVal)) {
-						lastVal = sv.getTimestamp();
-						energyDailyRealAgg.setValue(sv.getValue().getFloatValue());
-					}
-				}
-			};
+			final RecordedDataStorage recStor;
 			if(util.dataRecorder != null) {
-				RecordedDataStorage recStor = LogConfigSP.getRecordedData(energyDailyRealAgg, util.dataRecorder, null);
+				recStor = LogConfigSP.getRecordedData(energyDailyRealAgg, util.dataRecorder, null);
 				if(recStor != null) {
 					long now = dpService.getFrameworkTime();
 					SampledValue lastVal = recStor.getPreviousValue(now+1);
@@ -262,11 +250,32 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
 						}
-						LoggingUtils.activateLogging(recStor, -2);
+						//LoggingUtils.activateLogging(recStor, -2);
 					}
 				}
-				energyDailySource.addValueListener(aggListener, true);
-			}
+			} else
+				recStor = null;
+			ResourceValueListener<EnergyResource> aggListener = new ResourceValueListener<EnergyResource>() {
+				long lastVal = -1;
+				@Override
+				public void resourceChanged(EnergyResource resource) {
+					//we just have to perform a read to trigger an update
+					long now = dpService.getFrameworkTime();
+					SampledValue sv = accTs.getPreviousValue(now+1);
+System.out.println("   Consumption2Meter: Found:"+(sv!=null?sv.getValue().getFloatValue():"no value"));					
+					if(sv != null && (sv.getTimestamp() > lastVal)) {
+						lastVal = sv.getTimestamp();
+						if(recStor != null) try {
+								LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
+								recStor.insertValue(sv);
+							} catch (DataRecorderException e) {
+								e.printStackTrace();
+							}
+						energyDailyRealAgg.setValue(sv.getValue().getFloatValue());
+					}
+				}
+			};
+			energyDailySource.addValueListener(aggListener, true);
 		}
 	}
 	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
