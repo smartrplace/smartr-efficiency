@@ -251,12 +251,13 @@ util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "
 					else
 						start = -1;
 					if(start >= 0) {
-						LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
+						LoggingUtils.activateLogging(recStor, -2);
 						List<SampledValue> values = accTs.getValues(start, now+1);
 if(!values.isEmpty())
 util.logger.info("   Before Inserting "+values.size()+" slotsDB values...");
 						try {
 							recStor.insertValues(values);
+							LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
 util.logger.info("   Inserted "+values.size()+" slotsDB values:");
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
@@ -286,12 +287,13 @@ System.out.println("   Consumption2Meter: Found new vals:"+svs.size());
 					for(SampledValue sv: svs) {
 						lastVal = sv.getTimestamp();
 						if(recStor != null) try {
-								LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
-								recStor.insertValue(sv);
+							LoggingUtils.activateLogging(recStor, -2);
+							recStor.insertValue(sv);
+							LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
 util.logger.info("   In EnergyServer energyDaily onValueChanged inserted value: "+StringFormatHelper.getFullTimeDateInLocalTimeZone(sv.getTimestamp()));
-							} catch (DataRecorderException e) {
-								e.printStackTrace();
-							}
+						} catch (DataRecorderException e) {
+							e.printStackTrace();
+						}
 						energyDailyRealAgg.setValue(sv.getValue().getFloatValue());
 					}
 				}
