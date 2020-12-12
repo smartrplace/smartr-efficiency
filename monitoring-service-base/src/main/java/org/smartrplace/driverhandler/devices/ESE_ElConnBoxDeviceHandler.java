@@ -31,11 +31,13 @@ import org.ogema.recordeddata.RecordedDataStorage;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.LoggingUtils;
+import org.slf4j.Logger;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.logconfig.LogConfigSP;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -51,18 +53,20 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	private final EnergyAccumulationData util;
 	
 	public static class EnergyAccumulationData {
-		public EnergyAccumulationData(TimeseriesSimpleProcUtil util, DataRecorder dataRecorder) {
+		public EnergyAccumulationData(TimeseriesSimpleProcUtil util, DataRecorder dataRecorder, Logger logger) {
 			this.util = util;
 			this.dataRecorder = dataRecorder;
+			this.logger = logger;
 		}
 		private final TimeseriesSimpleProcUtil util;
 		private final DataRecorder dataRecorder;
+		private final Logger logger;
 	}
 	
 	public ESE_ElConnBoxDeviceHandler(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
 		util = new EnergyAccumulationData(
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.dataRecorder());
+				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.dataRecorder(), appMan.getLogger());
 	}
 	
 	@Override
@@ -231,10 +235,14 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 			result.add(accRes);
 			final RecordedDataStorage recStor;
 			if(util.dataRecorder != null) {
+util.logger.info("   Starting Accumlated full for:"+energyDailyRealAgg.getLocation());
 				recStor = LogConfigSP.getRecordedData(energyDailyRealAgg, util.dataRecorder, null);
 				if(recStor != null) {
+util.logger.info("   Starting Accumlated full Recstor size(1):"+recStor.size());
 					long now = dpService.getFrameworkTime();
 					SampledValue lastVal = recStor.getPreviousValue(now+1);
+util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "+
+	((lastVal != null)?StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal.getTimestamp()):"NONE"));
 					final long start;
 					if(lastVal == null)
 						start = 0;
@@ -245,20 +253,26 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 					if(start >= 0) {
 						LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
 						List<SampledValue> values = accTs.getValues(start, now+1);
+if(!values.isEmpty())
+util.logger.info("   Before Inserted slotsDB values:"+values.size());
 						try {
 							recStor.insertValues(values);
+util.logger.info("   Starting Inserted slotsDB values:"+values.size());
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
+util.logger.error("  Could not write values:", e);
 						}
 						//LoggingUtils.activateLogging(recStor, -2);
 					}
 				}
 			} else
 				recStor = null;
+util.logger.info("   Starting Accumlated full Recstor size(2):"+recStor.size());
 			ResourceValueListener<EnergyResource> aggListener = new ResourceValueListener<EnergyResource>() {
 				long lastVal = 0;
 				@Override
 				public void resourceChanged(EnergyResource resource) {
+util.logger.info("   In EnergyServer energyDaily onValueChanged:"+resource.getLocation());
 					//we just have to perform a read to trigger an update
 					long now = dpService.getFrameworkTime();
 					if(lastVal <= 0) {
@@ -267,12 +281,14 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 							lastVal = lastSv.getTimestamp();  
 					}
 					List<SampledValue> svs = accTs.getValues(lastVal, now+1);
+util.logger.info("   In EnergyServer energyDaily onValueChanged: Found new vals:"+svs.size());
 System.out.println("   Consumption2Meter: Found new vals:"+svs.size());					
 					for(SampledValue sv: svs) {
 						lastVal = sv.getTimestamp();
 						if(recStor != null) try {
 								LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
 								recStor.insertValue(sv);
+util.logger.info("   In EnergyServer energyDaily onValueChanged inserted value: "+StringFormatHelper.getFullTimeDateInLocalTimeZone(sv.getTimestamp()));
 							} catch (DataRecorderException e) {
 								e.printStackTrace();
 							}
@@ -281,6 +297,7 @@ System.out.println("   Consumption2Meter: Found new vals:"+svs.size());
 				}
 			};
 			energyDailySource.addValueListener(aggListener, true);
+			util.logger.info("   Starting Accumlated full Recstor size(3):"+recStor.size());
 		}
 	}
 	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
