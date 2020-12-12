@@ -2,7 +2,9 @@ package org.smartrplace.driverhandler.devices;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -52,6 +54,15 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	//private final TimeseriesSimpleProcUtil util;
 	private final EnergyAccumulationData util;
 	
+	//TODO: We have to close the listeners when the calling bundle closes
+	public static class EnergyAccumulationDpData {
+
+		public ResourceValueListener<EnergyResource> aggListener;
+		public Datapoint accRes1;
+		public RecordedDataStorage recStor;
+		public Datapoint accRes;
+		
+	}
 	public static class EnergyAccumulationData {
 		public EnergyAccumulationData(TimeseriesSimpleProcUtil util, DataRecorder dataRecorder, Logger logger) {
 			this.util = util;
@@ -61,6 +72,8 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		private final TimeseriesSimpleProcUtil util;
 		private final DataRecorder dataRecorder;
 		private final Logger logger;
+		/** Source EnergyResource location -> data for accumulation*/
+		private Map<String, EnergyAccumulationDpData> dpData = new HashMap<>();
 	}
 	
 	public ESE_ElConnBoxDeviceHandler(ApplicationManagerPlus appMan) {
@@ -223,24 +236,32 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 			List<Datapoint> result, ElectricityConnection conn, DatapointService dpService,
 			EnergyAccumulationData util) {
 		if(dpSource != null && util != null) {
+			final EnergyAccumulationDpData mapData1 = util.dpData.get(energyDailySource.getLocation());
+			if(mapData1 != null) {
+				result.add(mapData1.accRes);
+				return;
+			}
+			final EnergyAccumulationDpData mapData = new EnergyAccumulationDpData();
+			util.dpData.put(energyDailySource.getLocation(), mapData);
 			//add fully accumulated
 			dpSource.info().setAggregationMode(AggregationMode.Consumption2Meter);
-			Datapoint accRes1 = util.util.processSingle(TimeProcUtil.METER_EVAL, dpSource);
+			mapData.accRes1 = util.util.processSingle(TimeProcUtil.METER_EVAL, dpSource);
 			EnergyResource energyDailyRealAgg = conn.getSubResource(newSubResName, ElectricEnergySensor.class).reading();
 			energyDailyRealAgg.getSubResource("unit", StringResource.class).<StringResource>create().setValue("kWh");
 			energyDailyRealAgg.getParent().activate(true);
-			Datapoint accRes = dpService.getDataPointStandard(energyDailyRealAgg);
-			final ReadOnlyTimeSeries accTs = accRes1.getTimeSeries();
+			mapData.accRes = dpService.getDataPointStandard(energyDailyRealAgg);
+			//final ReadOnlyTimeSeries accTs = mapData.accRes1.getTimeSeries();
 			//accRes.setTimeSeries(accTs);
-			result.add(accRes);
-			final RecordedDataStorage recStor;
+			result.add(mapData.accRes);
+			//final RecordedDataStorage recStor;
 			if(util.dataRecorder != null) {
 util.logger.info("   Starting Accumlated full for:"+energyDailyRealAgg.getLocation());
-				recStor = LogConfigSP.getRecordedData(energyDailyRealAgg, util.dataRecorder, null);
-				if(recStor != null) {
-util.logger.info("   Starting Accumlated full Recstor size(1):"+recStor.size());
+				mapData.recStor = LogConfigSP.getRecordedData(energyDailyRealAgg, util.dataRecorder, null);
+				if(mapData.recStor != null) {
+util.logger.info("   Starting Accumlated full Recstor size(1):"+mapData.recStor.size());
+List<SampledValue> allVals = mapData.recStor.getValues(0);
 					long now = dpService.getFrameworkTime();
-					SampledValue lastVal = recStor.getPreviousValue(now+1);
+					SampledValue lastVal = mapData.recStor.getPreviousValue(now+1);
 util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "+
 	((lastVal != null)?StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal.getTimestamp()):"NONE"));
 					final long start;
@@ -251,55 +272,62 @@ util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "
 					else
 						start = -1;
 					if(start >= 0) {
-						LoggingUtils.activateLogging(recStor, -2);
+						LoggingUtils.activateLogging(mapData.recStor, -2);
+						ReadOnlyTimeSeries accTs = mapData.accRes1.getTimeSeries();
 						List<SampledValue> values = accTs.getValues(start, now+1);
 if(!values.isEmpty())
 util.logger.info("   Before Inserting "+values.size()+" slotsDB values...");
 						try {
-							recStor.insertValues(values);
-							LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
-util.logger.info("   Inserted "+values.size()+" slotsDB values:");
+							mapData.recStor.insertValues(values);
+							LoggingUtils.activateLogging(mapData.recStor, Long.MAX_VALUE);
+util.logger.info("   Inserted "+values.size()+" slotsDB values, last:"+(values.isEmpty()?"NONE":""+values.get(values.size()-1).getValue().getFloatValue()));
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
-util.logger.error("  Could not write values:", e);
+util.logger.error("  Could not write values for "+energyDailyRealAgg.getLocation()+":", e);
 						}
-						//LoggingUtils.activateLogging(recStor, -2);
 					}
 				}
 			} else
-				recStor = null;
-util.logger.info("   Starting Accumlated full Recstor size(2):"+recStor.size());
-			ResourceValueListener<EnergyResource> aggListener = new ResourceValueListener<EnergyResource>() {
+				mapData.recStor = null;
+util.logger.info("   Starting Accumlated full Recstor size(2):"+mapData.recStor.size());
+			mapData.aggListener = new ResourceValueListener<EnergyResource>() {
 				long lastVal = 0;
 				@Override
 				public void resourceChanged(EnergyResource resource) {
 util.logger.info("   In EnergyServer energyDaily onValueChanged:"+resource.getLocation());
 					//we just have to perform a read to trigger an update
 					long now = dpService.getFrameworkTime();
+					SampledValue lastSv = null;
 					if(lastVal <= 0) {
-						SampledValue lastSv = recStor.getPreviousValue(now+1);
+						lastSv = mapData.recStor.getPreviousValue(now+1);
 						if(lastSv != null)
 							lastVal = lastSv.getTimestamp();  
 					}
-					List<SampledValue> svs = accTs.getValues(lastVal, now+1);
-util.logger.info("   In EnergyServer energyDaily onValueChanged: Found new vals:"+svs.size());
+					ReadOnlyTimeSeries accTs = mapData.accRes1.getTimeSeries();
+					List<SampledValue> svs = accTs.getValues(lastVal+1, now+1);
+util.logger.info("   In EnergyServer energyDaily onValueChanged: Found new vals:"+svs.size()+" Checked from "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal));
 System.out.println("   Consumption2Meter: Found new vals:"+svs.size());					
 					for(SampledValue sv: svs) {
 						lastVal = sv.getTimestamp();
-						if(recStor != null) try {
-							LoggingUtils.activateLogging(recStor, -2);
-							recStor.insertValue(sv);
-							LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
+						if(mapData.recStor != null) try {
+							LoggingUtils.activateLogging(mapData.recStor, -2);
+							mapData.recStor.insertValue(sv);
+							LoggingUtils.activateLogging(mapData.recStor, Long.MAX_VALUE);
 util.logger.info("   In EnergyServer energyDaily onValueChanged inserted value: "+StringFormatHelper.getFullTimeDateInLocalTimeZone(sv.getTimestamp()));
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
 						}
 						energyDailyRealAgg.setValue(sv.getValue().getFloatValue());
 					}
+					util.logger.info("OnValueChanged Summary for "+energyDailyRealAgg.getLocation()+":\r\n"+
+							(lastSv!=null?"Found existing last SampledValue in SlotsDB at "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastSv.getTimestamp()):"")+
+							",\r\n Calculated values for DP"+mapData.accRes1.getLocation()+" from "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal+1)+" to "+StringFormatHelper.getFullTimeDateInLocalTimeZone(now+1)+
+							",r\n Found "+svs.size()+" new values. Wrote into "+mapData.recStor.getPath()+
+							".\r\n Set lastVal to "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal));
 				}
 			};
-			energyDailySource.addValueListener(aggListener, true);
-			util.logger.info("   Starting Accumlated full Recstor size(3):"+recStor.size());
+			energyDailySource.addValueListener(mapData.aggListener, true);
+			util.logger.info("   Starting Accumlated full Recstor size(3):"+mapData.recStor.size());
 		}
 	}
 	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,

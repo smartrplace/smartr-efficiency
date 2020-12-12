@@ -451,15 +451,19 @@ public class HardwareInstallController {
 		
 		String devName2 = DatapointImpl.getDeviceLabel(null,
 				room!=null?room.label(null):Datapoint.UNKNOWN_ROOM_NAME, subLoc, null);*/
-
-		Collection<Datapoint> allDps = tableProvider.getDatapoints(appDevice, dpService);
-		for(Datapoint dp: allDps) {
-			dev.addDatapoint(dp);
-			dp.setDeviceResource(appDevice.device().getLocationResource());
-			dp.addToSubRoomLocationAtomic(null, null, dvNamPs.subLoc, true);
-			if(dvNamPs.room != null)
-				dp.setRoom(dvNamPs.room);
-			initAlarming(tableProvider, appDevice, dp);
+		try {
+			Collection<Datapoint> allDps = tableProvider.getDatapoints(appDevice, dpService);
+			for(Datapoint dp: allDps) {
+				dev.addDatapoint(dp);
+				dp.setDeviceResource(appDevice.device().getLocationResource());
+				dp.addToSubRoomLocationAtomic(null, null, dvNamPs.subLoc, true);
+				if(dvNamPs.room != null)
+					dp.setRoom(dvNamPs.room);
+				initAlarming(tableProvider, appDevice, dp);
+			}
+		} catch(Exception e) {
+			appMan.getLogger().error("Could not get Datapoints for tableProvider:"+tableProvider.id(), e);
+			e.printStackTrace();
 		}
 	}
 	public <T extends Resource> void activateLogging(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
