@@ -254,10 +254,10 @@ util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "
 						LoggingUtils.activateLogging(recStor, Long.MAX_VALUE);
 						List<SampledValue> values = accTs.getValues(start, now+1);
 if(!values.isEmpty())
-util.logger.info("   Before Inserted slotsDB values:"+values.size());
+util.logger.info("   Before Inserting "+values.size()+" slotsDB values...");
 						try {
 							recStor.insertValues(values);
-util.logger.info("   Starting Inserted slotsDB values:"+values.size());
+util.logger.info("   Inserted "+values.size()+" slotsDB values:");
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
 util.logger.error("  Could not write values:", e);
