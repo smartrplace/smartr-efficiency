@@ -30,6 +30,7 @@ import org.ogema.model.sensors.ElectricEnergySensor;
 import org.ogema.recordeddata.DataRecorder;
 import org.ogema.recordeddata.DataRecorderException;
 import org.ogema.recordeddata.RecordedDataStorage;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.LoggingUtils;
@@ -274,6 +275,7 @@ util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "
 					if(start >= 0) {
 						LoggingUtils.activateLogging(mapData.recStor, -2);
 						ReadOnlyTimeSeries accTs = mapData.accRes1.getTimeSeries();
+						((ProcessedReadOnlyTimeSeries2)accTs).setUpdateLastTimestampInSourceOnEveryCall(true);
 						List<SampledValue> values = accTs.getValues(start, now+1);
 if(!values.isEmpty())
 util.logger.info("   Before Inserting "+values.size()+" slotsDB values...");
@@ -304,6 +306,7 @@ util.logger.info("   In EnergyServer energyDaily onValueChanged:"+resource.getLo
 							lastVal = lastSv.getTimestamp();  
 					}
 					ReadOnlyTimeSeries accTs = mapData.accRes1.getTimeSeries();
+					((ProcessedReadOnlyTimeSeries2)accTs).setUpdateLastTimestampInSourceOnEveryCall(true);
 					
 					/** We have to go back a little bit with the end to make sure the value is really in. Otherwise it will not be read
 					 * again as the logic assumes that the time series does not change after now.
