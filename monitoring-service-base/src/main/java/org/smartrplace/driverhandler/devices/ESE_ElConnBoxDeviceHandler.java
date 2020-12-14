@@ -296,14 +296,21 @@ util.logger.info("   Starting Accumlated full Recstor size(2):"+mapData.recStor.
 				public void resourceChanged(EnergyResource resource) {
 util.logger.info("   In EnergyServer energyDaily onValueChanged:"+resource.getLocation());
 					//we just have to perform a read to trigger an update
-					long now = dpService.getFrameworkTime();
+					long nowReal = dpService.getFrameworkTime();
 					SampledValue lastSv = null;
 					if(lastVal <= 0) {
-						lastSv = mapData.recStor.getPreviousValue(now+1);
+						lastSv = mapData.recStor.getPreviousValue(nowReal+1);
 						if(lastSv != null)
 							lastVal = lastSv.getTimestamp();  
 					}
 					ReadOnlyTimeSeries accTs = mapData.accRes1.getTimeSeries();
+					
+					/** We have to go back a little bit with the end to make sure the value is really in. Otherwise it will not be read
+					 * again as the logic assumes that the time series does not change after now.
+					 */
+					long now = nowReal - 15*TimeProcUtil.MINUTE_MILLIS;
+					if(lastVal >= now)
+						return;
 					List<SampledValue> svs = accTs.getValues(lastVal+1, now+1);
 util.logger.info("   In EnergyServer energyDaily onValueChanged: Found new vals:"+svs.size()+" Checked from "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal));
 System.out.println("   Consumption2Meter: Found new vals:"+svs.size());					
@@ -322,7 +329,7 @@ util.logger.info("   In EnergyServer energyDaily onValueChanged inserted value: 
 					util.logger.info("OnValueChanged Summary for "+energyDailyRealAgg.getLocation()+":\r\n"+
 							(lastSv!=null?"Found existing last SampledValue in SlotsDB at "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastSv.getTimestamp()):"")+
 							",\r\n Calculated values for DP"+mapData.accRes1.getLocation()+" from "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal+1)+" to "+StringFormatHelper.getFullTimeDateInLocalTimeZone(now+1)+
-							",r\n Found "+svs.size()+" new values. Wrote into "+mapData.recStor.getPath()+
+							",\r\n Found "+svs.size()+" new values. Wrote into "+mapData.recStor.getPath()+
 							".\r\n Set lastVal to "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal));
 				}
 			};
