@@ -104,14 +104,25 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 				//Label lastContact = null;
 
 				ElectricityConnection cc = box.connection();
-				if(cc.powerSensor().isActive() || req == null)
-					addPowerEnergySensor(cc, vh, id, req, row);
-				else for (ElectricityConnection c : box.getSubResources(ElectricityConnection.class, true)) {
-					if(c.powerSensor().isActive()) {
-						addPowerEnergySensor(c, vh, id, req, row);
-						break;
-					}
+				EnergyResource energyDaily = cc.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
+				if(energyDaily.isActive() && req != null) {
+					//addPowerEnergySensor(cc, vh, id, req, row);
+					Label power = vh.floatLabel("Energy15min", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
+							id, energyDaily, row, "%.1f");
+					Label lastContact = addLastContact(vh, id, req, row,
+							energyDaily);
+					power.setPollingInterval(DEFAULT_POLL_RATE, req);
+					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+				} else {
+					vh.registerHeaderEntry("Energy15min");
+					vh.registerHeaderEntry("Last Contact");
 				}
+				//else for (ElectricityConnection c : box.getSubResources(ElectricityConnection.class, true)) {
+				//	if(c.powerSensor().isActive()) {
+				//		addPowerEnergySensor(c, vh, id, req, row);
+				//		break;
+				//	}
+				//}
 
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row);
@@ -136,7 +147,7 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 				return "Energy Server Electricity Meters";
 			}
 			
-			protected void addPowerEnergySensor(ElectricityConnection c, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+			/*protected void addPowerEnergySensor(ElectricityConnection c, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row) {   
 				Label voltage = vh.floatLabel("Voltage", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 						id, c.voltageSensor().reading(), row, "%.1f");
@@ -150,7 +161,7 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
 
-			}
+			}*/
 		};
 	}
 	
@@ -277,6 +288,7 @@ util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "
 						ReadOnlyTimeSeries accTs = mapData.accRes1.getTimeSeries();
 						((ProcessedReadOnlyTimeSeries2)accTs).setUpdateLastTimestampInSourceOnEveryCall(true);
 						List<SampledValue> values = accTs.getValues(start, now+1);
+util.logger.info("   Found new vals:"+values.size()+" Checked from "+StringFormatHelper.getFullTimeDateInLocalTimeZone(start));
 if(!values.isEmpty())
 util.logger.info("   Before Inserting "+values.size()+" slotsDB values...");
 						try {
