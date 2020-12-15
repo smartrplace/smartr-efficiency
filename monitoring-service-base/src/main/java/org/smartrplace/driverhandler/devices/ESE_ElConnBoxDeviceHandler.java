@@ -28,7 +28,6 @@ import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.ElectricEnergySensor;
 import org.ogema.recordeddata.DataRecorder;
-import org.ogema.recordeddata.DataRecorderException;
 import org.ogema.recordeddata.RecordedDataStorage;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -291,14 +290,16 @@ util.logger.info("   Starting Accumlated found previous accFull slotsDB value: "
 util.logger.info("   Found new vals:"+values.size()+" Checked from "+StringFormatHelper.getFullTimeDateInLocalTimeZone(start));
 if(!values.isEmpty())
 util.logger.info("   Before Inserting "+values.size()+" slotsDB values...");
-						try {
+						LogConfigSP.storeData(values, mapData.recStor);
+util.logger.info("   Inserted "+values.size()+" slotsDB values, last:"+(values.isEmpty()?"NONE":""+values.get(values.size()-1).getValue().getFloatValue()));
+						/*try {
 							mapData.recStor.insertValues(values);
 							LoggingUtils.activateLogging(mapData.recStor, Long.MAX_VALUE);
 util.logger.info("   Inserted "+values.size()+" slotsDB values, last:"+(values.isEmpty()?"NONE":""+values.get(values.size()-1).getValue().getFloatValue()));
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
 util.logger.error("  Could not write values for "+energyDailyRealAgg.getLocation()+":", e);
-						}
+						}*/
 					}
 				}
 			} else
@@ -329,16 +330,18 @@ util.logger.info("   In EnergyServer energyDaily onValueChanged:"+resource.getLo
 					List<SampledValue> svs = accTs.getValues(lastVal+1, now+1);
 util.logger.info("   In EnergyServer energyDaily onValueChanged: Found new vals:"+svs.size()+" Checked from "+StringFormatHelper.getFullTimeDateInLocalTimeZone(lastVal));
 System.out.println("   Consumption2Meter: Found new vals:"+svs.size());					
+					LogConfigSP.storeData(svs, mapData.recStor);
 					for(SampledValue sv: svs) {
-						lastVal = sv.getTimestamp();
+						/*lastVal = sv.getTimestamp();
 						if(mapData.recStor != null) try {
+							
 							LoggingUtils.activateLogging(mapData.recStor, -2);
 							mapData.recStor.insertValue(sv);
 							LoggingUtils.activateLogging(mapData.recStor, Long.MAX_VALUE);
 util.logger.info("   In EnergyServer energyDaily onValueChanged inserted value: "+StringFormatHelper.getFullTimeDateInLocalTimeZone(sv.getTimestamp()));
 						} catch (DataRecorderException e) {
 							e.printStackTrace();
-						}
+						}*/
 						energyDailyRealAgg.setValue(sv.getValue().getFloatValue());
 					}
 					util.logger.info("OnValueChanged Summary for "+energyDailyRealAgg.getLocation()+":\r\n"+
