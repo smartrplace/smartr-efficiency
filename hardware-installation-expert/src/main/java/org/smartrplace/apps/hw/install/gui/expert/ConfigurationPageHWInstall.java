@@ -104,7 +104,13 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 
-		DatepickerTimeResource defaultRefTime = new DatepickerTimeResource(page, "defaultRefTime");
+		DatepickerTimeResource defaultRefTime = new DatepickerTimeResource(page, "defaultRefTime") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				super.onPOSTComplete(data, req);
+				controller.dpService.virtualScheduleService().resetAll();
+			}
+		};
 		TimeResource refRes = TimeProcUtil.getDefaultMeteringReferenceResource(controller.appMan.getResourceAccess());
 		defaultRefTime.selectDefaultItem(refRes);
 		
@@ -177,7 +183,7 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Framework Time:").
 		setContent(i, 1, frameworkTimeLabel);
 		i++;
-		configTable.setContent(i, 0, "Standard Referenzzeit für virtuelle Zähler/Auswertungen:").
+		configTable.setContent(i, 0, "Standard Reference Time for Virtual Meter Evaluations (!Changes take time for recalculation!)").
 		setContent(i, 1, defaultRefTime);
 		i++;
 		

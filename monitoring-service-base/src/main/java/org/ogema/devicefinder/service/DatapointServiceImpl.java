@@ -29,6 +29,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.api.GatewayResource;
+import org.ogema.devicefinder.api.VirtualScheduleService;
 import org.ogema.devicefinder.util.AlarmingServiceImpl;
 import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointGroupImpl;
@@ -573,5 +574,13 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		if(configService == null)
 			configService = new OSGiConfigAccessServiceImpl(configAdmin);
 		return configService;
+	}
+	
+	VirtualScheduleService virtSchedService;
+	@Override
+	public VirtualScheduleService virtualScheduleService() {
+		if(virtSchedService == null)
+			virtSchedService = new VirtualScheduleService(this, appMan);
+		return virtSchedService;
 	}
 }
