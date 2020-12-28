@@ -100,6 +100,7 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	
 	/** GatewayId -> Resource-location -> Datapoint object*/
 	protected final Map<String, Map<String, Datapoint>> knownDps = new HashMap<>();
+	protected final Map<String, Map<String, Datapoint>> knownAliases = new HashMap<>();
 	
 	/** GatewayId -> GatewayResource-location -> GatewayResource object*/
 	protected final Map<String, Map<String, GatewayResource>> knownGWRes = new HashMap<>();
@@ -145,6 +146,11 @@ public abstract class DatapointServiceImpl implements DatapointService {
 				protected DpConnection getConnection(String connectionLocation, UtilityType type) {
 					return DatapointServiceImpl.this.getConnectionForDp(connectionLocation, type, getGatewayId());
 				}
+				@Override
+				public boolean addAlias(String alias) {
+					registerAlias(gatewayId, this, alias);
+					return super.addAlias(alias);
+				}
 			};
 			Map<String, Datapoint> gwMap = getGwMap(gatewayId);
 			gwMap.put(resourceLocation, result);
@@ -158,11 +164,23 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		if(gatewayId != null)
 			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
 		Map<String, Datapoint> subMap = knownDps.get(gatewayId);
+		if(subMap == null) {
+			return getDataPointAsIsFromAlias(resourceLocation, gatewayId);
+		}
+		Datapoint result = subMap.get(resourceLocation);
+		if(result == null)
+			return getDataPointAsIsFromAlias(resourceLocation, gatewayId);
+		return result;
+	}
+
+	protected Datapoint getDataPointAsIsFromAlias(String resourceLocation, String gatewayId) {
+		Map<String, Datapoint> subMap = knownAliases.get(gatewayId);
 		if(subMap == null)
 			return null;
 		return subMap.get(resourceLocation);
+		
 	}
-
+	
 	protected Map<String, Datapoint> getGwMapLocal() {
 		return getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
 	}
@@ -175,6 +193,17 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			knownDps.put(gatewayId, subMap);
 		}
 		return subMap;
+	}
+	
+	protected void registerAlias(String gatewayId, Datapoint dp, String alias) {
+		if(gatewayId != null)
+			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
+		Map<String, Datapoint> subMap = knownAliases.get(gatewayId);
+		if(subMap == null) {
+			subMap = new HashMap<String, Datapoint>();
+			knownAliases.put(gatewayId, subMap);
+		}
+		subMap.put(alias, dp);
 	}
 	
 	public static void addStandardData(Datapoint result) {
@@ -227,6 +256,11 @@ public abstract class DatapointServiceImpl implements DatapointService {
 				@Override
 				protected DpConnection getConnection(String connectionLocation, UtilityType type) {
 					return DatapointServiceImpl.this.getConnectionForDp(connectionLocation, type, getGatewayId());
+				}
+				@Override
+				public boolean addAlias(String alias) {
+					registerAlias(gatewayId, this, alias);
+					return super.addAlias(alias);
 				}
 			};
 			Map<String, Datapoint> gwMap = getGwMap(GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID);
