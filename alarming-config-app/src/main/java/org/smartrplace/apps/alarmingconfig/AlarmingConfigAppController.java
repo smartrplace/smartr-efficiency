@@ -96,11 +96,15 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	}
 	protected void registerMessagingApp(String typeName, String suffix) {
 		AppID appId;
-		if(suffix == null)
+		String idExt;
+		if(suffix == null) {
+			idExt = "_Alarming";
 			appId = appMan.getAppID();
-		else
+		} else {
+			idExt = "_Alarming_"+suffix;
 			appId = new AppIDImpl(appMan.getAppID(), suffix);
-		appManPlus.getMessagingService().registerMessagingApp(appId, getAlarmingDomain()+"_Alarming");
+		}
+		appManPlus.getMessagingService().registerMessagingApp(appId, getAlarmingDomain()+idExt, "Alarming: "+typeName);
 		appsToSend.put(typeName, appId);		
 	}
 	
@@ -161,8 +165,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		
 		this.appsToSend = new HashMap<String, AppID>();
 		registerMessagingApp(SP_SUPPORT_FIRST, null);
-		registerMessagingApp(CUSTOMER_FIRST, "CustomerFirst");
-		registerMessagingApp(CUSTOMER_SP_SAME, "CustomerSpSame");
+		registerMessagingApp(CUSTOMER_FIRST, "CF");
+		registerMessagingApp(CUSTOMER_SP_SAME, "SAM");
 
 		hwTableData = new HardwareTableData(appMan);
 		cleanupAlarming();
