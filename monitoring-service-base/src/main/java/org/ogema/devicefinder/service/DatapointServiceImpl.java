@@ -337,16 +337,16 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		List<Datapoint> result = new ArrayList<Datapoint>();
 		for(Map<String, Datapoint> baselist: knownDps.values()) {
 			result.addAll(baselist.values());
-			//for(Datapoint dp: baselist.values()) {
-			//	result.add(dp);
-			//}
 		}
 		return result;
 	}
 	@Override
 	public Collection<Datapoint> getAllDatapoints(String gwId) {
 		String gwToUse = ViaHeartbeatUtil.getBaseGwId(gwId);
-		return knownDps.get(gwToUse).values();
+		Map<String, Datapoint> subMap = knownDps.get(gwToUse);
+		if(subMap == null)
+			return Collections.emptyList();
+		return subMap.values();
 	}
 
 	static Map<DataTypeRegistrationStatus, Collection<String>> typeIds = new HashMap<>();

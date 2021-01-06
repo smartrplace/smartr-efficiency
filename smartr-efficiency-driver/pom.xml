@@ -9,6 +9,7 @@
     
     <artifactId>smartr-efficiency-driver</artifactId>
     <groupId>org.smartrplace.apps</groupId>
+    <version>2.1.3-SNAPSHOT</version>
     <name>DataProviders for SmartrEfficiency</name>
     <description>DataProvider wrapper for the SmartrEfficiency Platform</description>
 
