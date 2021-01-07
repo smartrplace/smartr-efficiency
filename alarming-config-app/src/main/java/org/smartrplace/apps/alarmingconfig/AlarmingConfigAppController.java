@@ -80,6 +80,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public final PageInit forwardingPage;
 	public final ReceiverPageBuilder receiverPage;
 	WidgetApp widgetApp;
+	boolean isGw = false;
 
 	protected AlarmingManager alarmMan = null;
 	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
@@ -184,7 +185,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		
 		MainPage.alarmingUpdater = this;
 
-		boolean isGw = false;
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			WidgetPage<?> pageRes12 = initApp.widgetApp.createStartPage(); //initApp.widgetApp.createWidgetPage("devices.html");
 			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this);
@@ -256,20 +256,26 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			
 			@Override
 			protected void addAdditionalColumns(Map<String, Object> receiverHeader) {
-				receiverHeader.put("alarmingAppForwardingEmail_SF", "Level SP Support First:");		
-				receiverHeader.put("alarmingAppForwardingEmail_CF", "Level Customer First:");		
-				receiverHeader.put("alarmingAppForwardingEmail_BT", "Level Both together");		
-				//receiverHeader.put("alarmingAppForwardingEmail", "Alarm-level Email:");		
-				//receiverHeader.put("alarmingAppForwardingSMS", "Alarm-level SMS:");							
+				if(isGw) {
+					receiverHeader.put("alarmingAppForwardingEmail_SF", "Level SP Support First:");		
+					receiverHeader.put("alarmingAppForwardingEmail_CF", "Level Customer First:");		
+					receiverHeader.put("alarmingAppForwardingEmail_BT", "Level Both together");
+				} else {
+					receiverHeader.put("alarmingAppForwardingEmail", "Alarm-level Email:");		
+					receiverHeader.put("alarmingAppForwardingSMS", "Alarm-level SMS:");
+				}
 			}
 			
 			@Override
 			protected void addAdditionalRowWidgets(ReceiverConfiguration config, String id, Row row,
 					OgemaHttpRequest req) {
-				addEmailConfigColumn(app, "alarmingAppForwardingEmail_SF", config, id, row, req);
-				addEmailConfigColumn(app_cf, "alarmingAppForwardingEmail_CF", config, id, row, req);
-				addEmailConfigColumn(app_bt, "alarmingAppForwardingEmail_BT", config, id, row, req);
-				/*if(app == null)
+				if(isGw) {
+					addEmailConfigColumn(app, "alarmingAppForwardingEmail_SF", config, id, row, req);
+					addEmailConfigColumn(app_cf, "alarmingAppForwardingEmail_CF", config, id, row, req);
+					addEmailConfigColumn(app_bt, "alarmingAppForwardingEmail_BT", config, id, row, req);
+					return;
+				}
+				if(app == null)
 					return;
 				String userName = config.userName().getValue();
 				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, initApp.mr);
@@ -281,16 +287,16 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
 							l, userName, appList, app);
 					row.addCell("alarmingAppForwardingEmail", alarmingPrioDrop);
-				}*/
+				}
 
-				/*messageListenerName = "Sms-connector";
+				messageListenerName = "Sms-connector";
 				l = initApp.mr.getMessageListeners().get(messageListenerName);
 				if(userListeners.contains(l)) {
 					MessagePriorityDropdown alarmingPrioDropSMS = new MessagePriorityDropdown(pageRes3,
 							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
 							l, userName, appList, app);
 					row.addCell("alarmingAppForwardingSMS", alarmingPrioDropSMS);
-				}*/
+				}
 			}
 			
 			protected void addEmailConfigColumn(de.iwes.widgets.messaging.MessagingApp appLoc, String col,
