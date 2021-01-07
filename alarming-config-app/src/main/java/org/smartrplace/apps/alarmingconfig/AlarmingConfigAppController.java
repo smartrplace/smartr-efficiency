@@ -26,6 +26,7 @@ import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.LocalGatewayInformation;
+import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
@@ -78,7 +79,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public DeviceAlarmingPage deviceOverviewPage;
 	public final PageBuilderSimple messagePage;
 	public final PageInit forwardingPage;
-	public final ReceiverPageBuilder receiverPage;
+	public ReceiverPageBuilder receiverPage;
 	WidgetApp widgetApp;
 	boolean isGw = false;
 
@@ -222,6 +223,31 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			messagePage = null;
 			forwardingPage = null;
 		}
+		
+		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("ongoingbase.html");
+			ongoingBasePage = new OngoingBaseAlarmsPage(pageRes10, appManPlus); //, base);
+			initApp.menu.addEntry("5. Active Alarms", pageRes10);
+			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
+		}
+
+		new CountDownDelayedExecutionTimer(appMan, 10000) {
+			
+			@Override
+			public void delayedExecution() {
+				setupMessageReceiverConfiguration(initApp, appList);
+			}
+		};
+		
+		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
+			initApp.menu.addEntry("Battery State Alarming", "/de/iee/ogema/batterystatemonitoring/index.html");
+			initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
+		}
+
+		initDemands();		
+	}
+
+	protected void setupMessageReceiverConfiguration(AlarmingConfigApp initApp, final ResourceList<MessagingApp> appList) {
 		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", !isGw);
 		de.iwes.widgets.messaging.MessagingApp app1 = null;
 		de.iwes.widgets.messaging.MessagingApp app1_cf = null;
@@ -320,23 +346,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		};
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
 		initApp.menu.addEntry(messageSettingsHeader(), pageRes3);
-		initApp.configMenuConfig(pageRes3.getMenuConfiguration());
-		
-		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
-			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("ongoingbase.html");
-			ongoingBasePage = new OngoingBaseAlarmsPage(pageRes10, appManPlus); //, base);
-			initApp.menu.addEntry("5. Active Alarms", pageRes10);
-			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
-		}
-
-		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
-			initApp.menu.addEntry("Battery State Alarming", "/de/iee/ogema/batterystatemonitoring/index.html");
-			initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
-		}
-
-		initDemands();		
+		initApp.configMenuConfig(pageRes3.getMenuConfiguration());		
 	}
-
+	
 	/*
      * register ResourcePatternDemands. The listeners will be informed about new and disappearing
      * patterns in the OGEMA resource tree
