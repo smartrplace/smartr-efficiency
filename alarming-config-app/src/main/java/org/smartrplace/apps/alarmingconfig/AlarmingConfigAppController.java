@@ -224,11 +224,20 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", !isGw);
 		de.iwes.widgets.messaging.MessagingApp app1 = null;
+		de.iwes.widgets.messaging.MessagingApp app1_cf = null;
+		de.iwes.widgets.messaging.MessagingApp app1_bt = null;
 		for(de.iwes.widgets.messaging.MessagingApp mapp: initApp.mr.getMessageSenders()) {
 			if(isGw) {
-				if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming Configuration".equals(mapp.getName())) {
+				/*if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming Configuration".equals(mapp.getName())) {
 					app1 = mapp;
 					break;
+				}*/
+				if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming: Smartrplace Support First".equals(mapp.getName())) {
+					app1 = mapp;
+				} else if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming: Customer First".equals(mapp.getName())) {
+					app1_cf = mapp;
+				} else if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming: Both together".equals(mapp.getName())) {
+					app1_bt = mapp;
 				}
 			} else {
 				if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Remote gateway heartbeat server".equals(mapp.getName())) {
@@ -238,6 +247,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			}
 		}
 		de.iwes.widgets.messaging.MessagingApp app = app1;
+		de.iwes.widgets.messaging.MessagingApp app_cf = app1_cf;
+		de.iwes.widgets.messaging.MessagingApp app_bt = app1_bt;
 		pageRes3.registerLocalisation(MessageSettingsDictAlarming_de.class).
 				registerLocalisation(MessageSettingsDictAlarming_en.class);
 		receiverPage = new ReceiverPageBuilder(pageRes3, appMan) {
@@ -245,14 +256,20 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			
 			@Override
 			protected void addAdditionalColumns(Map<String, Object> receiverHeader) {
-				receiverHeader.put("alarmingAppForwardingEmail", "Alarm-level Email:");		
-				receiverHeader.put("alarmingAppForwardingSMS", "Alarm-level SMS:");							
+				receiverHeader.put("alarmingAppForwardingEmail_SF", "Level SP Support First:");		
+				receiverHeader.put("alarmingAppForwardingEmail_CF", "Level Customer First:");		
+				receiverHeader.put("alarmingAppForwardingEmail_BT", "Level Both together");		
+				//receiverHeader.put("alarmingAppForwardingEmail", "Alarm-level Email:");		
+				//receiverHeader.put("alarmingAppForwardingSMS", "Alarm-level SMS:");							
 			}
 			
 			@Override
 			protected void addAdditionalRowWidgets(ReceiverConfiguration config, String id, Row row,
 					OgemaHttpRequest req) {
-				if(app == null)
+				addEmailConfigColumn(app, "alarmingAppForwardingEmail_SF", config, id, row, req);
+				addEmailConfigColumn(app_cf, "alarmingAppForwardingEmail_CF", config, id, row, req);
+				addEmailConfigColumn(app_bt, "alarmingAppForwardingEmail_BT", config, id, row, req);
+				/*if(app == null)
 					return;
 				String userName = config.userName().getValue();
 				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, initApp.mr);
@@ -264,16 +281,35 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
 							l, userName, appList, app);
 					row.addCell("alarmingAppForwardingEmail", alarmingPrioDrop);
-				}
+				}*/
 
-				messageListenerName = "Sms-connector";
+				/*messageListenerName = "Sms-connector";
 				l = initApp.mr.getMessageListeners().get(messageListenerName);
 				if(userListeners.contains(l)) {
 					MessagePriorityDropdown alarmingPrioDropSMS = new MessagePriorityDropdown(pageRes3,
 							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
 							l, userName, appList, app);
 					row.addCell("alarmingAppForwardingSMS", alarmingPrioDropSMS);
+				}*/
+			}
+			
+			protected void addEmailConfigColumn(de.iwes.widgets.messaging.MessagingApp appLoc, String col,
+					ReceiverConfiguration config, String id, Row row,
+					OgemaHttpRequest req) {
+				if(appLoc == null)
+					return;
+				String userName = config.userName().getValue();
+				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, initApp.mr);
+				
+				String messageListenerName = "Email-connector";
+				MessageListener l = initApp.mr.getMessageListeners().get(messageListenerName);
+				if(userListeners.contains(l)) {
+					MessagePriorityDropdown alarmingPrioDrop = new MessagePriorityDropdown(pageRes3,
+							WidgetHelper.getValidWidgetId("alarmingDrop"+col+id+userName+messageListenerName),
+							l, userName, appList, appLoc);
+					row.addCell(col, alarmingPrioDrop);
 				}
+				
 			}
 		};
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
