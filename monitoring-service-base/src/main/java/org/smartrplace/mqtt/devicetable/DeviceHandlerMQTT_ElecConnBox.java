@@ -98,7 +98,7 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 				Label power = vh.floatLabel("Power", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 						id, c.powerSensor().reading(), row, "%.1f");
 				Label lastContact = addLastContact(vh, id, req, row,
-							c.voltageSensor().reading());
+							c.powerSensor().reading());
 				if (req != null) {
 					voltage.setPollingInterval(DEFAULT_POLL_RATE, req);
 					power.setPollingInterval(DEFAULT_POLL_RATE, req);
@@ -135,6 +135,8 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 	protected void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService) {
 		addDatapoint(conn.voltageSensor().reading(), result, dpService);
 		addDatapoint(conn.powerSensor().reading(), result, dpService);
+		addDatapoint(conn.reactivePowerSensor().reading(), result, dpService);
+		addDatapoint(conn.reactiveAngleSensor().reading(), result, dpService);
 		addDatapoint(conn.energySensor().reading(), result, dpService);
 		addDatapoint(conn.currentSensor().reading(), result, dpService);
 		addDatapoint(conn.frequencySensor().reading(), result, dpService);		

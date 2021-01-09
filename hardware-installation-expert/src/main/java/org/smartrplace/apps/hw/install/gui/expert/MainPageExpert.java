@@ -305,7 +305,7 @@ public class MainPageExpert extends MainPage {
 			controller.activateLogging(devHand, object, false, true);
 		//remove all alarming
 		for(AlarmConfiguration alarm: object.alarms().getAllElements()) {
-			IntegerResource status = AlarmingConfigUtil.getAlarmStatus(alarm.sensorVal());
+			IntegerResource status = AlarmingConfigUtil.getAlarmStatus(alarm.sensorVal(), false);
 			if(status.exists())
 				status.delete();
 			alarm.delete();
