@@ -67,7 +67,7 @@ public class DeviceFinderInit {
 		
 		Long referenceTime = Long.getLong("org.ogema.timeseries.eval.simple.api.meteringreferencetime");
 		if(referenceTime != null)
-			TimeProcUtil.initDefaultMeteringReferenceResource(referenceTime, true, appMan.getResourceAccess());
+			TimeProcUtil.initDefaultMeteringReferenceResource(referenceTime, false, appMan.getResourceAccess());
 		
 		TemperatureResource openWeatherMapTemp = KPIResourceAccess.getOpenWeatherMapTemperature(appMan.getResourceAccess());
 		if(openWeatherMapTemp != null) {
