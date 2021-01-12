@@ -57,7 +57,7 @@ public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String,
 		return result;
 	}
 	
-	@Override
+	//@Override
 	protected GenericFilterFixedGroup<String, AccessConfigUser> getGroupOptionDynamic(AccessConfigUser grp) {
 		String name = grp.name().getValue();
 		if(grp.isGroup().getValue() >= 2) {

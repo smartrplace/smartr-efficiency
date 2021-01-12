@@ -45,10 +45,7 @@ public class DeviceTypePage extends MainPage {
 		return "1. Alarming Configuration Per Device";
 	}
 	
-	@Override
-	public void addWidgetsAboveTable() {
-		super.addWidgetsAboveTable();
-		
+	protected void addWidgetsAboveTableInternal() {
 		deviceDrop = new SingleFiltering<String, AlarmConfiguration>(
 				page, "deviceDrop", OptionSavingMode.GENERAL, 10000, false) {
 
@@ -87,7 +84,7 @@ public class DeviceTypePage extends MainPage {
 			protected long getFrameworkTime() {
 				return appMan.getFrameworkTime();
 			}
-		};
+		};		
 		deviceDrop.registerDependentWidget(mainTable);
 		
 		ButtonConfirm applyTemplateButton = new ButtonConfirm(page, "applyTemplateButton") {
@@ -147,6 +144,13 @@ public class DeviceTypePage extends MainPage {
 		
 		page.append(secondTable);
 
+	}
+	
+	@Override
+	public void addWidgetsAboveTable() {
+		super.addWidgetsAboveTable();
+		
+		addWidgetsAboveTableInternal();
 	}
 
 	protected void applyTemplate(OgemaHttpRequest req) {

@@ -66,7 +66,7 @@ public abstract class RoomFiltering2Steps<T> extends DualFiltering2Steps<Room, B
 		return result;
 	}
 	
-	@Override
+	//@Override
 	protected GenericFilterFixedGroup<Room, BuildingPropertyUnit> getGroupOptionDynamic(BuildingPropertyUnit grp) {
 		String name = grp.name().getValue();
 		GenericFilterFixedGroup<Room, BuildingPropertyUnit> newOption = new GenericFilterFixedGroup<Room, BuildingPropertyUnit>(

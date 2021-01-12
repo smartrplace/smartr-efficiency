@@ -83,6 +83,22 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	WidgetApp widgetApp;
 	boolean isGw = false;
 
+	//location of device resource->InstallAppDevice resouce
+	private Map<String, InstallAppDevice> iads = new HashMap<>();
+	public InstallAppDevice getIAD(String devLocation) {
+		InstallAppDevice result = iads.get(devLocation);
+		if(result != null && result.device().getLocation().equals(devLocation))
+			return result;
+		List<InstallAppDevice> all = hwTableData.appConfigData.knownDevices().getAllElements();
+		for(InstallAppDevice iad: all) {
+			if(iad.device().getLocation().equals(devLocation)) {
+				iads.put(devLocation, iad);
+				return iad;
+			}
+		}
+		return null;
+	}
+	
 	protected AlarmingManager alarmMan = null;
 	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
 	private final Map<String, AppID> appsToSend;
