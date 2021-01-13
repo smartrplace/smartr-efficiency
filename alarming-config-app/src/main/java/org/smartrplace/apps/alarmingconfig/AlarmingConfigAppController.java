@@ -26,6 +26,7 @@ import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.LocalGatewayInformation;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
@@ -45,6 +46,7 @@ import org.smartrplace.util.format.WidgetHelper;
 import org.smatrplace.apps.alarmconfig.util.AppIDImpl;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.messaging.listener.MessageListener;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -385,6 +387,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		for(InstallAppDevice dev: hwTableData.appConfigData.knownDevices().getAllElements()) {
 			cleanupAlarming(dev);
 		}
+		ValueResourceHelper.setIfNew(hwTableData.appConfigData.basicEvalInterval(), 7*TimeProcUtil.DAY_MILLIS);
 	}
 	
 	public void cleanupAlarming(InstallAppDevice dev) {

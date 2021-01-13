@@ -9,9 +9,15 @@ import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.externalviewer.extensions.IntervalConfiguration;
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
+import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil;
+import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil.SchedOpenDataProvider;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -20,12 +26,16 @@ import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
+import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 
 @SuppressWarnings("serial")
 public class DeviceDetailPageExpert extends DeviceTypePage {
@@ -41,7 +51,69 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
 			Row row, ApplicationManager appMan) {
 		super.addWidgets(object, vh, id, req, row, appMan);
+		if(req == null) {
+			vh.registerHeaderEntry("Gap/Out");
+			//vh.registerHeaderEntry("Gap/Out");
+			vh.registerHeaderEntry("Chart");
+			vh.registerHeaderEntry("Res.Location");
+			return;
+		}
+		long now = appMan.getFrameworkTime();
+		long evalBasicInterval = controller.hwTableData.appConfigData.basicEvalInterval().getValue();
+		long start = now - evalBasicInterval;
+		Datapoint dpBase = getDatapoint(object, dpService);
+		Datapoint dpGap = dpService.getDataPointAsIs(object.getLocation()+TimeProcUtil.ALARM_GAP_SUFFIX);
+		Datapoint dpOut = dpService.getDataPointAsIs(object.getLocation()+TimeProcUtil.ALARM_OUTVALUE_SUFFIX);
+	
+		String text;
+		if(dpGap != null && dpOut != null) {
+			int gapNum = dpGap.getTimeSeries().getValues(start, now).size();
+			int outNum = dpOut.getTimeSeries().getValues(start, now).size();
+			text = gapNum+" / "+outNum;
+		} else
+			text = "Create";
+		
+		Button updateEvalBut = new Button(mainTable, "updateEvalBut"+id, text, req) {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				// TODO Auto-generated method stub
+				super.onPOSTComplete(data, req);
+			}
+		};
+		row.addCell("Gap/Out", updateEvalBut);
+		//vh.stringLabel("Gap/Out", id, text, row);
+		
+		if(dpGap != null && dpOut != null) {
+			SchedOpenDataProvider provider = new SchedOpenDataProvider() {
+				
+				@Override
+				public IntervalConfiguration getITVConfiguration() {
+					return IntervalConfiguration.getDefaultDuration(IntervalConfiguration.ONE_WEEK, appMan);
+				}
+				
+				@Override
+				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
+					List<TimeSeriesData> result = new ArrayList<>();
+					addDatapoint(dpGap, dpBase.label(null)+"_gap", result);
+					addDatapoint(dpOut, dpBase.label(null)+"_out", result);
+					return result;
+				}
+			};
+			ScheduleViewerOpenButton plotButton = ScheduleViwerOpenUtil.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
+					"Plot", provider, ScheduleViewerConfigProvAlarmExp.getInstance(), req);
+			
+			row.addCell("Chart", plotButton);
+		}
+		
 		vh.stringLabel("Res.Location", id, object.getLocation(), row);
+	}
+	
+	protected void addDatapoint(Datapoint dp, String label, List<TimeSeriesData> result) {
+		TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(null);
+		TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, label, label);
+		tsdExt.type = dp.getGaroDataType();
+		result.add(tsdExt);
+		
 	}
 	
 	@Override
