@@ -8,6 +8,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
+import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageEval;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceTypePageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.MainPageExpert;
@@ -63,13 +64,18 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			configMenuConfig(pageRes3.getMenuConfiguration());
 			
 			WidgetPage<?> pageRes5 = widgetApp.createWidgetPage("devicedetails.html");
-			new DeviceDetailPageExpert(pageRes5, controller.appManPlus, controller);
+			new DeviceDetailPageExpert(pageRes5, controller.appManPlus, controller, false);
 			menu.addEntry("3. Alarming Details Per Device", pageRes5);
 			configMenuConfig(pageRes5.getMenuConfiguration());
 
+			WidgetPage<?> pageRes6 = widgetApp.createWidgetPage("deviceevals.html");
+			new DeviceDetailPageEval(pageRes6, controller.appManPlus, controller);
+			menu.addEntry("4. Alarming Evaluations Per Device", pageRes6);
+			configMenuConfig(pageRes6.getMenuConfiguration());
+
 			WidgetPage<?> pageRes4 = widgetApp.createWidgetPage("ongoinggroups.html");
 			new AlarmGroupPage(pageRes4, controller.appManPlus);
-			menu.addEntry("4. Groups of ongoing Alarms", pageRes4);
+			menu.addEntry("5. Groups of ongoing Alarms", pageRes4);
 			configMenuConfig(pageRes4.getMenuConfiguration());
 		}
 	};

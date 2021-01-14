@@ -37,7 +37,8 @@ import de.iwes.widgets.html.form.button.WindowCloseButton;
  * An HTML page, generated from the Java code.
  */
 public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, AlarmingExtension, AlarmConfiguration>  {
-
+	protected final boolean showReducedColumns;
+	
 	public static final Map<String, String> ALARM_LEVEL_EN = new HashMap<>();
 	static {
 		ALARM_LEVEL_EN.put("0", "No Alarms");
@@ -59,10 +60,14 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 	
 
 	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) { //, Resource baseResource) {
+		this(page, appManPlus, false);
+	}
+	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns) { //, Resource baseResource) {
 		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(AlarmConfiguration.class));
 		//this.baseResource = baseResource;
 		this.appManPlus = appManPlus;
 		this.dpService = appManPlus.dpService();
+		this.showReducedColumns = showReducedColumns;
 		appMan.getLogger().info("Alarming Config page created at {}", page.getFullUrl());
 		triggerPageBuild();
 	}
@@ -106,15 +111,18 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		vh.floatEdit("Delay until the alarm is triggered (minutes)",
 				id, sr.maxViolationTimeWithoutAlarm(), row, alert,
 				-Float.MAX_VALUE, Float.MAX_VALUE, "");
-		vh.dropdown("Type", id, sr.alarmingAppId(), row, AlarmingConfigAppController.ALARM_APP_TYPE_EN);
-		vh.dropdown("Priority", id, sr.alarmLevel(), row, ALARM_LEVEL_EN);
-		vh.floatEdit("Duration Blocking Sending the same alarm (minutes)",
-				id, sr.alarmRepetitionTime(), row, alert,
-				-Float.MAX_VALUE, Float.MAX_VALUE, "");
+		if(!showReducedColumns) {
+			vh.dropdown("Type", id, sr.alarmingAppId(), row, AlarmingConfigAppController.ALARM_APP_TYPE_EN);
+			vh.dropdown("Priority", id, sr.alarmLevel(), row, ALARM_LEVEL_EN);
+			vh.floatEdit("Duration Blocking Sending the same alarm (minutes)",
+					id, sr.alarmRepetitionTime(), row, alert,
+					-Float.MAX_VALUE, Float.MAX_VALUE, "");
+		}
 		vh.floatEdit("Maximum duration until new value is received (min)",
 				id, sr.maxIntervalBetweenNewValues(), row, alert,
 				-Float.MAX_VALUE, Float.MAX_VALUE, "");
-		vh.booleanEdit("Monitoring Switch active", id, sr.performAdditinalOperations(), row);
+		if(!showReducedColumns)
+			vh.booleanEdit("Monitoring Switch active", id, sr.performAdditinalOperations(), row);
 		if(req == null)
 			vh.registerHeaderEntry("Status");
 		else {

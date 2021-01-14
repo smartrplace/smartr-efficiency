@@ -134,7 +134,10 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<TimeResource> bulkIntervalEdit = new TimeResourceTextField(page, "bulkIntervalEdit", Interval.minutes);
 		bulkIntervalEdit.selectDefaultItem(controller.appConfigData.bulkMessageIntervalDuration());
 		
-		StaticTable configTable = new StaticTable(12, 2);
+		ValueResourceTextField<TimeResource> alarmEvalIntervalEdit = new TimeResourceTextField(page, "alarmEvalIntervalEdit", Interval.days);
+		alarmEvalIntervalEdit.selectDefaultItem(controller.appConfigData.basicEvalInterval());
+
+		StaticTable configTable = new StaticTable(13, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -189,6 +192,10 @@ public class ConfigurationPageHWInstall {
 		
 		configTable.setContent(i, 0, "Update datapoints for transfer via heartbeat from datapoint groups").
 		setContent(i, 1, updateViaHeartbeat);
+		i++;
+		
+		configTable.setContent(i, 0, "Interval for alarming evaluation (days behing now)").
+		setContent(i, 1, alarmEvalIntervalEdit);
 		i++;
 		
 		page.append(configTable);

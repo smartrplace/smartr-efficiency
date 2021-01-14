@@ -32,11 +32,16 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 public class DeviceTypePage extends MainPage {
 	protected final boolean showOnlyPrototype;
 	protected SingleFiltering<String, AlarmConfiguration> deviceDrop;
+	protected StaticTable secondTable;
 	protected final AlarmingConfigAppController controller;
 	
 	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype,
 			AlarmingConfigAppController controller) {
-		super(page, appManPlus);
+		this(page, appManPlus, showOnlyPrototype, controller, false);	
+	}
+	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype,
+			AlarmingConfigAppController controller, boolean showReducedColumns) {
+		super(page, appManPlus, showReducedColumns);
 		this.showOnlyPrototype = showOnlyPrototype;
 		this.controller= controller;
 	}
@@ -136,7 +141,7 @@ public class DeviceTypePage extends MainPage {
 		applyDefaultToTemplate.setDefaultText("Apply default settings to template");
 		applyDefaultToTemplate.registerDependentWidget(alert);
 
-		StaticTable secondTable = new StaticTable(1, 4);
+		secondTable = new StaticTable(1, 4);
 		secondTable.setContent(0, 0, deviceDrop);
 		secondTable.setContent(0, 1, applyTemplateButton);
 		secondTable.setContent(0, 2, applyAndCommitButton);

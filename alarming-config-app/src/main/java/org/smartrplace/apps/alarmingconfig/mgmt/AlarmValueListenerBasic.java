@@ -17,6 +17,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.AlarmingExtensionBase.AlarmListenerDataBase;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.ValueListenerData;
@@ -148,7 +149,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.isNoValueAlarmActive = false;
 		}
 		
-		if(AlarmingManager.isViolated(value, lower, upper)) {
+		if(TimeSeriesServlet.isViolated(value, lower, upper)) {
 			if(AlarmingManager.isNewAlarmRetardPhaseAllowed(vl, appManPlus.appMan())) {
 				vl.timer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
 						retard) {

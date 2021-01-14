@@ -28,6 +28,7 @@ import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.alarmingconfig.eval.TimeseriesProcAlarming;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
@@ -85,6 +86,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	WidgetApp widgetApp;
 	boolean isGw = false;
 
+	public final TimeseriesProcAlarming tsProcAl;
+	
 	//location of device resource->InstallAppDevice resouce
 	private Map<String, InstallAppDevice> iads = new HashMap<>();
 	public InstallAppDevice getIAD(String devLocation) {
@@ -188,6 +191,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		registerMessagingApp(CUSTOMER_FIRST, "CF");
 		registerMessagingApp(CUSTOMER_SP_SAME, "SAM");
 
+		tsProcAl = new TimeseriesProcAlarming(appMan, dpService);
+		
 		hwTableData = new HardwareTableData(appMan);
 		cleanupAlarming();
 		//initAlarmingResources();

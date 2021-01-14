@@ -386,12 +386,6 @@ public class AlarmingManager {
 		}
 	}
 
-	protected static boolean isViolated(float value, float lower, float upper) {
-		if(value < lower) return true;
-		if(value > upper) return true;
-		return false;
-	}
-	
 	protected static boolean isNewAlarmRetardPhaseAllowed(AlarmListenerDataBase vl,
 			ApplicationManager appMan) {
 		if(vl.timer != null) return false;

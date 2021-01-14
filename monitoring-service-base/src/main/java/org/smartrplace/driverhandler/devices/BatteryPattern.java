@@ -15,8 +15,6 @@
  */
 package org.smartrplace.driverhandler.devices;
 
-import java.text.CollationElementIterator;
-
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.devices.storage.ChargingPoint;
@@ -34,6 +32,8 @@ public class BatteryPattern extends ResourcePattern<ElectricityStorage> {
 	public boolean accept() {
 		Resource parent = model.getParent();
 		if(parent != null && parent instanceof ChargingPoint)
+			return false;
+		if(parent != null && parent.getLocation().toLowerCase().contains("homematic"))
 			return false;
 		return true;
 	}
