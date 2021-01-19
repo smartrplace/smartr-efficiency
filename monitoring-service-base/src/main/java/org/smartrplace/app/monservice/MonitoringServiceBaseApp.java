@@ -30,6 +30,10 @@ import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
+import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
+import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
+import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
@@ -157,6 +161,18 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srBat = null;
 	private BatteryDevHandler devHandBat;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srSmartProtect = null;
+	private SmartProtect_DeviceHandler devHandSmartProtect;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srWater = null;
+	private WaterMeter_DeviceHandler devHandWater;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srHeat = null;
+	private HeatMeter_DeviceHandler devHandHeat;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srGas = null;
+	private GasEnergyCam_DeviceHandler devHandGas;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -242,6 +258,14 @@ public class MonitoringServiceBaseApp implements Application {
 	   srCharge = bc.registerService(DeviceHandlerProvider.class, devHandCharge, null);
 	   devHandBat = new BatteryDevHandler(controller.appManPlus);
 	   srBat = bc.registerService(DeviceHandlerProvider.class, devHandBat, null);
+	   devHandSmartProtect = new SmartProtect_DeviceHandler(controller.appManPlus);
+	   srSmartProtect = bc.registerService(DeviceHandlerProvider.class, devHandSmartProtect, null);
+	   devHandWater = new WaterMeter_DeviceHandler(controller.appManPlus);
+	   srWater = bc.registerService(DeviceHandlerProvider.class, devHandWater, null);
+	   devHandHeat = new HeatMeter_DeviceHandler(controller.appManPlus);
+	   srHeat = bc.registerService(DeviceHandlerProvider.class, devHandHeat, null);
+	   devHandGas = new GasEnergyCam_DeviceHandler(controller.appManPlus);
+	   srGas = bc.registerService(DeviceHandlerProvider.class, devHandGas, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -274,6 +298,10 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srEnServ != null) srEnServ.unregister();
     	if (srCharge != null) srCharge.unregister();
     	if (srBat != null) srBat.unregister();
+       	if (srSmartProtect != null) srSmartProtect.unregister();
+       	if (srWater!= null) srWater.unregister();
+       	if (srHeat != null) srHeat.unregister();
+       	if (srGas != null) srGas.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
