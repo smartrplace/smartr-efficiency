@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
+import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
@@ -48,6 +49,10 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase {
 				long maxOutTime = (long) (param.maxViolationTimeWithoutAlarm().getValue()*TimeProcUtil.MINUTE_MILLIS);
 				float lowerLimit = param.lowerLimit().getValue();
 				float upperLimit = param.upperLimit().getValue();
+				if(param.sensorVal() instanceof TemperatureResource) {
+					lowerLimit += 273.15;
+					upperLimit += 273.15;
+				}
 				return TimeSeriesServlet.getOutValues(timeSeries, start, end, lowerLimit, upperLimit, maxOutTime);						
 			}
 
