@@ -17,10 +17,12 @@ package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Arrays;
 
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
@@ -32,6 +34,7 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
@@ -51,6 +54,9 @@ public class ConfigurationPageHWInstall {
 		
 		//this.page = page;
 		this.controller = app;
+		
+		final Alert alert = new Alert(page, "alert", "");
+		page.append(alert);
 		
 		ValueResourceDropdown<IntegerResource> loggingAutoActivation = new ValueResourceDropdown<IntegerResource>(page, "loggingAutoMode",
 				app.appConfigData.autoLoggingActivation(), Arrays.asList(new String[] {"do not activate logging automatically",
@@ -129,6 +135,19 @@ public class ConfigurationPageHWInstall {
 			};
 		};
 		
+		Button resetEnergyServer = new Button(page, "resetEnergyServer", "Reset Energy Server") {
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				Resource ese = controller.appMan.getResourceAccess().getResource("EnergyServerReadings_ESE");
+				for(ElectricityConnectionBox ecb: ese.getSubResources(ElectricityConnectionBox.class, false)) {
+					StringResource nut = ecb.getSubResource("nextUpdateTime", StringResource.class);
+					if(nut.exists())
+						nut.delete();
+				}
+				alert.showAlert("Reset of EnergyServer DONE !", true, req);
+			};
+		};
+		resetEnergyServer.registerDependentWidget(alert);
+		
 		ValueResourceTextField<IntegerResource> bulkNumEdit = new ValueResourceTextField<IntegerResource>(page, "bulkEditNum",
 				controller.appConfigData.maxMessageNumBeforeBulk());
 		ValueResourceTextField<TimeResource> bulkIntervalEdit = new TimeResourceTextField(page, "bulkIntervalEdit", Interval.minutes);
@@ -137,7 +156,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<TimeResource> alarmEvalIntervalEdit = new TimeResourceTextField(page, "alarmEvalIntervalEdit", Interval.days);
 		alarmEvalIntervalEdit.selectDefaultItem(controller.appConfigData.basicEvalInterval());
 
-		StaticTable configTable = new StaticTable(13, 2);
+		StaticTable configTable = new StaticTable(14, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -189,12 +208,18 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Standard Reference Time for Virtual Meter Evaluations (!Changes take time for recalculation!)").
 		setContent(i, 1, defaultRefTime);
 		i++;
-		
+
+		if(controller.appMan.getResourceAccess().getResource("EnergyServerReadings_ESE") != null) {
+			configTable.setContent(i, 0, "Reset internal meter states (Energy Server)").
+			setContent(i, 1, resetEnergyServer);
+		}
+		i++;
+
 		configTable.setContent(i, 0, "Update datapoints for transfer via heartbeat from datapoint groups").
 		setContent(i, 1, updateViaHeartbeat);
 		i++;
 		
-		configTable.setContent(i, 0, "Interval for alarming evaluation (days behing now)").
+		configTable.setContent(i, 0, "Interval for alarming evaluation (days behind now)").
 		setContent(i, 1, alarmEvalIntervalEdit);
 		i++;
 		
