@@ -562,8 +562,9 @@ public class HardwareInstallController {
 		return getDevices(tableProvider, includeInactiveDevices, false);*/
 	}
 	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
-			boolean includeInactiveDevices, boolean includeTrash) {
-		return mainPage.getDevices(tableProvider, includeInactiveDevices, includeTrash);
+//			boolean includeInactiveDevices,
+			boolean includeTrash) {
+		return mainPage.getDevices(tableProvider, includeTrash);
 	}
 	/*public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
 			boolean includeInactiveDevices, boolean includeTrash) {

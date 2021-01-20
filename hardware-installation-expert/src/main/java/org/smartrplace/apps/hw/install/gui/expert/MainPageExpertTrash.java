@@ -23,7 +23,8 @@ public class MainPageExpertTrash extends MainPageExpert {
 
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
-		List<InstallAppDevice> all = controller.getDevices(devHand, true, true);
+		//List<InstallAppDevice> all = controller.getDevices(devHand, true, true);
+		List<InstallAppDevice> all = controller.getDevices(devHand, true);
 		/*all = roomsDrop.getDevicesSelected(all, req);
 		if (installFilterDrop != null)  // FIXME seems to always be null here
 			all = installFilterDrop.getDevicesSelected(all, req);*/
