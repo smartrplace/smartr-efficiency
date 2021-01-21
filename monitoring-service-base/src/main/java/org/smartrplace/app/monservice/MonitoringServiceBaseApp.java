@@ -43,6 +43,7 @@ import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.homematic.devicetable.SmokeDetector_DeviceHandler;
 import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
+import org.smartrplace.homematic.devicetable.WeatherStation_DeviceHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_SingleSwBox;
@@ -138,6 +139,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srSmoke = null;
 	private SmokeDetector_DeviceHandler devHandSmoke;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srWeather = null;
+	private WeatherStation_DeviceHandler devHandWeather;
 	
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
@@ -242,6 +246,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srDoorWindowSensor = bc.registerService(DeviceHandlerProvider.class, devHandDoorWindowSensor, null);
 	   devHandSmoke = new SmokeDetector_DeviceHandler(controller.appManPlus);
 	   srSmoke = bc.registerService(DeviceHandlerProvider.class, devHandSmoke, null);
+	   devHandWeather = new WeatherStation_DeviceHandler(controller.appManPlus);
+	   srWeather = bc.registerService(DeviceHandlerProvider.class, devHandWeather, null);
 	   
 	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
 	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
@@ -308,6 +314,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srThermostat != null) srThermostat.unregister();
     	if (srTempHumSens != null) srTempHumSens.unregister();
     	if (srSmoke != null) srSmoke.unregister();
+    	if (srWeather != null) srWeather.unregister();
     	
     	if (jmbusDriver != null) jmbusDriver.unregister();
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();

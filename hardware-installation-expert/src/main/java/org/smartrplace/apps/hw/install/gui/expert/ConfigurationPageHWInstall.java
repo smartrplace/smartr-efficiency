@@ -89,7 +89,7 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 
-		BooleanResourceCheckbox includeInactiveDevices = new BooleanResourceCheckbox(page, "includeInactiveDevices",
+		/*BooleanResourceCheckbox includeInactiveDevices = new BooleanResourceCheckbox(page, "includeInactiveDevices",
 				"", app.appConfigData.includeInactiveDevices()) {
 
 			@Override
@@ -100,7 +100,7 @@ public class ConfigurationPageHWInstall {
 					sel.activate(false);
 				}
 			}
-		};
+		};*/
 
 		Label frameworkTimeLabel = new Label(page, "frameworkTimeLabel") {
 			@Override
@@ -156,7 +156,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<TimeResource> alarmEvalIntervalEdit = new TimeResourceTextField(page, "alarmEvalIntervalEdit", Interval.days);
 		alarmEvalIntervalEdit.selectDefaultItem(controller.appConfigData.basicEvalInterval());
 
-		StaticTable configTable = new StaticTable(14, 2);
+		StaticTable configTable = new StaticTable(13, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -167,9 +167,9 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Apply template device configuration (mostly alarming) to any new device").
 		setContent(i, 1, autoApplyTemplate);
 		i++;
-		configTable.setContent(i, 0, "Include inactive devices: This may lead to showing devices in more than one DeviceHandlerProvider").
+		/*configTable.setContent(i, 0, "Include inactive devices: This may lead to showing devices in more than one DeviceHandlerProvider").
 		setContent(i, 1, includeInactiveDevices);
-		i++;
+		i++;*/
 		configTable.setContent(i, 0, "Bulk Alarm Messages: Maximum alarming messages to be sent within duration before\n" + 
 				"messages are aggregated into a single bulk message").
 		setContent(i, 1, bulkNumEdit);
