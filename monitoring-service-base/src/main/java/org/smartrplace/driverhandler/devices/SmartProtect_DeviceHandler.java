@@ -10,6 +10,9 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.sensors.GenericBinarySensor;
+import org.ogema.model.sensors.HumiditySensor;
+import org.ogema.model.sensors.SmokeDetector;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
@@ -36,7 +39,12 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
-		return result;
+		addDatapoint(device.sensors().getSubResource("battery_low", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.sensors().getSubResource("co_alert", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.sensors().getSubResource("humidity", HumiditySensor.class).reading(), result);
+		addDatapoint(device.sensors().getSubResource("siren", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.sensors().getSubResource("smoke", SmokeDetector.class).reading(), result);
+	return result;
 	}
 
 	@Override

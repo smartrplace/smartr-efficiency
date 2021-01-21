@@ -27,4 +27,10 @@ public class SmokeDetectorPattern extends ResourcePattern<SmokeDetector> {
 		super(device);
 	}
 
+	@Override
+	public boolean accept() {
+		if(model.getLocation().toLowerCase().startsWith("livy"))
+			return false;
+		return true;
+	}
 }
