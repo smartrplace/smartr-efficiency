@@ -44,6 +44,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 		addDatapoint(device.sensors().getSubResource("humidity", HumiditySensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("siren", GenericBinarySensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("smoke", SmokeDetector.class).reading(), result);
+		addDatapoint(device.sensors().getSubResource("motion", GenericBinarySensor.class).reading(), result);
 	return result;
 	}
 

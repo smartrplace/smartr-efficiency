@@ -9,7 +9,6 @@ import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.administration.UserConstants;
-import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -86,6 +85,9 @@ public class UserRegisterHelper {
         final Checkbox2 cbSendInvite = new Checkbox2(page, "cbInvite");
         DefaultCheckboxEntry cbe = new DefaultCheckboxEntry("sendInvite", "", true);
         cbSendInvite.addDefaultEntry(cbe);
+        final Checkbox2 cbRest = new Checkbox2(page, "cbRest");
+        DefaultCheckboxEntry cberest = new DefaultCheckboxEntry("createRest", "", true);
+        cbRest.addDefaultEntry(cberest);
 		
         String loginNameTitle = requestUserNameAsEmail?"Email:":"Login name:";
         
@@ -93,7 +95,7 @@ public class UserRegisterHelper {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public List<OgemaWidget> providePopupWidgets(OgemaHttpRequest req) {
-				StaticTable dualTable = new StaticTable(5, 2);
+				StaticTable dualTable = new StaticTable(6, 2);
 				int c = 0;
 				dualTable.setContent(c, 0, loginNameTitle).setContent(c, 1, textLoginName);
 				c++;
@@ -112,6 +114,8 @@ public class UserRegisterHelper {
 				dualTable.setContent(c, 0, "Password:").setContent(c, 1, textPw);
                 c++;
                 dualTable.setContent(c, 0, "Send Invitation:").setContent(c, 1, cbSendInvite);
+                c++;
+                dualTable.setContent(c, 0, "Create mobile account:").setContent(c, 1, cbRest);
 				getPopupSnippet().append(dualTable, null);
 				return null;
 			}
@@ -119,8 +123,16 @@ public class UserRegisterHelper {
 			public void onOK(Object selected, OgemaHttpRequest req) {
 				try {
 					String userName = textLoginName.getValue(req);
-					boolean hasEmail = isValidEmail(userName);
 					String name = textFullUserName.getValue(req);
+					String password = textPw.getValue(req);
+					UserAccount data = createAccount(userName, loginNameTitle, password, userBuilder,
+							cbSendInvite.isChecked("sendInvite", req),
+							cbRest.isChecked("createRest", req));
+					if(data == null) {
+						alert.showAlert("User name "+name+" could not be created, maybe already exists!", false, req);
+						return;
+					}
+					/*boolean hasEmail = isValidEmail(userName);
 					System.out.println("User to be created :"+userName+" (in onOK)");
 					UserAccount data = userBuilder.addUser(userName, textPw.getValue(req), false);
 					System.out.println("User account adUser finished :"+userName+" (in onOK)");
@@ -134,7 +146,8 @@ public class UserRegisterHelper {
                     if (cbSendInvite.isChecked("sendInvite", req) && hasEmail) {
                         data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
                     }
-					System.out.println("User account propertySetting finished :"+userName+" (in onOK)");
+            		System.out.println("User account propertySetting finished :"+userName+" (in onOK)");*/
+
 					if(newUserHandler != null) newUserHandler.newUserCreated(data, name, req);
 					
 					if(hasPrimaryRoomOptions) {
@@ -161,8 +174,50 @@ public class UserRegisterHelper {
 		return addUserPop;
 	}
 
+	/** Create user account
+	 * 
+	 * @param userName
+	 * @param realName
+	 * @param password
+	 * @param userBuilder
+	 * @param sendEmailInvitation if userInvitiation is installed writing to SEND_INVITATION_BY_EMAIL triggers
+	 * 		sending out an email invitation
+	 * @param createRestAccount 
+	 * @return
+	 */
+	public static UserAccount createAccount(String userName, String realName, String password, UserBuilder userBuilder,
+			boolean sendEmailInvitation, boolean createRestAccount) {
+		boolean hasEmail = isValidEmail(userName);
+		System.out.println("User to be created :"+userName+" (in onOK)");
+		UserAccount data = userBuilder.addUser(userName, password, false);
+		System.out.println("User account adUser finished :"+userName+" (in onOK)");
+		if(data == null) {
+			return null;
+		}
+		if(hasEmail)
+			data.getProperties().put(UserConstants.EMAIL, userName);
+        data.getProperties().put(UserConstants.FORMATTED_NAME, realName);
+		System.out.println("User account propertySetting finished :"+userName+" (in onOK)");
+        if (sendEmailInvitation && hasEmail) {
+            data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
+        }
+        if(createRestAccount) {
+        	try {
+        		String restUser = userName+"_rest";
+        		createRESTAccount(restUser, restUser, userBuilder);
+        	} catch(Exception e) {
+        		e.printStackTrace();
+        	}
+        }
+		return data;
+	}
 
-    public static boolean isValidEmail(String email) 
+	public static UserAccount createRESTAccount(String userName, String password, UserBuilder userBuilder) {
+		UserAccount data = userBuilder.addUserAndInit(userName, password, false, false);
+		return data;
+	}
+	
+	public static boolean isValidEmail(String email) 
     { 
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\."+ 
                             "[a-zA-Z0-9_+&*-]+)*@" + 

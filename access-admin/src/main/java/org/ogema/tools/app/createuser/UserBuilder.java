@@ -1,18 +1,19 @@
 package org.ogema.tools.app.createuser;
 
-import org.ogema.accesscontrol.AppPermissionFilter;
 import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
-import org.osgi.framework.Version;
 
 public class UserBuilder {
 	private final ApplicationManager appMan;
-	private final PermissionManager permissionManager;
+	//private final PermissionManager permissionManager;
 	
 	public UserBuilder(ApplicationManager appMan, PermissionManager permissionManager) {
 		this.appMan = appMan;
-		this.permissionManager = permissionManager;
+		//this.permissionManager = permissionManager;
+	}
+	public UserBuilder(ApplicationManager appMan) {
+		this.appMan = appMan;
 	}
 
 
@@ -26,9 +27,12 @@ public class UserBuilder {
 		return addUser(userName, pw, true);
 	}
 	public UserAccount addUserAndInit(String userName, String pw, boolean doInituserPermissions) {
+		return addUserAndInit(userName, pw, doInituserPermissions, true);
+	}
+	public UserAccount addUserAndInit(String userName, String pw, boolean doInituserPermissions, boolean isNatural) {
 		//if(appMan.getAdministrationManager().getUser(userName) != null) throw new IllegalStateException("User name "+userName+" already exists!");
 		//if(!pw.equals(userName)) throw new UnsupportedOperationException("Change password does not work for default admin");
-		UserAccount account = appMan.getAdministrationManager().createUserAccount(userName, true);
+		UserAccount account = appMan.getAdministrationManager().createUserAccount(userName, isNatural);
 		try {
 			Thread.sleep(1);
 		} catch (InterruptedException e) {
@@ -41,7 +45,7 @@ public class UserBuilder {
 	}
 	
 	// using static policy instead; see ogema.policy
-	private void addBundlePermissionForUser(String userName, String bundleSymbolicName) {
+	/*private void addBundlePermissionForUser(String userName, String bundleSymbolicName) {
 		//AppID appID = findAppIdForString(appIdString);
 		AppPermissionFilter props = new AppPermissionFilter(bundleSymbolicName, "*", "*",
 				Version.emptyVersion
@@ -52,5 +56,5 @@ public class UserBuilder {
 		} catch (Exception e) {
 			appMan.getLogger().error("Could not add permissions for user {}",userName,e);
 		}
-	}
+	}*/
 }
