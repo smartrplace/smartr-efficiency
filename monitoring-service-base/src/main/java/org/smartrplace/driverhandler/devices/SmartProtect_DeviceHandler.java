@@ -9,8 +9,10 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.GenericBinarySensor;
+import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.SmokeDetector;
 import org.ogema.model.sensors.TemperatureSensor;
@@ -41,10 +43,13 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
 		addDatapoint(device.sensors().getSubResource("battery_low", GenericBinarySensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("co_alert", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.sensors().getSubResource("air", GenericFloatSensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("humidity", HumiditySensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("siren", GenericBinarySensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("smoke", SmokeDetector.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("motion", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.getSubResource("state", MultiSwitch.class).stateControl(), result);
+		addDatapoint(device.getSubResource("state", MultiSwitch.class).stateFeedback(), result);
 	return result;
 	}
 

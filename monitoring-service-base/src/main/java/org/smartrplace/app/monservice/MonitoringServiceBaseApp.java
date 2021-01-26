@@ -32,6 +32,7 @@ import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
 import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
+import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
@@ -177,6 +178,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srGas = null;
 	private GasEnergyCam_DeviceHandler devHandGas;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srIota = null;
+	private Iotawatt_DeviceHandler devHandIota;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -272,6 +276,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srHeat = bc.registerService(DeviceHandlerProvider.class, devHandHeat, null);
 	   devHandGas = new GasEnergyCam_DeviceHandler(controller.appManPlus);
 	   srGas = bc.registerService(DeviceHandlerProvider.class, devHandGas, null);
+	   devHandIota = new Iotawatt_DeviceHandler(controller.appManPlus);
+	   srIota = bc.registerService(DeviceHandlerProvider.class, devHandIota, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -308,6 +314,7 @@ public class MonitoringServiceBaseApp implements Application {
        	if (srWater!= null) srWater.unregister();
        	if (srHeat != null) srHeat.unregister();
        	if (srGas != null) srGas.unregister();
+      	if (srIota != null) srIota.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
