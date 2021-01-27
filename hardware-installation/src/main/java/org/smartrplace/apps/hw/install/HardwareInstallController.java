@@ -52,9 +52,11 @@ import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
+import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
+import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
@@ -89,6 +91,18 @@ public class HardwareInstallController {
 	public ResourceList<DataLogTransferInfo> datalogs;
 	//WidgetApp widgetApp;
 	public volatile boolean cleanUpOnStartDone = false;
+	
+	private final Map<String, DeviceTypeProvider<?>> deviceTypeProviders = new HashMap<>();
+	public Map<String, DeviceTypeProvider<?>> getDeviceTypeProviders() {
+		synchronized(deviceTypeProviders) {
+			return new HashMap<String, DeviceTypeProvider<?>>(deviceTypeProviders);
+		}
+	}
+	public void addDeviceTypeProvider(DeviceTypeProvider<?> prov) {
+		synchronized(deviceTypeProviders) {
+			deviceTypeProviders.put(prov.id(), prov);
+		}
+	}
 	
 	ResourceValueListener<BooleanResource> searchForHwListener = null;
 	
@@ -161,6 +175,12 @@ public class HardwareInstallController {
 		deviceConfigPage = new DeviceConfigPage(page2, this);
 		hardwareInstallApp.menu.addEntry("Hardware Driver Configuration", page2);
 		hardwareInstallApp.configMenuConfig(page2.getMenuConfiguration());
+		
+		WidgetPage<?> page3 = hardwareInstallApp.widgetApp.createWidgetPage("deviceTypeConfig.html");
+		new DeviceTypeConfigPage(page3, this);
+		hardwareInstallApp.menu.addEntry("Device Configuration based on Device Type Database", page3);
+		hardwareInstallApp.configMenuConfig(page3.getMenuConfiguration());
+
 	}
 
 	protected MainPage getMainPage(WidgetPage<?> page) {
@@ -329,6 +349,10 @@ public class HardwareInstallController {
 	
 	public <T extends Resource> void startSimulations(DeviceHandlerProvider<T> tableProvider) {
 		//Class<?> tableType = tableProvider.getResourceType();
+		Collection<DeviceTypeProvider<?>> dtbproviders = tableProvider.getDeviceTypeProviders();
+		if(dtbproviders != null) for(DeviceTypeProvider<?> prov: dtbproviders) synchronized(deviceTypeProviders) {
+			addDeviceTypeProvider(prov);
+		}
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if(!tableProvider.id().equals(install.devHandlerInfo().getValue()))
 				continue;
