@@ -46,8 +46,9 @@ public class DeviceTypeConfigPage extends ObjectGUITablePageNamed<DeviceTypeConf
 		super.addWidgetsAboveTable();
 
 		final TextArea descriptionArea = new TextArea(page, "descriptionArea");
+		descriptionArea.setDefaultWidth("600pt");
 		
-		StaticTable topTable = new StaticTable(1, 6);
+		StaticTable topTable = new StaticTable(1, 6, new int[] {4, 2, 2, 2, 1, 1});
 		
 		final TextField address = new TextField(page, "address");
 		final TextField password = new TextField(page, "password");
@@ -71,7 +72,7 @@ public class DeviceTypeConfigPage extends ObjectGUITablePageNamed<DeviceTypeConf
 				if(phData != null && phData.password != null)
 					password.setPlaceholder(phData.password, req);
 				if(phData != null && phData.configuration != null)
-					configuration.setPlaceholder(phData.configuration, req);
+					configuration.setValue(phData.configuration, req);
 			}
 		};
 		providerDrop.setTemplate(new DefaultDisplayTemplate<DeviceTypeProvider<?>>() {
@@ -121,7 +122,9 @@ public class DeviceTypeConfigPage extends ObjectGUITablePageNamed<DeviceTypeConf
 		topTable.setContent(0, 4, testButton);
 		topTable.setContent(0, 5, createButton);
 		page.append(topTable);
-		page.append(descriptionArea);
+		StaticTable descTable = new StaticTable(1,  2);
+		descTable.setContent(0, 0, descriptionArea);
+		page.append(descTable);
 	}
 	
 	@Override

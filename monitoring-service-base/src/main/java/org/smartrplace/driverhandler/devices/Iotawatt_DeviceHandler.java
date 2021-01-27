@@ -76,7 +76,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 
 		@Override
 		public String label(OgemaLocale arg0) {
-			return "3-phase device connected to inputs "+firstInput+"-"+(firstInput+2);
+			return "Iotawatt:3-phase measurement on inputs "+firstInput+"-"+(firstInput+2);
 		}
 
 		@Override
@@ -85,8 +85,9 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 		}
 
 		@Override
-		public String getConfigDescription() {
-			return "no password required, configuration first provides update interval (connections to the device) and the reading interval (window size for which average is calculated and stored)";
+		public String description(OgemaLocale locale) {
+			return "no password required, configuration first provides update interval (connections to the device) as ISO8601 duration string. " + 
+					"Recommended is {@code PT2m}, i.e. 2 minutes";
 		}
 
 		@Override
@@ -95,27 +96,37 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 			
 			CreateAndConfigureResult<IotaWattElectricityConnection> result = new CreateAndConfigureResult<IotaWattElectricityConnection>();
 
+			if(configData.address.isEmpty()) {
+				result.resultMessage = "Empty address cannot be processed!";
+				return result;
+			}
 			String updIntv;
-			String readIntv;
+			//String readIntv;
 			try {
 				int idx = configData.configuration.indexOf("UI:");
 				int end = configData.configuration.indexOf("_");
-				updIntv = configData.configuration.substring(idx+3, end);
-				idx = configData.configuration.indexOf("RI:");
-				readIntv = configData.configuration.substring(idx+3);
+				if(idx < 0)
+					updIntv = configData.configuration;
+				else if(end < 0)
+					updIntv = configData.configuration.substring(idx+3);
+				else
+					updIntv = configData.configuration.substring(idx+3, end);
+				//idx = configData.configuration.indexOf("RI:");
+				//readIntv = configData.configuration.substring(idx+3);
 			} catch(StringIndexOutOfBoundsException e) {
 				result.resultMessage = "Could not process configuration: "+configData.configuration;
 				return result;
 			}
 			if(configData.governingResource == null) {
 				ResourceList<?> iotaWattConnections = appMan.getResourceManagement().createResource("IotaWattConnections", ResourceList.class);
-				configData.governingResource = iotaWattConnections.addDecorator(ResourceUtils.getValidResourceName(configData.address),
+				configData.governingResource = iotaWattConnections.addDecorator(ResourceUtils.getValidResourceName(
+						"iota_"+configData.address+"_S"+firstInput),
 						IotaWattElectricityConnection.class);
 			}
 			String uri = "http://"+configData.address+"/query";
 			ValueResourceHelper.setCreate(configData.governingResource.uri(), uri);
 			ValueResourceHelper.setCreate(configData.governingResource.updateInterval(), updIntv);
-			ValueResourceHelper.setCreate(configData.governingResource.readingInterval(), readIntv);
+			//ValueResourceHelper.setCreate(configData.governingResource.readingInterval(), readIntv);
 			String[] phases = new String[] {"L1:Input_"+firstInput, "L2:Input_"+(firstInput+1), "L3:Input_"+(firstInput+2)};
 			ValueResourceHelper.setCreate(configData.governingResource.phases(), phases);
 			ValueResourceHelper.setCreate(configData.governingResource.voltage(), "Voltage");
@@ -145,7 +156,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 				if(address.endsWith("/query"))
 					address = address.substring(0, address.length()-"/query".length());
 				DeviceTypeConfigData<IotaWattElectricityConnection> config = new DeviceTypeConfigData<IotaWattElectricityConnection>(address,
-						null, "UI:"+con.updateInterval().getValue()+"_RI:"+con.readingInterval().getValue());
+						null, "UI:"+con.updateInterval().getValue()); //+"_RI:"+con.readingInterval().getValue());
 				config.governingResource = con;
 				config.dtbProvider = this;
 				result.add(config);
@@ -161,7 +172,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 
 		@Override
 		public DeviceTypeConfigDataBase getPlaceHolderData() {
-			return new DeviceTypeConfigDataBase("192.168.0.99", null, "UI:1m_RI:30s");
+			return new DeviceTypeConfigDataBase("192.168.0.99", null, "UI:PT2m");
 		}		
 	}
 	

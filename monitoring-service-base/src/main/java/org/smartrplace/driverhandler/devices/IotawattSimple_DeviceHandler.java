@@ -39,7 +39,8 @@ public class IotawattSimple_DeviceHandler extends DeviceHandlerSimple<IotaWattCo
 		//addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
 		List<GenericFloatSensor> allSens = device.sensors().getAllElements();
 		for(GenericFloatSensor ec: allSens) {
-			addDatapoint(ec.reading(), result, dpService);
+			String ch = ec.getName();
+			addDatapoint(ec.reading(), result, ch, dpService);
 		}
 		return result;
 	}
