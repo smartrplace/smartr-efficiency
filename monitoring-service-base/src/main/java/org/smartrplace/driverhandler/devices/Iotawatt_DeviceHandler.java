@@ -52,7 +52,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 
 	@Override
 	protected String getTableTitle() {
-		return "Iotwatt Meters";
+		return "Iotwatt 3-phase Measurement";
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 			//ValueResourceHelper.setCreate(configData.governingResource.readingInterval(), readIntv);
 			String[] phases = new String[] {"L1:Input_"+firstInput, "L2:Input_"+(firstInput+1), "L3:Input_"+(firstInput+2)};
 			ValueResourceHelper.setCreate(configData.governingResource.phases(), phases);
-			ValueResourceHelper.setCreate(configData.governingResource.voltage(), "Voltage");
+			ValueResourceHelper.setCreate(configData.governingResource.voltage(), "Input_0");
 			configData.governingResource.activate(true);
 			
 			result.resultConfig = configData;

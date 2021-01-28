@@ -135,6 +135,29 @@ public class ConfigurationPageHWInstall {
 			};
 		};
 		
+		/*ButtonConfirm generalBackupUpdateButton = new ButtonConfirm(page, "generalBackupUpdateButton", "Update generalBackup.zip") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				//Create Backup
+				ResourceList<?> configList = controller.appMan.getResourceAccess().getResource("resAdminConfig/configList");
+				if(configList == null) {
+					alert.showAlert("Could not find resAdminConfig/configList", false, req);
+					return;
+				}
+				Resource el = ResourceListHelper.getNamedElementFlex("DailyBackupToSend", configList);
+				if(el == null) {
+					alert.showAlert("Could not find DailyBackupToSend", false, req);
+					return;
+				}
+				BackupAction run = el.getSubResource("run", BackupAction.class);
+				ActionHelper.performActionBlocking(run, 20000);
+				
+				//Create Zip (and send)
+			}
+		};
+		generalBackupUpdateButton.setDefaultConfirmMsg("To transfer the file to the server perform /gateway-backup.sh generalBackup on the console of the gateway."
+				+ " To transfer to gateway perform sync.sh in rundir-src-test on development PC.");
+		*/
 		Button resetEnergyServer = new Button(page, "resetEnergyServer", "Reset Energy Server") {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				Resource ese = controller.appMan.getResourceAccess().getResource("EnergyServerReadings_ESE");
@@ -219,6 +242,10 @@ public class ConfigurationPageHWInstall {
 		setContent(i, 1, updateViaHeartbeat);
 		i++;
 		
+		//configTable.setContent(i, 0, "Update generalBackup.zip file").
+		//setContent(i, 1, generalBackupUpdateButton);
+		//i++;
+
 		configTable.setContent(i, 0, "Interval for alarming evaluation (days behind now)").
 		setContent(i, 1, alarmEvalIntervalEdit);
 		i++;
