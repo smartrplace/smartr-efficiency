@@ -74,24 +74,7 @@ public class RoomSetupPage extends ObjectGUITablePageNamed<RoomGroupTbl, Boolean
 			}
 		};
 		addRoomGroup.registerDependentWidget(mainTable);
-		//RedirectButton userAdminLink = new RedirectButton(page, "userAdminLink", "User Administration",
-		//		"/de/iwes/ogema/apps/logtransfermodus/index.html");
-		
-		//topTable.setContent(0, 0, userFilter.getFirstDropdown()).setContent(0, 1, userFilter); //.setContent(0,  2, roomFilter);
-		/*if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.hideAddUserGroupButton")) {
-			Button addUserGroup = new Button(page, "addUserGroup", "Add User Group") {
 
-				@Override
-				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					AccessConfigUser grp = ResourceListHelper.createNewNamedElement(
-							controller.appConfigData.userPermissions(),
-							"New User Group", false);
-					ValueResourceHelper.setCreate(grp.isGroup(), 1);
-					grp.activate(true);
-				}
-			};
-			topTable.setContent(1, 0, addUserGroup);
-		}*/
 		topTable.setContent(1, 1, addRoomGroup); //.setContent(1, 2, userAdminLink);
 		page.append(topTable);
 		//dualFiltering = new DualFiltering<String, Room, Room>(

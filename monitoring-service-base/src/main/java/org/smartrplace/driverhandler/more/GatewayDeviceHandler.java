@@ -1,9 +1,11 @@
 package org.smartrplace.driverhandler.more;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -130,6 +132,8 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 		GatewayDevice device = (GatewayDevice) installDeviceRes.device();
 		result.add(dpService.getDataPointStandard(device.gitUpdateStatus()));
 		result.add(dpService.getDataPointStandard(device.systemRestart()));
+		result.add(dpService.getDataPointStandard(device.datapointsInAlarmState()));
+		result.add(dpService.getDataPointStandard(device.heartBeatDelay()));
 
 		return result;
 	}
@@ -176,7 +180,35 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 			};
 			result.addValueListener(resultListener, true);
 		}
+		StringResource systemBootTime = rundirUpdateStatus.getSubResource("systemBootTime", StringResource.class);
+		//the resource might have been written before this starts up, so we also have to check outside the listener
+		checkSystemBootTime(systemBootTime, deviceResource);
+		if(systemBootTime.isActive()) {
+			ResourceValueListener<StringResource> bootListener = new ResourceValueListener<StringResource>() {
+				@Override
+				public void resourceChanged(StringResource resource) {
+					checkSystemBootTime(systemBootTime, deviceResource);					
+				}
+			};
+			systemBootTime.addValueListener(bootListener, true);
+		}
 		return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);
+	}
+	
+	protected void checkSystemBootTime(StringResource systemBootTime, GatewayDevice deviceResource) {
+		String bootTimeStr = systemBootTime.getValue();
+		ZonedDateTime joda = null;
+		try {
+			joda = ZonedDateTime.parse(bootTimeStr);
+			//joda = new DateTime(bootTimeStr);
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		long bootTime = joda.toEpochSecond()*1000;
+		long now = appMan.getFrameworkTime();
+		if(now - bootTime < TimeProcUtil.HOUR_MILLIS) {
+			ValueResourceHelper.setCreate(deviceResource.systemRestart(), 1);			
+		}
 	}
 	
 	@Override
