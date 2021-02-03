@@ -8,6 +8,7 @@
     </parent>
     
     <artifactId>hardware-installation</artifactId>
+    <version>0.9.0-SNAPSHOT</version>
     <name>Setup And Installation</name>
     <description>Hardware and Driver setup and configuration</description>
     

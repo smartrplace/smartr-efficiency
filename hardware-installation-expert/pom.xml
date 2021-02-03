@@ -9,6 +9,7 @@
     
     <artifactId>hardware-installation-expert</artifactId>
     <name>Smartrplace Hardware Installation Expert App</name>
+    <version>0.9.0-SNAPSHOT</version>
     <description>Smartrplace hardware installation support app in expert mode</description>
     
     <packaging>bundle</packaging>

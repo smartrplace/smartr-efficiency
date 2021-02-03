@@ -6,10 +6,10 @@
        <groupId>org.smartrplace.apps</groupId>
         <version>2.1.3-SNAPSHOT</version> <!-- FIXME SNAPSHOT -->
     </parent>
-  
-    
+
     <artifactId>smartr-eval-admin</artifactId>
-     <name>SmartrEvalAdmin</name>
+    <version>2.1.3-SNAPSHOT</version>
+    <name>SmartrEvalAdmin</name>
     <description>EvaluationProvider Admin for SmartrEfficiency</description>
     
     <packaging>bundle</packaging>

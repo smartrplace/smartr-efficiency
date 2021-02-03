@@ -8,6 +8,7 @@
   </parent>
   <artifactId>alarming-config-expert</artifactId>
   <groupId>org.smartrplace.apps</groupId>
+  <version>2.1.3-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Alarming Configuration Expert</name>
   <description>Standalone app for configuration of alarming (Expert Mode)</description>

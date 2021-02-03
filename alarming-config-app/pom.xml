@@ -8,6 +8,7 @@
   </parent>
   <artifactId>alarming-config-app</artifactId>
   <groupId>org.smartrplace.apps</groupId>
+  <version>2.1.3-SNAPSHOT</version>
   <packaging>bundle</packaging>
   <name>Alarming Configuration</name>
   <description>Standalone app for configuration of alarming.</description>
