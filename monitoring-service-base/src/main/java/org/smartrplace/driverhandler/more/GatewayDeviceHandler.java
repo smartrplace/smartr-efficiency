@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.joda.time.DateTime;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
@@ -28,6 +28,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gateway.device.GatewayDevice;
+import org.smartrplace.monitoring.vnstat.resources.NetworkTrafficData;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -135,6 +136,11 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 		result.add(dpService.getDataPointStandard(device.datapointsInAlarmState()));
 		result.add(dpService.getDataPointStandard(device.heartBeatDelay()));
 
+		List<NetworkTrafficData> ifacs = device.networkTrafficData().getAllElements();
+		for(NetworkTrafficData ifac: ifacs) {
+			addDatapoint(ifac.monthlyTotalKiB().reading(), result, ifac.getName(), dpService);			
+		}
+
 		return result;
 	}
 
@@ -152,6 +158,13 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 	@Override
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			GatewayDevice deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		if(!deviceResource.networkTrafficData().exists()) {
+			Resource networkTraffic = appMan.appMan().getResourceAccess().getResource("NetworkTrafficData");
+			if(networkTraffic != null && (networkTraffic instanceof ResourceList)) {
+				deviceResource.networkTrafficData().setAsReference(networkTraffic);
+			}
+		}
+		
 		Configuration rundirUpdateStatus = ResourceHelper.getTopLevelResource("RundirUpdateStatus", Configuration.class, appMan.getResourceAccess());
 		if(rundirUpdateStatus == null)
 			return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);

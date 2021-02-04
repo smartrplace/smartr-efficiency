@@ -176,10 +176,10 @@ public class HardwareInstallController {
 		hardwareInstallApp.menu.addEntry("Hardware Driver Configuration", page2);
 		hardwareInstallApp.configMenuConfig(page2.getMenuConfiguration());
 		
-		WidgetPage<?> page3 = hardwareInstallApp.widgetApp.createWidgetPage("deviceTypeConfig.html");
+		/*WidgetPage<?> page3 = hardwareInstallApp.widgetApp.createWidgetPage("deviceTypeConfig.html");
 		new DeviceTypeConfigPage(page3, this);
 		hardwareInstallApp.menu.addEntry("Device Configuration based on Device Type Database", page3);
-		hardwareInstallApp.configMenuConfig(page3.getMenuConfiguration());
+		hardwareInstallApp.configMenuConfig(page3.getMenuConfiguration());*/
 
 	}
 

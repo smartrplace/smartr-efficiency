@@ -34,6 +34,7 @@ import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
 import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
+import org.smartrplace.driverhandler.devices.OpenWeatherMapBigBlueRoom_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
@@ -144,6 +145,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srWeather = null;
 	private WeatherStation_DeviceHandler devHandWeather;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srOpenWeather = null;
+	private OpenWeatherMapBigBlueRoom_DeviceHandler devHandOpenWeather;
 	
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
@@ -256,6 +260,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srSmoke = bc.registerService(DeviceHandlerProvider.class, devHandSmoke, null);
 	   devHandWeather = new WeatherStation_DeviceHandler(controller.appManPlus);
 	   srWeather = bc.registerService(DeviceHandlerProvider.class, devHandWeather, null);
+	   devHandOpenWeather = new OpenWeatherMapBigBlueRoom_DeviceHandler(controller.appManPlus);
+	   srOpenWeather = bc.registerService(DeviceHandlerProvider.class, devHandOpenWeather, null);
 	   
 	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
 	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
@@ -329,6 +335,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srTempHumSens != null) srTempHumSens.unregister();
     	if (srSmoke != null) srSmoke.unregister();
     	if (srWeather != null) srWeather.unregister();
+    	if (srOpenWeather != null) srOpenWeather.unregister();
     	
     	if (jmbusDriver != null) jmbusDriver.unregister();
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();

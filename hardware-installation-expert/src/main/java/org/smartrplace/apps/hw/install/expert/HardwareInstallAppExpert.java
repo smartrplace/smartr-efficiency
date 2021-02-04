@@ -27,6 +27,7 @@ import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
@@ -128,6 +129,10 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Device Setup and Installation with Properties",propDevicePage);
 			propDevicePage.getMenuConfiguration().setCustomNavigation(menu);
 
+			WidgetPage<?> page3 = widgetApp.createWidgetPage("deviceTypeConfig.html");
+			new DeviceTypeConfigPage(page3, controller);
+			menu.addEntry("Device Configuration based on Device Type Database", page3);
+			page3.getMenuConfiguration().setCustomNavigation(menu);
 		}
 	};
 	
