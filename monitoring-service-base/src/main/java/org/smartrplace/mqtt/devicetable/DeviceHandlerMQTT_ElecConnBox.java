@@ -7,6 +7,8 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ValueResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -18,6 +20,12 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.ElectricCurrentSensor;
+import org.ogema.model.sensors.ElectricEnergySensor;
+import org.ogema.model.sensors.ElectricVoltageSensor;
+import org.ogema.model.sensors.PowerSensor;
+import org.ogema.model.sensors.ReactivePowerAngleSensor;
+import org.ogema.model.sensors.Sensor;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -124,22 +132,50 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
 		ElectricityConnectionBox dev = (ElectricityConnectionBox) installDeviceRes.device();
 		List<Datapoint> result = new ArrayList<>();
-		addConnDatapoints(result, dev.connection(), dpService);
+		addConnDatapoints(result, dev.connection(), null, dpService);
 		for(ElectricityConnection subConn: dev.connection().subPhaseConnections().getAllElements()) {
-			addConnDatapoints(result, subConn, dpService);			
+			addConnDatapoints(result, subConn, subConn.getName(), dpService);			
 		}
 		
 		return result;
 	}
 	
-	protected void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService) {
-		addDatapoint(conn.voltageSensor().reading(), result, dpService);
-		addDatapoint(conn.powerSensor().reading(), result, dpService);
-		addDatapoint(conn.reactivePowerSensor().reading(), result, dpService);
-		addDatapoint(conn.reactiveAngleSensor().reading(), result, dpService);
-		addDatapoint(conn.energySensor().reading(), result, dpService);
-		addDatapoint(conn.currentSensor().reading(), result, dpService);
-		addDatapoint(conn.frequencySensor().reading(), result, dpService);		
+	protected void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, String phase, DatapointService dpService) {
+		addDatapoint(conn.voltageSensor().reading(), result, phase, dpService);
+		addDatapoint(conn.powerSensor().reading(), result, phase, dpService);
+		addDatapoint(conn.reactivePowerSensor().reading(), result, phase, dpService);
+		addDatapoint(conn.reactiveAngleSensor().reading(), result, phase, dpService);
+		addDatapoint(conn.energySensor().reading(), result, phase, dpService);
+		addDatapoint(conn.currentSensor().reading(), result, phase, dpService);
+		addDatapoint(conn.frequencySensor().reading(), result, phase, dpService);
+		addDecoratorDatapoints(conn.getSubResources(ElectricVoltageSensor.class, false), result, phase, dpService);
+		addDecoratorDatapoints(conn.getSubResources(ElectricCurrentSensor.class, false), result, phase, dpService);
+		addDecoratorDatapoints(conn.getSubResources(ElectricEnergySensor.class, false), result, phase, dpService);
+		addDecoratorDatapoints(conn.getSubResources(PowerSensor.class, false), result, phase, dpService);
+		addDecoratorDatapoints(conn.getSubResources(ReactivePowerAngleSensor.class, false), result, phase, dpService);
+	}
+	
+	protected <T extends Sensor> void addDecoratorDatapoints(List<T> valRess, List<Datapoint> result, String phase, DatapointService dpService) {
+		for(T sens: valRess) {
+			if(!sens.isDecorator())
+				continue;
+			ValueResource valRes = sens.reading();
+			if(valRes instanceof SingleValueResource) {
+				final String phaseToUse;
+				if(sens instanceof ElectricVoltageSensor) {
+					String name = sens.getName();
+					if(name.startsWith("voltageSensor") && name.length() > "voltageSensor".length()) {
+						String subName = name.substring("voltageSensor".length());
+						if(phase == null)
+							phaseToUse = subName;
+						else phaseToUse = phase+"_"+subName;
+					} else
+						phaseToUse = phase;
+				} else
+					phaseToUse = phase;
+				addDatapoint((SingleValueResource) sens.reading(), result, phaseToUse, dpService);
+			}
+		}
 	}
 	
 	@Override
