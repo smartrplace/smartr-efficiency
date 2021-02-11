@@ -1,11 +1,22 @@
 package org.smartrplace.app.monbase;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.ogema.accesscontrol.RestAccess;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.security.WebAccessManager;
 import org.ogema.model.sensors.Sensor;
 import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
 import org.smartrplace.app.monbase.servlet.ConsumptionEvalServlet;
@@ -13,8 +24,10 @@ import org.smartrplace.app.monbase.servlet.DatapointServlet;
 import org.smartrplace.app.monbase.servlet.SensorServlet;
 import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
 import org.smartrplace.app.monbase.servlet.UserServletTestMon;
+import org.smartrplace.app.monbase.servlet.UserServletTestMonAPI;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
+import org.smartrplace.os.util.DirUtils;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.frontend.servlet.UserServlet;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
@@ -22,6 +35,10 @@ import org.sp.smarteff.monitoring.alarming.AlarmingUtil;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.filedownload.FileDownloadServlet;
+import de.iwes.widgets.html.fileupload.FileUploadServlet;
+import de.iwes.widgets.html.fileupload.UploadState;
 import extensionmodel.smarteff.api.base.SmartEffUserData;
 import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 import extensionmodel.smarteff.api.common.BuildingData;
@@ -29,6 +46,8 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 import extensionmodel.smarteff.monitoring.AlarmConfigBase;
 
 public class InitUtil {
+	public static final File GENERIC_UPLOAD_FOR_WEB_PATH = new File("uploads");
+
 	public static void initAlarmingForManual(MonitoringController controller) {
 		SmartEffUserDataNonEdit user = controller.appMan.getResourceAccess().getResource("master");
 		if(user == null) return;
@@ -123,10 +142,16 @@ public class InitUtil {
  			return false;
 		//register own servlet
 		String userServletPath = MonitoringApp.urlPathServlet+"/userdata";
-		UserServlet userServlet = new UserServlet(); //.getInstance();
+		String userServletPathAPI = MonitoringApp.urlPathServletAPI;
+		String genericFileUploadServletPath = "/upload";
+		String genericFileDownloadServletPath = "/download/";
+		UserServlet userServlet = registerServlet(userServletPath, controller, includeSpecialTimeseriesServlet);
 		UserServletTestMon.userServlet = userServlet;
 		UserServletTestMon.restAcc = restAcc;
-		SensorServlet sensServlet = new SensorServlet(controller);
+		UserServlet userServletAPI = registerServlet(userServletPathAPI, controller, includeSpecialTimeseriesServlet);
+		UserServletTestMonAPI.userServlet = userServletAPI;
+		UserServletTestMonAPI.restAcc = restAcc;
+		/*SensorServlet sensServlet = new SensorServlet(controller);
 		userServlet.addPage("sensorsByRoom", sensServlet);
 		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);
 		userServlet.addPage("timeseries", timeSeriesServlet);
@@ -138,7 +163,64 @@ public class InitUtil {
 		}
 		ConsumptionEvalServlet conEvalServlet = new ConsumptionEvalServlet(controller);
 		userServlet.addPage("consumptionData", conEvalServlet);
-		controller.appMan.getWebAccessManager().registerWebResource(userServletPath, userServlet);
+		//controller.appMan.getWebAccessManager().registerWebResource(userServletPath, userServlet);
+		controller.appMan.getWebAccessManager().registerWebResource(userServletPathAPI, userServlet);*/
+		
+		UploadState uploadListener = new UploadState() {
+			
+			@Override
+			public void finished(FileItem item, OgemaHttpRequest req) {
+				File destFile = new File(GENERIC_UPLOAD_FOR_WEB_PATH, item.getName());
+				try {
+					Files.copy(item.getInputStream(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+					registerDownload(destFile, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+			}
+		};
+		FileUploadServlet fileUploadServlet = new FileUploadServlet(uploadListener, includeSpecialTimeseriesServlet, GENERIC_UPLOAD_FOR_WEB_PATH, null);
+		controller.appMan.getWebAccessManager().registerWebResource(genericFileUploadServletPath, fileUploadServlet);
+		registerDownloads(GENERIC_UPLOAD_FOR_WEB_PATH, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
+		//controller.appMan.getWebAccessManager().registerWebResource("/uploadlic", "/license");
+		//controller.appMan.getWebAccessManager().registerWebResource("/uploados", "os-config");
+		//File locallic = controller.appMan.getDataFile("license");
+		//controller.appMan.getWebAccessManager().registerWebResource("/locallic", locallic.getAbsolutePath());
+		//System.out.println("Registered locallic for "+locallic.getAbsolutePath());
 		return true;
+ 	}
+ 	
+ 	public static UserServlet registerServlet(String servletPath, MonitoringController controller,
+ 			boolean includeSpecialTimeseriesServlet) {
+ 		UserServlet userServlet = new UserServlet(); //.getInstance();
+ 		SensorServlet sensServlet = new SensorServlet(controller);
+		userServlet.addPage("sensorsByRoom", sensServlet);
+		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);
+		userServlet.addPage("timeseries", timeSeriesServlet);
+		DatapointServlet dpServlet = new DatapointServlet(controller);
+		userServlet.addPage("datapoints", dpServlet);
+		if(includeSpecialTimeseriesServlet) {
+			TimeSeriesServlet timeSeriesServletExt = new TimeSeriesServlet(controller.appMan);
+			userServlet.addPage("timeseriesExtended", timeSeriesServletExt);
+		}
+		ConsumptionEvalServlet conEvalServlet = new ConsumptionEvalServlet(controller);
+		userServlet.addPage("consumptionData", conEvalServlet);
+		controller.appMan.getWebAccessManager().registerWebResource(servletPath, userServlet);
+ 		return userServlet;
+ 	}
+ 	
+ 	public static void registerDownloads(File sourceDir, String baseServletPath, WebAccessManager webMan) {
+ 		Collection<File> allFiles = FileUtils.listFiles(sourceDir, FileFileFilter.FILE, null);
+ 		for(File file: allFiles) {
+ 			registerDownload(file, baseServletPath, webMan);
+ 		}
+ 	}
+ 	
+ 	public static void registerDownload(File file, String baseServletPath, WebAccessManager webMan) {
+	 		FileDownloadServlet fds = new FileDownloadServlet(file, false, false);
+	 		String servpath = baseServletPath+file.getName();
+	 		webMan.registerWebResource(servpath, fds);
+	 		System.out.println("Registered "+servpath+" for "+file.getAbsolutePath()); 		
  	}
 }
