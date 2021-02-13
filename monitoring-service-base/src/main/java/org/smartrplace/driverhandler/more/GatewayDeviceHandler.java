@@ -214,13 +214,13 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 		try {
 			joda = ZonedDateTime.parse(bootTimeStr);
 			//joda = new DateTime(bootTimeStr);
+			long bootTime = joda.toEpochSecond()*1000;
+			long now = appMan.getFrameworkTime();
+			if(now - bootTime < TimeProcUtil.HOUR_MILLIS) {
+				ValueResourceHelper.setCreate(deviceResource.systemRestart(), 1);			
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
-		}
-		long bootTime = joda.toEpochSecond()*1000;
-		long now = appMan.getFrameworkTime();
-		if(now - bootTime < TimeProcUtil.HOUR_MILLIS) {
-			ValueResourceHelper.setCreate(deviceResource.systemRestart(), 1);			
 		}
 	}
 	

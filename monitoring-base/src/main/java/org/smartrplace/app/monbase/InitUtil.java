@@ -211,6 +211,7 @@ public class InitUtil {
  	}
  	
  	public static void registerDownloads(File sourceDir, String baseServletPath, WebAccessManager webMan) {
+ 		DirUtils.makeSureDirExists(sourceDir.toPath());
  		Collection<File> allFiles = FileUtils.listFiles(sourceDir, FileFileFilter.FILE, null);
  		for(File file: allFiles) {
  			registerDownload(file, baseServletPath, webMan);
