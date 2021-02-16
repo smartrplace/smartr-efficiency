@@ -22,11 +22,15 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
+import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
+import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.format.StringFormatHelper;
@@ -38,6 +42,7 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
+import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
@@ -54,6 +59,7 @@ public class ConfigurationPageHWInstall {
 		
 		//this.page = page;
 		this.controller = app;
+		setMainMeter(app.appConfigData.mainMeter());
 		
 		final Alert alert = new Alert(page, "alert", "");
 		page.append(alert);
@@ -179,7 +185,32 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<TimeResource> alarmEvalIntervalEdit = new TimeResourceTextField(page, "alarmEvalIntervalEdit", Interval.days);
 		alarmEvalIntervalEdit.selectDefaultItem(controller.appConfigData.basicEvalInterval());
 
-		StaticTable configTable = new StaticTable(13, 2);
+		ResourceDropdown<IotaWattElectricityConnection> mainMeterDrop = new ResourceDropdown<IotaWattElectricityConnection>(page, "mainMeterDrop") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				IotaWattElectricityConnection selected = null;
+				if(app.appConfigData.mainMeter().isReference(false)) {
+					selected = ResourceHelper.getFirstParentOfType(app.appConfigData.mainMeter().getLocationResource(), IotaWattElectricityConnection.class);
+				}
+				if(selected != null && selected.exists())
+					selectItem(selected, req);
+				else
+					selectItem(null, req);
+			}
+		
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				IotaWattElectricityConnection selected = getSelectedItem(req);
+				if(selected != null) {
+					app.appConfigData.mainMeter().setAsReference(selected);
+					setMainMeter(selected.elConn());
+				} else if(app.appConfigData.mainMeter().exists())
+					app.appConfigData.mainMeter().delete();
+			}
+		};
+		//mainMeterDrop.setTemplate(template);
+		
+		StaticTable configTable = new StaticTable(14, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -242,6 +273,10 @@ public class ConfigurationPageHWInstall {
 		setContent(i, 1, updateViaHeartbeat);
 		i++;
 		
+		configTable.setContent(i, 0, "Main Meter (Iotawatt)").
+		setContent(i, 1, mainMeterDrop);
+		i++;
+		
 		//configTable.setContent(i, 0, "Update generalBackup.zip file").
 		//setContent(i, 1, generalBackupUpdateButton);
 		//i++;
@@ -251,5 +286,10 @@ public class ConfigurationPageHWInstall {
 		i++;
 		
 		page.append(configTable);
+	}
+	
+	public void setMainMeter(ElectricityConnection conn) {
+		VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, controller.util, controller.dpService,
+				TimeProcUtil.SUM_PER_DAY_EVAL);
 	}
 }

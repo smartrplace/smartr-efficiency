@@ -6,24 +6,67 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.units.EnergyResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.connections.ElectricityConnection;
+import org.ogema.model.sensors.ElectricEnergySensor;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
+import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
+import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectricityConnection> {
 
+	private final VirtualSensorKPIMgmt utilAggSubPhases;
+
 	public Iotawatt_DeviceHandler(ApplicationManagerPlus appMan) {
 		super(appMan, true);
+		utilAggSubPhases = new VirtualSensorKPIMgmt(
+				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.getLogger(), appMan.dpService()) {
+			
+			@Override
+			public SingleValueResource getAndConfigureValueResourceSingle(Datapoint dpSource, VirtualSensorKPIDataBase mapData,
+					String newSubResName, Resource device) {
+				throw new IllegalStateException("Multi-input required!");
+				
+			}
+			@Override
+			public SingleValueResource getAndConfigureValueResource(List<Datapoint> dpSource, VirtualSensorKPIDataBase mapData,
+					String newSubResName, Resource device) {
+				IotaWattElectricityConnection iota = (IotaWattElectricityConnection) device;
+				ElectricityConnection conn = iota.elConn();
+	
+				EnergyResource energyDailyRealAgg = conn.getSubResource(newSubResName, ElectricEnergySensor.class).reading();
+				energyDailyRealAgg.getSubResource("unit", StringResource.class).<StringResource>create().setValue("kWh");
+				energyDailyRealAgg.getParent().activate(true);
+
+				List<Datapoint> sums;
+				if(newSubResName.toLowerCase().contains("hour")) {
+					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
+							TimeProcUtil.SUM_PER_HOUR_EVAL);
+				} else {
+					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
+							TimeProcUtil.SUM_PER_DAY_EVAL);					
+				}
+				
+				mapData.evalDp = sums.get(0);
+				return energyDailyRealAgg;
+			}
+		};
 	}
 
 	@Override
@@ -41,12 +84,23 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 	protected Collection<Datapoint> getDatapoints(IotaWattElectricityConnection device,
 			InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
+		List<Datapoint> energy = new ArrayList<>();
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
 		for(ElectricityConnection ec: device.elConn().subPhaseConnections().getAllElements()) {
 			String ph = ec.getName();
-			addDatapoint(ec.energySensor().reading(), result, ph, dpService);
+			Datapoint dpenergy = addDatapoint(ec.energySensor().reading(), result, ph, dpService);
+			energy.add(dpenergy);
 			addDatapoint(ec.powerSensor().reading(), result, ph, dpService);
 		}
+
+		//final VirtualSensorKPIDataBase mapData1 = utilAggSubPhases.getDatapointDataAccumulation(energy, "total"+device.getName(), device,
+		//		15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+		
+		utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
+				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+		utilAggSubPhases.addVirtualDatapoint(energy, "energySumDaily", device,
+				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+
 		return result;
 	}
 

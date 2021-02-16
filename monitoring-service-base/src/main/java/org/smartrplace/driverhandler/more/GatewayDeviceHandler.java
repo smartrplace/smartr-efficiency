@@ -160,7 +160,10 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 			GatewayDevice deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
 		if(!deviceResource.networkTrafficData().exists()) {
 			Resource networkTraffic = appMan.appMan().getResourceAccess().getResource("NetworkTrafficData");
-			if(networkTraffic != null && (networkTraffic instanceof ResourceList)) {
+			if(networkTraffic != null && networkTraffic.exists() && (networkTraffic instanceof ResourceList)) {
+				if(((ResourceList<?>)networkTraffic).getElementType() == null) {
+					((ResourceList<?>)networkTraffic).setElementType(NetworkTrafficData.class);
+				}
 				deviceResource.networkTrafficData().setAsReference(networkTraffic);
 			}
 		}

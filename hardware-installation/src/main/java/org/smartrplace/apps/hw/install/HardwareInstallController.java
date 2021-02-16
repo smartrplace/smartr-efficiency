@@ -47,12 +47,12 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
-import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
@@ -79,6 +79,8 @@ public class HardwareInstallController {
 	public final AccessAdminConfig accessAdminConfigRes;
 	public final HardwareInstallApp hwInstApp;
 	public final HardwareTableData hwTableData;
+	
+	public final TimeseriesSimpleProcUtil util;
 	
 	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
 	public final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
@@ -166,10 +168,14 @@ public class HardwareInstallController {
 		mainPage = getMainPage(page);
 		initConfigResourceForOperation();
         initDemands();
+		util = new TimeseriesSimpleProcUtil(appMan, appManPlus.dpService(), 4);
+		
 		if(hardwareInstallApp == null)
 			return;
+		
 		hardwareInstallApp.menu.addEntry("Device Setup and Configuration", page);
 		hardwareInstallApp.configMenuConfig(page.getMenuConfiguration());
+		
 		
 		WidgetPage<LocaleDictionary> page2 = hardwareInstallApp.widgetApp.createWidgetPage("deviceConfig.html");
 		deviceConfigPage = new DeviceConfigPage(page2, this);

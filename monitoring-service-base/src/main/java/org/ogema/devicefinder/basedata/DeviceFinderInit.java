@@ -28,6 +28,7 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.devices.generators.PVPlant;
 import org.ogema.model.locations.Room;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.ElectricCurrentSensor;
 import org.ogema.model.sensors.ElectricEnergySensor;
 import org.ogema.model.sensors.ElectricFrequencySensor;
@@ -35,6 +36,7 @@ import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.model.sensors.TemperatureSensor;
+import org.ogema.resource.generalandjaxb.GeneralResDeviceUtil;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -271,7 +273,11 @@ public class DeviceFinderInit {
 			dp = new DatapointImpl(valRes.getLocation(), null, valRes, null);
 			DatapointServiceImpl.addStandardData(dp);
 		}
-		dp.setDeviceResource(sensorActorResource);
+		PhysicalElement deviceResource = GeneralResDeviceUtil.getDeviceWithRoomForResource(valRes);
+		if(deviceResource != null)
+			dp.setDeviceResource(deviceResource);
+		else
+			dp.setDeviceResource(sensorActorResource);
 		if(room != null)
 			dp.setRoom(room);
 		return dp;

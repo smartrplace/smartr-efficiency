@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.smartrplace.apps</groupId>
             <artifactId>hardware-installation</artifactId>
-            <version>${project.version}</version>
+            <version>0.9.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 </project>
