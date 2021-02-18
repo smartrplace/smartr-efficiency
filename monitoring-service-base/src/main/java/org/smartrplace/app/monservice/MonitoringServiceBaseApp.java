@@ -36,6 +36,7 @@ import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
 import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.OpenWeatherMapBigBlueRoom_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
+import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
@@ -189,6 +190,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srIotaSimple = null;
 	private IotawattSimple_DeviceHandler devHandIotaSimple;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srFlowProbe = null;
+	private FlowScopeDevHandler devHandFlowProbe;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -290,6 +294,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srIota = bc.registerService(DeviceHandlerProvider.class, devHandIota, null);
 	   devHandIotaSimple = new IotawattSimple_DeviceHandler(controller.appManPlus);
 	   srIotaSimple = bc.registerService(DeviceHandlerProvider.class, devHandIotaSimple, null);
+	   devHandFlowProbe = new FlowScopeDevHandler(controller.appManPlus);
+	   srFlowProbe = bc.registerService(DeviceHandlerProvider.class, devHandFlowProbe, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -328,6 +334,7 @@ public class MonitoringServiceBaseApp implements Application {
        	if (srGas != null) srGas.unregister();
       	if (srIota != null) srIota.unregister();
       	if (srIotaSimple!= null) srIotaSimple.unregister();
+     	if (srFlowProbe!= null) srFlowProbe.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
