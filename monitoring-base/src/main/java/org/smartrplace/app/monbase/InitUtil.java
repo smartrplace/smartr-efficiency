@@ -30,6 +30,7 @@ import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.os.util.DirUtils;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.frontend.servlet.UserServlet;
+import org.smartrplace.util.frontend.servlet.UserServletTest;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
 import org.sp.smarteff.monitoring.alarming.AlarmingUtil;
 
@@ -140,6 +141,9 @@ public class InitUtil {
  			boolean includeSpecialTimeseriesServlet, RestAccess restAcc) {
  		if(UserServletTestMon.userServlet != null)
  			return false;
+ 		if(Boolean.getBoolean("org.ogema.impl.security.mobileloginvianaturaluser")) {
+ 			UserServletTest.userData = controller.appMan.getResourceAccess().getResource("userAdminData/userData");
+ 		}
 		//register own servlet
 		String userServletPath = MonitoringApp.urlPathServlet+"/userdata";
 		String userServletPathAPI = MonitoringApp.urlPathServletAPI;
