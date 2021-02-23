@@ -63,7 +63,8 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 							TimeProcUtil.SUM_PER_DAY_EVAL);					
 				}
 				
-				mapData.evalDp = sums.get(0);
+				if(!sums.isEmpty())
+					mapData.evalDp = sums.get(0);
 				return energyDailyRealAgg;
 			}
 		};
@@ -95,7 +96,10 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 
 		//final VirtualSensorKPIDataBase mapData1 = utilAggSubPhases.getDatapointDataAccumulation(energy, "total"+device.getName(), device,
 		//		15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
-		
+		if(energy.isEmpty()) {
+			System.out.println("   !!! WARNING: Iotawatt without energySensor to use: "+device.getLocation());
+			return result;
+		}
 		utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
 				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
 		utilAggSubPhases.addVirtualDatapoint(energy, "energySumDaily", device,

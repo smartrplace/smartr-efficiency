@@ -60,6 +60,7 @@ import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
+import org.smartrplace.logging.fendodb.FendoTimeSeries;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -504,6 +505,8 @@ public class HardwareInstallController {
 				continue;
 			ReadOnlyTimeSeries ts = dp.getTimeSeries();
 			if(ts == null || (!(ts instanceof RecordedData)))
+				continue;
+			if((ts instanceof FendoTimeSeries) && ((FendoTimeSeries)ts).isReadOnly())
 				continue;
 			RecordedData rec = (RecordedData)ts;
 			if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway") &&
