@@ -45,6 +45,7 @@ import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
+import org.smartrplace.homematic.devicetable.OnOffSwitch_DeviceHandler;
 import org.smartrplace.homematic.devicetable.SmokeDetector_DeviceHandler;
 import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
 import org.smartrplace.homematic.devicetable.WeatherStation_DeviceHandler;
@@ -127,6 +128,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srSwBox = null;
 	private DeviceHandlerMQTT_SingleSwBox devHandSwBox;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srOnOff = null;
+	private OnOffSwitch_DeviceHandler devHandOnOff;
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srSmartDim = null;
 	private DeviceHandlerMQTT_SmartDimmer devHandSmartDim;
@@ -249,6 +253,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
 	   devHandSwBox = new DeviceHandlerMQTT_SingleSwBox(controller.appManPlus);
 	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
+	   devHandOnOff = new OnOffSwitch_DeviceHandler(controller.appManPlus);
+	   srOnOff = bc.registerService(DeviceHandlerProvider.class, devHandOnOff, null);
 	   devHandSmartDim = new DeviceHandlerMQTT_SmartDimmer(controller.appManPlus);
 	   srSmartDim = bc.registerService(DeviceHandlerProvider.class, devHandSmartDim, null);
 
@@ -322,6 +328,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srAircond != null) srAircond.unregister();
     	if (srElecConn != null) srElecConn.unregister();
     	if (srSwBox != null) srSwBox.unregister();
+    	if (srOnOff != null) srOnOff.unregister();
     	if (srPv != null) srPv.unregister();
     	if (srGhl != null) srGhl.unregister();
     	if (srBacnet != null) srBacnet.unregister();

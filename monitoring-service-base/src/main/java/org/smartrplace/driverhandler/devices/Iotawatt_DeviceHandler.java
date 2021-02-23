@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.EnergyResource;
@@ -26,6 +27,7 @@ import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
@@ -84,6 +86,20 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 	@Override
 	protected Collection<Datapoint> getDatapoints(IotaWattElectricityConnection device,
 			InstallAppDevice deviceConfiguration) {
+		// We have to sychronize with reading remote slotsdb and setting up the time series for mirror devices here
+		Resource mirrorList = appMan.getResourceAccess().getResource("serverMirror");
+		if(mirrorList != null) {
+			IntegerResource initStatus = mirrorList.getSubResource("initStatus", IntegerResource.class);
+			while(initStatus.isActive() && (initStatus.getValue() < 2) && Boolean.getBoolean("org.smartrplace.app.srcmon.iscollectinggateway")) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+		
 		List<Datapoint> result = new ArrayList<>();
 		List<Datapoint> energy = new ArrayList<>();
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
