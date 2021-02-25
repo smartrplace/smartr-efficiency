@@ -59,7 +59,8 @@ public class ConfigurationPageHWInstall {
 		
 		//this.page = page;
 		this.controller = app;
-		setMainMeter(app.appConfigData.mainMeter());
+		if(app.appConfigData.mainMeter().exists())
+			setMainMeter(app.appConfigData.mainMeter());
 		
 		final Alert alert = new Alert(page, "alert", "");
 		page.append(alert);
@@ -185,7 +186,8 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<TimeResource> alarmEvalIntervalEdit = new TimeResourceTextField(page, "alarmEvalIntervalEdit", Interval.days);
 		alarmEvalIntervalEdit.selectDefaultItem(controller.appConfigData.basicEvalInterval());
 
-		ResourceDropdown<IotaWattElectricityConnection> mainMeterDrop = new ResourceDropdown<IotaWattElectricityConnection>(page, "mainMeterDrop") {
+		ResourceDropdown<IotaWattElectricityConnection> mainMeterDrop = new ResourceDropdown<IotaWattElectricityConnection>(page, "mainMeterDrop",
+				false, IotaWattElectricityConnection.class, null, controller.appMan.getResourceAccess()) {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				IotaWattElectricityConnection selected = null;
@@ -202,12 +204,13 @@ public class ConfigurationPageHWInstall {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				IotaWattElectricityConnection selected = getSelectedItem(req);
 				if(selected != null) {
-					app.appConfigData.mainMeter().setAsReference(selected);
+					app.appConfigData.mainMeter().setAsReference(selected.elConn());
 					setMainMeter(selected.elConn());
 				} else if(app.appConfigData.mainMeter().exists())
 					app.appConfigData.mainMeter().delete();
 			}
 		};
+		mainMeterDrop.setDefaultAddEmptyOption(true, "No main meter selected");
 		//mainMeterDrop.setTemplate(template);
 		
 		StaticTable configTable = new StaticTable(14, 2);
@@ -290,6 +293,6 @@ public class ConfigurationPageHWInstall {
 	
 	public void setMainMeter(ElectricityConnection conn) {
 		VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, controller.util, controller.dpService,
-				TimeProcUtil.SUM_PER_DAY_EVAL);
+				TimeProcUtil.SUM_PER_DAY_EVAL, true);
 	}
 }
