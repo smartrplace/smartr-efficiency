@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -114,12 +115,20 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 		SensorDeviceDpRes dev = (SensorDeviceDpRes) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		for(Sensor sens: dev.sensors().getAllElements()) {
-			String loc = sens.getName();
-			Datapoint dp = dpService.getDataPointAsIs(loc);
-			if(dp != null)
-				result.add(dp);
-			//if(sens.reading() instanceof SingleValueResource)
-			//	addDatapoint((SingleValueResource) sens.reading(), result, dpService);			
+			//String loc = sens.getName();
+			//Datapoint dp = dpService.getDataPointAsIs(loc);
+			//if(dp != null)
+			//	result.add(dp);
+			if(sens.reading() instanceof SingleValueResource) {
+				String name = sens.getName();
+				int idx = name.indexOf("$$");
+				if(idx > 0) {
+					name = name.substring(0, idx);
+					if(name.equals("NEXT"))
+						name = "NextEventChange";
+				}
+				addDatapoint((SingleValueResource) sens.reading(), result, name, dpService);
+			}
 		}
 		return result;
 	}
