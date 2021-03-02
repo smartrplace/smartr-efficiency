@@ -405,7 +405,7 @@ public class MainPageV1 implements InstalledAppsSelector { //extends DeviceTable
 		return res;
 	}
 	@Override
-	public void addWidgetsExpert(InstallAppDevice object,
+	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan) {
 		//do nothing in base page

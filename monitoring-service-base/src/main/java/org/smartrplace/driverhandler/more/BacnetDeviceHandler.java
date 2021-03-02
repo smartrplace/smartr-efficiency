@@ -56,7 +56,7 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 					Row row, ApplicationManager appMan) {
 				id = id + "_DeviceHandlerBacnet";  // avoid duplicates for now
 				addWidgetsInternal(object, vh, id, req, row, appMan);
-				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
 			}
 
 			@Override

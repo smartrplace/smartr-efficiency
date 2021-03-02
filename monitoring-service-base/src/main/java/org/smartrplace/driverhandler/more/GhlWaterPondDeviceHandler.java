@@ -53,7 +53,7 @@ public class GhlWaterPondDeviceHandler extends DeviceHandlerBase<GhlWaterPond> {
 					Row row, ApplicationManager appMan) {
 				id = id + "_DeviceHandlerThermostat";  // avoid duplicates for now
 				addWidgetsInternal(object, vh, id, req, row, appMan);
-				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
 			}
 
 			@Override

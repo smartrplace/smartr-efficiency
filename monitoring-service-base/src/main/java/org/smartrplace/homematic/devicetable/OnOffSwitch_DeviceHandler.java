@@ -65,7 +65,7 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 				addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
 
-				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
 				
 				if(stateFB != null)
 					stateFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);

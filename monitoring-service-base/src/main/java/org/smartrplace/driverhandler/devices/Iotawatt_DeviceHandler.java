@@ -6,37 +6,52 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.EnergyResource;
+import org.ogema.core.model.units.PhysicalUnit;
+import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.sensors.ElectricEnergySensor;
+import org.ogema.recordeddata.DataRecorder;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
+import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
+import org.smartrplace.tissue.util.logconfig.LogConfigSP;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
+import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
+import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
+@SuppressWarnings("serial")
 public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectricityConnection> {
 
 	private final VirtualSensorKPIMgmt utilAggSubPhases;
 
+	protected final ApplicationManagerPlus appManPlus;
+	
 	public Iotawatt_DeviceHandler(ApplicationManagerPlus appMan) {
 		super(appMan, true);
+		this.appManPlus = appMan;
 		utilAggSubPhases = new VirtualSensorKPIMgmt(
 				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.getLogger(), appMan.dpService()) {
 			
@@ -124,6 +139,62 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 		return result;
 	}
 
+	@Override
+	public void addMoreWidgetsExpert(InstallAppDevice object,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
+			ApplicationManager appMan) {
+		if(req == null) {
+			vh.registerHeaderEntry("RefTimeCounter");
+			vh.registerHeaderEntry("EnergyAsKwh");
+			return;
+		}
+		IotaWattElectricityConnection device = (IotaWattElectricityConnection)object.device();
+
+		vh.floatEdit("RefTimeCounter", id, device.getSubResource("refTimeCounter", FloatResource.class), row, null,
+				0, Float.MAX_VALUE, "Reference counter must be grater zero!", 3);
+		
+		ButtonConfirm setToKwH = new ButtonConfirm(vh.getParent(), "setTokWh"+id, req) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				int nonkWh = 0;
+				for(ElectricityConnection ec: device.elConn().subPhaseConnections().getAllElements()) {
+					ElectricEnergySensor energy = ec.energySensor();
+					if(energy.reading().getUnit() != PhysicalUnit.KILOWATT_HOURS)
+						nonkWh++;
+				}
+				if(nonkWh > 0) {
+					setText("Set "+nonkWh+" phs kWh", req);
+					enable(req);
+				} else {
+					setText("Recalc kWh", req);
+					disable(req);
+				}
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				int nonkWh = 0;
+				for(ElectricityConnection ec: device.elConn().subPhaseConnections().getAllElements()) {
+					ElectricEnergySensor energy = ec.energySensor();
+					if(energy.reading().getUnit() == PhysicalUnit.KILOWATT_HOURS)
+						continue;
+					nonkWh++;
+					RecordedData power = ec.powerSensor().reading().getHistoricalData();
+					long now = appMan.getFrameworkTime();
+					MeterReference ref = TimeSeriesServlet.getDefaultMeteringReference(power, null, appMan);
+					List<SampledValue> newData = TimeSeriesServlet.getMeterFromConsumption(power, 0, now, ref, AggregationMode.Power2Meter);
+					DataRecorder dataRecorder = appManPlus.dataRecorder();
+					//RecordedDataStorage recStor = LogConfigSP.getRecordedData(energy.reading(), dataRecorder, null);
+					LogConfigSP.storeData(newData, energy.reading(), dataRecorder);
+					energy.reading().setUnit(PhysicalUnit.KILOWATT_HOURS);
+				}
+				System.out.println("Update "+nonkWh+" phases to kwH.");
+			}
+		};
+		setToKwH.setConfirmMsg("Stop the Iotawatt driver. Then delete on console: find . -wholename \"*Iota*energySensor%2Freading/*slots\", see https://github.com/smartrplace/fendodb/wiki/Data-Manipulation-and-Import.", req);
+		row.addCell("EnergyAsKwh", setToKwH);
+	}
+	
 	@Override
 	protected String getTableTitle() {
 		return "Iotwatt 3-phase Measurement";

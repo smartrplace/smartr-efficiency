@@ -99,7 +99,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
 
-				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
 			}
 			
 			@Override

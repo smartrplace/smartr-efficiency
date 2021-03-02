@@ -262,7 +262,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		throw new UnsupportedOperationException("Not implemented in HardwareTableBase!");		
 	}
 	@Override
-	public void addWidgetsExpert(InstallAppDevice object,
+	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan) {
 		throw new UnsupportedOperationException("Not implemented in HardwareTableBase!");

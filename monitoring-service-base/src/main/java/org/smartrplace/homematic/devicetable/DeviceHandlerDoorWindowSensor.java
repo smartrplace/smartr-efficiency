@@ -66,7 +66,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 					Row row, ApplicationManager appMan) {
 				id = id + "_DeviceHandlerDoorWindowSensor";  // avoid duplicates for now
 				addWidgetsInternal(object, vh, id, req, row, appMan);
-				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
 			}
 
 			@Override

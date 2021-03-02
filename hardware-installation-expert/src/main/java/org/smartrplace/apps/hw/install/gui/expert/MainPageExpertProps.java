@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverPropertySuccessHandler;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService.AccessAvailability;
 import org.ogema.devicefinder.api.PropType;
@@ -46,7 +47,7 @@ public class MainPageExpertProps extends MainPage {
 	}
 
 	@Override
-	public void addWidgetsExpert(final InstallAppDevice object,
+	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, final InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			final ApplicationManager appMan) {
 		//vh.stringLabel("IAD", id, object.getName(), row);

@@ -109,7 +109,7 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 	}
 
 	@Override
-	public void addWidgetsExpert(InstallAppDevice object,
+	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan) {}
 	

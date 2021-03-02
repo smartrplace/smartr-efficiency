@@ -87,9 +87,12 @@ public class MainPageExpert extends MainPage {
 	}
 	
 	@Override
-	public void addWidgetsExpert(final InstallAppDevice object,
+	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, final InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan) {
+		if(tableProvider != null)
+			tableProvider.addMoreWidgetsExpert(object, vh, id, req, row, appMan);
+		
 		vh.stringLabel("IAD", id, object.getName(), row);
 		vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
 		if(req == null) {

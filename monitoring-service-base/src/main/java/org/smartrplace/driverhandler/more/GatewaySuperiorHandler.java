@@ -48,7 +48,7 @@ public class GatewaySuperiorHandler extends DeviceHandlerBase<GatewayData> {
 					Row row, ApplicationManager appMan) {
 				id = id + "_DeviceHandlerGwLocal";  // avoid duplicates for now
 				addWidgetsInternal(object, vh, id, req, row, appMan);
-				appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
 			}
 
 			@Override
