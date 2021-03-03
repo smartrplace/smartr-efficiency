@@ -98,7 +98,9 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 				
 				dpSource.info().setAggregationMode(AggregationMode.Consumption2Meter);
 				mapData.evalDp = tsProcUtil.processSingle(TimeProcUtil.METER_EVAL, dpSource);
-
+				//If the datapoint requires absoluteTiming, set it here
+				mapData.absoluteTiming = null;
+				
 				return energyDailyRealAgg;
 			}
 		};

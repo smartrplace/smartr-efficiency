@@ -37,6 +37,7 @@ import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
@@ -72,16 +73,21 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 				energyDailyRealAgg.getParent().activate(true);
 
 				List<Datapoint> sums;
+				Integer absoluteTiming;
 				if(newSubResName.toLowerCase().contains("hour")) {
 					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
 							TimeProcUtil.SUM_PER_HOUR_EVAL);
+					absoluteTiming = AbsoluteTiming.HOUR;
 				} else {
 					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
 							TimeProcUtil.SUM_PER_DAY_EVAL);					
+					absoluteTiming = AbsoluteTiming.DAY;
 				}
 				
-				if(!sums.isEmpty())
+				if(!sums.isEmpty()) {
 					mapData.evalDp = sums.get(0);
+					mapData.absoluteTiming = absoluteTiming;
+				}
 				return energyDailyRealAgg;
 			}
 		};
