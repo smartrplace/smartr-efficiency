@@ -30,13 +30,15 @@ import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
+import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatingLabTempSens_DeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatingLabThermalValve_DeviceHandler;
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
 import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.OpenWeatherMapBigBlueRoom_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
-import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
 import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
@@ -197,6 +199,12 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srFlowProbe = null;
 	private FlowScopeDevHandler devHandFlowProbe;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srTempSensSingle = null;
+	private HeatingLabTempSens_DeviceHandler devHandTempSensSingle;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srThValve = null;
+	private HeatingLabThermalValve_DeviceHandler devHandThValve;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -302,6 +310,11 @@ public class MonitoringServiceBaseApp implements Application {
 	   srIotaSimple = bc.registerService(DeviceHandlerProvider.class, devHandIotaSimple, null);
 	   devHandFlowProbe = new FlowScopeDevHandler(controller.appManPlus);
 	   srFlowProbe = bc.registerService(DeviceHandlerProvider.class, devHandFlowProbe, null);
+	   
+	   devHandTempSensSingle = new HeatingLabTempSens_DeviceHandler(controller.appManPlus);
+	   srTempSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandTempSensSingle, null);
+	   devHandThValve = new HeatingLabThermalValve_DeviceHandler(controller.appManPlus);
+	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -342,6 +355,8 @@ public class MonitoringServiceBaseApp implements Application {
       	if (srIota != null) srIota.unregister();
       	if (srIotaSimple!= null) srIotaSimple.unregister();
      	if (srFlowProbe!= null) srFlowProbe.unregister();
+     	if (srTempSensSingle!= null) srTempSensSingle.unregister();
+     	if (srThValve!= null) srThValve.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();

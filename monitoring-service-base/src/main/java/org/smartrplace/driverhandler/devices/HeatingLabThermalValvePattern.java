@@ -13,35 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.homematic.devicetable;
+package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.model.actors.OnOffSwitch;
-import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
-import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.devices.connectiondevices.ThermalValve;
 
-import de.iwes.util.resource.ResourceHelper;
-
-
-public class OnOffSwitchPattern extends ResourcePattern<OnOffSwitch> {
+public class HeatingLabThermalValvePattern extends ResourcePattern<ThermalValve> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public OnOffSwitchPattern(Resource device) {
+	public HeatingLabThermalValvePattern(Resource device) {
 		super(device);
 	}
-
+	
 	@Override
 	public boolean accept() {
-		Resource parent = model.getParent();
-		if(parent == null || parent.getResourceType().getSimpleName().equals("HmDevice"))
-			return true;
-		if(model.getName().toLowerCase().startsWith("installationmode"))
-			return false;
-		if(ResourceHelper.hasParentAboveType(model, PhysicalElement.class) < 0)
-			return true;
-		return false;
+		return model.getLocation().startsWith("HeatingLabData");
 	}
 }
