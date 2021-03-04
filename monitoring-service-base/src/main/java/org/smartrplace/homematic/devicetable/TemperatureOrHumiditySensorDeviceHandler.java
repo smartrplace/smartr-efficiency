@@ -218,7 +218,7 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 		final SensorElements device = getElements(device2);
 		if(device.tempSens != null) {
 			AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.reading(), 5.0f, 35.0f, 15, 20);
-			AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceSettings().setpoint(),
+			AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.settings().setpoint(),
 					4.5f, 30.5f, 1, 1500);
 			AlarmingUtiH.setTemplateValues(appDevice, device.tempSens.deviceFeedback().setpoint(),
 					4.5f, 30.5f, 1, 20);

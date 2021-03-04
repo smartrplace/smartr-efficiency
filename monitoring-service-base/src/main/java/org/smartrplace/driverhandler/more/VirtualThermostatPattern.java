@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.homematic.devicetable;
+package org.smartrplace.driverhandler.more;
 
 import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
@@ -21,20 +21,18 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 
-public class ThermostatPattern extends ResourcePattern<Thermostat> { 
+public class VirtualThermostatPattern extends ResourcePattern<Thermostat> { 
 	Timer controlModeTimer = null;
 	
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public ThermostatPattern(Resource device) {
+	public VirtualThermostatPattern(Resource device) {
 		super(device);
 	}
 
 	@Override
 	public boolean accept() {
-		if(DeviceTableRaw.isVirtualThermostat(model))
-			return false;
-		return true;
+		return DeviceTableRaw.isVirtualThermostat(model);
 	}
 }

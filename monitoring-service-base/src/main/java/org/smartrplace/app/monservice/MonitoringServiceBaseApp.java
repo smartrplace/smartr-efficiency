@@ -45,6 +45,7 @@ import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
 import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
+import org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.homematic.devicetable.OnOffSwitch_DeviceHandler;
@@ -205,6 +206,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srThValve = null;
 	private HeatingLabThermalValve_DeviceHandler devHandThValve;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srVirtThOnOff = null;
+	private VirtualThermostatDeviceHandler devHandVirtThOnOff;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -315,6 +319,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srTempSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandTempSensSingle, null);
 	   devHandThValve = new HeatingLabThermalValve_DeviceHandler(controller.appManPlus);
 	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
+	   devHandVirtThOnOff = new VirtualThermostatDeviceHandler(controller.appManPlus);
+	   srVirtThOnOff = bc.registerService(DeviceHandlerProvider.class, devHandVirtThOnOff, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -357,6 +363,7 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srFlowProbe!= null) srFlowProbe.unregister();
      	if (srTempSensSingle!= null) srTempSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
+    	if (srVirtThOnOff!= null) srVirtThOnOff.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();

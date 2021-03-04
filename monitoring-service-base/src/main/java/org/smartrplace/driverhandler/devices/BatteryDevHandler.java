@@ -1,6 +1,5 @@
 package org.smartrplace.driverhandler.devices;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -17,6 +16,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
 
@@ -42,7 +42,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 	@Override
 	protected void addMoreValueWidgets(InstallAppDevice object, ElectricityStorage device,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
-			ApplicationManager appMan) {
+			ApplicationManager appMan, Alert alert) {
 		PowerResource reactSens = device.electricityConnection().reactivePowerSensor().reading();
 		Label valueLabel = vh.floatLabel("Q", id, reactSens, row, "%.1f");
 		Label lastContact = addLastContact("Last Q", vh, id, req, row, reactSens);

@@ -216,7 +216,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		appDevice.alarms().create();
 		AirConditioner device = (AirConditioner) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 45.0f, 15, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceSettings().setpoint(),
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().settings().setpoint(),
 				4.5f, 30.5f, 1, 1500);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
 				4.5f, 30.5f, 1, 20);
