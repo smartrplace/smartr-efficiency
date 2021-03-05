@@ -196,7 +196,8 @@ public class UserRegisterHelper {
 		}
 		if(hasEmail)
 			data.getProperties().put(UserConstants.EMAIL, userName);
-        data.getProperties().put(UserConstants.FORMATTED_NAME, realName);
+        if(realName != null)
+        	data.getProperties().put(UserConstants.FORMATTED_NAME, realName);
 		System.out.println("User account propertySetting finished :"+userName+" (in onOK)");
         if (sendEmailInvitation && hasEmail) {
             data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
