@@ -34,7 +34,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 
 	@Override
 	protected SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
-		return device.sensors().getSubResource("temperature", TemperatureSensor.class).reading();
+		return device.getSubResource("state", MultiSwitch.class).stateFeedback();
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 		addDatapoint(device.sensors().getSubResource("smoke", SmokeDetector.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("motion", GenericBinarySensor.class).reading(), result);
 		addDatapoint(device.getSubResource("state", MultiSwitch.class).stateControl(), result);
-		addDatapoint(device.getSubResource("state", MultiSwitch.class).stateFeedback(), result);
+		addDatapoint(device.sensors().getSubResource("temperature", TemperatureSensor.class).reading(), result);
 	return result;
 	}
 
