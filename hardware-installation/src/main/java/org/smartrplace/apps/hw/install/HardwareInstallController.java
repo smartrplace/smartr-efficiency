@@ -630,6 +630,10 @@ public class HardwareInstallController {
 		return result;
 	}*/
 
+	public DeviceHandlerProvider<?> getDeviceHandlerForTrash(InstallAppDevice install) {
+		return hwInstApp.getTableProviders().get(install.devHandlerInfo().getValue());
+	}
+	
 	public InstallAppDevice getTemplateDevice(InstallAppDevice source) {
 		DeviceHandlerProvider<?> devHand = handlerByDevice.get(source.getLocation());
 		return getTemplateDevice(devHand);

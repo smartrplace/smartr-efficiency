@@ -1,5 +1,7 @@
 package org.smartrplace.apps.hw.install.gui;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +16,22 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.ogema.core.recordeddata.RecordedData;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
+import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
+import org.ogema.externalviewer.extensions.IntervalConfiguration;
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
+import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil;
+import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil.SchedOpenDataProvider;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
+import org.ogema.tools.resource.util.LoggingUtils;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.simulation.service.apiplus.SimulationConfigurationModel;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
@@ -26,16 +39,24 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gui.filtering.DualFiltering;
 import org.smartrplace.gui.filtering.util.RoomFiltering2Steps;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
+import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.timeseries.eval.api.extended.util.TimeSeriesDataExtendedImpl;
+import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.label.Label;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragment
+	protected static final String DATAPOINT_INFO_HEADER = "DP/Log/Transfer/Tmpl";
+
 	protected final HardwareInstallController controller;
 
 	protected String getHeader() {return "Device Setup and Configuration";}
@@ -45,6 +66,10 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 		this.controller = controller;
 	}
 
+	protected DefaultScheduleViewerConfigurationProviderExtended getScheduleViewerExtended() {
+		return ScheduleViewerConfigProvHW.getInstance();
+	}
+	
 	@Override
 	public InstallAppDevice getInstallResource(Resource device) {
 		for(InstallAppDevice dev: controller.appConfigData.knownDevices().getAllElements()) {
@@ -177,7 +202,14 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan) {
-		//do nothing in base page
+		if(req == null) {
+			vh.registerHeaderEntry("Plot");
+			return;
+		}
+		final GetPlotButtonResult logResult = getPlotButton(id, object, controller, true, vh, row, req, null);
+		if(logResult.devHand != null) {
+			row.addCell("Plot", logResult.plotButton);
+		}
 	}
 	
 	public static List<InstallAppDevice> getDevicesSelectedDefault(DeviceHandlerProvider<?> devHand,
@@ -189,6 +221,86 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 		DualFiltering<Room, Integer, InstallAppDevice> finalFilterLoc = new DualFiltering<Room, Integer, InstallAppDevice>(roomsDrop, installFilterDrop);
 		return finalFilterLoc.getFiltered(all, req);
 	}
+	
+	public static class GetPlotButtonResult {
+		public DeviceHandlerProvider<?> devHand;
+		public Collection<Datapoint> datapoints;
+		public Label dataPointInfoLabel;
+		public ScheduleViewerOpenButton plotButton;
+	}
+	
+	/** Create widgets for a plotButton. The dataPointInfoLabel is directly added to the row if requested,
+	 * the plotButton needs to be added to the row by separate operation
+	 * 
+	 * @param id
+	 * @param controller
+	 * @param vh
+	 * @param req
+	 * @return
+	 */
+	public static GetPlotButtonResult getPlotButton(String id, InstallAppDevice object,
+			final HardwareInstallController controller,
+			boolean addDataPointInfoLabel,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, Row row, OgemaHttpRequest req,
+			DeviceHandlerProvider<?> devHandForTrash) {
+		final GetPlotButtonResult resultMain = new GetPlotButtonResult();
+		
+		if(devHandForTrash != null)
+			resultMain.devHand = devHandForTrash;
+		else
+			resultMain.devHand = controller.handlerByDevice.get(object.getLocation());
+		if(resultMain.devHand != null) {
+			resultMain.datapoints = resultMain.devHand.getDatapoints(object, controller.dpService);
+			int logged = 0;
+			int transferred = 0;
+			for(Datapoint dp: resultMain.datapoints) {
+				ReadOnlyTimeSeries ts = dp.getTimeSeries();
+				if(ts == null || (!(ts instanceof RecordedData)))
+					continue;
+				RecordedData rec = (RecordedData)ts;
+				if(LoggingUtils.isLoggingEnabled(rec))
+					logged++;
+				if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+					Resource res = controller.appMan.getResourceAccess().getResource(rec.getPath());
+					if(res != null && (res instanceof SingleValueResource) &&
+							LogTransferUtil.isResourceTransferred((SingleValueResource) res, controller.datalogs)) {
+						transferred++;
+					}
+				}
+			}
+			String text = ""+resultMain.datapoints.size()+"/"+logged+"/"+transferred;
+			final boolean isTemplate = DeviceTableRaw.isTemplate(object, resultMain.devHand);
+			if(isTemplate) {
+				text += "/T";
+			}
+			if(addDataPointInfoLabel)
+				resultMain.dataPointInfoLabel = vh.stringLabel(DATAPOINT_INFO_HEADER, id, text, row);
+			
+			SchedOpenDataProvider provider = new SchedOpenDataProvider() {
+				
+				@Override
+				public IntervalConfiguration getITVConfiguration() {
+					return IntervalConfiguration.getDefaultDuration(IntervalConfiguration.ONE_DAY, controller.appMan);
+				}
+				
+				@Override
+				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
+					List<TimeSeriesData> result = new ArrayList<>();
+					OgemaLocale locale = req!=null?req.getLocale():null;
+					for(Datapoint dp: resultMain.datapoints) {
+						TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(locale);
+						if(tsd == null)
+							continue;
+						TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, tsd.label(null), tsd.description(null));
+						tsdExt.type = dp.getGaroDataType();
+						result.add(tsdExt);
+					}
+					return result;
+				}
+			};
+			resultMain.plotButton = ScheduleViwerOpenUtil.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
+					"Plot", provider, ScheduleViewerConfigProvHW.getInstance(), req);
+		}
+		return resultMain;
+	}
 }
-
-

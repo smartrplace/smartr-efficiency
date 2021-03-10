@@ -13,7 +13,6 @@ import org.ogema.devicefinder.api.PropertyService;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
-import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert.GetPlotButtonResult;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -62,7 +61,7 @@ public class MainPageExpertProps extends MainPage {
 			return;
 		}
 
-		final GetPlotButtonResult logResult = MainPageExpert.getPlotButton(id, object, controller, true, vh, row, req);
+		final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, controller, true, vh, row, req, null);
 		if(logResult.devHand != null) {
 			row.addCell("Plot", logResult.plotButton);
 			

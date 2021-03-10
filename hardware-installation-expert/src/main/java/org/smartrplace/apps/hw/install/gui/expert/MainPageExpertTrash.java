@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
@@ -13,7 +14,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 public class MainPageExpertTrash extends MainPageExpert {
 
 	public MainPageExpertTrash(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller);
+		super(page, controller, true);
 	}
 	
 	@Override
@@ -37,6 +38,7 @@ public class MainPageExpertTrash extends MainPageExpert {
 		//return allTrash;
 	}
 	
+	@Override
 	protected String getTrashConfirmation(InstallAppDevice object) {
 		return "Really get back "+object.device().getLocation()+" from trash and re-initialize?";
 	}
