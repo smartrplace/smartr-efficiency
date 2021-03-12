@@ -29,6 +29,7 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 		super(page, controller, true, null, false);
 
 		//build page: As we do not call triggerBuild we have to do these steps here
+		prePageBuild();
 		addWidgetsAboveTable();
 		if(isAlertNew) page.append(alert);
 

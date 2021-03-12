@@ -1,8 +1,6 @@
 package org.smartrplace.groupalarm.std;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -14,8 +12,6 @@ import org.ogema.devicefinder.api.AlarmingGroupType;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
-import org.ogema.model.extended.alarming.AlarmGroupData;
-import org.ogema.model.extended.alarming.AlarmingData;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -29,7 +25,8 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
  * @author dnestle
  *
  */
-public class StandardGroupAlarms implements AlarmingExtension {
+@Deprecated
+public class StandardGroupAlarmsV1 implements AlarmingExtension {
 	protected final ApplicationManagerPlus appManPlus;
 	protected final DatapointService dpService;
 	
@@ -40,24 +37,16 @@ public class StandardGroupAlarms implements AlarmingExtension {
 
 	@Override
 	public String label(OgemaLocale locale) {
-		return "Standard Group Alarm Issues";
+		return "Standard Group Alarms";
 	}
 
 	/** Note that the constructor is only called on system startup. Operations that shall be performed on every restart
 	 * of alarming need to be implemented in #onStartAlarming()
 	 * @param appMan
 	 */
-	public StandardGroupAlarms(ApplicationManagerPlus appManPlus) {
+	public StandardGroupAlarmsV1(ApplicationManagerPlus appManPlus) {
 		this.appManPlus = appManPlus;
 		this.dpService = appManPlus.dpService();
-		
-		//clean up
-		AlarmingData ad = ResourceHelper.getOrCreateTopLevelResource(AlarmingData.class, appManPlus.appMan());
-		List<AlarmGroupData> all = new ArrayList<>(ad.ongoingGroups().getAllElements());
-		for(AlarmGroupData agd: all) {
-			if(!agd.ongoingAlarmStartTime().exists())
-				agd.delete();
-		}
 	}
 
 	@Override
@@ -92,8 +81,8 @@ public class StandardGroupAlarms implements AlarmingExtension {
 			return result;
 		
 		InstallAppDevice device1 = null;
-		//String commType = null;
-		//AlarmOngoingGroup newGroup = null;
+		String commType = null;
+		AlarmOngoingGroup newGroup = null;
 		Datapoint dp = dpService.getDataPointAsIs(baseAlarm.ac.sensorVal());
 		long now = appManPlus.getFrameworkTime();
 		if(dp != null) {
@@ -101,20 +90,19 @@ public class StandardGroupAlarms implements AlarmingExtension {
 		}
 		final InstallAppDevice device = device1;
 		if(device == null) {
-			//getOrAddSingleGroup(baseAlarm, "noValue", now);
+			getOrAddSingleGroup(baseAlarm, "noValue", now);
 			return result;			
 		}
-		/*if(device.device().getLocation().toLowerCase().contains("homematic"))
+		if(device.device().getLocation().toLowerCase().contains("homematic"))
 			commType = "Homematic";
 		else if(device.device().getLocation().toLowerCase().contains("jmbus"))
 			commType = "wMBus";
 		else if(device.devHandlerInfo().getValue().toLowerCase().contains("mqtt"))
 			commType = "MQTT";
 		else if(!device.devHandlerInfo().getValue().toLowerCase().contains("radio"))
-			commType = "LAN-IP";*/
+			commType = "LAN-IP";
 		getOrAddAlarmToGroup("DevNoValue", device, now, null, baseAlarm, baseAlarm.ac.getLocation(), null, 2);
-		return null;
-		/*if(commType == null) {
+		if(commType == null) {
 			return result;			
 		}
 		String commTypeFinal = commType;
@@ -132,10 +120,10 @@ public class StandardGroupAlarms implements AlarmingExtension {
 			multiGroups.put(commType, commGroup);
 		}
 		getOrAddAlarmToGroup(commType, null, now, getType(commType), baseAlarm, device.getLocation(), commGroup, 3);
-		return result;*/
+		return result;
 	}
 	
-	/*private AlarmingGroupType getType(String commType) {
+	private AlarmingGroupType getType(String commType) {
 		switch(commType) {
 		case "Homematic":
 			return AlarmingGroupType.HomematicFailed;
@@ -160,7 +148,7 @@ public class StandardGroupAlarms implements AlarmingExtension {
 			result.setFinished();
 		}
 		return result;
-	}*/
+	}
 	
 	/** The type shall indicate the alarm type
 	 * 
@@ -210,7 +198,7 @@ public class StandardGroupAlarms implements AlarmingExtension {
 				result.addSubGroup(subGroupId);
 		}
 
-		if(!isRegistered) {
+		if(!isRegistered && result.getSubGroupsFound() >= minimumElementsToRegister) {
 			dpService.alarming().registerOngoingAlarmGroup(result);			
 		} else if(!multiGroups.containsKey(id))
 			multiGroups.put(id, result);

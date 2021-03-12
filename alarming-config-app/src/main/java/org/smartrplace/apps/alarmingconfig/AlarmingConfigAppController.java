@@ -42,6 +42,7 @@ import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smatrplace.apps.alarmconfig.util.AppIDImpl;
@@ -107,7 +108,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	protected AlarmingManager alarmMan = null;
 	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
 	private final Map<String, AppID> appsToSend;
-	private OngoingBaseAlarmsPage ongoingBasePage;
+	//private OngoingBaseAlarmsPage ongoingBasePage;
 	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
 	public static final String CUSTOMER_FIRST = "Customer First";
 	public static final String CUSTOMER_SP_SAME = "Both together";
@@ -249,7 +250,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("ongoingbase.html");
-			ongoingBasePage = new OngoingBaseAlarmsPage(pageRes10, appManPlus); //, base);
+			new OngoingBaseAlarmsPage(pageRes10, appManPlus); //, base);
 			initApp.menu.addEntry("5. Active Alarms", pageRes10);
 			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 		}

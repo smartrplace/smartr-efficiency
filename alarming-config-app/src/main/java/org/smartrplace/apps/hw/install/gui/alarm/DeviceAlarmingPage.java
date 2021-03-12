@@ -1,29 +1,23 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
-import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.DpGroupUtil;
-import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.hwinstall.basetable.BooleanResourceButton;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
-import de.iwes.util.resource.ResourceHelper;
+import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
@@ -35,6 +29,15 @@ import de.iwes.widgets.html.form.button.ButtonData;
 public class DeviceAlarmingPage extends HardwareTablePage {
 	protected final Button commitButton;
 	
+	protected int getTopTableLines() {
+		return 2;
+	}
+	
+	@Override
+	protected boolean offerAddRoomButton() {
+		return false;
+	}
+	
 	@Override
 	protected String getHeader() {
 		return "2. Device Alarming Overview";
@@ -43,8 +46,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 	public DeviceAlarmingPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller.appManPlus, controller.accessAdminApp, controller.hwTableData);
 		
-		StaticTable alarmingTopTable = new StaticTable(1, 7, new int[] {2, 2, 1, 2, 1, 2, 2});
-		
+		//StaticTable alarmingTopTable = new StaticTable(getTopTableLines(), 7, new int[] {2, 2, 1, 2, 1, 2, 2});
 		commitButton = new Button(page, "commitButton", "Commit") {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -97,12 +99,17 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 			}
 		};
 		
-		alarmingTopTable.setContent(0, 1, alarmingGeneralButton);
-		alarmingTopTable.setContent(0, 3, commitButton);
+		topTable.setContent(1, 1, alarmingGeneralButton);
+		//topTable.setContent(1, 3, commitButton);
 		
-		page.append(alarmingTopTable);
+		//page.append(alarmingTopTable);
 	}
 
+	@Override
+	protected OgemaWidget getCommitButton() {
+		return commitButton;
+	}
+	
 	@Override
 	public void updateTables() {
 		synchronized(tableProvidersDone) {
@@ -132,7 +139,41 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 			pageTitle = "Devices of type "+ grp.label(null);
 		else
 			pageTitle = "Devices of type "+ pe.label(null);
-		return new DeviceTableBase(page, appManPlus, alert, appSelector, pe) {
+		return new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe) {
+			protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
+					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
+					PhysicalElement device, final InstallAppDevice template) {
+				if(req == null) {
+					vh.registerHeaderEntry("Select Template");
+					return;
+				}
+				
+				ButtonConfirm selectTemplButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("selectTemplBut"+id), req) {
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						if(template != null && object.equalsLocation(template)) {
+							setText("is Template", req);
+							disable(req);
+						} else {
+							setText("Select as Template", req);
+							enable(req);							
+						}
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						if(template != null)
+							DeviceTableRaw.setTemplateStatus(template, null, false);
+						DeviceTableRaw.setTemplateStatus(object, devHand, true);
+					}
+				};
+				selectTemplButton.setDefaultConfirmMsg("Really select as template "+object.device().getLocation()+" ?");
+				selectTemplButton.setDefaultText("Select as Template");
+				row.addCell(WidgetHelper.getValidWidgetId("Select Template"), selectTemplButton);
+			}			
+		};
+		
+		/*return new DeviceTableBase(page, appManPlus, alert, appSelector, pe) {
 			@Override
 			protected String pid() {
 				return WidgetHelper.getValidWidgetId(pe.id());
@@ -174,17 +215,6 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					template = null;
 				} else {
 					int[] alNum = AlarmingConfigUtil.getActiveAlarms(object);
-					/*int alNum = 0;
-					int alStatusNum = 0;
-					for(AlarmConfiguration ac: object.alarms().getAllElements()) {
-						if(ac.sendAlarm().getValue()) {
-							alNum++;
-							IntegerResource status = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal().getLocationResource());
-							if(status != null && status.getValue() > 0)
-								alStatusNum++;
-						}
-					}
-					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alStatusNum, alNum), row);*/
 					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum[0], alNum[1]), row);
 
 					template = AlarmingConfigUtil.getTemplate(object, appManPlus);
@@ -283,14 +313,6 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				selectTemplButton.setDefaultText("Select as Template");
 				row.addCell(WidgetHelper.getValidWidgetId("Select Template"), selectTemplButton);
 
-				/*addInstallationStatus(object, vh, id, req, row);
-				//addComment(object, vh, id, req, row);
-				if(req != null) {
-					String text = getHomematicCCUId(object.device().getLocation());
-					vh.stringLabel("RT", id, text, row);
-				} else
-					vh.registerHeaderEntry("RT");*/
-				
 				return device;
 			}
 			public PhysicalElement addNameWidget(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
@@ -312,7 +334,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 				return device;
 			}	
-		};
+		};*/
 		
 	}
 }

@@ -1,6 +1,7 @@
 package org.smartrplace.apps.alarmingconfig.mgmt;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,8 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.AlarmingExtension.AlarmNotificationResult;
 import org.ogema.devicefinder.api.AlarmingExtension.BaseAlarm;
+import org.ogema.devicefinder.api.AlarmingExtension.BaseAlarmI;
+import org.ogema.devicefinder.api.AlarmingExtension.MessageDestination;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
@@ -34,6 +37,7 @@ import org.ogema.recordreplay.testing.RecReplayAlarmingBaseObserver;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.message.MessageImpl;
@@ -188,6 +192,22 @@ public class AlarmingManager {
 				vl.isNoValueAlarmActive = true;
 			else if(alarmStatus.getValue() > 0)
 				vl.isAlarmActive = true;
+		}
+		
+		BaseAlarmI baseAlarm = new BaseAlarmI() {
+			@Override
+			public void sendMessage(String title2, String message2, MessagePriority prio2, MessageDestination md) {
+				String appToUseLoc;
+				if(md != null)
+					appToUseLoc = getDestinationString(md);
+				else
+					appToUseLoc = null;
+				sendMessageIntern(title2, message2, prio2, appToUseLoc);
+			}
+		};
+		Collection<AlarmingExtension> exts = appManPlus.dpService().alarming().getAlarmingExtensions();
+		for(AlarmingExtension ext: exts) {
+			ext.onStartAlarming(baseAlarm);
 		}
 		
 		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase")) {
@@ -476,14 +496,23 @@ public class AlarmingManager {
 		sendMessage(ac, status, title, message, prio, appToUse, null);
 	}
 	protected void sendMessage(AlarmConfiguration ac, Integer status, String title, String message, MessagePriority prio,
-			StringResource appToUse,
+			StringResource appToUseREs,
 			AlarmingExtension extSource) {
+		String appToUse;
+		if(appToUseREs.isActive())
+			appToUse = appToUseREs.getValue();
+		else appToUse = null;
 		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase"))
 			recReplay.recordNewAlarm(ac, appManPlus.getFrameworkTime());
 		BaseAlarm baseAlarm = new BaseAlarm() {
 			@Override
-			public void sendMessage(String title2, String message2, MessagePriority prio2) {
-				sendMessageIntern(title2, message2, prio2, appToUse);
+			public void sendMessage(String title2, String message2, MessagePriority prio2, MessageDestination md) {
+				String appToUseLoc;
+				if(md != null)
+					appToUseLoc = getDestinationString(md);
+				else
+					appToUseLoc = appToUse;
+				sendMessageIntern(title2, message2, prio2, appToUseLoc);
 			}
 		};
 		baseAlarm.isNoValueAlarm = (status != null) && (status >= 1000);
@@ -516,7 +545,7 @@ public class AlarmingManager {
 		return result;
 	}
 	protected void sendMessageIntern(String title, String message, MessagePriority prio,
-			StringResource appToUse) throws RejectedExecutionException, IllegalStateException {
+			String appToUse) throws RejectedExecutionException, IllegalStateException {
 		long now = appManPlus.appMan().getFrameworkTime();
 		
 		SendMessageData sd = sendData(prio);
@@ -569,10 +598,10 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 		
 	}
 	
-	protected void reallySendMessage(String title, String message, MessagePriority prio, StringResource appToUse) {
+	protected void reallySendMessage(String title, String message, MessagePriority prio, String appToUse) {
 		AppID appId;
-		if(appToUse.isActive())
-			appId = appsForSending.get(appToUse.getValue());
+		if(appToUse != null)
+			appId = appsForSending.get(appToUse);
 		else
 			appId = appManPlus.appMan().getAppID();
 		appManPlus.guiService().getMessagingService().sendMessage(appId,
@@ -606,5 +635,17 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 		else
 			val = resource.getValue();
 		return val;
+	}
+	
+	public String getDestinationString(MessageDestination md) {
+		switch(md) {
+		case PROVIDER_FIRST:
+			return AlarmingConfigAppController.SP_SUPPORT_FIRST;
+		case CUSTOMER_FIRST:
+			return AlarmingConfigAppController.CUSTOMER_FIRST;
+		case BOTH_IMMEDIATELY:
+			return AlarmingConfigAppController.CUSTOMER_SP_SAME;
+		}
+		throw new IllegalStateException("Unknown MessageDestination:"+md);
 	}
 }

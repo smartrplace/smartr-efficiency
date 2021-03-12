@@ -13,6 +13,7 @@ import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceTypePageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.MainPageExpert;
 import org.smartrplace.apps.alarmingconfig.gui.AlarmGroupPage;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -77,7 +78,12 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			new AlarmGroupPage(pageRes4, controller.appManPlus);
 			menu.addEntry("5. Groups of ongoing Alarms", pageRes4);
 			configMenuConfig(pageRes4.getMenuConfiguration());
-		}
+			
+			WidgetPage<?> pageRes11 = widgetApp.createWidgetPage("deviceknownfaults.html");
+			new DeviceKnownFaultsPage(pageRes11, controller);
+			menu.addEntry("6. Device Issue Status", pageRes11);
+			configMenuConfig(pageRes11.getMenuConfiguration());
+}
 	};
 
 	/*

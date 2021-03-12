@@ -20,6 +20,7 @@ import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** For single alarms messaging is still done via the base message, so we do not take care of this here*/
+@Deprecated
 public class AlarmOngoingGroupSingle implements AlarmOngoingGroup {
 	protected final AlarmConfiguration ac;
 	protected final String subType;

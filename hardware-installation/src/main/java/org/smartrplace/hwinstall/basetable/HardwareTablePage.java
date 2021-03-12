@@ -20,6 +20,7 @@ import org.smartrplace.apps.hw.install.gui.InstallationStatusFilterDropdown2;
 import org.smartrplace.gui.filtering.DualFiltering;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFiltering2Steps;
+import org.smartrplace.hwinstall.basetable.HardwareTablePage.SubTableData;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -55,6 +56,13 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	//protected final InstalledAppsSelector instAppsSelector;
 	protected final StaticTable topTable;
 
+	protected int getTopTableLines() {
+		return 1;
+	}
+	protected boolean offerAddRoomButton() {
+		return true;
+	}
+	
 	protected class SubTableData {
 		DeviceHandlerProvider<?> pe;
 		DeviceTableBase table;
@@ -142,6 +150,41 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		//RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
 		//		"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 		
+		OgemaWidget commitBtn = getCommitButton();
+		/*Button commitBtn = new Button(page, "commitBtn", "Commit changes") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				EvalCollection ec = ResourceHelper.getEvalCollection(appMan);
+				if(!ec.roomDeviceUpdateCounter().isActive()) {
+					ec.roomDeviceUpdateCounter().create().activate(false);
+				}
+				ec.roomDeviceUpdateCounter().getAndAdd(1);
+			}
+		};*/
+		
+		topTable = new StaticTable(getTopTableLines(), 7, new int[] {2, 2, 1, 2, 1, 2, 2});
+		int installFilterCol=3;
+		topTable.setContent(0, 0, roomsDrop.getFirstDropdown())
+				.setContent(0, 1, roomsDrop)
+				.setContent(0, installFilterCol, installFilterDrop)
+				.setContent(0, installFilterCol+2, installMode);//setContent(0, 2, roomLinkButton).
+		if(commitBtn != null)
+			topTable.setContent(0, 2, commitBtn);
+
+		if(offerAddRoomButton()) {
+			RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
+			topTable.setContent(0, installFilterCol+3, addRoomLink);
+		}
+		//RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
+		//		alert, appMan, 0, 3);
+		//topTable.setContent(0, 5, calendarConfigButton);
+		page.append(topTable);
+		
+		if(triggerFinishConstructorAutomatically)
+			finishConstructor();
+	}
+	
+	protected OgemaWidget getCommitButton() {
 		Button commitBtn = new Button(page, "commitBtn", "Commit changes") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -152,23 +195,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 				ec.roomDeviceUpdateCounter().getAndAdd(1);
 			}
 		};
-		
-		topTable = new StaticTable(1, 7, new int[] {2, 2, 1, 2, 1, 2, 2});
-		int installFilterCol=3;
-		topTable.setContent(0, 0, roomsDrop.getFirstDropdown())
-				.setContent(0, 1, roomsDrop)
-				.setContent(0, 2, commitBtn)
-				.setContent(0, installFilterCol, installFilterDrop)
-				.setContent(0, installFilterCol+2, installMode);//setContent(0, 2, roomLinkButton).
-		RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
-		topTable.setContent(0, installFilterCol+3, addRoomLink);
-		//RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
-		//		alert, appMan, 0, 3);
-		//topTable.setContent(0, 5, calendarConfigButton);
-		page.append(topTable);
-		
-		if(triggerFinishConstructorAutomatically)
-			finishConstructor();
+		return commitBtn;
 	}
 	
 	protected void finishConstructor() {
@@ -195,7 +222,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		}
 		}
 	}
-	
+
 	protected boolean isObjectsInTableEmpty(DeviceHandlerProvider<?> pe, OgemaHttpRequest req) {
 		List<InstallAppDevice> all = getDevicesSelected(pe, req);
 		return all.isEmpty();

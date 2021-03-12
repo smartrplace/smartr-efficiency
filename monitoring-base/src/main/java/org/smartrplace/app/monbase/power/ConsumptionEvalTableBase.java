@@ -40,9 +40,9 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 
 	private static final long POLL_RATE = 10000;
 	private static final String COST_HEADER ="Kosten (EUR)";
-	protected final Datepicker startPicker;
-	protected final Datepicker endPicker;
-	protected final Button updateButton;
+	protected Datepicker startPicker;
+	protected Datepicker endPicker;
+	protected Button updateButton;
 	protected final MonitoringController controller;
 	protected boolean hasCostColumn() {
 		return true;
@@ -140,67 +140,6 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 		super(page, controller.appMan, initObject, false);
 		this.controller = controller;
 		configurePricingInformation();
-		
-		startPicker = new Datepicker(page, "startPicker") {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				boolean lineShowsPower = isPowerTable();
-				if(lineShowsPower) {
-					setWidgetVisibility(false, req);
-					return;
-				}
-				long ts = getDefaultStartTime(req); //refRes.getValue();
-				setDate(ts, req);
-				setWidgetVisibility(true, req);
-			}
-		};
-		endPicker = new Datepicker(page, "endPicker") {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				boolean lineShowsPower = isPowerTable();
-				if(lineShowsPower) {
-					setPollingInterval(POLL_RATE, req);
-					setWidgetVisibility(false, req);
-					return;
-				}
-				long ts;
-				ts = getDateLong(req);
-				if(ts <= 0) {
-					ts = appMan.getFrameworkTime();
-				}
-				setDate(ts, req);
-				setPollingInterval(POLL_RATE, req);
-				setWidgetVisibility(true, req);			}
-		};
-		updateButton = new Button(page, "updateButton", "Aktualisieren") {
-			private static final long serialVersionUID = 1L;
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				boolean lineShowsPower = isPowerTable();
-				if(lineShowsPower) {
-					setWidgetVisibility(false, req);
-					return;
-				}
-				setWidgetVisibility(true, req);
-			}
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				//long endTime = endPicker.getDateLong(req);
-				//updateContent(req, endTime);
-			}
-		};
-		updateButton.addWidget(startPicker);
-		updateButton.addWidget(endPicker);
-		
-		//updateButton.governingWidget = true;
-		//Just do this to make sure that updateButton.governingWidget = true;
-		//Note that if session-specific widgets have a dependency to a non-session-specific widget then
-		//the non-session-specific parent widget needs to register a non-session-specific dependency once
-		updateButton.registerDependentWidget(alert);
 		
 		//wg = page.registerWidgetGroup("pollingGroup");
 		//wg.setPollingInterval(POLL_RATE);
@@ -320,6 +259,67 @@ public abstract class ConsumptionEvalTableBase<C extends ConsumptionEvalTableLin
 			}
 		};
 		page.append(header);
+		
+		startPicker = new Datepicker(page, "startPicker") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				boolean lineShowsPower = isPowerTable();
+				if(lineShowsPower) {
+					setWidgetVisibility(false, req);
+					return;
+				}
+				long ts = getDefaultStartTime(req); //refRes.getValue();
+				setDate(ts, req);
+				setWidgetVisibility(true, req);
+			}
+		};
+		endPicker = new Datepicker(page, "endPicker") {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				boolean lineShowsPower = isPowerTable();
+				if(lineShowsPower) {
+					setPollingInterval(POLL_RATE, req);
+					setWidgetVisibility(false, req);
+					return;
+				}
+				long ts;
+				ts = getDateLong(req);
+				if(ts <= 0) {
+					ts = appMan.getFrameworkTime();
+				}
+				setDate(ts, req);
+				setPollingInterval(POLL_RATE, req);
+				setWidgetVisibility(true, req);			}
+		};
+		updateButton = new Button(page, "updateButton", "Aktualisieren") {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				boolean lineShowsPower = isPowerTable();
+				if(lineShowsPower) {
+					setWidgetVisibility(false, req);
+					return;
+				}
+				setWidgetVisibility(true, req);
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				//long endTime = endPicker.getDateLong(req);
+				//updateContent(req, endTime);
+			}
+		};
+		updateButton.addWidget(startPicker);
+		updateButton.addWidget(endPicker);
+		
+		//updateButton.governingWidget = true;
+		//Just do this to make sure that updateButton.governingWidget = true;
+		//Note that if session-specific widgets have a dependency to a non-session-specific widget then
+		//the non-session-specific parent widget needs to register a non-session-specific dependency once
+		updateButton.registerDependentWidget(alert);
 		
 		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
 				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
