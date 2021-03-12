@@ -525,7 +525,7 @@ public class AlarmingManager {
 		for(AlarmingExtension ext: appManPlus.dpService().alarming().getAlarmingExtensions()) {
 			if(ext.getAlarmNotifications()) {
 				AlarmNotificationResult notResult = ext.newAlarmNotification(baseAlarm);
-				if(!notResult.sendAlarmDirectly)
+				if(notResult != null && (!notResult.sendAlarmDirectly))
 					isConsumed = true;
 			}
 		}

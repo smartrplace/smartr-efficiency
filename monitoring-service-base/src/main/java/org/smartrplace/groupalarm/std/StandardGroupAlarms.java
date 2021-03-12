@@ -113,7 +113,7 @@ public class StandardGroupAlarms implements AlarmingExtension {
 		else if(!device.devHandlerInfo().getValue().toLowerCase().contains("radio"))
 			commType = "LAN-IP";*/
 		getOrAddAlarmToGroup("DevNoValue", device, now, null, baseAlarm, baseAlarm.ac.getLocation(), null, 2);
-		return null;
+		return result;
 		/*if(commType == null) {
 			return result;			
 		}
