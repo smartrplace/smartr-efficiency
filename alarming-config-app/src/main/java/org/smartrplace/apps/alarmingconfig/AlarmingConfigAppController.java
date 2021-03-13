@@ -1,5 +1,6 @@
 package org.smartrplace.apps.alarmingconfig;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,6 +45,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
+import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smatrplace.apps.alarmconfig.util.AppIDImpl;
 
@@ -108,6 +110,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	protected AlarmingManager alarmMan = null;
 	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
 	private final Map<String, AppID> appsToSend;
+	public List<HardwareTablePage> mainPageExts = new ArrayList<>();
 	//private OngoingBaseAlarmsPage ongoingBasePage;
 	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
 	public static final String CUSTOMER_FIRST = "Customer First";

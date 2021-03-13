@@ -59,16 +59,16 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			menu.addEntry("1. Alarming Configuration Per Device", pageRes2);
 			configMenuConfig(pageRes2.getMenuConfiguration());
 
-			WidgetPage<?> pageRes3 = widgetApp.createWidgetPage("mainexpert.html");
-			new MainPageExpert(pageRes3, controller.appManPlus);
-			menu.addEntry("2. Alarming Configuration Details", pageRes3);
-			configMenuConfig(pageRes3.getMenuConfiguration());
-			
 			WidgetPage<?> pageRes5 = widgetApp.createWidgetPage("devicedetails.html");
 			new DeviceDetailPageExpert(pageRes5, controller.appManPlus, controller, false);
-			menu.addEntry("3. Alarming Details Per Device", pageRes5);
+			menu.addEntry("2. Alarming Details Per Device", pageRes5);
 			configMenuConfig(pageRes5.getMenuConfiguration());
 
+			WidgetPage<?> pageRes3 = widgetApp.createWidgetPage("mainexpert.html");
+			new MainPageExpert(pageRes3, controller.appManPlus);
+			menu.addEntry("3. Alarming Configuration Details", pageRes3);
+			configMenuConfig(pageRes3.getMenuConfiguration());
+			
 			WidgetPage<?> pageRes6 = widgetApp.createWidgetPage("deviceevals.html");
 			new DeviceDetailPageEval(pageRes6, controller.appManPlus, controller);
 			menu.addEntry("4. Alarming Evaluations Per Device", pageRes6);
@@ -80,10 +80,13 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			configMenuConfig(pageRes4.getMenuConfiguration());
 			
 			WidgetPage<?> pageRes11 = widgetApp.createWidgetPage("deviceknownfaults.html");
-			new DeviceKnownFaultsPage(pageRes11, controller);
+			synchronized (controller.accessAdminApp) {
+				DeviceKnownFaultsPage knownFaultsPage = new DeviceKnownFaultsPage(pageRes11, controller);
+				controller.mainPageExts.add(knownFaultsPage);				
+			}
 			menu.addEntry("6. Device Issue Status", pageRes11);
 			configMenuConfig(pageRes11.getMenuConfiguration());
-}
+		}
 	};
 
 	/*

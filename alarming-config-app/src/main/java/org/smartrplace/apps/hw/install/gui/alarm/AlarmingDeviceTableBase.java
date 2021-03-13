@@ -148,7 +148,10 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 			}
 		}					
 		Room deviceRoom = device.location().room();
-		vh.stringLabel("Room", id, ResourceUtils.getHumanReadableShortName(deviceRoom), row);
+		if(device == null || (!device.exists()))
+			vh.stringLabel("Room", id, "--", row);
+		else
+			vh.stringLabel("Room", id, ResourceUtils.getHumanReadableShortName(deviceRoom), row);
 		//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 		addSubLocation(object, vh, id, req, row);
 		

@@ -20,7 +20,6 @@ import org.smartrplace.apps.hw.install.gui.InstallationStatusFilterDropdown2;
 import org.smartrplace.gui.filtering.DualFiltering;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFiltering2Steps;
-import org.smartrplace.hwinstall.basetable.HardwareTablePage.SubTableData;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 

@@ -1,6 +1,8 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.administration.UserAccount;
@@ -8,6 +10,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
@@ -18,7 +21,6 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -39,11 +41,6 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		super(page, controller);
 	}
 
-	@Override
-	protected OgemaWidget getCommitButton() {
-		return commitButton;
-	}
-	
 	@Override
 	public void updateTables() {
 		synchronized(tableProvidersDone) {
@@ -89,10 +86,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Assigned");
-					vh.registerHeaderEntry("Task Tracking");
-					vh.registerHeaderEntry("Edit TT");
 					vh.registerHeaderEntry("Block");
 					vh.registerHeaderEntry("MinInterval");
+					vh.registerHeaderEntry("Task Tracking");
+					vh.registerHeaderEntry("Edit TT");
 					return;
 				}
 				AlarmGroupData res = object.knownFault();
@@ -122,6 +119,16 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 
 				TemplateDropdown<String> blockingDrop = new TemplateDropdown<String>(mainTable, "blockingDrop"+id, req) {
 					@Override
+					public void onGET(OgemaHttpRequest req) {
+						float val = res.minimumTimeBetweenAlarms().getValue();
+						if(val < 0)
+							selectItem("Blocking", req);
+						else if(val == 0)
+							selectItem("No-Block", req);
+						else
+							selectItem("Retard", req);
+					}
+					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						String val = getSelectedItem(req);
 						if(val.equals("Blocking")) {
@@ -142,8 +149,30 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);
 			}
 			
-
-		};
-		
+			@Override
+			public List<InstallAppDevice> getObjectsInTable(OgemaHttpRequest req) {
+				List<InstallAppDevice> all = super.getObjectsInTable(req);
+				return getDevicesWithKnownFault(all);
+			}
+		};	
+	}
+	
+	protected List<InstallAppDevice> getDevicesWithKnownFault(List<InstallAppDevice> all) {
+		List<InstallAppDevice> result = new ArrayList<>();
+		for(InstallAppDevice dev: all) {
+			if(dev.knownFault().exists() && dev.knownFault().ongoingAlarmStartTime().getValue() > 0) {
+				int[] actAlarms = AlarmingConfigUtil.getActiveAlarms(dev);
+				if(actAlarms[1] > 0)
+					result.add(dev);
+			}
+		}
+		return result;		
+	}
+	
+	@Override
+	protected boolean isObjectsInTableEmpty(DeviceHandlerProvider<?> pe, OgemaHttpRequest req) {
+		List<InstallAppDevice> all = getDevicesSelected(pe, req);
+		List<InstallAppDevice> result = getDevicesWithKnownFault(all);
+		return result.isEmpty();
 	}
 }

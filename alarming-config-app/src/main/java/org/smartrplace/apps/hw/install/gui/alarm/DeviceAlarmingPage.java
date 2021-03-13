@@ -27,7 +27,7 @@ import de.iwes.widgets.html.form.button.ButtonData;
 
 @SuppressWarnings("serial")
 public class DeviceAlarmingPage extends HardwareTablePage {
-	protected final Button commitButton;
+	protected Button commitButton;
 	
 	protected int getTopTableLines() {
 		return 2;
@@ -40,40 +40,13 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 	
 	@Override
 	protected String getHeader() {
-		return "2. Device Alarming Overview";
+		return "3. Device Alarming Overview";
 	}
 	
 	public DeviceAlarmingPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller.appManPlus, controller.accessAdminApp, controller.hwTableData);
 		
-		//StaticTable alarmingTopTable = new StaticTable(getTopTableLines(), 7, new int[] {2, 2, 1, 2, 1, 2, 2});
-		commitButton = new Button(page, "commitButton", "Commit") {
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				if(resData.appConfigData.isAlarmingActive().getValue()) {
-					enable(req);
-					if(MainPage.hasOpenCommits)
-						setStyle(ButtonData.BOOTSTRAP_RED, req);
-					else
-						setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
-				} else {
-					disable(req);
-					setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
-				}
-				super.onGET(req);
-			}
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				if(MainPage.alarmingUpdater != null) {
-					MainPage.alarmingUpdater.updateAlarming();
-					MainPage.hasOpenCommits = false;
-					alert.showAlert("Updated and restarted alarming", true, req);
-				} else
-					alert.showAlert("Could not find alarmingManagement for update", false, req);				
-			}
-		};
-		commitButton.registerDependentWidget(alert);
-		commitButton.registerDependentWidget(commitButton);
+		getCommitButton(); //make sure it is initialized
 
 		BooleanResourceButton alarmingGeneralButton = new BooleanResourceButton(page, "alarmingGeneralButton",
 				"Alarming", resData.appConfigData.isAlarmingActive(), ButtonData.BOOTSTRAP_GREEN, ButtonData.BOOTSTRAP_RED) {
@@ -100,13 +73,40 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 		};
 		
 		topTable.setContent(1, 1, alarmingGeneralButton);
-		//topTable.setContent(1, 3, commitButton);
-		
-		//page.append(alarmingTopTable);
 	}
 
 	@Override
 	protected OgemaWidget getCommitButton() {
+		if(commitButton == null) {
+			commitButton = new Button(page, "commitButton", "Commit") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					if(resData.appConfigData.isAlarmingActive().getValue()) {
+						enable(req);
+						if(MainPage.hasOpenCommits)
+							setStyle(ButtonData.BOOTSTRAP_RED, req);
+						else
+							setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
+					} else {
+						disable(req);
+						setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
+					}
+					super.onGET(req);
+				}
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					if(MainPage.alarmingUpdater != null) {
+						MainPage.alarmingUpdater.updateAlarming();
+						MainPage.hasOpenCommits = false;
+						alert.showAlert("Updated and restarted alarming", true, req);
+					} else
+						alert.showAlert("Could not find alarmingManagement for update", false, req);				
+				}
+			};
+			commitButton.registerDependentWidget(alert);
+			commitButton.registerDependentWidget(commitButton);
+			
+		}
 		return commitButton;
 	}
 	
@@ -172,169 +172,6 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				row.addCell(WidgetHelper.getValidWidgetId("Select Template"), selectTemplButton);
 			}			
 		};
-		
-		/*return new DeviceTableBase(page, appManPlus, alert, appSelector, pe) {
-			@Override
-			protected String pid() {
-				return WidgetHelper.getValidWidgetId(pe.id());
-			}
-			
-			@Override
-			public void addWidgets(InstallAppDevice object,
-					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req,
-					Row row, ApplicationManager appMan) {
-				id = id + pid();  // avoid duplicates for now
-				addWidgetsInternal(object, vh, id, req, row, appMan);
-				//appSelector.addWidgetsExpert(object, vh, id, req, row, appMan);
-			}
-
-			@Override
-			protected Class<? extends Resource> getResourceType() {
-				return pe.getResourceType();
-			}
-
-			@Override
-			protected String id() {
-				return pe.id();
-			}
-
-			@Override
-			protected String getTableTitle() {
-				return pageTitle;
-			}
-
-			public PhysicalElement addWidgetsInternal(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
-					OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
-
-				addNameWidget(object, vh, id, req, row, appMan);
-				PhysicalElement device = object.device();
-				final InstallAppDevice template;
-				if(req == null) {
-					vh.registerHeaderEntry("Active Alarms");
-					vh.registerHeaderEntry("Alarm Control");
-					template = null;
-				} else {
-					int[] alNum = AlarmingConfigUtil.getActiveAlarms(object);
-					vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum[0], alNum[1]), row);
-
-					template = AlarmingConfigUtil.getTemplate(object, appManPlus);
-					if(template != null) {
-						Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);
-						if(templateStatus == null)
-							throw new IllegalStateException("Template status cannot be null!");
-						Button perm = new Button(mainTable, WidgetHelper.getValidWidgetId("perm_"+id), "", req) {
-							private static final long serialVersionUID = 1L;
-							@Override
-							public void onGET(OgemaHttpRequest req) {
-								Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
-								if(object.equalsLocation(template)) {
-									if(status == null)
-										throw new IllegalStateException("Template status cannot be null!");
-									setText(status ? "✓ Template": "✕ Templ.inactive", req);
-									if (status) {
-										setStyle(ButtonData.BOOTSTRAP_GREEN, req);
-										disable(req);
-									} else {
-										setStyle(ButtonData.BOOTSTRAP_RED, req);
-										enable(req);
-									}
-									setToolTip("Template is " + (status ? "active" : "inactive") + ".", req);
-									return;
-								}
-								if(templateStatus)
-									enable(req);
-								else
-									disable(req);
-								if (status == null) {
-									setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
-									setText("(✓ special)", req);
-									setToolTip("Alarming is " + "special.", req);
-									
-								} else {
-									//setGlyphicon(status ? Glyphicons.CHECK : Glyphicons.OFF, req);
-									setText(status ? "✓ active": "✕ inactive", req);
-									if (status) {
-										setStyle(ButtonData.BOOTSTRAP_GREEN, req);
-									} else {
-										setStyle(ButtonData.BOOTSTRAP_RED, req);
-									}
-									setToolTip("Alarming is " + (status ? "active" : "inactive") + ".", req);
-								}
-							}
-							
-							@Override
-							public void onPOSTComplete(String data, OgemaHttpRequest req) {
-								Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
-								MainPage.hasOpenCommits = true;
-								if(status == null || status)
-									AlarmingConfigUtil.deactivateAlarms(object);
-								else
-									AlarmingConfigUtil.copySettings(template, object, appManPlus.appMan(), false);
-							}
-						};
-						row.addCell(WidgetHelper.getValidWidgetId("Alarm Control"), perm);
-						perm.registerDependentWidget(perm);
-						perm.registerDependentWidget(commitButton);
-					}
-				}					
-				Room deviceRoom = device.location().room();
-				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object, vh, id, req, row);
-				if(req == null) {
-					vh.registerHeaderEntry("Select Template");
-					return device;
-				}
-				
-				ButtonConfirm selectTemplButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("selectTemplBut"+id), req) {
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						if(template != null && object.equalsLocation(template)) {
-							setText("is Template", req);
-							disable(req);
-						} else {
-							setText("Select as Template", req);
-							enable(req);							
-						}
-					}
-					
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						if(template != null)
-							DeviceTableRaw.setTemplateStatus(template, null, false);
-						DeviceTableRaw.setTemplateStatus(object, pe, true);
-						//if(template != null)
-						//	template.isTemplate().deactivate(false);
-						//ValueResourceHelper.setCreate(object.isTemplate(), pe.id());
-						//if(!object.isTemplate().isActive())
-						//	object.isTemplate().activate(false);
-					}
-				};
-				selectTemplButton.setDefaultConfirmMsg("Really select as template "+object.device().getLocation()+" ?");
-				selectTemplButton.setDefaultText("Select as Template");
-				row.addCell(WidgetHelper.getValidWidgetId("Select Template"), selectTemplButton);
-
-				return device;
-			}
-			public PhysicalElement addNameWidget(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
-					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-				final PhysicalElement device;
-				if(req == null)
-					device = ResourceHelper.getSampleResource(PhysicalElement.class);
-				else
-					device = object.device().getLocationResource();
-				DatapointGroup devGrp = DpGroupUtil.getDeviceGroup(device.getLocation(), appManPlus.dpService(), false);
-				String name;
-				if(devGrp != null)
-					name = devGrp.label(null);
-				else
-					name = ResourceUtils.getHumanReadableShortName(device);
-				if(!InitialConfig.isInitDone(object.deviceId().getValue()+pe.getInitVersion(), resData.appConfigData.initDoneStatus()))
-					name += "*";
-				vh.stringLabel("Name", id, name, row);
-				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
-				return device;
-			}	
-		};*/
 		
 	}
 }

@@ -4,6 +4,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 
 /**
@@ -16,4 +17,8 @@ public class MainPageExpert extends MainPage  {
 		// TODO Auto-generated constructor stub
 	}
 
+	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "3. Alarming Configuration Details Expert";
+	}
 }

@@ -20,6 +20,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
+import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -141,9 +142,9 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
      	synchronized (this) {
  	    	if(controller != null && controller.mainPage != null) {
  	    		controller.deviceOverviewPage.updateTables();
- 	    		//for(MainPage mp: controller.mainPageExts) {
- 	    		//	mp.updateTables();
- 	    		//}
+ 	    		for(HardwareTablePage mp: controller.mainPageExts) {
+ 	    			mp.updateTables();
+ 	    		}
  	    	}
      	}
      }
