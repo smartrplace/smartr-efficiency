@@ -206,6 +206,11 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		};
 		updateAlarming();
 		hwTableData.appConfigData.isAlarmingActive().create().activate(false);
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.alarmtesting.forcestartalarming")) {
+			//we set this true later on
+			hwTableData.appConfigData.isAlarmingActive().setValue(false);
+		}
+		
 		hwTableData.appConfigData.isAlarmingActive().addValueListener(alarmingActiveListener, false);
 		
 		MainPage.alarmingUpdater = this;

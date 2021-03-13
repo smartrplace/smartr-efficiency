@@ -229,7 +229,7 @@ public class AlarmingManager {
 		Resource aclist = ac.getParent();
 		if(aclist == null)
 			return null;
-		Resource acparentRaw = ac.getParent();
+		Resource acparentRaw = aclist.getParent();
 		if(acparentRaw instanceof InstallAppDevice) {
 			InstallAppDevice acparent = (InstallAppDevice)acparentRaw;
 			return acparent.knownFault();
@@ -242,7 +242,7 @@ public class AlarmingManager {
 		if(vl.knownDeviceFault == null) {
 			vl.knownDeviceFault = getDeviceKnownAlarmState(vl.listener.getAc());
 			if(vl.knownDeviceFault == null)
-				throw new IllegalStateException("No Known Default for:"+vl.listener.getAc().getLocation());
+				throw new IllegalStateException("No Known Default for:"+vl.listener.getAc().getPath());
 		}
 		if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() < 0)
 			//do not generate new messages here, releases are generated with AlarmValueListener
