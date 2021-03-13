@@ -12,6 +12,7 @@ import org.ogema.core.application.AppID;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
@@ -33,12 +34,14 @@ import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.recordreplay.testing.RecReplayAlarmingBaseObserver;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.message.MessageImpl;
 
@@ -222,6 +225,39 @@ public class AlarmingManager {
 		System.out.println("New AlarmingManagement started.");
 	}
 	
+	public static AlarmGroupData getDeviceKnownAlarmState(AlarmConfiguration ac) {
+		Resource aclist = ac.getParent();
+		if(aclist == null)
+			return null;
+		Resource acparentRaw = ac.getParent();
+		if(acparentRaw instanceof InstallAppDevice) {
+			InstallAppDevice acparent = (InstallAppDevice)acparentRaw;
+			return acparent.knownFault();
+		}
+		return null;
+	}
+
+	protected boolean sendNoValueMessageOrRelease(ValueListenerData vl, long now, boolean isRelease) {
+		boolean noMessage;
+		if(vl.knownDeviceFault == null) {
+			vl.knownDeviceFault = getDeviceKnownAlarmState(vl.listener.getAc());
+			if(vl.knownDeviceFault == null)
+				throw new IllegalStateException("No Known Default for:"+vl.listener.getAc().getLocation());
+		}
+		if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() < 0)
+			//do not generate new messages here, releases are generated with AlarmValueListener
+			noMessage = true;
+		else if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() > 0) {
+			if((vl.lastMessageTime > 0) && ((now - vl.lastMessageTime) < vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue()*60000))
+				noMessage = true;
+			else
+				noMessage = false;
+		} else
+			noMessage = false;
+		if((!noMessage) && (!isRelease))
+			vl.lastMessageTime = now;
+		return noMessage;
+	}
 	protected class AlarmNoValueListener implements TimerListener {
 		@Override
 		public void timerElapsed(Timer timer) {
@@ -232,16 +268,18 @@ public class AlarmingManager {
 				if(vl.lastTimeOfNewData < 0 || vl.maxIntervalBetweenNewValues <= 0) continue;
 				long waiting = now - vl.lastTimeOfNewData;
 //debugPrintingForNoValueAlarm(vl, waiting);
-				if((waiting > vl.maxIntervalBetweenNewValues) &&
-						((!vl.isNoValueAlarmActive) || (now > vl.nextTimeNoValueAlarmAllowed))) {
+				
+				if(waiting <= vl.maxIntervalBetweenNewValues) continue;
+
+				if((!vl.isNoValueAlarmActive) || (now > vl.nextTimeNoValueAlarmAllowed)) {
 					vl.isNoValueAlarmActive = true;
-					vl.nextTimeNoValueAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
-							vl.resendRetard;
+					vl.nextTimeNoValueAlarmAllowed = now +	vl.resendRetard;
+					boolean noMessage = sendNoValueMessageOrRelease(vl, now, false);
 					if(vl.res != null) {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.res);
 						float val = getHumanValue(vl.res);
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
-								vl.maxIntervalBetweenNewValues, alarmStatus);
+								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage);
 						//reset value
 						//if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
 						//	vl.res.setValue(Float.NaN);
@@ -249,12 +287,12 @@ public class AlarmingManager {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.bres);
 						float val = vl.bres.getValue()?1.0f:0.0f;
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
-								vl.maxIntervalBetweenNewValues, alarmStatus);
+								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage);
 					} else 	if(vl.ires != null) {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.ires);
 						float val = vl.ires.getValue();
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
-								vl.maxIntervalBetweenNewValues, alarmStatus);
+								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage);
 					} else {
 						//IntegerResource alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
 						//executeNoValueAlarm(vl.listener.getAc(), Float.NaN, vl.lastTimeOfNewData,
@@ -295,7 +333,10 @@ public class AlarmingManager {
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus) {
-			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
+			//TODO: For now we block releases for limit alarms and noValue-alarms
+			long now = appManPlus.getFrameworkTime();
+			boolean noMessage = sendNoValueMessageOrRelease(vl, now, true);
+			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, noMessage);		
 		}
 
 		@Override
@@ -325,7 +366,7 @@ public class AlarmingManager {
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus) {
-			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
+			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, false);		
 		}
 
 		@Override
@@ -391,7 +432,7 @@ public class AlarmingManager {
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus) {
-			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus);		
+			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, false);		
 		}
 
 		@Override
@@ -445,7 +486,13 @@ public class AlarmingManager {
 	}
 
 	protected void executeNoValueAlarm(AlarmConfiguration ac, float value, long lastTime, long maxInterval,
-			IntegerResource alarmStatus) {
+			IntegerResource alarmStatus, boolean noMessage) {
+		int status = ac.alarmLevel().getValue()+1000;
+		if(alarmStatus != null) {
+			alarmStatus.setValue(status);
+		}
+		if(noMessage)
+			return;
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
 		String title = "No more values received:"+tsName+" (Alarming)";
@@ -454,16 +501,17 @@ public class AlarmingManager {
 		if(baseUrl != null)
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
-		int status = ac.alarmLevel().getValue()+1000;
-		if(alarmStatus != null) {
-			alarmStatus.setValue(status);
-		}
 		if(prio != null)
 			sendMessage(ac, status, title, message, prio, ac.alarmingAppId());
 	}
 	
 	protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-			IntegerResource alarmStatus) {
+			IntegerResource alarmStatus, boolean noMessage) {
+		if(alarmStatus != null) {
+			alarmStatus.setValue(0);
+		}
+		if(noMessage)
+			return;
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
 		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
 		String title = "Release:"+tsName+" (Alarming)";
@@ -473,9 +521,6 @@ public class AlarmingManager {
 				"\r\n"+"  Upper limit: "+upper;
 		if(baseUrl != null)
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
-		if(alarmStatus != null) {
-			alarmStatus.setValue(0);
-		}
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(ac, 0, title, message, prio, ac.alarmingAppId());
