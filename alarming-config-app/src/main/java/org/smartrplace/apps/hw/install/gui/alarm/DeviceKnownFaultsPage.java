@@ -25,13 +25,15 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.textfield.TextField;
 
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
-
+	protected boolean showAllDevices = false;
+	
 	@Override
 	protected String getHeader() {
 		return "6. Device Issue Status";
@@ -39,6 +41,22 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	
 	public DeviceKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller);
+		
+		Button switchAllDeviceBut = new Button(page, "switchAllDeviceBut") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				if(showAllDevices)
+					setText("ALL DEVICES", req);
+				else
+					setText("STANDARD", req);
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				showAllDevices = !showAllDevices;
+			}
+		};
+		switchAllDeviceBut.registerDependentWidget(switchAllDeviceBut);
+		topTable.setContent(1, 6, switchAllDeviceBut);
 	}
 
 	@Override
@@ -90,6 +108,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("MinInterval");
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Edit TT");
+					vh.registerHeaderEntry("Release");
 					return;
 				}
 				AlarmGroupData res = object.knownFault();
@@ -147,6 +166,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				blockingDrop.setDefaultItems(valuesToSetBlock.values());
 				blockingDrop.registerDependentWidget(intervalEdit);
 				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);
+				
+				Button releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						res.ongoingAlarmStartTime().setValue(-1);
+					}
+				};
+				row.addCell("Release", releaseBut);
 			}
 			
 			@Override
@@ -158,6 +185,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	}
 	
 	protected List<InstallAppDevice> getDevicesWithKnownFault(List<InstallAppDevice> all) {
+		if(showAllDevices)
+			return all;
 		List<InstallAppDevice> result = new ArrayList<>();
 		for(InstallAppDevice dev: all) {
 			if(dev.knownFault().exists() && dev.knownFault().ongoingAlarmStartTime().getValue() > 0) {
