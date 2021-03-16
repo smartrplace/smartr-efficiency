@@ -223,6 +223,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 				ValueResourceHelper.setCreate(deviceResource.systemRestart(), 1);			
 			}
 		} catch(Exception e) {
+			System.out.println("Warning: System boot time could not be parsed! Exception printStakTrace follows...");
 			e.printStackTrace();
 		}
 	}

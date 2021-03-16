@@ -12,7 +12,7 @@ import org.smartrplace.util.frontend.servlet.UserServletTest;
 @Component(
 		service=Servlet.class,
 		property= { 
-				HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN + "="+MonitoringApp.urlPathServletAPI+"/test", // prefix to be set in ServletContextHelper
+				HttpWhiteboardConstants.HTTP_WHITEBOARD_SERVLET_PATTERN + "="+MonitoringApp.urlPathServletAPIMobile, // prefix to be set in ServletContextHelper
 				//HttpWhiteboardConstants.HTTP_WHITEBOARD_CONTEXT_SELECT + "=" + UserServletTest.CONTEXT_FILTER
 		}
 )

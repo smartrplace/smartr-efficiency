@@ -146,7 +146,7 @@ public class InitUtil {
  		}
 		//register own servlet
 		String userServletPath = MonitoringApp.urlPathServlet+"/userdata";
-		String userServletPathAPI = MonitoringApp.urlPathServletAPI;
+		String userServletPathAPI = MonitoringApp.urlPathServletAPIWeb;
 		String genericFileUploadServletPath = "/upload";
 		String genericFileDownloadServletPath = "/download/";
 		UserServlet userServlet = registerServlet(userServletPath, controller, includeSpecialTimeseriesServlet);
@@ -197,7 +197,7 @@ public class InitUtil {
  	
  	public static UserServlet registerServlet(String servletPath, MonitoringController controller,
  			boolean includeSpecialTimeseriesServlet) {
- 		UserServlet userServlet = new UserServlet(); //.getInstance();
+ 		UserServlet userServlet = new UserServlet(servletPath); //.getInstance();
  		SensorServlet sensServlet = new SensorServlet(controller);
 		userServlet.addPage("sensorsByRoom", sensServlet);
 		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);
