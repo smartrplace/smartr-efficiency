@@ -1,8 +1,5 @@
 package org.smartrplace.app.monbase.power;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.recordeddata.RecordedData;

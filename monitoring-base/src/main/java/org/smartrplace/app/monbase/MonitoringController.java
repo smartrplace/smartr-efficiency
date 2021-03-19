@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
@@ -86,6 +87,7 @@ AggregationModeProvider, RoomLabelProvider {
 	protected AlarmingManagement alarmMan = null;
 	public final DatapointService dpService;
 	public final ConsumptionEvalAdmin evalAdm;
+	public final ApplicationManagerPlus appManPlusMon;
 	
 	/** Implementation must be able to deal with a null value for locale
 	 * TODO: getRoomLabel should have default implementation finding the room based on the resource structure
@@ -257,6 +259,8 @@ AggregationModeProvider, RoomLabelProvider {
 			DatapointService dpService) {
 		super(appMan, evaluationOCApp, null, new PageConfig(false, false), true);
 		this.dpService = dpService;
+		appManPlusMon = new ApplicationManagerPlus(appMan);
+		appManPlusMon.setDpService(dpService);
 		EvalProviderMonitoringBase.controller = this;
 		evalAdm = new ConsumptionEvalAdmin(this);
 		//if(dpService != null)

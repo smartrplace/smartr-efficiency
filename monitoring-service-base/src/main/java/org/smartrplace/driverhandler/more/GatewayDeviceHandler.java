@@ -135,6 +135,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 		result.add(dpService.getDataPointStandard(device.systemRestart()));
 		result.add(dpService.getDataPointStandard(device.datapointsInAlarmState()));
 		result.add(dpService.getDataPointStandard(device.heartBeatDelay()));
+		result.add(dpService.getDataPointStandard(device.apiMethodAccess()));
 
 		List<NetworkTrafficData> ifacs = device.networkTrafficData().getAllElements();
 		for(NetworkTrafficData ifac: ifacs) {
@@ -208,6 +209,33 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 			};
 			systemBootTime.addValueListener(bootListener, true);
 		}
+		
+		if(deviceResource.publicAddress().isActive()) {
+			ResourceValueListener<StringResource> addrListener = new ResourceValueListener<StringResource>() {
+				@Override
+				public void resourceChanged(StringResource resource) {
+					String val = resource.getValue();
+					int lastIdx = val.lastIndexOf('.');
+					int last = -100;
+					if(lastIdx > 0 && val.length() > (lastIdx+1)) {
+						try {
+							last = Integer.parseInt(val.substring(lastIdx+1));
+						} catch(NumberFormatException e) {
+							last = -200;
+						}
+					}
+					if(Boolean.getBoolean("org.smartrplace.driverhandler.more.publicaddress.onvalueupdate")) {
+						ValueResourceHelper.setCreate(deviceResource.foundPublicAddressLastPart(), last);
+					} else {
+						if(deviceResource.foundPublicAddressLastPart().getValue() != last) {
+							ValueResourceHelper.setCreate(deviceResource.foundPublicAddressLastPart(), last);
+						}
+					}
+				}
+			};
+			deviceResource.publicAddress().addValueListener(addrListener, true);
+		}
+		
 		return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);
 	}
 	

@@ -7,7 +7,6 @@ import java.util.Map;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 

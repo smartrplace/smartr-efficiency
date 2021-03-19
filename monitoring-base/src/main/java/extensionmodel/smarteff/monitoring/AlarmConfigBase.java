@@ -1,8 +1,5 @@
 package extensionmodel.smarteff.monitoring;
 
-import javax.xml.crypto.Data;
-
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;

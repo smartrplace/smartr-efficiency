@@ -1,8 +1,6 @@
 package org.sp.smarteff.monitoring.alarming;
 
 
-import java.util.List;
-
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
@@ -16,8 +14,6 @@ import org.osgi.framework.BundleContext;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import extensionmodel.smarteff.api.base.SmartEffUserData;
-import extensionmodel.smarteff.api.base.SmartEffUserDataNonEdit;
 
 @Component(specVersion = "1.2", immediate = true)
 @Service(Application.class)

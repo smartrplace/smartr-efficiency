@@ -3,7 +3,6 @@ package org.smartrplace.app.monbase;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 import java.util.List;
@@ -11,7 +10,6 @@ import java.util.List;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.ogema.accesscontrol.RestAccess;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
@@ -197,7 +195,7 @@ public class InitUtil {
  	
  	public static UserServlet registerServlet(String servletPath, MonitoringController controller,
  			boolean includeSpecialTimeseriesServlet) {
- 		UserServlet userServlet = new UserServlet(servletPath); //.getInstance();
+ 		UserServlet userServlet = new UserServlet(servletPath, controller.appManPlusMon); //.getInstance();
  		SensorServlet sensServlet = new SensorServlet(controller);
 		userServlet.addPage("sensorsByRoom", sensServlet);
 		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);

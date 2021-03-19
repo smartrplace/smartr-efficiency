@@ -1,8 +1,6 @@
 package org.smartrplace.app.monbase.power;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.Datapoint;
