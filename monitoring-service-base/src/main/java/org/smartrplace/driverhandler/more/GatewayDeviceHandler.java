@@ -219,11 +219,12 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 					int lastIdx = val.lastIndexOf('.');
 					int last = -100;
 					if(lastIdx > 0 && val.length() > (lastIdx+1)) {
+						String sub = val.substring(lastIdx+1);
 						try {
-							last = Integer.parseInt(val.substring(lastIdx+1));
+							last = Integer.parseInt(sub.trim());
 						} catch(NumberFormatException e) {
 							last = -200;
-							appMan.getLogger().warn(" +++ IP-Addr "+val+" could not be processed! Sub:"+val.substring(lastIdx+1));
+							appMan.getLogger().warn(" +++ IP-Addr "+val+" could not be processed! Sub:"+sub+"["+sub.length()+"]");
 						}
 					}
 					if(Boolean.getBoolean("org.smartrplace.driverhandler.more.publicaddress.onvalueupdate")) {
