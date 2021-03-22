@@ -136,6 +136,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 		result.add(dpService.getDataPointStandard(device.datapointsInAlarmState()));
 		result.add(dpService.getDataPointStandard(device.heartBeatDelay()));
 		result.add(dpService.getDataPointStandard(device.apiMethodAccess()));
+		result.add(dpService.getDataPointStandard(device.foundPublicAddressLastPart()));
 
 		List<NetworkTrafficData> ifacs = device.networkTrafficData().getAllElements();
 		for(NetworkTrafficData ifac: ifacs) {
