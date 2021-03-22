@@ -223,6 +223,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 							last = Integer.parseInt(val.substring(lastIdx+1));
 						} catch(NumberFormatException e) {
 							last = -200;
+							appMan.getLogger().warn(" +++ IP-Addr "+val+" could not be processed! Sub:"+val.substring(lastIdx+1));
 						}
 					}
 					if(Boolean.getBoolean("org.smartrplace.driverhandler.more.publicaddress.onvalueupdate")) {
