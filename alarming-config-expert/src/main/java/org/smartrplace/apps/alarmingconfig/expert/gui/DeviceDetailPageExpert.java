@@ -134,7 +134,7 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 		addFinalWidgets(object, vh, id, req, row, appMan);
 	}
 	
-	protected void addDatapoint(Datapoint dp, String label, List<TimeSeriesData> result) {
+	public static void addDatapoint(Datapoint dp, String label, List<TimeSeriesData> result) {
 		TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(null);
 		TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, label, label);
 		tsdExt.type = GaRoDataType.KPI_DURATION;
@@ -251,7 +251,7 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 		Datapoint dpIn = dpService.getDataPointAsIs(object.sensorVal());
 		Datapoint gapDp = null;
 		if(object.maxIntervalBetweenNewValues().getValue() >= 0) {
-			gapDp = controller.tsProcAl.processSingle(TimeseriesProcAlarming.GAP_EVAL, dpIn, object);
+			gapDp = controller.tsProcAl.processSingle(TimeseriesProcAlarming.GAP_EVAL, dpIn, object.maxIntervalBetweenNewValues().getValue());
 			((ProcessedReadOnlyTimeSeries)gapDp.getTimeSeries()).reset(null);
 		}
 		Datapoint outDp = controller.tsProcAl.processSingle(TimeseriesProcAlarming.OUTVALUE_EVAL, dpIn, object);

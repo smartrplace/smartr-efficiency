@@ -239,17 +239,8 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		return getDevices(tableProvider, false);
 	}
 	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
-//			boolean includeInactiveDevices, 
 			boolean includeTrash) {
 		List<InstallAppDevice> result = new ArrayList<>();
-		//Class<T> tableType = null;
-		//List<ResourcePattern<T>> allPatterns = null;
-		/*if(tableProvider != null) {
-			if(includeInactiveDevices)
-				tableType = tableProvider.getResourceType();
-			//else
-			//	allPatterns = tableProvider.getAllPatterns();
-		}*/
 		for(InstallAppDevice install: resData.appConfigData.knownDevices().getAllElements()) {
 			if((!includeTrash) && install.isTrash().getValue())
 				continue;
@@ -257,15 +248,9 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 				result.add(install);
 				continue;
 			}
-			/*if(includeInactiveDevices) {
-				if(install.device().getResourceType().equals(tableType)) {				
-					result.add(install);
-				}
-			} else {*/
-				if(tableProvider.id().equals(install.devHandlerInfo().getValue()))	{
-					result.add(install);
-				}
-			//}
+			if(tableProvider.id().equals(install.devHandlerInfo().getValue()))	{
+				result.add(install);
+			}
 		}
 		return result;
 	}

@@ -16,28 +16,32 @@ import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingleArg;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcessor;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtilBase;
+import org.smartrplace.apps.alarmingconfig.model.eval.EvaluationByAlarmingOption;
+import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 
 public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase {
-	public static String GAP_EVAL = "GAP_EVAL";
-	public static String OUTVALUE_EVAL = "OUTVALUE_EVAL";
+	public static final String GAP_EVAL = "GAP_EVAL";
+	public static final String OUTVALUE_EVAL = "OUTVALUE_EVAL";
+	public static final String SETPREACT_EVAL = "SETPREACT_EVAL";
 	
 	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService) {
 		super(appMan, dpService);
 		
-		TimeseriesSetProcessor meterProc = new TimeseriesSetProcSingleToSingleArg<AlarmConfiguration>(TimeProcUtil.ALARM_GAP_SUFFIX) {
+		TimeseriesSetProcessor meterProc = new TimeseriesSetProcSingleToSingleArg<Float>(TimeProcUtil.ALARM_GAP_SUFFIX) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, AlarmConfiguration param) {
-				long maxGapSize = (long) (param.maxIntervalBetweenNewValues().getValue()*TimeProcUtil.MINUTE_MILLIS);
-				return TimeSeriesServlet.getGaps(timeSeries, start, end, maxGapSize);						
+					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, Float maxGapSizeIn) {
+				//long maxGapSize = (long) (param.maxIntervalBetweenNewValues().getValue()*TimeProcUtil.MINUTE_MILLIS);
+				long maxGapSize = (long) (maxGapSizeIn*TimeProcUtil.MINUTE_MILLIS);
+				return TimeSeriesServlet.getGaps(timeSeries, start, end, maxGapSize);					
 			}
 
 			@Override
 			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {}
 
 			@Override
-			public Class<AlarmConfiguration> getParamClass() {
-				return AlarmConfiguration.class;
+			public Class<Float> getParamClass() {
+				return Float.class;
 			}
 		};
 		knownProcessors.put(GAP_EVAL, meterProc);
@@ -65,6 +69,28 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase {
 			}
 		};
 		knownProcessors.put(OUTVALUE_EVAL, outProc);
+		
+		TimeseriesSetProcessor setpProc = new TimeseriesSetProcSingleToSingleArg<SetpReactInput>(TimeProcUtil.ALARM_SETPREACT_SUFFIX) {
+			@Override
+			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, SetpReactInput param) {
+				long maxReactTime = (long) (param.config.maxSetpointReactionTimeSeconds().getValue()*1000);
+				return TimeSeriesServlet.getSensReact(timeSeries, param.setpFb, start, end, maxReactTime);						
+			}
+
+			@Override
+			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {}
+
+			@Override
+			public Class<SetpReactInput> getParamClass() {
+				return SetpReactInput.class;
+			}
+		};
+		knownProcessors.put(SETPREACT_EVAL, setpProc);
 	}
 
+	public static class SetpReactInput {
+		public ReadOnlyTimeSeries setpFb;
+		public ThermPlusConfig config;
+	}
 }
