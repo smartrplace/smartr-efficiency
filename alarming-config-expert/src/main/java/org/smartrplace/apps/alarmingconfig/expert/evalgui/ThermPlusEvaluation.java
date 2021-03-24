@@ -95,10 +95,15 @@ public class ThermPlusEvaluation implements AlarmingExtension {
 						addGapDatapoint(dpMes, config.maxIntervalBetweenNewValues().getValue(), "dpMesGap", phdev, tsProc, result);
 						addGapDatapoint(dpSetpFb, config.maxIntervalBetweenNewValues().getValue(), "dpFbGap", phdev, tsProc, result);
 						
+						Datapoint dpSetpRealChange = tsProc.processSingle(TimeseriesProcAlarming.VALUECHANGED_EVAL, dpSetpReq, null);
+						((ProcessedReadOnlyTimeSeries)dpSetpRealChange.getTimeSeries()).reset(null);
+						dpSetpRealChange.addAlias(phdev.getLocation()+"/$$dpSetpReqRealChange");
+						result.add(dpSetpRealChange);
+
 						SetpReactInput input = new SetpReactInput();
 						input.config = config;
 						input.setpFb = dpSetpFb.getTimeSeries();
-						Datapoint dpSetpReact = tsProc.processSingle(TimeseriesProcAlarming.SETPREACT_EVAL, dpSetpReq, input);
+						Datapoint dpSetpReact = tsProc.processSingle(TimeseriesProcAlarming.SETPREACT_EVAL, dpSetpRealChange, input);
 						((ProcessedReadOnlyTimeSeries)dpSetpReact.getTimeSeries()).reset(null);
 						dpSetpReact.addAlias(phdev.getLocation()+"/$$dpSetpReact");
 						result.add(dpSetpReact);

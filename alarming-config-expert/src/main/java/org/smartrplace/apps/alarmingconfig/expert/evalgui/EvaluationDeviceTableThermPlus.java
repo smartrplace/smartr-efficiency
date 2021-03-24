@@ -138,6 +138,7 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 			vh.registerHeaderEntry("NoValue");
 			vh.registerHeaderEntry("NoSetpFb");
 			
+			vh.registerHeaderEntry("ReqRealNum");
 			vh.registerHeaderEntry("NoSetpReact");
 
 			vh.registerHeaderEntry("NoValueMax");
@@ -164,6 +165,7 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 			ResultLabel mesGap = addResultLabel(device, therm.getLocation()+"/$$dpMesGap", "NoValue", start, end, vh, id, req, row, forPlot);
 			ResultLabel fbGap = addResultLabel(device, therm.getLocation()+"/$$dpFbGap", "NoSetpFb", start, end, vh, id, req, row, forPlot);
 			
+			ResultLabel reqReal = addResultLabel(device, therm.getLocation()+"/$$dpSetpReqRealChange", "ReqRealNum", start, end, vh, id, req, row, forPlot);
 			ResultLabel reactGap = addResultLabel(device, therm.getLocation()+"/$$dpSetpReact", "NoSetpReact", start, end, vh, id, req, row, forPlot);
 
 			Float maxGapMes = TimeProcUtil.getMaxValue(mesGap.dp, start, end);

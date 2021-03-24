@@ -23,6 +23,7 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase {
 	public static final String GAP_EVAL = "GAP_EVAL";
 	public static final String OUTVALUE_EVAL = "OUTVALUE_EVAL";
 	public static final String SETPREACT_EVAL = "SETPREACT_EVAL";
+	public static final String VALUECHANGED_EVAL = "VALUECHANGED_EVAL";
 	
 	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService) {
 		super(appMan, dpService);
@@ -87,6 +88,24 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase {
 			}
 		};
 		knownProcessors.put(SETPREACT_EVAL, setpProc);
+		
+		TimeseriesSetProcessor valueChangedProc = new TimeseriesSetProcSingleToSingleArg<Float>(TimeProcUtil.ALARM_VALCHANGED_SUFFIX) {
+			@Override
+			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, Float minChange) {
+				return TimeSeriesServlet.getValueChanges(timeSeries, start, end, minChange, false);					
+			}
+
+			@Override
+			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {}
+
+			@Override
+			public Class<Float> getParamClass() {
+				return Float.class;
+			}
+		};
+		knownProcessors.put(VALUECHANGED_EVAL, valueChangedProc);
+
 	}
 
 	public static class SetpReactInput {
