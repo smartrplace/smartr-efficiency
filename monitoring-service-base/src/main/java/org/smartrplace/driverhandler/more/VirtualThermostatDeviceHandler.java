@@ -26,6 +26,7 @@ import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -180,5 +181,19 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 		});
 		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
 		return result;
+	}
+	
+	@Override
+	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, Thermostat deviceResource,
+			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		
+		//TODO: Use same code with standard DeviceHandlerThermostat
+		if(Boolean.getBoolean("org.smartrplace.homematic.devicetable.sim.extended.thermostat")) {
+			if(ValueResourceHelper.setIfNew(deviceResource.temperatureSensor().reading(), 20+273.15f))
+				deviceResource.temperatureSensor().activate(true);
+			//fixed gradient towards setpoint, reduced towards limit
+		}
+		
+		return super.startSimulationForDevice(device, deviceResource, roomSimulation, dpService);
 	}
 }

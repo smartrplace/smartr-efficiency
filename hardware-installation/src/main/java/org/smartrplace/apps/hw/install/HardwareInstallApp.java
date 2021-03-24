@@ -131,7 +131,7 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
-		menu = new NavigationMenu("Select Page");
+		//menu = new NavigationMenu("Select Page");
 		final WidgetPage<?> page = widgetApp.createStartPage();
 
 		synchronized (this) {

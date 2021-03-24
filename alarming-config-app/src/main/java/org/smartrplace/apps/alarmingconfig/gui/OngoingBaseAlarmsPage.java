@@ -21,7 +21,7 @@ public class OngoingBaseAlarmsPage extends MainPage {
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "5. Active Alarms";
+		return "4. Active Alarms";
 	}
 	@Override
 	public Collection<AlarmConfiguration> getObjectsInTable(OgemaHttpRequest arg0) {

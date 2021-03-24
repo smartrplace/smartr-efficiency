@@ -174,14 +174,14 @@ public class HardwareInstallController {
 		if(hardwareInstallApp == null)
 			return;
 		
-		hardwareInstallApp.menu.addEntry("Device Setup and Configuration", page);
-		hardwareInstallApp.configMenuConfig(page.getMenuConfiguration());
+		//hardwareInstallApp.menu.addEntry("Device Setup and Configuration", page);
+		//hardwareInstallApp.configMenuConfig(page.getMenuConfiguration());
 		
 		
-		WidgetPage<LocaleDictionary> page2 = hardwareInstallApp.widgetApp.createWidgetPage("deviceConfig.html");
+		/*WidgetPage<LocaleDictionary> page2 = hardwareInstallApp.widgetApp.createWidgetPage("deviceConfig.html");
 		deviceConfigPage = new DeviceConfigPage(page2, this);
 		hardwareInstallApp.menu.addEntry("Hardware Driver Configuration", page2);
-		hardwareInstallApp.configMenuConfig(page2.getMenuConfiguration());
+		hardwareInstallApp.configMenuConfig(page2.getMenuConfiguration());*/
 		
 		/*WidgetPage<?> page3 = hardwareInstallApp.widgetApp.createWidgetPage("deviceTypeConfig.html");
 		new DeviceTypeConfigPage(page3, this);

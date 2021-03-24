@@ -27,6 +27,7 @@ import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
@@ -40,6 +41,7 @@ import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 /**
@@ -99,6 +101,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Configuration Page", configPagebase);
 			configPagebase.getMenuConfiguration().setCustomNavigation(menu);
 			
+			WidgetPage<LocaleDictionary> page2 = widgetApp.createWidgetPage("deviceConfig.html");
+			new DeviceConfigPage(page2, controller);
+			menu.addEntry("Hardware Driver Configuration", page2);
+			page2.getMenuConfiguration().setCustomNavigation(menu);
+
 			WidgetPage<?> thermPage = widgetApp.createWidgetPage("thermostatDetails.hmtl");
 			new ThermostatPage(thermPage, controller);
 			menu.addEntry("Thermostat Debugging", thermPage);

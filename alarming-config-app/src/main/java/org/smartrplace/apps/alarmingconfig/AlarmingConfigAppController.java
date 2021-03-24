@@ -43,7 +43,6 @@ import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
-import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.format.WidgetHelper;
@@ -172,9 +171,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	}
 	
 	public static String messageSettingsHeader() {
-		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway"))
-			return "4. Message Receiver Configuration";
-		else
+		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+			if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))
+				return "2. Message Receiver Configuration";
+			else
+				return "5. Message Receiver Configuration";
+		} else
 			return "1. Message Receiver Configuration";		
 	}
 	
@@ -224,17 +226,19 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			initApp.menu.addEntry("1. Device Template Alarming Configuration", pageRes12);
 			initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 	
-			WidgetPage<?> pageRes9 = initApp.widgetApp.createWidgetPage("devicealarm.html");
-			//Resource base = appMan.getResourceAccess().getResource("master");
-			deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
-			initApp.menu.addEntry("2. Device Alarming Overview", pageRes9);
-			initApp.configMenuConfig(pageRes9.getMenuConfiguration());
-
-			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
-			//Resource base = appMan.getResourceAccess().getResource("master");
-			mainPage = new MainPage(pageRes10, appManPlus); //, base);
-			initApp.menu.addEntry("3. Alarming Configuration Details", pageRes10);
-			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
+			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview")) {
+				WidgetPage<?> pageRes9 = initApp.widgetApp.createWidgetPage("devicealarm.html");
+				//Resource base = appMan.getResourceAccess().getResource("master");
+				deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
+				initApp.menu.addEntry("2. Device Alarming Overview", pageRes9);
+				initApp.configMenuConfig(pageRes9.getMenuConfiguration());
+	
+				WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
+				//Resource base = appMan.getResourceAccess().getResource("master");
+				mainPage = new MainPage(pageRes10, appManPlus); //, base);
+				initApp.menu.addEntry("3. Alarming Configuration Details", pageRes10);
+				initApp.configMenuConfig(pageRes10.getMenuConfiguration());
+			}
 			isGw = true;
 		}
 		@SuppressWarnings("unchecked")
@@ -256,10 +260,10 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			forwardingPage = null;
 		}
 		
-		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")  && (!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))) {
 			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("ongoingbase.html");
 			new OngoingBaseAlarmsPage(pageRes10, appManPlus); //, base);
-			initApp.menu.addEntry("5. Active Alarms", pageRes10);
+			initApp.menu.addEntry("4. Active Alarms", pageRes10);
 			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
 		}
 
