@@ -111,8 +111,20 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 			dp.addToSubRoomLocationAtomic(null, null, "smaType", false);
 			setBuildingAsRoom(dp, dpService);
 		}
+		dp = addDatapoint(dev.getSubResource("initControl", IntegerResource.class), result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "initControl", false);
+			setBuildingAsRoom(dp, dpService);
+		}
+		dp = addDatapoint(dev.electricityConnection().reactivePowerSensor().settings().setpoint(), result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "reactivePowerSetpoint", false);
+			setBuildingAsRoom(dp, dpService);
+		}
+
 		//addDatapoint(dev.electricityConnection().powerSensor().reading(), result, dpService);
 		//addDatapoint(dev.electricityConnection().energySensor().reading(), result, dpService);
+		
 		PowerSensor apparentPowerSens = dev.getSubResource("apparentPowerSensor", PowerSensor.class);
 		dp = addDatapoint(apparentPowerSens.deviceSettings().setpoint(), result, dpService);
 		if(dp != null) {

@@ -133,6 +133,10 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 
 		//final VirtualSensorKPIDataBase mapData1 = utilAggSubPhases.getDatapointDataAccumulation(energy, "total"+device.getName(), device,
 		//		15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+		if(Boolean.getBoolean("virtualSensors.disable")) {
+			System.out.println("   *** Disabling Iotawatt virtualSensors based on energySensor: "+device.getLocation());
+			return result;
+		}
 		if(energy.isEmpty()) {
 			System.out.println("   !!! WARNING: Iotawatt without energySensor to use: "+device.getLocation());
 			return result;

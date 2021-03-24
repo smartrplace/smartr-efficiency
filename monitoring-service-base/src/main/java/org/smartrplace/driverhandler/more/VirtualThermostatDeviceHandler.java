@@ -20,6 +20,7 @@ import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
@@ -191,7 +192,43 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 		if(Boolean.getBoolean("org.smartrplace.homematic.devicetable.sim.extended.thermostat")) {
 			if(ValueResourceHelper.setIfNew(deviceResource.temperatureSensor().reading(), 20+273.15f))
 				deviceResource.temperatureSensor().activate(true);
-			//fixed gradient towards setpoint, reduced towards limit
+			List<RoomInsideSimulationBase> result = new ArrayList<>();
+
+			TemperatureResource mesRes = deviceResource.temperatureSensor().reading();
+			TemperatureResource setpRes = deviceResource.temperatureSensor().deviceFeedback().setpoint();
+			final double factor = 2.0/TimeProcUtil.HOUR_MILLIS;
+			Timer timer = appMan.appMan().createTimer(TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+				boolean jitter = false;
+				long lastTime = -1;
+				
+				@Override
+				public void timerElapsed(Timer arg0) {
+					long now = arg0.getExecutionTime();
+					if(lastTime <= 0) {
+						lastTime = now - 60000;
+					}
+					float mes = mesRes.getValue();
+					float setp = setpRes.getValue();
+					float newMes;
+					long step = now - lastTime;
+					float diff = setp - mes;
+					newMes = (float) (mes + diff*step*factor);
+					/*if(setp > mes) {
+						newMes = (float) (mes + step*factor);
+					} else
+						newMes =  (float) (mes - step*factor);*/
+					if(jitter)
+						newMes += 0.1;
+					else
+						newMes -= 0.1;
+					mesRes.setValue(newMes);
+					setpRes.setValue(setp);
+					jitter = !jitter;
+					lastTime = now;
+				}
+			});
+			result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
+			return result;
 		}
 		
 		return super.startSimulationForDevice(device, deviceResource, roomSimulation, dpService);
