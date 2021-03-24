@@ -41,6 +41,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -230,6 +231,12 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		}
 		result.add(new SetpointToFeedbackSimSimple(deviceResource.temperatureSensor().settings().setpoint(),
 				deviceResource.temperatureSensor().deviceFeedback().setpoint(), appMan, null));
+		
+		if(Boolean.getBoolean("org.smartrplace.homematic.devicetable.sim.extended.thermostat")) {
+			if(ValueResourceHelper.setIfNew(deviceResource.temperatureSensor().reading(), 20+273.15f))
+				deviceResource.temperatureSensor().activate(true);
+			//fixed gradient towards setpoint, reduced towards limit
+		}
 		return result;
 	}
 	
