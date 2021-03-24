@@ -227,12 +227,9 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 							appMan.getLogger().warn(" +++ IP-Addr "+val+" could not be processed! Sub:"+sub+"["+sub.length()+"]");
 						}
 					}
-					if(Boolean.getBoolean("org.smartrplace.driverhandler.more.publicaddress.onvalueupdate")) {
+					ValueResourceHelper.setCreate(deviceResource.foundPublicAddressLastPartRaw(), last);
+					if(deviceResource.foundPublicAddressLastPart().getValue() != last && last >= 0) {
 						ValueResourceHelper.setCreate(deviceResource.foundPublicAddressLastPart(), last);
-					} else {
-						if(deviceResource.foundPublicAddressLastPart().getValue() != last) {
-							ValueResourceHelper.setCreate(deviceResource.foundPublicAddressLastPart(), last);
-						}
 					}
 				}
 			};
