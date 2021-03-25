@@ -48,6 +48,8 @@ public class UserAdminBaseUtil {
 		GUEST_APPS = new ArrayList<String>(BASE_APPS);
 		GUEST_APPS.add("org.smartrplace.apps.smartrplace-heatcontrol-servlet");
 		GUEST_APPS.add("org.smartrplace.apps.heatcontrol-frontend");
+		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.centralonly"))
+			GUEST_APPS.add("org.smartrplace.apps.smartrcockpit-link");
 	}
 
 	public static Collection<String> DISPLAY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
