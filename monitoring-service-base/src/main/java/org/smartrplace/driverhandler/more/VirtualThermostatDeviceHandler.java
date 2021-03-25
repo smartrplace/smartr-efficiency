@@ -197,8 +197,11 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 			TemperatureResource mesRes = deviceResource.temperatureSensor().reading();
 			TemperatureResource setpRes = deviceResource.temperatureSensor().deviceFeedback().setpoint();
 			final double factor = 2.0/TimeProcUtil.HOUR_MILLIS;
-			Timer timer = appMan.appMan().createTimer(TimeProcUtil.MINUTE_MILLIS, new TimerListener() {
+			Timer timer = appMan.appMan().createTimer(TimeProcUtil.MINUTE_MILLIS/3, new TimerListener() {
 				boolean jitter = false;
+				long longTermJitterDuration = 5*TimeProcUtil.MINUTE_MILLIS;
+				float longTermJitterDev = 0.3f;
+				long longTermJitterEnd = appMan.appMan().getFrameworkTime();
 				long lastTime = -1;
 				
 				@Override
@@ -221,7 +224,15 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 						newMes += 0.1;
 					else
 						newMes -= 0.1;
-					mesRes.setValue(newMes);
+					
+					if(now > longTermJitterEnd) {
+						newMes += longTermJitterDev;
+						longTermJitterDev = ((((int)(longTermJitterDev*170+3))%7)*0.1f)-0.3f;
+						longTermJitterEnd = now + longTermJitterDuration;
+						longTermJitterDuration = ((longTermJitterDuration*170+15*TimeProcUtil.MINUTE_MILLIS)%(30*TimeProcUtil.MINUTE_MILLIS));
+					}
+					
+					mesRes.setValue(Math.round(newMes*10)*0.1f);
 					setpRes.setValue(setp);
 					jitter = !jitter;
 					lastTime = now;

@@ -1,6 +1,5 @@
 package org.smartrplace.driverhandler.devices;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -116,9 +115,25 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 			dp.addToSubRoomLocationAtomic(null, null, "initControl", false);
 			setBuildingAsRoom(dp, dpService);
 		}
+		dp = addDatapoint(dev.getSubResource("ggc", IntegerResource.class), result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "ggc", false);
+			setBuildingAsRoom(dp, dpService);
+		}
+		dp = addDatapoint(dev.getSubResource("ggc_fb", IntegerResource.class), result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "ggc_fb", false);
+			setBuildingAsRoom(dp, dpService);
+		} 
 		dp = addDatapoint(dev.electricityConnection().reactivePowerSensor().settings().setpoint(), result, dpService);
 		if(dp != null) {
 			dp.addToSubRoomLocationAtomic(null, null, "reactivePowerSetpoint", false);
+			setBuildingAsRoom(dp, dpService);
+		}
+		dp = addDatapoint(dev.electricityConnection().reactivePowerSensor().getSubResource("qpercent", FloatResource.class),
+				result, dpService);
+		if(dp != null) {
+			dp.addToSubRoomLocationAtomic(null, null, "qpercent", false);
 			setBuildingAsRoom(dp, dpService);
 		}
 
