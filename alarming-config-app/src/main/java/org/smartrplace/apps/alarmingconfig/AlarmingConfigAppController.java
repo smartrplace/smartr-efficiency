@@ -173,7 +173,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public static String messageSettingsHeader() {
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))
-				return "2. Message Receiver Configuration";
+				return "3. Message Receiver Configuration";
 			else
 				return "5. Message Receiver Configuration";
 		} else
@@ -221,18 +221,18 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		MainPage.alarmingUpdater = this;
 
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
-			WidgetPage<?> pageRes12 = initApp.widgetApp.createStartPage(); //initApp.widgetApp.createWidgetPage("devices.html");
+			WidgetPage<?> pageRes9 = initApp.widgetApp.createStartPage(); //.createWidgetPage("devicealarm.html");
+			//Resource base = appMan.getResourceAccess().getResource("master");
+			deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
+			initApp.menu.addEntry("1. Device Alarming Overview", pageRes9);
+			initApp.configMenuConfig(pageRes9.getMenuConfiguration());
+
+			WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("deviceoverview.html"); //initApp.widgetApp.createWidgetPage("devices.html");
 			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this);
-			initApp.menu.addEntry("1. Device Template Alarming Configuration", pageRes12);
+			initApp.menu.addEntry("2. Device Template Alarming Configuration", pageRes12);
 			initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 	
 			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview")) {
-				WidgetPage<?> pageRes9 = initApp.widgetApp.createWidgetPage("devicealarm.html");
-				//Resource base = appMan.getResourceAccess().getResource("master");
-				deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
-				initApp.menu.addEntry("2. Device Alarming Overview", pageRes9);
-				initApp.configMenuConfig(pageRes9.getMenuConfiguration());
-	
 				WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
 				//Resource base = appMan.getResourceAccess().getResource("master");
 				mainPage = new MainPage(pageRes10, appManPlus); //, base);

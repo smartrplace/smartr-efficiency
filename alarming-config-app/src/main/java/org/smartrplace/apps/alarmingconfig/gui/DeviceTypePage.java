@@ -47,7 +47,7 @@ public class DeviceTypePage extends MainPage {
 	}
 
 	protected String getHeader(OgemaLocale locale) {
-		return "1. Alarming Configuration Per Device";
+		return "2. Device Template Alarming Configuration";
 	}
 	
 	protected void addWidgetsAboveTableInternal() {

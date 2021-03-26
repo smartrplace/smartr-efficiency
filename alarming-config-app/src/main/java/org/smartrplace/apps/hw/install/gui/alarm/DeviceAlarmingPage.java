@@ -40,7 +40,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 	
 	@Override
 	protected String getHeader() {
-		return "3. Device Alarming Overview";
+		return "1. Device Alarming Overview";
 	}
 	
 	public DeviceAlarmingPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
@@ -173,5 +173,11 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 			}			
 		};
 		
+	}
+	
+	@Override
+	protected boolean isObjectsInTableEmpty(DeviceHandlerProvider<?> pe, OgemaHttpRequest req) {
+		// TODO Auto-generated method stub
+		return super.isObjectsInTableEmpty(pe, req);
 	}
 }
