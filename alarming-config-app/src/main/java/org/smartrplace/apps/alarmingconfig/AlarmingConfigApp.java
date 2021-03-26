@@ -141,8 +141,8 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
       	synchronized (tableProviders) {
         	tableProviders.put(provider.id(), provider);
       	}
-		synchronized(controller.mainPageExts) {
-			if(controller != null) {
+		if(controller != null) {
+			synchronized(controller.mainPageExts) {
 	    		//controller.deviceOverviewPage.updateTables();
 	    		for(HardwareTablePage mp: controller.mainPageExts) {
 	    			mp.updateTables();
