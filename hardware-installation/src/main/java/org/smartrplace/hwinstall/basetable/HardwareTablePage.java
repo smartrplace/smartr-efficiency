@@ -230,6 +230,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
 		List<InstallAppDevice> all = getDevices(devHand);
+//System.out.println("For "+pe.label(null)+" before filter:"+all.size());
 		return finalFilter.getFiltered(all, req);
 	}
 	

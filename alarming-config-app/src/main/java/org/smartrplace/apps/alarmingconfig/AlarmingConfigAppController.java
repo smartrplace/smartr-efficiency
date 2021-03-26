@@ -81,7 +81,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	
 	public MainPage mainPage;
 	public DeviceTypePage devicePage;
-	public DeviceAlarmingPage deviceOverviewPage;
+	//public DeviceAlarmingPage deviceOverviewPage;
 	public final PageBuilderSimple messagePage;
 	public final PageInit forwardingPage;
 	public ReceiverPageBuilder receiverPage;
@@ -223,10 +223,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			WidgetPage<?> pageRes9 = initApp.widgetApp.createStartPage(); //.createWidgetPage("devicealarm.html");
 			//Resource base = appMan.getResourceAccess().getResource("master");
-			deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
+			DeviceAlarmingPage deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
 			initApp.menu.addEntry("1. Device Alarming Overview", pageRes9);
 			initApp.configMenuConfig(pageRes9.getMenuConfiguration());
-
+			synchronized(mainPageExts) {
+				mainPageExts.add(deviceOverviewPage);
+			}
 			WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("deviceoverview.html"); //initApp.widgetApp.createWidgetPage("devices.html");
 			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this);
 			initApp.menu.addEntry("2. Device Template Alarming Configuration", pageRes12);

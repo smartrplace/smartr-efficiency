@@ -138,18 +138,22 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
  		}
  	}
     protected void addTableProvider(DeviceHandlerProvider<?> provider) {
-     	tableProviders.put(provider.id(), provider);
-     	synchronized (this) {
- 	    	if(controller != null && controller.mainPage != null) {
- 	    		controller.deviceOverviewPage.updateTables();
- 	    		for(HardwareTablePage mp: controller.mainPageExts) {
- 	    			mp.updateTables();
- 	    		}
- 	    	}
-     	}
-     }
+      	synchronized (tableProviders) {
+        	tableProviders.put(provider.id(), provider);
+      	}
+		synchronized(controller.mainPageExts) {
+			if(controller != null) {
+	    		//controller.deviceOverviewPage.updateTables();
+	    		for(HardwareTablePage mp: controller.mainPageExts) {
+	    			mp.updateTables();
+	    		}
+	    	}
+		}
+  }
      protected void removeTableProvider(DeviceHandlerProvider<?> provider) {
-     	tableProviders.remove(provider.id());
+       	synchronized (tableProviders) {
+       		tableProviders.remove(provider.id());
+       	}
      }
 
 }

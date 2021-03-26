@@ -1,5 +1,7 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.util.Collection;
+
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -113,7 +115,8 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 	@Override
 	public void updateTables() {
 		synchronized(tableProvidersDone) {
-		if(devHandAcc != null) for(DeviceHandlerProvider<?> pe: devHandAcc.getTableProviders().values()) {
+		Collection<DeviceHandlerProvider<?>> providers = devHandAcc.getTableProviders().values();
+		if(devHandAcc != null) for(DeviceHandlerProvider<?> pe: providers) {
 			//if(isObjectsInTableEmpty(pe))
 			//	continue;
 			String id = pe.id();
@@ -175,9 +178,4 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 		
 	}
 	
-	@Override
-	protected boolean isObjectsInTableEmpty(DeviceHandlerProvider<?> pe, OgemaHttpRequest req) {
-		// TODO Auto-generated method stub
-		return super.isObjectsInTableEmpty(pe, req);
-	}
 }
