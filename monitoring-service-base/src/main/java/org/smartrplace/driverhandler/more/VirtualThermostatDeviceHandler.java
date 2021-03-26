@@ -192,6 +192,9 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 		if(Boolean.getBoolean("org.smartrplace.homematic.devicetable.sim.extended.thermostat")) {
 			if(ValueResourceHelper.setIfNew(deviceResource.temperatureSensor().reading(), 20+273.15f))
 				deviceResource.temperatureSensor().activate(true);
+			float val = deviceResource.temperatureSensor().reading().getCelsius();
+			if(val < 10 || val > 40)
+				deviceResource.temperatureSensor().reading().setCelsius(20f);
 			List<RoomInsideSimulationBase> result = new ArrayList<>();
 
 			TemperatureResource mesRes = deviceResource.temperatureSensor().reading();
@@ -199,9 +202,9 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 			final double factor = 2.0/TimeProcUtil.HOUR_MILLIS;
 			Timer timer = appMan.appMan().createTimer(TimeProcUtil.MINUTE_MILLIS/3, new TimerListener() {
 				boolean jitter = false;
-				long longTermJitterDuration = 5*TimeProcUtil.MINUTE_MILLIS;
-				float longTermJitterDev = 0.3f;
-				long longTermJitterEnd = appMan.appMan().getFrameworkTime();
+				//long longTermJitterDuration = 5*TimeProcUtil.MINUTE_MILLIS;
+				//float longTermJitterDev = 0.3f;
+				//long longTermJitterEnd = appMan.appMan().getFrameworkTime();
 				long lastTime = -1;
 				
 				@Override
@@ -225,12 +228,12 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 					else
 						newMes -= 0.1;
 					
-					if(now > longTermJitterEnd) {
+					/*if(now > longTermJitterEnd) {
 						newMes += longTermJitterDev;
 						longTermJitterDev = ((((int)(longTermJitterDev*170+3))%7)*0.1f)-0.3f;
 						longTermJitterEnd = now + longTermJitterDuration;
 						longTermJitterDuration = ((longTermJitterDuration*170+15*TimeProcUtil.MINUTE_MILLIS)%(30*TimeProcUtil.MINUTE_MILLIS));
-					}
+					}*/
 					
 					mesRes.setValue(Math.round(newMes*10)*0.1f);
 					setpRes.setValue(setp);
