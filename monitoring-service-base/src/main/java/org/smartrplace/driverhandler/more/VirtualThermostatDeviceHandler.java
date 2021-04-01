@@ -39,7 +39,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermostat> {
 
 	protected static final long MIN_HYSTERSIS_TIME = 60000;
-	protected static final float MIN_HYSTERSIS_DIFF = 1.5f;
+	protected static final float MIN_HYSTERSIS_DIFF = 1.0f;
 
 	public VirtualThermostatDeviceHandler(ApplicationManagerPlus appMan) {
 		super(appMan, true);
@@ -122,7 +122,7 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 		Timer timer = appMan.appMan().createTimer(10000, new TimerListener() {
 			Boolean prevState = null;
 			long lastSwitch = -1;
-			float lastSetp = -1;
+			//float lastSetp = -1;
 			
 			@Override
 			public void timerElapsed(Timer arg0) {
@@ -165,19 +165,20 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 				//hysteresis time. In the future we want to have the switch feedback, though
 				List<OnOffSwitch> onOffs = null;
 				boolean allOnOffCorrect = true;
-				if(setp != lastSetp) {
-					onOffs = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), OnOffSwitch.class, room);
-					for(OnOffSwitch onOff: onOffs) {
-						if(onOff.stateFeedback().getValue() != newStateRaw) {
-							allOnOffCorrect = false;
-							break;
-						}
+				//if(setp != lastSetp) {
+				onOffs = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), OnOffSwitch.class, room);
+appMan.getLogger().debug("Vor Virtual Thermostat "+deviceResource.getName()+" found "+onOffs.size()+" onOffSwiches. NewStR:"+newStateRaw);
+				for(OnOffSwitch onOff: onOffs) {
+					if(onOff.stateFeedback().getValue() != newStateRaw) {
+						allOnOffCorrect = false;
+						break;
 					}
-					if(allOnOffCorrect) {
-						deviceResource.temperatureSensor().deviceFeedback().setpoint().setValue(setp);
-						lastSetp = setp;
-					}
-				}					
+				}
+				if(allOnOffCorrect) {
+					deviceResource.temperatureSensor().deviceFeedback().setpoint().setValue(setp);
+					//lastSetp = setp;
+				}
+				//}					
 					
 				if(prevState != null && (newStateRaw == prevState) && allOnOffCorrect) {
 					return;
