@@ -164,8 +164,8 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 				// WE COULD ALSO HAVE SIMPLER FEEDBACK: For now we always return feedback as long as the timer is running and we are not in
 				//hysteresis time. In the future we want to have the switch feedback, though
 				List<OnOffSwitch> onOffs = null;
+				boolean allOnOffCorrect = true;
 				if(setp != lastSetp) {
-					boolean allOnOffCorrect = true;
 					onOffs = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), OnOffSwitch.class, room);
 					for(OnOffSwitch onOff: onOffs) {
 						if(onOff.stateFeedback().getValue() != newStateRaw) {
@@ -179,7 +179,7 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 					}
 				}					
 					
-				if(prevState != null && (newStateRaw == prevState)) {
+				if(prevState != null && (newStateRaw == prevState) && allOnOffCorrect) {
 					return;
 				}
 				if(!room.exists())
