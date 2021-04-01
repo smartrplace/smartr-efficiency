@@ -29,6 +29,7 @@ import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
+import org.smartrplace.device.testing.ThermostatTestingConfig;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 
@@ -213,7 +214,7 @@ public class ConfigurationPageHWInstall {
 		mainMeterDrop.setDefaultAddEmptyOption(true, "No main meter selected");
 		//mainMeterDrop.setTemplate(template);
 		
-		StaticTable configTable = new StaticTable(14, 2);
+		StaticTable configTable = new StaticTable(15, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -286,6 +287,13 @@ public class ConfigurationPageHWInstall {
 
 		configTable.setContent(i, 0, "Interval for alarming evaluation (days behind now)").
 		setContent(i, 1, alarmEvalIntervalEdit);
+		i++;
+		
+		ThermostatTestingConfig thTest = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(
+				"thermostatTestingConfig", ThermostatTestingConfig.class);
+		TimeResourceTextField testSwitchingEdit =
+				new TimeResourceTextField(page, "testSwitchingEdit", Interval.minutes, thTest.testSwitchingInterval());
+		configTable.setContent(i, 0, "Test switching interval (min):").setContent(i, 1, testSwitchingEdit);
 		i++;
 		
 		page.append(configTable);

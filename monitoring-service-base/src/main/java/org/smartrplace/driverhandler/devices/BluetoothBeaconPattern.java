@@ -13,30 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.homematic.devicetable;
+package org.smartrplace.driverhandler.devices;
 
-import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.model.devices.buildingtechnology.Thermostat;
 
-public class ThermostatPattern extends ResourcePattern<Thermostat> { 
-	Timer controlModeTimer = null;
-	
+import de.smartrplace.ble.resources.BeaconInformation;
+
+public class BluetoothBeaconPattern extends ResourcePattern<BeaconInformation> {
+
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public ThermostatPattern(Resource device) {
+	public BluetoothBeaconPattern(Resource device) {
 		super(device);
-	}
-
-	@Override
-	public boolean accept() {
-		if(DeviceTableRaw.isWallThermostat(model.getLocation()))
-			return false;
-		if(DeviceTableRaw.isVirtualThermostat(model))
-			return false;
-		return true;
 	}
 }

@@ -9,7 +9,6 @@ import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
 import org.smartrplace.apps.alarmingconfig.expert.evalgui.DeviceEvaluationPage;
-import org.smartrplace.apps.alarmingconfig.expert.evalgui.EvaluationDeviceTableThermPlus;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageEval;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceTypePageExpert;
@@ -84,7 +83,9 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			WidgetPage<?> pageRes11 = widgetApp.createWidgetPage("deviceknownfaults.html");
 			synchronized (controller.accessAdminApp) {
 				DeviceKnownFaultsPage knownFaultsPage = new DeviceKnownFaultsPage(pageRes11, controller);
-				controller.mainPageExts.add(knownFaultsPage);				
+				synchronized(controller.mainPageExts) {
+					controller.mainPageExts.add(knownFaultsPage);
+				}
 			}
 			menu.addEntry("6. Device Issue Status", pageRes11);
 			configMenuConfig(pageRes11.getMenuConfiguration());
@@ -92,7 +93,9 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			WidgetPage<?> pageRes12 = widgetApp.createWidgetPage("deviceevalpage.html");
 			synchronized (controller.accessAdminApp) {
 				DeviceEvaluationPage evalPage = new DeviceEvaluationPage(pageRes12, controller);
-				controller.mainPageExts.add(evalPage);				
+				synchronized(controller.mainPageExts) {
+					controller.mainPageExts.add(evalPage);
+				}
 			}
 			menu.addEntry("7. Thermostat Plus Evaluation Page", pageRes12);
 			configMenuConfig(pageRes12.getMenuConfiguration());

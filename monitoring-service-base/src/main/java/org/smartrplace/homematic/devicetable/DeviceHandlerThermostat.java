@@ -3,7 +3,12 @@ package org.smartrplace.homematic.devicetable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -11,6 +16,7 @@ import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -28,13 +34,16 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.DoorWindowSensor;
+import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
+import org.smartrplace.device.testing.ThermostatTestingConfig;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond.SetpointToFeedbackSimSimple;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -180,8 +189,6 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.valve().setting().stateFeedback()));
-		if(dev.battery().internalVoltage().reading().isActive())
-			result.add(dpService.getDataPointStandard(dev.battery().internalVoltage().reading()));
 		addtStatusDatapointsHomematic(dev, dpService, result);
 		return result;
 	}
@@ -216,6 +223,9 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 			result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
 			//}
 		}
+		
+		addThermostatToTestSwitch(deviceResource, appMan.appMan());
+		
 		return result;
 	}
 	
@@ -244,31 +254,14 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		Thermostat device = (Thermostat) appDevice.device();
-		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, 20);
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().settings().setpoint(),
 				4.5f, 30.5f, 1, 1500);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
-				4.5f, 30.5f, 1, 20);
+				4.5f, 30.5f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
-				0f, 100f, 1, 20);
+				0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.addAlarmingHomematic(device, appDevice);
-		/*AlarmingUtiH.setTemplateValues(appDevice, device.battery().internalVoltage().reading(),
-				1.5f, 3.5f, 1, 70);
-		//BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(device,
-		//		"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
-		//if(comDisturbed != null && comDisturbed.exists())
-		//	AlarmingUtiH.setTemplateValues(appDevice, comDisturbed,
-		//			0.0f, 1.0f, 60, -1);
-		/*IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
-		if(rssiDevice != null && rssiDevice.exists())
-			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
-					-30f, -94f, 10, 300);
-		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(device,
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
-		if(rssiPeer != null && rssiPeer.exists())
-			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
-					-30f, -94f, 10, 300);*/
 		appDevice.alarms().activate(true);
 	}
 	
@@ -386,4 +379,84 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 		]
 	}
 	 */
+	
+	protected static CountDownDelayedExecutionTimer testSwitchTimer = null;
+	protected static ThermostatTestingConfig testConfig;
+	protected static Set<TemperatureResource> setpointsToTest = new HashSet<>();
+	protected static Map<String, Float> testValue;
+	public static void addThermostatToTestSwitch(Thermostat th, ApplicationManager appMan) {
+		synchronized(DeviceHandlerThermostat.class) {
+			if(testConfig == null) {
+				testConfig = ResourceHelper.getEvalCollection(appMan).getSubResource(
+						"thermostatTestingConfig", ThermostatTestingConfig.class);				
+			}
+			if(testConfig.testSwitchingInterval().getValue() == 0)
+				return;
+			if(testSwitchTimer == null) {
+				testSwitchTimer = startTestTimer(appMan);
+			}	
+			setpointsToTest.add(th.temperatureSensor().settings().setpoint());
+		}
+	}
+	
+	protected static CountDownDelayedExecutionTimer startTestTimer(ApplicationManager appMan) {
+		long interval = testConfig.testSwitchingInterval().getValue();
+		final boolean isBack;
+		if(interval < 0) {
+			isBack = true;
+			interval = Math.min(-interval, 10*TimeProcUtil.MINUTE_MILLIS);
+		} else
+			isBack = false;
+		CountDownDelayedExecutionTimer result = new CountDownDelayedExecutionTimer(appMan, interval) {
+			
+			@Override
+			public void delayedExecution() {
+				if(isBack)
+					createMap();
+				else
+					testValue = new HashMap<>();
+				for(TemperatureResource setp: setpointsToTest) {
+					if(isBack) {
+						Float preVal = testValue.get(setp.getLocation());
+						if(preVal != null && preVal != setp.getValue())
+							continue;
+					}
+					float destValue = isBack?(setp.getValue()+0.5f):(setp.getValue()-0.5f);
+					setp.setValue(destValue);
+					if(!isBack) {
+						testValue.put(setp.getLocation(), destValue);
+					}
+				}
+				if(!isBack)
+					createMapResources();
+				testConfig.testSwitchingInterval().setValue(-testConfig.testSwitchingInterval().getValue());
+				if(testConfig.testSwitchingInterval().getValue() == 0)
+					return;
+				startTestTimer(appMan);
+			}
+		};
+		return result;
+	}
+	
+	protected static void createMap() {
+		testValue = new HashMap<>();
+		String[] locs = testConfig.testSwitchingLocation().getValues();
+		float[] vals = testConfig.testSwitchingSetpoint().getValues();
+		for(int idx=0; idx<locs.length; idx++) {
+			testValue.put(locs[idx], vals[idx]);
+		}
+	}
+	
+	protected static void createMapResources() {
+		String[] locs = new String[testValue.size()];
+		float[] vals = new float[testValue.size()];
+		int idx = 0;
+		for(Entry<String, Float> e: testValue.entrySet()) {
+			locs[idx] = e.getKey();
+			vals[idx] = e.getValue();
+			idx++;
+		}
+		testConfig.testSwitchingLocation().setValues(locs);
+		testConfig.testSwitchingSetpoint().setValues(vals);
+	}
 }

@@ -117,7 +117,9 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> trashPage = widgetApp.createWidgetPage("trashDevices.hmtl");
-			controller.mainPageExts.add(new MainPageExpertTrash(trashPage, controller));
+			synchronized(controller.mainPageExts) {
+				controller.mainPageExts.add(new MainPageExpertTrash(trashPage, controller));
+			}
 			menu.addEntry("Trash Devices", trashPage);
 			trashPage.getMenuConfiguration().setCustomNavigation(menu);
 			
@@ -132,7 +134,9 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			propResPage.getMenuConfiguration().setCustomNavigation(menu);
 			
 			WidgetPage<?> propDevicePage = widgetApp.createWidgetPage("deviceProperties.hmtl");
-			controller.mainPageExts.add(new MainPageExpertProps(propDevicePage, controller));
+			synchronized(controller.mainPageExts) {
+				controller.mainPageExts.add(new MainPageExpertProps(propDevicePage, controller));
+			}
 			menu.addEntry("Device Setup and Installation with Properties",propDevicePage);
 			propDevicePage.getMenuConfiguration().setCustomNavigation(menu);
 

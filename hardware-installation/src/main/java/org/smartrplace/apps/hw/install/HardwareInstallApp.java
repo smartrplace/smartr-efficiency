@@ -168,9 +168,11 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 	    	}
 	    	if(controller != null && controller.mainPage != null) {
 	    		controller.mainPage.updateTables();
-	    		for(MainPage mp: controller.mainPageExts) {
-	    			mp.updateTables();
-	    		}
+				synchronized(controller.mainPageExts) {
+		    		for(MainPage mp: controller.mainPageExts) {
+		    			mp.updateTables();
+		    		}
+				}
 	    	}
     	}
     }

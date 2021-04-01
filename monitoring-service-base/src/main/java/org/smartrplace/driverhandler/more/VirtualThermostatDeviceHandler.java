@@ -14,6 +14,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
@@ -23,6 +24,7 @@ import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -129,12 +131,23 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 					return;
 				TemperatureResource tempSens = deviceResource.temperatureSensor().reading(); //getSubResource("config", VirtualThermostatConfig.class).roomSensor();
 				Room room = deviceResource.location().room();
-				//if we would allow measurements of thermostats we would also need an offset
+				//TODO: is using measurements of thermostats we would also need an offset
 				if(!tempSens.exists() || (!room.exists()) ||
 						(!room.equalsLocation(ResourceUtils.getDeviceRoom(tempSens)))) {
 					List<TemperatureSensor> all = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), TemperatureSensor.class, room);
 					for(TemperatureSensor ts: all) {
-						if(ResourceHelper.hasParentAboveType(ts, Thermostat.class) < 0) {
+						if(tempSens.equalsLocation(ts.reading()))
+							continue;
+						if((ResourceHelper.hasParentAboveType(ts, Thermostat.class) < 0 ||
+								DeviceTableRaw.isWallThermostat(ts.getLocation()))) {
+							tempSens.setAsReference(ts.reading());
+							break;
+						}
+					}
+					for(TemperatureSensor ts: all) {
+						if(tempSens.equalsLocation(ts.reading()))
+							continue;
+						if(ts.isActive()) {
 							tempSens.setAsReference(ts.reading());
 							break;
 						}
@@ -181,6 +194,9 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 			}
 		});
 		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
+		
+		DeviceHandlerThermostat.addThermostatToTestSwitch(deviceResource, appMan.appMan());
+
 		return result;
 	}
 	

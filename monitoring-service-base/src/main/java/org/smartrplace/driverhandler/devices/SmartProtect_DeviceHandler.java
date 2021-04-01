@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
@@ -17,6 +19,11 @@ import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.SmokeDetector;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
 
 //@Component(specVersion = "1.2", immediate = true)
@@ -38,6 +45,14 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 	}
 
 	@Override
+	protected void addMoreValueWidgets(InstallAppDevice object, SensorDevice device,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
+			ApplicationManager appMan, Alert alert) {
+		IntegerResource messageItv = device.getSubResource("livyMessageInterval", IntegerResource.class);
+		vh.integerEdit("Con.interval", id, messageItv, row, alert, 0, Integer.MAX_VALUE, "Negative values not allowed!");
+	}
+	
+	@Override
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
@@ -50,6 +65,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 		addDatapoint(device.sensors().getSubResource("motion", GenericBinarySensor.class).reading(), result);
 		addDatapoint(device.getSubResource("state", MultiSwitch.class).stateControl(), result);
 		addDatapoint(device.sensors().getSubResource("temperature", TemperatureSensor.class).reading(), result);
+		addDatapoint(device.getSubResource("livyMessageInterval", IntegerResource.class), result);
 	return result;
 	}
 

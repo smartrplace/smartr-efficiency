@@ -14,6 +14,7 @@ import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.VoltageResource;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.communication.CommunicationStatus;
+import org.ogema.model.devices.storage.ElectricityStorage;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.PowerSensor;
@@ -31,6 +32,10 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 
 public class AlarmingUtiH {
 	public static final String ACTIVESTATUS_RES_NAME = "activeStatus";
+	public static final int DEFAULT_ALARM_REPETITION_MINUTES = 48*60;
+	public static final int DEFAULT_NOVALUE_MINUTES = 60;
+	public static final int DEFAULT_NOVALUE_IP_MINUTES = DEFAULT_NOVALUE_MINUTES;
+	public static final int DEFAULT_NOVALUE_FORHOURLY_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 70);
 	
 	/*public static AlarmConfiguration getAlarmConfig(ResourceList<AlarmConfiguration> configs, SmartEffTimeSeries dev) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
@@ -106,8 +111,8 @@ public class AlarmingUtiH {
 	
 	public static void setDefaultValuesStatic(AlarmConfiguration data, DefaultSetModes mode) {
 		EditPageGeneric.setDefault(data.alarmLevel(), 1, mode);
-		EditPageGeneric.setDefault(data.alarmRepetitionTime(), 60, mode);
-		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), 10, mode);
+		EditPageGeneric.setDefault(data.alarmRepetitionTime(), DEFAULT_ALARM_REPETITION_MINUTES, mode);
+		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), DEFAULT_NOVALUE_MINUTES, mode);
 		EditPageGeneric.setDefault(data.lowerLimit(), 0, mode);
 		EditPageGeneric.setDefault(data.upperLimit(), 100, mode);
 		EditPageGeneric.setDefault(data.maxIntervalBetweenNewValues(), -1, mode);
@@ -198,7 +203,7 @@ public class AlarmingUtiH {
 		//Special handlings
 		if(data.sensorVal().getLocation().toLowerCase().contains("homematicip")) {
 			if((maxIntervalBetweenNewValues >= 0) && (maxIntervalBetweenNewValues < 4*60))
-				maxIntervalBetweenNewValues = 4*60;
+				maxIntervalBetweenNewValues = DEFAULT_NOVALUE_IP_MINUTES;
 		}
 
 		String defaultAlarmSetMode = System.getProperty("org.smartrplace.apps.hw.install.init.alarmtesting.defaultAlarmSetMode");
@@ -214,7 +219,7 @@ public class AlarmingUtiH {
 		if(shortResend != null)
 			EditPageGeneric.setDefault(data.alarmRepetitionTime(), ((double)shortResend)/TimeProcUtil.MINUTE_MILLIS, mode);
 		else
-			EditPageGeneric.setDefault(data.alarmRepetitionTime(), 48*60, mode);
+			EditPageGeneric.setDefault(data.alarmRepetitionTime(), DEFAULT_ALARM_REPETITION_MINUTES, mode);
 		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), maxViolationTimeWithoutAlarm, mode);
 		EditPageGeneric.setDefault(data.lowerLimit(), min, mode);
 		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
@@ -240,15 +245,17 @@ public class AlarmingUtiH {
 	public static void addAlarmingHomematic(PhysicalElement dev, InstallAppDevice appDevice,
 			int batteryNum) {
 		dev = dev.getLocationResource();
-		VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(dev,
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
-		if(batteryVoltage != null && batteryNum > 0) {
+		VoltageResource batteryVoltage = dev.getSubResource("battery", ElectricityStorage.class).internalVoltage().reading();
+		if(!batteryVoltage.isActive())
+			batteryVoltage = ResourceHelper.getSubResourceOfSibbling(dev,
+					"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
+		if(batteryVoltage != null && batteryVoltage.isActive() && batteryNum > 0) {
 			if(batteryNum == 2)
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
-					1.5f, 3.5f, 10, 70);
+					1.5f, 3.5f, 10, DEFAULT_NOVALUE_FORHOURLY_MINUTES);
 			else
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
-						batteryNum*0.7f, batteryNum*1.8f, 10, 70);
+						batteryNum*0.7f, batteryNum*1.8f, 10, DEFAULT_NOVALUE_FORHOURLY_MINUTES);
 		}
 		BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
@@ -277,7 +284,7 @@ public class AlarmingUtiH {
 		CommunicationStatus comStat = dev.getSubResource("communicationStatus", CommunicationStatus.class);
 		if(comStat.isActive()) {
 			AlarmingUtiH.setTemplateValues(appDevice, comStat.quality(),
-					0.1f, 1.0f, 30, 30);
+					0.1f, 1.0f, 30, DEFAULT_NOVALUE_MINUTES);
 		}
 	}
 }

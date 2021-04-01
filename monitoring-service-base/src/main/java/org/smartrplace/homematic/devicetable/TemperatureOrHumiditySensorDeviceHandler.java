@@ -99,21 +99,8 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 					vh.registerHeaderEntry("Last Contact");
 				}
 				addBatteryVoltage(vh, id, req, row, device2);
-				/*VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(device2,
-						"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
-				if(batteryVoltage != null)
-					vh.floatLabel("Battery", id, batteryVoltage, row, "%.1f#min:0.1");
-				else if(req == null)
-					vh.registerHeaderEntry("Battery");*/
 				addBatteryStatus(vh, id, req, row, device2);
-				/*BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(device2,
-						"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
-				if(batteryStatus != null)
-					vh.booleanLabel("Bat.Low", id, batteryStatus, row, 0);
-				else if(req == null)
-					vh.registerHeaderEntry("Bat.Low");*/
 
-				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device2.location().room();
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row);

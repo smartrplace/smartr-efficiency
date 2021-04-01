@@ -149,8 +149,8 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 		DoorWindowSensor dev = (DoorWindowSensor) installDeviceRes.device();
 		if (null == dev) return result;
 		result.add(dpService.getDataPointStandard(dev.reading()));
-		if(dev.battery().internalVoltage().reading().isActive())
-			result.add(dpService.getDataPointStandard(dev.battery().internalVoltage().reading()));
+		//if(dev.battery().internalVoltage().reading().isActive())
+		//	result.add(dpService.getDataPointStandard(dev.battery().internalVoltage().reading()));
 		addtStatusDatapointsHomematic(dev, dpService, result);
 		return result;
 	}
@@ -169,7 +169,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		DoorWindowSensor device = (DoorWindowSensor) appDevice.device();
-		AlarmingUtiH.setTemplateValues(appDevice, device.reading(), 0.0f, 1.0f, 1, 70);
+		AlarmingUtiH.setTemplateValues(appDevice, device.reading(), 0.0f, 1.0f, 1, AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
 		//TODO: This is not considered in template
 		//boolean has2batteries = device.getLocation().contains("_SWDM_");
 		//AlarmingUtiH.addAlarmingHomematic(device, appDevice, has2batteries?2:1);
@@ -356,40 +356,4 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 	protected static final List<PropType> PROPS_SUPPORTED = Arrays.asList(new PropType[] {PropType.ENCRYPTION_ENABLED,
 			PropType.CURRENT_SENSOR_VALUE, PropType.DEVICE_ERROR, PropType.TRANSMIT_TRY_MAX, PropType.TRANSMIT_DEV_TRY_MAX, PropType.EXPECT_AES,
 			PropType.PEER_NEEDS_BURST, PropType.LOCAL_RESET_DISABLE});
-
-	/*private Resource getMainChannelPropRes(Resource deviceResource) {
-		if(!(deviceResource instanceof DoorWindowSensor))
-			return null;
-		return getAnchorResource((PhysicalElement) deviceResource, "HM_SHUTTER_CONTACT");
-	}*/
-	
-	
-	/*public static Resource getAnchorResource(PhysicalElement device, String channelName) {
-		Resource hmDevice = ResourceHelper.getFirstParentOfType(device, "org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice");
-		if(hmDevice == null)
-			return null;
-		ResourceList<?> channels = hmDevice.getSubResource("channels", ResourceList.class);
-		if(!channels.exists())
-			return null;
-		for(Resource res: channels.getAllElements()) {
-			if(res.getName().startsWith(channelName))
-				return res;
-		}
-		return null;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static void writeProperty(Resource propDev, PropType propType, String value,
-			DriverPropertySuccessHandler<?> successHandler,
-			OGEMADriverPropertyService<Resource> hmPropService,
-			OgemaLogger logger) {
-		if(propDev == null)
-			return;
-		String propertyId = getPropId(propType);
-		if(propertyId == null)
-			return;
-		hmPropService.writeProperty(propDev, propertyId , logger, value,
-				(DriverPropertySuccessHandler<Resource>)successHandler);
-		
-	}*/
 }

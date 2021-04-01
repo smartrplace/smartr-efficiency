@@ -24,6 +24,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.smartrplace.driverhandler.devices.BatteryDevHandler;
+import org.smartrplace.driverhandler.devices.BluetoothBeaconHandler;
 import org.smartrplace.driverhandler.devices.ChargingPointDevHandler;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
@@ -51,6 +52,7 @@ import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.homematic.devicetable.OnOffSwitch_DeviceHandler;
 import org.smartrplace.homematic.devicetable.SmokeDetector_DeviceHandler;
 import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
+import org.smartrplace.homematic.devicetable.WallThermostatHandler;
 import org.smartrplace.homematic.devicetable.WeatherStation_DeviceHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
@@ -209,6 +211,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srVirtThOnOff = null;
 	private VirtualThermostatDeviceHandler devHandVirtThOnOff;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srWall = null;
+	private WallThermostatHandler devHandWall;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -223,6 +228,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srGwSup = null;
 	private GatewaySuperiorHandler devHandGwSup;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srBeacon = null;
+	private BluetoothBeaconHandler devHandBeacon;
 
 
 	
@@ -321,6 +329,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
 	   devHandVirtThOnOff = new VirtualThermostatDeviceHandler(controller.appManPlus);
 	   srVirtThOnOff = bc.registerService(DeviceHandlerProvider.class, devHandVirtThOnOff, null);
+	   devHandWall = new WallThermostatHandler(controller.appManPlus);
+	   srWall = bc.registerService(DeviceHandlerProvider.class, devHandWall, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -333,6 +343,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srGwDev = bc.registerService(DeviceHandlerProvider.class, devHandGwDev, null);
 	   devHandGwSup = new GatewaySuperiorHandler(controller.appManPlus);
 	   srGwSup = bc.registerService(DeviceHandlerProvider.class, devHandGwSup, null);
+	   devHandBeacon = new BluetoothBeaconHandler(controller.appManPlus);
+	   srBeacon = bc.registerService(DeviceHandlerProvider.class, devHandBeacon, null);
 	}
  	
      /*
@@ -364,6 +376,7 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srTempSensSingle!= null) srTempSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
     	if (srVirtThOnOff!= null) srVirtThOnOff.unregister();
+    	if (srWall!= null) srWall.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
@@ -379,6 +392,7 @@ public class MonitoringServiceBaseApp implements Application {
 
     	if (srGwDev != null) srGwDev.unregister();
        	if (srGwSup != null) srGwSup.unregister();
+       	if (srBeacon != null) srBeacon.unregister();
 
     	if (controller != null)
     		controller.close();
