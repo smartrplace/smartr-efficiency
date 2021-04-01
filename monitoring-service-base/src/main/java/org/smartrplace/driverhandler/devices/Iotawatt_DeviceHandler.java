@@ -129,6 +129,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 			Datapoint dpenergy = addDatapoint(ec.energySensor().reading(), result, ph, dpService);
 			energy.add(dpenergy);
 			addDatapoint(ec.powerSensor().reading(), result, ph, dpService);
+			addDatapoint(ec.reactivePowerSensor().reading(), result, ph, dpService);
 		}
 
 		//final VirtualSensorKPIDataBase mapData1 = utilAggSubPhases.getDatapointDataAccumulation(energy, "total"+device.getName(), device,
