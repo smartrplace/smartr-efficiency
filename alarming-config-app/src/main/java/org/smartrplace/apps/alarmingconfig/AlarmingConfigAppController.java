@@ -409,6 +409,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 						else
 							reading = testDevice.sensor_BT().reading();
 						reading.setValue(200);
+						new CountDownDelayedExecutionTimer(appMan, 2*TimeProcUtil.MINUTE_MILLIS) {
+							
+							@Override
+							public void delayedExecution() {
+								reading.setValue(2);							
+							}
+						};
 					}
 				};
 				testButton.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
