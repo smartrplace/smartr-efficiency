@@ -203,7 +203,7 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "MQTT Doc";
 			}
 
@@ -395,7 +395,7 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "MQTT Broker Configuration";
 			}
 			

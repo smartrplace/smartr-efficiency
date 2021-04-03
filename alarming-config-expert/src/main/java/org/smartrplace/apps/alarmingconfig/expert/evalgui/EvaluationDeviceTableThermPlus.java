@@ -89,7 +89,7 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return pageTitle;
 	}
 

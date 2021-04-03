@@ -54,7 +54,7 @@ public class WeatherStation_DeviceHandler extends DeviceHandlerSimple<SensorDevi
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Weather Stations";
 	}
 

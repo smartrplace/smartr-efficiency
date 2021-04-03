@@ -70,7 +70,7 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "BACnet Devices";
 			}
 			

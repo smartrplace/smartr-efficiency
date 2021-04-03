@@ -14,9 +14,11 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary_de;
@@ -43,6 +45,7 @@ import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
+import org.smartrplace.gateway.device.VirtualTestDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.format.WidgetHelper;
@@ -55,9 +58,12 @@ import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.messaging.model.MessagingApp;
 
 // here the controller logic is implemented
+@SuppressWarnings("serial")
 public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLabelProvider {
 	private HardwareInstallConfig hardwareConfig = null;
 	public HardwareInstallConfig getHardwareConfig() {
@@ -111,14 +117,11 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	private final Map<String, AppID> appsToSend;
 	public List<HardwareTablePage> mainPageExts = new ArrayList<>();
 	//private OngoingBaseAlarmsPage ongoingBasePage;
-	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
-	public static final String CUSTOMER_FIRST = "Customer First";
-	public static final String CUSTOMER_SP_SAME = "Both together";
 	public static final Map<String, String> ALARM_APP_TYPE_EN = new HashMap<>();
 	static {
-		ALARM_APP_TYPE_EN.put(SP_SUPPORT_FIRST, SP_SUPPORT_FIRST);
-		ALARM_APP_TYPE_EN.put(CUSTOMER_FIRST, CUSTOMER_FIRST);
-		ALARM_APP_TYPE_EN.put(CUSTOMER_SP_SAME, CUSTOMER_SP_SAME);
+		ALARM_APP_TYPE_EN.put(AlarmingUtiH.SP_SUPPORT_FIRST, AlarmingUtiH.SP_SUPPORT_FIRST);
+		ALARM_APP_TYPE_EN.put(AlarmingUtiH.CUSTOMER_FIRST, AlarmingUtiH.CUSTOMER_FIRST);
+		ALARM_APP_TYPE_EN.put(AlarmingUtiH.CUSTOMER_SP_SAME, AlarmingUtiH.CUSTOMER_SP_SAME);
 	}
 	protected void registerMessagingApp(String typeName, String suffix) {
 		AppID appId;
@@ -193,9 +196,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		appManPlus.setDpService(dpService);
 		
 		this.appsToSend = new HashMap<String, AppID>();
-		registerMessagingApp(SP_SUPPORT_FIRST, null);
-		registerMessagingApp(CUSTOMER_FIRST, "CF");
-		registerMessagingApp(CUSTOMER_SP_SAME, "SAM");
+		registerMessagingApp(AlarmingUtiH.SP_SUPPORT_FIRST, null);
+		registerMessagingApp(AlarmingUtiH.CUSTOMER_FIRST, "CF");
+		registerMessagingApp(AlarmingUtiH.CUSTOMER_SP_SAME, "SAM");
 
 		tsProcAl = new TimeseriesProcAlarming(appMan, dpService);
 		
@@ -333,6 +336,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			@Override
 			protected void addAdditionalRowWidgets(ReceiverConfiguration config, String id, Row row,
 					OgemaHttpRequest req) {
+				if(config.getName().equals("testButtonReceiver")) {
+					addTestButtonColumn(app, "alarmingAppForwardingEmail_SF", config, id, row, req);
+					addTestButtonColumn(app_cf, "alarmingAppForwardingEmail_CF", config, id, row, req);
+					addTestButtonColumn(app_bt, "alarmingAppForwardingEmail_BT", config, id, row, req);
+					return;
+				}
 				if(isGw) {
 					addEmailConfigColumn(app, "alarmingAppForwardingEmail_SF", config, id, row, req);
 					addEmailConfigColumn(app_cf, "alarmingAppForwardingEmail_CF", config, id, row, req);
@@ -381,7 +390,39 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				}
 				
 			}
+			
+			protected void addTestButtonColumn(de.iwes.widgets.messaging.MessagingApp appLoc, String col,
+					ReceiverConfiguration config, String id, Row row,
+					OgemaHttpRequest req) {
+				if(appLoc == null)
+					return;
+				
+				Button testButton = new Button(pageRes3, WidgetHelper.getValidWidgetId("testButton"+col+id), "Test Alarm") {
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						VirtualTestDevice testDevice = ResourceHelper.getSampleResource(VirtualTestDevice.class);
+						FloatResource reading;
+						if(col.endsWith("_SF"))
+							reading = testDevice.sensor_SF().reading();
+						else if(col.endsWith("_CF"))
+							reading = testDevice.sensor_CF().reading();
+						else
+							reading = testDevice.sensor_BT().reading();
+						reading.setValue(200);
+					}
+				};
+				testButton.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
+				row.addCell(col, testButton);
+				
+			}
+
 		};
+		ReceiverConfiguration testButtonReceiver = ResourceHelper.getEvalCollection(appMan).
+				getSubResource("testButtonReceiver", ReceiverConfiguration.class);
+	    testButtonReceiver.deactivate(true);
+	    testButtonReceiver.userName().create();
+	    testButtonReceiver.userName().setValue("Test Alarm");
+		receiverPage.receiverTable.addItem(testButtonReceiver, null);
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
 		initApp.menu.addEntry(messageSettingsHeader(), pageRes3);
 		initApp.configMenuConfig(pageRes3.getMenuConfiguration());		

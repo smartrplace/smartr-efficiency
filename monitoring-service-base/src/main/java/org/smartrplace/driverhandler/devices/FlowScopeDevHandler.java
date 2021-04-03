@@ -46,7 +46,7 @@ public class FlowScopeDevHandler extends DeviceHandlerSimple<FlowProbe> {
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "FlowProbe Devices";
 	}
 

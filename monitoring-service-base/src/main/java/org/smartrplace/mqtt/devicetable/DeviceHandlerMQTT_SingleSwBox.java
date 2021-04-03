@@ -100,7 +100,7 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Single Switchboxes";
 			}
 		};

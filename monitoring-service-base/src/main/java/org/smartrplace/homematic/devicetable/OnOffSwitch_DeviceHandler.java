@@ -16,11 +16,13 @@ import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
+import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.locations.Room;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
@@ -85,7 +87,7 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "OnOffSwitches without SwitchBoxes";
 			}
 		};
@@ -108,6 +110,15 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 		addDatapoint(dev.stateControl(), result, dpService);
 		addDatapoint(dev.stateFeedback(), result, dpService);
 		addtStatusDatapointsHomematic(dev, dpService, result);
+		
+		ElectricityConnection subMeter = ResourceHelper.getSingleSubResourceOfDirectParent(dev, ElectricityConnection.class);
+		if(subMeter != null) {
+			addDatapoint(subMeter.powerSensor().reading(), result, dpService);			
+			addDatapoint(subMeter.energySensor().reading(), result, dpService);			
+			addDatapoint(subMeter.frequencySensor().reading(), result, dpService);			
+			addDatapoint(subMeter.currentSensor().reading(), result, dpService);			
+			addDatapoint(subMeter.voltageSensor().reading(), result, dpService);			
+		}
 		return result;
 	}
 	

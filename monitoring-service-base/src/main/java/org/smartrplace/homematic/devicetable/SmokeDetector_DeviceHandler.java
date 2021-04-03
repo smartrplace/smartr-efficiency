@@ -40,7 +40,7 @@ public class SmokeDetector_DeviceHandler extends DeviceHandlerSimple<SmokeDetect
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Smoke Detectors";
 	}
 

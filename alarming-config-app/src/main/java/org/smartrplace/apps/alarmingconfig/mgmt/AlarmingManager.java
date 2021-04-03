@@ -42,6 +42,7 @@ import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.gateway.device.VirtualTestDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.message.MessageImpl;
 
@@ -99,6 +100,15 @@ public class AlarmingManager {
 		//this.tsNameProv = tsNameProv;
 		this.alarmID = alarmID;	
 		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
+		
+		VirtualTestDevice testDevice = ResourceHelper.getSampleResource(VirtualTestDevice.class);
+		testDevice.sensor_SF().reading().create();
+		testDevice.sensor_SF().reading().setValue(1);
+		testDevice.sensor_CF().reading().create();
+		testDevice.sensor_CF().reading().setValue(1);
+		testDevice.sensor_BT().reading().create();
+		testDevice.sensor_BT().reading().setValue(1);
+		testDevice.activate(true);
 		
 		HardwareTableData hwTableData = new HardwareTableData(appManPlus.appMan());
 		maxMessageBeforeBulk = Math.min(2, Integer.getInteger("org.smartrplace.util.alarming.maxMessageBeforeBulk", hwTableData.appConfigData.maxMessageNumBeforeBulk().getValue()));
@@ -685,11 +695,11 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 	public String getDestinationString(MessageDestination md) {
 		switch(md) {
 		case PROVIDER_FIRST:
-			return AlarmingConfigAppController.SP_SUPPORT_FIRST;
+			return AlarmingUtiH.SP_SUPPORT_FIRST;
 		case CUSTOMER_FIRST:
-			return AlarmingConfigAppController.CUSTOMER_FIRST;
+			return AlarmingUtiH.CUSTOMER_FIRST;
 		case BOTH_IMMEDIATELY:
-			return AlarmingConfigAppController.CUSTOMER_SP_SAME;
+			return AlarmingUtiH.CUSTOMER_SP_SAME;
 		}
 		throw new IllegalStateException("Unknown MessageDestination:"+md);
 	}

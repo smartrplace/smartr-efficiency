@@ -46,7 +46,7 @@ public class IotawattSimple_DeviceHandler extends DeviceHandlerSimple<IotaWattCo
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Iotwatt Meters Base Configuration";
 	}
 

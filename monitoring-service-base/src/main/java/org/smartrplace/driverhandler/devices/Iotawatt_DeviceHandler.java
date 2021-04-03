@@ -207,7 +207,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 	}
 	
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Iotwatt 3-phase Measurement";
 	}
 

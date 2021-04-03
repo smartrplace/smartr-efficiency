@@ -108,7 +108,7 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Smart Dimmers";
 			}
 		};

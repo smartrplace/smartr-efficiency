@@ -41,7 +41,7 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Charging Stations";
 	}
 

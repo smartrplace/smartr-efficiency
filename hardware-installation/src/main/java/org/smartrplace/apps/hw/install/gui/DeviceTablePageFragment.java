@@ -157,7 +157,7 @@ public abstract class DeviceTablePageFragment extends DeviceTableBase implements
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		// TODO Auto-generated method stub
 		return null;
 	}

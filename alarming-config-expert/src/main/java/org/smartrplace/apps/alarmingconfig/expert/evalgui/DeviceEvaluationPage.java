@@ -216,7 +216,7 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Configuration";
 			}
 

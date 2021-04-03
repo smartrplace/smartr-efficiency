@@ -43,7 +43,7 @@ public class HeatingLabThermalValve_DeviceHandler extends DeviceHandlerSimple<Th
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Heating Lab Data Radiators";
 	}
 

@@ -74,7 +74,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Gateway Device";
 			}
 			

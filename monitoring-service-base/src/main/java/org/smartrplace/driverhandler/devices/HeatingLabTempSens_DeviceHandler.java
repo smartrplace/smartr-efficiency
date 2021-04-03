@@ -38,7 +38,7 @@ public class HeatingLabTempSens_DeviceHandler extends DeviceHandlerSimple<Temper
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Room Temperature Sensors LAB/KNX";
 	}
 

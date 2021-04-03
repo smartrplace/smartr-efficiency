@@ -62,7 +62,7 @@ public class GatewaySuperiorHandler extends DeviceHandlerBase<GatewayData> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Gateways On Superior";
 			}
 			

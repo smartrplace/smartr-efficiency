@@ -254,7 +254,7 @@ public class DriverHandlerKNX_IP implements DriverHandlerProvider {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "KNX IP Configuration";
 			}
 			

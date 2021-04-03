@@ -16,6 +16,7 @@ import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
@@ -26,7 +27,7 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.api.PropertyService;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -34,7 +35,6 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.DoorWindowSensor;
-import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -60,12 +60,13 @@ import de.iwes.widgets.html.form.textfield.TextField;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
+public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 
 	protected static final String MAIN_PROP = "HM_CLIMATECONTROL_RT_TRANSCEIVER";
 	private final ApplicationManagerPlus appMan;
 
 	public DeviceHandlerThermostat(ApplicationManagerPlus appMan) {
+		super(appMan, false);
 		this.appMan = appMan;
 		appMan.getLogger().info("{} created :)", this.getClass().getSimpleName());
 	}
@@ -94,7 +95,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerBase<Thermostat> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Thermostats";
 			}
 			
@@ -458,5 +459,22 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 		}
 		testConfig.testSwitchingLocation().setValues(locs);
 		testConfig.testSwitchingSetpoint().setValues(vals);
+	}
+
+	@Override
+	protected SingleValueResource getMainSensorValue(Thermostat device, InstallAppDevice deviceConfiguration) {
+		throw new IllegalStateException("Should not be used yet!");
+		//return null;
+	}
+
+	@Override
+	protected Collection<Datapoint> getDatapoints(Thermostat device, InstallAppDevice deviceConfiguration) {
+		throw new IllegalStateException("Should not be used yet!");
+		//return null;
+	}
+
+	@Override
+	public String getTableTitle() {
+		return "Thermostats";
 	}
 }

@@ -85,7 +85,7 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "PV Plants";
 			}
 		};

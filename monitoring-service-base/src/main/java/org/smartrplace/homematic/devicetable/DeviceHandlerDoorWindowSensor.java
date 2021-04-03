@@ -10,6 +10,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -19,7 +20,7 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.api.PropertyService;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -46,12 +47,13 @@ import de.iwes.widgets.html.form.label.Label;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowSensor> {
+public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindowSensor> {
 
 	private final ApplicationManagerPlus appMan;
 	//private final OGEMADriverPropertyService<Resource> hmPropService;
 	
 	public DeviceHandlerDoorWindowSensor(ApplicationManagerPlus appMan) {
+		super(appMan, false);
 		this.appMan = appMan;
 		appMan.getLogger().info("{} created :)", this.getClass().getSimpleName());
 	}
@@ -80,7 +82,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerBase<DoorWindowS
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Window and Door Opening Sensors";
 			}
 
@@ -356,4 +358,21 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 	protected static final List<PropType> PROPS_SUPPORTED = Arrays.asList(new PropType[] {PropType.ENCRYPTION_ENABLED,
 			PropType.CURRENT_SENSOR_VALUE, PropType.DEVICE_ERROR, PropType.TRANSMIT_TRY_MAX, PropType.TRANSMIT_DEV_TRY_MAX, PropType.EXPECT_AES,
 			PropType.PEER_NEEDS_BURST, PropType.LOCAL_RESET_DISABLE});
+
+	@Override
+	protected SingleValueResource getMainSensorValue(DoorWindowSensor device, InstallAppDevice deviceConfiguration) {
+		throw new IllegalStateException("Should not be used yet!");
+		//return null;
+	}
+
+	@Override
+	protected Collection<Datapoint> getDatapoints(DoorWindowSensor device, InstallAppDevice deviceConfiguration) {
+		throw new IllegalStateException("Should not be used yet!");
+		//return null;
+	}
+
+	@Override
+	public String getTableTitle() {
+		return "Window and Door Opening Sensors";
+	}
 }

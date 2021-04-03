@@ -36,7 +36,11 @@ public class AlarmingUtiH {
 	public static final int DEFAULT_NOVALUE_MINUTES = 60;
 	public static final int DEFAULT_NOVALUE_IP_MINUTES = DEFAULT_NOVALUE_MINUTES;
 	public static final int DEFAULT_NOVALUE_FORHOURLY_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 70);
-	
+
+	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
+	public static final String CUSTOMER_FIRST = "Customer First";
+	public static final String CUSTOMER_SP_SAME = "Both together";
+
 	/*public static AlarmConfiguration getAlarmConfig(ResourceList<AlarmConfiguration> configs, SmartEffTimeSeries dev) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
 			if(ac.supervisedTS().equalsLocation(dev)) {
@@ -160,28 +164,29 @@ public class AlarmingUtiH {
 	 * @param maxViolationTimeWithoutAlarm
 	 * @param maxIntervalBetweenNewValues
 	 */
-	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
+	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
-		setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true);
+		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true);
 	}
-	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
+	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially) {
-		setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true);
+		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true);
 	}
-	public static void setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
+	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially,
 			boolean overWriteExisting) {
 		if(!res.exists())
-			return;
+			return null;
 		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
 				res, appDevice.alarms());
 		setTemplateValues(alarm, min, max, maxViolationTimeWithoutAlarm,
-				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting);		
+				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting);
+		return alarm;
 	}
 	
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 

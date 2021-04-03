@@ -70,7 +70,7 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Temperature and Humidity Sensors";
 			}
 

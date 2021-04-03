@@ -130,7 +130,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Wall Thermostats";
 	}
 

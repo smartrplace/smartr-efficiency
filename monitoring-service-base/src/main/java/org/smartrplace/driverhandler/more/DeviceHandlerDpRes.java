@@ -94,7 +94,7 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Virtual Calendar Devices";
 			}
 		};

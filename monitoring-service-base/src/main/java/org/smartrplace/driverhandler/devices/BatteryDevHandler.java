@@ -68,7 +68,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Stationary Batteries";
 	}
 

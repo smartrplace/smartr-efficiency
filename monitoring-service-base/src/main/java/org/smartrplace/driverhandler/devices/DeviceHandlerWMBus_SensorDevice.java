@@ -95,7 +95,7 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "Sensor Devices";
 			}
 		};

@@ -70,7 +70,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Smart Protect Devices";
 	}
 

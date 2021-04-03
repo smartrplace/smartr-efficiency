@@ -49,7 +49,7 @@ public class HeatMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Heat Meters";
 	}
 

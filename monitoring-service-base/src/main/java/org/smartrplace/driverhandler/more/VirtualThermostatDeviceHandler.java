@@ -105,7 +105,7 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Virtual thermostats for electricity controlled heating";
 	}
 
@@ -122,7 +122,7 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 		Timer timer = appMan.appMan().createTimer(10000, new TimerListener() {
 			Boolean prevState = null;
 			long lastSwitch = -1;
-			//float lastSetp = -1;
+			float lastSetp = -1;
 			
 			@Override
 			public void timerElapsed(Timer arg0) {
@@ -167,26 +167,30 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 				boolean allOnOffCorrect = true;
 				//if(setp != lastSetp) {
 				onOffs = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), OnOffSwitch.class, room);
-appMan.getLogger().debug("Vor Virtual Thermostat "+deviceResource.getName()+" found "+onOffs.size()+" onOffSwiches. NewStR:"+newStateRaw);
-				for(OnOffSwitch onOff: onOffs) {
-					if(onOff.stateFeedback().getValue() != newStateRaw) {
-						allOnOffCorrect = false;
-						break;
+appMan.getLogger().debug("For Virtual Thermostat "+deviceResource.getName()+" found "+onOffs.size()+" onOffSwiches. NewStR:"+newStateRaw+" T:"+
+				String.format("%.1f", setp-273.15f)+"/"+String.format("%.1f", mes-273.15f));
+				if(!onOffs.isEmpty()) {
+					for(OnOffSwitch onOff: onOffs) {
+						boolean stateFb = onOff.stateFeedback().getValue();
+appMan.getLogger().debug("For VTherm-OnOff FB:"+stateFb+", at "+onOff.getLocation());
+						if(stateFb != newStateRaw) {
+							allOnOffCorrect = false;
+							break;
+						}
 					}
-				}
-				if(allOnOffCorrect) {
-					deviceResource.temperatureSensor().deviceFeedback().setpoint().setValue(setp);
-					//lastSetp = setp;
-				}
-				//}					
+					if(allOnOffCorrect && (setp != lastSetp)) {
+						deviceResource.temperatureSensor().deviceFeedback().setpoint().setValue(setp);
+						lastSetp = setp;
+					}
+				}					
 					
 				if(prevState != null && (newStateRaw == prevState) && allOnOffCorrect) {
 					return;
 				}
 				if(!room.exists())
 					return;
-				if(onOffs == null)
-					onOffs = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), OnOffSwitch.class, room);
+				//if(onOffs == null)
+				//	onOffs = ResourceUtils.getDevicesFromRoom(appMan.getResourceAccess(), OnOffSwitch.class, room);
 				for(OnOffSwitch onOff: onOffs) {
 					onOff.stateControl().setValue(newStateRaw);
 				}

@@ -37,7 +37,7 @@ public class BluetoothBeaconHandler extends DeviceHandlerSimple<BeaconInformatio
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "Bluetooth Beacons";
 	}
 

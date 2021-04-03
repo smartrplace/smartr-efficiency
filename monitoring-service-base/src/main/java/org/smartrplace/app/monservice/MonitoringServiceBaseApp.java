@@ -46,6 +46,7 @@ import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
 import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
+import org.smartrplace.driverhandler.more.VirtualTestDeviceHandler;
 import org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
@@ -162,6 +163,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
 	private DeviceHandlerDpRes devVirtDpRes;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srVirtTest = null;
+	private VirtualTestDeviceHandler devVirtTest;
 
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srPv = null;
@@ -295,6 +299,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   
 	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
 	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
+	   devVirtTest = new VirtualTestDeviceHandler(controller.appManPlus);
+	   srVirtTest = bc.registerService(DeviceHandlerProvider.class, devVirtTest, null);
 
 	   devHandPv = new DeviceHandler_PVPlant(controller.appManPlus);
 	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
@@ -379,6 +385,8 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srWall!= null) srWall.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
+    	if (srVirtTest != null) srVirtTest.unregister();
+    	
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
     	if (srThermostat != null) srThermostat.unregister();
     	if (srTempHumSens != null) srTempHumSens.unregister();

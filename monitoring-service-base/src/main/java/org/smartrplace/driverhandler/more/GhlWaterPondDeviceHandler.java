@@ -67,7 +67,7 @@ public class GhlWaterPondDeviceHandler extends DeviceHandlerBase<GhlWaterPond> {
 			}
 
 			@Override
-			protected String getTableTitle() {
+			public String getTableTitle() {
 				return "GHL Profilux Devices";
 			}
 			

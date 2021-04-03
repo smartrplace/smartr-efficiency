@@ -44,7 +44,7 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	}
 
 	@Override
-	protected String getTableTitle() {
+	public String getTableTitle() {
 		return "OpenWeatherMap Sensor Devices";
 	}
 

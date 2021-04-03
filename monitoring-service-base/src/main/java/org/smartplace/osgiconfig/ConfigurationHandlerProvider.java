@@ -116,7 +116,7 @@ public class ConfigurationHandlerProvider implements DriverHandlerProvider {
             }
 
             @Override
-            protected String getTableTitle() { //XXX why no locale???
+            public String getTableTitle() { //XXX why no locale???
                 ObjectClassDefinition ocd = mti.getObjectClassDefinition(ocdPid, null);
                 return ocd.getName();
             }
