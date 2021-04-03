@@ -137,7 +137,11 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	public static void addDatapoint(Datapoint dp, String label, List<TimeSeriesData> result) {
 		TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(null);
 		TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, label, label);
-		tsdExt.type = GaRoDataType.KPI_DURATION;
+		GaRoDataType garoType = dp.getGaroDataType();
+		if(garoType.id().equals(GaRoDataType.Unknown.id()))
+			tsdExt.type = GaRoDataType.KPI_DURATION;
+		else
+			tsdExt.type = garoType;
 		result.add(tsdExt);
 		
 	}

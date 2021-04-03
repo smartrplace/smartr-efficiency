@@ -12,6 +12,7 @@ import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
@@ -90,6 +91,9 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 
 	@Override
 	public String getTableTitle() {
+		if(devHand instanceof DeviceHandlerSimple) {
+			return ((DeviceHandlerSimple<?>)devHand).getTableTitle();
+		}
 		return pageTitle;
 	}
 

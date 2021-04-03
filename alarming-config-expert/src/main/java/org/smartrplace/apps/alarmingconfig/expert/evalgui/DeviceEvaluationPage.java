@@ -19,11 +19,16 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.model.eval.EvaluationByAlarmConfig;
 import org.smartrplace.apps.alarmingconfig.model.eval.EvaluationByAlarmingOption;
 import org.smartrplace.apps.alarmingconfig.model.eval.EvaluationInterval;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
+import org.smartrplace.gui.filtering.GenericFilterOption;
+import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
+import org.smartrplace.gui.filtering.SingleFilteringDirect;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
@@ -31,7 +36,6 @@ import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import de.iwes.util.resource.OGEMAResourceCopyHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.widgets.api.extended.mode.UpdateMode;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -39,7 +43,6 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
-import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
@@ -108,7 +111,33 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 		showEnd = new DatepickerTimeResource(page, "showEnd");
 		ValueResourceTextField<StringResource> editName = new ValueResourceTextField<StringResource>(page, "editName");
 		
-		ResourceDropdown<EvaluationInterval> intervalDrop = new ResourceDropdown<EvaluationInterval>(page, "intervalDrop", false,
+		SingleFilteringDirect<EvaluationInterval> intervalDrop = new SingleFilteringDirect<EvaluationInterval>(page, "intervalDrop",
+				OptionSavingMode.GENERAL, 10000, false) {
+
+					@Override
+					protected List<GenericFilterOption<EvaluationInterval>> getOptionsDynamic(OgemaHttpRequest req) {
+						List<EvaluationInterval> all = appMan.getResourceAccess().getResources(EvaluationInterval.class);
+						List<GenericFilterOption<EvaluationInterval>> result = new ArrayList<>();
+						for(EvaluationInterval res: all) {
+							result.add(new GenericFilterFixedSingle<EvaluationInterval>(res, ResourceUtils.getHumanReadableShortName(res)));
+						}
+						return result;
+					}
+
+					@Override
+					protected long getFrameworkTime() {
+						return appMan.getFrameworkTime();
+					}
+
+					@Override
+					public void updateDependentWidgets(OgemaHttpRequest req) {
+						EvaluationInterval item = getSelectedItemDirect(req);
+						showStart.selectItem(item.start(), req);
+						showEnd.selectItem(item.end(), req);
+						editName.selectItem(item.name(), req);
+					}
+		};
+		/*ResourceDropdown<EvaluationInterval> intervalDrop = new ResourceDropdown<EvaluationInterval>(page, "intervalDrop", false,
 				EvaluationInterval.class, UpdateMode.AUTO_ON_GET, appMan.getResourceAccess()) {
 			@Override
 			public void updateDependentWidgets(OgemaHttpRequest req) {
@@ -117,7 +146,7 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 				showEnd.selectItem(item.end(), req);
 				editName.selectItem(item.name(), req);
 			}
-		};
+		};*/
 		topTable.setContent(1, 0, intervalDrop);
 		
 		intervalDrop.registerDependentWidget(showStart);
@@ -132,7 +161,7 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				if(evalData.showIntervals().size() < 2)
 					return;
-				EvaluationInterval item = intervalDrop.getSelectedItem(req);
+				EvaluationInterval item = intervalDrop.getSelectedItemDirect(req);
 				item.delete();
 			}
 		};
@@ -142,7 +171,7 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 		Button copyButton = new Button(page, "copyItvButton", "Copy") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				EvaluationInterval item = intervalDrop.getSelectedItem(req);
+				EvaluationInterval item = intervalDrop.getSelectedItemDirect(req);
 				EvaluationInterval newItem = OGEMAResourceCopyHelper.copySubResourceIntoResourceList(evalData.showIntervals(), item, appMan, true);
 				newItem.name().setValue(item.getName()+"(new)");
 			}
@@ -336,12 +365,13 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 			//	result.add(install);
 			//	continue;
 			//}
-			if("org.smartrplace.homematic.devicetable.DeviceHandlerThermostat".equals(install.devHandlerInfo().getValue()))	{
+			if(!("org.smartrplace.homematic.devicetable.DeviceHandlerThermostat".equals(install.devHandlerInfo().getValue())
+					|| "org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler".equals(install.devHandlerInfo().getValue())))	{
+				continue;
+			}
+			if((tableProvider == null) || (tableProvider.id().equals(install.devHandlerInfo().getValue())))	{
 				result.add(install);
 			}
-			//if("org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor".equals(install.devHandlerInfo().getValue()))	{
-			//	result.add(install);
-			//}
 		}
 		return result;
 	}
@@ -349,6 +379,8 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 	@Override
 	protected boolean isObjectsInTableEmpty(DeviceHandlerProvider<?> pe, OgemaHttpRequest req) {
 		if("org.smartrplace.homematic.devicetable.DeviceHandlerThermostat".equals(pe.id()))
+			return false;
+		if("org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler".equals(pe.id()))
 			return false;
 		return true;
 	}
