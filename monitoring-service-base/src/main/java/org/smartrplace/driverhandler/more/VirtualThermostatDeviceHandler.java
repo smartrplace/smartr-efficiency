@@ -122,7 +122,7 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 		Timer timer = appMan.appMan().createTimer(10000, new TimerListener() {
 			Boolean prevState = null;
 			long lastSwitch = -1;
-			float lastSetp = -1;
+			//float lastSetp = -1;
 			
 			@Override
 			public void timerElapsed(Timer arg0) {
@@ -178,9 +178,10 @@ appMan.getLogger().debug("For VTherm-OnOff FB:"+stateFb+", at "+onOff.getLocatio
 							break;
 						}
 					}
-					if(allOnOffCorrect && (setp != lastSetp)) {
+					float setpFb = deviceResource.temperatureSensor().deviceFeedback().setpoint().getValue();
+					if(allOnOffCorrect && (setp != setpFb)) {
 						deviceResource.temperatureSensor().deviceFeedback().setpoint().setValue(setp);
-						lastSetp = setp;
+						//lastSetp = setp;
 					}
 				}					
 					

@@ -1,6 +1,7 @@
 package org.smartrplace.driverhandler.devices;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -142,11 +143,15 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 			System.out.println("   !!! WARNING: Iotawatt without energySensor to use: "+device.getLocation());
 			return result;
 		}
-		utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
+long start = dpService.getFrameworkTime();
+		VirtualSensorKPIDataBase dpHourly = utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
 				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
-		utilAggSubPhases.addVirtualDatapoint(energy, "energySumDaily", device,
+		utilAggSubPhases.addVirtualDatapoint(Arrays.asList(new Datapoint[] {dpHourly.evalDp}), "energySumDaily", device,
 				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
 
+long end = dpService.getFrameworkTime();
+System.out.println("   *** IOTAwatt virtual datapoints took "+(end-start)+" msec for "+device.getLocation());
+		
 		return result;
 	}
 

@@ -105,7 +105,7 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 	
 	@Override
 	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
-		OnOffSwitch dev = (OnOffSwitch) appDevice.device();
+		OnOffSwitch dev = (OnOffSwitch) appDevice.device().getLocationResource();
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(dev.stateControl(), result, dpService);
 		addDatapoint(dev.stateFeedback(), result, dpService);

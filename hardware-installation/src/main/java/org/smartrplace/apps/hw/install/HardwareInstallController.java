@@ -317,9 +317,9 @@ public class HardwareInstallController {
 						InitialConfig.addString(shortID, appConfigData.initDoneStatus());			
 				}
 			};
-			if(DeviceTableRaw.getTemplateForType(getDevices(tableProvider), tableProvider) == null)
-				ValueResourceHelper.setCreate(install.isTemplate(), tableProvider.id());
 		}
+		if(DeviceTableRaw.getTemplateForType(getDevices(tableProvider), tableProvider) == null)
+			ValueResourceHelper.setCreate(install.isTemplate(), tableProvider.id());
 	}
 	
 	public InstallAppDevice removeDevice(Resource device) {
