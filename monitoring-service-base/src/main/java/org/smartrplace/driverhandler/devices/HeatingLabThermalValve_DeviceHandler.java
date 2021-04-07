@@ -44,7 +44,7 @@ public class HeatingLabThermalValve_DeviceHandler extends DeviceHandlerSimple<Th
 
 	@Override
 	public String getTableTitle() {
-		return "Heating Lab Data Radiators";
+		return "Heating Lab Radiators Extended Data";
 	}
 
 	@Override

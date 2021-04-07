@@ -3,6 +3,8 @@ package org.ogema.accessadmin.api.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.accessadmin.api.util.UserPermissionUtil.PermissionForLevelProvider;
@@ -16,6 +18,7 @@ import org.ogema.tools.app.createuser.UserAdminBaseUtil;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
+import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 public class UserPermissionServiceImpl implements UserPermissionService {
 	protected final AccessAdminController controller;
@@ -227,5 +230,23 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 	@Override
 	public UserStatusResult getUserStatus(String userName) {
 		return UserAdminBaseUtil.getUserStatus(userName, controller.appManPlus);
+	}
+	
+	@Override
+	public boolean hasExtendedView(HttpSession session) {
+		String user = GUIUtilHelper.getUserLoggedInBase(session);
+		return hasExtendedView(user);
+	}
+	@Override
+	public boolean hasExtendedView(String user) {
+		if(controller.hwInstallConfig == null)
+			return true;
+		if(controller.hwInstallConfig.extendedViewMode().getValue() < 1)
+			return false;
+		if(controller.hwInstallConfig.extendedViewMode().getValue() > 1)
+			return true;
+		if(user.equals("master"))
+			return true;
+		return false;
 	}
 }

@@ -13,6 +13,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.app.createuser.UserAdminBaseUtil;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.gui.MainPage;
@@ -39,6 +40,7 @@ public class AccessAdminController {
     public UserPermissionServiceImpl userPermService;
     
 	public AccessAdminConfig appConfigData;
+	public final HardwareInstallConfig hwInstallConfig;
 	public AccessAdminApp accessAdminApp;
     public final ApplicationManagerPlus appManPlus;
 	
@@ -66,6 +68,7 @@ public class AccessAdminController {
 		//appManPlus.setUserPermService(userPermService);
 		
 		initConfigurationResource();
+		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		userPerms = appConfigData.userPermissions();
 		roomGroups = appConfigData.roomGroups();
 

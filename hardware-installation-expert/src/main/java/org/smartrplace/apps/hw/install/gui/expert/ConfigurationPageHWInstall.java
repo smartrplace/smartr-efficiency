@@ -214,7 +214,11 @@ public class ConfigurationPageHWInstall {
 		mainMeterDrop.setDefaultAddEmptyOption(true, "No main meter selected");
 		//mainMeterDrop.setTemplate(template);
 		
-		StaticTable configTable = new StaticTable(15, 2);
+		ValueResourceDropdown<IntegerResource> extendedViewModeDrop =
+				new ValueResourceDropdown<IntegerResource>(page, "extendedViewModeDrop", app.appConfigData.extendedViewMode(),
+				Arrays.asList(new String[] {"No extended view", "master only (no extended pages)", "All users based on permissions"}));
+		
+		StaticTable configTable = new StaticTable(16, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -262,6 +266,9 @@ public class ConfigurationPageHWInstall {
 		i++;		
 		configTable.setContent(i, 0, "Framework Time:").
 		setContent(i, 1, frameworkTimeLabel);
+		i++;
+		configTable.setContent(i, 0, "Extended view mode:").
+		setContent(i, 1, extendedViewModeDrop);
 		i++;
 		configTable.setContent(i, 0, "Standard Reference Time for Virtual Meter Evaluations (!Changes take time for recalculation!)").
 		setContent(i, 1, defaultRefTime);
