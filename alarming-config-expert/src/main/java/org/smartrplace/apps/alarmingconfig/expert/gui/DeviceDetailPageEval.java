@@ -91,7 +91,7 @@ public class DeviceDetailPageEval extends DeviceDetailPageExpert {
 			public List<TimeSeriesData> getData(OgemaHttpRequest req) {
 				List<TimeSeriesData> result = new ArrayList<>();
 				Datapoint dpBase = getDatapoint(object, dpService);
-				addDatapoint(dpBase, dpBase.label(null), result);
+				addDatapoint(dpBase, dpBase.label(null), result, true);
 				return result;
 			}
 		};

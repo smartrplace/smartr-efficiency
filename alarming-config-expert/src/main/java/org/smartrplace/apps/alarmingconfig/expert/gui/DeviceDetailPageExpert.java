@@ -121,8 +121,8 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
 					List<TimeSeriesData> result = new ArrayList<>();
 					if(dpGap != null)
-						addDatapoint(dpGap, dpBase.label(null)+"_gap", result);
-					addDatapoint(dpOut, dpBase.label(null)+"_out", result);
+						addDatapoint(dpGap, dpBase.label(null)+"_gap", result, true);
+					addDatapoint(dpOut, dpBase.label(null)+"_out", result, true);
 					return result;
 				}
 			};
@@ -134,11 +134,11 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 		addFinalWidgets(object, vh, id, req, row, appMan);
 	}
 	
-	public static void addDatapoint(Datapoint dp, String label, List<TimeSeriesData> result) {
+	public static void addDatapoint(Datapoint dp, String label, List<TimeSeriesData> result, boolean plotRawValues) {
 		TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(null);
 		TimeSeriesDataExtendedImpl tsdExt = new TimeSeriesDataExtendedImpl(tsd, label, label);
 		GaRoDataType garoType = dp.getGaroDataType();
-		if(garoType.id().equals(GaRoDataType.Unknown.id()))
+		if(plotRawValues || garoType.id().equals(GaRoDataType.Unknown.id()))
 			tsdExt.type = GaRoDataType.KPI_DURATION;
 		else
 			tsdExt.type = garoType;

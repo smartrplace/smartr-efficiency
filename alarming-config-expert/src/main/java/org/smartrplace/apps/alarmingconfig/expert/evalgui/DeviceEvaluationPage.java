@@ -42,6 +42,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
@@ -55,6 +56,8 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 	
 	protected final AlarmingConfigAppController controller;
 	protected final EvaluationByAlarmConfig evalData;
+	final SimpleCheckbox rawSourceValues;
+	
 	//Quick hack
 	//TODO: In the future we have to offer the AlarmingExtensions with #getEvalConfigExtension implemented
 	//in a dropdown
@@ -178,6 +181,9 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 		};
 		copyButton.registerDependentWidget(intervalDrop);
 		topTable.setContent(1, 1, copyButton);
+		
+		rawSourceValues = new SimpleCheckbox(page, "rawSourceValues", " plot raw values");
+		topTable.setContent(0, 4, rawSourceValues);
 		
 		//TODO: This table must depend on the AlarmingExtension selection in the future
 		//See HardwareTablePage#updateTables() for the steps required

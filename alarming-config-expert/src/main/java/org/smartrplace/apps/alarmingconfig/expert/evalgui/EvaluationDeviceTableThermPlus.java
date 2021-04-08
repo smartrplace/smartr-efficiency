@@ -204,7 +204,7 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
 					List<TimeSeriesData> result = new ArrayList<>();
 					for(Datapoint dpBase: forPlot) {
-						DeviceDetailPageEval.addDatapoint(dpBase, dpBase.label(null), result);						
+						DeviceDetailPageEval.addDatapoint(dpBase, dpBase.label(null), result, true);						
 					}
 					return result;
 				}
@@ -227,8 +227,9 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 				@Override
 				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
 					List<TimeSeriesData> result = new ArrayList<>();
+					boolean plotRaw = devEvalPage.rawSourceValues.getValue(req);
 					for(Datapoint dpBase: sourcePlot) {
-						DeviceDetailPageEval.addDatapoint(dpBase, dpBase.label(null), result);						
+						DeviceDetailPageEval.addDatapoint(dpBase, dpBase.label(null), result, plotRaw);						
 					}
 					return result;
 				}
