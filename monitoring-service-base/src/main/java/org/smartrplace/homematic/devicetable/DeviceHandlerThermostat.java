@@ -253,6 +253,12 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		Thermostat device = initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
+		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
+				0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+	}
+	
+	public static Thermostat initAlarmingForDeviceThermostatCommon(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		Thermostat device = (Thermostat) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
@@ -264,6 +270,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.addAlarmingHomematic(device, appDevice);
 		appDevice.alarms().activate(true);
+		return device;
 	}
 	
 	PropertyService propService = null;

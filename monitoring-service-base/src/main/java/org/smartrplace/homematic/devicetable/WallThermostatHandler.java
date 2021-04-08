@@ -18,6 +18,7 @@ import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.Sensor;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -139,6 +140,16 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 		return WallThermostatPattern.class;
 	}
 
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		DeviceHandlerThermostat.initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
+	}
+	
+	@Override
+	public String getInitVersion() {
+		return "_B";
+	}
+	
 	private static <S extends Resource> ResourceDropdown<S> referenceDropdownFixedChoice(String widgetId, final List<S> destinations, String altId,
 			final Map<S, String> valuesToSet, final Class<S> resourceType, OgemaWidget mainTable, OgemaHttpRequest req) {
 		@SuppressWarnings("serial")
