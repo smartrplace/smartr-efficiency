@@ -71,7 +71,8 @@ public class MainPageExpert extends MainPage {
 		StaticTable secondTable = new StaticTable(1, 4);
 		RedirectButton stdCharts = new RedirectButton(page, "stdCharts", "Chart Config", "/org/sp/app/srcmon/chartconfig.html");
 		RedirectButton alarming = new RedirectButton(page, "alarming", "Alarming Configuration", "/org/smartrplace/alarmingconfig/index.html");
-		secondTable.setContent(0, 1, stdCharts).setContent(0,  2, alarming);
+		RedirectButton alarmingExpert = new RedirectButton(page, "alarmExpert", "Alarming Expert", "/org/smartrplace/hardwareinstall/expert/index.html");
+		secondTable.setContent(0, 1, stdCharts).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert);
 		page.append(secondTable);
 		super.finishConstructor();
 	}

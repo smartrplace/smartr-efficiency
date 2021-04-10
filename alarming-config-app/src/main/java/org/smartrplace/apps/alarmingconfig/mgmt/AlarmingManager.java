@@ -39,7 +39,6 @@ import org.ogema.recordreplay.testing.RecReplayAlarmingBaseObserver;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
-import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gateway.device.VirtualTestDevice;
