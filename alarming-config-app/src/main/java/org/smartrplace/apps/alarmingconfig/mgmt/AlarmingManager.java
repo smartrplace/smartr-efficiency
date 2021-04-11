@@ -375,7 +375,9 @@ public class AlarmingManager {
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus) {
-			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, false);		
+			long now = appManPlus.getFrameworkTime();
+			boolean noMessage = sendNoValueMessageOrRelease(vl, now, true);
+			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, noMessage);		
 		}
 
 		@Override
@@ -441,7 +443,9 @@ public class AlarmingManager {
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus) {
-			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, false);		
+			long now = appManPlus.getFrameworkTime();
+			boolean noMessage = sendNoValueMessageOrRelease(vl, now, true);
+			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, noMessage);		
 		}
 
 		@Override

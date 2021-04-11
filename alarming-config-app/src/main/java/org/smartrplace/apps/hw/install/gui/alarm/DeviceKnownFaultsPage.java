@@ -140,7 +140,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					@Override
 					public void onGET(OgemaHttpRequest req) {
 						float val = res.minimumTimeBetweenAlarms().getValue();
-						if(val < 0)
+						if(Float.isNaN(val)) {
+							setAddEmptyOption(true, "not set", req);
+							selectItem(null, req);
+						} else if(val < 0)
 							selectItem("Blocking", req);
 						else if(val == 0)
 							selectItem("No-Block", req);
@@ -170,7 +173,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				Button releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						res.ongoingAlarmStartTime().setValue(-1);
+						//TODO: In the future we may want to keep this information in a log of solved issues
+						res.delete();
+						//res.ongoingAlarmStartTime().setValue(-1);
 					}
 				};
 				row.addCell("Release", releaseBut);
@@ -189,7 +194,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			return all;
 		List<InstallAppDevice> result = new ArrayList<>();
 		for(InstallAppDevice dev: all) {
-			if(dev.knownFault().exists() && dev.knownFault().ongoingAlarmStartTime().getValue() > 0) {
+			if(dev.knownFault().exists()) { // && dev.knownFault().ongoingAlarmStartTime().getValue() > 0) {
 				int[] actAlarms = AlarmingConfigUtil.getActiveAlarms(dev);
 				if(actAlarms[1] > 0)
 					result.add(dev);
