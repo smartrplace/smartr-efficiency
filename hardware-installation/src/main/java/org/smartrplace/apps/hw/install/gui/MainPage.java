@@ -21,6 +21,7 @@ import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
@@ -29,6 +30,7 @@ import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
 import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil;
 import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil.SchedOpenDataProvider;
+import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resource.util.LoggingUtils;
@@ -243,14 +245,27 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 			boolean addDataPointInfoLabel,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, Row row, OgemaHttpRequest req,
 			DeviceHandlerProvider<?> devHandForTrash) {
+		DeviceHandlerProvider<?> devHand;
+		if(devHandForTrash != null)
+			devHand = devHandForTrash;
+		else
+			devHand = controller.handlerByDevice.get(object.getLocation());
+		return getPlotButton(id, object, controller.dpService, controller.appMan,
+				addDataPointInfoLabel, vh, row, req, devHand,
+				ScheduleViewerConfigProvHW.getInstance(), controller.datalogs);
+	}
+	public static GetPlotButtonResult getPlotButton(String id, InstallAppDevice object,
+			DatapointService dpService, final ApplicationManager appMan,//final HardwareInstallController controller2,
+			boolean addDataPointInfoLabel,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, Row row, OgemaHttpRequest req,
+			DeviceHandlerProvider<?> devHand,
+			DefaultScheduleViewerConfigurationProviderExtended schedViewProv,
+			ResourceList<DataLogTransferInfo> datalogs) {
 		final GetPlotButtonResult resultMain = new GetPlotButtonResult();
 		
-		if(devHandForTrash != null)
-			resultMain.devHand = devHandForTrash;
-		else
-			resultMain.devHand = controller.handlerByDevice.get(object.getLocation());
+		resultMain.devHand = devHand;
 		if(resultMain.devHand != null) {
-			resultMain.datapoints = resultMain.devHand.getDatapoints(object, controller.dpService);
+			resultMain.datapoints = resultMain.devHand.getDatapoints(object, dpService);
 			int logged = 0;
 			int transferred = 0;
 			for(Datapoint dp: resultMain.datapoints) {
@@ -261,9 +276,9 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 				if(LoggingUtils.isLoggingEnabled(rec))
 					logged++;
 				if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
-					Resource res = controller.appMan.getResourceAccess().getResource(rec.getPath());
-					if(res != null && (res instanceof SingleValueResource) &&
-							LogTransferUtil.isResourceTransferred((SingleValueResource) res, controller.datalogs)) {
+					Resource res = appMan.getResourceAccess().getResource(rec.getPath());
+					if(res != null && (res instanceof SingleValueResource) && (datalogs != null) &&
+							LogTransferUtil.isResourceTransferred((SingleValueResource) res, datalogs)) {
 						transferred++;
 					}
 				}
@@ -280,7 +295,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 				
 				@Override
 				public IntervalConfiguration getITVConfiguration() {
-					return IntervalConfiguration.getDefaultDuration(IntervalConfiguration.ONE_DAY, controller.appMan);
+					return IntervalConfiguration.getDefaultDuration(IntervalConfiguration.ONE_DAY, appMan);
 				}
 				
 				@Override
@@ -299,7 +314,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 				}
 			};
 			resultMain.plotButton = ScheduleViwerOpenUtil.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
-					"Plot", provider, ScheduleViewerConfigProvHW.getInstance(), req);
+					"Plot", provider, schedViewProv, req);
 		}
 		return resultMain;
 	}

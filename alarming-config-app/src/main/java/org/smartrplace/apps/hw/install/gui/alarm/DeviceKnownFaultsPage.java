@@ -17,6 +17,8 @@ import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.apps.hw.install.gui.MainPage.GetPlotButtonResult;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -108,6 +110,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("MinInterval");
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Edit TT");
+					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("Release");
 					return;
 				}
@@ -179,6 +182,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					}
 				};
 				row.addCell("Release", releaseBut);
+				
+				final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
+						ScheduleViewerConfigProvAlarm.getInstance(), null);
+				row.addCell("Plot", logResult.plotButton);
 			}
 			
 			@Override
