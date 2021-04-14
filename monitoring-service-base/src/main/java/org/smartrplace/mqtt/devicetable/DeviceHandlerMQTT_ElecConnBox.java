@@ -11,6 +11,7 @@ import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.EnergyResource;
+import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -207,7 +208,9 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 	protected Datapoint addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, String phase, DatapointService dpService) {
 		addDatapoint(conn.voltageSensor().reading(), result, phase, dpService);
 		addDatapoint(conn.powerSensor().reading(), result, phase, dpService);
+		addDatapoint(conn.powerSensor().settings().setpoint(), result, phase, dpService);
 		addDatapoint(conn.reactivePowerSensor().reading(), result, phase, dpService);
+		addDatapoint(conn.reactivePowerSensor().settings().setpoint(), result, phase, dpService);
 		addDatapoint(conn.reactiveAngleSensor().reading(), result, phase, dpService);
 		Datapoint energyDp = addDatapoint(conn.energySensor().reading(), result, phase, dpService);
 		addDatapoint(conn.currentSensor().reading(), result, phase, dpService);
@@ -217,6 +220,10 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		addDecoratorDatapoints(conn.getSubResources(ElectricEnergySensor.class, false), result, phase, dpService);
 		addDecoratorDatapoints(conn.getSubResources(PowerSensor.class, false), result, phase, dpService);
 		addDecoratorDatapoints(conn.getSubResources(ReactivePowerAngleSensor.class, false), result, phase, dpService);
+		
+		addDatapoint(conn.getSubResource("QPCC_max", PowerResource.class), result, phase, dpService);
+		addDatapoint(conn.getSubResource("QPCC_min", PowerResource.class), result, phase, dpService);
+		
 		return energyDp;
 	}
 	

@@ -147,7 +147,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public String getInitVersion() {
-		return "_B";
+		return "_C";
 	}
 	
 	private static <S extends Resource> ResourceDropdown<S> referenceDropdownFixedChoice(String widgetId, final List<S> destinations, String altId,

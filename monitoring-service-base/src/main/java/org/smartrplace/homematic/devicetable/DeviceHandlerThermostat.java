@@ -258,6 +258,11 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 	}
 	
+	@Override
+	public String getInitVersion() {
+		return "_C";
+	}
+	
 	public static Thermostat initAlarmingForDeviceThermostatCommon(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		Thermostat device = (Thermostat) appDevice.device();

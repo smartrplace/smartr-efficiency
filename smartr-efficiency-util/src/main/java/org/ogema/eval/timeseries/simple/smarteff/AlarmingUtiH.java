@@ -35,7 +35,8 @@ public class AlarmingUtiH {
 	public static final int DEFAULT_ALARM_REPETITION_MINUTES = 48*60;
 	public static final int DEFAULT_NOVALUE_MINUTES = 60;
 	public static final int DEFAULT_NOVALUE_IP_MINUTES = DEFAULT_NOVALUE_MINUTES;
-	public static final int DEFAULT_NOVALUE_FORHOURLY_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 70);
+	public static final int DEFAULT_NOVALUE_FORHOURLY_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 180);
+	public static final int DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 600);
 
 	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
 	public static final String CUSTOMER_FIRST = "Customer First";
@@ -257,10 +258,10 @@ public class AlarmingUtiH {
 		if(batteryVoltage != null && batteryVoltage.isActive() && batteryNum > 0) {
 			if(batteryNum == 2)
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
-					1.5f, 3.5f, 10, DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+					1.5f, 3.5f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
 			else
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
-						batteryNum*0.7f, batteryNum*1.8f, 10, DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+						batteryNum*0.7f, batteryNum*1.8f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
 		}
 		BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
@@ -281,7 +282,7 @@ public class AlarmingUtiH {
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
 		if(rssiPeer != null && rssiPeer.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
-					-94f, -10f, 10, 300);
+					-94f, -10f, 10, -1);
 	}
 
 	public static void addAlarmingMQTT(PhysicalElement dev, InstallAppDevice appDevice) {

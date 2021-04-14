@@ -10,6 +10,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
@@ -176,6 +177,12 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindo
 		//boolean has2batteries = device.getLocation().contains("_SWDM_");
 		//AlarmingUtiH.addAlarmingHomematic(device, appDevice, has2batteries?2:1);
 		AlarmingUtiH.addAlarmingHomematic(device, appDevice, 0);
+		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		//special setting for window sensors
+		if(rssiDevice != null && rssiDevice.exists())
+			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
+					-94f, -10f, 10, 720);
 		/*IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(device,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
 		if(rssiDevice != null && rssiDevice.exists())
@@ -189,6 +196,11 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindo
 		*/
 	}
 
+	@Override
+	public String getInitVersion() {
+		return "_C";
+	}
+	
 	protected int valueRequestsentNum = 0;
 	protected int valueRequestSkippedNum = 0;
 	
