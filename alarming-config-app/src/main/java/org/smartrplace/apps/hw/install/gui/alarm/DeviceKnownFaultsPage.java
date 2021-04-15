@@ -1,11 +1,11 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -34,6 +34,22 @@ import de.iwes.widgets.html.form.textfield.TextField;
 
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
+	public static final Map<String, String> dignosisVals = new HashMap<>();
+	static {
+		dignosisVals.put("0", "not set");
+		dignosisVals.put("1", "requires more analysis");
+		dignosisVals.put("10", "no contact: Device not on site, out of radio signal or battery empty");
+		dignosisVals.put("11", "no contact: Device not on site");
+		dignosisVals.put("12", "no contact: Device out of radio signal");
+		dignosisVals.put("13", "no contact: Battery empty");
+		dignosisVals.put("20", "insufficient signal strength: requires additional repeater, controller or HAP");
+		dignosisVals.put("21", "insufficient signal strength: wrong controller association");
+		dignosisVals.put("22", "insufficient signal strength: other reason");
+		dignosisVals.put("30", "Thermostat is not properly installed (valve / adaption error)");
+		dignosisVals.put("40", "Thermostat requires wall thermostat");
+		dignosisVals.put("50", "Battery low");	
+	}
+	
 	protected boolean showAllDevices = false;
 	
 	@Override
@@ -112,6 +128,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Edit TT");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("Release");
+					vh.inDetailSection(true);
+					vh.registerHeaderEntry("Diagnosis");
 					return;
 				}
 				AlarmGroupData res = object.knownFault();
@@ -124,10 +142,15 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				if(curVal != null && (!curVal.isEmpty()))
 					valuesToSet.put(curVal, curVal);
 				valuesToSet.put("None", "None");
-				for(UserAccount user: appMan.getAdministrationManager().getAllUsers()) {
+				/*for(UserAccount user: appMan.getAdministrationManager().getAllUsers()) {
 					if(curVal != null && user.getName().equals(curVal))
 						continue;
 					valuesToSet.put(user.getName(), user.getName());
+				}*/
+				for(String role: AlarmGroupData.USER_ROLES) {
+					if(curVal != null && role.equals(curVal))
+						continue;
+					valuesToSet.put(role, role);					
 				}
 				vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);
 				if(!res.linkToTaskTracking().getValue().isEmpty()) {
@@ -186,6 +209,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 						ScheduleViewerConfigProvAlarm.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
+				
+				vh.inDetailSection(true);
+				vh.dropdown("Diagnosis",  id, res.diagnosis(), row, dignosisVals);
 			}
 			
 			@Override
