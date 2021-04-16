@@ -498,6 +498,17 @@ public class AlarmingManager {
 		valueListeners.clear();
 	}
 
+	public static String getTsName(AlarmConfiguration ac, Datapoint dp) {
+		InstallAppDevice iad = ResourceHelper.getFirstParentOfType(ac, InstallAppDevice.class);
+		String label = dp.label(null);
+		if(iad == null)
+			return label;
+		String devId = iad.deviceId().getValue();
+		if(label.contains(devId))
+			return label;
+		return label+"("+devId+")";
+	}
+	
 	protected void executeNoValueAlarm(AlarmConfiguration ac, float value, long lastTime, long maxInterval,
 			IntegerResource alarmStatus, boolean noMessage) {
 		int status = ac.alarmLevel().getValue()+1000;
@@ -507,7 +518,7 @@ public class AlarmingManager {
 		if(noMessage)
 			return;
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
-		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
+		String tsName = getTsName(ac, dp); //dp.label(null); //tsNameProv.getTsName(ac);
 		String title = "No more values received:"+tsName+" (Alarming)";
 		String message = "Last value received at: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nValue: "+value+"\r\n"
 				+"\r\nMaximum interval: "+(maxInterval/MINUTE_MILLIS)+"min";
@@ -526,7 +537,7 @@ public class AlarmingManager {
 		if(noMessage)
 			return;
 		Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());
-		String tsName = dp.label(null); //tsNameProv.getTsName(ac);
+		String tsName = getTsName(ac, dp); //dp.label(null); //tsNameProv.getTsName(ac);
 		String title = "Release:"+tsName+" (Alarming)";
 		String message = "Value: "+value;
 		if(!Float.isNaN(lower))
