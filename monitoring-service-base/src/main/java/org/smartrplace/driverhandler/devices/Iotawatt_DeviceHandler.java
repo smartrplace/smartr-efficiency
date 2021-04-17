@@ -144,6 +144,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 			return result;
 		}
 long start = dpService.getFrameworkTime();
+System.out.println("   *** IOTAwatt virtual datapoints starting for "+device.getLocation());
 		VirtualSensorKPIDataBase dpHourly = utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
 				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
 		utilAggSubPhases.addVirtualDatapoint(Arrays.asList(new Datapoint[] {dpHourly.evalDp}), "energySumDaily", device,

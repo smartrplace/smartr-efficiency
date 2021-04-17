@@ -126,6 +126,13 @@ public class MonitoringServiceBaseApp implements Application {
 	DatapointServiceImpl dpService;
 
 	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srGwDev = null;
+	private GatewayDeviceHandler devHandGwDev;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srGwSup = null;
+	private GatewaySuperiorHandler devHandGwSup;
+
+	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srAircond = null;
 	private DeviceHandlerMQTT_Aircond devHandAircond;
 	@SuppressWarnings("rawtypes")
@@ -225,13 +232,6 @@ public class MonitoringServiceBaseApp implements Application {
 	private DriverHandlerMQTTBroker mqttBrokerConfig;
 	protected ServiceRegistration<DriverHandlerProvider> knxDriver = null;
 	private DriverHandlerKNX_IP knxConfig;
-	
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGwDev = null;
-	private GatewayDeviceHandler devHandGwDev;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGwSup = null;
-	private GatewaySuperiorHandler devHandGwSup;
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srBeacon = null;
 	private BluetoothBeaconHandler devHandBeacon;
@@ -271,6 +271,11 @@ public class MonitoringServiceBaseApp implements Application {
 	   
 	   srDpservice = bc.registerService(DatapointService.class, dpService, null);
 	   
+	   devHandGwDev = new GatewayDeviceHandler(controller.appManPlus);
+	   srGwDev = bc.registerService(DeviceHandlerProvider.class, devHandGwDev, null);
+	   devHandGwSup = new GatewaySuperiorHandler(controller.appManPlus);
+	   srGwSup = bc.registerService(DeviceHandlerProvider.class, devHandGwSup, null);
+
 	   devHandAircond = new DeviceHandlerMQTT_Aircond(controller.appManPlus);
 	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
 	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(controller.appManPlus);
@@ -344,11 +349,6 @@ public class MonitoringServiceBaseApp implements Application {
 	   mqttBrokerDriver = bc.registerService(DriverHandlerProvider.class, mqttBrokerConfig, null);
 	   knxConfig = new DriverHandlerKNX_IP(controller.appManPlus, configAdmin);
 	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
-	   
-	   devHandGwDev = new GatewayDeviceHandler(controller.appManPlus);
-	   srGwDev = bc.registerService(DeviceHandlerProvider.class, devHandGwDev, null);
-	   devHandGwSup = new GatewaySuperiorHandler(controller.appManPlus);
-	   srGwSup = bc.registerService(DeviceHandlerProvider.class, devHandGwSup, null);
 	   devHandBeacon = new BluetoothBeaconHandler(controller.appManPlus);
 	   srBeacon = bc.registerService(DeviceHandlerProvider.class, devHandBeacon, null);
 	}
@@ -362,7 +362,10 @@ public class MonitoringServiceBaseApp implements Application {
 
     	if (srDpservice != null) srDpservice.unregister();
     	
-    	if (srAircond != null) srAircond.unregister();
+    	if (srGwDev != null) srGwDev.unregister();
+       	if (srGwSup != null) srGwSup.unregister();
+
+       	if (srAircond != null) srAircond.unregister();
     	if (srElecConn != null) srElecConn.unregister();
     	if (srSwBox != null) srSwBox.unregister();
     	if (srOnOff != null) srOnOff.unregister();
@@ -397,9 +400,6 @@ public class MonitoringServiceBaseApp implements Application {
     	if (jmbusDriver != null) jmbusDriver.unregister();
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
     	if (knxDriver != null) knxDriver.unregister();
-
-    	if (srGwDev != null) srGwDev.unregister();
-       	if (srGwSup != null) srGwSup.unregister();
        	if (srBeacon != null) srBeacon.unregister();
 
     	if (controller != null)
