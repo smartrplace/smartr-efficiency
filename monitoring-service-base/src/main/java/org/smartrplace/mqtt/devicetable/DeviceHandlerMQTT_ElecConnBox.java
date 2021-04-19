@@ -100,9 +100,11 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		this.appMan = appMan;
 		
 		utilAggDaily = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.DAY,
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.getLogger(), appMan.dpService());
+				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				appMan.getLogger(), appMan.dpService());
 		utilAggMonthly = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.MONTH,
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.getLogger(), appMan.dpService());
+				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				appMan.getLogger(), appMan.dpService());
 		
 	}
 	
