@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
@@ -35,6 +37,21 @@ public class GasEnergyCam_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 	@Override
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
+
+		// We have to sychronize with reading remote slotsdb and setting up the time series for mirror devices here
+		Resource mirrorList = appMan.getResourceAccess().getResource("serverMirror");
+		if(mirrorList != null) {
+			IntegerResource initStatus = mirrorList.getSubResource("initStatus", IntegerResource.class);
+			while(initStatus.isActive() && (initStatus.getValue() < 2) && Boolean.getBoolean("org.smartrplace.app.srcmon.iscollectinggateway")) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
 		return result;
 	}
