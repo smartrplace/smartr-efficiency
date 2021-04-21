@@ -43,7 +43,7 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 			return false;
 		if(DeviceTableRaw.isOpenWeatherMapBigBlue(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
-		if(model.getLocation().contains("maintenanceChannelReadings"))
+		if(DeviceTableRaw.isHAPDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
 		//If more special SensorDevices are supported in the future add check here
 		return true;
