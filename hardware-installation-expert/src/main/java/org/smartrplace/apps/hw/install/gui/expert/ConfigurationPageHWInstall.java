@@ -16,6 +16,7 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
@@ -60,8 +61,12 @@ public class ConfigurationPageHWInstall {
 		
 		//this.page = page;
 		this.controller = app;
-		if(app.appConfigData.mainMeter().exists())
-			setMainMeter(app.appConfigData.mainMeter());
+		if(app.appConfigData.mainMeter().exists()) {
+		//	CompletableFuture.runAsync(() -> {
+				VirtualSensorKPIMgmt.waitForCollectingGatewayServerInit(app.appMan.getResourceAccess());
+				setMainMeter(app.appConfigData.mainMeter());
+		//	});
+		}
 		
 		final Alert alert = new Alert(page, "alert", "");
 		page.append(alert);

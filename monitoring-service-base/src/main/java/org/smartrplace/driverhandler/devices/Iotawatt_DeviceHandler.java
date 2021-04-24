@@ -109,8 +109,8 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 	protected Collection<Datapoint> getDatapoints(IotaWattElectricityConnection device,
 			InstallAppDevice deviceConfiguration) {
 		// We have to sychronize with reading remote slotsdb and setting up the time series for mirror devices here
-		Resource mirrorList = appMan.getResourceAccess().getResource("serverMirror");
-		if(mirrorList != null) {
+		VirtualSensorKPIMgmt.waitForCollectingGatewayServerInit(appMan.getResourceAccess());
+		/*if(mirrorList != null) {
 			IntegerResource initStatus = mirrorList.getSubResource("initStatus", IntegerResource.class);
 			while(initStatus.isActive() && (initStatus.getValue() < 2) && Boolean.getBoolean("org.smartrplace.app.srcmon.iscollectinggateway")) {
 				try {
@@ -120,7 +120,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 				}
 			}
 
-		}
+		}*/
 		
 		List<Datapoint> result = new ArrayList<>();
 		List<Datapoint> energy = new ArrayList<>();
