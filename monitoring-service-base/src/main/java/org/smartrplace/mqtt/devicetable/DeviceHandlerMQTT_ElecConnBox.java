@@ -198,7 +198,7 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		for(ElectricityConnection subConn: dev.connection().subPhaseConnections().getAllElements()) {
 			addConnDatapoints(result, subConn, subConn.getName(), dpService);			
 		}
-		if(Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily") && dev.getLocation().startsWith("elMetersPM2x") && energyDp != null) {
+		if(!Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppressdaily") && dev.getLocation().startsWith("elMetersPM2x") && energyDp != null) {
 			Datapoint daily = provideIntervalFromMeterDatapoint("energyDaily", energyDp, result, dev.connection(), dpService, utilAggDaily);			
 			provideIntervalFromMeterDatapoint("energyMonthly", daily, result, dev.connection(), dpService, utilAggMonthly);		
 		}
