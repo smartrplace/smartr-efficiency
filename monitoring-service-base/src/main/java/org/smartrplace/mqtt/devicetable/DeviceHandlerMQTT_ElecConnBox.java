@@ -261,6 +261,10 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		if(dpSource != null && util != null) {
 			final VirtualSensorKPIDataBase mapData1 = util.getDatapointDataAccumulationSingle(dpSource, newSubResName, conn,
 					15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+if(mapData1 == null) {
+	System.out.println("   !!!!  WARNING: Unexpected null value in provideIntervalFromMeterDatapoint for "+dpSource.getLocation()+" nSubRN:"+newSubResName);
+	return null;
+}
 			return mapData1.evalDp;
 		}
 		return null;
