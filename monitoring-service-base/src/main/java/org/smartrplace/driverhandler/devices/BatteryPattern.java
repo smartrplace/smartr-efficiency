@@ -19,6 +19,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.devices.storage.ChargingPoint;
 import org.ogema.model.devices.storage.ElectricityStorage;
+import org.ogema.model.sensors.StateOfChargeSensor;
 
 import de.iwes.util.resource.ResourceHelper;
 
@@ -34,6 +35,8 @@ public class BatteryPattern extends ResourcePattern<ElectricityStorage> {
 	public boolean accept() {
 		Resource parent = model.getParent();
 		if(parent != null && parent instanceof ChargingPoint)
+			return false;
+		if(parent != null && parent instanceof StateOfChargeSensor)
 			return false;
 		if(ResourceHelper.hasParentAboveType(model, "org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice") >= 0)
 			return false;

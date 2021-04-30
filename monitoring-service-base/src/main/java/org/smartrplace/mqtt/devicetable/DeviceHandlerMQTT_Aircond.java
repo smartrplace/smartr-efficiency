@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
@@ -15,10 +16,12 @@ import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.buildingtechnology.AirConditioner;
+import org.ogema.model.devices.buildingtechnology.MechanicalFan;
 import org.ogema.model.locations.Room;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
@@ -36,11 +39,12 @@ import de.iwes.widgets.html.form.textfield.TextField;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner> {
-	private final ApplicationManagerPlus appMan;
+public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditioner> {
+	//private final ApplicationManagerPlus appMan;
 	
 	public DeviceHandlerMQTT_Aircond(ApplicationManagerPlus appMan) {
-		this.appMan = appMan;
+		super(appMan, true);
+		//this.appMan = appMan;
 	}
 
 	@Override
@@ -202,12 +206,18 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
-		AirConditioner dev = (AirConditioner) appDevice.device();
+	protected Collection<Datapoint> getDatapoints(AirConditioner dev, InstallAppDevice deviceConfiguration) {
+		//AirConditioner dev = (AirConditioner) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().reading()));
+		addDatapoint(dev.getSubResource("fan", MechanicalFan.class).setting().stateControl(), result);
+		addDatapoint(dev.getSubResource("fan", MechanicalFan.class).setting().stateFeedback(), result);
+		addDatapoint(dev.onOffSwitch().stateControl(), result);
+		addDatapoint(dev.onOffSwitch().stateFeedback(), result);
+		addDatapoint(dev.getSubResource("operationMode", MultiSwitch.class).stateControl(), result);
+		addDatapoint(dev.getSubResource("operationMode", MultiSwitch.class).stateFeedback(), result);
 		return result;
 	}
 	
@@ -221,5 +231,15 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerBase<AirConditioner>
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
 				4.5f, 30.5f, 1, 20);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
+	}
+
+	@Override
+	protected SingleValueResource getMainSensorValue(AirConditioner device, InstallAppDevice deviceConfiguration) {
+		throw new UnsupportedOperationException("Table generated separately!");
+	}
+
+	@Override
+	public String getTableTitle() {
+		return "Air Conditioners";
 	}
 }

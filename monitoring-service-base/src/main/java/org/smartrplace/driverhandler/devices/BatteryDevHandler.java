@@ -58,6 +58,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 		addDatapoint(device.electricityConnection().powerSensor().settings().setpoint(), result);
 		addDatapoint(device.electricityConnection().reactivePowerSensor().settings().setpoint(), result);
 		addDatapoint(device.chargeSensor().reading(), result);
+		addDatapoint(device.chargeSensor().battery().internalVoltage().reading(), result);
 		Datapoint dp = addDatapoint(device.getSubResource("sma_type", IntegerResource.class), result);
 		if(dp != null)
 			dp.addToSubRoomLocationAtomic(null, null, "smaType", false);
