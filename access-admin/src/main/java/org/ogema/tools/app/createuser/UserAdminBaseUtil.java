@@ -128,6 +128,9 @@ public class UserAdminBaseUtil {
 				result.add("org.smartrplace.apps.hardware-installation");
 				result.add("org.smartrplace.drivers.bacnet-ogema-sp-gui");
 				result.add("org.ogema.tools.modbus-sever-viewer");
+				//custom apps
+				result.add("org.smartrplace.tools.smartfactory-kpi");				
+				result.add("org.smartrplace.apps.smartrcockpit-link");
 				break;
 			case UserPermissionService.GROUP_AND_PERMISSION_MANAGEMENT:
 				result.add("org.smartrplace.apps.smartrplace-heatcontrol-v2");
@@ -135,6 +138,9 @@ public class UserAdminBaseUtil {
 				break;
 			case UserPermissionService.APPSTORE:
 				result.add("org.smartrplace.internal.appstore-gui");
+				// apps in test mode
+				//result.add("org.smartrplace.apps.react.roomcontrol-we");
+				//result.add("org.smartrplace.apps.react.roomcontrol-2d");
 				break;
 			}
 		}
