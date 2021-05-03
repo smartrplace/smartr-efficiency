@@ -129,7 +129,7 @@ public class VirtualThermostatDeviceHandler extends DeviceHandlerSimple<Thermost
 				long now = arg0.getExecutionTime();
 				if((now - lastSwitch) < MIN_HYSTERSIS_TIME)
 					return;
-				TemperatureResource tempSens = deviceResource.temperatureSensor().reading(); //getSubResource("config", VirtualThermostatConfig.class).roomSensor();
+				TemperatureResource tempSens = deviceResource.temperatureSensor().reading().getLocationResource(); //getSubResource("config", VirtualThermostatConfig.class).roomSensor();
 				Room room = deviceResource.location().room();
 				//TODO: is using measurements of thermostats we would also need an offset
 				if(!tempSens.exists() || (!room.exists()) ||
