@@ -31,7 +31,7 @@ public class OpenWeatherMapBigBlueRoomPattern extends ResourcePattern<SensorDevi
 	
 	@Override
 	public boolean accept() {
-		if(DeviceTableRaw.isOpenWeatherMapBigBlue(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
+		if(DeviceTableRaw.isOpenWeatherMapSensorDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return true;
 		return false;		
 	}

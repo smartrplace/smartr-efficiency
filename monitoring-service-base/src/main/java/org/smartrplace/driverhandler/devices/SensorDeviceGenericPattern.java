@@ -41,7 +41,7 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 			return false;
 		if(DeviceTableRaw.isGasEnergyCamDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
-		if(DeviceTableRaw.isOpenWeatherMapBigBlue(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
+		if(DeviceTableRaw.isOpenWeatherMapSensorDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
 		if(DeviceTableRaw.isHAPDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
