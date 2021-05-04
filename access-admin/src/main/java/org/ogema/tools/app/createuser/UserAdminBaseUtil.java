@@ -130,6 +130,7 @@ public class UserAdminBaseUtil {
 				result.add("org.ogema.tools.modbus-sever-viewer");
 				//custom apps
 				result.add("org.smartrplace.tools.smartfactory-kpi");				
+				result.add("org.smartrplace.apps.react.smartfactoryman");				
 				result.add("org.smartrplace.apps.smartrcockpit-link");
 				break;
 			case UserPermissionService.GROUP_AND_PERMISSION_MANAGEMENT:

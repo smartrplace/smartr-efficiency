@@ -16,7 +16,6 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Arrays;
-import java.util.concurrent.CompletableFuture;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
@@ -305,7 +304,7 @@ public class ConfigurationPageHWInstall {
 				"thermostatTestingConfig", ThermostatTestingConfig.class);
 		TimeResourceTextField testSwitchingEdit =
 				new TimeResourceTextField(page, "testSwitchingEdit", Interval.minutes, thTest.testSwitchingInterval());
-		configTable.setContent(i, 0, "Test switching interval (min):").setContent(i, 1, testSwitchingEdit);
+		configTable.setContent(i, 0, "Test switching interval (min) - started only after system relaunch:").setContent(i, 1, testSwitchingEdit);
 		i++;
 		
 		page.append(configTable);
