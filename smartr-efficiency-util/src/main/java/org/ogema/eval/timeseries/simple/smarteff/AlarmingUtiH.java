@@ -12,6 +12,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.VoltageResource;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.communication.CommunicationStatus;
 import org.ogema.model.devices.storage.ElectricityStorage;
@@ -251,10 +252,10 @@ public class AlarmingUtiH {
 	public static void addAlarmingHomematic(PhysicalElement dev, InstallAppDevice appDevice,
 			int batteryNum) {
 		dev = dev.getLocationResource();
-		VoltageResource batteryVoltage = dev.getSubResource("battery", ElectricityStorage.class).internalVoltage().reading();
-		if(!batteryVoltage.isActive())
-			batteryVoltage = ResourceHelper.getSubResourceOfSibbling(dev,
-					"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
+		VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(dev); //dev.getSubResource("battery", ElectricityStorage.class).internalVoltage().reading();
+		//if(!batteryVoltage.isActive())
+		//	batteryVoltage = ResourceHelper.getSubResourceOfSibbling(dev,
+		//			"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
 		if(batteryVoltage != null && batteryVoltage.isActive() && batteryNum > 0) {
 			if(batteryNum == 2)
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,

@@ -7,6 +7,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.units.VoltageResource;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
@@ -119,8 +120,8 @@ public class BatteryPage extends MainPage {
 				List<InstallAppDevice> result = new ArrayList<InstallAppDevice>();
 				for(InstallAppDevice dev: all) {
 					PhysicalElement device2 = dev.device().getLocationResource();
-					VoltageResource batteryVoltage = ResourceHelper.getSubResourceOfSibbling(device2,
-							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
+					VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(device2); //ResourceHelper.getSubResourceOfSibbling(device2,
+							//"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
 					if(batteryVoltage != null)
 						result.add(dev);
 				}
