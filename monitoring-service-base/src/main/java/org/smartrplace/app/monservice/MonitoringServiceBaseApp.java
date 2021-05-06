@@ -46,6 +46,7 @@ import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
 import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
+import org.smartrplace.driverhandler.more.MemoryTsPSTHandler;
 import org.smartrplace.driverhandler.more.VirtualTestDeviceHandler;
 import org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
@@ -236,6 +237,9 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srBeacon = null;
 	private BluetoothBeaconHandler devHandBeacon;
 
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srPST = null;
+	private MemoryTsPSTHandler devHandPST;
 
 	
 	@Activate
@@ -351,7 +355,10 @@ public class MonitoringServiceBaseApp implements Application {
 	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
 	   devHandBeacon = new BluetoothBeaconHandler(controller.appManPlus);
 	   srBeacon = bc.registerService(DeviceHandlerProvider.class, devHandBeacon, null);
-	}
+
+	   devHandPST = new MemoryTsPSTHandler(controller.appManPlus);
+	   srPST = bc.registerService(DeviceHandlerProvider.class, devHandPST, null);
+ 	}
  	
      /*
      * Callback called when the application is going to be stopped.
@@ -402,7 +409,9 @@ public class MonitoringServiceBaseApp implements Application {
     	if (knxDriver != null) knxDriver.unregister();
        	if (srBeacon != null) srBeacon.unregister();
 
-    	if (controller != null)
+       	if (srPST != null) srPST.unregister();
+
+       	if (controller != null)
     		controller.close();
         log.info("{} stopped", getClass().getName());
     }

@@ -19,6 +19,7 @@ import java.util.Arrays;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
@@ -32,6 +33,7 @@ import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
+import org.smartrplace.util.virtualdevice.HmCentralManager;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.format.StringFormatHelper;
@@ -222,7 +224,7 @@ public class ConfigurationPageHWInstall {
 				new ValueResourceDropdown<IntegerResource>(page, "extendedViewModeDrop", app.appConfigData.extendedViewMode(),
 				Arrays.asList(new String[] {"No extended view", "master only (no extended pages)", "All users based on permissions"}));
 		
-		StaticTable configTable = new StaticTable(16, 2);
+		StaticTable configTable = new StaticTable(18, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -307,6 +309,20 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Test switching interval (min) - started only after system relaunch:").setContent(i, 1, testSwitchingEdit);
 		i++;
 		
+		FloatResource maxDutyCycle = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(
+				HmCentralManager.paramMaxDutyCycle, FloatResource.class);
+		ValueResourceTextField<FloatResource> maxDutyCycleEdit =
+				new ValueResourceTextField<FloatResource>(page, "maxDutyCycleEdit", maxDutyCycle);
+		configTable.setContent(i, 0, "Maximum Duty Cycle before traffic limit (0..1.0):").setContent(i, 1, maxDutyCycleEdit);
+		i++;
+
+		FloatResource maxWritePerCCUperHour = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(
+				HmCentralManager.paramMaxWritePerCCUperHour, FloatResource.class);
+		ValueResourceTextField<FloatResource> maxWritePerCCUperHourEdit =
+				new ValueResourceTextField<FloatResource>(page, "maxWritePerCCUperHourEdit", maxWritePerCCUperHour);
+		configTable.setContent(i, 0, "Maximum Setpoint writes per hour before limit:").setContent(i, 1, maxWritePerCCUperHourEdit);
+		i++;
+
 		page.append(configTable);
 	}
 	

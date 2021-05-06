@@ -11,6 +11,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
@@ -18,10 +19,13 @@ import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.Sensor;
+import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
+import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.virtualdevice.HmCentralManager;
 
 import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -190,4 +194,10 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 		return myDrop;
 	}
 
+	@Override
+	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
+			Thermostat deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		HmCentralManager.getInstance(appMan).registerSensor(deviceResource.temperatureSensor().settings().setpoint());
+		return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);
+	}
 }

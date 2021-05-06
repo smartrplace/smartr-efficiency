@@ -201,7 +201,7 @@ appMan.getLogger().debug("For VTherm-OnOff FB:"+stateFb+", at "+onOff.getLocatio
 		});
 		result.add(new DeviceHandlerMQTT_Aircond.TimerSimSimple(timer));
 		
-		DeviceHandlerThermostat.addThermostatToTestSwitch(deviceResource, appMan.appMan());
+		DeviceHandlerThermostat.addThermostatToTestSwitch(deviceResource, appMan.appMan(), null);
 
 		return result;
 	}

@@ -48,6 +48,7 @@ import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond.SetpointToFeedbackSimSimple;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.virtualdevice.HmCentralManager;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -207,6 +208,10 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	@Override
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			Thermostat deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+
+		HmCentralManager hmMan = HmCentralManager.getInstance(appMan);
+		hmMan.registerSensor(deviceResource.temperatureSensor().settings().setpoint());
+
 		List<RoomInsideSimulationBase> result = new ArrayList<>();
 
 		//start controlMode setter
@@ -225,11 +230,11 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			//}
 		}
 		
-		addThermostatToTestSwitch(deviceResource, appMan.appMan());
+		addThermostatToTestSwitch(deviceResource, appMan.appMan(), hmMan);
 		
 		return result;
 	}
-	
+
 	@Override
 	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, Thermostat deviceResource,
 			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
@@ -395,9 +400,17 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 	
 	protected static CountDownDelayedExecutionTimer testSwitchTimer = null;
 	protected static ThermostatTestingConfig testConfig;
-	protected static Set<TemperatureResource> setpointsToTest = new HashSet<>();
+	protected static class SetpointToTest {
+		public SetpointToTest(TemperatureResource setp, HmCentralManager hmMan) {
+			this.setp = setp;
+			this.hmMan = hmMan;
+		}
+		TemperatureResource setp;
+		HmCentralManager hmMan;
+	}
+	protected static Set<SetpointToTest> setpointsToTest = new HashSet<>();
 	protected static Map<String, Float> testValue;
-	public static void addThermostatToTestSwitch(Thermostat th, ApplicationManager appMan) {
+	public static void addThermostatToTestSwitch(Thermostat th, ApplicationManager appMan, HmCentralManager hmMan) {
 		synchronized(DeviceHandlerThermostat.class) {
 			if(testConfig == null) {
 				testConfig = ResourceHelper.getEvalCollection(appMan).getSubResource(
@@ -408,7 +421,7 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 			if(testSwitchTimer == null) {
 				testSwitchTimer = startTestTimer(appMan);
 			}	
-			setpointsToTest.add(th.temperatureSensor().settings().setpoint());
+			setpointsToTest.add(new SetpointToTest(th.temperatureSensor().settings().setpoint(), hmMan));
 		}
 	}
 	
@@ -428,16 +441,19 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 					createMap();
 				else
 					testValue = new HashMap<>();
-				for(TemperatureResource setp: setpointsToTest) {
+				for(SetpointToTest setp: setpointsToTest) {
 					if(isBack) {
-						Float preVal = testValue.get(setp.getLocation());
-						if(preVal != null && preVal != setp.getValue())
+						Float preVal = testValue.get(setp.setp.getLocation());
+						if(preVal != null && preVal != setp.setp.getValue())
 							continue;
 					}
-					float destValue = isBack?(setp.getValue()+0.5f):(setp.getValue()-0.5f);
-					setp.setValue(destValue);
+					float destValue = isBack?(setp.setp.getValue()+0.5f):(setp.setp.getValue()-0.5f);
+					if(setp.hmMan != null)
+						setp.hmMan.requestSetpointWrite(setp.setp, destValue);
+					else
+						setp.setp.setValue(destValue);
 					if(!isBack) {
-						testValue.put(setp.getLocation(), destValue);
+						testValue.put(setp.setp.getLocation(), destValue);
 					}
 				}
 				if(!isBack)
