@@ -13,6 +13,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.sensors.CO2Sensor;
 import org.ogema.model.sensors.GenericBinarySensor;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.HumiditySensor;
@@ -57,6 +58,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
 		addDatapoint(device.sensors().getSubResource("battery_low", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.sensors().getSubResource("co2", CO2Sensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("co_alert", GenericBinarySensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("air", GenericFloatSensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("humidity", HumiditySensor.class).reading(), result);
@@ -66,6 +68,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 		addDatapoint(device.getSubResource("state", MultiSwitch.class).stateControl(), result);
 		addDatapoint(device.sensors().getSubResource("temperature", TemperatureSensor.class).reading(), result);
 		addDatapoint(device.getSubResource("livyMessageInterval", IntegerResource.class), result);
+		addDatapoint(device.electricityStorage().chargeSensor().reading(), result);
 	return result;
 	}
 

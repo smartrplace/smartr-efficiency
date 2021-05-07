@@ -40,6 +40,8 @@ public class BatteryPattern extends ResourcePattern<ElectricityStorage> {
 			return false;
 		if(ResourceHelper.hasParentAboveType(model, "org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice") >= 0)
 			return false;
+		if(ResourceHelper.hasParentAboveType(model, "org.ogema.model.devices.sensoractordevices.SensorDevice") >= 0)
+			return false;
 		//Should not be required anymore, but left to be sure
 		if(parent != null && parent.getLocation().toLowerCase().contains("homematic"))
 			return false;
