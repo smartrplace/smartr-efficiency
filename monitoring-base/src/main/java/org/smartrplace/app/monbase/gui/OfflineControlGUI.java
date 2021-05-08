@@ -20,10 +20,8 @@ import com.iee.app.evaluationofflinecontrol.util.ExportBulkData.ComplexOptionDes
 import de.iwes.timeseries.eval.api.EvaluationProvider;
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 import de.iwes.timeseries.eval.garo.api.base.GaRoMultiEvalDataProvider;
-import de.iwes.timeseries.eval.garo.api.base.GaRoMultiResult;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.timeseries.eval.garo.multibase.GaRoSingleEvalProvider;
-import de.iwes.timeseries.eval.generic.gatewayBackupAnalysis.GaRoTestStarter;
 import de.iwes.widgets.api.extended.WidgetData;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -58,8 +56,8 @@ public class OfflineControlGUI {
 	public final long UPDATE_RATE = 5*1000;
 	public EvaluationProvider selectEval;
 
-	private GaRoTestStarter<GaRoMultiResult> lastEvalStarted = null;
-	private final Button stopLastEvalButton;
+	//private GaRoTestStarter<GaRoMultiResult> lastEvalStarted = null;
+	//private final Button stopLastEvalButton;
 	
 	private final TemplateMultiselect<String> multiSelectGWs;
 	private final MultiSelectExtended<String> gateWaySelection;
@@ -159,6 +157,10 @@ public class OfflineControlGUI {
 	
 	public OfflineControlGUI(final WidgetPage<?> page, final MonitoringController app,
 			OfflineControlGUIConfig guiConfig) {
+		this(page, app, guiConfig, false);
+	}
+	public OfflineControlGUI(final WidgetPage<?> page, final MonitoringController app,
+			OfflineControlGUIConfig guiConfig, boolean addAlarmButton) {
 		
 		this.page = page;
 		this.controller = app;
@@ -183,11 +185,14 @@ public class OfflineControlGUI {
 		WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
 				System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
-		RedirectButton messageButton = new RedirectButton(page, "messageButton",
-				System.getProperty("org.ogema.app.navigation.alarmbuttontext", "Alarme"),
-				"/de/iwes/ogema/apps/message/reader/index.html");
-		messageButton.setDefaultOpenInNewTab(false);
-
+		final RedirectButton messageButton;
+		if(addAlarmButton) {
+			messageButton = new RedirectButton(page, "messageButton",
+					System.getProperty("org.ogema.app.navigation.alarmbuttontext", "Alarme"),
+					"/de/iwes/ogema/apps/message/reader/index.html");
+			messageButton.setDefaultOpenInNewTab(false);
+		} else
+			messageButton = null;
 		selectConfig = 
 				new TemplateDropdown<String>(page, "selectConfig") {
 
@@ -309,7 +314,7 @@ public class OfflineControlGUI {
 			});
 		openScheduleViewer.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
 
-		stopLastEvalButton = new Button(page, "stopLastEvalButton", "Stop Last Eval") {
+		/*stopLastEvalButton = new Button(page, "stopLastEvalButton", "Stop Last Eval") {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -325,17 +330,19 @@ public class OfflineControlGUI {
 					System.out.println("Last Eval Started: "+(lastEvalStarted != null)+" getEval():"+(lastEvalStarted.getEval()!=null));
 				lastEvalStarted.getEval().stopExecution();
 			}
-		};
+		};*/
 		
 		int i = 0;
 		StaticTable table1 = new StaticTable(8, 3);
 		page.append(table1);
 		table1.setContent(i, 0, System.getProperty("org.smartrplace.app.monbase.gui.intervallabel", "Intervall")	);
 		table1.setContent(i, 1, selectConfig	);
-		StaticTable buttonTable = controller.provideButtonTable(this, closeTabButton, messageButton);
-		table1.setContent(i, 2, buttonTable);
+		if(addAlarmButton) {
+			StaticTable buttonTable = controller.provideButtonTable(this, closeTabButton, messageButton);
+			table1.setContent(i, 2, buttonTable);
+		}
 		i++;
-		table1.setContent(i, 0, System.getProperty("org.smartrplace.app.monbase.gui.roomselectlabel", "Datentypen")	);
+		table1.setContent(i, 0, System.getProperty("org.smartrplace.app.monbase.gui.datatypelabel", "Datentypen")	);
 		table1.setContent(i, 1, selectDataType	);
 		table1.setContent(i, 2, "              ");
 		if(gateWaySelection != null) {
@@ -356,7 +363,7 @@ public class OfflineControlGUI {
 		i++;
 		//table1.setContent(i, 0, buttonDownload 	);
 		table1.setContent(i, 1, openScheduleViewer  );
-		table1.setContent(i, 2, stopLastEvalButton	);
+		table1.setContent(i, 2, "" ); //stopLastEvalButton	);
 		table1.setContent(i, 2, ""	);
 		
 		if(multiSelectGWs != null)

@@ -91,6 +91,7 @@ public class UserAdminBaseUtil {
 		result.add("org.ogema.apps.room-link");
 		result.add("com.example.app.evaluation-offline-control");
 		result.add("org.ogema.tools.log-transfer-control-sp");
+		result.add("org.smartrplace.apps.srcmon-app-expert");
 		return result;
 		
 	};

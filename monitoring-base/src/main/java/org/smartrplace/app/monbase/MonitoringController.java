@@ -243,7 +243,7 @@ AggregationModeProvider, RoomLabelProvider {
 		return IntervalConfiguration.OPTIONS;
 	}
 	public String getRoomOptionLineTitle() {
-		return System.getProperty("org.smartrplace.app.monbase.gui.datatypelabel", "Auswahl Räume");
+		return System.getProperty("org.smartrplace.app.monbase.gui.roomselectlabel", "Auswahl Räume");
 	}
 	public IntervalConfiguration getConfigDuration(String config, ApplicationManager appMan) {
     	IntervalConfiguration result = IntervalConfiguration.getDefaultDuration(config, appMan);
