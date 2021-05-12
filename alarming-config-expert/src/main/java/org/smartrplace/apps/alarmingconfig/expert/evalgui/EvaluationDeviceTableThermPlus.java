@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.Datapoint;
@@ -12,6 +13,7 @@ import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
@@ -214,6 +216,18 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 			
 			row.addCell(WidgetHelper.getValidWidgetId("Value Chart"), plotButton);
 
+			IntegerResource rssi = DeviceHandlerBase.getRSSIResource(therm);
+			if(rssi != null) {
+				Datapoint rssiDp = controller.dpService.getDataPointAsIs(rssi);
+				if(rssiDp != null)
+					sourcePlot.add(rssiDp);
+			}
+			IntegerResource rssiPeer = DeviceHandlerBase.getRSSIPeerResource(therm);
+			if(rssiPeer != null) {
+				Datapoint rssiDp = controller.dpService.getDataPointAsIs(rssiPeer);
+				if(rssiDp != null)
+					sourcePlot.add(rssiDp);
+			}
 			SchedOpenDataProvider providerSource = new SchedOpenDataProvider() {
 				
 				@Override

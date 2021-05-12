@@ -84,6 +84,12 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 		return false;
 	}
 	
+	
+	@Override
+	protected String getHeader() {
+		return "Thermostat Plus Evaluation Page";
+	}
+	
 	public DeviceEvaluationPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller.appManPlus, controller.accessAdminApp, controller.hwTableData, false);
 		this.controller = controller;

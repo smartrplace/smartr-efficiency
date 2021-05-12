@@ -15,7 +15,6 @@ import org.ogema.core.model.units.VoltageResource;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.communication.CommunicationStatus;
-import org.ogema.model.devices.storage.ElectricityStorage;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.PowerSensor;
@@ -34,6 +33,7 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 public class AlarmingUtiH {
 	public static final String ACTIVESTATUS_RES_NAME = "activeStatus";
 	public static final int DEFAULT_ALARM_REPETITION_MINUTES = 48*60;
+	public static final int DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES = 7*24*60;
 	public static final int DEFAULT_NOVALUE_MINUTES = 60;
 	public static final int DEFAULT_NOVALUE_IP_MINUTES = DEFAULT_NOVALUE_MINUTES;
 	public static final int DEFAULT_NOVALUE_FORHOURLY_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 180);
@@ -169,25 +169,35 @@ public class AlarmingUtiH {
 	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues) {
-		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true);
+		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true,
+				DEFAULT_ALARM_REPETITION_MINUTES);
+	}
+	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
+			 float min, float max,
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
+			float alarmRepetitionTime) {
+		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true,
+				alarmRepetitionTime);
 	}
 	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially) {
-		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true);
+		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true,
+				DEFAULT_ALARM_REPETITION_MINUTES);
 	}
 	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially,
-			boolean overWriteExisting) {
+			boolean overWriteExisting,
+			float alarmRepetitionTime) {
 		if(!res.exists())
 			return null;
 		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
 				res, appDevice.alarms());
 		setTemplateValues(alarm, min, max, maxViolationTimeWithoutAlarm,
-				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting);
+				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting, alarmRepetitionTime);
 		return alarm;
 	}
 	
@@ -196,10 +206,18 @@ public class AlarmingUtiH {
 			boolean sendAlarminitially) {		
 		setTemplateValues(data, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true);
 	}
+	
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially,
-			boolean overWriteExisting) {		
+			boolean overWriteExisting) {
+		setTemplateValues(data, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially,
+				overWriteExisting, DEFAULT_ALARM_REPETITION_MINUTES);
+	}
+	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
+			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
+			boolean sendAlarminitially,
+			boolean overWriteExisting, float alarmRepetitionTime) {		
 		Long shortIntervalForTesting = Long.getLong("org.smartrplace.apps.hw.install.init.alarmtesting.shortintervals");
 		if(shortIntervalForTesting != null) {
 			double floatVal = ((double)shortIntervalForTesting)/TimeProcUtil.MINUTE_MILLIS;
@@ -213,7 +231,7 @@ public class AlarmingUtiH {
 				maxIntervalBetweenNewValues = DEFAULT_NOVALUE_IP_MINUTES;
 		}
 
-		String defaultAlarmSetMode = System.getProperty("org.smartrplace.apps.hw.install.init.alarmtesting.defaultAlarmSetMode");
+		//String defaultAlarmSetMode = System.getProperty("org.smartrplace.apps.hw.install.init.alarmtesting.defaultAlarmSetMode");
 		DefaultSetModes mode = overWriteExisting?DefaultSetModes.OVERWRITE:DefaultSetModes.SET_IF_NEW;
 		/*DefaultSetModes mode = null;
 		if(defaultAlarmSetMode != null) try {
@@ -226,7 +244,7 @@ public class AlarmingUtiH {
 		if(shortResend != null)
 			EditPageGeneric.setDefault(data.alarmRepetitionTime(), ((double)shortResend)/TimeProcUtil.MINUTE_MILLIS, mode);
 		else
-			EditPageGeneric.setDefault(data.alarmRepetitionTime(), DEFAULT_ALARM_REPETITION_MINUTES, mode);
+			EditPageGeneric.setDefault(data.alarmRepetitionTime(), alarmRepetitionTime, mode);
 		EditPageGeneric.setDefault(data.maxViolationTimeWithoutAlarm(), maxViolationTimeWithoutAlarm, mode);
 		EditPageGeneric.setDefault(data.lowerLimit(), min, mode);
 		EditPageGeneric.setDefault(data.upperLimit(), max, mode);
@@ -259,10 +277,10 @@ public class AlarmingUtiH {
 		if(batteryVoltage != null && batteryVoltage.isActive() && batteryNum > 0) {
 			if(batteryNum == 2)
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
-					1.5f, 3.5f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
+					2.3f, 3.5f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES, DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES);
 			else
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
-						batteryNum*0.7f, batteryNum*1.8f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
+						batteryNum*0.7f, batteryNum*1.8f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES, DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES);
 		}
 		BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
@@ -278,7 +296,7 @@ public class AlarmingUtiH {
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
 		if(rssiDevice != null && rssiDevice.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
-					-94f, -10f, 10, 300);
+					-94f, 128f, 10, 300);
 		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
 		if(rssiPeer != null && rssiPeer.exists())
