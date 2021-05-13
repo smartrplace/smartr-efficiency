@@ -49,6 +49,7 @@ import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond.SetpointToFeed
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.HmCentralManager;
+import org.smartrplace.util.virtualdevice.SetpointControlManager;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -449,7 +450,7 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 					}
 					float destValue = isBack?(setp.setp.getValue()+0.5f):(setp.setp.getValue()-0.5f);
 					if(setp.hmMan != null)
-						setp.hmMan.requestSetpointWrite(setp.setp, destValue);
+						setp.hmMan.requestSetpointWrite(setp.setp, destValue, SetpointControlManager.CONDITIONAL_PRIO);
 					else
 						setp.setp.setValue(destValue);
 					if(!isBack) {
