@@ -266,7 +266,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public String getInitVersion() {
-		return "_C";
+		return "D";
 	}
 	
 	public static Thermostat initAlarmingForDeviceThermostatCommon(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {

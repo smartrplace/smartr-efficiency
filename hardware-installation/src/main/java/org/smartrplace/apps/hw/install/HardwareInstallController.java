@@ -65,7 +65,6 @@ import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
 
 // here the controller logic is implemented
 public class HardwareInstallController {
@@ -301,7 +300,9 @@ public class HardwareInstallController {
 	}
 	
 	protected <T extends Resource> void initAlarmingForDevice(final InstallAppDevice install, final DeviceHandlerProvider<T> tableProvider) {
-		final String shortID = install.deviceId().getValue()+tableProvider.getInitVersion(); //tableProvider.getDeviceTypeShortId(install, dpService);
+		final String deviceId = install.deviceId().getValue();
+		final String provVersion = tableProvider.getInitVersion();
+		final String shortID = provVersion.isEmpty()?deviceId:(deviceId+"_"+provVersion); //tableProvider.getDeviceTypeShortId(install, dpService);
 		if((!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))) {// &&
 			//	(getDevices(tableProvider).size() <= 1)) {
 			tableProvider.initAlarmingForDevice(install, appConfigData);
@@ -314,7 +315,7 @@ public class HardwareInstallController {
 				public void delayedExecution() {
 					tableProvider.initAlarmingForDevice(install, appConfigData);
 					if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
-						InitialConfig.addString(shortID, appConfigData.initDoneStatus());			
+						InitialConfig.addString(shortID, appConfigData.initDoneStatus(), deviceId);			
 				}
 			};
 		}
