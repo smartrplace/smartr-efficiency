@@ -11,6 +11,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.EnergyResource;
+import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
@@ -129,7 +130,7 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 
 				ElectricityConnection cc = box.connection();
 				EnergyResource energyDaily = cc.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
-				if(energyDaily.isActive() && req != null) {
+				/*if(energyDaily.isActive() && req != null) {
 					//addPowerEnergySensor(cc, vh, id, req, row);
 					Label power = vh.floatLabel("Energy15min", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
 							id, energyDaily, row, "%.1f");
@@ -139,8 +140,21 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 					vh.floatEdit("RefTimeCounter", id, energyDaily.getSubResource("refTimeCounter", FloatResource.class), row, alert,
 							0, Float.MAX_VALUE, "Reference counter must be grater zero!", 3);
+				} else {*/
+				PowerResource powerRes = cc.powerSensor().reading(); //.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
+				if(powerRes.isActive() && req != null) {
+					//addPowerEnergySensor(cc, vh, id, req, row);
+					Label power = vh.floatLabel("Power", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
+							id, powerRes, row, "%.1f");
+					Label lastContact = addLastContact(vh, id, req, row,
+							powerRes);
+					power.setPollingInterval(DEFAULT_POLL_RATE, req);
+					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+					vh.floatEdit("RefTimeCounter", id, energyDaily.getSubResource("refTimeCounter", FloatResource.class), row, alert,
+							0, Float.MAX_VALUE, "Reference counter must be grater zero!", 3);
 				} else {
-					vh.registerHeaderEntry("Energy15min");
+					//vh.registerHeaderEntry("Energy15min");
+					vh.registerHeaderEntry("Power");
 					vh.registerHeaderEntry("Last Contact");
 					vh.registerHeaderEntry("RefTimeCounter");
 				}

@@ -438,6 +438,7 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 			
 			@Override
 			public void delayedExecution() {
+				try {
 				if(isBack)
 					createMap();
 				else
@@ -463,6 +464,10 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 				if(testConfig.testSwitchingInterval().getValue() == 0)
 					return;
 				startTestTimer(appMan);
+				} catch(Exception e) {
+					appMan.getLogger().error("TEST SWITCHING failed:", e);
+					startTestTimer(appMan);
+				}
 			}
 		};
 		return result;
@@ -486,8 +491,8 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 			vals[idx] = e.getValue();
 			idx++;
 		}
-		testConfig.testSwitchingLocation().setValues(locs);
-		testConfig.testSwitchingSetpoint().setValues(vals);
+		ValueResourceHelper.setCreate(testConfig.testSwitchingLocation(), locs);
+		ValueResourceHelper.setCreate(testConfig.testSwitchingSetpoint(), vals);
 	}
 
 	@Override
