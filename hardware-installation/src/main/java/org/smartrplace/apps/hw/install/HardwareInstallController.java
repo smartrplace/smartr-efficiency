@@ -44,6 +44,7 @@ import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DatapointImpl.DeviceLabelPlus;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -82,6 +83,8 @@ public class HardwareInstallController {
 	
 	public final TimeseriesSimpleProcUtil util;
 	
+	public static AlarmingUpdater alarmingUpdater = null;
+
 	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
 	public final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
 	/** Location of InstallAppDevice -> Device simulations*/
@@ -299,6 +302,8 @@ public class HardwareInstallController {
 		return install;
 	}
 	
+	volatile CountDownDelayedExecutionTimer alarmingRestartTimer = null;
+	
 	protected <T extends Resource> void initAlarmingForDevice(final InstallAppDevice install, final DeviceHandlerProvider<T> tableProvider) {
 		final String deviceId = install.deviceId().getValue();
 		final String provVersion = tableProvider.getInitVersion();
@@ -315,7 +320,20 @@ public class HardwareInstallController {
 				public void delayedExecution() {
 					tableProvider.initAlarmingForDevice(install, appConfigData);
 					if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
-						InitialConfig.addString(shortID, appConfigData.initDoneStatus(), deviceId);			
+						InitialConfig.addString(shortID, appConfigData.initDoneStatus(), deviceId);
+					if(alarmingRestartTimer == null) {
+						alarmingRestartTimer = new CountDownDelayedExecutionTimer(appMan, 4*60000) {
+							
+							@Override
+							public void delayedExecution() {
+								if(alarmingUpdater != null) {
+									alarmingUpdater.updateAlarming();
+								} else
+									log.warn("Could not find Alarming Management");				
+								alarmingRestartTimer = null;								
+							}
+						};
+					}
 				}
 			};
 		}

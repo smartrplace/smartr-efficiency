@@ -43,6 +43,10 @@ public class AlarmingUtiH {
 	public static final String CUSTOMER_FIRST = "Customer First";
 	public static final String CUSTOMER_SP_SAME = "Both together";
 
+	public static interface AlarmingUpdater {
+		void updateAlarming();
+	}
+
 	/*public static AlarmConfiguration getAlarmConfig(ResourceList<AlarmConfiguration> configs, SmartEffTimeSeries dev) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
 			if(ac.supervisedTS().equalsLocation(dev)) {

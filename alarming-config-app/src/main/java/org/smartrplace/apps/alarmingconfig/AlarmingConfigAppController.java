@@ -19,6 +19,7 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary;
 import org.ogema.messaging.basic.services.config.localisation.MessageSettingsDictionary_de;
@@ -34,7 +35,6 @@ import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.eval.TimeseriesProcAlarming;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
-import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingUpdater;
 import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
 import org.smartrplace.apps.alarmingconfig.gui.PageBuilderSimple;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary;
@@ -42,6 +42,8 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_en;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
+import org.smartrplace.apps.hw.install.HardwareInstallApp;
+import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
@@ -222,6 +224,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		hwTableData.appConfigData.isAlarmingActive().addValueListener(alarmingActiveListener, false);
 		
 		MainPage.alarmingUpdater = this;
+		HardwareInstallController.alarmingUpdater = this;
 
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			WidgetPage<?> pageRes9 = initApp.widgetApp.createStartPage(); //.createWidgetPage("devicealarm.html");

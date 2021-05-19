@@ -15,6 +15,7 @@ import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
@@ -45,9 +46,6 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		ALARM_LEVEL_EN.put("1", "Low");
 		ALARM_LEVEL_EN.put("2", "Normal");
 		ALARM_LEVEL_EN.put("3", "High");
-	}
-	public static interface AlarmingUpdater {
-		void updateAlarming();
 	}
 	
 	//Set this to enable alarming updates
