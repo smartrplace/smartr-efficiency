@@ -15,12 +15,14 @@ import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -32,13 +34,16 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.WindowCloseButton;
+import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 
 
 /**
  * An HTML page, generated from the Java code.
  */
+@SuppressWarnings("serial")
 public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, AlarmingExtension, AlarmConfiguration>  {
 	protected final boolean showReducedColumns;
+	protected final boolean showSuperAdmin;
 	
 	public static final Map<String, String> ALARM_LEVEL_EN = new HashMap<>();
 	static {
@@ -57,15 +62,19 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 	protected final DatapointService dpService;
 	
 
-	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) { //, Resource baseResource) {
+	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) {
 		this(page, appManPlus, false);
 	}
-	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns) { //, Resource baseResource) {
+	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns) {
+		this(page, appManPlus, showReducedColumns, true);
+	}
+	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns, boolean showSuperAdmin) {
 		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(AlarmConfiguration.class));
 		//this.baseResource = baseResource;
 		this.appManPlus = appManPlus;
 		this.dpService = appManPlus.dpService();
 		this.showReducedColumns = showReducedColumns;
+		this.showSuperAdmin = showSuperAdmin;
 		appMan.getLogger().info("Alarming Config page created at {}", page.getFullUrl());
 		triggerPageBuild();
 	}
@@ -99,7 +108,40 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 				text = "--";
 			vh.stringLabel("Measured", id, text, row);
 		}
-		vh.booleanEdit("Alarm active", id, sr.sendAlarm(), row);
+		if(showSuperAdmin) {
+			vh.booleanEdit("Alarm active", id, sr.sendAlarm(), row);
+		} else {
+			if(req == null)
+				vh.registerHeaderEntry("Alarm active");
+			else {
+			SimpleCheckbox customerAlarmActive = new SimpleCheckbox(mainTable, "customerAlAct"+id, "", req) {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					String alApp = sr.alarmingAppId().getValue();
+					if(alApp.equals(AlarmingUtiH.CUSTOMER_FIRST) || alApp.equals(AlarmingUtiH.CUSTOMER_SP_SAME))
+						setValue(true, req);
+					else
+						setValue(false, req);
+				}
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					boolean newVal = getValue(req);
+					boolean superMain = sr.sendAlarm().getValue();
+					if(newVal) {
+						if(superMain)
+							ValueResourceHelper.setCreate(sr.alarmingAppId(), AlarmingUtiH.CUSTOMER_SP_SAME);
+						else {
+							ValueResourceHelper.setCreate(sr.alarmingAppId(), AlarmingUtiH.CUSTOMER_FIRST);
+						}
+						ValueResourceHelper.setCreate(sr.sendAlarm(), true);
+					} else {
+						sr.alarmingAppId().setValue(AlarmingUtiH.SP_SUPPORT_FIRST);
+					}
+				}
+			};
+			row.addCell(WidgetHelper.getValidWidgetId("Alarm active"), customerAlarmActive);
+			}
+		}
 		vh.floatEdit("Lower Limit",
 				id, sr.lowerLimit(), row, alert,
 				-Float.MAX_VALUE, Float.MAX_VALUE, "");
@@ -110,7 +152,9 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 				id, sr.maxViolationTimeWithoutAlarm(), row, alert,
 				-Float.MAX_VALUE, Float.MAX_VALUE, "");
 		if(!showReducedColumns) {
-			vh.dropdown("Type", id, sr.alarmingAppId(), row, AlarmingConfigAppController.ALARM_APP_TYPE_EN);
+			if(showSuperAdmin) {
+				vh.dropdown("Type", id, sr.alarmingAppId(), row, AlarmingConfigAppController.ALARM_APP_TYPE_EN);
+			}
 			vh.dropdown("Priority", id, sr.alarmLevel(), row, ALARM_LEVEL_EN);
 			vh.floatEdit("Duration Blocking Sending the same alarm (minutes)",
 					id, sr.alarmRepetitionTime(), row, alert,

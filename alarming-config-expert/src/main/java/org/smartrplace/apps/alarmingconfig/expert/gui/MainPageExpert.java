@@ -19,6 +19,6 @@ public class MainPageExpert extends MainPage  {
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "3. Alarming Configuration Details Expert";
+		return "3. Alarming Configuration ALL Expert";
 	}
 }

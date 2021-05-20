@@ -35,18 +35,15 @@ import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.eval.TimeseriesProcAlarming;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
-import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
 import org.smartrplace.apps.alarmingconfig.gui.PageBuilderSimple;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_de;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_en;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
-import org.smartrplace.apps.hw.install.HardwareInstallApp;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.gateway.device.VirtualTestDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
@@ -62,6 +59,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.messaging.MessageReader;
 import de.iwes.widgets.messaging.model.MessagingApp;
 
 // here the controller logic is implemented
@@ -97,6 +95,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	boolean isGw = false;
 
 	public final TimeseriesProcAlarming tsProcAl;
+	public final ResourceList<MessagingApp> appList;
+	public final MessageReader mr;
 	
 	//location of device resource->InstallAppDevice resouce
 	private Map<String, InstallAppDevice> iads = new HashMap<>();
@@ -178,13 +178,14 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public static String messageSettingsHeader() {
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))
-				return "3. Message Receiver Configuration";
+				return "2. Message Receiver Configuration";
 			else
-				return "5. Message Receiver Configuration";
+				return "2. Message Receiver Configuration";
 		} else
 			return "1. Message Receiver Configuration";		
 	}
 	
+	@SuppressWarnings("unchecked")
 	public AlarmingConfigAppController(ApplicationManager appMan, AlarmingConfigApp initApp) {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
@@ -227,31 +228,24 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		HardwareInstallController.alarmingUpdater = this;
 
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
-			WidgetPage<?> pageRes9 = initApp.widgetApp.createStartPage(); //.createWidgetPage("devicealarm.html");
-			//Resource base = appMan.getResourceAccess().getResource("master");
-			DeviceAlarmingPage deviceOverviewPage = new DeviceAlarmingPage(pageRes9, this); //, base);
-			initApp.menu.addEntry("1. Device Alarming Overview", pageRes9);
-			initApp.configMenuConfig(pageRes9.getMenuConfiguration());
-			synchronized(mainPageExts) {
-				mainPageExts.add(deviceOverviewPage);
-			}
-			WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("deviceoverview.html"); //initApp.widgetApp.createWidgetPage("devices.html");
-			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this);
-			initApp.menu.addEntry("2. Device Template Alarming Configuration", pageRes12);
+			WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("deviceoverview.html", true); //initApp.widgetApp.createWidgetPage("devices.html");
+			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this, false, false);
+			initApp.menu.addEntry("1. Device Template Alarming Configuration", pageRes12);
 			initApp.configMenuConfig(pageRes12.getMenuConfiguration());
 	
-			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview")) {
+			/*if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview")) {
 				WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("mainpage.html");
 				//Resource base = appMan.getResourceAccess().getResource("master");
 				mainPage = new MainPage(pageRes10, appManPlus); //, base);
 				initApp.menu.addEntry("3. Alarming Configuration Details", pageRes10);
 				initApp.configMenuConfig(pageRes10.getMenuConfiguration());
-			}
+			}*/
 			isGw = true;
 		}
-		@SuppressWarnings("unchecked")
-		final ResourceList<MessagingApp> appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
+
+		appList = appMan.getResourceManagement().createResource("messagingApps", ResourceList.class);
 		appList.setElementType(MessagingApp.class);
+		mr = initApp.mr;
 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
 			WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
 			pageRes11.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
@@ -268,18 +262,14 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			forwardingPage = null;
 		}
 		
-		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")  && (!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))) {
-			WidgetPage<?> pageRes10 = initApp.widgetApp.createWidgetPage("ongoingbase.html");
-			new OngoingBaseAlarmsPage(pageRes10, appManPlus); //, base);
-			initApp.menu.addEntry("4. Active Alarms", pageRes10);
-			initApp.configMenuConfig(pageRes10.getMenuConfiguration());
-		}
-
 		new CountDownDelayedExecutionTimer(appMan, 10000) {
 			
 			@Override
 			public void delayedExecution() {
-				setupMessageReceiverConfiguration(initApp, appList);
+				WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", !isGw);
+				setupMessageReceiverConfiguration(initApp.mr, appList, pageRes3, false);
+				initApp.menu.addEntry(messageSettingsHeader(), pageRes3);
+				initApp.configMenuConfig(pageRes3.getMenuConfiguration());		
 			}
 		};
 		
@@ -291,12 +281,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		initDemands();		
 	}
 
-	protected void setupMessageReceiverConfiguration(AlarmingConfigApp initApp, final ResourceList<MessagingApp> appList) {
-		WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", !isGw);
+	public void setupMessageReceiverConfiguration(MessageReader mr, final ResourceList<MessagingApp> appList,
+			WidgetPage<MessageSettingsDictionary> pageRes3, boolean showSuperAdmin) {
 		de.iwes.widgets.messaging.MessagingApp app1 = null;
 		de.iwes.widgets.messaging.MessagingApp app1_cf = null;
 		de.iwes.widgets.messaging.MessagingApp app1_bt = null;
-		for(de.iwes.widgets.messaging.MessagingApp mapp: initApp.mr.getMessageSenders()) {
+		for(de.iwes.widgets.messaging.MessagingApp mapp: mr.getMessageSenders()) {
 			if(isGw) {
 				/*if(mapp.getMessagingId().equals("DEV18410X_Alarming") || "Alarming Configuration".equals(mapp.getName())) {
 					app1 = mapp;
@@ -323,13 +313,32 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				registerLocalisation(MessageSettingsDictAlarming_en.class);
 		receiverPage = new ReceiverPageBuilder(pageRes3, appMan) {
 			
+			@Override
+			public void resourceAvailable(ReceiverConfiguration receiver) {
+				if(!showSuperAdmin) {
+					//String name = receiver.userName().getValue();
+					//if(name != null && name.contains("Test Alarm"))
+					//	return;
+					String email = receiver.email().getValue();
+					if(email != null && (email.contains("@smartrplace.de") || email.contains("@smartrplace.com")))
+						return;
+				}
+				super.resourceAvailable(receiver);
+			}
+			
+			@Override
+			protected boolean showOnlyMainListeners() {
+				return !showSuperAdmin;
+			}
 			
 			@Override
 			protected void addAdditionalColumns(Map<String, Object> receiverHeader) {
-				if(isGw) {
+				if(isGw && showSuperAdmin) {
 					receiverHeader.put("alarmingAppForwardingEmail_SF", "Level SP Support First:");		
 					receiverHeader.put("alarmingAppForwardingEmail_CF", "Level Customer First:");		
 					receiverHeader.put("alarmingAppForwardingEmail_BT", "Level Both together");
+				} else if(isGw) {
+					receiverHeader.put("alarmingAppForwardingEmail_SF", "Priority at least:");		
 				} else {
 					receiverHeader.put("alarmingAppForwardingEmail", "Alarm-level Email:");		
 					receiverHeader.put("alarmingAppForwardingSMS", "Alarm-level SMS:");
@@ -345,19 +354,22 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 					addTestButtonColumn(app_bt, "alarmingAppForwardingEmail_BT", config, id, row, req);
 					return;
 				}
-				if(isGw) {
+				if(isGw && showSuperAdmin) {
 					addEmailConfigColumn(app, "alarmingAppForwardingEmail_SF", config, id, row, req);
 					addEmailConfigColumn(app_cf, "alarmingAppForwardingEmail_CF", config, id, row, req);
 					addEmailConfigColumn(app_bt, "alarmingAppForwardingEmail_BT", config, id, row, req);
+					return;
+				} else if(isGw) {
+					addEmailConfigColumnDual(app_cf, app_bt, "alarmingAppForwardingEmail_SF", config, id, row, req);
 					return;
 				}
 				if(app == null)
 					return;
 				String userName = config.userName().getValue();
-				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, initApp.mr);
+				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, mr);
 				
 				String messageListenerName = "Email-connector";
-				MessageListener l = initApp.mr.getMessageListeners().get(messageListenerName);
+				MessageListener l = mr.getMessageListeners().get(messageListenerName);
 				if(userListeners.contains(l)) {
 					MessagePriorityDropdown alarmingPrioDrop = new MessagePriorityDropdown(pageRes3,
 							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
@@ -366,7 +378,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				}
 
 				messageListenerName = "Sms-connector";
-				l = initApp.mr.getMessageListeners().get(messageListenerName);
+				l = mr.getMessageListeners().get(messageListenerName);
 				if(userListeners.contains(l)) {
 					MessagePriorityDropdown alarmingPrioDropSMS = new MessagePriorityDropdown(pageRes3,
 							WidgetHelper.getValidWidgetId("alarmingDrop"+id+userName+messageListenerName),
@@ -381,10 +393,10 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				if(appLoc == null)
 					return;
 				String userName = config.userName().getValue();
-				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, initApp.mr);
+				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, mr);
 				
 				String messageListenerName = "Email-connector";
-				MessageListener l = initApp.mr.getMessageListeners().get(messageListenerName);
+				MessageListener l = mr.getMessageListeners().get(messageListenerName);
 				if(userListeners.contains(l)) {
 					MessagePriorityDropdown alarmingPrioDrop = new MessagePriorityDropdown(pageRes3,
 							WidgetHelper.getValidWidgetId("alarmingDrop"+col+id+userName+messageListenerName),
@@ -394,6 +406,27 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				
 			}
 			
+			protected void addEmailConfigColumnDual(de.iwes.widgets.messaging.MessagingApp appLoc1,
+					de.iwes.widgets.messaging.MessagingApp appLoc2,
+					String col,
+					ReceiverConfiguration config, String id, Row row,
+					OgemaHttpRequest req) {
+				if(appLoc1 == null)
+					return;
+				String userName = config.userName().getValue();
+				List<MessageListener> userListeners = PageInit.getListenersForUser(userName, mr);
+				
+				String messageListenerName = "Email-connector";
+				MessageListener l = mr.getMessageListeners().get(messageListenerName);
+				if(userListeners.contains(l)) {
+					MessagePriorityDropdown alarmingPrioDrop = new MessagePriorityDropdown(pageRes3,
+							WidgetHelper.getValidWidgetId("alarmingDrop"+col+id+userName+messageListenerName),
+							l, userName, appList, new de.iwes.widgets.messaging.MessagingApp[] {appLoc1, appLoc2});
+					row.addCell(col, alarmingPrioDrop);
+				}
+				
+			}
+
 			protected void addTestButtonColumn(de.iwes.widgets.messaging.MessagingApp appLoc, String col,
 					ReceiverConfiguration config, String id, Row row,
 					OgemaHttpRequest req) {
@@ -434,8 +467,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	    testButtonReceiver.userName().setValue("Test Alarm");
 		receiverPage.receiverTable.addItem(testButtonReceiver, null);
 		appMan.getResourceAccess().addResourceDemand(ReceiverConfiguration.class, receiverPage);
-		initApp.menu.addEntry(messageSettingsHeader(), pageRes3);
-		initApp.configMenuConfig(pageRes3.getMenuConfiguration());		
 	}
 	
 	/*

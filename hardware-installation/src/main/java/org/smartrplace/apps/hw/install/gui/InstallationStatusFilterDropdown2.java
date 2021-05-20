@@ -8,12 +8,12 @@ import org.ogema.internationalization.util.LocaleHelper;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gui.filtering.GenericFilterBase;
 import org.smartrplace.gui.filtering.GenericFilterOption;
-import org.smartrplace.gui.filtering.SingleFiltering;
+import org.smartrplace.gui.filtering.SingleFilteringDirect;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
-public class InstallationStatusFilterDropdown2 extends SingleFiltering<Integer, InstallAppDevice> {
+public class InstallationStatusFilterDropdown2 extends SingleFilteringDirect<InstallAppDevice> { //SingleFiltering<Integer, InstallAppDevice> {
 	private static final long serialVersionUID = 1L;
 
     public enum FILTERS {
@@ -43,11 +43,13 @@ public class InstallationStatusFilterDropdown2 extends SingleFiltering<Integer, 
 
     //private FILTERS installationFilterSelected = FILTERS.ALL;
     protected final ApplicationManager appMan;
+    protected final boolean addAssignedStatus;
     
     public InstallationStatusFilterDropdown2(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode,
-    		ApplicationManager appMan) {
+    		ApplicationManager appMan,  boolean addAssignedStatus) {
 		super(page, id, saveOptionMode, 10000, true);
 		this.appMan = appMan;
+		this.addAssignedStatus = addAssignedStatus;
 	}
 
 	@Override
@@ -55,25 +57,42 @@ public class InstallationStatusFilterDropdown2 extends SingleFiltering<Integer, 
 		return true;
 	}
 
-	@Override
+	/*@Override
 	protected Integer getAttribute(InstallAppDevice object) {
 		return object.installationStatus().getValue();
-	}
+	}*/
 	
 	@Override
-	protected List<GenericFilterOption<Integer>> getOptionsDynamic(OgemaHttpRequest req) {
-        List<GenericFilterOption<Integer>> items = new ArrayList<>();
+	protected List<GenericFilterOption<InstallAppDevice>> getOptionsDynamic(OgemaHttpRequest req) {
+        List<GenericFilterOption<InstallAppDevice>> items = new ArrayList<>();
         for (final FILTERS f : FILTERS.values()) {
-            GenericFilterOption<Integer> genOption = new GenericFilterBase<Integer>(LocaleHelper.getLabelMap(f.description)) {
+            GenericFilterOption<InstallAppDevice> genOption = new GenericFilterBase<InstallAppDevice>(LocaleHelper.getLabelMap(f.description)) {
 
 				@Override
-				public boolean isInSelection(Integer object, OgemaHttpRequest req) {
-					return matches(object, f);
+				public boolean isInSelection(InstallAppDevice object, OgemaHttpRequest req) {
+					return matches(object.installationStatus().getValue(), f);
 				}
 			};
 			items.add(genOption );
         }
+        if(addAssignedStatus) {
+        	addAssignedOption(true, items);
+        	addAssignedOption(false, items);
+        }
         return items;
+	}
+	
+	protected void addAssignedOption(final boolean selectAssigned, List<GenericFilterOption<InstallAppDevice>> items) {
+        GenericFilterOption<InstallAppDevice> genOption = new GenericFilterBase<InstallAppDevice>(LocaleHelper.getLabelMap(
+        		selectAssigned?"Assigned":"Unassigned")) {
+
+			@Override
+			public boolean isInSelection(InstallAppDevice object, OgemaHttpRequest req) {
+				return (selectAssigned == isAssigned(object));
+			}
+		};
+		items.add(genOption );
+		
 	}
 	
 	@Override
@@ -96,5 +115,11 @@ public class InstallationStatusFilterDropdown2 extends SingleFiltering<Integer, 
 		default:
 	        throw new IllegalStateException("Unknolwn Filter option:"+filter);
         }
+    }
+    
+    public static boolean isAssigned(InstallAppDevice object) {
+    	if(!object.knownFault().acceptedByUser().isActive())
+    		return false;
+    	return !object.knownFault().acceptedByUser().getValue().isEmpty();
     }
 }

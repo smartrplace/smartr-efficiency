@@ -220,7 +220,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 			InstallationStatusFilterDropdown2 installFilterDrop,
 			OgemaHttpRequest req) {
 		List<InstallAppDevice> all = controller.getDevices(devHand);
-		DualFiltering<Room, Integer, InstallAppDevice> finalFilterLoc = new DualFiltering<Room, Integer, InstallAppDevice>(roomsDrop, installFilterDrop);
+		DualFiltering<Room, InstallAppDevice, InstallAppDevice> finalFilterLoc = new DualFiltering<Room, InstallAppDevice, InstallAppDevice>(roomsDrop, installFilterDrop);
 		return finalFilterLoc.getFiltered(all, req);
 	}
 	

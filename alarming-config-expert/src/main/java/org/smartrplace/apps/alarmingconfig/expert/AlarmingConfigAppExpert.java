@@ -8,12 +8,9 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
-import org.smartrplace.apps.alarmingconfig.expert.evalgui.DeviceEvaluationPage;
-import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageEval;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
-import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceTypePageExpert;
-import org.smartrplace.apps.alarmingconfig.expert.gui.MainPageExpert;
-import org.smartrplace.apps.alarmingconfig.gui.AlarmGroupPage;
+import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
@@ -54,32 +51,28 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			//final WidgetPage<?> page = widgetApp.createStartPage();
 			menu = new NavigationMenu("Select Page");
 			
-			WidgetPage<?> pageRes2 = widgetApp.createStartPage();
+			/*WidgetPage<?> pageRes2 = widgetApp.createStartPage();
 			//WidgetPage<?> pageRes2 = widgetApp.createWidgetPage("userroompermexpert.html");
 			new DeviceTypePageExpert(pageRes2, controller.appManPlus, true, controller);
 			menu.addEntry("1. Alarming Configuration Per Device", pageRes2);
-			configMenuConfig(pageRes2.getMenuConfiguration());
+			configMenuConfig(pageRes2.getMenuConfiguration());*/
 
+			WidgetPage<?> pageRes9 = widgetApp.createWidgetPage("devicealarmoverview.html", true);
+			//Resource base = appMan.getResourceAccess().getResource("master");
+			DeviceAlarmingPage deviceOverviewPage = new DeviceAlarmingPage(pageRes9, controller); //, base);
+			menu.addEntry("1. Device Alarming Overview", pageRes9);
+			configMenuConfig(pageRes9.getMenuConfiguration());
+			synchronized(controller.mainPageExts) {
+				controller.mainPageExts.add(deviceOverviewPage);
+			}
+
+			//Note: There is only an Expert version of the page that contains resource location information
+			//TODO: Provide version without this here and move this version to superadmin
 			WidgetPage<?> pageRes5 = widgetApp.createWidgetPage("devicedetails.html");
 			new DeviceDetailPageExpert(pageRes5, controller.appManPlus, controller, false);
-			menu.addEntry("2. Alarming Details Per Device", pageRes5);
+			menu.addEntry("2. Alarming Details Per Device Expert", pageRes5);
 			configMenuConfig(pageRes5.getMenuConfiguration());
 
-			WidgetPage<?> pageRes3 = widgetApp.createWidgetPage("mainexpert.html");
-			new MainPageExpert(pageRes3, controller.appManPlus);
-			menu.addEntry("3. Alarming Configuration Details", pageRes3);
-			configMenuConfig(pageRes3.getMenuConfiguration());
-			
-			WidgetPage<?> pageRes6 = widgetApp.createWidgetPage("devicedetailevals.html");
-			new DeviceDetailPageEval(pageRes6, controller.appManPlus, controller);
-			menu.addEntry("4. Alarming Evaluations Per Device", pageRes6);
-			configMenuConfig(pageRes6.getMenuConfiguration());
-
-			WidgetPage<?> pageRes4 = widgetApp.createWidgetPage("ongoinggroups.html");
-			new AlarmGroupPage(pageRes4, controller.appManPlus);
-			menu.addEntry("5. Groups of ongoing Alarms", pageRes4);
-			configMenuConfig(pageRes4.getMenuConfiguration());
-			
 			WidgetPage<?> pageRes11 = widgetApp.createWidgetPage("deviceknownfaults.html");
 			synchronized (controller.accessAdminApp) {
 				DeviceKnownFaultsPage knownFaultsPage = new DeviceKnownFaultsPage(pageRes11, controller);
@@ -87,18 +80,15 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 					controller.mainPageExts.add(knownFaultsPage);
 				}
 			}
-			menu.addEntry("6. Device Issue Status", pageRes11);
+			menu.addEntry("3. Device Issue Status", pageRes11);
 			configMenuConfig(pageRes11.getMenuConfiguration());
 
-			WidgetPage<?> pageRes12 = widgetApp.createWidgetPage("deviceevalpage.html");
-			synchronized (controller.accessAdminApp) {
-				DeviceEvaluationPage evalPage = new DeviceEvaluationPage(pageRes12, controller);
-				synchronized(controller.mainPageExts) {
-					controller.mainPageExts.add(evalPage);
-				}
+			if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")  && (!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))) {
+				WidgetPage<?> pageRes10 = widgetApp.createWidgetPage("ongoingbase.html");
+				new OngoingBaseAlarmsPage(pageRes10, controller.appManPlus); //, base);
+				menu.addEntry("4. Active Alarms", pageRes10);
+				configMenuConfig(pageRes10.getMenuConfiguration());
 			}
-			menu.addEntry("7. Thermostat Plus Evaluation Page", pageRes12);
-			configMenuConfig(pageRes12.getMenuConfiguration());
 		}
 	};
 

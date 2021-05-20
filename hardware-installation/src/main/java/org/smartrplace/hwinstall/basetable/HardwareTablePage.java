@@ -47,11 +47,17 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	protected final DeviceHandlerAccess devHandAcc;
 	protected final HardwareTableData resData;
 
+	public enum FilterMode {
+		STANDARD,
+		KNOWN_FAULTS
+	}
+	protected final FilterMode filterMode;
+	
 	private Header header;
 	//protected RoomSelectorDropdown roomsDrop;
 	protected RoomFiltering2Steps<InstallAppDevice> roomsDrop;
 	protected InstallationStatusFilterDropdown2 installFilterDrop;
-	protected DualFiltering<Room, Integer, InstallAppDevice> finalFilter;
+	protected DualFiltering<Room, InstallAppDevice, InstallAppDevice> finalFilter;
 	//protected final InstalledAppsSelector instAppsSelector;
 	protected final StaticTable topTable;
 
@@ -83,11 +89,17 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	}
 	public HardwareTablePage(WidgetPage<?> page, final ApplicationManagerPlus appManPlus,
 			final DeviceHandlerAccess devHandAcc, HardwareTableData resData, boolean triggerFinishConstructorAutomatically) {
+		this(page, appManPlus, devHandAcc, resData, triggerFinishConstructorAutomatically, FilterMode.STANDARD);
+	}
+	public HardwareTablePage(WidgetPage<?> page, final ApplicationManagerPlus appManPlus,
+			final DeviceHandlerAccess devHandAcc, HardwareTableData resData, boolean triggerFinishConstructorAutomatically,
+			FilterMode filterMode) {
 		this.page = page;
 		this.appMan = appManPlus.appMan();
 		this.appManPlus = appManPlus;
 		this.devHandAcc = devHandAcc;
 		this.resData = resData;
+		this.filterMode = filterMode;
 		
 		//this.controller = controller;
 		//init all widgets
@@ -141,8 +153,9 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		};
 		//installFilterDrop = new InstallationStatusFilterDropdown(page, "installFilterDrop", controller);
 		installFilterDrop = new InstallationStatusFilterDropdown2(page, "installFilterDrop",
-				OptionSavingMode.PER_USER, appMan);
-		finalFilter = new DualFiltering<Room, Integer, InstallAppDevice>(roomsDrop, installFilterDrop);
+				OptionSavingMode.PER_USER, appMan,
+				filterMode==FilterMode.KNOWN_FAULTS?true:false);
+		finalFilter = new DualFiltering<Room, InstallAppDevice, InstallAppDevice>(roomsDrop, installFilterDrop);
 		
 		//RedirectButton roomLinkButton = new RedirectButton(page, "roomLinkButton", "Room Administration", "/de/iwes/apps/roomlink/gui/index.html");
 		

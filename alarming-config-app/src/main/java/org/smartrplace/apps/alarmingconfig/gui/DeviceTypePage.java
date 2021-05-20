@@ -41,13 +41,17 @@ public class DeviceTypePage extends MainPage {
 	}
 	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype,
 			AlarmingConfigAppController controller, boolean showReducedColumns) {
-		super(page, appManPlus, showReducedColumns);
+		this(page, appManPlus, showReducedColumns, controller, showReducedColumns, true);
+	}
+	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype,
+			AlarmingConfigAppController controller, boolean showReducedColumns, boolean showSuperAdmin) {
+		super(page, appManPlus, showReducedColumns, showSuperAdmin);
 		this.showOnlyPrototype = showOnlyPrototype;
 		this.controller= controller;
 	}
 
 	protected String getHeader(OgemaLocale locale) {
-		return "2. Device Template Alarming Configuration";
+		return "1. Device Template Alarming Configuration";
 	}
 	
 	protected void addWidgetsAboveTableInternal() {

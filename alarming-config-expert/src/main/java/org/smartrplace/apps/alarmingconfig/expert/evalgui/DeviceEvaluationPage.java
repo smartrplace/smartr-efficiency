@@ -87,7 +87,7 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 	
 	@Override
 	protected String getHeader() {
-		return "Thermostat Plus Evaluation Page";
+		return "7. Thermostat Plus Evaluation Page";
 	}
 	
 	public DeviceEvaluationPage(WidgetPage<?> page, AlarmingConfigAppController controller) {

@@ -59,7 +59,7 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "3. Alarming Details Per Device";
+		return "2. Alarming Details Per Device";
 	}
 	
 	@Override

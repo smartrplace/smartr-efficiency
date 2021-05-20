@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +27,7 @@ import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
@@ -54,7 +56,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	
 	@Override
 	protected String getHeader() {
-		return "6. Device Issue Status";
+		return "3. Device Issue Status";
 	}
 	
 	public DeviceKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
@@ -74,7 +76,27 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			}
 		};
 		switchAllDeviceBut.registerDependentWidget(switchAllDeviceBut);
-		topTable.setContent(1, 6, switchAllDeviceBut);
+		topTable.setContent(1, 5, switchAllDeviceBut);
+		ButtonConfirm releaseAllUnassigned = new ButtonConfirm(page, "releaseAllUnassigned") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				if(devHandAcc != null)  {
+					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
+					for(DeviceHandlerProvider<?> pe: allProvs) {
+						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
+						for(InstallAppDevice iad: allforPe) {
+							AlarmGroupData res = iad.knownFault();
+							if((!res.acceptedByUser().isActive()) || res.acceptedByUser().getValue().isEmpty()) {
+								res.delete();
+							}
+						}
+					}
+				}
+			}
+		};
+		releaseAllUnassigned.setDefaultText("Relase all Unassigned");
+		releaseAllUnassigned.setDefaultConfirmMsg("Really release all known issues that are not assigned?");
+		topTable.setContent(1, 6, releaseAllUnassigned);
 	}
 
 	@Override
@@ -196,14 +218,30 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				blockingDrop.registerDependentWidget(intervalEdit);
 				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);
 				
-				Button releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						//TODO: In the future we may want to keep this information in a log of solved issues
-						res.delete();
-						//res.ongoingAlarmStartTime().setValue(-1);
-					}
-				};
+				Button releaseBut;
+				if(res.acceptedByUser().isActive() && (!res.acceptedByUser().getValue().isEmpty()) &&
+						(!res.acceptedByUser().getValue().equals("None"))) {
+					ButtonConfirm butConfirm = new ButtonConfirm(mainTable, "releaseBut"+id, req) {
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							//TODO: In the future we may want to keep this information in a log of solved issues
+							res.delete();
+							//res.ongoingAlarmStartTime().setValue(-1);
+						}
+					};
+					butConfirm.setConfirmMsg("Really delete issue assigned to "+res.acceptedByUser().getValue()+"?", req);
+					releaseBut = butConfirm;
+					releaseBut.setText("Release", req);
+				} else {
+					releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							//TODO: In the future we may want to keep this information in a log of solved issues
+							res.delete();
+							//res.ongoingAlarmStartTime().setValue(-1);
+						}
+					};
+				}
 				row.addCell("Release", releaseBut);
 				
 				final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,

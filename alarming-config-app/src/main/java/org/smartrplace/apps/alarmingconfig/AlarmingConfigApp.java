@@ -122,7 +122,8 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
     protected final GenericControllerProvider<AlarmingConfigAppController> controllerProvider;
     public AlarmingConfigApp() {
  		controllerProvider = new GenericControllerProvider<AlarmingConfigAppController>(
- 				"org.smartrplace.apps.alarmingconfig.expert.AlarmingConfigAppExpert");
+ 				"org.smartrplace.apps.alarmingconfig.expert.AlarmingConfigAppExpert",
+ 				"org.smartrplace.apps.alarmingconfig.superadmin.AlarmingConfigAppSuperadmin");
  	}
      protected void addExtProvider(AlarmingExtensionProvider  provider) {
      	controllerProvider.addExtProvider(provider);

@@ -16,6 +16,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -35,6 +36,11 @@ public class DeviceTypePageExpert extends DeviceTypePage {
 			Row row, ApplicationManager appMan) {
 		super.addWidgets(object, vh, id, req, row, appMan);
 		vh.stringLabel("Res.Location", id, object.getLocation(), row);
+	}
+	
+	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "1. Device Template Alarming Configuration Expert";
 	}
 	
 	@Override

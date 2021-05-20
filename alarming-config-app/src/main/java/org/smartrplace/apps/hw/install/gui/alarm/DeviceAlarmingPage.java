@@ -46,7 +46,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 	}
 	
 	public DeviceAlarmingPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
-		super(page, controller.appManPlus, controller.accessAdminApp, controller.hwTableData);
+		super(page, controller.appManPlus, controller.accessAdminApp, controller.hwTableData, true, FilterMode.KNOWN_FAULTS);
 		
 		getCommitButton(); //make sure it is initialized
 
