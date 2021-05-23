@@ -80,6 +80,7 @@
 		<module>access-admin-expert</module>
 		<module>alarming-config-app</module>
 		<module>alarming-config-expert</module>
+		<module>alarming-config-superadmin</module>
 		<module>hardware-installation</module>
 		<module>hardware-installation-expert</module>
    </modules>
