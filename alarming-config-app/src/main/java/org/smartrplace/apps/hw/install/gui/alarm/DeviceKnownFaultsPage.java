@@ -20,6 +20,7 @@ import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.GetPlotButtonResult;
+import org.smartrplace.util.directobjectgui.ObjectDetailPopupButton;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -36,6 +37,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
+	//@Deprecated //Currently not used, but still available in the details section
 	public static final Map<String, String> dignosisVals = new HashMap<>();
 	static {
 		dignosisVals.put("0", "not set");
@@ -49,7 +51,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		dignosisVals.put("22", "insufficient signal strength: other reason");
 		dignosisVals.put("30", "Thermostat is not properly installed (valve / adaption error)");
 		dignosisVals.put("40", "Thermostat requires wall thermostat");
-		dignosisVals.put("50", "Battery low");	
+		dignosisVals.put("50", "Battery low");
 	}
 	
 	protected boolean showAllDevices = false;
@@ -86,7 +88,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
 						for(InstallAppDevice iad: allforPe) {
 							AlarmGroupData res = iad.knownFault();
-							if((!res.acceptedByUser().isActive()) || res.acceptedByUser().getValue().isEmpty()) {
+							if((!res.assigned().isActive()) || (res.assigned().getValue() <= 0)) {
 								res.delete();
 							}
 						}
@@ -135,7 +137,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			pageTitle = "Devices of type "+ grp.label(null);
 		else
 			pageTitle = "Devices of type "+ pe.label(null);
-		return new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe) {
+		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe) {
 			protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
@@ -144,37 +146,43 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Assigned");
-					vh.registerHeaderEntry("Block");
-					vh.registerHeaderEntry("MinInterval");
+					//vh.registerHeaderEntry("Block");
+					//vh.registerHeaderEntry("MinInterval");
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Edit TT");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("Release");
+					vh.registerHeaderEntry("Details");
 					vh.inDetailSection(true);
 					vh.registerHeaderEntry("Diagnosis");
 					return;
 				}
 				AlarmGroupData res = object.knownFault();
 				res.create();
+				if(row == null) {
+					//TODO: There is still a bug in the detail popup support so that for each table the popup is not adapted when
+					//another detail button is clicked until the page is reloaded.
+					//Another issue: only widgets generated via the vh helper can be added to the popup, no widgets that otherwise
+					//would be added directly to the row. This should be possible by calling
+					//popTableData.add(new WidgetEntryData(widgetId, newWidget));
+					vh.dropdown("Diagnosis",  id, res.diagnosis(), row, dignosisVals);
+					return;
+				}
 				vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				vh.stringEdit("Comment",  id, res.comment(), row, alert);
-				Map<String, String> valuesToSet = new LinkedHashMap<>();
+				/*Map<String, String> valuesToSet = new LinkedHashMap<>();
 				String curVal = res.acceptedByUser().getValue();
 				if(curVal != null && (!curVal.isEmpty()))
 					valuesToSet.put(curVal, curVal);
 				valuesToSet.put("None", "None");
-				/*for(UserAccount user: appMan.getAdministrationManager().getAllUsers()) {
-					if(curVal != null && user.getName().equals(curVal))
-						continue;
-					valuesToSet.put(user.getName(), user.getName());
-				}*/
 				for(String role: AlarmGroupData.USER_ROLES) {
 					if(curVal != null && role.equals(curVal))
 						continue;
 					valuesToSet.put(role, role);					
 				}
-				vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);
+				vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);*/
+				vh.dropdown("Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
 				if(!res.linkToTaskTracking().getValue().isEmpty()) {
 					RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
 							res.linkToTaskTracking().getValue(), req);
@@ -214,13 +222,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						}
 					}
 				};
-				blockingDrop.setDefaultItems(valuesToSetBlock.values());
-				blockingDrop.registerDependentWidget(intervalEdit);
-				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);
 				
 				Button releaseBut;
-				if(res.acceptedByUser().isActive() && (!res.acceptedByUser().getValue().isEmpty()) &&
-						(!res.acceptedByUser().getValue().equals("None"))) {
+				if(res.assigned().isActive() &&
+						(res.assigned().getValue() > 0)) {
 					ButtonConfirm butConfirm = new ButtonConfirm(mainTable, "releaseBut"+id, req) {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -229,7 +234,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							//res.ongoingAlarmStartTime().setValue(-1);
 						}
 					};
-					butConfirm.setConfirmMsg("Really delete issue assigned to "+res.acceptedByUser().getValue()+"?", req);
+					butConfirm.setConfirmMsg("Really delete issue assigned to "+AlarmingConfigUtil.assignedText(res.assigned().getValue())+"?", req);
 					releaseBut = butConfirm;
 					releaseBut.setText("Release", req);
 				} else {
@@ -248,8 +253,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						ScheduleViewerConfigProvAlarm.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
 				
-				vh.inDetailSection(true);
-				vh.dropdown("Diagnosis",  id, res.diagnosis(), row, dignosisVals);
+				blockingDrop.setDefaultItems(valuesToSetBlock.values());
+				blockingDrop.registerDependentWidget(intervalEdit);
+				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);
+
+				ObjectDetailPopupButton<InstallAppDevice, InstallAppDevice> detailBut = new ObjectDetailPopupButton<InstallAppDevice, InstallAppDevice>(mainTable, "detailBut"+id, "Details", req, popMore1,
+						object, appMan, pid(), knownWidgets, this);
+				row.addCell("Details", detailBut);
+				vh.dropdown("Diagnosis",  id, res.diagnosis(), row, dignosisVals);				
 			}
 			
 			@Override
@@ -257,7 +268,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				List<InstallAppDevice> all = super.getObjectsInTable(req);
 				return getDevicesWithKnownFault(all);
 			}
-		};	
+		};
+		return result;
 	}
 	
 	protected List<InstallAppDevice> getDevicesWithKnownFault(List<InstallAppDevice> all) {

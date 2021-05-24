@@ -92,6 +92,11 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 			vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum[0], alNum[1]), row);
 
 			template = AlarmingConfigUtil.getTemplate(object, appManPlus);
+			if(row == null) {
+				Room deviceRoom = device.location().room();
+				addAdditionalWidgets(object, vh, id, req, row, appMan, deviceRoom, template);
+				return device;
+			}
 			if(template != null) {
 				Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);
 				if(templateStatus == null)

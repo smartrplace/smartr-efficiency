@@ -1,13 +1,11 @@
 package org.smartrplace.apps.alarmingconfig.gui;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
-import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.AlarmOngoingGroup;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.recplay.testing.RecReplayAlarmingGroupData;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
@@ -59,7 +57,7 @@ public class AlarmGroupPage extends ObjectGUITablePageNamed<AlarmOngoingGroup, R
 			res.create();
 			vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 			vh.stringEdit("Comment",  id, res.comment(), row, alert);
-			Map<String, String> valuesToSet = new LinkedHashMap<>();
+			/*Map<String, String> valuesToSet = new LinkedHashMap<>();
 			String curVal = res.acceptedByUser().getValue();
 			if(curVal != null && (!curVal.isEmpty()))
 				valuesToSet.put(curVal, curVal);
@@ -69,7 +67,8 @@ public class AlarmGroupPage extends ObjectGUITablePageNamed<AlarmOngoingGroup, R
 					continue;
 				valuesToSet.put(user.getName(), user.getName());
 			}
-			vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);
+			vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);*/
+			vh.dropdown("Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
 			if(!res.linkToTaskTracking().getValue().isEmpty()) {
 				RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
 						res.linkToTaskTracking().getValue(), req);

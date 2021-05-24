@@ -118,8 +118,8 @@ public class InstallationStatusFilterDropdown2 extends SingleFilteringDirect<Ins
     }
     
     public static boolean isAssigned(InstallAppDevice object) {
-    	if(!object.knownFault().acceptedByUser().isActive())
+    	if(!object.knownFault().assigned().isActive())
     		return false;
-    	return !object.knownFault().acceptedByUser().getValue().isEmpty();
+    	return object.knownFault().assigned().getValue() > 0;
     }
 }
