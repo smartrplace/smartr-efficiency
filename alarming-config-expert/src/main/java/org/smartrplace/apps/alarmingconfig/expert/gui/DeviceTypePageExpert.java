@@ -57,9 +57,10 @@ public class DeviceTypePageExpert extends DeviceTypePage {
 		cleanUpButton.setDefaultText("Remove line doublets");
 		cleanUpButton.registerDependentWidget(alert);
 		
-		StaticTable thirdTable = new StaticTable(1, 4);
-		thirdTable.setContent(0, 0, cleanUpButton);
-		page.append(thirdTable);
+		//StaticTable thirdTable = new StaticTable(1, 4);
+		//thirdTable.setContent(0, 0, cleanUpButton);
+		//page.append(thirdTable);
+		topTable.setContent(0, 3, cleanUpButton);
 	}
 	
 	protected int cleanUp(OgemaHttpRequest req) {

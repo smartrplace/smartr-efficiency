@@ -44,6 +44,7 @@ import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, AlarmingExtension, AlarmConfiguration>  {
 	protected final boolean showReducedColumns;
 	protected final boolean showSuperAdmin;
+	protected StaticTable topTable;
 	
 	public static final Map<String, String> ALARM_LEVEL_EN = new HashMap<>();
 	static {
@@ -223,8 +224,8 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
 		saveButton.registerDependentWidget(alert);
 		
-		StaticTable topTable = new StaticTable(1, 2);
-		topTable.setContent(0, 0, closeTabButton).setContent(0, 1, saveButton);
+		topTable = new StaticTable(1, 4);
+		topTable.setContent(0, 0, closeTabButton).setContent(0, 2, saveButton);
 		
 		page.append(topTable);
 	}

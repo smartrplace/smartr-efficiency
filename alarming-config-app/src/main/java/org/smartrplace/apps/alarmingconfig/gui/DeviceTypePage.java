@@ -41,7 +41,7 @@ public class DeviceTypePage extends MainPage {
 	}
 	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype,
 			AlarmingConfigAppController controller, boolean showReducedColumns) {
-		this(page, appManPlus, showReducedColumns, controller, showReducedColumns, true);
+		this(page, appManPlus, showOnlyPrototype, controller, showReducedColumns, true);
 	}
 	public DeviceTypePage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showOnlyPrototype,
 			AlarmingConfigAppController controller, boolean showReducedColumns, boolean showSuperAdmin) {
