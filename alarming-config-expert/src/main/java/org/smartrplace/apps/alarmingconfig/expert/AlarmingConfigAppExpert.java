@@ -66,11 +66,9 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 				controller.mainPageExts.add(deviceOverviewPage);
 			}
 
-			//Note: There is only an Expert version of the page that contains resource location information
-			//TODO: Provide version without this here and move this version to superadmin
 			WidgetPage<?> pageRes5 = widgetApp.createWidgetPage("devicedetails.html");
-			new DeviceDetailPageExpert(pageRes5, controller.appManPlus, controller, false);
-			menu.addEntry("2. Alarming Details Per Device Expert", pageRes5);
+			new DeviceDetailPageExpert(pageRes5, controller.appManPlus, controller, false, false);
+			menu.addEntry("2. Alarming Details Per Device", pageRes5);
 			configMenuConfig(pageRes5.getMenuConfiguration());
 
 			WidgetPage<?> pageRes11 = widgetApp.createWidgetPage("deviceknownfaults.html");

@@ -228,7 +228,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		HardwareInstallController.alarmingUpdater = this;
 
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
-			WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("deviceoverview.html", true); //initApp.widgetApp.createWidgetPage("devices.html");
+			WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("templateconfig.html", true); //initApp.widgetApp.createWidgetPage("devices.html");
 			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this, false, false);
 			initApp.menu.addEntry("1. Device Template Alarming Configuration", pageRes12);
 			initApp.configMenuConfig(pageRes12.getMenuConfiguration());

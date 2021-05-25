@@ -53,13 +53,13 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	}
 	
 	public DeviceDetailPageExpert(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
-			AlarmingConfigAppController controller, boolean showReducedColumns) {
-		super(page, appManPlus, false, controller, showReducedColumns);
+			AlarmingConfigAppController controller, boolean showReducedColumns, boolean showSuperAdmin) {
+		super(page, appManPlus, false, controller, showReducedColumns, showSuperAdmin);
 	}
 	
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "2. Alarming Details Per Device";
+		return "2. Alarming Details Per Device"+(showSuperAdmin?" Admin":"");
 	}
 	
 	@Override

@@ -12,6 +12,7 @@ import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
 import org.smartrplace.apps.alarmingconfig.expert.evalgui.DeviceEvaluationPage;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageEval;
+import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceTypePageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.MainPageExpert;
 import org.smartrplace.apps.alarmingconfig.gui.AlarmGroupPage;
@@ -57,12 +58,17 @@ public class AlarmingConfigAppSuperadmin implements Application, AlarmingExtensi
 			WidgetPage<?> pageRes2 = widgetApp.createStartPage();
 			//WidgetPage<?> pageRes2 = widgetApp.createWidgetPage("userroompermexpert.html");
 			new DeviceTypePageExpert(pageRes2, controller.appManPlus, true, controller);
-			menu.addEntry("1. Device Template Alarming Configuration Expert", pageRes2);
+			menu.addEntry("1. Device Template Alarming Configuration Superadmin", pageRes2);
 			configMenuConfig(pageRes2.getMenuConfiguration());
+
+			WidgetPage<?> pageRes5 = widgetApp.createWidgetPage("devicedetailsexpert.html");
+			new DeviceDetailPageExpert(pageRes5, controller.appManPlus, controller, false, true);
+			menu.addEntry("2. Alarming Details Per Device Superadmin", pageRes5);
+			configMenuConfig(pageRes5.getMenuConfiguration());
 
 			WidgetPage<?> pageRes3 = widgetApp.createWidgetPage("mainexpert.html");
 			new MainPageExpert(pageRes3, controller.appManPlus);
-			menu.addEntry("3. Alarming Configuration ALL Expert", pageRes3);
+			menu.addEntry("3. Alarming Configuration ALL Superadmin", pageRes3);
 			configMenuConfig(pageRes3.getMenuConfiguration());
 			
 			WidgetPage<?> pageRes4 = widgetApp.createWidgetPage("ongoinggroups.html");

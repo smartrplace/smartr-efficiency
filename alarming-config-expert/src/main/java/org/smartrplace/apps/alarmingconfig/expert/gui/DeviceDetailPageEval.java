@@ -45,7 +45,7 @@ public class DeviceDetailPageEval extends DeviceDetailPageExpert {
 	
 	public DeviceDetailPageEval(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
 			AlarmingConfigAppController controller) {
-		super(page, appManPlus, controller, true);
+		super(page, appManPlus, controller, true, true);
 	}
 
 	@Override

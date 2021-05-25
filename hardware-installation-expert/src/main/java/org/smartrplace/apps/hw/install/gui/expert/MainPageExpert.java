@@ -15,6 +15,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -69,10 +70,26 @@ public class MainPageExpert extends MainPage {
 	@Override
 	protected void finishConstructor() {
 		StaticTable secondTable = new StaticTable(1, 4);
-		RedirectButton stdCharts = new RedirectButton(page, "stdCharts", "Chart Config", "/org/sp/app/srcmon/chartconfig.html");
-		RedirectButton alarming = new RedirectButton(page, "alarming", "Alarming Configuration", "/org/smartrplace/alarmingconfig/index.html");
+		RedirectButton stdCharts = new RedirectButton(page, "stdCharts", "Chart Config", "/org/sp/app/srcmonexpert/rssioverview.html");
+		RedirectButton homeScreen = new RedirectButton(page, "homeScreen", "Other Apps", "/org/smartrplace/apps/apps-overview/index.html") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(user.equals("master"))
+					setUrl("/ogema/index.html", req);
+			}
+			
+		};
+		RedirectButton alarming = new RedirectButton(page, "alarming", "Alarming Configuration", "/org/smartrplace/alarmingconfig/templateconfig.html") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(user.equals("master"))
+					setUrl("/org/smartrplace/alarmingsuper/index.html", req);
+			}
+		};
 		RedirectButton alarmingExpert = new RedirectButton(page, "alarmExpert", "Alarming Expert", "/org/smartrplace/alarmingexpert/deviceknownfaults.html");
-		secondTable.setContent(0, 1, stdCharts).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert);
+		secondTable.setContent(0, 0, stdCharts).setContent(0, 1, homeScreen).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert);
 		page.append(secondTable);
 		super.finishConstructor();
 	}

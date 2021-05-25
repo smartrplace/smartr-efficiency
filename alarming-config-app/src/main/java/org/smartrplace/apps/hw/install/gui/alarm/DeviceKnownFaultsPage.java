@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
@@ -21,6 +22,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.GetPlotButtonResult;
 import org.smartrplace.util.directobjectgui.ObjectDetailPopupButton;
+import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -32,8 +34,6 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
-import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
-import de.iwes.widgets.html.form.textfield.TextField;
 
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
@@ -182,7 +182,34 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					valuesToSet.put(role, role);					
 				}
 				vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);*/
-				vh.dropdown("Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
+				//vh.dropdown("Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
+				ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
+						"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
+					public void onGET(OgemaHttpRequest req) {
+						myDrop.selectItem(res.assigned(), req);
+					}
+					@Override
+					public void onPrePOST(String data, OgemaHttpRequest req) {
+						IntegerResource source = res.assigned();
+						if(!source.exists()) {
+							source.create();
+							source.activate(true);
+						}
+					}
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						int val = res.assigned().getValue();
+						if(val >= 7000 && val < 8000) {
+							//Non-Blocking
+							ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 0);
+						} else {
+							//Blocking
+							ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
+						}
+					}
+				};
+				row.addCell("Assigned", widgetPlus.myDrop);
+				
 				if(!res.linkToTaskTracking().getValue().isEmpty()) {
 					RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
 							res.linkToTaskTracking().getValue(), req);
@@ -190,9 +217,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				}
 				vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 				
-				TextField intervalEdit = vh.floatEdit(res.minimumTimeBetweenAlarms(), alert, -1, Float.MAX_VALUE, "Minimum value allowed is -1");
+				vh.floatEdit(res.minimumTimeBetweenAlarms(), alert, -1, Float.MAX_VALUE, "Minimum value allowed is -1");
+				//TextField intervalEdit = vh.floatEdit(res.minimumTimeBetweenAlarms(), alert, -1, Float.MAX_VALUE, "Minimum value allowed is -1");
 
-				TemplateDropdown<String> blockingDrop = new TemplateDropdown<String>(mainTable, "blockingDrop"+id, req) {
+				/*TemplateDropdown<String> blockingDrop = new TemplateDropdown<String>(mainTable, "blockingDrop"+id, req) {
 					@Override
 					public void onGET(OgemaHttpRequest req) {
 						float val = res.minimumTimeBetweenAlarms().getValue();
@@ -222,6 +250,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						}
 					}
 				};
+				blockingDrop.setDefaultItems(valuesToSetBlock.values());
+				blockingDrop.registerDependentWidget(intervalEdit);
+				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);*/
 				
 				Button releaseBut;
 				if(res.assigned().isActive() &&
@@ -253,10 +284,6 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						ScheduleViewerConfigProvAlarm.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
 				
-				blockingDrop.setDefaultItems(valuesToSetBlock.values());
-				blockingDrop.registerDependentWidget(intervalEdit);
-				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);
-
 				ObjectDetailPopupButton<InstallAppDevice, InstallAppDevice> detailBut = new ObjectDetailPopupButton<InstallAppDevice, InstallAppDevice>(mainTable, "detailBut"+id, "Details", req, popMore1,
 						object, appMan, pid(), knownWidgets, this);
 				row.addCell("Details", detailBut);
