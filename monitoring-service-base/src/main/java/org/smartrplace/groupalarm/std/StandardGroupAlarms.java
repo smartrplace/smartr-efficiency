@@ -88,12 +88,10 @@ public class StandardGroupAlarms implements AlarmingExtension {
 		result.sendAlarmDirectly = true;
 		
 		//For now we just process no-value alarms
-		if(!baseAlarm.isNoValueAlarm)
-			return result;
+		//if(!baseAlarm.isNoValueAlarm)
+		//	return result;
 		
 		InstallAppDevice device1 = null;
-		//String commType = null;
-		//AlarmOngoingGroup newGroup = null;
 		Datapoint dp = dpService.getDataPointAsIs(baseAlarm.ac.sensorVal());
 		long now = appManPlus.getFrameworkTime();
 		if(dp != null) {
@@ -101,38 +99,11 @@ public class StandardGroupAlarms implements AlarmingExtension {
 		}
 		final InstallAppDevice device = device1;
 		if(device == null) {
-			//getOrAddSingleGroup(baseAlarm, "noValue", now);
 			return result;			
 		}
-		/*if(device.device().getLocation().toLowerCase().contains("homematic"))
-			commType = "Homematic";
-		else if(device.device().getLocation().toLowerCase().contains("jmbus"))
-			commType = "wMBus";
-		else if(device.devHandlerInfo().getValue().toLowerCase().contains("mqtt"))
-			commType = "MQTT";
-		else if(!device.devHandlerInfo().getValue().toLowerCase().contains("radio"))
-			commType = "LAN-IP";*/
+		// We only add a single group per datapoint and do not change the name/id for now, so we always use DevNoValue
 		getOrAddAlarmToGroup("DevNoValue", device, now, null, baseAlarm, baseAlarm.ac.getLocation(), null, 2);
 		return result;
-		/*if(commType == null) {
-			return result;			
-		}
-		String commTypeFinal = commType;
-		AlarmOngoingGroupMulti commGroup = multiGroups.get(commType);
-		if(commGroup == null) {
-			commGroup = new AlarmOngoingGroupMulti(commType, now, getType(commType), appManPlus, 15000l) {
-				
-				@Override
-				protected void sendMessage() {
-					//TODO: not implemented yet e.g. resending, escalation, release
-					//baseAlarm.sendMessage("Group received no values:"+commTypeFinal, "No more values received:"+commTypeFinal+
-					//		": Last value received at:"+StringFormatHelper.getTimeDateInLocalTimeZone(startTime), MessagePriority.LOW); 
-				}
-			};
-			multiGroups.put(commType, commGroup);
-		}
-		getOrAddAlarmToGroup(commType, null, now, getType(commType), baseAlarm, device.getLocation(), commGroup, 3);
-		return result;*/
 	}
 	
 	/*private AlarmingGroupType getType(String commType) {
