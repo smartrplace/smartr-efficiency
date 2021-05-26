@@ -39,7 +39,7 @@ public class DeviceTypePageExpert extends DeviceTypePage {
 	
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "1. Device Template Alarming Configuration Expert";
+		return "1. Device Template Alarming Configuration Superadmin";
 	}
 	
 	@Override

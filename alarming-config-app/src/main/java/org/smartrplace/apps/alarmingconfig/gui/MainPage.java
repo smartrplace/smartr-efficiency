@@ -70,7 +70,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		this(page, appManPlus, showReducedColumns, true);
 	}
 	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns, boolean showSuperAdmin) {
-		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(AlarmConfiguration.class));
+		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(AlarmConfiguration.class), !showSuperAdmin);
 		//this.baseResource = baseResource;
 		this.appManPlus = appManPlus;
 		this.dpService = appManPlus.dpService();
@@ -164,7 +164,7 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		vh.floatEdit("Maximum duration until new value is received (min)",
 				id, sr.maxIntervalBetweenNewValues(), row, alert,
 				-Float.MAX_VALUE, Float.MAX_VALUE, "");
-		if(!showReducedColumns)
+		if((!showReducedColumns) && showSuperAdmin)
 			vh.booleanEdit("Monitoring Switch active", id, sr.performAdditinalOperations(), row);
 		if(req == null)
 			vh.registerHeaderEntry("Status");

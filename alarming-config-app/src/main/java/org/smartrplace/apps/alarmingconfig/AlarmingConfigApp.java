@@ -116,7 +116,8 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
  	void configMenuConfig(MenuConfiguration mc) {
 		mc.setCustomNavigation(menu);
 		mc.setLanguageSelectionVisible(false);
-		mc.setNavigationVisible(false); 		
+		mc.setNavigationVisible(false);
+		mc.setShowMessages(false);
  	}
  	
     protected final GenericControllerProvider<AlarmingConfigAppController> controllerProvider;
