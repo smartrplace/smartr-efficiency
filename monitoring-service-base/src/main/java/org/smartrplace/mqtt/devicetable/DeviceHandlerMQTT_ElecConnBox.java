@@ -275,12 +275,16 @@ if(mapData1 == null) {
 		appDevice.alarms().create();
 		ElectricityConnectionBox device = (ElectricityConnectionBox) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
-				0.0f, 4000.0f, 10, 20);
+				0.0f, 4000.0f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.connection().voltageSensor().reading(),
-				200f, 245f, 10, 20);
+				200f, 245f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.connection().frequencySensor().reading(),
-				49.8f, 50.2f, 1, 20);
+				49.8f, 50.2f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
 }

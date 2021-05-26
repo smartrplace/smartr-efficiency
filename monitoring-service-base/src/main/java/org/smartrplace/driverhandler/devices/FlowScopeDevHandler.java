@@ -10,8 +10,11 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.metering.special.FlowProbe;
 import org.ogema.model.sensors.Sensor;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 public class FlowScopeDevHandler extends DeviceHandlerSimple<FlowProbe> {
@@ -56,4 +59,16 @@ public class FlowScopeDevHandler extends DeviceHandlerSimple<FlowProbe> {
 		return FlowScopePattern.class;
 	}
 
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		FlowProbe device = (FlowProbe) appDevice.device();
+		AlarmingUtiH.setTemplateValues(appDevice, device.temperature().reading(),
+				200f, 350f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+	}
+
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
 }

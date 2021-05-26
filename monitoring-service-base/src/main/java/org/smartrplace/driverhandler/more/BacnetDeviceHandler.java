@@ -195,6 +195,11 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 	}
 
 	@Override
+	public String getInitVersion() {
+		return "A";
+	}
+
+	@Override
 	protected Class<? extends ResourcePattern<BACnetDevice>> getPatternClass() {
 		return BacnetDevicePattern.class;
 	}

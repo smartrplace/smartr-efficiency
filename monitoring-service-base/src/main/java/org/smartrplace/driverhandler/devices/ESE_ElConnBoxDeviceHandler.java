@@ -310,8 +310,12 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		appDevice.alarms().create();
 		ElectricityConnectionBox device = (ElectricityConnectionBox) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
-				0.0f, 9999999.0f, 10, 20);
+				0.0f, 9999999.0f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		//AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
 }

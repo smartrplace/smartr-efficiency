@@ -14,8 +14,10 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.Sensor;
@@ -146,12 +148,18 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
-		DeviceHandlerThermostat.initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
+		Thermostat dev = DeviceHandlerThermostat.initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
+		AlarmConfiguration ac = AlarmingUtiH.getAlarmingConfiguration(appDevice, dev.temperatureSensor().reading());
+		ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+		ac = AlarmingUtiH.getAlarmingConfiguration(appDevice, dev.temperatureSensor().deviceFeedback().setpoint());
+		ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+		ac = AlarmingUtiH.getAlarmingConfiguration(appDevice, dev.valve().setting().stateFeedback());
+		ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
 	}
 	
 	@Override
 	public String getInitVersion() {
-		return "E";
+		return "G";
 	}
 	
 	private static <S extends Resource> ResourceDropdown<S> referenceDropdownFixedChoice(String widgetId, final List<S> destinations, String altId,

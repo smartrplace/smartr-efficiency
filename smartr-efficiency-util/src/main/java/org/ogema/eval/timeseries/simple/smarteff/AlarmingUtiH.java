@@ -55,14 +55,14 @@ public class AlarmingUtiH {
 		}
 		return null;
 	}*/
-	public static AlarmConfiguration getAlarmConfig2(ResourceList<AlarmConfiguration> configs, SingleValueResource dev) {
+	/*public static AlarmConfiguration getAlarmConfig2(ResourceList<AlarmConfiguration> configs, SingleValueResource dev) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
 			if(ac.sensorVal().equalsLocation(dev)) {
 				return ac;
 			}
 		}
 		return null;
-	}
+	}*/
 	
 	public static void cleanUpAlarmConfigs(ResourceList<AlarmConfiguration> configs) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
@@ -196,10 +196,13 @@ public class AlarmingUtiH {
 			boolean sendAlarminitially,
 			boolean overWriteExisting,
 			float alarmRepetitionTime) {
-		if(!res.exists())
+		/*if(!res.exists())
 			return null;
 		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
-				res, appDevice.alarms());
+				res, appDevice.alarms());*/
+		AlarmConfiguration alarm = getAlarmingConfiguration(appDevice, res);
+		if(alarm == null)
+			return null;
 		setTemplateValues(alarm, min, max, maxViolationTimeWithoutAlarm,
 				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting, alarmRepetitionTime);
 		return alarm;
@@ -304,8 +307,9 @@ public class AlarmingUtiH {
 		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
 		if(rssiPeer != null && rssiPeer.exists())
-			AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
-					-120f, -10f, 10, -1);
+			AlarmingUtiH.setAlarmingActiveStatus(appDevice, rssiPeer, false);
+			//AlarmingUtiH.setTemplateValues(appDevice, rssiPeer,
+			//		-120f, -10f, 10, -1);
 	}
 
 	public static void addAlarmingMQTT(PhysicalElement dev, InstallAppDevice appDevice) {
@@ -315,5 +319,24 @@ public class AlarmingUtiH {
 			AlarmingUtiH.setTemplateValues(appDevice, comStat.quality(),
 					0.1f, 1.0f, 30, DEFAULT_NOVALUE_MINUTES);
 		}
+	}
+	
+	public static AlarmConfiguration getAlarmingConfiguration(InstallAppDevice appDevice, SingleValueResource res) {
+		if(!res.exists())
+			return null;
+		AlarmConfiguration data = AlarmingUtiH.getOrCreateReferencingSensorVal(
+				res, appDevice.alarms());
+		return data;
+	}
+	public static AlarmConfiguration setAlarmingActiveStatus(InstallAppDevice appDevice, SingleValueResource res, boolean sendAlarminitially) {
+		DefaultSetModes mode = DefaultSetModes.OVERWRITE;
+		AlarmConfiguration data = getAlarmingConfiguration(appDevice, res);
+		if(data == null)
+			return null;
+		if(sendAlarminitially)
+			EditPageGeneric.setDefault(data.sendAlarm(), true, mode);
+		else
+			EditPageGeneric.setDefault(data.sendAlarm(), false, mode);
+		return data;
 	}
 }
