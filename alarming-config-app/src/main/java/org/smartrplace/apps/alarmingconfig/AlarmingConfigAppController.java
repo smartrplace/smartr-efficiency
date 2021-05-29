@@ -11,6 +11,8 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.core.application.AppID;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.application.Timer;
+import org.ogema.core.application.TimerListener;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
@@ -18,6 +20,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
@@ -44,6 +47,8 @@ import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
+import org.smartrplace.gateway.device.KnownIssueDataGw;
 import org.smartrplace.gateway.device.VirtualTestDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
@@ -65,6 +70,9 @@ import de.iwes.widgets.messaging.model.MessagingApp;
 // here the controller logic is implemented
 @SuppressWarnings("serial")
 public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLabelProvider {
+	private static final long KNI_EVAL_TIMER_INTERVAL = TimeProcUtil.MINUTE_MILLIS;
+	private static final long QUALITY_EVAL_INTERVAL = 60*TimeProcUtil.MINUTE_MILLIS;
+
 	private HardwareInstallConfig hardwareConfig = null;
 	public HardwareInstallConfig getHardwareConfig() {
 		if(hardwareConfig == null) {
@@ -118,8 +126,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
 	private final Map<String, AppID> appsToSend;
 	public List<HardwareTablePage> mainPageExts = new ArrayList<>();
-	//private OngoingBaseAlarmsPage ongoingBasePage;
+	
+	private Timer kniEvalTimer;
+	private final KnownIssueDataGw kniData;
+	private Timer qualityEvalTimer;
+	
 	public static final Map<String, String> ALARM_APP_TYPE_EN = new HashMap<>();
+
 	static {
 		ALARM_APP_TYPE_EN.put(AlarmingUtiH.SP_SUPPORT_FIRST, AlarmingUtiH.SP_SUPPORT_FIRST);
 		ALARM_APP_TYPE_EN.put(AlarmingUtiH.CUSTOMER_FIRST, AlarmingUtiH.CUSTOMER_FIRST);
@@ -278,9 +291,35 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			initApp.menu.addEntry("Window Open Alarming", "/de/iwes/ogema/apps/windowopeneddetector/index.html");
 		}
 
-		initDemands();		
+		initDemands();
+		
+		kniData = ResourceHelper.getEvalCollection(appMan).getSubResource("knownIssueDataGw", KnownIssueDataGw.class);
+		ViaHeartbeatUtil.updateEvalResources(kniData, appMan);				
+		kniEvalTimer = appMan.createTimer(KNI_EVAL_TIMER_INTERVAL, new TimerListener() {
+			
+			@Override
+			public void timerElapsed(Timer timer) {
+				ViaHeartbeatUtil.updateEvalResources(kniData, appMan);				
+			}
+		});
+		updateQualityResources();
+		qualityEvalTimer = appMan.createTimer(QUALITY_EVAL_INTERVAL, new TimerListener() {
+			
+			@Override
+			public void timerElapsed(Timer timer) {
+				updateQualityResources();
+			}
+		});
 	}
 
+	public void updateQualityResources() {
+		int[] qualityVals = AlarmingConfigUtil.getQualityValues(appMan, dpService);
+		ValueResourceHelper.setCreate(kniData.qualityShort(), qualityVals[0]);		
+		ValueResourceHelper.setCreate(kniData.qualityLong(), qualityVals[1]);		
+		ValueResourceHelper.setCreate(kniData.qualityShortGold(), qualityVals[2]);		
+		ValueResourceHelper.setCreate(kniData.qualityLongGold(), qualityVals[3]);		
+	}
+	
 	public void setupMessageReceiverConfiguration(MessageReader mr, final ResourceList<MessagingApp> appList,
 			WidgetPage<MessageSettingsDictionary> pageRes3, boolean showSuperAdmin) {
 		de.iwes.widgets.messaging.MessagingApp app1 = null;
@@ -480,6 +519,14 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		if(alarmMan != null) {
 			alarmMan.close();
 			alarmMan = null;
+		}
+		if(kniEvalTimer != null) {
+			kniEvalTimer.destroy();
+			kniEvalTimer = null;
+		}
+		if(qualityEvalTimer != null) {
+			qualityEvalTimer.destroy();
+			qualityEvalTimer = null;
 		}
 	}
 

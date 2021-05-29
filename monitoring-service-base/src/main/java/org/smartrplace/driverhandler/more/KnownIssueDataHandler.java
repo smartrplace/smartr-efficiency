@@ -43,6 +43,11 @@ public class KnownIssueDataHandler extends DeviceHandlerSimple<KnownIssueDataGw>
 		MemoryTsPSTHandler.addDatapointForcedPST(device.knownIssuesAssignedCustomer(), result, dpService);
 		MemoryTsPSTHandler.addDatapointForcedPST(device.knownIssuesOpExternal(), result, dpService);
 		MemoryTsPSTHandler.addDatapointForcedPST(device.knownIssuesDevExternal(), result, dpService);
+
+		MemoryTsPSTHandler.addDatapointForcedPST(device.qualityShort(), result, dpService);
+		MemoryTsPSTHandler.addDatapointForcedPST(device.qualityLong(), result, dpService);
+		MemoryTsPSTHandler.addDatapointForcedPST(device.qualityShortGold(), result, dpService);
+		MemoryTsPSTHandler.addDatapointForcedPST(device.qualityLongGold(), result, dpService);
 		return result;
 	}
 
