@@ -511,6 +511,7 @@ public class HardwareInstallController {
 					dp.setRoom(dvNamPs.room);
 				initAlarming(tableProvider, appDevice, dp);
 			}
+			ValueResourceHelper.setCreate(appDevice.dpNum(), allDps.size());
 		} catch(Exception e) {
 			appMan.getLogger().error("Could not get Datapoints for tableProvider:"+tableProvider.id(), e);
 			e.printStackTrace();

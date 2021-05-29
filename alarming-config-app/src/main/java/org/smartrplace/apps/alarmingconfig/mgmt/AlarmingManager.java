@@ -126,6 +126,8 @@ public class AlarmingManager {
 		
 		long now = appManPlus.appMan().getFrameworkTime();
 		for(AlarmConfiguration ac: configs) {
+			if(!ac.sensorVal().exists())
+				continue; //we perform cleanup somewhere else
 			if((!ac.sendAlarm().getValue())) {
 				IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal());
 				if(alarmStatus != null)

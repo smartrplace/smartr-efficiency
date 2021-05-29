@@ -134,7 +134,7 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 		GatewayDevice device = (GatewayDevice) installDeviceRes.device();
 		result.add(dpService.getDataPointStandard(device.gitUpdateStatus()));
 		result.add(dpService.getDataPointStandard(device.systemRestart()));
-		result.add(dpService.getDataPointStandard(device.datapointsInAlarmState()));
+		//result.add(dpService.getDataPointStandard(device.datapointsInAlarmState()));
 		result.add(dpService.getDataPointStandard(device.heartBeatDelay()));
 		result.add(dpService.getDataPointStandard(device.apiMethodAccess()));
 		result.add(dpService.getDataPointStandard(device.foundPublicAddressLastPart()));
@@ -155,6 +155,14 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 		removeDatapointPST(device.pstTSServlet(), result, dpService);
 		removeDatapointPST(device.pstTSServletCounter(), result, dpService);
 
+		removeDatapointPST(device.datapointsInAlarmState(), result, dpService);
+		removeDatapointPST(device.activeAlarmSupervision(), result, dpService);
+		removeDatapointPST(device.knownIssuesOther(), result, dpService);
+		removeDatapointPST(device.knownIssuesAssignedOperation(), result, dpService);
+		removeDatapointPST(device.knownIssuesAssignedDev(), result, dpService);
+		removeDatapointPST(device.knownIssuesAssignedCustomer(), result, dpService);
+		removeDatapointPST(device.knownIssuesAssignedBacklog(), result, dpService);
+		
 		List<NetworkTrafficData> ifacs = device.networkTrafficData().getAllElements();
 		for(NetworkTrafficData ifac: ifacs) {
 			addDatapoint(ifac.monthlyTotalKiB().reading(), result, ifac.getName(), dpService);			

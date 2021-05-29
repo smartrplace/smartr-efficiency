@@ -13,6 +13,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.VoltageResource;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.communication.CommunicationStatus;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
@@ -301,9 +302,16 @@ public class AlarmingUtiH {
 		//			0.0f, 1.0f, 60, -1);
 		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
-		if(rssiDevice != null && rssiDevice.exists())
+		if(rssiDevice != null && rssiDevice.exists()) {
+			int ccuType = DeviceTableBase.getHomematicType(dev.getLocation());
+			float low;
+			if(ccuType == 1 || ccuType == 2)
+				low = -65535f;
+			else
+				low = -120f;
 			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
-					-120f, 128f, 10, 300);
+					low, 128f, 10, 300);
+		}
 		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
 		if(rssiPeer != null && rssiPeer.exists())

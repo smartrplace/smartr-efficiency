@@ -49,14 +49,14 @@ public class MemoryTsPSTHandler extends DeviceHandlerSimple<MemoryTimeseriesPST>
 		return result;
 	}
 
-	protected Datapoint addDatapointForcedPST(SingleValueResource sres, List<Datapoint> result,
+	public static Datapoint addDatapointForcedPST(SingleValueResource sres, List<Datapoint> result,
 			DatapointService dpService) {
 		String subPst = sres.getName();
 		if(subPst.startsWith("pst"))
 			subPst = subPst.substring("pst".length());
 		return addDatapointForced(sres, result, subPst, dpService);
 	}
-	protected Datapoint addDatapointForced(SingleValueResource sres, List<Datapoint> result,
+	public static Datapoint addDatapointForced(SingleValueResource sres, List<Datapoint> result,
 			String subLocation, DatapointService dpService) {
 		if(!sres.exists()) {
 			sres.create();

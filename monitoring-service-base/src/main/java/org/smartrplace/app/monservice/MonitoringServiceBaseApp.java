@@ -46,6 +46,7 @@ import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
 import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
 import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
 import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
+import org.smartrplace.driverhandler.more.KnownIssueDataHandler;
 import org.smartrplace.driverhandler.more.MemoryTsPSTHandler;
 import org.smartrplace.driverhandler.more.VirtualTestDeviceHandler;
 import org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler;
@@ -240,6 +241,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srPST = null;
 	private MemoryTsPSTHandler devHandPST;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srKNI = null;
+	private KnownIssueDataHandler devHandKNI;
 
 	
 	@Activate
@@ -358,6 +362,8 @@ public class MonitoringServiceBaseApp implements Application {
 
 	   devHandPST = new MemoryTsPSTHandler(controller.appManPlus);
 	   srPST = bc.registerService(DeviceHandlerProvider.class, devHandPST, null);
+	   devHandKNI = new KnownIssueDataHandler(controller.appManPlus);
+	   srKNI = bc.registerService(DeviceHandlerProvider.class, devHandKNI, null);
  	}
  	
      /*
@@ -410,6 +416,7 @@ public class MonitoringServiceBaseApp implements Application {
        	if (srBeacon != null) srBeacon.unregister();
 
        	if (srPST != null) srPST.unregister();
+       	if (srKNI != null) srKNI.unregister();
 
        	if (controller != null)
     		controller.close();

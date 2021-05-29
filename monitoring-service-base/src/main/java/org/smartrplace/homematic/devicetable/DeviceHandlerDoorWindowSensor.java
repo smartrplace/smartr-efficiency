@@ -198,7 +198,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindo
 
 	@Override
 	public String getInitVersion() {
-		return "C";
+		return "D";
 	}
 	
 	protected int valueRequestsentNum = 0;
