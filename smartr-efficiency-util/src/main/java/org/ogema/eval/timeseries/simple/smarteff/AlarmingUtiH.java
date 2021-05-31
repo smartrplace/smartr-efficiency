@@ -310,7 +310,7 @@ public class AlarmingUtiH {
 			else
 				low = -120f;
 			AlarmingUtiH.setTemplateValues(appDevice, rssiDevice,
-					low, 128f, 10, 300);
+					low, 128f, 10, 720);
 		}
 		IntegerResource rssiPeer = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiPeer", IntegerResource.class);
