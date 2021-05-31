@@ -26,6 +26,7 @@ import org.smartrplace.external.accessadmin.gui.UserSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -133,6 +134,8 @@ public class AccessAdminController {
 
 
 		initDemands();
+
+        LogHelper.logStartup(16, appMan);
 	}
 
     /*

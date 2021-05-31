@@ -32,6 +32,7 @@ import org.smartrplace.gateway.device.GatewayDevice;
 import org.smartrplace.monitoring.vnstat.resources.NetworkTrafficData;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -185,9 +186,14 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 				0, 1000, 30, 120);
 		//TODO: We need alarming if values occur too often
 		AlarmingUtiH.setTemplateValues(appDevice, device.systemRestart(),
-				200, 200, 10, TimeProcUtil.YEAR_MILLIS/(60000));
+				(4+8+16+32+64+128+256+512), 1024-1, 20, TimeProcUtil.YEAR_MILLIS/(60000));
 	}
 
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
+	
 	@Override
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			GatewayDevice deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
@@ -279,7 +285,8 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 			long bootTime = joda.toEpochSecond()*1000;
 			long now = appMan.getFrameworkTime();
 			if(now - bootTime < TimeProcUtil.HOUR_MILLIS) {
-				ValueResourceHelper.setCreate(deviceResource.systemRestart(), 1);			
+		        LogHelper.logStartup(1, appMan.appMan());
+				//ValueResourceHelper.setCreate(deviceResource.systemRestart(), 1);			
 			}
 		} catch(Exception e) {
 			System.out.println("Warning: System boot time could not be parsed! Exception printStakTrace follows...");

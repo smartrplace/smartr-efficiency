@@ -38,6 +38,7 @@ import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
 import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
 
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -144,6 +145,8 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			new DeviceTypeConfigPage(page3, controller);
 			menu.addEntry("Device Configuration based on Device Type Database", page3);
 			page3.getMenuConfiguration().setCustomNavigation(menu);
+
+	        LogHelper.logStartup(64, appMan);
 		}
 	};
 	

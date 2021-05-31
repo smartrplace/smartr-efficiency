@@ -13,6 +13,7 @@ import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -87,6 +88,8 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 				menu.addEntry("4. Active Alarms", pageRes10);
 				configMenuConfig(pageRes10.getMenuConfiguration());
 			}
+
+	        LogHelper.logStartup(4, appMan);
 		}
 	};
 

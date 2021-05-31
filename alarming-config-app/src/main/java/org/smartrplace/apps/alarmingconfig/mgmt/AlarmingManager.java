@@ -20,6 +20,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.ogema.core.resourcemanager.ResourceNotFoundException;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.AlarmingExtension.AlarmNotificationResult;
@@ -129,10 +130,15 @@ public class AlarmingManager {
 			if(!ac.sensorVal().exists())
 				continue; //we perform cleanup somewhere else
 			if((!ac.sendAlarm().getValue())) {
-				IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal());
-				if(alarmStatus != null)
-					alarmStatus.setValue(0);
-				continue;
+				try  {
+					IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal());
+					if(alarmStatus != null)
+						alarmStatus.setValue(0);
+					continue;
+				} catch(ResourceNotFoundException e) {
+					e.printStackTrace();
+					continue;
+				}
 			}
 			activeAlarms.add(ac);
 			Datapoint dp = MainPage.getDatapoint(ac, appManPlus.dpService());

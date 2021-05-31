@@ -165,7 +165,7 @@ AggregationModeProvider, RoomLabelProvider {
 	 * 		Keys ending on "##DAY" indicate that the input timeseries shall be aggregated
 	 * 		to one value per day. "##METER" indicates that all timeseries shall be shown as meters starting
 	 * 		with a common meter value at the reference data. See
-	 * 		{@link TimeSeriesServlet#getMeterFromConsumption(ReadOnlyTimeSeries, long, long, org.smartrplace.app.monbase.gui.TimeSeriesServlet.MeterReference)}
+	 * 		{@link TimeSeriesServlet#getMeterFromConsumption(ReadOnlyTimeSeries, long, long, MeterReference)}
 	 * 		for details.<br>
 	 * 		Such processing statements are removed for the label displayed. In this
 	 * 		case for the time series processed additional information for each timeseries provided via
