@@ -16,7 +16,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.security.WebAccessManager;
 import org.ogema.model.sensors.Sensor;
-import org.smartrplace.app.monbase.gui.TimeSeriesServlet;
+import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.smartrplace.app.monbase.servlet.ConsumptionEvalServlet;
 import org.smartrplace.app.monbase.servlet.DatapointServlet;
 import org.smartrplace.app.monbase.servlet.SensorServlet;
