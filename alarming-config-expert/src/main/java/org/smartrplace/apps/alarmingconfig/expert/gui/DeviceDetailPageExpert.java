@@ -3,6 +3,7 @@ package org.smartrplace.apps.alarmingconfig.expert.gui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -175,6 +176,11 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 			@Override
 			protected List<String> getGroups(InstallAppDevice object) {
 				DatapointGroup devTypeGrp = getDeviceTypeGroup(object);
+				if(devTypeGrp == null) {
+					//should never occur
+					System.out.println("No DEVICE_TYPE group for "+object.getLocation());
+					return Collections.emptyList();
+				}
 				return Arrays.asList(new String[] {devTypeGrp.id()});
 			}
 

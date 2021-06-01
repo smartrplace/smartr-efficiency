@@ -150,11 +150,16 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		Thermostat dev = DeviceHandlerThermostat.initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
 		AlarmConfiguration ac = AlarmingUtiH.getAlarmingConfiguration(appDevice, dev.temperatureSensor().reading());
-		ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+		if(ac != null)
+			ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+		
 		ac = AlarmingUtiH.getAlarmingConfiguration(appDevice, dev.temperatureSensor().deviceFeedback().setpoint());
-		ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+		if(ac != null)
+			ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+		
 		ac = AlarmingUtiH.getAlarmingConfiguration(appDevice, dev.valve().setting().stateFeedback());
-		ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
+		if(ac != null)
+			ac.maxIntervalBetweenNewValues().setValue(AlarmingUtiH.DEFAULT_NOVALUE_FORHOURLY_MINUTES);
 	}
 	
 	@Override

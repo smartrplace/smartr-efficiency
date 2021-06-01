@@ -33,6 +33,7 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
 @SuppressWarnings("serial")
@@ -158,7 +159,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					return;
 				}
 				AlarmGroupData res = object.knownFault();
-				res.create();
+				//res.create();
 				if(row == null) {
 					//TODO: There is still a bug in the detail popup support so that for each table the popup is not adapted when
 					//another detail button is clicked until the page is reloaded.
@@ -170,90 +171,91 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				}
 				vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
-				vh.stringEdit("Comment",  id, res.comment(), row, alert);
-				/*Map<String, String> valuesToSet = new LinkedHashMap<>();
-				String curVal = res.acceptedByUser().getValue();
-				if(curVal != null && (!curVal.isEmpty()))
-					valuesToSet.put(curVal, curVal);
-				valuesToSet.put("None", "None");
-				for(String role: AlarmGroupData.USER_ROLES) {
-					if(curVal != null && role.equals(curVal))
-						continue;
-					valuesToSet.put(role, role);					
-				}
-				vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);*/
-				//vh.dropdown("Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
-				ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
-						"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
-					public void onGET(OgemaHttpRequest req) {
-						myDrop.selectItem(res.assigned(), req);
+				if(res.exists()) {
+					vh.stringEdit("Comment",  id, res.comment(), row, alert);
+					/*Map<String, String> valuesToSet = new LinkedHashMap<>();
+					String curVal = res.acceptedByUser().getValue();
+					if(curVal != null && (!curVal.isEmpty()))
+						valuesToSet.put(curVal, curVal);
+					valuesToSet.put("None", "None");
+					for(String role: AlarmGroupData.USER_ROLES) {
+						if(curVal != null && role.equals(curVal))
+							continue;
+						valuesToSet.put(role, role);					
 					}
-					@Override
-					public void onPrePOST(String data, OgemaHttpRequest req) {
-						IntegerResource source = res.assigned();
-						if(!source.exists()) {
-							source.create();
-							source.activate(true);
+					vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);*/
+					//vh.dropdown("Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
+					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
+							"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
+						public void onGET(OgemaHttpRequest req) {
+							myDrop.selectItem(res.assigned(), req);
 						}
-					}
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						int val = res.assigned().getValue();
-						if(val >= 7000 && val < 8000) {
-							//Non-Blocking
-							ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 0);
-						} else {
-							//Blocking
-							ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
+						@Override
+						public void onPrePOST(String data, OgemaHttpRequest req) {
+							IntegerResource source = res.assigned();
+							if(!source.exists()) {
+								source.create();
+								source.activate(true);
+							}
 						}
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							int val = res.assigned().getValue();
+							if(val >= 7000 && val < 8000) {
+								//Non-Blocking
+								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 0);
+							} else {
+								//Blocking
+								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
+							}
+						}
+					};
+					row.addCell("Assigned", widgetPlus.myDrop);
+					
+					if(!res.linkToTaskTracking().getValue().isEmpty()) {
+						RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
+								res.linkToTaskTracking().getValue(), req);
+						row.addCell(WidgetHelper.getValidWidgetId("Task Tracking"), taskLink);
 					}
-				};
-				row.addCell("Assigned", widgetPlus.myDrop);
-				
-				if(!res.linkToTaskTracking().getValue().isEmpty()) {
-					RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
-							res.linkToTaskTracking().getValue(), req);
-					row.addCell(WidgetHelper.getValidWidgetId("Task Tracking"), taskLink);
-				}
-				vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
-				
-				vh.floatEdit(res.minimumTimeBetweenAlarms(), alert, -1, Float.MAX_VALUE, "Minimum value allowed is -1");
-				//TextField intervalEdit = vh.floatEdit(res.minimumTimeBetweenAlarms(), alert, -1, Float.MAX_VALUE, "Minimum value allowed is -1");
+					vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
+					
+					//vh.floatEdit(res.minimumTimeBetweenAlarms(), alert, -1, Float.MAX_VALUE, "Minimum value allowed is -1");
+					//TextField intervalEdit = vh.floatEdit(res.minimumTimeBetweenAlarms(), alert, -1, Float.MAX_VALUE, "Minimum value allowed is -1");
 
-				/*TemplateDropdown<String> blockingDrop = new TemplateDropdown<String>(mainTable, "blockingDrop"+id, req) {
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						float val = res.minimumTimeBetweenAlarms().getValue();
-						if(Float.isNaN(val)) {
-							setAddEmptyOption(true, "not set", req);
-							selectItem(null, req);
-						} else if(val < 0)
-							selectItem("Blocking", req);
-						else if(val == 0)
-							selectItem("No-Block", req);
-						else
-							selectItem("Retard", req);
-					}
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						String val = getSelectedItem(req);
-						if(val.equals("Blocking")) {
-							ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
-							intervalEdit.disable(req);
-						} else if(val.equals("No-Block")) {
-							ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 0);
-							intervalEdit.disable(req);
-						} else {
-							if(res.minimumTimeBetweenAlarms().getValue() <= 0)
-								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 14*1440);
-							intervalEdit.enable(req);
+					/*TemplateDropdown<String> blockingDrop = new TemplateDropdown<String>(mainTable, "blockingDrop"+id, req) {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							float val = res.minimumTimeBetweenAlarms().getValue();
+							if(Float.isNaN(val)) {
+								setAddEmptyOption(true, "not set", req);
+								selectItem(null, req);
+							} else if(val < 0)
+								selectItem("Blocking", req);
+							else if(val == 0)
+								selectItem("No-Block", req);
+							else
+								selectItem("Retard", req);
 						}
-					}
-				};
-				blockingDrop.setDefaultItems(valuesToSetBlock.values());
-				blockingDrop.registerDependentWidget(intervalEdit);
-				row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);*/
-				
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							String val = getSelectedItem(req);
+							if(val.equals("Blocking")) {
+								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
+								intervalEdit.disable(req);
+							} else if(val.equals("No-Block")) {
+								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 0);
+								intervalEdit.disable(req);
+							} else {
+								if(res.minimumTimeBetweenAlarms().getValue() <= 0)
+									ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 14*1440);
+								intervalEdit.enable(req);
+							}
+						}
+					};
+					blockingDrop.setDefaultItems(valuesToSetBlock.values());
+					blockingDrop.registerDependentWidget(intervalEdit);
+					row.addCell(WidgetHelper.getValidWidgetId("Block"), blockingDrop);*/
+				}
 				Button releaseBut;
 				if(res.assigned().isActive() &&
 						(res.assigned().getValue() > 0)) {
@@ -268,7 +270,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					butConfirm.setConfirmMsg("Really delete issue assigned to "+AlarmingConfigUtil.assignedText(res.assigned().getValue())+"?", req);
 					releaseBut = butConfirm;
 					releaseBut.setText("Release", req);
-				} else {
+				} else if(res.exists()) {
 					releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -277,6 +279,18 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							//res.ongoingAlarmStartTime().setValue(-1);
 						}
 					};
+				} else {
+					releaseBut = new Button(mainTable, "releaseBut"+id, "Create", req) {
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							res.create();
+							long now = appMan.getFrameworkTime();
+							ValueResourceHelper.setCreate(res.ongoingAlarmStartTime(), now);
+							ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
+							res.activate(true);
+						}
+					};
+					releaseBut.addDefaultStyle(ButtonData.BOOTSTRAP_ORANGE);
 				}
 				row.addCell("Release", releaseBut);
 				
@@ -305,9 +319,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		List<InstallAppDevice> result = new ArrayList<>();
 		for(InstallAppDevice dev: all) {
 			if(dev.knownFault().exists()) { // && dev.knownFault().ongoingAlarmStartTime().getValue() > 0) {
-				int[] actAlarms = AlarmingConfigUtil.getActiveAlarms(dev);
-				if(actAlarms[1] > 0)
-					result.add(dev);
+				//int[] actAlarms = AlarmingConfigUtil.getActiveAlarms(dev);
+				//if(actAlarms[1] > 0)
+				result.add(dev);
 			}
 		}
 		return result;		
