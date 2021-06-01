@@ -80,6 +80,9 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		triggerPageBuild();
 	}
 
+	protected void addAdditionalWidgets(AlarmConfiguration sr,
+			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
+			Row row, ApplicationManager appMan) {}
 
 	@Override
 	protected void addWidgetsBeforeMultiSelect(AlarmConfiguration sr,
@@ -183,6 +186,8 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 				text = "Outside Limit("+val+")";
 			vh.stringLabel("Status", id, text, row);
 		}
+		
+		addAdditionalWidgets(sr, vh, id, req, row, appMan);
 	}
 
 

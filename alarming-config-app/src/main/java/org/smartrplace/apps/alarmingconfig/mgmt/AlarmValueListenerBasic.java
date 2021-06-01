@@ -58,13 +58,14 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		upper = ac.upperLimit().getValue();
 		lower = ac.lowerLimit().getValue();
 		retard = (int) (ac.maxViolationTimeWithoutAlarm().getValue()*60000);
-		vl.resendRetard = (int)(ac.alarmRepetitionTime().getValue()*60000);
+		int resendRetardLoc = (int)(ac.alarmRepetitionTime().getValue()*60000);
+		vl.init(ac, resendRetardLoc);
 		this.ac = ac;
 		this.vl = vl;
 		vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
 		String[] exts = ac.alarmingExtensions().getValues();
-		if(ac.sensorVal().exists() ) { //&& ac.supervisedSensor().reading() instanceof SingleValueResource) {
-			//SingleValueResource target = ac.sensorVal();
+		if(ac.sensorVal().exists() ) {
+			//Should always be the case here
 			if(exts != null) for(String ext: exts) {
 				AlarmingExtension extDef = appManPlus.dpService().alarming().getAlarmingExtension(ext);
 				if(extDef == null)
@@ -86,7 +87,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		this.upper = upper;
 		this.lower = lower;
 		this.retard = retard;
-		vl.resendRetard = resendRetard;
+		//vl.resendRetard = resendRetard;
+		vl.init(ac, resendRetard);
 		this.vl = vl;
 		this.ac = ac;
 		vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
@@ -134,7 +136,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 							executeAlarm(ac, result.message(), alarmStatus, result.alarmValue(), ext.sourceExtension());
 							//data.isAlarmActive = true;
 							data.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
-								vl.resendRetard;
+								vl.resendRetard();
 							data.timer = null;
 						}
 					};
@@ -158,7 +160,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 						executeAlarm(ac, value, upper, lower, alarmStatus);
 						vl.isAlarmActive = true;
 						vl.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
-							vl.resendRetard;
+							vl.resendRetard();
 						vl.timer = null;
 					}
 				};

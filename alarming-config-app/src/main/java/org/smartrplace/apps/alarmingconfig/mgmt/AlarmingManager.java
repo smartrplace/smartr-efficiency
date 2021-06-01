@@ -290,7 +290,7 @@ public class AlarmingManager {
 
 				if((!vl.isNoValueAlarmActive) || (now > vl.nextTimeNoValueAlarmAllowed)) {
 					vl.isNoValueAlarmActive = true;
-					vl.nextTimeNoValueAlarmAllowed = now +	vl.resendRetard;
+					vl.nextTimeNoValueAlarmAllowed = now +	vl.resendRetard();
 					boolean noMessage = sendNoValueMessageOrRelease(vl, now, false);
 					if(vl.res != null) {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.res);
