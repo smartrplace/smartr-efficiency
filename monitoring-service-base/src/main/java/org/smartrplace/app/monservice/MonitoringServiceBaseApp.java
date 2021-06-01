@@ -50,6 +50,7 @@ import org.smartrplace.driverhandler.more.KnownIssueDataHandler;
 import org.smartrplace.driverhandler.more.MemoryTsPSTHandler;
 import org.smartrplace.driverhandler.more.VirtualTestDeviceHandler;
 import org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler;
+import org.smartrplace.homematic.devicetable.CO2SensorHmHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
 import org.smartrplace.homematic.devicetable.OnOffSwitch_DeviceHandler;
@@ -227,6 +228,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srWall = null;
 	private WallThermostatHandler devHandWall;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srCO2Hm = null;
+	private CO2SensorHmHandler devHandCO2Hm;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -350,6 +354,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srVirtThOnOff = bc.registerService(DeviceHandlerProvider.class, devHandVirtThOnOff, null);
 	   devHandWall = new WallThermostatHandler(controller.appManPlus);
 	   srWall = bc.registerService(DeviceHandlerProvider.class, devHandWall, null);
+	   devHandCO2Hm = new CO2SensorHmHandler(controller.appManPlus);
+	   srCO2Hm = bc.registerService(DeviceHandlerProvider.class, devHandCO2Hm, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -399,6 +405,7 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srThValve!= null) srThValve.unregister();
     	if (srVirtThOnOff!= null) srVirtThOnOff.unregister();
     	if (srWall!= null) srWall.unregister();
+    	if (srCO2Hm!= null) srCO2Hm.unregister();
 
     	if (srVirtDpRes != null) srVirtDpRes.unregister();
     	if (srVirtTest != null) srVirtTest.unregister();

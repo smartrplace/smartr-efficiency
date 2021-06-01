@@ -17,6 +17,7 @@ package org.smartrplace.homematic.devicetable;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -36,6 +37,10 @@ public class OnOffSwitchPattern extends ResourcePattern<OnOffSwitch> {
 	@Override
 	public boolean accept() {
 		Resource parent = model.getParent();
+		if(model.getName().startsWith("VIRTUAL_SWITCH_FEEDBACK_"))
+			return false;
+		if(DeviceTableRaw.isCO2SensorHm(model.getLocation()))
+			return false;
 		if(parent == null || parent.getResourceType().getSimpleName().equals("HmDevice"))
 			return true;
 		if(model.getName().toLowerCase().startsWith("installationmode"))

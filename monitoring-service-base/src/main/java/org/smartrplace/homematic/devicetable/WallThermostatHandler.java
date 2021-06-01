@@ -167,7 +167,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 		return "H";
 	}
 	
-	private static <S extends Resource> ResourceDropdown<S> referenceDropdownFixedChoice(String widgetId, final List<S> destinations, String altId,
+	public static <S extends Resource> ResourceDropdown<S> referenceDropdownFixedChoice(String widgetId, final List<S> destinations, String altId,
 			final Map<S, String> valuesToSet, final Class<S> resourceType, OgemaWidget mainTable, OgemaHttpRequest req) {
 		@SuppressWarnings("serial")
 		ResourceDropdown<S> myDrop = new ResourceDropdown<S>(mainTable, widgetId, req) {

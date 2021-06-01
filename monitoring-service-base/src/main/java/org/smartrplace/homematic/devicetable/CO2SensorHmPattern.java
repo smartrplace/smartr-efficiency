@@ -3,9 +3,10 @@ package org.smartrplace.homematic.devicetable;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.devices.buildingtechnology.Thermostat;
+import org.ogema.model.sensors.CO2Sensor;
 
-public class TemperatureOrHumiditySensorPattern extends ResourcePattern<SensorDevice> { 
+public class CO2SensorHmPattern extends ResourcePattern<CO2Sensor> { 
 	
 	/**
 	 * Device name. Only devices whose "name"
@@ -18,16 +19,12 @@ public class TemperatureOrHumiditySensorPattern extends ResourcePattern<SensorDe
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public TemperatureOrHumiditySensorPattern(Resource device) {
+	public CO2SensorHmPattern(Resource device) {
 		super(device);
 	}
 
 	@Override
 	public boolean accept() {
-		if(DeviceTableRaw.isWallThermostat(model.getLocation()))
-			return false;
-		if(DeviceTableRaw.isCO2SensorHm(model.getLocation()))
-			return false;
-		return DeviceTableRaw.isTempHumSens(model.getLocation());
+		return DeviceTableRaw.isCO2SensorHm(model.getLocation());
 	}
 }
