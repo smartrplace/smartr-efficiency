@@ -190,8 +190,10 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 			0.0f, 1.0f, 1, 20);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
 				0.0f, 4000.0f, 10, 20);
-		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().voltageSensor().reading(),
-				180f, 350f, 10, 20);
+		//AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().voltageSensor().reading(),
+		//		180f, 350f, 10, 20);
+		//For tasmota voltage zero is sent when switch is off
+		AlarmingUtiH.setAlarmingActiveStatus(appDevice, device.electricityConnection().voltageSensor().reading(), false);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().frequencySensor().reading(),
 				49.8f, 50.2f, 1, 20);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
