@@ -23,12 +23,18 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
+import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.expert.plottest.ScheduleViewerTest;
+import org.smartrplace.apps.hw.install.gui.ScheduleViewerConfigProvHW;
+import org.smartrplace.apps.hw.install.gui.MainPage.GetPlotButtonResult;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
@@ -224,7 +230,13 @@ public class ConfigurationPageHWInstall {
 				new ValueResourceDropdown<IntegerResource>(page, "extendedViewModeDrop", app.appConfigData.extendedViewMode(),
 				Arrays.asList(new String[] {"No extended view", "master only (no extended pages)", "All users based on permissions"}));
 		
-		StaticTable configTable = new StaticTable(18, 2);
+		Datapoint dp = controller.dpService.getDataPointStandard("Gateway_Device/systemRestart");
+		DefaultScheduleViewerConfigurationProviderExtended schedViewProv = ScheduleViewerConfigProvHW.getInstance();
+		final ScheduleViewerOpenButton testPlot = ScheduleViewerTest.getPlotButton(page, "testPlot",
+				controller.dpService, controller.appMan, Arrays.asList(new Datapoint[] {dp}), schedViewProv);
+		
+		
+		StaticTable configTable = new StaticTable(19, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -321,6 +333,8 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<FloatResource> maxWritePerCCUperHourEdit =
 				new ValueResourceTextField<FloatResource>(page, "maxWritePerCCUperHourEdit", maxWritePerCCUperHour);
 		configTable.setContent(i, 0, "Maximum Setpoint writes per hour before limit:").setContent(i, 1, maxWritePerCCUperHourEdit);
+		i++;
+		configTable.setContent(i, 0, "Test Plot:").setContent(i, 1, testPlot);
 		i++;
 
 		page.append(configTable);

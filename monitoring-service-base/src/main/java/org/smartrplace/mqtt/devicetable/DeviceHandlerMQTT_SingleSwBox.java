@@ -198,4 +198,9 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 				49.8f, 50.2f, 1, 20);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
+	
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
 }
