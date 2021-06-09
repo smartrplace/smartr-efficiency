@@ -13,6 +13,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
@@ -129,6 +130,14 @@ public class AlarmingManager {
 		for(AlarmConfiguration ac: configs) {
 			if(!ac.sensorVal().exists())
 				continue; //we perform cleanup somewhere else
+			Resource parent = ac.getParent();
+			if(parent != null &&  (parent instanceof ResourceList)) {
+				parent = parent.getParent();
+				if(parent != null &&  (parent instanceof InstallAppDevice)) {
+					if(((InstallAppDevice)parent).isTrash().getValue())
+						continue;
+				}
+			}
 			if((!ac.sendAlarm().getValue())) {
 				try  {
 					IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal());
