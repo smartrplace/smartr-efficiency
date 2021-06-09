@@ -326,7 +326,7 @@ public class AlarmingUtiH {
 		CommunicationStatus comStat = dev.getSubResource("communicationStatus", CommunicationStatus.class);
 		if(comStat.isActive()) {
 			AlarmingUtiH.setTemplateValues(appDevice, comStat.quality(),
-					0.1f, 1.0f, 30, DEFAULT_NOVALUE_MINUTES);
+					0.05f, 1.0f, 30, DEFAULT_NOVALUE_MINUTES);
 		}
 	}
 	

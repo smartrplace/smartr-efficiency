@@ -201,6 +201,6 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 	
 	@Override
 	public String getInitVersion() {
-		return "A";
+		return "B";
 	}
 }
