@@ -295,7 +295,7 @@ public class AlarmingUtiH {
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
 		if(batteryStatus != null && batteryStatus.exists())
 			AlarmingUtiH.setTemplateValues(appDevice, batteryStatus,
-					0.0f, 0.0f, 10, -1);
+					0.0f, 0.0f, 10, -1, DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES);
 		//BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(dev,
 		//		"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
 		//if(comDisturbed != null && comDisturbed.exists())
