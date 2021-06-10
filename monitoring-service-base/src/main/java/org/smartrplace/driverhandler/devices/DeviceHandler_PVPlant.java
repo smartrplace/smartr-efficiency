@@ -19,6 +19,8 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.generators.PVPlant;
 import org.ogema.model.sensors.ElectricPowerSensor;
 import org.ogema.model.sensors.PowerSensor;
+import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
+import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -166,9 +168,9 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 	
-	/** We are using this for configuration*/
 	@Override
-	public String getDeviceTypeShortId(InstallAppDevice device, DatapointService dpService) {
+	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device, PVPlant deviceResource,
+			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
 		if((device != null) &&
 				((!device.installationLocation().exists()) || device.installationLocation().getValue().isEmpty())) {			
 			String devName = device.device().getLocationResource().getName();
@@ -181,6 +183,11 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 			//	defaultSubLoc = "PVPlant";				
 			//ValueResourceHelper.setCreate(device.installationLocation(), defaultSubLoc);
 		}
+		return null;
+	}
+
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "PVP";
 	}
 }

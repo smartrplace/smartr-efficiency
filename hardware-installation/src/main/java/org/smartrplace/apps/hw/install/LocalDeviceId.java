@@ -32,7 +32,7 @@ public abstract class LocalDeviceId {
 
 		final String typeId;
 		if (tableProvider != null) {
-			typeId = tableProvider.getDeviceTypeShortId(dev, dpService);
+			typeId = tableProvider.getDeviceTypeShortId(dpService);
 		} else {
 			// Fall back to default id generation.
 			// Improvement:  Always provide a non-null tableProvider so we can

@@ -194,7 +194,7 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 	}
 	
 	@Override
-	public String getDeviceTypeShortId(InstallAppDevice device, DatapointService dpService) {
+	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "TH";
 	}
 

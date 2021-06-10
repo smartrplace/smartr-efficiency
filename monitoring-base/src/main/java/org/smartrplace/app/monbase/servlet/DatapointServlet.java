@@ -4,11 +4,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.units.PhysicalUnit;
+import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.util.DpGroupUtil;
 import org.smartrplace.app.monbase.MonitoringController;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.ServletSubDataProvider;
@@ -18,6 +24,7 @@ import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
 import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
@@ -40,6 +47,65 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 	public Map<String, ServletValueProvider> getProviders(Datapoint object, String user, Map<String, String[]> parameters) {
 		Map<String, ServletValueProvider> result = new HashMap<>();
 		
+		DPRoom dpRoom = object.getRoom();
+		int roomIdInt = -3;
+		if(dpRoom != null) {
+			roomIdInt = dpRoom.getLocation().hashCode();
+		}
+
+		GaRoDataType garo = object.getGaroDataType();
+		String typeId = null;
+		if(garo != null) {
+			typeId = garo.id();
+		}
+		
+		int deviceIdInt = -5;
+		InstallAppDevice iad = null;
+		if(object.getResource() != null) {
+			iad = DpGroupUtil.getInstallAppDeviceForSubCashed(object.getResource(), controller.appMan);
+			if(iad != null)
+				deviceIdInt = iad.getLocation().hashCode();
+		}
+		
+		if(!UserServletUtil.isPOST(parameters)) {
+			//perform filtering
+			String roomFilter = UserServlet.getParameter("room", parameters);
+			if(roomFilter != null) {
+				if(dpRoom == null)
+					return null;
+				int roomFilterId;
+				try {
+					roomFilterId = Integer.parseInt(roomFilter);
+				} catch(NumberFormatException e) {
+					roomFilterId = roomFilter.hashCode();
+				}
+				if(roomIdInt != roomFilterId)
+					return null;
+			}
+			
+			String dpTypeFilter = UserServlet.getParameter("type", parameters);
+			if(dpTypeFilter != null) {
+				if(garo == null)
+					return null;
+				if(!dpTypeFilter.equals(typeId))
+					return null;
+			}
+			
+			String deviceFilter = UserServlet.getParameter("device", parameters);
+			if(deviceFilter != null) {
+				if(iad == null)
+					return null;
+				int deviceFilterId;
+				try {
+					deviceFilterId = Integer.parseInt(deviceFilter);
+				} catch(NumberFormatException e) {
+					deviceFilterId = deviceFilter.hashCode();
+				}
+				if(deviceIdInt != deviceFilterId)
+					return null;
+			}
+		}
+
 		String locationStr;
 		if(object.isLocal()) {
 			locationStr = object.getLocation();
@@ -64,17 +130,31 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			ServletStringProvider labelLocale = new ServletStringProvider(object.label(locale));
 			result.put("labelLocale", labelLocale);
 		}
-		ServletStringProvider type = new ServletStringProvider(object.getTypeName(null));
+		String typeName = object.getTypeName(null);
+		ServletStringProvider type = new ServletStringProvider(typeName);
 		result.put("type", type);
+		if(garo != null) {
+			ServletStringProvider typeGaro = new ServletStringProvider(typeId);
+			result.put("typeId", typeGaro);
+		}
 		ServletStringProvider roomName = new ServletStringProvider(object.getRoomName(locale));
 		result.put("roomName", roomName);
-		DPRoom dpRoom = object.getRoom();
 		if(dpRoom != null) {
-			ServletNumProvider roomId = new ServletNumProvider(dpRoom.getLocation().hashCode());
+			ServletNumProvider roomId = new ServletNumProvider(roomIdInt);
 			result.put("roomId", roomId);
 		}
 		ServletStringProvider subLocation = new ServletStringProvider(object.getSubRoomLocation(null, null));
 		result.put("subLocation", subLocation);
+		
+		if(iad != null) {
+			ServletNumProvider deviceId = new ServletNumProvider(iad.getLocation().hashCode());
+			result.put("deviceId", deviceId);
+		}
+		if(object.getResource() != null && (object.getResource() instanceof PhysicalUnitResource)) {
+			PhysicalUnit unit = ((PhysicalUnitResource)object.getResource()).getUnit();
+			ServletStringProvider unitProv = new ServletStringProvider(unit.toString());
+			result.put("unit", unitProv);
+		}
 		
 		if(!UserServletUtil.isDepthTimeSeries(parameters))
 			return result;

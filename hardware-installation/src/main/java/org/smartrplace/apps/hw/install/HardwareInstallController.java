@@ -398,7 +398,7 @@ public class HardwareInstallController {
 	    		DatapointGroup devType = dpService.getGroup(tableProvider.id());
 	    		devType.setLabel(null, tableProvider.label(null));
 	    		devType.setType("DEVICE_TYPE");
-	    		String devTypeShort = tableProvider.getDeviceTypeShortId(null, dpService);
+	    		String devTypeShort = tableProvider.getDeviceTypeShortId(dpService);
 	    		devType.setParameter(DatapointGroup.DEVICE_TYPE_SHORT_PARAM, devTypeShort);
 	    		//devType.setParameter("PROVIDER", provider);
 	    	}
