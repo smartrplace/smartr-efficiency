@@ -450,6 +450,8 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 							continue;
 					}
 					float destValue = isBack?(setp.setp.getValue()+0.5f):(setp.setp.getValue()-0.5f);
+					if(destValue < (273.15f+4.5f))
+						destValue = 273.15f+5.0f;
 					if(setp.hmMan != null)
 						setp.hmMan.requestSetpointWrite(setp.setp, destValue, SetpointControlManager.CONDITIONAL_PRIO);
 					else
