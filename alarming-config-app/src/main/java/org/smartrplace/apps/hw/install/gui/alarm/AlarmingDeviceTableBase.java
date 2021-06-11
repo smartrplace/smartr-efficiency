@@ -24,6 +24,7 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
@@ -101,56 +102,78 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 				Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);
 				if(templateStatus == null)
 					throw new IllegalStateException("Template status cannot be null!");
-				Button perm = new Button(mainTable, WidgetHelper.getValidWidgetId("perm_"+id), "", req) {
-					private static final long serialVersionUID = 1L;
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
-						if(object.equalsLocation(template)) {
+				Button perm;
+				if(object.equalsLocation(template)) {
+					ButtonConfirm permConf = new ButtonConfirm(mainTable, WidgetHelper.getValidWidgetId("perm_"+id), req) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
 							if(status == null)
 								throw new IllegalStateException("Template status cannot be null!");
 							setText(status ? "✓ Template": "✕ Templ.inactive", req);
 							if (status) {
 								setStyle(ButtonData.BOOTSTRAP_GREEN, req);
-								disable(req);
+								enable(req);
 							} else {
 								setStyle(ButtonData.BOOTSTRAP_RED, req);
-								enable(req);
+								disable(req);
 							}
 							setToolTip("Template is " + (status ? "active" : "inactive") + ".", req);
-							return;
 						}
-						if(templateStatus)
-							enable(req);
-						else
-							disable(req);
-						if (status == null) {
-							setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
-							setText("(✓ special)", req);
-							setToolTip("Alarming is " + "special.", req);
-							
-						} else {
-							//setGlyphicon(status ? Glyphicons.CHECK : Glyphicons.OFF, req);
-							setText(status ? "✓ active": "✕ inactive", req);
-							if (status) {
-								setStyle(ButtonData.BOOTSTRAP_GREEN, req);
-							} else {
-								setStyle(ButtonData.BOOTSTRAP_RED, req);
+						
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
+							MainPage.hasOpenCommits = true;
+							if(status == null || status) {
+								//disable all
+								AlarmingConfigUtil.disAbleAllOfTemplateType(devHand.id(), appManPlus);
+								AlarmingConfigUtil.deactivateAlarms(object);
 							}
-							setToolTip("Alarming is " + (status ? "active" : "inactive") + ".", req);
 						}
-					}
-					
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
-						MainPage.hasOpenCommits = true;
-						if(status == null || status)
-							AlarmingConfigUtil.deactivateAlarms(object);
-						else
-							AlarmingConfigUtil.copySettings(template, object, appManPlus.appMan(), false);
-					}
-				};
+					};
+					permConf.setDefaultConfirmMsg("Really set all devices of the type to inactive? Otherwise select another template first.");
+					perm = permConf;
+				} else {
+					perm = new Button(mainTable, WidgetHelper.getValidWidgetId("perm_"+id), "", req) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
+							if (status == null) {
+								setStyle(ButtonData.BOOTSTRAP_DEFAULT, req);
+								setText("(✓ special)", req);
+								setToolTip("Alarming is " + "special.", req);
+								
+							} else {
+								//setGlyphicon(status ? Glyphicons.CHECK : Glyphicons.OFF, req);
+								setText(status ? "✓ active": "✕ inactive", req);
+								if (status) {
+									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+								} else {
+									setStyle(ButtonData.BOOTSTRAP_RED, req);
+									if(templateStatus)
+										enable(req);
+									else
+										disable(req);
+								}
+								setToolTip("Alarming is " + (status ? "active" : "inactive") + ".", req);
+							}
+						}
+						
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							Boolean status = AlarmingConfigUtil.getAlarmingStatus(template, object);
+							MainPage.hasOpenCommits = true;
+							if(status == null || status) {
+								AlarmingConfigUtil.deactivateAlarms(object);
+							} else {
+								AlarmingConfigUtil.copySettings(template, object, appManPlus.appMan(), false);							
+							}
+						}
+					};
+				}
 				row.addCell(WidgetHelper.getValidWidgetId("Alarm Control"), perm);
 				perm.registerDependentWidget(perm);
 				perm.registerDependentWidget(commitButton);
