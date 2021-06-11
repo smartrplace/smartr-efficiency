@@ -266,7 +266,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public String getInitVersion() {
-		return "I";
+		return "J";
 	}
 	
 	public static Thermostat initAlarmingForDeviceThermostatCommon(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
@@ -274,7 +274,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		Thermostat device = (Thermostat) appDevice.device().getLocationResource();
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().settings().setpoint(),
-				4.5f, 30.5f, 1, 1500);
+				4.5f, 30.5f, 1, 28*1440);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
 				4.5f, 30.5f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
