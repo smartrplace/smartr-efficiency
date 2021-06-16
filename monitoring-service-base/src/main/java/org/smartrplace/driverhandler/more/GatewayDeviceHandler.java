@@ -198,7 +198,15 @@ public class GatewayDeviceHandler extends DeviceHandlerBase<GatewayDevice> {
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			GatewayDevice deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
 		if(!deviceResource.networkTrafficData().exists()) {
-			Resource networkTraffic = appMan.appMan().getResourceAccess().getResource("NetworkTrafficData");
+			Resource networkTraffic;
+			if(deviceResource.getLocation().startsWith("serverMirror")) {
+				String[] parts = deviceResource.getLocation().split("/mirrorDevices/");
+				if(parts.length == 2)
+					networkTraffic = appMan.appMan().getResourceAccess().getResource(parts[0]+"/mirrorDevices/NetworkTrafficData");
+				else
+					networkTraffic = null;
+			} else
+				networkTraffic = appMan.appMan().getResourceAccess().getResource("NetworkTrafficData");
 			if(networkTraffic != null && networkTraffic.exists() && (networkTraffic instanceof ResourceList)) {
 				if(((ResourceList<?>)networkTraffic).getElementType() == null) {
 					((ResourceList<?>)networkTraffic).setElementType(NetworkTrafficData.class);

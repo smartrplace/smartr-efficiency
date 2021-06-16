@@ -187,20 +187,20 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 		appDevice.alarms().create();
 		SingleSwitchBox device = (SingleSwitchBox) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.onOffSwitch().stateFeedback(),
-			0.0f, 1.0f, 1, 20);
+			0.0f, 1.0f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
-				0.0f, 4000.0f, 10, 20);
+				0.0f, 4000.0f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		//AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().voltageSensor().reading(),
 		//		180f, 350f, 10, 20);
 		//For tasmota voltage zero is sent when switch is off
 		AlarmingUtiH.setAlarmingActiveStatus(appDevice, device.electricityConnection().voltageSensor().reading(), false);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().frequencySensor().reading(),
-				49.8f, 50.2f, 1, 20);
+				49.8f, 50.2f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 	
 	@Override
 	public String getInitVersion() {
-		return "B";
+		return "C";
 	}
 }
