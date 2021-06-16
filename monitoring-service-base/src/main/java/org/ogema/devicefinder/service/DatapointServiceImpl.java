@@ -29,12 +29,14 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.api.GatewayResource;
+import org.ogema.devicefinder.api.TimedJobMgmtService;
 import org.ogema.devicefinder.api.VirtualScheduleService;
 import org.ogema.devicefinder.util.AlarmingServiceImpl;
 import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointGroupImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DpConnectionImpl;
+import org.ogema.devicefinder.util.TimedJobMgmtServiceImpl;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -601,6 +603,16 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	public AlarmingService alarming() {
 		return alarming;
 	}
+	
+	TimedJobMgmtService timedJobMan = null;
+	@Override
+	public TimedJobMgmtService timedJobService() {
+		if(timedJobMan == null) {
+			timedJobMan = new TimedJobMgmtServiceImpl(appMan);
+		}
+		return timedJobMan;
+	}
+	
 	
 	OSGiConfigAccessService configService;
 	@Override

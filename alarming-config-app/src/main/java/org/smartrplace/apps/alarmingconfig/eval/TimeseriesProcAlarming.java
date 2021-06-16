@@ -16,7 +16,6 @@ import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingleArg;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcessor;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtilBase;
-import org.smartrplace.apps.alarmingconfig.model.eval.EvaluationByAlarmingOption;
 import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 
 public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase {

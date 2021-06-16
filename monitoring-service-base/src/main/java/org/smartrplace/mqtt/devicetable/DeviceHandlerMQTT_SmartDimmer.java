@@ -196,4 +196,8 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 		AlarmingUtiH.addAlarmingMQTT(maindev, appDevice);
 	}
 
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "SDIM";
+	}
 }

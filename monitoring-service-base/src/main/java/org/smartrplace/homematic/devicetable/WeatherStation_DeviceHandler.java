@@ -9,6 +9,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.AngleSensor;
@@ -63,4 +64,8 @@ public class WeatherStation_DeviceHandler extends DeviceHandlerSimple<SensorDevi
 		return WeatherStation_SensorDevicePattern.class;
 	}
 
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "WST";
+	}
 }

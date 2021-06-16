@@ -132,4 +132,9 @@ public class DeviceHandlerDpRes extends DeviceHandlerBase<SensorDeviceDpRes> {
 		}
 		return result;
 	}
+
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "VCD";
+	}
 }

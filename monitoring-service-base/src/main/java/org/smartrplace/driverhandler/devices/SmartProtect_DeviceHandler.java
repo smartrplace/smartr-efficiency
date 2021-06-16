@@ -10,6 +10,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
@@ -82,4 +83,8 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 		return SmartProtect_SensorDevicePattern.class;
 	}
 
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "SPD";
+	}
 }

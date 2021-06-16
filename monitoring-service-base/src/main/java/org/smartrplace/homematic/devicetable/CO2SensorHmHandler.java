@@ -174,4 +174,9 @@ public class CO2SensorHmHandler extends DeviceHandlerSimple<CO2Sensor> {
 	public String getInitVersion() {
 		return "B";
 	}
+
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "COS";
+	}
 }

@@ -9,6 +9,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.devices.sensoractordevices.WindSensor;
@@ -71,4 +72,8 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 		return OpenWeatherMapBigBlueRoomPattern.class;
 	}
 
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "WSRV";
+	}
 }

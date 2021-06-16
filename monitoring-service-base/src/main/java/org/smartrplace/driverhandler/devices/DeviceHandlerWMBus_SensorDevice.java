@@ -121,4 +121,9 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 		}
 		return result;
 	}
+	
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "WMBS";
+	}
 }

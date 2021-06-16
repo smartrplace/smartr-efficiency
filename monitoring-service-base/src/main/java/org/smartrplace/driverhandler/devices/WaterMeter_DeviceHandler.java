@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.TemperatureSensor;
@@ -50,4 +51,8 @@ public class WaterMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> 
 		return WaterMeter_SensorDevicePattern.class;
 	}
 
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "WTMT";
+	}
 }
