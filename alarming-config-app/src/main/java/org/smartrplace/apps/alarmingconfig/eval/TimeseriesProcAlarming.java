@@ -15,10 +15,10 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingleArg;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcessor;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtilBase;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtilBase3;
 import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 
-public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase {
+public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 	public static final String GAP_EVAL = "GAP_EVAL";
 	public static final String OUTVALUE_EVAL = "OUTVALUE_EVAL";
 	public static final String SETPREACT_EVAL = "SETPREACT_EVAL";

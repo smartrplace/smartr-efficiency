@@ -10,6 +10,7 @@ import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -27,55 +28,92 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 		super(page, appManPlus.appMan(), null);
 		this.appManPlus = appManPlus;
 		this.dpService = appManPlus.dpService();
+		triggerPageBuild();
 	}
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "Timed Jobs on the system";
+		return "Evaluation and Timed Jobs Overview";
 	}
 	
 	@Override
 	public void addWidgets(final TimedJobMemoryData object, ObjectResourceGUIHelper<TimedJobMemoryData, TimedJobConfig> vh, String id,
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
+		addNameLabel(object, vh, id, row, req);
 		if(req == null) {
 			vh.registerHeaderEntry("ID");
 			vh.registerHeaderEntry("Last start");
 			vh.registerHeaderEntry("Last duration");
+			vh.registerHeaderEntry("Scheduled");
 			vh.registerHeaderEntry("Interval (min)");
 			vh.registerHeaderEntry("Aligned interval");
 			vh.registerHeaderEntry("Init run after");
 			vh.registerHeaderEntry("Disable");
 			vh.registerHeaderEntry("Type");
 			vh.registerHeaderEntry("Start");
+			vh.registerHeaderEntry("Once");
 			vh.registerHeaderEntry("Reset");
 			return;
 		}
-		vh.stringLabel("ID", id, object.prov.id(), row);
-		vh.timeLabel("Last start", id, object.lastRunStart, row, 0);
-		vh.timeLabel("Last duration", id, object.lastRunDuration, row, 3);
-		vh.floatEdit("Interval (min)", id, object.res.interval(), row, alert, 0, Float.MAX_VALUE, "Negative values not allowed!", 0);
-		vh.dropdown("Aligned interval", id, object.res.alignedInterval(), row, AbsoluteTiming.INTERVAL_NAME_MAP);
-		vh.floatEdit("Init run after", id, object.res.performOperationOnStartUpWithDelay(), row, alert,
+		vh.stringLabel("ID", id, object.prov().id(), row);
+		vh.timeLabel("Last start", id, object.lastRunStart(), row, 0);
+		vh.timeLabel("Last duration", id, object.lastRunDuration(), row, 3);
+		final boolean timerActive = object.isTimerActive();
+		if(timerActive)
+			vh.timeLabel("Scheduled", id, object.nextScheduledStart(), row, 0);
+		vh.floatEdit("Interval (min)", id, object.res().interval(), row, alert, 0, Float.MAX_VALUE, "Negative values not allowed!", 0);
+		vh.dropdown("Aligned interval", id, object.res().alignedInterval(), row, AbsoluteTiming.INTERVAL_NAME_MAP);
+		vh.floatEdit("Init run after", id, object.res().performOperationOnStartUpWithDelay(), row, alert,
 				-1, Float.MAX_VALUE, "Values below -1 not allowed!");
-		vh.booleanEdit("Disable", id, object.res.disable(), row);
-		String type = object.prov.evalJobType()<=0?"Base":("Eval"+object.prov.evalJobType());
+		vh.booleanLabel("Disable", id, object.res().disable(), row, 0);
+		String type = object.prov().evalJobType()<=0?"Base":("Eval"+object.prov().evalJobType());
 		vh.stringLabel("Type", id, type, row);
-		if(object.prov.isRunning()) {
-			vh.stringLabel("Start", id, "Running", row);
+		
+		Button startButton;
+		if((!timerActive) && (!object.canTimerBeActivated())) {
+			startButton = new Button(mainTable, "startBut"+id, "Interval too short", req);
+			startButton.disable(req);
 		} else {
-			Button startButton = new Button(mainTable, "startBut"+id, "Start", req) {
+			startButton = new Button(mainTable, "startBut"+id, timerActive?"Stop Timer":"Start timer", req) {
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					object.executeNonBlocking(appMan);
+					if(timerActive) {
+						ValueResourceHelper.setCreate(object.res().disable(), true);
+						object.stopTimerIfRunning();
+						alert.showAlert("Stopped timer for service "+object.prov().label(req.getLocale()), true, req);
+					}
+					else {
+						object.res().disable().setValue(false);
+						int result = object.startTimerIfNotStarted();
+						if(result == 0)
+							alert.showAlert("Started timer for service "+object.prov().label(req.getLocale()), true, req);
+						else
+							alert.showAlert("Could not start timer for service "+object.prov().label(req.getLocale())+" ("+result+")", true, req);
+					}
 				}
 			};
-			row.addCell("Start", startButton);
+		}
+		startButton.registerDependentWidget(alert);
+		row.addCell("Start", startButton);
+				
+		if(object.isRunning()) {
+			vh.stringLabel("Start", id, "Running", row);
+		} else if(object.triggeredForExecutionOnceOutsideTime()) {
+			vh.stringLabel("Start", id, "Once-trigger waiting", row);				
+		} else {
+			Button onceButton = new Button(mainTable, "onceBut"+id, "Trigger once", req) {
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					object.executeNonBlockingOnce();
+				}
+			};
+			row.addCell("Once", onceButton);
 			
 			ButtonConfirm resetButton = new ButtonConfirm(mainTable, "resetBut"+id, req) {
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					dpService.timedJobService().unregisterTimedJobProvider(object.prov);
-					object.res.delete();
+					dpService.timedJobService().unregisterTimedJobProvider(object.prov());
+					object.res().delete();
 				}
 			};
 			resetButton.setDefaultText("Reset");
@@ -91,13 +129,16 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 
 	@Override
 	protected String getLabel(TimedJobMemoryData obj, OgemaHttpRequest req) {
-		return obj.prov.label(req.getLocale());
+		return obj.prov().label(req.getLocale());
 	}
 
 	@Override
 	public Collection<TimedJobMemoryData> getObjectsInTable(OgemaHttpRequest req) {
-		// TODO Auto-generated method stub
-		return null;
+		return dpService.timedJobService().getAllProviders();
 	}
 
+	@Override
+	public String getLineId(TimedJobMemoryData object) {
+		return object.prov().id();
+	}
 }

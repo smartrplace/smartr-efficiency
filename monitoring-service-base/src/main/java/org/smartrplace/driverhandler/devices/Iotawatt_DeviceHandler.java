@@ -11,7 +11,6 @@ import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.FloatResource;
-import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.EnergyResource;
@@ -27,7 +26,7 @@ import org.ogema.recordeddata.DataRecorder;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
@@ -47,6 +46,8 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 @SuppressWarnings("serial")
 public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectricityConnection> {
 
+	public static final long VIRTUAL_SENSOR_UPDATE_RATE = 3*TimeProcUtil.MINUTE_MILLIS;
+
 	private final VirtualSensorKPIMgmt utilAggSubPhases;
 
 	protected final ApplicationManagerPlus appManPlus;
@@ -55,7 +56,8 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 		super(appMan, true);
 		this.appManPlus = appMan;
 		utilAggSubPhases = new VirtualSensorKPIMgmt(
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.getLogger(), appMan.dpService()) {
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 2, VIRTUAL_SENSOR_UPDATE_RATE),
+				appMan.getLogger(), appMan.dpService()) {
 			
 			@Override
 			public SingleValueResource getAndConfigureValueResourceSingle(Datapoint dpSource, VirtualSensorKPIDataBase mapData,

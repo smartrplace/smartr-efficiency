@@ -36,7 +36,6 @@ import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointGroupImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DpConnectionImpl;
-import org.ogema.devicefinder.util.TimedJobMgmtServiceImpl;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -80,9 +79,10 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 //@Service(DatapointService.class)
 //@Component
 public abstract class DatapointServiceImpl implements DatapointService {
-	public DatapointServiceImpl(ApplicationManager appMan, ConfigurationAdmin configAdmin) {
+	public DatapointServiceImpl(ApplicationManager appMan, ConfigurationAdmin configAdmin, TimedJobMgmtService timedJobApp) {
 		this.configAdmin = configAdmin;
 		this.appMan = appMan;
+		this.timedJobMan = timedJobApp;
 	}
 
 	protected abstract Map<String, DeviceHandlerProvider<?>> getTableProviders();
@@ -607,9 +607,9 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	TimedJobMgmtService timedJobMan = null;
 	@Override
 	public TimedJobMgmtService timedJobService() {
-		if(timedJobMan == null) {
-			timedJobMan = new TimedJobMgmtServiceImpl(appMan);
-		}
+		//if(timedJobMan == null) {
+		//	timedJobMan = new TimedJobMgmtServiceImpl(appMan);
+		//}
 		return timedJobMan;
 	}
 	

@@ -18,6 +18,7 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
+import org.ogema.devicefinder.api.TimedJobMgmtService;
 import org.ogema.devicefinder.service.DatapointServiceImpl;
 import org.ogema.recordeddata.DataRecorder;
 import org.osgi.framework.BundleContext;
@@ -107,6 +108,9 @@ public class MonitoringServiceBaseApp implements Application {
     @Reference
     DataRecorder dataRecorder;
 
+    @Reference
+    TimedJobMgmtService timedJobApp;
+    
 	//@Reference
 	//DatapointService dpService;
 	
@@ -266,7 +270,7 @@ public class MonitoringServiceBaseApp implements Application {
         log = appManager.getLogger();
 
         // 
-        dpService = new DatapointServiceImpl(appMan, configAdmin) {
+        dpService = new DatapointServiceImpl(appMan, configAdmin, timedJobApp) {
 
 			@Override
 			protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
