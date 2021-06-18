@@ -12,7 +12,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.DestType;
-import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.metering.special.FlowProbe;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.Sensor;
@@ -65,6 +65,13 @@ public class FlowScopeDevHandler extends DeviceHandlerSimple<FlowProbe> {
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		FlowProbe device = (FlowProbe) appDevice.device();
+		
+		if(Boolean.getBoolean("org.smartrplace.project.smFac1")) {
+			for(AlarmConfiguration alarm: appDevice.alarms().getAllElements()) {
+				alarm.sendAlarm().setValue(false);
+			}
+		}
+		
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperature().reading(),
 				200f, 350f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME);
 		AlarmingUtiH.setTemplateValues(appDevice, device.getSubResource("flowInSCFM", GenericFloatSensor.class).reading(),

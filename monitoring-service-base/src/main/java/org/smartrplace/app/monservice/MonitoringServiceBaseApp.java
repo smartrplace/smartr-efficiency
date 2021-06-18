@@ -42,15 +42,6 @@ import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.OpenWeatherMapBigBlueRoom_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
-import org.smartrplace.driverhandler.more.BacnetDeviceHandler;
-import org.smartrplace.driverhandler.more.DeviceHandlerDpRes;
-import org.smartrplace.driverhandler.more.GatewayDeviceHandler;
-import org.smartrplace.driverhandler.more.GatewaySuperiorHandler;
-import org.smartrplace.driverhandler.more.GhlWaterPondDeviceHandler;
-import org.smartrplace.driverhandler.more.KnownIssueDataHandler;
-import org.smartrplace.driverhandler.more.MemoryTsPSTHandler;
-import org.smartrplace.driverhandler.more.VirtualTestDeviceHandler;
-import org.smartrplace.driverhandler.more.VirtualThermostatDeviceHandler;
 import org.smartrplace.homematic.devicetable.CO2SensorHmHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
@@ -132,7 +123,7 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DatapointService> srDpservice = null;
 	DatapointServiceImpl dpService;
 
-	@SuppressWarnings("rawtypes")
+	/*@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srGwDev = null;
 	private GatewayDeviceHandler devHandGwDev;
 	@SuppressWarnings("rawtypes")
@@ -160,7 +151,7 @@ public class MonitoringServiceBaseApp implements Application {
 	private MemoryTsPSTHandler devHandPST;
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srKNI = null;
-	private KnownIssueDataHandler devHandKNI;
+	private KnownIssueDataHandler devHandKNI;*/
 
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srAircond = null;
@@ -286,7 +277,7 @@ public class MonitoringServiceBaseApp implements Application {
 	   
 	   srDpservice = bc.registerService(DatapointService.class, dpService, null);
 	   
-	   devHandGwDev = new GatewayDeviceHandler(controller.appManPlus);
+	   /*devHandGwDev = new GatewayDeviceHandler(controller.appManPlus);
 	   srGwDev = bc.registerService(DeviceHandlerProvider.class, devHandGwDev, null);
 	   devHandGwSup = new GatewaySuperiorHandler(controller.appManPlus);
 	   srGwSup = bc.registerService(DeviceHandlerProvider.class, devHandGwSup, null);
@@ -304,7 +295,7 @@ public class MonitoringServiceBaseApp implements Application {
 	   devHandPST = new MemoryTsPSTHandler(controller.appManPlus);
 	   srPST = bc.registerService(DeviceHandlerProvider.class, devHandPST, null);
 	   devHandKNI = new KnownIssueDataHandler(controller.appManPlus);
-	   srKNI = bc.registerService(DeviceHandlerProvider.class, devHandKNI, null);
+	   srKNI = bc.registerService(DeviceHandlerProvider.class, devHandKNI, null);*/
 
 	   devHandAircond = new DeviceHandlerMQTT_Aircond(controller.appManPlus);
 	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
@@ -383,16 +374,21 @@ public class MonitoringServiceBaseApp implements Application {
 
     	if (srDpservice != null) srDpservice.unregister();
     	
-    	if (srGwDev != null) srGwDev.unregister();
+    	/*if (srGwDev != null) srGwDev.unregister();
        	if (srGwSup != null) srGwSup.unregister();
+    	if (srGhl != null) srGhl.unregister();
+    	if (srBacnet != null) srBacnet.unregister();
+    	if (srVirtThOnOff!= null) srVirtThOnOff.unregister();
+    	if (srVirtDpRes != null) srVirtDpRes.unregister();
+    	if (srVirtTest != null) srVirtTest.unregister();
+       	if (srPST != null) srPST.unregister();
+       	if (srKNI != null) srKNI.unregister();*/
 
        	if (srAircond != null) srAircond.unregister();
     	if (srElecConn != null) srElecConn.unregister();
     	if (srSwBox != null) srSwBox.unregister();
     	if (srOnOff != null) srOnOff.unregister();
     	if (srPv != null) srPv.unregister();
-    	if (srGhl != null) srGhl.unregister();
-    	if (srBacnet != null) srBacnet.unregister();
     	if (srEnServ != null) srEnServ.unregister();
     	if (srCharge != null) srCharge.unregister();
     	if (srBat != null) srBat.unregister();
@@ -405,13 +401,9 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srFlowProbe!= null) srFlowProbe.unregister();
      	if (srTempSensSingle!= null) srTempSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
-    	if (srVirtThOnOff!= null) srVirtThOnOff.unregister();
     	if (srWall!= null) srWall.unregister();
     	if (srCO2Hm!= null) srCO2Hm.unregister();
 
-    	if (srVirtDpRes != null) srVirtDpRes.unregister();
-    	if (srVirtTest != null) srVirtTest.unregister();
-    	
     	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
     	if (srThermostat != null) srThermostat.unregister();
     	if (srTempHumSens != null) srTempHumSens.unregister();
@@ -423,9 +415,6 @@ public class MonitoringServiceBaseApp implements Application {
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
     	if (knxDriver != null) knxDriver.unregister();
        	if (srBeacon != null) srBeacon.unregister();
-
-       	if (srPST != null) srPST.unregister();
-       	if (srKNI != null) srKNI.unregister();
 
        	if (controller != null)
     		controller.close();
