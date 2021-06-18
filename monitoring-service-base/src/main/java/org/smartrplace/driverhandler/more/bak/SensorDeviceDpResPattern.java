@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.driverhandler.more;
+package org.smartrplace.driverhandler.more.bak;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.smartrplace.gateway.device.VirtualTestDevice;
+import org.smartrplace.apps.hw.install.dpres.SensorDeviceDpRes;
 
-public class VirtualTestDevicePattern extends ResourcePattern<VirtualTestDevice> { 
+public class SensorDeviceDpResPattern extends ResourcePattern<SensorDeviceDpRes> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public VirtualTestDevicePattern(Resource device) {
+	public SensorDeviceDpResPattern(Resource device) {
 		super(device);
 	}
 }

@@ -22,6 +22,7 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.DestType;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
@@ -59,18 +60,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		public RecordedDataStorage recStor;
 		
 	}
-	/*public static class EnergyAccumulationData {
-		public EnergyAccumulationData(TimeseriesSimpleProcUtil util, DataRecorder dataRecorder, Logger logger) {
-			this.util = util;
-			this.dataRecorder = dataRecorder;
-			this.logger = logger;
-		}
-		private final TimeseriesSimpleProcUtil util;
-		private final DataRecorder dataRecorder;
-		private final Logger logger;
-		/// Source EnergyResource location -> data for accumulation
-		private Map<String, EnergyAccumulationDpDataBase> dpData = new HashMap<>();
-	}*/
 	
 	public ESE_ElConnBoxDeviceHandler(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
@@ -105,7 +94,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 				return energyDailyRealAgg;
 			}
 		};
-				//new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.dataRecorder(), appMan.getLogger(), appMan.dpService());
 	}
 	
 	@Override
@@ -130,17 +118,7 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 
 				ElectricityConnection cc = box.connection();
 				EnergyResource energyDaily = cc.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
-				/*if(energyDaily.isActive() && req != null) {
-					//addPowerEnergySensor(cc, vh, id, req, row);
-					Label power = vh.floatLabel("Energy15min", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
-							id, energyDaily, row, "%.1f");
-					Label lastContact = addLastContact(vh, id, req, row,
-							energyDaily);
-					power.setPollingInterval(DEFAULT_POLL_RATE, req);
-					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
-					vh.floatEdit("RefTimeCounter", id, energyDaily.getSubResource("refTimeCounter", FloatResource.class), row, alert,
-							0, Float.MAX_VALUE, "Reference counter must be grater zero!", 3);
-				} else {*/
+
 				PowerResource powerRes = cc.powerSensor().reading(); //.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
 				if(powerRes.isActive() && req != null) {
 					//addPowerEnergySensor(cc, vh, id, req, row);
@@ -158,12 +136,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 					vh.registerHeaderEntry("Last Contact");
 					vh.registerHeaderEntry("RefTimeCounter");
 				}
-				//else for (ElectricityConnection c : box.getSubResources(ElectricityConnection.class, true)) {
-				//	if(c.powerSensor().isActive()) {
-				//		addPowerEnergySensor(c, vh, id, req, row);
-				//		break;
-				//	}
-				//}
 
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row);
@@ -188,21 +160,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 				return "Energy Server Electricity Meters";
 			}
 			
-			/*protected void addPowerEnergySensor(ElectricityConnection c, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
-					String id, OgemaHttpRequest req, Row row) {   
-				Label voltage = vh.floatLabel("Voltage", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
-						id, c.voltageSensor().reading(), row, "%.1f");
-				Label power = vh.floatLabel("Power", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
-						id, c.powerSensor().reading(), row, "%.1f");
-				Label lastContact = addLastContact(vh, id, req, row,
-							c.voltageSensor().reading());
-				if (req != null) {
-					voltage.setPollingInterval(DEFAULT_POLL_RATE, req);
-					power.setPollingInterval(DEFAULT_POLL_RATE, req);
-					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
-				}
-
-			}*/
 		};
 	}
 	
@@ -258,8 +215,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		EnergyResource energyDaily = conn.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
 		Datapoint dp = addDatapoint(energyDaily, result, dpService);
 		provideAccumulatedDatapoint2("energyDailyAccumulatedFull", dp, result, conn, dpService, util);
-		//dp = addDatapoint(conn.getSubResource("energyReactiveDaily", ElectricEnergySensor.class).reading(), result, dpService);
-		//provideAccumulatedDatapoint("energyReactiveAccumulatedDailyFull", energyDaily, dp, result, conn, dpService, util);
 		addDatapoint(conn.getSubResource("energyAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("energyReactiveAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
 		addDatapoint(conn.getSubResource("billedEnergy", ElectricEnergySensor.class).reading(), result, dpService);
@@ -310,12 +265,13 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		appDevice.alarms().create();
 		ElectricityConnectionBox device = (ElectricityConnectionBox) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
-				0.0f, 9999999.0f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+				0.0f, 9999999.0f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME);
 		//AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 
 	@Override
 	public String getInitVersion() {
-		return "A";
+		return "B";
 	}
+	
 }

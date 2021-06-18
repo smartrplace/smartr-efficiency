@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.driverhandler.more;
+package org.smartrplace.driverhandler.more.bak;
 
-import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.model.devices.buildingtechnology.Thermostat;
+import org.smartrplace.gateway.device.VirtualTestDevice;
 
-public class VirtualThermostatPattern extends ResourcePattern<Thermostat> { 
-	Timer controlModeTimer = null;
-	
+public class VirtualTestDevicePattern extends ResourcePattern<VirtualTestDevice> { 
+
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public VirtualThermostatPattern(Resource device) {
+	public VirtualTestDevicePattern(Resource device) {
 		super(device);
-	}
-
-	@Override
-	public boolean accept() {
-		return DeviceTableRaw.isVirtualThermostat(model);
 	}
 }

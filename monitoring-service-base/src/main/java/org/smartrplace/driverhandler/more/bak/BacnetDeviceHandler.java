@@ -1,4 +1,4 @@
-package org.smartrplace.driverhandler.more;
+package org.smartrplace.driverhandler.more.bak;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,8 +18,10 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.DestType;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.actors.OnOffSwitch;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -174,11 +176,32 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 			dp.addToSubRoomLocationAtomic(null, null, ResourceUtils.getHumanReadableShortName(obj), false);		
 	}
 	
+	protected void checkAndSetSmFac1(String sensorNameEl, Resource obj, InstallAppDevice appDevice, float low, float high) {
+		if(obj.getName().contains(sensorNameEl) && (obj instanceof Sensor) && (((Sensor)obj).reading() instanceof SingleValueResource)) {
+			AlarmingUtiH.setTemplateValues(appDevice, (SingleValueResource) ((Sensor)obj).reading(),
+				low, high, 30, 60, 2880, DestType.CUSTOMER_SP_SAME);
+		}		
+	}
+	
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		BACnetDevice device = (BACnetDevice) appDevice.device();
 		List<Resource> objects = device.objects().getAllElements();
+		if(Boolean.getBoolean("org.smartrplace.project.smFac1")) {
+			for(AlarmConfiguration alarm: appDevice.alarms().getAllElements()) {
+				alarm.sendAlarm().setValue(false);
+			}
+			
+			for(Resource obj: objects) {
+				checkAndSetSmFac1("Analog_Input_3_0_3", obj, appDevice, -1, 10);
+				checkAndSetSmFac1("Analog_Input_4_0_4", obj, appDevice, -1, 10);
+				checkAndSetSmFac1("Analog_Input_6_0_6", obj, appDevice, 0, 50);
+				checkAndSetSmFac1("Analog_Input_7_0_7", obj, appDevice, 0, 100);
+			}
+			
+			return;
+		}
 		for(Resource obj: objects) {
 			if(obj instanceof Sensor && (((Sensor)obj).reading() instanceof SingleValueResource)) {
 				AlarmingUtiH.setTemplateValues(appDevice, (SingleValueResource) ((Sensor)obj).reading(),
@@ -196,6 +219,8 @@ public class BacnetDeviceHandler extends DeviceHandlerBase<BACnetDevice> {
 
 	@Override
 	public String getInitVersion() {
+		if(Boolean.getBoolean("org.smartrplace.project.smFac1"))
+			return "B";
 		return "A";
 	}
 

@@ -138,6 +138,29 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srGwSup = null;
 	private GatewaySuperiorHandler devHandGwSup;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
+	private DeviceHandlerDpRes devVirtDpRes;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srVirtTest = null;
+	private VirtualTestDeviceHandler devVirtTest;
+	
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srGhl = null;
+	private GhlWaterPondDeviceHandler devHandGhl;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srBacnet = null;
+	private BacnetDeviceHandler devHandBacnet;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srVirtThOnOff = null;
+	private VirtualThermostatDeviceHandler devHandVirtThOnOff;
+
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srPST = null;
+	private MemoryTsPSTHandler devHandPST;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srKNI = null;
+	private KnownIssueDataHandler devHandKNI;
 
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srAircond = null;
@@ -175,21 +198,8 @@ public class MonitoringServiceBaseApp implements Application {
 	private OpenWeatherMapBigBlueRoom_DeviceHandler devHandOpenWeather;
 	
 	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
-	private DeviceHandlerDpRes devVirtDpRes;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srVirtTest = null;
-	private VirtualTestDeviceHandler devVirtTest;
-
-	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srPv = null;
 	private DeviceHandler_PVPlant devHandPv;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGhl = null;
-	private GhlWaterPondDeviceHandler devHandGhl;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srBacnet = null;
-	private BacnetDeviceHandler devHandBacnet;
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srEnServ = null;
 	private ESE_ElConnBoxDeviceHandler devHandEnServ;
@@ -227,9 +237,6 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srThValve = null;
 	private HeatingLabThermalValve_DeviceHandler devHandThValve;
 	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srVirtThOnOff = null;
-	private VirtualThermostatDeviceHandler devHandVirtThOnOff;
-	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srWall = null;
 	private WallThermostatHandler devHandWall;
 	@SuppressWarnings("rawtypes")
@@ -245,14 +252,6 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srBeacon = null;
 	private BluetoothBeaconHandler devHandBeacon;
-
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srPST = null;
-	private MemoryTsPSTHandler devHandPST;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srKNI = null;
-	private KnownIssueDataHandler devHandKNI;
-
 	
 	@Activate
 	   void activate(BundleContext bc) {
@@ -292,6 +291,21 @@ public class MonitoringServiceBaseApp implements Application {
 	   devHandGwSup = new GatewaySuperiorHandler(controller.appManPlus);
 	   srGwSup = bc.registerService(DeviceHandlerProvider.class, devHandGwSup, null);
 
+	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
+	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
+	   devVirtTest = new VirtualTestDeviceHandler(controller.appManPlus);
+	   srVirtTest = bc.registerService(DeviceHandlerProvider.class, devVirtTest, null);
+	   devHandGhl = new GhlWaterPondDeviceHandler(controller.appManPlus);
+	   srGhl = bc.registerService(DeviceHandlerProvider.class, devHandGhl, null);
+	   devHandBacnet = new BacnetDeviceHandler(controller.appManPlus);
+	   srBacnet = bc.registerService(DeviceHandlerProvider.class, devHandBacnet, null);
+	   devHandVirtThOnOff = new VirtualThermostatDeviceHandler(controller.appManPlus);
+	   srVirtThOnOff = bc.registerService(DeviceHandlerProvider.class, devHandVirtThOnOff, null);
+	   devHandPST = new MemoryTsPSTHandler(controller.appManPlus);
+	   srPST = bc.registerService(DeviceHandlerProvider.class, devHandPST, null);
+	   devHandKNI = new KnownIssueDataHandler(controller.appManPlus);
+	   srKNI = bc.registerService(DeviceHandlerProvider.class, devHandKNI, null);
+
 	   devHandAircond = new DeviceHandlerMQTT_Aircond(controller.appManPlus);
 	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
 	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(controller.appManPlus);
@@ -318,17 +332,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   devHandOpenWeather = new OpenWeatherMapBigBlueRoom_DeviceHandler(controller.appManPlus);
 	   srOpenWeather = bc.registerService(DeviceHandlerProvider.class, devHandOpenWeather, null);
 	   
-	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
-	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
-	   devVirtTest = new VirtualTestDeviceHandler(controller.appManPlus);
-	   srVirtTest = bc.registerService(DeviceHandlerProvider.class, devVirtTest, null);
-
 	   devHandPv = new DeviceHandler_PVPlant(controller.appManPlus);
 	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
-	   devHandGhl = new GhlWaterPondDeviceHandler(controller.appManPlus);
-	   srGhl = bc.registerService(DeviceHandlerProvider.class, devHandGhl, null);
-	   devHandBacnet = new BacnetDeviceHandler(controller.appManPlus);
-	   srBacnet = bc.registerService(DeviceHandlerProvider.class, devHandBacnet, null);
 	   devHandEnServ = new ESE_ElConnBoxDeviceHandler(controller.appManPlus);
 	   srEnServ = bc.registerService(DeviceHandlerProvider.class, devHandEnServ, null);
 	   devHandCharge = new ChargingPointDevHandler(controller.appManPlus);
@@ -354,8 +359,6 @@ public class MonitoringServiceBaseApp implements Application {
 	   srTempSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandTempSensSingle, null);
 	   devHandThValve = new HeatingLabThermalValve_DeviceHandler(controller.appManPlus);
 	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
-	   devHandVirtThOnOff = new VirtualThermostatDeviceHandler(controller.appManPlus);
-	   srVirtThOnOff = bc.registerService(DeviceHandlerProvider.class, devHandVirtThOnOff, null);
 	   devHandWall = new WallThermostatHandler(controller.appManPlus);
 	   srWall = bc.registerService(DeviceHandlerProvider.class, devHandWall, null);
 	   devHandCO2Hm = new CO2SensorHmHandler(controller.appManPlus);
@@ -369,11 +372,6 @@ public class MonitoringServiceBaseApp implements Application {
 	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
 	   devHandBeacon = new BluetoothBeaconHandler(controller.appManPlus);
 	   srBeacon = bc.registerService(DeviceHandlerProvider.class, devHandBeacon, null);
-
-	   devHandPST = new MemoryTsPSTHandler(controller.appManPlus);
-	   srPST = bc.registerService(DeviceHandlerProvider.class, devHandPST, null);
-	   devHandKNI = new KnownIssueDataHandler(controller.appManPlus);
-	   srKNI = bc.registerService(DeviceHandlerProvider.class, devHandKNI, null);
  	}
  	
      /*

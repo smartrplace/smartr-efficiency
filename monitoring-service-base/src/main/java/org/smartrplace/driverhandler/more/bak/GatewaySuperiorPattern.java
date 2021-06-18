@@ -1,15 +1,15 @@
-package org.smartrplace.driverhandler.more;
+package org.smartrplace.driverhandler.more.bak;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.smartrplace.gateway.device.KnownIssueDataGw;
+import org.smartrplace.system.guiappstore.config.GatewayData;
 
-public class KnownIssueDataPattern extends ResourcePattern<KnownIssueDataGw> { 
+public class GatewaySuperiorPattern extends ResourcePattern<GatewayData> { 
 	
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public KnownIssueDataPattern(Resource device) {
+	public GatewaySuperiorPattern(Resource device) {
 		super(device);
 	}
 }

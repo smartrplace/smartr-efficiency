@@ -1,15 +1,15 @@
-package org.smartrplace.driverhandler.more;
+package org.smartrplace.driverhandler.more.bak;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.smartrplace.gateway.device.MemoryTimeseriesPST;
+import org.smartrplace.gateway.device.KnownIssueDataGw;
 
-public class MemoryTsPSTPattern extends ResourcePattern<MemoryTimeseriesPST> { 
+public class KnownIssueDataPattern extends ResourcePattern<KnownIssueDataGw> { 
 	
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public MemoryTsPSTPattern(Resource device) {
+	public KnownIssueDataPattern(Resource device) {
 		super(device);
 	}
 }

@@ -21,6 +21,8 @@ import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.DestType;
+import org.ogema.model.communication.CommunicationStatus;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
@@ -274,6 +276,16 @@ if(mapData1 == null) {
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		ElectricityConnectionBox device = (ElectricityConnectionBox) appDevice.device();
+		if(Boolean.getBoolean("org.smartrplace.project.smFac1")) {
+			AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
+					0.0f, 9999999.0f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME);
+			AlarmingUtiH.setAlarmingActiveStatus(appDevice, device.connection().voltageSensor().reading(), false);
+			AlarmingUtiH.setAlarmingActiveStatus(appDevice, device.connection().frequencySensor().reading(), false);
+			CommunicationStatus comStat = device.getSubResource("communicationStatus", CommunicationStatus.class);
+			if(comStat.isActive())
+				AlarmingUtiH.setAlarmingActiveStatus(appDevice, comStat.quality(), false);
+			return;
+		}
 		AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
 				0.0f, Float.MAX_VALUE, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.connection().voltageSensor().reading(),
@@ -285,6 +297,8 @@ if(mapData1 == null) {
 
 	@Override
 	public String getInitVersion() {
+		if(Boolean.getBoolean("org.smartrplace.project.smFac1"))
+			return "B";
 		return "A";
 	}
 }
