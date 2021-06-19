@@ -57,7 +57,7 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 		}
 		vh.stringLabel("ID", id, object.prov().id(), row);
 		vh.timeLabel("Last start", id, object.lastRunStart(), row, 0);
-		vh.timeLabel("Last duration", id, object.lastRunDuration(), row, 3);
+		vh.timeLabel("Last duration", id, object.lastRunDuration(), row, 4);
 		final boolean timerActive = object.isTimerActive();
 		if(timerActive)
 			vh.timeLabel("Scheduled", id, object.nextScheduledStart(), row, 0);
