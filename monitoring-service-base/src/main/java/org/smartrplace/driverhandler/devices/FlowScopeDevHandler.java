@@ -73,17 +73,17 @@ public class FlowScopeDevHandler extends DeviceHandlerSimple<FlowProbe> {
 		}
 		
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperature().reading(),
-				200f, 350f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME);
+				200f, 350f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME, 2);
 		AlarmingUtiH.setTemplateValues(appDevice, device.getSubResource("flowInSCFM", GenericFloatSensor.class).reading(),
-				-100f, 999999.0f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+				-100f, 999999.0f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME, 2);
 		AlarmingUtiH.setTemplateValues(appDevice, device.getSubResource("temperatureInC", GenericFloatSensor.class).reading(),
-				0f, 100f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME);
+				0f, 100f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME, 2);
 		AlarmingUtiH.setTemplateValues(appDevice, device.pressure().reading(),
-				-1f, 10f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME);
+				-1f, 10f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME, 2);
 	}
 
 	@Override
 	public String getInitVersion() {
-		return "B";
+		return "C";
 	}
 }

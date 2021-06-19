@@ -278,7 +278,7 @@ if(mapData1 == null) {
 		ElectricityConnectionBox device = (ElectricityConnectionBox) appDevice.device();
 		if(Boolean.getBoolean("org.smartrplace.project.smFac1")) {
 			AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
-					0.0f, 9999999.0f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME);
+					0.0f, 9999999.0f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME, 2);
 			AlarmingUtiH.setAlarmingActiveStatus(appDevice, device.connection().voltageSensor().reading(), false);
 			AlarmingUtiH.setAlarmingActiveStatus(appDevice, device.connection().frequencySensor().reading(), false);
 			CommunicationStatus comStat = device.getSubResource("communicationStatus", CommunicationStatus.class);
@@ -298,7 +298,7 @@ if(mapData1 == null) {
 	@Override
 	public String getInitVersion() {
 		if(Boolean.getBoolean("org.smartrplace.project.smFac1"))
-			return "B";
+			return "C";
 		return "A";
 	}
 }

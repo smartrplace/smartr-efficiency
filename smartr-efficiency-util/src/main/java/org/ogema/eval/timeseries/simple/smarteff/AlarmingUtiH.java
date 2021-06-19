@@ -199,13 +199,27 @@ public class AlarmingUtiH {
 		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true,
 				alarmRepetitionTime);
 	}
+	
+	/**
+	 * 
+	 * @param appDevice
+	 * @param res
+	 * @param min
+	 * @param max
+	 * @param maxViolationTimeWithoutAlarm
+	 * @param maxIntervalBetweenNewValues
+	 * @param alarmRepetitionTime
+	 * @param destType
+	 * @param alarmLevel 1:LOW, 2:MEDIUM/Normal, 3:HIGH
+	 * @return
+	 */
 	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
 			 float min, float max,
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			float alarmRepetitionTime,
-			DestType destType) {
+			DestType destType, Integer alarmLevel) {
 		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, true, true,
-				DEFAULT_ALARM_REPETITION_MINUTES, destType);
+				DEFAULT_ALARM_REPETITION_MINUTES, destType, alarmLevel);
 	}
 	
 	
@@ -223,7 +237,7 @@ public class AlarmingUtiH {
 			boolean overWriteExisting,
 			float alarmRepetitionTime) {
 		return setTemplateValues(appDevice, res, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially, true,
-				alarmRepetitionTime, null);
+				alarmRepetitionTime, null, null);
 		
 	}
 	public static AlarmConfiguration setTemplateValues(InstallAppDevice appDevice, SingleValueResource res,
@@ -232,7 +246,7 @@ public class AlarmingUtiH {
 			boolean sendAlarminitially,
 			boolean overWriteExisting,
 			float alarmRepetitionTime,
-			DestType destType) {
+			DestType destType, Integer alarmLevel) {
 		/*if(!res.exists())
 			return null;
 		AlarmConfiguration alarm = AlarmingUtiH.getOrCreateReferencingSensorVal(
@@ -241,7 +255,7 @@ public class AlarmingUtiH {
 		if(alarm == null)
 			return null;
 		setTemplateValues(alarm, min, max, maxViolationTimeWithoutAlarm,
-				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting, alarmRepetitionTime, destType);
+				maxIntervalBetweenNewValues, sendAlarminitially, overWriteExisting, alarmRepetitionTime, destType, alarmLevel);
 		return alarm;
 	}
 	
@@ -263,13 +277,13 @@ public class AlarmingUtiH {
 			boolean sendAlarminitially,
 			boolean overWriteExisting, float alarmRepetitionTime) {		
 		setTemplateValues(data, min, max, maxViolationTimeWithoutAlarm, maxIntervalBetweenNewValues, sendAlarminitially,
-				overWriteExisting, alarmRepetitionTime, null);		
+				overWriteExisting, alarmRepetitionTime, null, null);		
 	}
 	public static void setTemplateValues(AlarmConfiguration data, float min, float max, 
 			float maxViolationTimeWithoutAlarm, float maxIntervalBetweenNewValues,
 			boolean sendAlarminitially,
 			boolean overWriteExisting, float alarmRepetitionTime,
-			DestType destType) {		
+			DestType destType, Integer alarmLevel) {		
 		Long shortIntervalForTesting = Long.getLong("org.smartrplace.apps.hw.install.init.alarmtesting.shortintervals");
 		if(shortIntervalForTesting != null) {
 			double floatVal = ((double)shortIntervalForTesting)/TimeProcUtil.MINUTE_MILLIS;
@@ -317,6 +331,9 @@ public class AlarmingUtiH {
 		
 		if(destType != null)
 			EditPageGeneric.setDefault(data.alarmingAppId(), getDestString(destType), mode);
+
+		if(alarmLevel != null)
+			EditPageGeneric.setDefault(data.alarmLevel(), alarmLevel, mode);
 	}
 	
 	public static void addAlarmingHomematic(PhysicalElement dev, InstallAppDevice appDevice) {
