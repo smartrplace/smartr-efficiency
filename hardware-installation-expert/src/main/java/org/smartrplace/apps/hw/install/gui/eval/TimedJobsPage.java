@@ -23,11 +23,38 @@ import de.iwes.widgets.html.form.button.Button;
 public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, TimedJobConfig> {
 	protected final ApplicationManagerPlus appManPlus;
 	protected final DatapointService dpService;
+	protected final boolean isEvalPage;
 	
-	public TimedJobsPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) {
+	protected void addWidgetsPlus(final TimedJobMemoryData object, ObjectResourceGUIHelper<TimedJobMemoryData, TimedJobConfig> vh, String id,
+			OgemaHttpRequest req, Row row,
+			boolean isEval) {
+		if(req == null ) {
+			vh.registerHeaderEntry("Disable");
+			vh.registerHeaderEntry("Reset");
+			return;
+		}
+		
+		if(!(object.isRunning() || object.triggeredForExecutionOnceOutsideTime())) {
+			vh.booleanLabel("Disable", id, object.res().disable(), row, 0);
+
+			ButtonConfirm resetButton = new ButtonConfirm(mainTable, "resetBut"+id, req) {
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					dpService.timedJobService().unregisterTimedJobProvider(object.prov());
+					object.res().delete();
+				}
+			};
+			resetButton.setDefaultText("Reset");
+			resetButton.setDefaultConfirmMsg("Really delete config resource and remove service "+id+" until restart ?");
+			row.addCell("Reset", resetButton);
+		}
+	}
+	
+	public TimedJobsPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean isEvalPage) {
 		super(page, appManPlus.appMan(), null);
 		this.appManPlus = appManPlus;
 		this.dpService = appManPlus.dpService();
+		this.isEvalPage = isEvalPage;
 		triggerPageBuild();
 	}
 
@@ -41,21 +68,22 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
 		addNameLabel(object, vh, id, row, req);
 		if(req == null) {
-			vh.registerHeaderEntry("ID");
+			if(!isEvalPage)
+				vh.registerHeaderEntry("ID");
 			vh.registerHeaderEntry("Last start");
 			vh.registerHeaderEntry("Last duration");
 			vh.registerHeaderEntry("Scheduled");
 			vh.registerHeaderEntry("Interval (min)");
 			vh.registerHeaderEntry("Aligned interval");
 			vh.registerHeaderEntry("Init run after");
-			vh.registerHeaderEntry("Disable");
 			vh.registerHeaderEntry("Type");
 			vh.registerHeaderEntry("Start");
 			vh.registerHeaderEntry("Once");
-			vh.registerHeaderEntry("Reset");
+			addWidgetsPlus(object, vh, id, req, row, false);
 			return;
 		}
-		vh.stringLabel("ID", id, object.prov().id(), row);
+		if(!isEvalPage)
+			vh.stringLabel("ID", id, object.prov().id(), row);
 		vh.timeLabel("Last start", id, object.lastRunStart(), row, 0);
 		vh.timeLabel("Last duration", id, object.lastRunDuration(), row, 4);
 		final boolean timerActive = object.isTimerActive();
@@ -65,13 +93,13 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 		vh.dropdown("Aligned interval", id, object.res().alignedInterval(), row, AbsoluteTiming.INTERVAL_NAME_MAP);
 		vh.floatEdit("Init run after", id, object.res().performOperationOnStartUpWithDelay(), row, alert,
 				-1, Float.MAX_VALUE, "Values below -1 not allowed!");
-		vh.booleanLabel("Disable", id, object.res().disable(), row, 0);
-		String type = object.prov().evalJobType()<=0?"Base":("Eval"+object.prov().evalJobType());
+		boolean isEval = object.prov().evalJobType()>0;
+		String type = (!isEval)?"Base":("Eval"+object.prov().evalJobType());
 		vh.stringLabel("Type", id, type, row);
 		
 		Button startButton;
 		if((!timerActive) && (!object.canTimerBeActivated())) {
-			startButton = new Button(mainTable, "startBut"+id, "Interval too short", req);
+			startButton = new Button(mainTable, "startBut"+id, "Itv short", req);
 			startButton.disable(req);
 		} else {
 			startButton = new Button(mainTable, "startBut"+id, timerActive?"Stop Timer":"Start timer", req) {
@@ -108,18 +136,9 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 				}
 			};
 			row.addCell("Once", onceButton);
-			
-			ButtonConfirm resetButton = new ButtonConfirm(mainTable, "resetBut"+id, req) {
-				@Override
-				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					dpService.timedJobService().unregisterTimedJobProvider(object.prov());
-					object.res().delete();
-				}
-			};
-			resetButton.setDefaultText("Reset");
-			resetButton.setDefaultConfirmMsg("Really delete config resource and remove service "+id+" until restart ?");
-			row.addCell("Reset", resetButton);
 		}
+		
+		addWidgetsPlus(object, vh, id, req, row, isEval);
 	}
 
 	@Override
