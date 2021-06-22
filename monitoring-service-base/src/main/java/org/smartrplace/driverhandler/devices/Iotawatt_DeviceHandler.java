@@ -79,11 +79,11 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 				Integer absoluteTiming;
 				if(newSubResName.toLowerCase().contains("hour")) {
 					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
-							TimeProcUtil.SUM_PER_HOUR_EVAL);
+							"hour");
 					absoluteTiming = AbsoluteTiming.HOUR;
 				} else {
-					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
-							TimeProcUtil.SUM_PER_DAY_EVAL);					
+					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhasesFromDay(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
+							dpSource.get(0));					
 					absoluteTiming = AbsoluteTiming.DAY;
 				}
 				
