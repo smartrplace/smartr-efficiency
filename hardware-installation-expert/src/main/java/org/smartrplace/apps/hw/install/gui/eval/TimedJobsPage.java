@@ -72,6 +72,7 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 				vh.registerHeaderEntry("ID");
 			vh.registerHeaderEntry("Last start");
 			vh.registerHeaderEntry("Last duration");
+			vh.registerHeaderEntry("Max Dur");
 			vh.registerHeaderEntry("Scheduled");
 			vh.registerHeaderEntry("Interval (min)");
 			vh.registerHeaderEntry("Aligned interval");
@@ -86,6 +87,7 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 			vh.stringLabel("ID", id, object.prov().id(), row);
 		vh.timeLabel("Last start", id, object.lastRunStart(), row, 0);
 		vh.timeLabel("Last duration", id, object.lastRunDuration(), row, 4);
+		vh.timeLabel("Max Dur", id, object.maxRunDuration(), row, 4);
 		final boolean timerActive = object.isTimerActive();
 		if(timerActive)
 			vh.timeLabel("Scheduled", id, object.nextScheduledStart(), row, 0);
