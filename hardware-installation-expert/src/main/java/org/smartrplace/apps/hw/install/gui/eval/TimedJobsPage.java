@@ -68,8 +68,10 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
 		addNameLabel(object, vh, id, row, req);
 		if(req == null) {
-			if(!isEvalPage)
+			if(!isEvalPage) {
 				vh.registerHeaderEntry("ID");
+				vh.registerHeaderEntry("IDX");
+			}
 			vh.registerHeaderEntry("Last start");
 			vh.registerHeaderEntry("Last duration");
 			vh.registerHeaderEntry("Max Dur");
@@ -83,8 +85,10 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 			addWidgetsPlus(object, vh, id, req, row, false);
 			return;
 		}
-		if(!isEvalPage)
+		if(!isEvalPage) {
 			vh.stringLabel("ID", id, object.prov().id(), row);
+			vh.intLabel("IDX", id, object.res().persistentIndex().getValue(), row, 0);
+		}
 		vh.timeLabel("Last start", id, object.lastRunStart(), row, 0);
 		vh.timeLabel("Last duration", id, object.lastRunDuration(), row, 4);
 		vh.timeLabel("Max Dur", id, object.maxRunDuration(), row, 4);
