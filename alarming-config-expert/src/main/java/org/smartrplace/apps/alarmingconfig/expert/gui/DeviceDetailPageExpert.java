@@ -160,6 +160,12 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 				Map<String, InstallAppDevice> result = new HashMap<>();
 				for(DatapointGroup dpGrp: dtGrp.getSubGroups()) {
 					InstallAppDevice dev = controller.getIAD(dpGrp.id());
+					if(dev == null) {
+						//on collecting gateways we have to skip remote groups
+						if(!Boolean.getBoolean("org.smartrplace.app.srcmon.iscollectinggateway"))
+							appMan.getLogger().warn("No InstallAppDevice for "+dpGrp.id());
+						continue;
+					}
 					result.put(dev.deviceId().getValue(), dev);
 				}
 				return result ;

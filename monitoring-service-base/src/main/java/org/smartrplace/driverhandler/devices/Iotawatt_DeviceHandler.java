@@ -20,6 +20,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.sensors.ElectricEnergySensor;
 import org.ogema.recordeddata.DataRecorder;
@@ -28,6 +29,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
@@ -352,5 +354,28 @@ System.out.println("   *** IOTAwatt virtual datapoints took "+(end-start)+" msec
 		prov = new IotaWattDeviceType(10, appMan.appMan());
 		result.add(prov);
 		return result;
+	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		IotaWattElectricityConnection device = (IotaWattElectricityConnection) appDevice.device();
+		
+		AlarmingUtiH.setTemplateValues(appDevice, device.elConn().voltageSensor().reading(),
+				180f, 270f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+		for(int i=1; i<=3; i++) {
+			ElectricityConnection subConn = device.elConn().subPhaseConnections().getSubResource("L"+i, ElectricityConnection.class);
+			AlarmingUtiH.setTemplateValues(appDevice, subConn.powerSensor().reading(),
+					0f, 999999f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+			AlarmingUtiH.setTemplateValues(appDevice, subConn.energySensor().reading(),
+					0f, 999999f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+			AlarmingUtiH.setTemplateValues(appDevice, subConn.reactivePowerSensor().reading(),
+					0f, 999999f, 10, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+		}
+	}
+	
+	@Override
+	public String getInitVersion() {
+		return "A";
 	}
 }
