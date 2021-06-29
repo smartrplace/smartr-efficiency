@@ -132,7 +132,8 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 		for(ElectricityConnection ec: device.elConn().subPhaseConnections().getAllElements()) {
 			String ph = ec.getName();
 			Datapoint dpenergy = addDatapoint(ec.energySensor().reading(), result, ph, dpService);
-			energy.add(dpenergy);
+			if(dpenergy != null)
+				energy.add(dpenergy);
 			addDatapoint(ec.powerSensor().reading(), result, ph, dpService);
 			addDatapoint(ec.reactivePowerSensor().reading(), result, ph, dpService);
 		}

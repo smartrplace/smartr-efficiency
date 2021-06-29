@@ -28,7 +28,9 @@ import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.gui.tablepages.TextFieldSetpoint;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -39,6 +41,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
+@SuppressWarnings("serial")
 public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditioner> {
 	//private final ApplicationManagerPlus appMan;
 	
@@ -64,7 +67,71 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 				final AirConditioner device = (AirConditioner) addNameWidget(object, vh, id, req, row, appMan);
 				Label setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
 				if(req != null) {
-					TextField setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
+					TextField setpointSet = new TextFieldSetpoint(mainTable, "setpointSet"+id, alert, 4.5f, 30.5f, req) {
+						
+						@Override
+						protected boolean setValueOnPost(float value, OgemaHttpRequest req) {
+							device.temperatureSensor().settings().setpoint().setCelsius(value);
+							return true;
+						}
+						
+						@Override
+						protected float getValuePreset(OgemaHttpRequest req) {
+							return device.temperatureSensor().settings().setpoint().getCelsius();
+						}
+					};
+					row.addCell("Set", setpointSet);
+					
+					TextField onOff = new TextFieldSetpoint(mainTable, "onOff"+id, alert, 0f, 1f, req) {
+						
+						@Override
+						protected boolean setValueOnPost(float value, OgemaHttpRequest req) {
+							device.onOffSwitch().stateControl().setValue(value>0.5f);
+							return true;
+						}
+						
+						@Override
+						protected float getValuePreset(OgemaHttpRequest req) {
+							return device.onOffSwitch().stateFeedback().getValue()?1:0;
+						}
+					};
+					row.addCell("OnOff", onOff);
+
+					MechanicalFan mfan = device.getSubResource("fan", MechanicalFan.class);
+					if(mfan != null && mfan.exists()) {
+						TextField fan = new TextFieldSetpoint(mainTable, "fanspeed"+id, alert, 0f, 5f, req) {
+							
+							@Override
+							protected boolean setValueOnPost(float value, OgemaHttpRequest req) {
+								mfan.setting().stateControl().setValue(value);
+								return true;
+							}
+							
+							@Override
+							protected float getValuePreset(OgemaHttpRequest req) {
+								return mfan.setting().stateFeedback().getValue();
+							}
+						};
+						row.addCell(WidgetHelper.getValidWidgetId("Fan speed"), fan);
+					}
+					MultiSwitch opMode = device.getSubResource("operationMode", MultiSwitch.class);
+					if(opMode != null && opMode.exists()) {
+						TextField opModeF = new TextFieldSetpoint(mainTable, "opMode"+id, alert, 0f, 3f, req) {
+							
+							@Override
+							protected boolean setValueOnPost(float value, OgemaHttpRequest req) {
+								opMode.stateControl().setValue(value);
+								return true;
+							}
+							
+							@Override
+							protected float getValuePreset(OgemaHttpRequest req) {
+								return opMode.stateFeedback().getValue();
+							}
+						};
+						row.addCell("OpMode", opModeF);
+					}
+					/*TextField setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
 						private static final long serialVersionUID = 1L;
 						@Override
 						public void onGET(OgemaHttpRequest req) {
@@ -85,10 +152,12 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 								return;
 							}
 						}
-					};
-					row.addCell("Set", setpointSet);
-				} else
+					};*/
+				} else {
 					vh.registerHeaderEntry("Set");
+					vh.registerHeaderEntry("Fan speed");
+					vh.registerHeaderEntry("OpMode");
+				}
 				
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Room deviceRoom = device.location().room();

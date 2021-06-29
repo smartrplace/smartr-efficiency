@@ -260,26 +260,25 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		Thermostat device = initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
-		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
-				0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 	}
 	
 	@Override
 	public String getInitVersion() {
-		return "J";
+		return "K";
 	}
 	
 	public static Thermostat initAlarmingForDeviceThermostatCommon(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		Thermostat device = (Thermostat) appDevice.device().getLocationResource();
-		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
-		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().settings().setpoint(),
+		AlarmingUtiH.setTemplateValuesIfNew(appDevice, device.temperatureSensor().reading(), 5.0f, 35.0f, 15, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+		AlarmingUtiH.setTemplateValuesIfNew(appDevice, device.temperatureSensor().settings().setpoint(),
 				4.5f, 30.5f, 1, 28*1440);
-		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
+		AlarmingUtiH.setTemplateValuesIfNew(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
 				4.5f, 30.5f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
-				0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
-		AlarmingUtiH.addAlarmingHomematic(device, appDevice);
+				0f, 0f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+		//		0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+		AlarmingUtiH.addAlarmingHomematic(device, appDevice, 2, false);
 		appDevice.alarms().activate(true);
 		return device;
 	}
