@@ -28,6 +28,7 @@ import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.gui.tablepages.SimpleCheckboxSetpoint;
 import org.smartrplace.gui.tablepages.TextFieldSetpoint;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -36,6 +37,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
 
@@ -82,17 +84,17 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 					};
 					row.addCell("Set", setpointSet);
 					
-					TextField onOff = new TextFieldSetpoint(mainTable, "onOff"+id, alert, 0f, 1f, req) {
+					SimpleCheckbox onOff = new SimpleCheckboxSetpoint(mainTable, "onOff"+id, alert, req) {
 						
 						@Override
-						protected boolean setValueOnPost(float value, OgemaHttpRequest req) {
-							device.onOffSwitch().stateControl().setValue(value>0.5f);
+						protected boolean setValueOnPost(boolean value, OgemaHttpRequest req) {
+							device.onOffSwitch().stateControl().setValue(value);
 							return true;
 						}
 						
 						@Override
-						protected float getValuePreset(OgemaHttpRequest req) {
-							return device.onOffSwitch().stateFeedback().getValue()?1:0;
+						protected boolean getValuePreset(OgemaHttpRequest req) {
+							return device.onOffSwitch().stateFeedback().getValue();
 						}
 					};
 					row.addCell("OnOff", onOff);
@@ -155,6 +157,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 					};*/
 				} else {
 					vh.registerHeaderEntry("Set");
+					vh.registerHeaderEntry("OnOff");
 					vh.registerHeaderEntry("Fan speed");
 					vh.registerHeaderEntry("OpMode");
 				}
