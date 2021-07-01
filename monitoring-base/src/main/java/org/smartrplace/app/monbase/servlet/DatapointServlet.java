@@ -4,10 +4,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.ogema.core.model.simple.FloatResource;
-import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PhysicalUnit;
 import org.ogema.core.model.units.PhysicalUnitResource;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
@@ -17,13 +16,12 @@ import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
-import org.smartrplace.util.frontend.servlet.ServletSubDataProvider;
+import org.smartrplace.util.frontend.servlet.ServletTimeseriesProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
-import de.iwes.timeseries.eval.base.provider.utils.TimeSeriesDataImpl;
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
@@ -158,13 +156,16 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		
 		if(!UserServletUtil.isDepthTimeSeries(parameters))
 			return result;
-		TimeSeriesDataImpl ts = object.getTimeSeriesDataImpl(locale);
+		ReadOnlyTimeSeries ts = object.getTimeSeries();
 		if(ts != null) {
-			@SuppressWarnings("unchecked")
-			ServletPageProvider<TimeSeriesDataImpl> timeSeriesProvider =
-					(ServletPageProvider<TimeSeriesDataImpl>) UserServlet.getProvider("org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet", "timeseries");
-			ServletSubDataProvider<TimeSeriesDataImpl> timeseries = new ServletSubDataProvider<TimeSeriesDataImpl>(timeSeriesProvider,
-				ts, true, parameters);
+			//@SuppressWarnings("unchecked")
+			//ServletPageProvider<TimeSeriesDataImpl> timeSeriesProvider =
+			//		(ServletPageProvider<TimeSeriesDataImpl>) UserServlet.getProvider("org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet", "timeseries");
+			//TimeSeriesDataImpl tsi = UserServletUtil.getOrAddTimeSeriesDataPlus(ts, locationStr);
+			//ServletSubDataProvider<TimeSeriesDataImpl> timeseries = new ServletSubDataProvider<TimeSeriesDataImpl>(timeSeriesProvider,
+			//	tsi, true, ReturnStructure.TOPARRAY_DICTIONARY, parameters);
+			ServletTimeseriesProvider timeseries = new ServletTimeseriesProvider(null, ts, controller.appMan, null, parameters);
+			timeseries.addUTCOffset = true;
 			result.put("timeseries", timeseries);
 		}
 		
