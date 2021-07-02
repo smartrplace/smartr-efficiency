@@ -86,7 +86,7 @@ public class HardwareInstallController {
 	public static AlarmingUpdater alarmingUpdater = null;
 
 	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
-	public final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
+	private final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
 	/** Location of InstallAppDevice -> Device simulations*/
 	public final Map<String, List<RoomInsideSimulationBase>> simByDevice = new HashMap<>();
 	
@@ -649,7 +649,10 @@ public class HardwareInstallController {
 		}
 		return result;
 	}*/
-
+	public DeviceHandlerProvider<?> getDeviceHandler(InstallAppDevice source) {
+		return handlerByDevice.get(source.getLocation());
+	}
+	
 	public DeviceHandlerProvider<?> getDeviceHandlerForTrash(InstallAppDevice install) {
 		return hwInstApp.getTableProviders().get(install.devHandlerInfo().getValue());
 	}

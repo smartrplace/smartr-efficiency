@@ -81,7 +81,7 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			
 			for(InstallAppDevice dev: controller.appConfigData.knownDevices().getAllElements()) {
 				if(dev.isTrash().getValue()) {
-					DeviceHandlerProvider<?> devHand = controller.handlerByDevice.get(dev.getLocation());
+					DeviceHandlerProvider<?> devHand = controller.getDeviceHandler(dev);
 					expertPage.performTrashOperation(dev, devHand);
 				}
 			}

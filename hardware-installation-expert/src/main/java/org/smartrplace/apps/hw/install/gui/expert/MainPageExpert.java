@@ -58,7 +58,7 @@ public class MainPageExpert extends MainPage {
 		Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				for(InstallAppDevice iad: controller.appConfigData.knownDevices().getAllElements()) {
-					DeviceHandlerProvider<?> tableProvider = controller.handlerByDevice.get(iad.getLocation());
+					DeviceHandlerProvider<?> tableProvider = controller.getDeviceHandler(iad);
 					if(tableProvider != null)
 						controller.updateDatapoints(tableProvider, iad);
 				}
@@ -214,7 +214,7 @@ public class MainPageExpert extends MainPage {
 						}
 						break;
 					case APPLY_DEFAULT_ALARM:
-						DeviceHandlerProvider<?> tableProvider = controller.handlerByDevice.get(object.getLocation());
+						DeviceHandlerProvider<?> tableProvider = controller.getDeviceHandler(object);
 						if(tableProvider != null)
 							tableProvider.initAlarmingForDevice(object, controller.appConfigData);
 						break;

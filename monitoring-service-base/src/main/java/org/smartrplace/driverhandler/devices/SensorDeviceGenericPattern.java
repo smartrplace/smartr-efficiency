@@ -39,6 +39,8 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 			return false;
 		if(DeviceTableRaw.isSmartProtectDevice(model.getLocation()))
 			return false;
+		if(DeviceTableRaw.isWaterMeterDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
+			return false;
 		if(DeviceTableRaw.isGasEnergyCamDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
 		if(DeviceTableRaw.isOpenWeatherMapSensorDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))

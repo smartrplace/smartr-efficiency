@@ -249,7 +249,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 		if(devHandForTrash != null)
 			devHand = devHandForTrash;
 		else
-			devHand = controller.handlerByDevice.get(object.getLocation());
+			devHand = controller.getDeviceHandler(object);
 		return getPlotButton(id, object, controller.dpService, controller.appMan,
 				addDataPointInfoLabel, vh, row, req, devHand,
 				ScheduleViewerConfigProvHW.getInstance(), controller.datalogs);
