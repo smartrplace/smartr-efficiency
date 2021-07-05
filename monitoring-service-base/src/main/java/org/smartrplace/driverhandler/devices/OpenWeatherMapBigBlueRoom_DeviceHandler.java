@@ -48,10 +48,15 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 		if(dp.getLocation().startsWith("OpenWeatherMapData")) {
 			Room openWroom = KPIResourceAccess.getOpenWeatherMapRoom(appMan.getResourceAccess());
 			if(openWroom != null) {
+				addDatapoint(openWroom.temperatureSensor().reading().forecast(), result);
 				addDatapoint(openWroom.humiditySensor().reading(), result);
+				addDatapoint(openWroom.humiditySensor().reading().forecast(), result);
 				addDatapoint(openWroom .getSubResource("solarIrradiationSensor", SolarIrradiationSensor.class).reading(), result);
+				addDatapoint(openWroom .getSubResource("solarIrradiationSensor", SolarIrradiationSensor.class).reading().forecast(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).direction().reading(), result);
+				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).direction().reading().forecast(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).speed().reading(), result);
+				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).speed().reading().forecast(), result);
 				return result;
 			}
 		}
