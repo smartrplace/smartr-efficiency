@@ -154,6 +154,8 @@ public class AlarmingManager {
 			final SingleValueResource sres;
 			final ValueListenerData vl;
 			
+			float currentValue = Float.NaN;
+
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
 				sres = res;
@@ -163,6 +165,8 @@ public class AlarmingManager {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
+				if(res.isActive())
+					currentValue = mylistener.getHumanValue(res);
 				//continue;
 			} else if(ac.sensorVal() instanceof IntegerResource) {
 				IntegerResource res = (IntegerResource) ac.sensorVal().getLocationResource();
@@ -173,6 +177,8 @@ public class AlarmingManager {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
+				if(res.isActive())
+					currentValue = mylistener.getHumanValue(res);
 				//continue;
 			} else if(ac.sensorVal() instanceof FloatResource) {
 				FloatResource res = (FloatResource) ac.sensorVal().getLocationResource();
@@ -183,6 +189,8 @@ public class AlarmingManager {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
+				if(res.isActive())
+					currentValue = mylistener.getHumanValue(res);
 
 				if(ac.performAdditinalOperations().getValue()) {
 					OnOffSwitch onOff = AlarmingUtiH.getSwitchFromSensor(ac.sensorVal());
@@ -221,6 +229,9 @@ public class AlarmingManager {
 				vl.isNoValueAlarmActive = true;
 			else if(alarmStatus.getValue() > 0)
 				vl.isAlarmActive = true;
+			else if(!Float.isNaN(currentValue)) {
+				vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
+			}
 		}
 		
 		BaseAlarmI baseAlarm = new BaseAlarmI() {
@@ -336,12 +347,11 @@ public class AlarmingManager {
 	}
 	
 	protected interface AlarmValueListenerI {
-		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp);		
+		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue);		
 		void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
 				IntegerResource alarmStatus);
 		AlarmConfiguration getAc();
-		ResourceValueListener<?> getListener();
-		
+		ResourceValueListener<?> getListener();	
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBasic<FloatResource> {
 		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
@@ -420,12 +430,12 @@ public class AlarmingManager {
 		@Override
 		public void resourceChanged(BooleanResource resource) {
 			IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(resource);
-			alarmValListenerBase.resourceChanged(resource.getValue()?1.0f:0.0f, alarmStatus, appManPlus.appMan().getFrameworkTime());
+			alarmValListenerBase.resourceChanged(resource.getValue()?1.0f:0.0f, alarmStatus, appManPlus.appMan().getFrameworkTime(), false);
 		}
 
 		@Override
-		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp) {
-			alarmValListenerBase.resourceChanged(value, alarmStatus, timeStamp);
+		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue) {
+			alarmValListenerBase.resourceChanged(value, alarmStatus, timeStamp, isValueCheckForOldValue);
 		}
 
 		//TODO: override

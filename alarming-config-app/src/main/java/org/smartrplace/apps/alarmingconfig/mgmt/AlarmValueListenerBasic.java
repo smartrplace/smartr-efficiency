@@ -116,7 +116,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			val = -999;
 		}
 		long now = appManPlus.appMan().getFrameworkTime();
-		resourceChanged(val, alarmStatus, now);
+		resourceChanged(val, alarmStatus, now, false);
 		for(AlarmingExtensionListener ext: extensions) {
 			AlarmResult result = ext.resourceChanged(resource, val, now);
 			if(result != null) {
@@ -144,7 +144,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			}
 		}
 	}
-	public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp) {
+	@Override
+	public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue) {
 		long now = timeStamp;
 		if(vl.isNoValueAlarmActive) {
 			releaseAlarm(ac, value, Float.NaN, Float.NaN, alarmStatus);
@@ -181,7 +182,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			};
 		}
 		
-		if(!Float.isNaN(value))
+		if((!isValueCheckForOldValue) && (!Float.isNaN(value)))
 			vl.lastTimeOfNewData = now;
 	}
 	

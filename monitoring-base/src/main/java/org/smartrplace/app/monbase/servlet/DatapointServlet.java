@@ -4,6 +4,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.PhysicalUnit;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
@@ -12,6 +17,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DpGroupUtil;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
@@ -116,10 +122,32 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			ServletStringProvider locationLocal = new ServletStringProvider(locloc);
 			result.put("locationLocal", locationLocal);
 		}
-		ServletStringProvider location = new ServletStringProvider(locationStr);
-		result.put("location", location);
 		ServletNumProvider id = new ServletNumProvider(getNumericalId(locationStr));
 		result.put("id", id);
+		
+		if(object.getResource() != null && (object.getResource() instanceof SingleValueResource)) {
+			SingleValueResource sres = (SingleValueResource) object.getResource();
+			ServletNumProvider valueP;
+			if(sres instanceof FloatResource) {
+				valueP = new ServletNumProvider(((FloatResource)sres).getValue());
+			} else if(sres instanceof IntegerResource) {
+				valueP = new ServletNumProvider(((IntegerResource)sres).getValue());
+			} else if(sres instanceof TimeResource) {
+				valueP = new ServletNumProvider(((TimeResource)sres).getValue());
+			} else if(sres instanceof BooleanResource) {
+				valueP = new ServletNumProvider(((BooleanResource)sres).getValue());
+			} else
+				valueP = new ServletNumProvider(ValueResourceUtils.getFloatValue(sres));
+			result.put("currentValue", valueP);
+		} else if(object.getCurrentValue() != null) {
+			ServletNumProvider valueP = new ServletNumProvider(object.getCurrentValue());			
+			result.put("currentValue", valueP);
+		}
+		if(UserServletUtil.isValueOnly(parameters))
+			return result;
+		
+		ServletStringProvider location = new ServletStringProvider(locationStr);
+		result.put("location", location);
 
 		ServletStringProvider labelStd = new ServletStringProvider(object.label(null));
 		result.put("labelStd", labelStd);

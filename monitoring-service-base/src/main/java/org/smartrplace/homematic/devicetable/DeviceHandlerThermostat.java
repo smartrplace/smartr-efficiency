@@ -264,7 +264,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public String getInitVersion() {
-		return "K";
+		return "L";
 	}
 	
 	public static Thermostat initAlarmingForDeviceThermostatCommon(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
@@ -276,7 +276,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		AlarmingUtiH.setTemplateValuesIfNew(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
 				4.5f, 30.5f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.valve().setting().stateFeedback(),
-				0f, 0f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+				0f, 1.0f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		//		0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.addAlarmingHomematic(device, appDevice, 2, false);
 		appDevice.alarms().activate(true);
