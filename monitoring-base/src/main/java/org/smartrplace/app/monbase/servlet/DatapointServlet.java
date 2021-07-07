@@ -89,6 +89,8 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			
 			String dpTypeFilter = UserServlet.getParameter("type", parameters);
 			if(dpTypeFilter != null) {
+				if(Boolean.getBoolean("org.smartrplace.app.monbase.servlet.replaceCurrentByForecast") && dpTypeFilter.equals("OutsideTemperatureExt"))
+					dpTypeFilter = "OutsideTemperaturePerForcecast";
 				if(garo == null)
 					return null;
 				if(!dpTypeFilter.equals(typeId))
