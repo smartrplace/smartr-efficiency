@@ -157,7 +157,7 @@ public class CO2SensorHmHandler extends DeviceHandlerSimple<CO2Sensor> {
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		CO2Sensor co2 = (CO2Sensor) appDevice.device().getLocationResource();
-		AlarmingUtiH.setTemplateValues(appDevice, co2.reading(), 300f, 4000f, 15, AlarmingUtiH.DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
+		AlarmingUtiH.setTemplateValues(appDevice, co2.reading(), 300f, 4000f, 120, AlarmingUtiH.DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
 		
 		final SensorElements device = getElements(co2);
 		if(device.tempSens != null) {
@@ -172,7 +172,7 @@ public class CO2SensorHmHandler extends DeviceHandlerSimple<CO2Sensor> {
 	
 	@Override
 	public String getInitVersion() {
-		return "B";
+		return "C";
 	}
 
 	@Override

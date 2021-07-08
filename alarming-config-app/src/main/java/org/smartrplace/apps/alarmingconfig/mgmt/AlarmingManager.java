@@ -229,9 +229,10 @@ public class AlarmingManager {
 				vl.isNoValueAlarmActive = true;
 			else if(alarmStatus.getValue() > 0)
 				vl.isAlarmActive = true;
-			else if(!Float.isNaN(currentValue)) {
-				vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
-			}
+			//This should only be done for persistent resources
+			//else if(!Float.isNaN(currentValue)) {
+			//	vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
+			//}
 		}
 		
 		BaseAlarmI baseAlarm = new BaseAlarmI() {

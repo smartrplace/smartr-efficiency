@@ -12,6 +12,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.CO2Sensor;
@@ -20,6 +21,7 @@ import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.SmokeDetector;
 import org.ogema.model.sensors.TemperatureSensor;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -86,5 +88,22 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 	@Override
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "SPD";
+	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		SensorDevice sensDev = (SensorDevice) appDevice.device().getLocationResource();
+		AlarmingUtiH.setTemplateValues(appDevice, sensDev.sensors().getSubResource("co2", CO2Sensor.class).reading(), 350f, 4000f, 120, AlarmingUtiH.DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
+		AlarmingUtiH.setTemplateValues(appDevice, sensDev.sensors().getSubResource("temperature", TemperatureSensor.class).reading(), 5f, 45f, 120, AlarmingUtiH.DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
+		AlarmingUtiH.setTemplateValues(appDevice, sensDev.electricityStorage().chargeSensor().reading(), 0f, 1.0f, 120, -1);
+		AlarmingUtiH.setTemplateValues(appDevice, sensDev.sensors().getSubResource("battery_low", GenericBinarySensor.class).reading(), 0f, 0f, 120, AlarmingUtiH.DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES);
+		
+		appDevice.alarms().activate(true);
+	}
+	
+	@Override
+	public String getInitVersion() {
+		return "A";
 	}
 }
