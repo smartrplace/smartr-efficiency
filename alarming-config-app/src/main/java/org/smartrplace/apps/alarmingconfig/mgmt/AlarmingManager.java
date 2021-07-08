@@ -165,7 +165,7 @@ public class AlarmingManager {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
-				if(res.isActive())
+				if(res.isActive() && (!res.isNonpersistent()))
 					currentValue = mylistener.getHumanValue(res);
 				//continue;
 			} else if(ac.sensorVal() instanceof IntegerResource) {
@@ -177,7 +177,7 @@ public class AlarmingManager {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
-				if(res.isActive())
+				if(res.isActive() && (!res.isNonpersistent()))
 					currentValue = mylistener.getHumanValue(res);
 				//continue;
 			} else if(ac.sensorVal() instanceof FloatResource) {
@@ -189,7 +189,7 @@ public class AlarmingManager {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
-				if(res.isActive())
+				if(res.isActive() && (!res.isNonpersistent()))
 					currentValue = mylistener.getHumanValue(res);
 
 				if(ac.performAdditinalOperations().getValue()) {
@@ -230,9 +230,9 @@ public class AlarmingManager {
 			else if(alarmStatus.getValue() > 0)
 				vl.isAlarmActive = true;
 			//This should only be done for persistent resources
-			//else if(!Float.isNaN(currentValue)) {
-			//	vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
-			//}
+			else if(!Float.isNaN(currentValue)) {
+				vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
+			}
 		}
 		
 		BaseAlarmI baseAlarm = new BaseAlarmI() {
