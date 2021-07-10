@@ -314,10 +314,10 @@ public class AlarmingUtiH {
 		}
 
 		//Special handlings
-		if(data.sensorVal().getLocation().toLowerCase().contains("homematicip")) {
-			if((maxIntervalBetweenNewValues >= 0) && (maxIntervalBetweenNewValues < 4*60))
-				maxIntervalBetweenNewValues = DEFAULT_NOVALUE_IP_MINUTES;
-		}
+		//if(data.sensorVal().getLocation().toLowerCase().contains("homematicip")) {
+		//	if((maxIntervalBetweenNewValues >= 0) && (maxIntervalBetweenNewValues < 4*60))
+		//		maxIntervalBetweenNewValues = 4*60;
+		//}
 
 		//String defaultAlarmSetMode = System.getProperty("org.smartrplace.apps.hw.install.init.alarmtesting.defaultAlarmSetMode");
 		DefaultSetModes mode = overWriteExisting?DefaultSetModes.OVERWRITE:DefaultSetModes.SET_IF_NEW;

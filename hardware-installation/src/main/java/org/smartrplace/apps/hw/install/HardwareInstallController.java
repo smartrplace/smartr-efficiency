@@ -311,6 +311,8 @@ public class HardwareInstallController {
 		if((!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))) {// &&
 			//	(getDevices(tableProvider).size() <= 1)) {
 			tableProvider.initAlarmingForDevice(install, appConfigData);
+			if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
+				InitialConfig.addString(shortID, appConfigData.initDoneStatus(), deviceId);
 			//we call init again after 5 minutes as we expect that all datapoint resources have been set up after 5 minutes
 			//on test systems starting with replay-on-clean resources the delay usually is set to 10 to avoid interfereces with
 			//editing the values manually for testing
@@ -319,8 +321,6 @@ public class HardwareInstallController {
 				@Override
 				public void delayedExecution() {
 					tableProvider.initAlarmingForDevice(install, appConfigData);
-					if(!InitialConfig.isInitDone(shortID, appConfigData.initDoneStatus()))
-						InitialConfig.addString(shortID, appConfigData.initDoneStatus(), deviceId);
 					if(alarmingRestartTimer == null) {
 						alarmingRestartTimer = new CountDownDelayedExecutionTimer(appMan, 4*60000) {
 							
