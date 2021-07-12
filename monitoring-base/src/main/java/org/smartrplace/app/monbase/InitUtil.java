@@ -138,59 +138,42 @@ public class InitUtil {
  	/** Call this from all applications implementing this bundle*/
  	public static boolean registerGenericMonitoringServlet(MonitoringController controller,
  			boolean includeSpecialTimeseriesServlet, RestAccess restAcc) {
- 		if(UserServletTestMon.userServlet != null)
- 			return false;
- 		if(Boolean.getBoolean("org.ogema.impl.security.mobileloginvianaturaluser")) {
- 			UserServletTest.userData = controller.appMan.getResourceAccess().getResource("userAdminData/userData");
- 		}
-		//register own servlet
-		String userServletPath = MonitoringApp.urlPathServlet+"/userdata";
-		String userServletPathAPI = MonitoringApp.urlPathServletAPIWeb;
-		String genericFileUploadServletPath = "/upload";
-		String genericFileDownloadServletPath = "/download/";
-		UserServlet userServlet = registerServlet(userServletPath, controller, includeSpecialTimeseriesServlet);
-		UserServletTestMon.userServlet = userServlet;
-		UserServletTestMon.restAcc = restAcc;
-		UserServlet userServletAPI = registerServlet(userServletPathAPI, controller, includeSpecialTimeseriesServlet);
-		UserServletTestMonAPI.userServlet = userServletAPI;
-		UserServletTestMonAPI.restAcc = restAcc;
-		/*SensorServlet sensServlet = new SensorServlet(controller);
-		userServlet.addPage("sensorsByRoom", sensServlet);
-		TimeseriesBaseServlet timeSeriesServlet = new TimeseriesBaseServlet(controller);
-		userServlet.addPage("timeseries", timeSeriesServlet);
-		DatapointServlet dpServlet = new DatapointServlet(controller);
-		userServlet.addPage("datapoints", dpServlet);
-		if(includeSpecialTimeseriesServlet) {
-			TimeSeriesServlet timeSeriesServletExt = new TimeSeriesServlet(controller.appMan);
-			userServlet.addPage("timeseriesExtended", timeSeriesServletExt);
+ 		synchronized (UserServletTestMon.userServletHolder) {
+ 	 		if(UserServletTestMon.userServletHolder.userServlet != null)
+ 	 			return false;
+ 	 		if(Boolean.getBoolean("org.ogema.impl.security.mobileloginvianaturaluser")) {
+ 	 			UserServletTest.userData = controller.appMan.getResourceAccess().getResource("userAdminData/userData");
+ 	 		}
+ 			//register own servlet
+ 			String userServletPath = MonitoringApp.urlPathServlet+"/userdata";
+ 			String userServletPathAPI = MonitoringApp.urlPathServletAPIWeb;
+ 			String genericFileUploadServletPath = "/upload";
+ 			String genericFileDownloadServletPath = "/download/";
+ 			UserServlet userServlet = registerServlet(userServletPath, controller, includeSpecialTimeseriesServlet);
+ 			UserServletTestMon.userServletHolder.userServlet = userServlet;
+ 			UserServletTestMon.restAcc = restAcc;
+ 			UserServlet userServletAPI = registerServlet(userServletPathAPI, controller, includeSpecialTimeseriesServlet);
+ 			UserServletTestMonAPI.userServlet = userServletAPI;
+ 			UserServletTestMonAPI.restAcc = restAcc;			
+ 			UploadState uploadListener = new UploadState() {
+ 				
+ 				@Override
+ 				public void finished(FileItem item, OgemaHttpRequest req) {
+ 					File destFile = new File(GENERIC_UPLOAD_FOR_WEB_PATH, item.getName());
+ 					try {
+ 						Files.copy(item.getInputStream(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+ 						registerDownload(destFile, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
+ 					} catch (IOException e) {
+ 						e.printStackTrace();
+ 					}
+ 					
+ 				}
+ 			};
+ 			FileUploadServlet fileUploadServlet = new FileUploadServlet(uploadListener, includeSpecialTimeseriesServlet, GENERIC_UPLOAD_FOR_WEB_PATH, null);
+ 			controller.appMan.getWebAccessManager().registerWebResource(genericFileUploadServletPath, fileUploadServlet);
+ 			registerDownloads(GENERIC_UPLOAD_FOR_WEB_PATH, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
 		}
-		ConsumptionEvalServlet conEvalServlet = new ConsumptionEvalServlet(controller);
-		userServlet.addPage("consumptionData", conEvalServlet);
-		//controller.appMan.getWebAccessManager().registerWebResource(userServletPath, userServlet);
-		controller.appMan.getWebAccessManager().registerWebResource(userServletPathAPI, userServlet);*/
 		
-		UploadState uploadListener = new UploadState() {
-			
-			@Override
-			public void finished(FileItem item, OgemaHttpRequest req) {
-				File destFile = new File(GENERIC_UPLOAD_FOR_WEB_PATH, item.getName());
-				try {
-					Files.copy(item.getInputStream(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-					registerDownload(destFile, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-			}
-		};
-		FileUploadServlet fileUploadServlet = new FileUploadServlet(uploadListener, includeSpecialTimeseriesServlet, GENERIC_UPLOAD_FOR_WEB_PATH, null);
-		controller.appMan.getWebAccessManager().registerWebResource(genericFileUploadServletPath, fileUploadServlet);
-		registerDownloads(GENERIC_UPLOAD_FOR_WEB_PATH, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
-		//controller.appMan.getWebAccessManager().registerWebResource("/uploadlic", "/license");
-		//controller.appMan.getWebAccessManager().registerWebResource("/uploados", "os-config");
-		//File locallic = controller.appMan.getDataFile("license");
-		//controller.appMan.getWebAccessManager().registerWebResource("/locallic", locallic.getAbsolutePath());
-		//System.out.println("Registered locallic for "+locallic.getAbsolutePath());
 		return true;
  	}
  	

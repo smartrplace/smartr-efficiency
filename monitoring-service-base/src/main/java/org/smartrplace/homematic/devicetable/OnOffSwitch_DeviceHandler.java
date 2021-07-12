@@ -126,7 +126,7 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		OnOffSwitch device = (OnOffSwitch) appDevice.device();
-		AlarmingUtiH.setTemplateValues(appDevice, device.stateFeedback(),
+		AlarmingUtiH.setTemplateValuesIfNew(appDevice, device.stateFeedback(),
 			0.0f, 1.0f, 1, 20);
 		AlarmingUtiH.addAlarmingHomematic(device, appDevice);
 	}

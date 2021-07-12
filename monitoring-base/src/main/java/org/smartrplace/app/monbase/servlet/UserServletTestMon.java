@@ -19,12 +19,15 @@ import org.smartrplace.util.frontend.servlet.UserServletTest;
 public class UserServletTestMon extends UserServletTest {
 	private static final long serialVersionUID = 1L;
 	
-	public static UserServlet userServlet;
+	public static class UserServletHolder {
+		public UserServlet userServlet;		
+	}
+	public static UserServletHolder userServletHolder = new UserServletHolder();
 	public static RestAccess restAcc;
 	
 	@Override
 	protected UserServlet getUserServlet() {
-		return userServlet;
+		return userServletHolder.userServlet;
 	}
 
 	@Override

@@ -32,7 +32,7 @@ public class TimeseriesProcUtilKni extends TimeseriesSimpleProcUtil3 {
 
 	public static final String QUALITY_DAILY = "QualityDaily";
 
-	public static final long DAILY_EVAL_INTERVAL = 40*TimeProcUtil.DAY_MILLIS;
+	public static final long DAILY_EVAL_INTERVAL = (Boolean.getBoolean("qualitydebug")?6:40)*TimeProcUtil.DAY_MILLIS;
 
 	//protected final FloatResource maxGapSizeRes;
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
