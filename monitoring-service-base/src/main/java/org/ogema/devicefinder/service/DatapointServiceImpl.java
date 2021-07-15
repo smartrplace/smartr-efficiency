@@ -36,10 +36,13 @@ import org.ogema.devicefinder.util.DPRoomImpl;
 import org.ogema.devicefinder.util.DatapointGroupImpl;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DpConnectionImpl;
+import org.ogema.messaging.api.MessageTransport;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.sensors.GenericFloatSensor;
+import org.ogema.tools.app.useradmin.api.UserDataAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.smartrplace.app.monservice.MonitoringServiceBaseApp;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.dpres.SensorDeviceDpRes;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
@@ -79,10 +82,14 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 //@Service(DatapointService.class)
 //@Component
 public abstract class DatapointServiceImpl implements DatapointService {
-	public DatapointServiceImpl(ApplicationManager appMan, ConfigurationAdmin configAdmin, TimedJobMgmtService timedJobApp) {
+	protected final MonitoringServiceBaseApp baseApp;
+	
+	public DatapointServiceImpl(ApplicationManager appMan, ConfigurationAdmin configAdmin, TimedJobMgmtService timedJobApp,
+			MonitoringServiceBaseApp baseApp) {
 		this.configAdmin = configAdmin;
 		this.appMan = appMan;
 		this.timedJobMan = timedJobApp;
+		this.baseApp = baseApp;
 	}
 
 	protected abstract Map<String, DeviceHandlerProvider<?>> getTableProviders();
@@ -612,7 +619,19 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		//}
 		return timedJobMan;
 	}
+	@Override
+	public Collection<MessageTransport> messageTransportServices() {
+		return baseApp.getMessageTransportProviders().values();
+	}
+	@Override
+	public MessageTransport messageTransportService(String name) {
+		return baseApp.getMessageTransportProviders().get(name);
+	}
 	
+	@Override
+	public UserDataAccess userAdminDataService() {
+		return baseApp.getUserDataAccess();
+	}
 	
 	OSGiConfigAccessService configService;
 	@Override

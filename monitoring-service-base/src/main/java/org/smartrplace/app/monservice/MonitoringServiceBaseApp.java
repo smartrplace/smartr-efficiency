@@ -20,7 +20,9 @@ import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.TimedJobMgmtService;
 import org.ogema.devicefinder.service.DatapointServiceImpl;
+import org.ogema.messaging.api.MessageTransport;
 import org.ogema.recordeddata.DataRecorder;
+import org.ogema.tools.app.useradmin.api.UserDataAccess;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -73,7 +75,21 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addDriverPropertyProvider",
-		unbind="removeDriverPropertyProvider")
+		unbind="removeDriverPropertyProvider"),
+	@Reference(
+		name="userServices",
+		referenceInterface=UserDataAccess.class,
+		cardinality=ReferenceCardinality.OPTIONAL_UNARY,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addUserDataService",
+		unbind="removeUserDataService"),
+	@Reference(
+		name="messageServices",
+		referenceInterface=MessageTransport.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addMessageTransportProvider",
+		unbind="removeMessageTransportProvider"),
 })
 
 @Component(specVersion = "1.2", immediate = true)
@@ -116,6 +132,20 @@ public class MonitoringServiceBaseApp implements Application {
 	public LinkedHashMap<String, OGEMADriverPropertyService<?>> getDPropertyProviders() {
 		synchronized (dPropertyProviders) {
 			return new LinkedHashMap<>(dPropertyProviders);
+		}
+	}
+
+	private UserDataAccess userDataAccess = null;
+	public UserDataAccess getUserDataAccess() {
+		synchronized (userDataAccess) {
+			return userDataAccess;
+		}
+	}
+
+	private final Map<String,MessageTransport> messageTransports = Collections.synchronizedMap(new LinkedHashMap<String,MessageTransport>());
+	public LinkedHashMap<String, MessageTransport> getMessageTransportProviders() {
+		synchronized (messageTransports) {
+			return new LinkedHashMap<>(messageTransports);
 		}
 	}
 
@@ -260,7 +290,7 @@ public class MonitoringServiceBaseApp implements Application {
         log = appManager.getLogger();
 
         // 
-        dpService = new DatapointServiceImpl(appMan, configAdmin, timedJobApp) {
+        dpService = new DatapointServiceImpl(appMan, configAdmin, timedJobApp, this) {
 
 			@Override
 			protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
@@ -435,4 +465,17 @@ public class MonitoringServiceBaseApp implements Application {
     	dPropertyProviders.remove(provider.id());
     }
 
+    protected void addUserDataService(UserDataAccess provider) {
+    	userDataAccess = provider;
+    }
+    protected void removeUserDataService(UserDataAccess provider) {
+    	userDataAccess = null;
+    }
+
+    protected void addMessageTransportProvider(MessageTransport provider) {
+    	messageTransports.put(provider.getName(), provider);
+    }
+    protected void removeMessageTransportProvider(MessageTransport provider) {
+    	messageTransports.remove(provider.getName());
+    }
 }
