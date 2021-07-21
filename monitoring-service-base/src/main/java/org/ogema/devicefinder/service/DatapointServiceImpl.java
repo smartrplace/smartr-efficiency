@@ -339,7 +339,7 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	@Override
 	public Datapoint getDataPointAsIs(ValueResource valRes) {
 		Datapoint result = getDataPointAsIs(valRes.getLocation());
-		if(result.getResource() == null)
+		if(result != null && result.getResource() == null)
 			((DatapointImpl)result).setResource(valRes);
 		return result;
 	}
