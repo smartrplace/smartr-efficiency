@@ -60,6 +60,7 @@ import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_SmartDimmer;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;  
+import org.apache.felix.scr.annotations.ReferencePolicyOption;
 
 @References({
 	@Reference(
@@ -67,6 +68,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		referenceInterface=DeviceHandlerProvider.class,
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
+        policyOption = ReferencePolicyOption.GREEDY,
 		bind="addTableProvider",
 		unbind="removeTableProvider"),
 	@Reference(
@@ -74,6 +76,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		referenceInterface=OGEMADriverPropertyService.class,
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
+        policyOption = ReferencePolicyOption.GREEDY,
 		bind="addDriverPropertyProvider",
 		unbind="removeDriverPropertyProvider"),
 	@Reference(
@@ -81,6 +84,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		referenceInterface=UserDataAccess.class,
 		cardinality=ReferenceCardinality.OPTIONAL_UNARY,
 		policy=ReferencePolicy.DYNAMIC,
+        policyOption = ReferencePolicyOption.GREEDY,
 		bind="addUserDataService",
 		unbind="removeUserDataService"),
 	@Reference(
@@ -88,6 +92,7 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		referenceInterface=MessageTransport.class,
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
+        policyOption = ReferencePolicyOption.GREEDY,
 		bind="addMessageTransportProvider",
 		unbind="removeMessageTransportProvider"),
 })
@@ -137,9 +142,7 @@ public class MonitoringServiceBaseApp implements Application {
 
 	private UserDataAccess userDataAccess = null;
 	public UserDataAccess getUserDataAccess() {
-		synchronized (userDataAccess) {
-			return userDataAccess;
-		}
+    	return userDataAccess;
 	}
 
 	private final Map<String,MessageTransport> messageTransports = Collections.synchronizedMap(new LinkedHashMap<String,MessageTransport>());
