@@ -36,6 +36,7 @@ import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.LogConfigSP;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
+import org.smartrplace.tsproc.persist.TsProcPersistUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -57,8 +58,18 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 	public Iotawatt_DeviceHandler(ApplicationManagerPlus appMan) {
 		super(appMan, true);
 		this.appManPlus = appMan;
+		TimeseriesSimpleProcUtil3 util = new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 2, VIRTUAL_SENSOR_UPDATE_RATE) {
+			@Override
+			public void saveData(Datapoint dp) {
+				TsProcPersistUtil.saveTsToFile(dp, appMan);
+			}
+			@Override
+			public void loadInitData(Datapoint dp) {
+				TsProcPersistUtil.importTsFromFile(dp, appMan);
+			}
+		};
 		utilAggSubPhases = new VirtualSensorKPIMgmt(
-				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 2, VIRTUAL_SENSOR_UPDATE_RATE),
+				util,
 				appMan.getLogger(), appMan.dpService()) {
 			
 			@Override
@@ -96,6 +107,8 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 				return energyDailyRealAgg;
 			}
 		};
+		TsProcPersistUtil.registerTimedSaving(util, "SaveIotaVirtualDpDataToDisk",
+				"SaveIota2Disk", dpService);
 	}
 
 	@Override
