@@ -1,5 +1,8 @@
 package org.smartrplace.tsproc.persist;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
@@ -8,8 +11,8 @@ import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.devicefinder.util.TimedJobMemoryData;
 import org.ogema.model.jsonresult.JsonOGEMAFileData;
 import org.ogema.model.jsonresult.JsonOGEMAFileManagementData;
+import org.ogema.timeseries.eval.simple.api.ProcTs3PersistentData;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
-import org.ogema.timeseries.eval.simple.mon3.ProcTs3PersistentData;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.ogema.util.jsonresult.management.EvalResultManagementStd;
 import org.ogema.util.jsonresult.management.JsonOGEMAFileManagementImpl;
@@ -17,7 +20,6 @@ import org.ogema.util.jsonresult.management.api.JsonOGEMAFileManagement;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.os.util.DirUtils;
 import org.smartrplace.util.format.ValueFormat;
-import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
@@ -26,7 +28,10 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 public class TsProcPersistUtil {
 	private static final String PROC3_WORKSPACE = "WSPRoc3";
 	public static final int MAX_LOCATION_FILENAME_LENGTH = 128;
+	
 	protected static JsonOGEMAFileManagement<ProcTs3PersistentData, JsonOGEMAFileData> fileMgmt;
+	protected static Set<TimeseriesSimpleProcUtil3> knownUtils = new HashSet<>();
+	
 	public static JsonOGEMAFileData saveTsToFile(Datapoint dp, ApplicationManager appMan) {
 		initFileMgmt(appMan);
 		
@@ -59,13 +64,29 @@ public class TsProcPersistUtil {
 		String fileName = getFileName(dp, ts);
 		String fileNameWithPath = JsonOGEMAFileManagementImpl.getJSONFilePath(
 				fileMgmt.getFilePath(null, 10, null), fileName, true);
-		ProcTs3PersistentData fromFile = fileMgmt.importFromJSON(fileNameWithPath, ProcTs3PersistentData.class);
-		if(fromFile != null)
-			ts.initValuesFromFile(fromFile);
+		try  {
+			ProcTs3PersistentData fromFile = fileMgmt.importFromJSON(fileNameWithPath, ProcTs3PersistentData.class);
+			if(fromFile != null) {
+				ts.initValuesFromFile(fromFile);	
+			}
+		} catch(IllegalStateException e) {
+			// file does not yet exist
+		}
+	}
+	
+	public static volatile TimedJobMemoryData initData = null;
+	public static void registerTsProcUtil(TimeseriesSimpleProcUtil3 util, DatapointService dpService) {
+		synchronized(knownUtils) {
+			knownUtils.add(util);
+			if(initData == null) {
+				initData = registerTimedSaving(null, "SaveAllVirtualDpDataToDisk", "SaveVDP2Disk", dpService, true);
+			}
+		}
 	}
 	
 	public static TimedJobMemoryData registerTimedSaving(TimeseriesSimpleProcUtil3 util,
-			String label, String id, DatapointService dpService) {
+			String label, String id, DatapointService dpService,
+			boolean isGeneralJob) {
 		TimedJobProvider prov = new TimedJobProvider() {
 			
 			@Override
@@ -93,7 +114,12 @@ public class TsProcPersistUtil {
 			
 			@Override
 			public void execute(long now, TimedJobMemoryData data) {
-				util.saveUpdatesForAllData();
+				if(isGeneralJob) {
+					for(TimeseriesSimpleProcUtil3 utilLoc: knownUtils) {
+						utilLoc.saveUpdatesForAllData();						
+					}
+				} else
+					util.saveUpdatesForAllData();
 			}
 			
 			@Override

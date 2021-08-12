@@ -59,14 +59,14 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 		super(appMan, true);
 		this.appManPlus = appMan;
 		TimeseriesSimpleProcUtil3 util = new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 2, VIRTUAL_SENSOR_UPDATE_RATE) {
-			@Override
+			/*@Override
 			public void saveData(Datapoint dp) {
 				TsProcPersistUtil.saveTsToFile(dp, appMan);
 			}
 			@Override
 			public void loadInitData(Datapoint dp) {
 				TsProcPersistUtil.importTsFromFile(dp, appMan);
-			}
+			}*/
 		};
 		utilAggSubPhases = new VirtualSensorKPIMgmt(
 				util,
@@ -107,8 +107,8 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 				return energyDailyRealAgg;
 			}
 		};
-		TsProcPersistUtil.registerTimedSaving(util, "SaveIotaVirtualDpDataToDisk",
-				"SaveIota2Disk", dpService);
+		//TsProcPersistUtil.registerTimedSaving(util, "SaveIotaVirtualDpDataToDisk",
+		//		"SaveIota2Disk", dpService);
 	}
 
 	@Override

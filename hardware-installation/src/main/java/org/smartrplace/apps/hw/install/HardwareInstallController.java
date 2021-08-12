@@ -48,7 +48,7 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -81,7 +81,7 @@ public class HardwareInstallController {
 	public final HardwareInstallApp hwInstApp;
 	public final HardwareTableData hwTableData;
 	
-	public final TimeseriesSimpleProcUtil util;
+	public final TimeseriesSimpleProcUtil3 util;
 	
 	public static AlarmingUpdater alarmingUpdater = null;
 
@@ -171,7 +171,7 @@ public class HardwareInstallController {
 		mainPage = getMainPage(page);
 		initConfigResourceForOperation();
         initDemands();
-		util = new TimeseriesSimpleProcUtil(appMan, appManPlus.dpService(), 4);
+		util = new TimeseriesSimpleProcUtil3(appMan, appManPlus.dpService(), 4, 3*TimeProcUtil.MINUTE_MILLIS);
 		
 		if(hardwareInstallApp == null)
 			return;
