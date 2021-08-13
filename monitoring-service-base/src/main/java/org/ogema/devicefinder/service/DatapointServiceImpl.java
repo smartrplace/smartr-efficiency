@@ -627,8 +627,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		return baseApp.getMessageTransportProviders().values();
 	}
 	@Override
-	public MessageTransport messageTransportService(String name) {
-		return baseApp.getMessageTransportProviders().get(name);
+	public MessageTransport messageTransportService(String adressType) {
+		return baseApp.getMessageTransportProviders().get(adressType);
 	}
 	
 	@Override

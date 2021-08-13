@@ -476,9 +476,9 @@ public class MonitoringServiceBaseApp implements Application {
     }
 
     protected void addMessageTransportProvider(MessageTransport provider) {
-    	messageTransports.put(provider.getName(), provider);
+    	messageTransports.put(provider.getAddressType(), provider);
     }
     protected void removeMessageTransportProvider(MessageTransport provider) {
-    	messageTransports.remove(provider.getName());
+    	messageTransports.remove(provider.getAddressType());
     }
 }
