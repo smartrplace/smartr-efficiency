@@ -41,6 +41,7 @@ import org.smartrplace.driverhandler.devices.HeatingLabTempSens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabThermalValve_DeviceHandler;
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
 import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
+import org.smartrplace.driverhandler.devices.LightWLANDevHandler;
 import org.smartrplace.driverhandler.devices.OpenWeatherMapBigBlueRoom_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
@@ -156,36 +157,6 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DatapointService> srDpservice = null;
 	DatapointServiceImpl dpService;
 
-	/*@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGwDev = null;
-	private GatewayDeviceHandler devHandGwDev;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGwSup = null;
-	private GatewaySuperiorHandler devHandGwSup;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srVirtDpRes = null;
-	private DeviceHandlerDpRes devVirtDpRes;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srVirtTest = null;
-	private VirtualTestDeviceHandler devVirtTest;
-	
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGhl = null;
-	private GhlWaterPondDeviceHandler devHandGhl;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srBacnet = null;
-	private BacnetDeviceHandler devHandBacnet;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srVirtThOnOff = null;
-	private VirtualThermostatDeviceHandler devHandVirtThOnOff;
-
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srPST = null;
-	private MemoryTsPSTHandler devHandPST;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srKNI = null;
-	private KnownIssueDataHandler devHandKNI;*/
-
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srAircond = null;
 	private DeviceHandlerMQTT_Aircond devHandAircond;
@@ -201,6 +172,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srSmartDim = null;
 	private DeviceHandlerMQTT_SmartDimmer devHandSmartDim;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srLight = null;
+	private LightWLANDevHandler devHandLight;
 
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srDoorWindowSensor = null;
@@ -310,26 +284,6 @@ public class MonitoringServiceBaseApp implements Application {
 	   
 	   srDpservice = bc.registerService(DatapointService.class, dpService, null);
 	   
-	   /*devHandGwDev = new GatewayDeviceHandler(controller.appManPlus);
-	   srGwDev = bc.registerService(DeviceHandlerProvider.class, devHandGwDev, null);
-	   devHandGwSup = new GatewaySuperiorHandler(controller.appManPlus);
-	   srGwSup = bc.registerService(DeviceHandlerProvider.class, devHandGwSup, null);
-
-	   devVirtDpRes = new DeviceHandlerDpRes(controller.appManPlus);
-	   srVirtDpRes = bc.registerService(DeviceHandlerProvider.class, devVirtDpRes, null);
-	   devVirtTest = new VirtualTestDeviceHandler(controller.appManPlus);
-	   srVirtTest = bc.registerService(DeviceHandlerProvider.class, devVirtTest, null);
-	   devHandGhl = new GhlWaterPondDeviceHandler(controller.appManPlus);
-	   srGhl = bc.registerService(DeviceHandlerProvider.class, devHandGhl, null);
-	   devHandBacnet = new BacnetDeviceHandler(controller.appManPlus);
-	   srBacnet = bc.registerService(DeviceHandlerProvider.class, devHandBacnet, null);
-	   devHandVirtThOnOff = new VirtualThermostatDeviceHandler(controller.appManPlus);
-	   srVirtThOnOff = bc.registerService(DeviceHandlerProvider.class, devHandVirtThOnOff, null);
-	   devHandPST = new MemoryTsPSTHandler(controller.appManPlus);
-	   srPST = bc.registerService(DeviceHandlerProvider.class, devHandPST, null);
-	   devHandKNI = new KnownIssueDataHandler(controller.appManPlus);
-	   srKNI = bc.registerService(DeviceHandlerProvider.class, devHandKNI, null);*/
-
 	   devHandAircond = new DeviceHandlerMQTT_Aircond(controller.appManPlus);
 	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
 	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(controller.appManPlus);
@@ -340,6 +294,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srOnOff = bc.registerService(DeviceHandlerProvider.class, devHandOnOff, null);
 	   devHandSmartDim = new DeviceHandlerMQTT_SmartDimmer(controller.appManPlus);
 	   srSmartDim = bc.registerService(DeviceHandlerProvider.class, devHandSmartDim, null);
+	   devHandLight = new LightWLANDevHandler(controller.appManPlus);
+	   srLight = bc.registerService(DeviceHandlerProvider.class, devHandLight, null);
 
 	   devHandThermostat = new DeviceHandlerThermostat(controller.appManPlus);
 	   srThermostat = bc.registerService(DeviceHandlerProvider.class, devHandThermostat, null);
@@ -407,20 +363,13 @@ public class MonitoringServiceBaseApp implements Application {
 
     	if (srDpservice != null) srDpservice.unregister();
     	
-    	/*if (srGwDev != null) srGwDev.unregister();
-       	if (srGwSup != null) srGwSup.unregister();
-    	if (srGhl != null) srGhl.unregister();
-    	if (srBacnet != null) srBacnet.unregister();
-    	if (srVirtThOnOff!= null) srVirtThOnOff.unregister();
-    	if (srVirtDpRes != null) srVirtDpRes.unregister();
-    	if (srVirtTest != null) srVirtTest.unregister();
-       	if (srPST != null) srPST.unregister();
-       	if (srKNI != null) srKNI.unregister();*/
-
        	if (srAircond != null) srAircond.unregister();
     	if (srElecConn != null) srElecConn.unregister();
     	if (srSwBox != null) srSwBox.unregister();
     	if (srOnOff != null) srOnOff.unregister();
+    	if (srSmartDim != null) srSmartDim.unregister();
+    	if (srLight != null) srLight.unregister();    	
+    	
     	if (srPv != null) srPv.unregister();
     	if (srEnServ != null) srEnServ.unregister();
     	if (srCharge != null) srCharge.unregister();
