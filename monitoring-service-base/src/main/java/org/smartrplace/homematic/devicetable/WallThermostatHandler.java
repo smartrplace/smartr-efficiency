@@ -88,6 +88,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 			setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 		} else
 			vh.registerHeaderEntry("Set");
+		vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
 		
 		Room deviceRoom = device.location().room();
 		
