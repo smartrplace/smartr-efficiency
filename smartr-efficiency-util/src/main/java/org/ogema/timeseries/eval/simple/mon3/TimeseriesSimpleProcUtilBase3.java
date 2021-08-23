@@ -20,11 +20,14 @@ import org.smartrplace.tsproc.persist.TsProcPersistUtil;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
 
-public abstract class TimeseriesSimpleProcUtilBase3 extends TimeseriesSimpleProcUtilBase {
+public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleProcUtilBase {
 	protected final Map<String, TimeseriesSetProcessor3> knownProcessors3 = new HashMap<>();
 	
 	protected final Set<Datapoint> generatedTss = new HashSet<>();
 	
+	protected final ApplicationManager appMan;
+	public final DatapointService dpService;
+
 	/**Overwrite this to load data into the timeseries initially, e.g. by reading
 	 * from a file
 	 */
@@ -40,7 +43,9 @@ public abstract class TimeseriesSimpleProcUtilBase3 extends TimeseriesSimpleProc
 	}
 	
 	public TimeseriesSimpleProcUtilBase3(ApplicationManager appMan, DatapointService dpService) {
-		super(appMan, dpService);
+		//super(appMan, dpService);
+		this.appMan = appMan;
+		this.dpService = dpService;
 		TimeseriesSetProcMultiToSingle3.aggregateLog = TimeseriesSetProcMultiToSingle.aggregateLog;
 		TimeseriesSetProcMultiToSingle3.tsSingleLog = TimeseriesSetProcMultiToSingle.tsSingleLog;
 	}
@@ -55,6 +60,19 @@ public abstract class TimeseriesSimpleProcUtilBase3 extends TimeseriesSimpleProc
 		return result;
 	}
 	
+	@Override
+	public <T> Datapoint processSingle(String tsProcessRequest, Datapoint dp, T params) {
+		TimeseriesSetProcessor3 procRaw = getProcessor3(tsProcessRequest);
+		if(procRaw == null || (!(procRaw instanceof TimeseriesSetProcessorArg3)))
+			throw new IllegalArgumentException("Unknown or unfitting timeseries processor: "+tsProcessRequest);
+		@SuppressWarnings("unchecked")
+		TimeseriesSetProcessorArg3<T> proc = (TimeseriesSetProcessorArg3<T>) procRaw;
+		List<Datapoint> resultTs = proc.getResultSeries(Arrays.asList(new Datapoint[] {dp}), dpService, true, params);
+		if(resultTs != null && !resultTs.isEmpty())
+			return resultTs.get(0);
+		return null;
+	}
+
 	/** Regarding calculation notes see {@link TimeseriesSetProcMultiToSingle3}
 	 * 
 	 * @param tsProcessRequest

@@ -10,11 +10,11 @@ import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DpUpdateAPI.DpUpdated;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
-import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingleArg;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcessor;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingleArg3;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtilBase3;
 import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 
@@ -27,10 +27,11 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService) {
 		super(appMan, dpService);
 		
-		TimeseriesSetProcessor meterProc = new TimeseriesSetProcSingleToSingleArg<Float>(TimeProcUtil.ALARM_GAP_SUFFIX) {
+		TimeseriesSetProcessor3 meterProc = new TimeseriesSetProcSingleToSingleArg3<Float>(TimeProcUtil.ALARM_GAP_SUFFIX,
+				null, Long.MAX_VALUE) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, Float maxGapSizeIn) {
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, Float maxGapSizeIn) {
 				//long maxGapSize = (long) (param.maxIntervalBetweenNewValues().getValue()*TimeProcUtil.MINUTE_MILLIS);
 				long maxGapSize = (long) (maxGapSizeIn*TimeProcUtil.MINUTE_MILLIS);
 				return TimeSeriesServlet.getGaps(timeSeries, start, end, maxGapSize);					
@@ -44,12 +45,13 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 				return Float.class;
 			}
 		};
-		knownProcessors.put(GAP_EVAL, meterProc);
+		knownProcessors3.put(GAP_EVAL, meterProc);
 		
-		TimeseriesSetProcessor outProc = new TimeseriesSetProcSingleToSingleArg<AlarmConfiguration>(TimeProcUtil.ALARM_OUTVALUE_SUFFIX) {
+		TimeseriesSetProcessor3 outProc = new TimeseriesSetProcSingleToSingleArg3<AlarmConfiguration>(
+				TimeProcUtil.ALARM_OUTVALUE_SUFFIX, null, Long.MAX_VALUE) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, AlarmConfiguration param) {
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, AlarmConfiguration param) {
 				long maxOutTime = (long) (param.maxViolationTimeWithoutAlarm().getValue()*TimeProcUtil.MINUTE_MILLIS);
 				float lowerLimit = param.lowerLimit().getValue();
 				float upperLimit = param.upperLimit().getValue();
@@ -68,12 +70,13 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 				return AlarmConfiguration.class;
 			}
 		};
-		knownProcessors.put(OUTVALUE_EVAL, outProc);
+		knownProcessors3.put(OUTVALUE_EVAL, outProc);
 		
-		TimeseriesSetProcessor setpProc = new TimeseriesSetProcSingleToSingleArg<SetpReactInput>(TimeProcUtil.ALARM_SETPREACT_SUFFIX) {
+		TimeseriesSetProcessor3 setpProc = new TimeseriesSetProcSingleToSingleArg3<SetpReactInput>(
+				TimeProcUtil.ALARM_SETPREACT_SUFFIX, null, Long.MAX_VALUE) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, SetpReactInput param) {
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, SetpReactInput param) {
 				long maxReactTime = (long) (param.config.maxSetpointReactionTimeSeconds().getValue()*1000);
 				return TimeSeriesServlet.getSensReact(timeSeries, param.setpFb, start, end, maxReactTime);						
 			}
@@ -86,12 +89,13 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 				return SetpReactInput.class;
 			}
 		};
-		knownProcessors.put(SETPREACT_EVAL, setpProc);
+		knownProcessors3.put(SETPREACT_EVAL, setpProc);
 		
-		TimeseriesSetProcessor valueChangedProc = new TimeseriesSetProcSingleToSingleArg<Float>(TimeProcUtil.ALARM_VALCHANGED_SUFFIX) {
+		TimeseriesSetProcessor3 valueChangedProc = new TimeseriesSetProcSingleToSingleArg3<Float>(
+				TimeProcUtil.ALARM_VALCHANGED_SUFFIX, null, Long.MAX_VALUE) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
-					AggregationMode mode, ProcessedReadOnlyTimeSeries2 newTs2, Float minChange) {
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, Float minChange) {
 				return TimeSeriesServlet.getValueChanges(timeSeries, start, end, minChange, false);					
 			}
 
@@ -103,7 +107,7 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 				return Float.class;
 			}
 		};
-		knownProcessors.put(VALUECHANGED_EVAL, valueChangedProc);
+		knownProcessors3.put(VALUECHANGED_EVAL, valueChangedProc);
 
 	}
 

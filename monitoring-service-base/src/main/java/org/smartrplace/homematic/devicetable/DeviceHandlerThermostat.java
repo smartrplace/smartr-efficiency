@@ -15,6 +15,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
@@ -192,6 +193,11 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.valve().setting().stateFeedback()));
+		
+		//TODO: just for testing
+		if(!dev.getSubResource("maximumValvePosition", FloatResource.class).isActive())
+			ValueResourceHelper.setCreate(dev.getSubResource("maximumValvePosition", FloatResource.class), 1.0f);
+		addDatapoint(dev.getSubResource("maximumValvePosition", FloatResource.class), result);
 		addtStatusDatapointsHomematic(dev, dpService, result);
 		return result;
 	}
