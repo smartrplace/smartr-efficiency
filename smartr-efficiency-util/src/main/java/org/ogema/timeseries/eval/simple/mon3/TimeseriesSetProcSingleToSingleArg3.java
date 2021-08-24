@@ -99,7 +99,7 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 		newtsdi = getOrUpdateTsDp(location, resultTs , dpService);
 		if(registersTimedJob) {
 			//throw new UnsupportedOperationException("Own TimedJob for Single2Single not implemented yet!");
-			TimeseriesSetProcMultiToSingle3.registerTimedJob(resultTs, input, resultTs.resultLabel(),
+			resultTs.timedJob = TimeseriesSetProcMultiToSingle3.registerTimedJob(resultTs, input, resultTs.resultLabel(),
 					newtsdi.getLocation(), "S2S", minIntervalForReCalc, dpService);
 		}
 		return newtsdi;

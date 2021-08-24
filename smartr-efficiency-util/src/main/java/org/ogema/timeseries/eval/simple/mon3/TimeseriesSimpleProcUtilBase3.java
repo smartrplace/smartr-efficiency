@@ -9,11 +9,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.channelmanager.measurements.SampledValue;
+import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcMultiToSingle;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtilBase;
 import org.smartrplace.tsproc.persist.TsProcPersistUtil;
@@ -165,5 +169,37 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 		for(Datapoint dp: generatedTss) {
 			saveData(dp);
 		}
+	}
+	
+	/** Get MemoryTimeseries without TimedJob*/
+	public static Datapoint getMemoryTimeseriesDatapointWithoutTimedJob(String location, DatapointService dpService) {
+		Datapoint dpIn = null;
+		ProcessedReadOnlyTimeSeries3 ts = new ProcessedReadOnlyTimeSeries3(dpIn) {
+			
+			@Override
+			protected long getCurrentTime() {
+				return dpService.getFrameworkTime();
+			}
+			
+			@Override
+			protected List<SampledValue> getResultValuesMulti(List<ReadOnlyTimeSeries> timeSeries, long start, long end,
+					AggregationMode mode) {
+				throw new IllegalStateException("Not usable via timedJob!");
+			}
+			
+			@Override
+			protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode) {
+				throw new IllegalStateException("Not usable via timedJob!");
+			}
+			
+			@Override
+			public Long getFirstTimeStampInSource() {
+				throw new IllegalStateException("Not usable via timedJob!");
+			}
+		};
+		Datapoint result = dpService.getDataPointStandard(location);
+		result.setTimeSeries(ts);
+		return result;
 	}
 }

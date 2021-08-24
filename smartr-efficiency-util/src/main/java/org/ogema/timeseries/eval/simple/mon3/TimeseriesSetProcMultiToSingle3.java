@@ -218,7 +218,7 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 			newtsdi.setLabelDefault(label);
 
 		if(registersTimedJob) {
-			registerTimedJob(resultTs, input, resultLabel(), newtsdi.getLocation(), "M2S", minIntervalForReCalc, dpService);
+			resultTs.timedJob = registerTimedJob(resultTs, input, resultLabel(), newtsdi.getLocation(), "M2S", minIntervalForReCalc, dpService);
 		}
 
 		result.add(newtsdi);
@@ -239,11 +239,11 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 		return "Multi_"+((resultSeriesStore!=null)?resultSeriesStore.dpLabel():"?");
 	}
 
-	protected static void registerTimedJob(ProcessedReadOnlyTimeSeries3 ts, List<Datapoint> input,
+	protected static TimedJobMemoryData registerTimedJob(ProcessedReadOnlyTimeSeries3 ts, List<Datapoint> input,
 			String label, String resultLocation, String idBase,
 			long repetitionTime,
 			DatapointService dpService) {
-		dpService.timedJobService().registerTimedJobProvider(new TimedJobProvider() {
+		TimedJobMemoryData result = dpService.timedJobService().registerTimedJobProvider(new TimedJobProvider() {
 
 			@Override
 			public String label(OgemaLocale locale) {
@@ -291,6 +291,7 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 				return 1;
 			}
 		});
+		return result;
 	}
 
 	protected static void updateTimeseries(ProcessedReadOnlyTimeSeries3 ts, long now) {
