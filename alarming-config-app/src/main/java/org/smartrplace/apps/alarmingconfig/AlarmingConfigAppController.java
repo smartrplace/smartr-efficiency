@@ -31,9 +31,9 @@ import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon3.std.TimeseriesProcAlarming;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmconfig.util.AppIDImpl;
-import org.smartrplace.apps.alarmingconfig.eval.TimeseriesProcAlarming;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.alarmingconfig.gui.PageBuilderSimple;
@@ -524,8 +524,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			alarmMan.close();
 		}
 		if(hwTableData.appConfigData.isAlarmingActive().getValue()) {
-			List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
-			alarmMan = new AlarmingManager(configs, appManPlus, appsToSend, getAlarmingDomain());
+			List<InstallAppDevice> iads = hwTableData.appConfigData.knownDevices().getAllElements();
+			//List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
+			alarmMan = new AlarmingManager(iads, appManPlus, appsToSend, getAlarmingDomain());
 		} else
 			alarmMan = null;
 	}

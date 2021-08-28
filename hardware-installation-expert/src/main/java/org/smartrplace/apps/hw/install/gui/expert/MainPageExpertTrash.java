@@ -13,11 +13,11 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 public class MainPageExpertTrash extends MainPageExpert {
 
 	public MainPageExpertTrash(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller, true);
+		super(page, controller, true, ShowModeHw.STANDARD);
 	}
 	
 	@Override
-	protected String getHeader() {
+	public String getHeader() {
 		return "Trash-marked Devices";
 	}
 

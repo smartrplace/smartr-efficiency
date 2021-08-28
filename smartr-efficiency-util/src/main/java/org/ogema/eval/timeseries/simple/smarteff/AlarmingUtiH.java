@@ -63,23 +63,6 @@ public class AlarmingUtiH {
 		void updateAlarming();
 	}
 
-	/*public static AlarmConfiguration getAlarmConfig(ResourceList<AlarmConfiguration> configs, SmartEffTimeSeries dev) {
-		for(AlarmConfiguration ac: configs.getAllElements()) {
-			if(ac.supervisedTS().equalsLocation(dev)) {
-				return ac;
-			}
-		}
-		return null;
-	}*/
-	/*public static AlarmConfiguration getAlarmConfig2(ResourceList<AlarmConfiguration> configs, SingleValueResource dev) {
-		for(AlarmConfiguration ac: configs.getAllElements()) {
-			if(ac.sensorVal().equalsLocation(dev)) {
-				return ac;
-			}
-		}
-		return null;
-	}*/
-	
 	public static void cleanUpAlarmConfigs(ResourceList<AlarmConfiguration> configs) {
 		for(AlarmConfiguration ac: configs.getAllElements()) {
 			if((!ac.sensorVal().exists())) //&&(!ac.supervisedTS().exists()))
@@ -150,10 +133,19 @@ public class AlarmingUtiH {
 			EditPageGeneric.setDefault(data.performAdditinalOperations(), false, mode);
 	}
 	
+	public static AlarmConfiguration getAlarmConfig(SingleValueResource sensVal, ResourceList<AlarmConfiguration> configs) {
+		for(AlarmConfiguration ac: configs.getAllElements()) {
+			if(ac.sensorVal().equalsLocation(sensVal)) {
+				return ac;
+			}
+		}
+		return null;
+	}
+
 	public static AlarmConfiguration getOrCreateReferencingSensorVal(SingleValueResource sensVal, ResourceList<AlarmConfiguration> list) {
-		for(AlarmConfiguration el: list.getAllElements()) {
-			if(el.sensorVal().equalsLocation(sensVal))
-				return el;
+		for(AlarmConfiguration ac: list.getAllElements()) {
+			if(ac.sensorVal().equalsLocation(sensVal))
+				return ac;
 		}
 		AlarmConfiguration result = list.add();
 		result.sensorVal().setAsReference(sensVal);

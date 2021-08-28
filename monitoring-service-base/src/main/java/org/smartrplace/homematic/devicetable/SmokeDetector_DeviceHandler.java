@@ -35,7 +35,7 @@ public class SmokeDetector_DeviceHandler extends DeviceHandlerSimple<SmokeDetect
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(SmokeDetector device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(SmokeDetector device, InstallAppDevice deviceConfiguration) {
 		return device.reading();
 	}
 

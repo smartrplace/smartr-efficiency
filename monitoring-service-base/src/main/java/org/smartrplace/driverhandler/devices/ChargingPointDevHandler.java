@@ -27,7 +27,7 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(ChargingPoint device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(ChargingPoint device, InstallAppDevice deviceConfiguration) {
 		return device.setting().stateFeedback();
 	}
 

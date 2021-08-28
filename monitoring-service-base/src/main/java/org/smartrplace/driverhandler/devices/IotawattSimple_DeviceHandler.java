@@ -25,7 +25,7 @@ public class IotawattSimple_DeviceHandler extends DeviceHandlerSimple<IotaWattCo
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(IotaWattConnection device,
+	public SingleValueResource getMainSensorValue(IotaWattConnection device,
 			InstallAppDevice deviceConfiguration) {
 		if(device.sensors().size() == 0)
 			return null;

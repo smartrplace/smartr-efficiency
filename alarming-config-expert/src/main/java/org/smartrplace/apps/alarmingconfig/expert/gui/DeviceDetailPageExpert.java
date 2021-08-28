@@ -13,17 +13,21 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
 import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil;
 import org.ogema.externalviewer.extensions.ScheduleViwerOpenUtil.SchedOpenDataProvider;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon3.std.TimeseriesProcAlarming;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
-import org.smartrplace.apps.alarmingconfig.eval.TimeseriesProcAlarming;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.gui.filtering.DualFiltering2StepsStd;
 import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
@@ -45,7 +49,8 @@ import de.iwes.widgets.html.form.button.Button;
 
 @SuppressWarnings("serial")
 public class DeviceDetailPageExpert extends DeviceTypePage {
-	protected DualFiltering2StepsStd<InstallAppDevice, String, AlarmConfiguration> deviceDropLoc;
+	protected DualFiltering2StepsStd<InstallAppDeviceBase, ?, AlarmConfiguration> deviceDropLoc;
+	protected final boolean isDevTaskTemplatePage;
 	
 	protected void addFinalWidgets(AlarmConfiguration object,
 			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
@@ -55,12 +60,26 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	
 	public DeviceDetailPageExpert(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
 			AlarmingConfigAppController controller, boolean showReducedColumns, boolean showSuperAdmin) {
+		this(page, appManPlus, controller, showReducedColumns, showSuperAdmin, false);
+	}
+	public DeviceDetailPageExpert(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
+			AlarmingConfigAppController controller, boolean showReducedColumns, boolean showSuperAdmin,
+			boolean isDevTaskTemplatePage) {
 		super(page, appManPlus, false, controller, showReducedColumns, showSuperAdmin);
+		this.isDevTaskTemplatePage = isDevTaskTemplatePage;
 	}
 	
 	@Override
 	protected String getHeader(OgemaLocale locale) {
+		if(isDevTaskTemplatePage)
+			return "4. Special Alarming Settings for Development Tasks";
 		return "2. Alarming Details Per Device"+(showSuperAdmin?" Admin":"");
+	}
+	
+	@Override
+	public void addWidgetsAboveTable() {
+		// TODO Auto-generated method stub
+		super.addWidgetsAboveTable();
 	}
 	
 	@Override
@@ -149,86 +168,138 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	
 	@Override
 	protected void addWidgetsAboveTableInternal() {
-		deviceDropLoc = new DualFiltering2StepsStd<InstallAppDevice, String, AlarmConfiguration>(page, "deviceDropDual", OptionSavingMode.GENERAL,
-				10000, false, true) {
-
-			@Override
-			protected Map<String, InstallAppDevice> getAttributesByGroup(String group) {
-				DatapointGroup dtGrp = dpService.getGroup(group);
-				if(dtGrp == null)
-					throw new IllegalStateException("Unknown device type group id:"+group);
-				Map<String, InstallAppDevice> result = new HashMap<>();
-				for(DatapointGroup dpGrp: dtGrp.getSubGroups()) {
-					InstallAppDevice dev = controller.getIAD(dpGrp.id());
-					if(dev == null) {
-						//on collecting gateways we have to skip remote groups
-						if(!Boolean.getBoolean("org.smartrplace.app.srcmon.iscollectinggateway"))
-							appMan.getLogger().warn("No InstallAppDevice for "+dpGrp.id());
-						continue;
+		if(isDevTaskTemplatePage) {
+			deviceDropLoc = new DualFiltering2StepsStd<InstallAppDeviceBase, DevelopmentTask, AlarmConfiguration>(page, "deviceDropDual", OptionSavingMode.GENERAL,
+					10000, false, true) {
+	
+				@Override
+				protected Map<String, InstallAppDeviceBase> getAttributesByGroup(DevelopmentTask group) {
+					Map<String, InstallAppDeviceBase> result = new HashMap<>();
+					for(InstallAppDeviceBase iad: group.templates().getAllElements()) {	
+						String devHandLabel = AlarmingConfigUtil.getDeviceHandlerShortId(iad);
+						result .put(devHandLabel, iad);
 					}
-					result.put(dev.deviceId().getValue(), dev);
+					return result ;
 				}
-				return result ;
-			}
-			
-			@Override
-			protected String getGroupLabel(String grp) {
-				final DatapointGroup dtGrp = dpService.getGroup(grp);
-				if(dtGrp == null)
-					throw new IllegalStateException("Unknown device type group id:"+grp);
-				return dtGrp.label(null);
-			}
-			
-			@Override
-			protected List<String> getGroups(InstallAppDevice object) {
-				DatapointGroup devTypeGrp = getDeviceTypeGroup(object);
-				if(devTypeGrp == null) {
-					//should never occur
-					System.out.println("No DEVICE_TYPE group for "+object.getLocation());
-					return Collections.emptyList();
+				
+				@Override
+				protected String getGroupLabel(DevelopmentTask grp) {
+					return ResourceUtils.getHumanReadableShortName(grp);
 				}
-				return Arrays.asList(new String[] {devTypeGrp.id()});
-			}
-
-			@Override
-			protected boolean isGroupEqual(String group1, String group2) {
-				return group1.equals(group2);
-			}
-
-			@Override
-			protected long getFrameworkTime() {
-				return appMan.getFrameworkTime();
-			}
-
-			@Override
-			protected InstallAppDevice getAttribute(AlarmConfiguration attr) {
-				InstallAppDevice iad = ResourceHelper.getFirstParentOfType(attr, InstallAppDevice.class);
-				return iad;
-			}
-
-			@Override
-			protected Collection<String> getAllGroups() {
-				List<String> result = new ArrayList<>();
-				for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
-					if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE")) {
-						result.add(dpGrp.id());
+				
+				@Override
+				protected List<DevelopmentTask> getGroups(InstallAppDeviceBase object) {
+					DevelopmentTask result = ResourceHelper.getFirstParentOfType(object, DevelopmentTask.class);
+					if(result == null)
+						throw new IllegalStateException("IAD "+object.getLocation()+" not part of a DevelopmentTask!");
+					return Arrays.asList(new DevelopmentTask[] {result});
+				}
+	
+				@Override
+				protected boolean isGroupEqual(DevelopmentTask group1, DevelopmentTask group2) {
+					return group1.equalsLocation(group2);
+				}
+	
+				@Override
+				protected long getFrameworkTime() {
+					return appMan.getFrameworkTime();
+				}
+	
+				@Override
+				protected InstallAppDeviceBase getAttribute(AlarmConfiguration attr) {
+					InstallAppDeviceBase iad = ResourceHelper.getFirstParentOfType(attr, InstallAppDeviceBase.class);
+					return iad;
+				}
+	
+				@Override
+				protected Collection<DevelopmentTask> getAllGroups() {
+					return controller.hwTableData.appConfigData.knownDevelopmentTasks().getAllElements();
+				}
+			};			
+		} else {
+			deviceDropLoc = new DualFiltering2StepsStd<InstallAppDeviceBase, String, AlarmConfiguration>(page, "deviceDropDual", OptionSavingMode.GENERAL,
+					10000, false, true) {
+	
+				@Override
+				protected Map<String, InstallAppDeviceBase> getAttributesByGroup(String group) {
+					DatapointGroup dtGrp = dpService.getGroup(group);
+					if(dtGrp == null)
+						throw new IllegalStateException("Unknown device type group id:"+group);
+					Map<String, InstallAppDeviceBase> result = new HashMap<>();
+					for(DatapointGroup dpGrp: dtGrp.getSubGroups()) {
+						InstallAppDevice dev = controller.getIAD(dpGrp.id());
+						if(dev == null) {
+							//on collecting gateways we have to skip remote groups
+							if(!Boolean.getBoolean("org.smartrplace.app.srcmon.iscollectinggateway"))
+								appMan.getLogger().warn("No InstallAppDeviceBase for "+dpGrp.id());
+							continue;
+						}
+						result.put(dev.deviceId().getValue(), dev);
 					}
+					return result ;
 				}
-				return result;
-			}
-		};
+				
+				@Override
+				protected String getGroupLabel(String grp) {
+					final DatapointGroup dtGrp = dpService.getGroup(grp);
+					if(dtGrp == null)
+						throw new IllegalStateException("Unknown device type group id:"+grp);
+					return dtGrp.label(null);
+				}
+				
+				@Override
+				protected List<String> getGroups(InstallAppDeviceBase object) {
+					if(!(object instanceof InstallAppDevice))
+						throw new IllegalStateException("Wrong type for "+object.getLocation());
+					DatapointGroup devTypeGrp = getDeviceTypeGroup((InstallAppDevice) object);
+					if(devTypeGrp == null) {
+						//should never occur
+						System.out.println("No DEVICE_TYPE group for "+object.getLocation());
+						return Collections.emptyList();
+					}
+					return Arrays.asList(new String[] {devTypeGrp.id()});
+				}
+	
+				@Override
+				protected boolean isGroupEqual(String group1, String group2) {
+					return group1.equals(group2);
+				}
+	
+				@Override
+				protected long getFrameworkTime() {
+					return appMan.getFrameworkTime();
+				}
+	
+				@Override
+				protected InstallAppDeviceBase getAttribute(AlarmConfiguration attr) {
+					InstallAppDeviceBase iad = ResourceHelper.getFirstParentOfType(attr, InstallAppDeviceBase.class);
+					return iad;
+				}
+	
+				@Override
+				protected Collection<String> getAllGroups() {
+					List<String> result = new ArrayList<>();
+					for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
+						if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE")) {
+							result.add(dpGrp.id());
+						}
+					}
+					return result;
+				}
+			};
+		}
 		//deviceDrop = deviceDropLoc;
 		deviceDropLoc.registerDependentWidget(mainTable);
 		
 		ButtonConfirm applyDefaultToTemplate = new ButtonConfirm(page, "applyDefaultToTemplate") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				GenericFilterFixedSingle<InstallAppDevice> selectedFilter = (GenericFilterFixedSingle<InstallAppDevice>) deviceDropLoc.getSelectedItem(req);
-				InstallAppDevice selected = selectedFilter.getValue();
-				//InstallAppDevice template = AlarmingConfigUtil.getTemplate(selected.getValue(), appManPlus);
-				if(selected != null) {
-					DeviceHandlerProvider<?> devHand = controller.getDeviceHandler(selected);
-					devHand.initAlarmingForDevice(selected, controller.getHardwareConfig());
+				GenericFilterFixedSingle<InstallAppDeviceBase> selectedFilter = (GenericFilterFixedSingle<InstallAppDeviceBase>) deviceDropLoc.getSelectedItem(req);
+				InstallAppDeviceBase selected = selectedFilter.getValue();
+				//InstallAppDeviceBase template = AlarmingConfigUtil.getTemplate(selected.getValue(), appManPlus);
+				if(selected != null && (selected instanceof InstallAppDevice)) {
+					DeviceHandlerProvider<?> devHand = controller.getDeviceHandler((InstallAppDevice) selected);
+					devHand.initAlarmingForDevice((InstallAppDevice) selected, controller.getHardwareConfig());
 					alert.showAlert("Default alarming settings applied to device for "+selectedFilter.getValue(), true, req);					
 				} else
 					alert.showAlert("Template for type "+selectedFilter.getValue()+" not found!", false, req);
@@ -240,6 +311,10 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 		applyDefaultToTemplate.registerDependentWidget(alert);
 
 		secondTable = new StaticTable(1, 4);
+		if(isDevTaskTemplatePage) {
+			secondTable.setContent(0, 2, "");			
+		}
+		
 		secondTable.setContent(0, 0, deviceDropLoc.getFirstDropdown());
 		secondTable.setContent(0, 1, deviceDropLoc);
 		//secondTable.setContent(0, 2, "");

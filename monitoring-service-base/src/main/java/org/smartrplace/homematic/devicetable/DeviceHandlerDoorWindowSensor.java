@@ -371,7 +371,7 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 			PropType.PEER_NEEDS_BURST, PropType.LOCAL_RESET_DISABLE});
 
 	@Override
-	protected SingleValueResource getMainSensorValue(DoorWindowSensor device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(DoorWindowSensor device, InstallAppDevice deviceConfiguration) {
 		throw new IllegalStateException("Should not be used yet!");
 		//return null;
 	}

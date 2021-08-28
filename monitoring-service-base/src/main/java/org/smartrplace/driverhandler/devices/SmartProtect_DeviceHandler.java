@@ -44,7 +44,7 @@ public class SmartProtect_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		return device.getSubResource("state", MultiSwitch.class).stateFeedback();
 	}
 

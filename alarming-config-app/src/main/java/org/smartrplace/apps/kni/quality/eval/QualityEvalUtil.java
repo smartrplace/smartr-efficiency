@@ -4,9 +4,9 @@ import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
-import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
@@ -16,6 +16,11 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 
+/** This class organizes a timer-based Evaluation of data quality written into resources and provision of a Memory timeseries
+ * for transmission and plotting on superior. Both calculations are done independently.
+ * TODO: Both should be replaced by {@link StandardEvalAccess#getQualityValues(org.ogema.core.application.ApplicationManager, org.ogema.devicefinder.api.DatapointService, long, long, double)}
+ * => just replace the deprecated getQualityValues methods by {@link StandardEvalAccess}
+ */
 public class QualityEvalUtil {
 	private static final long KNI_EVAL_TIMER_INTERVAL = TimeProcUtil.MINUTE_MILLIS;
 	private static final long QUALITY_EVAL_INTERVAL = 60*TimeProcUtil.MINUTE_MILLIS;
@@ -41,6 +46,7 @@ public class QualityEvalUtil {
 	}
 
 	public QualityEvalUtil(AlarmingConfigAppController c) {
+		StandardEvalAccess.init(c.appManPlus);
 		util = new TimeseriesProcUtilKni(c.appMan, c.dpService);
 		virtualRootDp = c.dpService.getDataPointStandard("vRootDp");
 		registerDailyValues(c);
@@ -67,7 +73,8 @@ public class QualityEvalUtil {
 	}
 	
 	public void updateQualityResources(AlarmingConfigAppController c) {
-		int[] qualityVals = AlarmingConfigUtil.getQualityValues(c.appMan, c.dpService);
+		//int[] qualityVals = AlarmingConfigUtil.getQualityValues(c.appMan, c.dpService);
+		int[] qualityVals = StandardEvalAccess.getQualityValuesForStandardDurations(c.appMan, c.dpService);
 		ValueResourceHelper.setCreate(kniData.qualityShort(), qualityVals[0]);		
 		ValueResourceHelper.setCreate(kniData.qualityLong(), qualityVals[1]);		
 		ValueResourceHelper.setCreate(kniData.qualityShortGold(), qualityVals[2]);		

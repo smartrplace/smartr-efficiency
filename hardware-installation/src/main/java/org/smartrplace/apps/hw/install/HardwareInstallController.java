@@ -209,6 +209,7 @@ public class HardwareInstallController {
 			appConfigData = (HardwareInstallConfig) appMan.getResourceManagement().createResource(name, HardwareInstallConfig.class);
 			appConfigData.isInstallationActive().create();
 			appConfigData.knownDevices().create();
+			appConfigData.knownDevelopmentTasks().create();
 			appConfigData.room().create();
 			appConfigData.room().setValue(RoomSelectorDropdown.ALL_DEVICES_ID);
 			//appConfigData.installationStatusFilter().create();

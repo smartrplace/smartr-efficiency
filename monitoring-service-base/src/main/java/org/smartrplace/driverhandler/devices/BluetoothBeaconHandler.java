@@ -25,7 +25,7 @@ public class BluetoothBeaconHandler extends DeviceHandlerSimple<BeaconInformatio
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(BeaconInformation device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(BeaconInformation device, InstallAppDevice deviceConfiguration) {
 		return device.rssiSensor().reading();
 	}
 

@@ -29,6 +29,7 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
+import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
@@ -74,10 +75,25 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 		@Override
 		protected void controllerAndAppmanAvailable(HardwareInstallController controller,
 				ApplicationManager appMan) {
+			int showModeOrder = controller.appConfigData.showModePageOrder().getValue();
+			
+			final NavigationMenu menu = new NavigationMenu(" Browse pages");
+
 			widgetApp = guiService.createWidgetApp(urlPath, appMan);
 			final WidgetPage<?> page = widgetApp.createStartPage();
-			MainPageExpert expertPage = new MainPageExpert(page, controller);
+			MainPageExpert expertPage = new MainPageExpert(page, controller, (showModeOrder == 0)?ShowModeHw.STANDARD:ShowModeHw.KNI);
 			controller.mainPageExts.add(expertPage);
+			//menu.addEntry("Expert page", page);
+			menu.addEntry(expertPage.getHeader(), page);
+			page.getMenuConfiguration().setCustomNavigation(menu);
+			
+			widgetApp = guiService.createWidgetApp(urlPath, appMan);
+			final WidgetPage<?> pageExp2 = widgetApp.createWidgetPage("mainExpert2.html");
+			MainPageExpert expertPage2 = new MainPageExpert(pageExp2, controller, (showModeOrder != 0)?ShowModeHw.STANDARD:ShowModeHw.KNI);
+			controller.mainPageExts.add(expertPage2);
+			//menu.addEntry("Expert page", pageExp2);
+			menu.addEntry(expertPage2.getHeader(), pageExp2);
+			pageExp2.getMenuConfiguration().setCustomNavigation(menu);
 			
 			for(InstallAppDevice dev: controller.appConfigData.knownDevices().getAllElements()) {
 				if(dev.isTrash().getValue()) {
@@ -93,10 +109,8 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			//WidgetPage<LocaleDictionary> rssiPageBase = widgetApp.createWidgetPage("rssipage.hmtl");
 			//new RSSIPage(rssiPageBase, controller);
 
-			final NavigationMenu menu = new NavigationMenu(" Browse pages");
-			menu.addEntry("Expert page", page);
 			//menu.addEntry("Communication quality page", rssiPageBase);
-			page.getMenuConfiguration().setCustomNavigation(menu);
+			//page.getMenuConfiguration().setCustomNavigation(menu);
 			//rssiPageBase.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> configPagebase = widgetApp.createWidgetPage("configPage.hmtl");

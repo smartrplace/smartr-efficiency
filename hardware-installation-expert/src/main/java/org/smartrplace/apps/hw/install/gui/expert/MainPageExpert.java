@@ -10,6 +10,7 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
@@ -19,6 +20,7 @@ import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
@@ -26,6 +28,8 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.form.label.LabelData;
 
 @SuppressWarnings("serial")
 public class MainPageExpert extends MainPage {
@@ -42,18 +46,23 @@ public class MainPageExpert extends MainPage {
 	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, APPLY_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TRASH = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH_RESET, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
+	private static final String GAPS_LABEL = "Qual4d/perTs/SetpReact/perTs";
 
 	protected final boolean isTrashPage;
+	protected final ShowModeHw showMode;
 	
 	@Override
-	protected String getHeader() {return "Device Setup and Configuration Expert";}
+	public String getHeader() {return "Device Setup and Configuration Expert "+((showMode==ShowModeHw.STANDARD)?"(Locations)":"(Known Issues/Gaps)");}
 
-	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller) {
-		this(page, controller, false);
+	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller, ShowModeHw showModeHw) {
+		this(page, controller, false, showModeHw);
 	}
-	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller, boolean isTrashPage) {
+	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller, boolean isTrashPage,
+			ShowModeHw showModeHw) {
 		super(page, controller, true);
+		StandardEvalAccess.init(controller.appManPlus);
 		this.isTrashPage = isTrashPage;
+		this.showMode = showModeHw;
 		
 		Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -69,7 +78,7 @@ public class MainPageExpert extends MainPage {
 	
 	@Override
 	protected void finishConstructor() {
-		StaticTable secondTable = new StaticTable(1, 4);
+		StaticTable secondTable = new StaticTable(1, 6);
 		RedirectButton stdCharts = new RedirectButton(page, "stdCharts", "Chart Config", "/org/sp/app/srcmonexpert/rssioverview.html");
 		RedirectButton homeScreen = new RedirectButton(page, "homeScreen", "Other Apps", "/org/smartrplace/apps/apps-overview/index.html") {
 			@Override
@@ -89,7 +98,32 @@ public class MainPageExpert extends MainPage {
 			}
 		};
 		RedirectButton alarmingExpert = new RedirectButton(page, "alarmExpert", "Alarming Expert", "/org/smartrplace/alarmingexpert/deviceknownfaults.html");
-		secondTable.setContent(0, 0, stdCharts).setContent(0, 1, homeScreen).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert);
+		
+		boolean isIndex = page.getUrl().startsWith("index");
+		RedirectButton otherMainPageBut = new RedirectButton(page, "otherMainPageBut",
+				(showMode==ShowModeHw.STANDARD)?"KnI/Gap Eval":"Locations",
+				isIndex?"/org/smartrplace/hardwareinstall/expert/mainExpert2.html":"/org/smartrplace/hardwareinstall/expert/index.html");
+
+		/*showModeFilter = new SingleFilteringDirect<ShowModeHw>(page, "showModeFilter", 
+				OptionSavingMode.PER_USER, 5000, false) {
+
+			@Override
+			protected List<GenericFilterOption<ShowModeHw>> getOptionsDynamic(OgemaHttpRequest req) {
+				List<GenericFilterOption<ShowModeHw>> result = new ArrayList<>();
+				result.add(new GenericFilterFixed<ShowModeHw>(ShowModeHw.STANDARD, "Locations"));
+				result.add(new GenericFilterFixed<ShowModeHw>(ShowModeHw.KNI, "Issue and Gap Eval"));
+				return result ;
+			}
+
+			@Override
+			protected long getFrameworkTime() {
+				return appMan.getFrameworkTime();
+			}
+		};
+		showModeFilter.setDefaultPreSelectionGeneral("Locations");*/
+		
+		secondTable.setContent(0, 0, stdCharts).setContent(0, 1, homeScreen).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert)
+				.setContent(0,  5, otherMainPageBut);
 		page.append(secondTable);
 		super.finishConstructor();
 	}
@@ -106,8 +140,27 @@ public class MainPageExpert extends MainPage {
 		if(tableProvider != null)
 			tableProvider.addMoreWidgetsExpert(object, vh, id, req, row, appMan);
 		
-		vh.stringLabel("IAD", id, object.getName(), row);
-		vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
+		if(showMode == ShowModeHw.STANDARD) {
+			vh.stringLabel("IAD", id, object.getName(), row);
+			vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
+		} else if(req == null) {
+			vh.registerHeaderEntry("KniStatus");
+			vh.registerHeaderEntry(GAPS_LABEL);
+		} else {
+			IntegerResource kniStatus = object.knownFault().assigned();
+			KniStatus kniStat = getStatus(kniStatus);
+			Label kniLabel = vh.stringLabel("KniStatus", id, kniStat.text, row);
+			if(kniStat.style != null)
+				kniLabel.addStyle(kniStat.style, req);
+			float[] gapData = StandardEvalAccess.getQualityValuesPerDeviceStandard(object, appMan, controller.appManPlus);
+			String gapText = gapData[0]+"/"+gapData[1];
+			float[] setpReactData = StandardEvalAccess.getSetpReactValuesPerDeviceStandard(object, appMan, controller.appManPlus);
+			if(!Float.isNaN(setpReactData[0]))
+				gapText += "/"+setpReactData[0]+"/"+setpReactData[1];
+			Label gapLabel = vh.stringLabel(GAPS_LABEL, id, gapText, row);
+			if(gapData[0] < 0.9f)
+				gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
+		}
 		if(req == null) {
 			vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
 			vh.registerHeaderEntry("Plot");
@@ -245,5 +298,47 @@ public class MainPageExpert extends MainPage {
 		}
 		object.device().getLocationResource().deactivate(true);
 		ValueResourceHelper.setCreate(object.isTrash(), true);		
+	}
+	
+	public static class KniStatus {
+		public KniStatus(WidgetStyle<Label> style, String text) {
+			this.style = style;
+			this.text = text;
+		}
+		WidgetStyle<Label> style;
+		String text;
+	}
+	public static KniStatus getStatus(IntegerResource kniStatus) {
+		if(!kniStatus.isActive())
+			return new KniStatus(LabelData.BOOTSTRAP_GREEN, "No Open");
+		int kniVal = kniStatus.getValue();
+		switch(kniVal) {
+		case 0:
+			return new KniStatus(LabelData.BOOTSTRAP_RED, "Unassigned");
+		case 2100:
+			return new KniStatus(LabelData.BOOTSTRAP_ORANGE, "Battery");
+		case 2150:
+			return new KniStatus(LabelData.BOOTSTRAP_LIGHT_BLUE, "NoReach");
+		case 2200:
+			return new KniStatus(LabelData.BOOTSTRAP_BLUE, "Signal Strength");
+		case 2000:
+			return new KniStatus(LabelData.BOOTSTRAP_BLUE, "Operation Other");
+		case 2500:
+			return new KniStatus(LabelData.BOOTSTRAP_BLUE, "Operation (Ext)");
+		case 4000:
+			return new KniStatus(LabelData.BOOTSTRAP_LIGHT_BLUE, "Customer");
+		case 3000:
+			return new KniStatus(null, "Development");
+		case 3500:
+			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Dev (Ext)");
+		case 7000:
+			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Special");
+		case 1000:
+		case 5000:
+		case 6000:
+			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Other");
+		default:
+			throw new IllegalStateException("Unknown KniStatus:"+kniVal+" for "+kniStatus.getLocation());
+		}
 	}
 }

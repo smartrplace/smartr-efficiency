@@ -33,7 +33,7 @@ public class HeatMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		return device.getSubResource("POWER_0_0", PowerSensor.class).reading();
 	}
 

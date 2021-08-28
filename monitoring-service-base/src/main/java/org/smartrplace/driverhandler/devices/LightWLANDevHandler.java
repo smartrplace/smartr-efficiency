@@ -27,7 +27,7 @@ public class LightWLANDevHandler extends DeviceHandlerSimple<ElectricLight> {
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(ElectricLight device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(ElectricLight device, InstallAppDevice deviceConfiguration) {
 		return device.onOffSwitch().stateFeedback();
 	}
 

@@ -71,6 +71,11 @@ public class AlarmingConfigAppSuperadmin implements Application, AlarmingExtensi
 			menu.addEntry("3. Alarming Configuration ALL Superadmin", pageRes3);
 			configMenuConfig(pageRes3.getMenuConfiguration());
 			
+			WidgetPage<?> pageRes5D = widgetApp.createWidgetPage("devicedevtask.html");
+			new DeviceDetailPageExpert(pageRes5D, controller.appManPlus, controller, false, true, true);
+			menu.addEntry("4. Special Alarming Settings for Development Tasks", pageRes5D);
+			configMenuConfig(pageRes5D.getMenuConfiguration());
+
 			WidgetPage<?> pageRes4 = widgetApp.createWidgetPage("ongoinggroups.html");
 			new AlarmGroupPage(pageRes4, controller.appManPlus);
 			menu.addEntry("5. Groups of ongoing Alarms", pageRes4);

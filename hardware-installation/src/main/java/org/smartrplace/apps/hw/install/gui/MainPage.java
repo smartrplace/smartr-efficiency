@@ -63,6 +63,11 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 
 	protected String getHeader() {return "Device Setup and Configuration";}
 
+	public static enum ShowModeHw {
+		STANDARD,
+		KNI
+	}
+	
 	public MainPage(WidgetPage<?> page, final HardwareInstallController controller, boolean triggerFinishConstructorAutomatically) {
 		super(page, controller.appManPlus, controller.hwInstApp, controller.hwTableData, triggerFinishConstructorAutomatically);
 		this.controller = controller;

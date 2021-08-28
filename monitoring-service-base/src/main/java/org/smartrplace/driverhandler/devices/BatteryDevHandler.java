@@ -35,7 +35,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 	}
 	
 	@Override
-	protected SingleValueResource getMainSensorValue(ElectricityStorage device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(ElectricityStorage device, InstallAppDevice deviceConfiguration) {
 		return device.electricityConnection().powerSensor().reading();
 	}
 	

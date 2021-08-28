@@ -38,6 +38,7 @@ import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DpConnectionImpl;
 import org.ogema.messaging.api.MessageTransport;
 import org.ogema.model.gateway.EvalCollection;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.tools.app.useradmin.api.UserDataAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -482,6 +483,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 
 	@Override
 	public Collection<InstallAppDevice> managedDeviceResoures(Class<? extends Resource> resourceType) {
+		if(resourceType == null && installAppList() != null)
+			return installAppList().getAllElements();
 		List<InstallAppDevice> result = new ArrayList<>();
 		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
 			if(resourceType.isAssignableFrom(iad.device().getResourceType()))
@@ -490,6 +493,15 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		return result;
 	}
 
+	@Override
+	public InstallAppDevice getMangedDeviceResource(PhysicalElement device) {
+		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
+			if(device.equalsLocation(iad.device()))
+				return iad;
+		}
+		return null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Resource> DeviceHandlerProviderDP<T> getDeviceHandlerProvider(
@@ -499,11 +511,6 @@ public abstract class DatapointServiceImpl implements DatapointService {
 				return (DeviceHandlerProviderDP<T>) prov;
 		}
 		
-		/*Class<? extends Resource> deviceType = installAppDeviceRes.device().getResourceType();
-		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
-			if(prov.getResourceType().isAssignableFrom(deviceType))
-				return (DeviceHandlerProviderDP<T>) prov;
-		}*/
 		return null;
 	}
 

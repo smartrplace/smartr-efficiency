@@ -36,7 +36,7 @@ public class WeatherStation_DeviceHandler extends DeviceHandlerSimple<SensorDevi
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		return device.sensors().getSubResource("BRIGHTNESS", LightSensor.class).reading();
 	}
 

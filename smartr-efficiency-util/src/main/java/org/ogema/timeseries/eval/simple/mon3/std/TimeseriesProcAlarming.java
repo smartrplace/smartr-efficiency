@@ -1,4 +1,4 @@
-package org.smartrplace.apps.alarmingconfig.eval;
+package org.ogema.timeseries.eval.simple.mon3.std;
 
 import java.util.List;
 

@@ -34,7 +34,6 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.expert.plottest.ScheduleViewerTest;
 import org.smartrplace.apps.hw.install.gui.ScheduleViewerConfigProvHW;
-import org.smartrplace.apps.hw.install.gui.MainPage.GetPlotButtonResult;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
@@ -230,13 +229,17 @@ public class ConfigurationPageHWInstall {
 				new ValueResourceDropdown<IntegerResource>(page, "extendedViewModeDrop", app.appConfigData.extendedViewMode(),
 				Arrays.asList(new String[] {"No extended view", "master only (no extended pages)", "All users based on permissions"}));
 		
+		ValueResourceDropdown<IntegerResource> showPageOrderDrop =
+				new ValueResourceDropdown<IntegerResource>(page, "showPageOrderDrop", app.appConfigData.showModePageOrder(),
+				Arrays.asList(new String[] {"Locations, Kni/Gap Eval", "Kni/Gap Eval, Locations"}));
+
 		Datapoint dp = controller.dpService.getDataPointStandard("Gateway_Device/systemRestart");
 		DefaultScheduleViewerConfigurationProviderExtended schedViewProv = ScheduleViewerConfigProvHW.getInstance();
 		final ScheduleViewerOpenButton testPlot = ScheduleViewerTest.getPlotButton(page, "testPlot",
 				controller.dpService, controller.appMan, Arrays.asList(new Datapoint[] {dp}), schedViewProv);
 		
 		
-		StaticTable configTable = new StaticTable(19, 2);
+		StaticTable configTable = new StaticTable(20, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -287,6 +290,9 @@ public class ConfigurationPageHWInstall {
 		i++;
 		configTable.setContent(i, 0, "Extended view mode:").
 		setContent(i, 1, extendedViewModeDrop);
+		i++;
+		configTable.setContent(i, 0, "Expert page(s) version order:").
+		setContent(i, 1, showPageOrderDrop);
 		i++;
 		configTable.setContent(i, 0, "Standard Reference Time for Virtual Meter Evaluations (!Changes take time for recalculation!)").
 		setContent(i, 1, defaultRefTime);

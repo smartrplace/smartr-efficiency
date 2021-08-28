@@ -36,7 +36,7 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		TemperatureResource ownTemp = device.sensors().getSubResource("temperature", TemperatureSensor.class).reading();
 		if(!ownTemp.exists()) {
 			TemperatureResource openWroom = KPIResourceAccess.getOpenWeatherMapTemperature(appMan.getResourceAccess());

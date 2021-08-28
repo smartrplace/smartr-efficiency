@@ -21,6 +21,7 @@ import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.ValueListenerData;
+import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 
 import de.iwes.widgets.api.messaging.MessagePriority;
 
@@ -50,7 +51,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
 	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
-			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl) {
+			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl,
+			AlarmConfiguration devTac) {
 		this.appManPlus = appManPlus;
 		this.dp = dp;
 		this.alarmID = alarmID;
@@ -62,7 +64,10 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		vl.init(ac, resendRetardLoc);
 		this.ac = ac;
 		this.vl = vl;
-		vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
+		if(devTac != null)
+			vl.maxIntervalBetweenNewValues = (long) (devTac.maxIntervalBetweenNewValues().getValue()*60000l);
+		else
+			vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
 		String[] exts = ac.alarmingExtensions().getValues();
 		if(ac.sensorVal().exists() ) {
 			//Should always be the case here
@@ -158,7 +163,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 						retard) {
 					@Override
 					public void delayedExecution() {
-						executeAlarm(ac, value, upper, lower, alarmStatus);
+						boolean noMessage = sendNoValueMessageOrRelease(vl, now, false);
+						executeAlarm(ac, value, upper, lower, alarmStatus, noMessage);
 						vl.isAlarmActive = true;
 						vl.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
 							vl.resendRetard();
@@ -186,9 +192,33 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.lastTimeOfNewData = now;
 	}
 	
+	protected boolean sendNoValueMessageOrRelease(ValueListenerData vl, long now, boolean isRelease) {
+		boolean noMessage;
+		if(vl.knownDeviceFault == null) {
+			vl.knownDeviceFault = AlarmingManager.getDeviceKnownAlarmState(vl.listener.getAc());
+			if(vl.knownDeviceFault == null)
+				throw new IllegalStateException("No Known Default for:"+vl.listener.getAc().getPath());
+		}
+		if(vl.knownDeviceFault.assigned().getValue() == 0)
+			noMessage = false;
+		else if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() < 0)
+			//do not generate new messages here, releases are generated with AlarmValueListener
+			noMessage = true;
+		else if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() > 0) {
+			if((vl.lastMessageTime > 0) && ((now - vl.lastMessageTime) < vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue()*60000))
+				noMessage = true;
+			else
+				noMessage = false;
+		} else
+			noMessage = false;
+		if((!noMessage) && (!isRelease))
+			vl.lastMessageTime = now;
+		return noMessage;
+	}
+
 	@Override
 	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-			IntegerResource alarmStatus) {
+			IntegerResource alarmStatus, boolean noMessage) {
 		String title = AlarmingManager.getTsName(ac, dp)+" (Alarming Wert)"; //dp.label(null)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
@@ -201,6 +231,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		if(alarmStatus != null) {
 			alarmStatus.setValue(status);
 		}
+		if(noMessage)
+			return;
 		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(title, status, message, prio, null);		

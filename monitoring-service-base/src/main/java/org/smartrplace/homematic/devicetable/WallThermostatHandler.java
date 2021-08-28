@@ -12,6 +12,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.util.BatteryEvalBase;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -52,7 +53,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(Thermostat device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(Thermostat device, InstallAppDevice deviceConfiguration) {
 		return device.temperatureSensor().reading();
 	}
 
@@ -88,7 +89,9 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 			setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 		} else
 			vh.registerHeaderEntry("Set");
-		vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
+		Label batLab = vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
+		if(req != null)
+			BatteryEvalBase.addBatteryStyle(batLab, device.battery().internalVoltage().reading().getValue(), false, req);
 		
 		Room deviceRoom = device.location().room();
 		

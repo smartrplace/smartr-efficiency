@@ -117,7 +117,7 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(IotaWattElectricityConnection device,
+	public SingleValueResource getMainSensorValue(IotaWattElectricityConnection device,
 			InstallAppDevice deviceConfiguration) {
 		return device.elConn().voltageSensor().reading();
 	}

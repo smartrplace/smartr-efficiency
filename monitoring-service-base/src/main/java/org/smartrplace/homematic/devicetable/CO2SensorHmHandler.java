@@ -55,7 +55,7 @@ public class CO2SensorHmHandler extends DeviceHandlerSimple<CO2Sensor> {
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(CO2Sensor device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(CO2Sensor device, InstallAppDevice deviceConfiguration) {
 		return device.reading();
 	}
 

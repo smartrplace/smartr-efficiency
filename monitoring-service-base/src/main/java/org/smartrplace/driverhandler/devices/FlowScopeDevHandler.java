@@ -31,7 +31,7 @@ public class FlowScopeDevHandler extends DeviceHandlerSimple<FlowProbe> {
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(FlowProbe device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(FlowProbe device, InstallAppDevice deviceConfiguration) {
 		return device.temperature().reading();
 		//return device.flow().reading();
 	}

@@ -28,6 +28,7 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.api.PropertyService;
+import org.ogema.devicefinder.util.BatteryEvalBase;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
@@ -146,7 +147,9 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				} else
 					vh.registerHeaderEntry("Set");
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
-				vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
+				Label batLab = vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
+				if(req != null)
+					BatteryEvalBase.addBatteryStyle(batLab, device.battery().internalVoltage().reading().getValue(), false, req);
 				Label lastContact = null;
 				if(req != null) {
 					lastContact = new LastContactLabel(device.temperatureSensor().reading(), appMan, mainTable, "lastContact"+id, req);
@@ -265,7 +268,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
-		Thermostat device = initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
+		initAlarmingForDeviceThermostatCommon(appDevice, appConfigData);
 	}
 	
 	@Override
@@ -503,11 +506,19 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(Thermostat device, InstallAppDevice deviceConfiguration) {
-		throw new IllegalStateException("Should not be used yet!");
-		//return null;
+	public SingleValueResource getMainSensorValue(Thermostat device, InstallAppDevice deviceConfiguration) {
+		return device.temperatureSensor().reading();
 	}
 
+	@Override
+	public List<SetpointData> getSetpointData(Thermostat device,
+			InstallAppDevice deviceConfiguration) {
+		List<SetpointData> result = new ArrayList<>();
+		result.add(new SetpointData(device.temperatureSensor().settings().setpoint(),
+				device.temperatureSensor().deviceFeedback().setpoint()));
+		return result ;
+	}
+	
 	@Override
 	protected Collection<Datapoint> getDatapoints(Thermostat device, InstallAppDevice deviceConfiguration) {
 		throw new IllegalStateException("Should not be used yet!");

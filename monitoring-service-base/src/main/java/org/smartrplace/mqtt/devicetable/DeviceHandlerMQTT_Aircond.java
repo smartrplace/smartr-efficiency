@@ -306,7 +306,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(AirConditioner device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(AirConditioner device, InstallAppDevice deviceConfiguration) {
 		throw new UnsupportedOperationException("Table generated separately!");
 	}
 

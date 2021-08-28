@@ -26,7 +26,7 @@ public class HeatingLabTempSens_DeviceHandler extends DeviceHandlerSimple<Temper
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(TemperatureSensor device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(TemperatureSensor device, InstallAppDevice deviceConfiguration) {
 		return device.reading();
 	}
 

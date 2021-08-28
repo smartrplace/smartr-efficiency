@@ -31,6 +31,7 @@ import org.ogema.devicefinder.api.AlarmingExtension.MessageDestination;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.AlarmingConfigUtil.CopyAlarmsSettings;
 import org.ogema.devicefinder.util.AlarmingExtensionBase.AlarmListenerDataBase;
 import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -43,6 +44,7 @@ import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.gateway.device.VirtualTestDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.util.message.MessageImpl;
@@ -58,7 +60,7 @@ public class AlarmingManager {
 	//public static final long HOUR_MILLIS = 60*60000;
 	//public static final long DAY_MILLIS = 24*HOUR_MILLIS;
 	public static final long MINUTE_MILLIS = 60000;
-	protected final List<AlarmConfiguration> configs;
+	//protected final List<AlarmConfiguration> configs;
 	//protected final MonitoringController controller;
 	protected final ApplicationManagerPlus appManPlus;
 	protected final Map<String, AppID> appsForSending;
@@ -91,11 +93,10 @@ public class AlarmingManager {
 
 	protected final RecReplayAlarmingBaseObserver recReplay;
 	
-	public AlarmingManager(List<AlarmConfiguration> configs, ApplicationManagerPlus appManPlus,
+	public AlarmingManager(List<InstallAppDevice> iads, ApplicationManagerPlus appManPlus,
 			Map<String, AppID> appsForSending,
 			String alarmID) {
-		this.configs = configs;
-		//this.controller = controller;
+		//this.configs = iads;
 		this.appManPlus = appManPlus;
 		this.appsForSending = appsForSending;
 		//this.tsNameProv = tsNameProv;
@@ -117,16 +118,53 @@ public class AlarmingManager {
 			bulkMessageInterval = Long.getLong("org.smartrplace.util.alarming.bulkMessageInterval", hwTableData.appConfigData.bulkMessageIntervalDuration().getValue());
 		else
 			bulkMessageInterval = Long.getLong("org.smartrplace.util.alarming.bulkMessageInterval", TimeProcUtil.HOUR_MILLIS);
-		/*List<IntegerResource> allAlarmStats = appManPlus.appMan().getResourceAccess().getResources(IntegerResource.class);
-		for(IntegerResource intr: allAlarmStats) {
-			if(!intr.getName().equals(ALARMSTATUS_RES_NAME))
-				continue;
-			intr.setValue(0);
-		}*/
 		
 		List<AlarmConfiguration> activeAlarms = new ArrayList<>();
 		
 		long now = appManPlus.appMan().getFrameworkTime();
+
+		for(InstallAppDevice iad: iads) {
+			addConfigsForDevice(iad, activeAlarms, now);
+		}
+		
+		BaseAlarmI baseAlarm = new BaseAlarmI() {
+			@Override
+			public void sendMessage(String title2, String message2, MessagePriority prio2, MessageDestination md) {
+				String appToUseLoc;
+				if(md != null)
+					appToUseLoc = getDestinationString(md);
+				else
+					appToUseLoc = null;
+				sendMessageIntern(title2, message2, prio2, appToUseLoc);
+			}
+		};
+		Collection<AlarmingExtension> exts = appManPlus.dpService().alarming().getAlarmingExtensions();
+		for(AlarmingExtension ext: exts) {
+			ext.onStartAlarming(baseAlarm);
+		}
+		
+		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase")) {
+			recReplay = new RecReplayAlarmingBaseObserver(activeAlarms, appManPlus.appMan());
+			//recReplay.checkInitialReplay();
+			appManPlus.dpService().alarming().registerRecReplayObserver(recReplay);
+		} else
+			recReplay = null;
+		
+		noValueTimer = appManPlus.appMan().createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
+	
+		System.out.println("New AlarmingManagement started.");
+	}
+	
+	protected void addConfigsForDevice(InstallAppDevice iad, List<AlarmConfiguration> activeAlarms,
+			long now) {
+		List<AlarmConfiguration> configs = iad.alarms().getAllElements();
+		InstallAppDeviceBase devT;
+		Map<String, CopyAlarmsSettings> data = null;
+		if(iad.devTask().exists()) {
+			devT = AlarmingConfigUtil.getTemplate(iad, iad.devTask().templates().getAllElements());
+			data = AlarmingConfigUtil.getTemplateAlarmSettings(devT, iad);
+		} else
+			devT = null;
 		for(AlarmConfiguration ac: configs) {
 			if(!ac.sensorVal().exists())
 				continue; //we perform cleanup somewhere else
@@ -156,12 +194,19 @@ public class AlarmingManager {
 			
 			float currentValue = Float.NaN;
 
+			AlarmConfiguration devTac = null;
+			if(devT != null) {
+				CopyAlarmsSettings set = data.get(ac.getLocation());
+				if(set != null)
+					devTac = set.templateConfig;
+			}	
+			
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp);
+				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp, devTac);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -173,7 +218,7 @@ public class AlarmingManager {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp);
+				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp, devTac);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -185,7 +230,7 @@ public class AlarmingManager {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp);
+				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp, devTac);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -201,9 +246,9 @@ public class AlarmingManager {
 								appManPlus, dp) {
 							@Override
 							public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-									IntegerResource alarmStatus) {
+									IntegerResource alarmStatus, boolean noMessage) {
 								onOff.stateControl().setValue(true);
-								super.executeAlarm(ac, value, upper, lower, alarmStatus);
+								super.executeAlarm(ac, value, upper, lower, alarmStatus, noMessage);
 							}
 						};
 						vlb.listener = onOffListener;
@@ -234,33 +279,6 @@ public class AlarmingManager {
 				vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
 			}
 		}
-		
-		BaseAlarmI baseAlarm = new BaseAlarmI() {
-			@Override
-			public void sendMessage(String title2, String message2, MessagePriority prio2, MessageDestination md) {
-				String appToUseLoc;
-				if(md != null)
-					appToUseLoc = getDestinationString(md);
-				else
-					appToUseLoc = null;
-				sendMessageIntern(title2, message2, prio2, appToUseLoc);
-			}
-		};
-		Collection<AlarmingExtension> exts = appManPlus.dpService().alarming().getAlarmingExtensions();
-		for(AlarmingExtension ext: exts) {
-			ext.onStartAlarming(baseAlarm);
-		}
-		
-		if(Boolean.getBoolean("org.ogema.recordreplay.testing.alarmingbase")) {
-			recReplay = new RecReplayAlarmingBaseObserver(activeAlarms, appManPlus.appMan());
-			//recReplay.checkInitialReplay();
-			appManPlus.dpService().alarming().registerRecReplayObserver(recReplay);
-		} else
-			recReplay = null;
-		
-		noValueTimer = appManPlus.appMan().createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
-	
-		System.out.println("New AlarmingManagement started.");
 	}
 	
 	public static AlarmGroupData getDeviceKnownAlarmState(AlarmConfiguration ac) {
@@ -350,14 +368,15 @@ public class AlarmingManager {
 	protected interface AlarmValueListenerI {
 		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue);		
 		void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-				IntegerResource alarmStatus);
+				IntegerResource alarmStatus, boolean noMessage);
 		AlarmConfiguration getAc();
 		ResourceValueListener<?> getListener();	
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBasic<FloatResource> {
-		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
+				AlarmConfiguration devTac) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl);
+					dp, AlarmingManager.this.baseUrl, devTac);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
@@ -388,9 +407,10 @@ public class AlarmingManager {
 		}
 	}
 	protected class AlarmValueListenerBoolean extends AlarmValueListenerBasic<BooleanResource> {
-		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
+				AlarmConfiguration devTac) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl);
+					dp, AlarmingManager.this.baseUrl, devTac);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
@@ -441,8 +461,9 @@ public class AlarmingManager {
 
 		//TODO: override
 		@Override
-		public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, IntegerResource alarmStatus) {
-			alarmValListenerBase.executeAlarm(ac, value, upper, lower, alarmStatus);
+		public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, IntegerResource alarmStatus,
+				boolean noMessage) {
+			alarmValListenerBase.executeAlarm(ac, value, upper, lower, alarmStatus, noMessage);
 		}	
 		
 		@Override
@@ -456,9 +477,10 @@ public class AlarmingManager {
 	}
 	
 	protected class AlarmValueListenerInteger extends AlarmValueListenerBasic<IntegerResource> {
-		public AlarmValueListenerInteger(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+		public AlarmValueListenerInteger(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
+				AlarmConfiguration devTac) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl);
+					dp, AlarmingManager.this.baseUrl, devTac);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerInteger used for OnOffSwitch supervision

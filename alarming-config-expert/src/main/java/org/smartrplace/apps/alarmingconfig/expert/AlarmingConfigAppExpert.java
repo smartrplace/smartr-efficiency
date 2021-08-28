@@ -10,6 +10,7 @@ import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
+import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 
@@ -88,6 +89,11 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 				menu.addEntry("4. Active Alarms", pageRes10);
 				configMenuConfig(pageRes10.getMenuConfiguration());
 			}
+
+			WidgetPage<?> pageRes12 = widgetApp.createWidgetPage("devicedevsettings.html");
+			new DevelopmentTaskPage(pageRes12, controller);
+			menu.addEntry("5. Development Special Settings", pageRes12);
+			configMenuConfig(pageRes12.getMenuConfiguration());
 
 	        LogHelper.logStartup(4, appMan);
 		}

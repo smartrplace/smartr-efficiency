@@ -30,7 +30,7 @@ public class HeatingLabThermalValve_DeviceHandler extends DeviceHandlerSimple<Th
 	}
 
 	@Override
-	protected SingleValueResource getMainSensorValue(ThermalValve device, InstallAppDevice deviceConfiguration) {
+	public SingleValueResource getMainSensorValue(ThermalValve device, InstallAppDevice deviceConfiguration) {
 		return device.connection().inputTemperature().reading();
 	}
 

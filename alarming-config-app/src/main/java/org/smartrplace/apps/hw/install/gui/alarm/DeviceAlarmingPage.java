@@ -1,18 +1,23 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.DpGroupUtil;
+import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.hwinstall.basetable.BooleanResourceButton;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -20,12 +25,15 @@ import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.template.DefaultDisplayTemplate;
 
 @SuppressWarnings("serial")
 public class DeviceAlarmingPage extends HardwareTablePage {
@@ -148,6 +156,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					PhysicalElement device, final InstallAppDevice template) {
 				if(req == null) {
 					vh.registerHeaderEntry("Select Template");
+					vh.registerHeaderEntry("Special Settings(Dev)");
 					return;
 				}
 				
@@ -173,6 +182,42 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				selectTemplButton.setDefaultConfirmMsg("Really select as template "+object.device().getLocation()+" ?");
 				selectTemplButton.setDefaultText("Select as Template");
 				row.addCell(WidgetHelper.getValidWidgetId("Select Template"), selectTemplButton);
+				
+				TemplateDropdown<DevelopmentTask> devTaskDrop = new TemplateDropdown<DevelopmentTask>(vh.getParent(), "devTaskDrop"+id, req) {
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						List<DevelopmentTask> items = resData.appConfigData.knownDevelopmentTasks().getAllElements();
+						DevelopmentTask select = null;
+						if(object.devTask().exists())
+							select = object.devTask().getLocationResource();
+						update(items, select, req);
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						DevelopmentTask select = getSelectedItem(req);
+						if(select == null && object.devTask().isReference(false))
+							object.devTask().delete();
+						else {
+							object.devTask().setAsReference(select);
+							if(select.overWriteTemplateRequest().getValue()) {
+								InstallAppDeviceBase existing = AlarmingConfigUtil.getTemplate(object, select.templates().getAllElements());
+								if(existing != null)
+									existing.delete();
+								select.overWriteTemplateRequest().setValue(false);
+							}
+							AlarmingConfigUtil.getOrCreateTemplate(object, select.templates(), appMan);
+						}
+					}
+				};
+				devTaskDrop.setDefaultAddEmptyOption(true, "--");
+				devTaskDrop.setTemplate(new DefaultDisplayTemplate<DevelopmentTask>() {
+					@Override
+					public String getLabel(DevelopmentTask object, OgemaLocale locale) {
+						return ResourceUtils.getHumanReadableShortName(object);
+					}
+				});
+				row.addCell(WidgetHelper.getValidWidgetId("Special Settings(Dev)"), devTaskDrop);
 			}			
 		};
 		

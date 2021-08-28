@@ -21,6 +21,7 @@ import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingle3;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingle3Dependent;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +59,7 @@ public class TimeseriesProcUtilKni extends TimeseriesSimpleProcUtil3 {
 				while(nextDayStart <= end) {
 					long startCurrentDay = nextDayStart;
 					nextDayStart = AbsoluteTimeHelper.addIntervalsFromAlignedTime(nextDayStart, 1, AbsoluteTiming.DAY);
-					int[] res1 = AlarmingConfigUtil.getQualityValues(appMan, dpService, startCurrentDay, nextDayStart,
+					int[] res1 = StandardEvalAccess.getQualityValues(appMan, dpService, startCurrentDay, nextDayStart,
 							AlarmingConfigUtil.QUALITY_DAY_MAX_MINUTES);
 					result.add(new SampledValue(new FloatValue(res1[0]), startCurrentDay, Quality.GOOD));
 					resultGold.add(new SampledValue(new FloatValue(res1[1]), startCurrentDay, Quality.GOOD));

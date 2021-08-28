@@ -17,6 +17,7 @@ import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcMultiToSingle;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtilBase;
@@ -170,8 +171,12 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 			saveData(dp);
 		}
 	}
-	
 	/** Get MemoryTimeseries without TimedJob*/
+	public static Datapoint getMemoryTimeseriesDatapointWithoutTimedJobSingle(Datapoint inputForName, 
+			String labelPostfix, DatapointService dpService) {
+		String location = ProcessedReadOnlyTimeSeries2.getDpLocation(inputForName, labelPostfix);
+		return getMemoryTimeseriesDatapointWithoutTimedJob(location, dpService);
+	}
 	public static Datapoint getMemoryTimeseriesDatapointWithoutTimedJob(String location, DatapointService dpService) {
 		Datapoint dpIn = null;
 		ProcessedReadOnlyTimeSeries3 ts = new ProcessedReadOnlyTimeSeries3(dpIn) {
