@@ -48,6 +48,8 @@ public class UserAdminBaseUtil {
 		GUEST_APPS = new ArrayList<String>(BASE_APPS);
 		GUEST_APPS.add("org.smartrplace.apps.smartrplace-heatcontrol-servlet");
 		GUEST_APPS.add("org.smartrplace.apps.heatcontrol-frontend");
+		GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-we");
+		GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-2d");
 		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.centralonly"))
 			GUEST_APPS.add("org.smartrplace.apps.smartrcockpit-link");
 	}
