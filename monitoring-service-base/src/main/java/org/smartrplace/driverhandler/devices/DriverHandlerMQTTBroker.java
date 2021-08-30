@@ -395,7 +395,7 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 			}
 
 			@Override
-			public String getTableTitle() {
+			public String getTableTitleRaw() {
 				return "MQTT Broker Configuration";
 			}
 			

@@ -104,7 +104,7 @@ public class BatteryPage extends MainPage {
 			}
 			
 			@Override
-			public String getTableTitle() {
+			public String getTableTitleRaw() {
 				return "Battery State Overview";
 			}
 			

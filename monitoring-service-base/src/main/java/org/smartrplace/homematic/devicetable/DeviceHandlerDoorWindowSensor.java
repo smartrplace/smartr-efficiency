@@ -81,11 +81,6 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindo
 				return DeviceHandlerDoorWindowSensor.this.id();
 			}
 
-			@Override
-			public String getTableTitle() {
-				return "Window and Door Opening Sensors";
-			}
-
 			public DoorWindowSensor addWidgetsInternal(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				final DoorWindowSensor device = addNameWidget(object, vh, id, req, row, appMan);

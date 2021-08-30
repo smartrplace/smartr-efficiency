@@ -15,20 +15,28 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingleArg3;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcessor3;
-import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtilBase3;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 
-public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
+import de.iwes.util.timer.AbsoluteTiming;
+
+public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
+	public static final long KPI_UPDATE_RATE_DEFAULT = 60*TimeProcUtil.MINUTE_MILLIS;
+	
 	public static final String GAP_EVAL = "GAP_EVAL";
 	public static final String OUTVALUE_EVAL = "OUTVALUE_EVAL";
 	public static final String SETPREACT_EVAL = "SETPREACT_EVAL";
 	public static final String VALUECHANGED_EVAL = "VALUECHANGED_EVAL";
 	
 	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService) {
-		super(appMan, dpService);
+		this(appMan, dpService, KPI_UPDATE_RATE_DEFAULT);
+	}
+	
+	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService, long minIntervalForReCalc) {
+		super(appMan, dpService, 2, minIntervalForReCalc);
 		
 		TimeseriesSetProcessor3 meterProc = new TimeseriesSetProcSingleToSingleArg3<Float>(TimeProcUtil.ALARM_GAP_SUFFIX,
-				null, Long.MAX_VALUE) {
+				AbsoluteTiming.WEEK, minIntervalForReCalc, TimeseriesProcAlarming.this) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, Float maxGapSizeIn) {
@@ -48,7 +56,7 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 		knownProcessors3.put(GAP_EVAL, meterProc);
 		
 		TimeseriesSetProcessor3 outProc = new TimeseriesSetProcSingleToSingleArg3<AlarmConfiguration>(
-				TimeProcUtil.ALARM_OUTVALUE_SUFFIX, null, Long.MAX_VALUE) {
+				TimeProcUtil.ALARM_OUTVALUE_SUFFIX, AbsoluteTiming.WEEK, minIntervalForReCalc, TimeseriesProcAlarming.this) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, AlarmConfiguration param) {
@@ -73,7 +81,7 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 		knownProcessors3.put(OUTVALUE_EVAL, outProc);
 		
 		TimeseriesSetProcessor3 setpProc = new TimeseriesSetProcSingleToSingleArg3<SetpReactInput>(
-				TimeProcUtil.ALARM_SETPREACT_SUFFIX, null, Long.MAX_VALUE) {
+				TimeProcUtil.ALARM_SETPREACT_SUFFIX, AbsoluteTiming.WEEK, minIntervalForReCalc, TimeseriesProcAlarming.this) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, SetpReactInput param) {
@@ -92,7 +100,7 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtilBase3 {
 		knownProcessors3.put(SETPREACT_EVAL, setpProc);
 		
 		TimeseriesSetProcessor3 valueChangedProc = new TimeseriesSetProcSingleToSingleArg3<Float>(
-				TimeProcUtil.ALARM_VALCHANGED_SUFFIX, null, Long.MAX_VALUE) {
+				TimeProcUtil.ALARM_VALCHANGED_SUFFIX, AbsoluteTiming.WEEK, minIntervalForReCalc, TimeseriesProcAlarming.this) {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, Float minChange) {

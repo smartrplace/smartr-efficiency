@@ -92,7 +92,7 @@ public abstract class EvaluationDeviceTableThermPlus extends DeviceTableBase {
 	}
 
 	@Override
-	public String getTableTitle() {
+	public String getTableTitleRaw() {
 		if(devHand instanceof DeviceHandlerSimple) {
 			return ((DeviceHandlerSimple<?>)devHand).getTableTitle();
 		}

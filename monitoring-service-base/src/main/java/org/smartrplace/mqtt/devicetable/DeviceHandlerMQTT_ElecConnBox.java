@@ -158,11 +158,6 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 				return DeviceHandlerMQTT_ElecConnBox.this.id();
 			}
 
-			@Override
-			public String getTableTitle() {
-				return "Electricity Meters";
-			}
-			
 			protected void addPowerEnergySensor(ElectricityConnection c, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row) {   
 				Label voltage = vh.floatLabel("Voltage", // (" + ResourceUtils.getHumanReadableShortName(c) + ")",
@@ -300,5 +295,9 @@ if(mapData1 == null) {
 		if(Boolean.getBoolean("org.smartrplace.project.smFac1"))
 			return "C";
 		return "A";
+	}
+
+	public String getTableTitle() {
+		return "Electricity Meters";
 	}
 }

@@ -85,11 +85,6 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 			protected String id() {
 				return DeviceHandler_PVPlant.this.id();
 			}
-
-			@Override
-			public String getTableTitle() {
-				return "PV Plants";
-			}
 		};
 	}
 
@@ -189,5 +184,10 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 	@Override
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "PVP";
+	}
+	
+	@Override
+	public String getTableTitle() {
+		return "PV Plants";
 	}
 }

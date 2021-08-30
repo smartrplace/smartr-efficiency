@@ -78,6 +78,8 @@ public class DevelopmentTaskPage extends ObjectGUITablePageNamed<DevelopmentTask
 			types = null;
 			for(InstallAppDeviceBase iad: object.templates().getAllElements()) {
 				String dhid = AlarmingConfigUtil.getDeviceHandlerShortId(iad);
+				if(!iad.alarms().exists())
+					dhid = "("+dhid+"*)";
 				if(types == null)
 					types += dhid;
 				else

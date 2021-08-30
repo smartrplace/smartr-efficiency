@@ -134,15 +134,23 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
      }
      
  	private final Map<String, DeviceHandlerProvider<?>> tableProviders = Collections.synchronizedMap(new LinkedHashMap<String,DeviceHandlerProvider<?>>());
+ 	@Override
  	public Map<String, DeviceHandlerProvider<?>> getTableProviders() {
  		synchronized (tableProviders) {
  			return new LinkedHashMap<>(tableProviders);
  		}
  	}
+    protected boolean leadDeviceHandlerFound = false;
+    @Override
+    public boolean leadHandlerFound() {
+    	return leadDeviceHandlerFound;
+    }
     protected void addTableProvider(DeviceHandlerProvider<?> provider) {
       	synchronized (tableProviders) {
         	tableProviders.put(provider.id(), provider);
-      	}
+    		if((!leadDeviceHandlerFound) && provider.id().equals("org.smartrplace.homematic.devicetable.CO2SensorHmHandler"))
+    			leadDeviceHandlerFound = true;
+     	}
 		if(controller != null) {
 			synchronized(controller.mainPageExts) {
 	    		//controller.deviceOverviewPage.updateTables();
@@ -151,8 +159,8 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
 	    		}
 	    	}
 		}
-  }
-     protected void removeTableProvider(DeviceHandlerProvider<?> provider) {
+    }
+    protected void removeTableProvider(DeviceHandlerProvider<?> provider) {
        	synchronized (tableProviders) {
        		tableProviders.remove(provider.id());
        	}

@@ -53,6 +53,7 @@ import org.ogema.tools.resource.util.LoggingUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.deviceeval.BatteryEval;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
@@ -161,6 +162,7 @@ public class HardwareInstallController {
 		this.datalogs = LogTransferUtil.getDataLogTransferInfo(appMan);
 		this.appManPlus = new ApplicationManagerPlus(appMan);
 		this.appManPlus.setDpService(dpService);
+		this.appManPlus.setGuiService(hardwareInstallApp.guiService);
 		
 		this.accessAdminConfigRes = appMan.getResourceAccess().getResource("accessAdminConfig");
 		initConfigurationResource();
@@ -172,6 +174,8 @@ public class HardwareInstallController {
 		initConfigResourceForOperation();
         initDemands();
 		util = new TimeseriesSimpleProcUtil3(appMan, appManPlus.dpService(), 4, 3*TimeProcUtil.MINUTE_MILLIS);
+		
+		BatteryEval.initWeeklyEmail(appManPlus);
 		
 		if(hardwareInstallApp == null)
 			return;

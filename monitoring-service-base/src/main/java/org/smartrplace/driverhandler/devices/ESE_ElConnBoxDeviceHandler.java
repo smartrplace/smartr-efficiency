@@ -154,12 +154,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 			protected String id() {
 				return ESE_ElConnBoxDeviceHandler.this.id();
 			}
-
-			@Override
-			public String getTableTitle() {
-				return "Energy Server Electricity Meters";
-			}
-			
 		};
 	}
 	
@@ -274,4 +268,8 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		return "C";
 	}
 	
+	@Override
+	public String getTableTitle() {
+		return "Energy Server Electricity Meters";
+	}
 }

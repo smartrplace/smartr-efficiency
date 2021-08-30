@@ -76,7 +76,7 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 				addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
 
-				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(DeviceHandlerMQTT_SingleSwBox.this, object, vh, id, req, row, appMan);
 				
 				if(stateFB != null)
 					stateFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);
@@ -97,11 +97,6 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 			@Override
 			protected String id() {
 				return DeviceHandlerMQTT_SingleSwBox.this.id();
-			}
-
-			@Override
-			public String getTableTitle() {
-				return "Single Switchboxes";
 			}
 		};
 	}
@@ -202,5 +197,10 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 	@Override
 	public String getInitVersion() {
 		return "C";
+	}
+
+	@Override
+	public String getTableTitle() {
+		return "Single Switchboxes";
 	}
 }

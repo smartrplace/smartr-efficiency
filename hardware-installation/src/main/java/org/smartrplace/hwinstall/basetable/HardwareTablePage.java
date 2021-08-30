@@ -1,6 +1,7 @@
 package org.smartrplace.hwinstall.basetable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -107,7 +108,11 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		
 		//this.instAppsSelector = this;
 
-		header = new Header(page, "header", getHeader());
+		header = new Header(page, "header") {
+			public void onGET(OgemaHttpRequest req) {
+				setText(getHeader(), req);				
+			}
+		};
 		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
 		page.append(header).linebreak();
 		
@@ -217,12 +222,24 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	protected Set<String> tableProvidersDone = new HashSet<>();
 	public void updateTables() {
 		synchronized(tableProvidersDone) {
-		if(devHandAcc != null) for(DeviceHandlerProvider<?> pe: devHandAcc.getTableProviders().values()) {
+		//wait until standard sensors are there
+		if(tableProvidersDone.isEmpty() && (!devHandAcc.leadHandlerFound()))
+			return;
+		List<DeviceHandlerProvider<?>> allProv = new ArrayList<DeviceHandlerProvider<?>>(devHandAcc.getTableProviders().values());
+		allProv.sort(new Comparator<DeviceHandlerProvider<?>>() {
+
+			@Override
+			public int compare(DeviceHandlerProvider<?> o1, DeviceHandlerProvider<?> o2) {
+				return o1.getTableTitle().compareToIgnoreCase(o2.getTableTitle());
+			}
+		});
+		if(devHandAcc != null) for(DeviceHandlerProvider<?> pe: allProv) {
 			//if(isObjectsInTableEmpty(pe))
 			//	continue;
 			String id = pe.id();
-			if(tableProvidersDone.contains(id))
+			if(tableProvidersDone.contains(id)) {
 				continue;
+			}
 			tableProvidersDone.add(id);
 			DeviceTableBase tableLoc = pe.getDeviceTable(page, alert, this);
 			tableLoc.triggerPageBuild();

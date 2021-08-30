@@ -93,7 +93,7 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 				addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
 
-				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(DeviceHandlerMQTT_SmartDimmer.this, object, vh, id, req, row, appMan);
 				
 			}
 			
@@ -105,11 +105,6 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 			@Override
 			protected String id() {
 				return DeviceHandlerMQTT_SmartDimmer.this.id();
-			}
-
-			@Override
-			public String getTableTitle() {
-				return "Smart Dimmers";
 			}
 		};
 	}
@@ -199,5 +194,10 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 	@Override
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "SDIM";
+	}
+
+	@Override
+	public String getTableTitle() {
+		return "Smart Dimmers";
 	}
 }

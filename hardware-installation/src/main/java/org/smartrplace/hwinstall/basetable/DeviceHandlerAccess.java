@@ -6,4 +6,5 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 
 public interface DeviceHandlerAccess {
 	public Map<String, DeviceHandlerProvider<?>> getTableProviders();
+	public boolean leadHandlerFound();
 }

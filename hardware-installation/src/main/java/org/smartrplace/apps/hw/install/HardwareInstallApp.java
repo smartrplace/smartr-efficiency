@@ -38,6 +38,7 @@ import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 
 import de.iwes.widgets.api.OgemaGuiService;
+import de.iwes.widgets.api.services.MessagingService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
@@ -109,7 +110,7 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 	}
 
 	@Reference
-	private OgemaGuiService guiService;
+	public OgemaGuiService guiService;
 
 	@Reference
 	DatapointService dpService;
@@ -160,6 +161,8 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     protected void addTableProvider(DeviceHandlerProvider<?> provider) {
     	synchronized (this) {
     		tableProviders.put(provider.id(), provider);
+    		if((!leadDeviceHandlerFound) && provider.id().equals("org.smartrplace.homematic.devicetable.CO2SensorHmHandler"))
+    			leadDeviceHandlerFound = true;
 	    	if(controller != null && controller.demandsActivated) {
 	    		provider.addPatternDemand(controller.mainPage);
 	    	}
@@ -178,6 +181,11 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     }
     protected void removeTableProvider(DeviceHandlerProvider<?> provider) {
     	tableProviders.remove(provider.id());
+    }
+    protected boolean leadDeviceHandlerFound = false;
+    @Override
+    public boolean leadHandlerFound() {
+    	return leadDeviceHandlerFound;
     }
     
     protected void addDriverProvider(DriverHandlerProvider provider) {

@@ -93,11 +93,6 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 			protected String id() {
 				return DeviceHandlerWMBus_SensorDevice.this.id();
 			}
-
-			@Override
-			public String getTableTitle() {
-				return "Sensor Devices";
-			}
 		};
 	}
 
@@ -126,4 +121,11 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "WMBS";
 	}
+
+	@Override
+	public String getTableTitle() {
+		return "Sensor Devices";
+	}
 }
+
+

@@ -69,11 +69,6 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 				return TemperatureOrHumiditySensorDeviceHandler.this.id();
 			}
 
-			@Override
-			public String getTableTitle() {
-				return "Temperature and Humidity Sensors";
-			}
-
 			public SensorDevice addWidgetsInternal(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				final SensorDevice device2 = addNameWidget(object, vh, id, req, row, appMan).getLocationResource();
@@ -217,4 +212,8 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 		appDevice.alarms().activate(true);
 	}
 
+	@Override
+	public String getTableTitle() {
+		return "Temperature and Humidity Sensors";
+	}
 }

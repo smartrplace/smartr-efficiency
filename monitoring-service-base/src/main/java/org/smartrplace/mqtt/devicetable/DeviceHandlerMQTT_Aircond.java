@@ -187,11 +187,6 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 			protected String id() {
 				return DeviceHandlerMQTT_Aircond.this.id();
 			}
-
-			@Override
-			public String getTableTitle() {
-				return "Air Conditioners";
-			}
 		};
 	}
 

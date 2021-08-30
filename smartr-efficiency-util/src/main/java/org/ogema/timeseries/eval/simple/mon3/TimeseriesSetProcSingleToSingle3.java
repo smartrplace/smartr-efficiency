@@ -18,6 +18,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetProcessor3 {
 	protected final Integer absoluteTiming;
 	protected final long minIntervalForReCalc;
+	public final TimeseriesSimpleProcUtil3 util3;
 	
 	/** Perform calculation on a certain input series.
 	 * 
@@ -43,7 +44,9 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 	/**Overwrite this to load data into the timeseries initially, e.g. by reading
 	 * from a file
 	 */
-	protected void loadInitData(Datapoint dp) {}
+	protected void loadInitData2(Datapoint dp) {
+		util3.loadInitData3(dp);
+	}
 	
 	//protected TimeSeriesNameProvider nameProvider() {return null;}
 	//protected abstract AggregationMode getMode(String tsLabel);
@@ -52,10 +55,12 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 	//public TimeseriesSetProcSingleToSingle3(String labelPostfix, long minIntervalForReCalc) {
 	//	this(labelPostfix, null, minIntervalForReCalc);
 	//}
-	public TimeseriesSetProcSingleToSingle3(String labelPostfix, Integer absoluteTiming, long minIntervalForReCalc) {
+	public TimeseriesSetProcSingleToSingle3(String labelPostfix, Integer absoluteTiming, long minIntervalForReCalc,
+			TimeseriesSimpleProcUtil3 util3) {
 		this.labelPostfix = labelPostfix;
 		this.absoluteTiming = absoluteTiming;
 		this.minIntervalForReCalc = minIntervalForReCalc;
+		this.util3 = util3;
 	}
 	@Override
 	public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
@@ -141,7 +146,7 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 				if(datapointForChangeNotification == null) {
 					getResultSeriesDP(dpService, location);
 				}
-				TimeseriesSetProcSingleToSingle3.this.loadInitData(datapointForChangeNotification);
+				TimeseriesSetProcSingleToSingle3.this.loadInitData2(datapointForChangeNotification);
 			}
 			
 			@Override

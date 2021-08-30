@@ -57,7 +57,7 @@ public class BatteryEval extends BatteryEvalBase {
 			
 			@Override
 			public void execute(long now, TimedJobMemoryData data) {
-				sendWeelyEmail(appManPlus);							
+				sendWeeklyEmail(appManPlus);							
 			}
 			
 			@Override
@@ -65,13 +65,13 @@ public class BatteryEval extends BatteryEvalBase {
 				return 0;
 			}
 		};
-		return appManPlus.dpService().timedJobService().registerTimedJobProvider(tprov );
+		return appManPlus.dpService().timedJobService().registerTimedJobProvider(tprov);
 		
 	}
 
 	public static final int COLUMN_WIDTH_1 = 30;
 	public static final int COLUMN_WIDTH = 10;
-	public static void sendWeelyEmail(ApplicationManagerPlus appMan) {
+	public static void sendWeeklyEmail(ApplicationManagerPlus appMan) {
 		long now = appMan.getFrameworkTime();
 		
 		Collection<InstallAppDevice> thermostats = appMan.dpService().managedDeviceResoures(Thermostat.class);
@@ -89,6 +89,8 @@ public class BatteryEval extends BatteryEvalBase {
 		
 		for(InstallAppDevice iad: thermostats) {
 			BatteryStatusResult status = getFullBatteryStatus(iad, now);
+			if(status.status == BatteryStatus.NO_BATTERY)
+				continue;
 			evalResults.add(status);
 			if(status.expectedEmptyDate != null && status.expectedEmptyDate < nextEmptyDate)
 				nextEmptyDate = status.expectedEmptyDate;
@@ -133,7 +135,9 @@ public class BatteryEval extends BatteryEvalBase {
 			if(status.status == BatteryStatus.OK)
 				continue;
 			mes += getValueLine(status.iad.deviceId().getValue(), ResourceUtils.getDeviceLocationRoom(status.iad.device().getLocationResource()),
-					""+status.status, StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate), String.format("%.1f", status.currentVoltage));
+					""+status.status,
+					status.expectedEmptyDate!=null?StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate):"???",
+					String.format("%.1f", status.currentVoltage));
 		}
 		mes += "\r\n";
 		mes += "Physical checks required:\r\n";
@@ -158,7 +162,7 @@ public class BatteryEval extends BatteryEvalBase {
 
 	public static String getValueLine(String name, Room room, String... vals) {
 		String result = getLeftAlignedString(name, COLUMN_WIDTH_1)+" | " +
-				getLeftAlignedString(ResourceUtils.getHumanReadableShortName(room), COLUMN_WIDTH_1)+" | ";
+				getLeftAlignedString(room!=null?ResourceUtils.getHumanReadableShortName(room):"NRI", COLUMN_WIDTH_1)+" | ";
 		for(String val: vals) {
 			result += getRightAlignedString(val, COLUMN_WIDTH)+" | ";			
 		}

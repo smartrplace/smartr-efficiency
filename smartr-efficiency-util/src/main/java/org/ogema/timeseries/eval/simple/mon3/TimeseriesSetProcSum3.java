@@ -17,8 +17,9 @@ public class TimeseriesSetProcSum3 extends TimeseriesSetProcMultiToSingle3 {
 	public TimeseriesSetProcSum(String label, int intervalType, Integer absoluteTiming, Long minIntervalForReCalc) {
 		super(label, intervalType, absoluteTiming, minIntervalForReCalc);
 	}*/
-	public TimeseriesSetProcSum3(String label, int intervalType, Integer absoluteTiming, long minIntervalForReCalc, int updateMode) {
-		super(label, intervalType, absoluteTiming, minIntervalForReCalc, updateMode);
+	public TimeseriesSetProcSum3(String label, int intervalType, Integer absoluteTiming, long minIntervalForReCalc, int updateMode,
+			TimeseriesSimpleProcUtil3 util3) {
+		super(label, intervalType, absoluteTiming, minIntervalForReCalc, updateMode, util3);
 	}
 
 	@Override

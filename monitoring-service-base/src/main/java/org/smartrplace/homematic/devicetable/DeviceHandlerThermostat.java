@@ -85,7 +85,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 					Row row, ApplicationManager appMan) {
 				id = id + "_DeviceHandlerThermostat";  // avoid duplicates for now
 				addWidgetsInternal(object, vh, id, req, row, appMan);
-				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(DeviceHandlerThermostat.this, object, vh, id, req, row, appMan);
 			}
 
 			@Override
@@ -98,11 +98,6 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				return DeviceHandlerThermostat.this.id();
 			}
 
-			@Override
-			public String getTableTitle() {
-				return "Thermostats";
-			}
-			
 			public Thermostat addWidgetsInternal(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				//if(!(object.device() instanceof Thermostat) && (req != null)) return null;

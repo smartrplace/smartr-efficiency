@@ -6,6 +6,7 @@ import java.util.List;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP.SetpointData;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
@@ -52,7 +53,9 @@ public class MainPageExpert extends MainPage {
 	protected final ShowModeHw showMode;
 	
 	@Override
-	public String getHeader() {return "Device Setup and Configuration Expert "+((showMode==ShowModeHw.STANDARD)?"(Locations)":"(Known Issues/Gaps)");}
+	public String getHeader() {
+		return "Device Setup and Configuration Expert "+((showMode==ShowModeHw.STANDARD)?"(Locations)":"(Known Issues/Gaps)");
+	}
 
 	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller, ShowModeHw showModeHw) {
 		this(page, controller, false, showModeHw);
@@ -153,10 +156,15 @@ public class MainPageExpert extends MainPage {
 			if(kniStat.style != null)
 				kniLabel.addStyle(kniStat.style, req);
 			float[] gapData = StandardEvalAccess.getQualityValuesPerDeviceStandard(object, appMan, controller.appManPlus);
-			String gapText = gapData[0]+"/"+gapData[1];
-			float[] setpReactData = StandardEvalAccess.getSetpReactValuesPerDeviceStandard(object, appMan, controller.appManPlus);
-			if(!Float.isNaN(setpReactData[0]))
-				gapText += "/"+setpReactData[0]+"/"+setpReactData[1];
+			String gapText = String.format("%.1f", gapData[0]*100)+" / "+String.format("%.1f", gapData[1]*100);
+			if(tableProvider != null) {
+			List<SetpointData> setp = tableProvider.getSetpointData(object);
+				if(setp != null && (!setp.isEmpty())) {
+					float[] setpReactData = StandardEvalAccess.getSetpReactValuesPerDeviceStandard(object, appMan, controller.appManPlus);
+					if(!Float.isNaN(setpReactData[0]))
+						gapText += " / "+String.format("%.1f", setpReactData[0]*100)+" / "+String.format("%.1f", setpReactData[1]*100);
+				}
+			}
 			Label gapLabel = vh.stringLabel(GAPS_LABEL, id, gapText, row);
 			if(gapData[0] < 0.9f)
 				gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);

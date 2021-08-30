@@ -67,7 +67,7 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 				addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
 
-				appSelector.addWidgetsExpert(null, object, vh, id, req, row, appMan);
+				appSelector.addWidgetsExpert(OnOffSwitch_DeviceHandler.this, object, vh, id, req, row, appMan);
 				
 				if(stateFB != null)
 					stateFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);
@@ -84,11 +84,6 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 			@Override
 			protected String id() {
 				return OnOffSwitch_DeviceHandler.this.id();
-			}
-
-			@Override
-			public String getTableTitle() {
-				return "OnOffSwitches without SwitchBoxes";
 			}
 		};
 	}
@@ -129,5 +124,10 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 		AlarmingUtiH.setTemplateValuesIfNew(appDevice, device.stateFeedback(),
 			0.0f, 1.0f, 1, 20);
 		AlarmingUtiH.addAlarmingHomematic(device, appDevice);
+	}
+
+	@Override
+	public String getTableTitle() {
+		return "OnOffSwitches without SwitchBoxes";
 	}
 }

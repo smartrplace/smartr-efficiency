@@ -26,8 +26,9 @@ public abstract class TimeseriesSetProcSingleToSingleArg3<T> extends TimeseriesS
 
 	}
 
-	public TimeseriesSetProcSingleToSingleArg3(String labelPostfix, Integer absoluteTiming, long minIntervalForReCalc) {
-		super(labelPostfix, absoluteTiming, minIntervalForReCalc);
+	public TimeseriesSetProcSingleToSingleArg3(String labelPostfix, Integer absoluteTiming, long minIntervalForReCalc,
+			TimeseriesSimpleProcUtil3 util3) {
+		super(labelPostfix, absoluteTiming, minIntervalForReCalc, util3);
 	}
 
 	@Override
@@ -79,7 +80,7 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 				if(datapointForChangeNotification == null) {
 					getResultSeriesDP(dpService, location);
 				}
-				TimeseriesSetProcSingleToSingleArg3.this.loadInitData(datapointForChangeNotification);
+				TimeseriesSetProcSingleToSingleArg3.this.loadInitData2(datapointForChangeNotification);
 			}
 			
 			@Override

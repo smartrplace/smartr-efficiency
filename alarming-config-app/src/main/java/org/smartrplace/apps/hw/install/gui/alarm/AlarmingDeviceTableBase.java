@@ -7,7 +7,6 @@ import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
-import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.locations.Room;
@@ -70,13 +69,13 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 		return devHand.id();
 	}
 
-	@Override
-	public String getTableTitle() {
+	/*@Override
+	public String getTableTitleInternal() {
 		if(devHand instanceof DeviceHandlerSimple) {
 			return ((DeviceHandlerSimple<?>)devHand).getTableTitle();
 		}
 		return pageTitle;
-	}
+	}*/
 
 	public PhysicalElement addWidgetsInternal(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan) {

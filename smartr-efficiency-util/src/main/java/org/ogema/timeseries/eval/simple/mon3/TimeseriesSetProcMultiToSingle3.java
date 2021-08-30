@@ -43,6 +43,7 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 
 	public static PerformanceLog tsSingleLog;
 	public static PerformanceLog aggregateLog;
+	public final TimeseriesSimpleProcUtil3 util3;
 	
 	protected abstract float aggregateValues(Float[] values, long timestamp, AggregationMode mode);
 	
@@ -52,7 +53,9 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 	/**Overwrite this to load data into the timeseries initially, e.g. by reading
 	 * from a file
 	 */
-	protected void loadInitData(Datapoint dp) {}
+	protected void loadInitData2(Datapoint dp) {
+		util3.loadInitData3(dp);
+	}
 	
 	/** Update mode regarding interval propagation and regarding singleInput.<br>
 	 * Note that from mode 2 on any change in the input data triggers a recalculation of the output data<br>
@@ -97,15 +100,17 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 	 * @param resultlabel
 	 * @param intervalType relevant for test shift only
 	 * @param absoluteTiming if set then knownEnd will be reset to beginning of interval always
+	 * @param timeseriesSetProcessor3 
 	 */
 	public TimeseriesSetProcMultiToSingle3(String resultlabel, int intervalType, Integer absoluteTiming,
-			long minIntervalForReCalc, int updateMode) {
+			long minIntervalForReCalc, int updateMode, TimeseriesSimpleProcUtil3 util3) {
 		this.label = resultlabel;
 		//this.intervalType = intervalType;
 		this.absoluteTiming = absoluteTiming;
 		this.updateMode = updateMode;
 		this.minIntervalForReCalc = minIntervalForReCalc;
 		TEST_SHIFT = (long) (0.9*AbsoluteTimeHelper.getStandardInterval(intervalType)); //TimeProcUtil.DAY_MILLIS-2*TimeProcUtil.HOUR_MILLIS;
+		this.util3 = util3;
 	}
 
 	protected ProcessedReadOnlyTimeSeries2 resultSeriesStore = null;
@@ -147,7 +152,7 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 			
 			@Override
 			public void loadInitData() {
-				TimeseriesSetProcMultiToSingle3.this.loadInitData(datapointForChangeNotification);
+				TimeseriesSetProcMultiToSingle3.this.loadInitData2(datapointForChangeNotification);
 			}
 			
 			@Override

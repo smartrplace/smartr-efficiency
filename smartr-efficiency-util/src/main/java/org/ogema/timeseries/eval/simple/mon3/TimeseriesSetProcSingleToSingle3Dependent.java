@@ -11,8 +11,8 @@ import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 
 public class TimeseriesSetProcSingleToSingle3Dependent extends TimeseriesSetProcSingleToSingle3 {
 
-	public TimeseriesSetProcSingleToSingle3Dependent(String resultlabel) {
-		super(resultlabel, null, -99);
+	public TimeseriesSetProcSingleToSingle3Dependent(String resultlabel, TimeseriesSimpleProcUtil3 util3) {
+		super(resultlabel, null, -99, util3);
 	}
 
 	@Override

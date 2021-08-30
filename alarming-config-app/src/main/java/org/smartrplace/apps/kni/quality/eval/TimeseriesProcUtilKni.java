@@ -46,7 +46,8 @@ public class TimeseriesProcUtilKni extends TimeseriesSimpleProcUtil3 {
 		super(appMan, dpService, updateMode, minIntervalForReCalc);
 		//this.maxGapSizeRes = maxGapSizeRes;
 		
-		TimeseriesSetProcessor3 dayProc = new TimeseriesSetProcSingleToSingle3("_quality", AbsoluteTiming.DAY, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 dayProc = new TimeseriesSetProcSingleToSingle3("_quality", AbsoluteTiming.DAY, minIntervalForReCalc,
+				TimeseriesProcUtilKni.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -71,7 +72,7 @@ public class TimeseriesProcUtilKni extends TimeseriesSimpleProcUtil3 {
 
 			@Override
 			protected Map<String, Datapoint> addDependetTimeseries(Datapoint input) {
-				Datapoint goldTs = new TimeseriesSetProcSingleToSingle3Dependent("_qualityGold").
+				Datapoint goldTs = new TimeseriesSetProcSingleToSingle3Dependent("_qualityGold", TimeseriesProcUtilKni.this).
 						getResultSeriesSingle(input, false, dpService);
 				Map<String, Datapoint> result = new HashMap<>();
 				result.put("goldTs", goldTs);

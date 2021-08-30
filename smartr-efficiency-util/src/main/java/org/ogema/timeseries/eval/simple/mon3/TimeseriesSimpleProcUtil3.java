@@ -54,7 +54,8 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 		super(appMan, dpService);
 		TsProcPersistUtil.registerTsProcUtil(this, dpService);
 		
-		TimeseriesSetProcessor3 meterProc = new TimeseriesSetProcSingleToSingle3("_vm", null, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 meterProc = new TimeseriesSetProcSingleToSingle3("_vm", null, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -65,15 +66,11 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 
 			@Override
 			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {}
-			
-			@Override
-			protected void loadInitData(Datapoint dp) {
-				TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-			}
 		};
 		knownProcessors3.put(TimeProcUtil.METER_EVAL, meterProc);
 		
-		TimeseriesSetProcessor3 dayProc = new TimeseriesSetProcSingleToSingle3("_proTag", AbsoluteTiming.DAY, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 dayProc = new TimeseriesSetProcSingleToSingle3("_proTag", AbsoluteTiming.DAY, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -88,15 +85,11 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.DAY);
 				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.DAY)-1;				
 			}
-			
-			@Override
-			protected void loadInitData(Datapoint dp) {
-				TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-			}
 		};
 		knownProcessors3.put(TimeProcUtil.PER_DAY_EVAL, dayProc);
 		
-		TimeseriesSetProcessor3 hourProc = new TimeseriesSetProcSingleToSingle3("_proStunde", AbsoluteTiming.HOUR, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 hourProc = new TimeseriesSetProcSingleToSingle3("_proStunde", AbsoluteTiming.HOUR, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -111,15 +104,11 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.HOUR);
 				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.HOUR)-1;				
 			}
-			
-			@Override
-			protected void loadInitData(Datapoint dp) {
-				TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-			}
 		};
 		knownProcessors3.put(TimeProcUtil.PER_HOUR_EVAL, hourProc);
 		
-		TimeseriesSetProcessor3 min15Proc = new TimeseriesSetProcSingleToSingle3("_per15min", AbsoluteTiming.FIFTEEN_MINUTE, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 min15Proc = new TimeseriesSetProcSingleToSingle3("_per15min", AbsoluteTiming.FIFTEEN_MINUTE, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -134,15 +123,11 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.FIFTEEN_MINUTE);
 				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.FIFTEEN_MINUTE)-1;				
 			}
-			
-			@Override
-			protected void loadInitData(Datapoint dp) {
-				TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-			}
 		};
 		knownProcessors3.put(TimeProcUtil.PER_15M_EVAL, min15Proc);
 
-		TimeseriesSetProcessor3 minuteProc = new TimeseriesSetProcSingleToSingle3(TimeProcUtil.PER_MINUTE_SUFFIX, AbsoluteTiming.FIFTEEN_MINUTE, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 minuteProc = new TimeseriesSetProcSingleToSingle3(TimeProcUtil.PER_MINUTE_SUFFIX,
+				AbsoluteTiming.FIFTEEN_MINUTE, minIntervalForReCalc, TimeseriesSimpleProcUtil3.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -157,15 +142,11 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.MINUTE);
 				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.MINUTE)-1;				
 			}
-			
-			@Override
-			protected void loadInitData(Datapoint dp) {
-				TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-			}
 		};
 		knownProcessors3.put(TimeProcUtil.PER_MINUTE_EVAL, minuteProc);
 		
-		TimeseriesSetProcessor3 monthProc = new TimeseriesSetProcSingleToSingle3("_perMonth", AbsoluteTiming.MONTH, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 monthProc = new TimeseriesSetProcSingleToSingle3("_perMonth", AbsoluteTiming.MONTH, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -180,15 +161,11 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.MONTH);
 				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.MONTH)-1;				
 			}
-			
-			@Override
-			protected void loadInitData(Datapoint dp) {
-				TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-			}
 		};
 		knownProcessors3.put(TimeProcUtil.PER_MONTH_EVAL, monthProc);
 		
-		TimeseriesSetProcessor3 yearProc = new TimeseriesSetProcSingleToSingle3("_perYear", AbsoluteTiming.YEAR, minIntervalForReCalc) {
+		TimeseriesSetProcessor3 yearProc = new TimeseriesSetProcSingleToSingle3("_perYear", AbsoluteTiming.YEAR, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
 			
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
@@ -203,11 +180,6 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.YEAR);
 				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.YEAR)-1;				
 			}
-			
-			@Override
-			protected void loadInitData(Datapoint dp) {
-				TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-			}
 		};
 		knownProcessors3.put(TimeProcUtil.PER_YEAR_EVAL, yearProc);
 
@@ -219,17 +191,13 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				List<Datapoint> result1 = dayProc.getResultSeries(input, false, dpService);
 				generatedTss.addAll(result1);
 				TimeseriesSetProcSum3 sumProc = new TimeseriesSetProcSum3("total_sum", AbsoluteTiming.DAY,
-						(updateMode>0)?AbsoluteTiming.DAY:null, minIntervalForReCalc, updateMode) {
+						(updateMode>0)?AbsoluteTiming.DAY:null, minIntervalForReCalc, updateMode, TimeseriesSimpleProcUtil3.this) {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):Dayproc", 1, null, null);
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum");
 					}
 
-					@Override
-					protected void loadInitData(Datapoint dp) {
-						TimeseriesSimpleProcUtil3.this.loadInitData(dp);
-					}
 				};
 				//sumProc.updateMode = updateMode;
 				List<Datapoint> result = sumProc.getResultSeries(result1, registersTimedJob, dpService);
@@ -246,15 +214,11 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				List<Datapoint> result1 = hourProc.getResultSeries(input, false, dpService);
 				generatedTss.addAll(result1);
 				TimeseriesSetProcSum3 sumProc = new TimeseriesSetProcSum3("total_sum_hour", AbsoluteTiming.HOUR,
-						(updateMode>0)?AbsoluteTiming.HOUR:null, minIntervalForReCalc, updateMode) {
+						(updateMode>0)?AbsoluteTiming.HOUR:null, minIntervalForReCalc, updateMode, TimeseriesSimpleProcUtil3.this) {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):Hourproc", 1, null, null);
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum_hour");
-					}
-					@Override
-					protected void loadInitData(Datapoint dp) {
-						TimeseriesSimpleProcUtil3.this.loadInitData(dp);
 					}
 				};
 				List<Datapoint> result = sumProc.getResultSeries(result1, registersTimedJob, dpService);
@@ -272,15 +236,11 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				List<Datapoint> result1 = min15Proc.getResultSeries(input, false, dpService);
 				generatedTss.addAll(result1);
 				TimeseriesSetProcSum3 sumProc = new TimeseriesSetProcSum3("total_sum_15min", AbsoluteTiming.FIFTEEN_MINUTE,
-						(updateMode>0)?AbsoluteTiming.FIFTEEN_MINUTE:null, minIntervalForReCalc, updateMode) {
+						(updateMode>0)?AbsoluteTiming.FIFTEEN_MINUTE:null, minIntervalForReCalc, updateMode, TimeseriesSimpleProcUtil3.this) {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):15Minproc", 1, null, null);
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum_15min");
-					}
-					@Override
-					protected void loadInitData(Datapoint dp) {
-						TimeseriesSimpleProcUtil3.this.loadInitData(dp);
 					}
 				};
 				List<Datapoint> result = sumProc.getResultSeries(result1, registersTimedJob, dpService);
@@ -298,15 +258,11 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				List<Datapoint> result1 = minuteProc.getResultSeries(input, false, dpService);
 				generatedTss.addAll(result1);
 				TimeseriesSetProcSum3 sumProc = new TimeseriesSetProcSum3("total_sum_minute", AbsoluteTiming.MINUTE,
-						(updateMode>0)?AbsoluteTiming.MINUTE:null, minIntervalForReCalc, updateMode) {
+						(updateMode>0)?AbsoluteTiming.MINUTE:null, minIntervalForReCalc, updateMode, TimeseriesSimpleProcUtil3.this) {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):MinuteProc", 1, null, null);
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum_minute");
-					}
-					@Override
-					protected void loadInitData(Datapoint dp) {
-						TimeseriesSimpleProcUtil3.this.loadInitData(dp);
 					}
 				};
 				List<Datapoint> result = sumProc.getResultSeries(result1, registersTimedJob, dpService);
@@ -324,15 +280,12 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				List<Datapoint> result1 = monthProc.getResultSeries(input, false, dpService);
 				generatedTss.addAll(result1);
 				TimeseriesSetProcSum3 sumProc = new TimeseriesSetProcSum3("total_sum_month", AbsoluteTiming.MONTH,
-						(updateMode>0)?AbsoluteTiming.MONTH:null, minIntervalForReCalc, updateMode) {
+						(updateMode>0)?AbsoluteTiming.MONTH:null, minIntervalForReCalc, updateMode,
+								TimeseriesSimpleProcUtil3.this) {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):Monthproc", 1, null, null);
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum_month");
-					}
-					@Override
-					protected void loadInitData(Datapoint dp) {
-						TimeseriesSimpleProcUtil3.this.loadInitData(dp);
 					}
 				};
 				List<Datapoint> result = sumProc.getResultSeries(result1, registersTimedJob, dpService);
@@ -350,15 +303,11 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				List<Datapoint> result1 = yearProc.getResultSeries(input, false, dpService);
 				generatedTss.addAll(result1);
 				TimeseriesSetProcSum3 sumProc = new TimeseriesSetProcSum3("total_sum_year", AbsoluteTiming.YEAR,
-						(updateMode>0)?AbsoluteTiming.YEAR:null, minIntervalForReCalc, updateMode) {
+						(updateMode>0)?AbsoluteTiming.YEAR:null, minIntervalForReCalc, updateMode, TimeseriesSimpleProcUtil3.this) {
 					@Override
 					protected void debugCalculationResult(List<Datapoint> input, List<SampledValue> resultLoc) {
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "--RT-OUT/IN(2):Yearproc", 1, null, null);
 						if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printFirstElements(resultLoc, "--RT-OUT(1):Total_Sum_year");
-					}
-					@Override
-					protected void loadInitData(Datapoint dp) {
-						TimeseriesSimpleProcUtil3.this.loadInitData(dp);
 					}
 				};
 				List<Datapoint> result = sumProc.getResultSeries(result1, registersTimedJob, dpService);
@@ -394,7 +343,7 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				}
 				for(Entry<String, List<Datapoint>> roomData: sortedbyRoom.entrySet()) {
 					TimeseriesSetProcSum3 sumProc = new TimeseriesSetProcSum3(roomData.getKey()+"_sum", AbsoluteTiming.DAY,
-							(updateMode>0)?AbsoluteTiming.DAY:null, minIntervalForReCalc, updateMode);
+							(updateMode>0)?AbsoluteTiming.DAY:null, minIntervalForReCalc, updateMode, TimeseriesSimpleProcUtil3.this);
 					//sumProc.updateMode = updateMode;
 					List<Datapoint> resultLoc = sumProc.getResultSeries(roomData.getValue(), registersTimedJob, dpService);
 					if(!roomData.getValue().isEmpty()) {

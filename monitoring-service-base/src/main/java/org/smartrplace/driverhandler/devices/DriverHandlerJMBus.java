@@ -318,7 +318,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 			}
 
 			@Override
-			public String getTableTitle() {
+			public String getTableTitleRaw() {
 				return "wMBus Configuration";
 			}
 
@@ -460,7 +460,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 			}
 
 			@Override
-			public String getTableTitle() {
+			public String getTableTitleRaw() {
 				return "wMBus Device Configuration";
 			}
 			

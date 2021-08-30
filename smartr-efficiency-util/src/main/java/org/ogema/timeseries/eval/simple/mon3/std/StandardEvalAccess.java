@@ -279,6 +279,9 @@ public class StandardEvalAccess {
 		long duration = endTime - startTime;
 		double QUALITY_MAX_MINUTES = duration/TimeProcUtil.MINUTE_MILLIS*AlarmingConfigUtil.QUALITY_TIME_SHARE_LIMIT;
 		
+		if(allGaps.size() == 1 && allGaps.get(0) == null)
+			return new float[]{Float.NaN, Float.NaN};
+		
 		for(Datapoint dp: allGaps) {
 			if(dp == null)
 				continue;
@@ -297,7 +300,7 @@ public class StandardEvalAccess {
 			}
 		}
 		if(count == 0)
-			return new float[]{Float.NaN, Float.NaN};
+			return new float[]{0.0f, 0.0f};
 		double sumTotAv = sumTot / count;
 		double rel = 1.0 - sumTotAv / duration;
 		float share = ((float)countOK)/count;

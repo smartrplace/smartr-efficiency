@@ -33,10 +33,9 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	protected final ApplicationManager appMan;
 	public final DatapointService dpService;
 
-	/**Overwrite this to load data into the timeseries initially, e.g. by reading
-	 * from a file
+	/**Overwrite this to load data into the timeseries initially by a different mechanism than standard file reading
 	 */
-	public void loadInitData(Datapoint dp) {
+	public void loadInitData3(Datapoint dp) {
 		TsProcPersistUtil.importTsFromFile(dp, appMan);		
 	}
 	public void saveData(Datapoint dp) {
@@ -73,8 +72,10 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 		@SuppressWarnings("unchecked")
 		TimeseriesSetProcessorArg3<T> proc = (TimeseriesSetProcessorArg3<T>) procRaw;
 		List<Datapoint> resultTs = proc.getResultSeries(Arrays.asList(new Datapoint[] {dp}), dpService, true, params);
-		if(resultTs != null && !resultTs.isEmpty())
+		if(resultTs != null && !resultTs.isEmpty()) {
+			generatedTss.addAll(resultTs);
 			return resultTs.get(0);
+		}
 		return null;
 	}
 
@@ -171,15 +172,13 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 			saveData(dp);
 		}
 	}
-	/** Get MemoryTimeseries without TimedJob*/
-	public static Datapoint getMemoryTimeseriesDatapointWithoutTimedJobSingle(Datapoint inputForName, 
+	/** Get MemoryTimeseries without TimedJob. Note that such a timeseries is not calculated automatically but new
+	 * time stamps need to be added directly via {@link ProcessedReadOnlyTimeSeries3#addValuesPublic(List)}. Such
+	 * a timeseries will also not store any values persistently.*/
+	public static Datapoint getMemoryTimeseriesDatapointWithoutTimedJobSingle(Datapoint inputForNameAndAggregationMode,
 			String labelPostfix, DatapointService dpService) {
-		String location = ProcessedReadOnlyTimeSeries2.getDpLocation(inputForName, labelPostfix);
-		return getMemoryTimeseriesDatapointWithoutTimedJob(location, dpService);
-	}
-	public static Datapoint getMemoryTimeseriesDatapointWithoutTimedJob(String location, DatapointService dpService) {
-		Datapoint dpIn = null;
-		ProcessedReadOnlyTimeSeries3 ts = new ProcessedReadOnlyTimeSeries3(dpIn) {
+		String location = ProcessedReadOnlyTimeSeries2.getDpLocation(inputForNameAndAggregationMode, labelPostfix);
+		ProcessedReadOnlyTimeSeries3 ts = new ProcessedReadOnlyTimeSeries3(inputForNameAndAggregationMode) {
 			
 			@Override
 			protected long getCurrentTime() {

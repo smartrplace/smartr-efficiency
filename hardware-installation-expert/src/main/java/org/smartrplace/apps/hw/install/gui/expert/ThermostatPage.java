@@ -133,7 +133,7 @@ public class ThermostatPage extends MainPage {
 			}
 			
 			@Override
-			public String getTableTitle() {
+			public String getTableTitleRaw() {
 				return "Thermostat Details";
 			}
 			
