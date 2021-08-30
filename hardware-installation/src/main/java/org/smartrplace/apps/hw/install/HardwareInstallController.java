@@ -213,7 +213,6 @@ public class HardwareInstallController {
 			appConfigData = (HardwareInstallConfig) appMan.getResourceManagement().createResource(name, HardwareInstallConfig.class);
 			appConfigData.isInstallationActive().create();
 			appConfigData.knownDevices().create();
-			appConfigData.knownDevelopmentTasks().create();
 			appConfigData.room().create();
 			appConfigData.room().setValue(RoomSelectorDropdown.ALL_DEVICES_ID);
 			//appConfigData.installationStatusFilter().create();
@@ -222,6 +221,7 @@ public class HardwareInstallController {
 		}
 		ValueResourceHelper.setIfNew(appConfigData.bulkMessageIntervalDuration(), 4*TimeProcUtil.HOUR_MILLIS);
 		ValueResourceHelper.setIfNew(appConfigData.maxMessageNumBeforeBulk(), 3);
+		appConfigData.knownDevelopmentTasks().create();
 		appConfigData.activate(true);
     }
     

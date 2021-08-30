@@ -33,6 +33,11 @@ public class DevelopmentTaskPage extends ObjectGUITablePageNamed<DevelopmentTask
 	}
 
 	@Override
+	protected String getHeader(OgemaLocale locale) {
+		return "Development Special Settings";
+	}
+	
+	@Override
 	public void addWidgetsAboveTable() {
 		super.addWidgetsAboveTable();
 		StaticTable topTable = new StaticTable(1, 4);
@@ -45,7 +50,7 @@ public class DevelopmentTaskPage extends ObjectGUITablePageNamed<DevelopmentTask
 		};
 		addButton.registerDependentWidget(mainTable);
 		
-		RedirectButton alarmingSettings = new RedirectButton(page, "alarmingSettings", "Development Task Alarming Settings", "");
+		RedirectButton alarmingSettings = new RedirectButton(page, "alarmingSettings", "Development Task Alarming Settings", "/org/smartrplace/alarmingsuper/devicedevtask.html");
 		topTable.setContent(0, 0, addButton).setContent(0, 3, alarmingSettings);
 		page.append(topTable);
 	}
@@ -81,7 +86,7 @@ public class DevelopmentTaskPage extends ObjectGUITablePageNamed<DevelopmentTask
 				if(!iad.alarms().exists())
 					dhid = "("+dhid+"*)";
 				if(types == null)
-					types += dhid;
+					types = dhid;
 				else
 					types += ", "+dhid;
 			}
@@ -95,7 +100,7 @@ public class DevelopmentTaskPage extends ObjectGUITablePageNamed<DevelopmentTask
 			}
 		};
 		releaseBut.setConfirmMsg("Really delete developmentTask "+ResourceUtils.getHumanReadableShortName(object)+"?", req);
-		releaseBut.setText("Release", req);
+		releaseBut.setText("Delete", req);
 		
 		vh.booleanEdit("Template Reset", id, object.overWriteTemplateRequest(), row, 1);
 	}

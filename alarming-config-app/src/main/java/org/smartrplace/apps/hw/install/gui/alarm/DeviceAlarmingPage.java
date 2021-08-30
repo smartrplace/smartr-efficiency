@@ -1,5 +1,6 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -186,7 +187,12 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				TemplateDropdown<DevelopmentTask> devTaskDrop = new TemplateDropdown<DevelopmentTask>(vh.getParent(), "devTaskDrop"+id, req) {
 					@Override
 					public void onGET(OgemaHttpRequest req) {
-						List<DevelopmentTask> items = resData.appConfigData.knownDevelopmentTasks().getAllElements();
+						List<DevelopmentTask> all = resData.appConfigData.knownDevelopmentTasks().getAllElements();
+						List<DevelopmentTask> items = new ArrayList<>();
+						for(DevelopmentTask dt: all) {
+							if(!dt.name().getValue().isEmpty())
+								items.add(dt);
+						}
 						DevelopmentTask select = null;
 						if(object.devTask().exists())
 							select = object.devTask().getLocationResource();

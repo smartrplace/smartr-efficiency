@@ -30,6 +30,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.gui.filtering.DualFiltering2StepsStd;
 import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
+import org.smartrplace.gui.filtering.GenericFilterOption;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -50,7 +51,11 @@ import de.iwes.widgets.html.form.button.Button;
 @SuppressWarnings("serial")
 public class DeviceDetailPageExpert extends DeviceTypePage {
 	protected DualFiltering2StepsStd<InstallAppDeviceBase, ?, AlarmConfiguration> deviceDropLoc;
-	protected final boolean isDevTaskTemplatePage;
+	
+	//Overwrite for DevTaskPage
+	protected boolean isDevTaskTemplatePage() {
+		return false;
+	}
 	
 	protected void addFinalWidgets(AlarmConfiguration object,
 			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
@@ -60,18 +65,12 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	
 	public DeviceDetailPageExpert(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
 			AlarmingConfigAppController controller, boolean showReducedColumns, boolean showSuperAdmin) {
-		this(page, appManPlus, controller, showReducedColumns, showSuperAdmin, false);
-	}
-	public DeviceDetailPageExpert(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
-			AlarmingConfigAppController controller, boolean showReducedColumns, boolean showSuperAdmin,
-			boolean isDevTaskTemplatePage) {
 		super(page, appManPlus, false, controller, showReducedColumns, showSuperAdmin);
-		this.isDevTaskTemplatePage = isDevTaskTemplatePage;
 	}
 	
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		if(isDevTaskTemplatePage)
+		if(isDevTaskTemplatePage())
 			return "4. Special Alarming Settings for Development Tasks";
 		return "2. Alarming Details Per Device"+(showSuperAdmin?" Admin":"");
 	}
@@ -168,16 +167,16 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	
 	@Override
 	protected void addWidgetsAboveTableInternal() {
-		if(isDevTaskTemplatePage) {
+		if(isDevTaskTemplatePage()) {
 			deviceDropLoc = new DualFiltering2StepsStd<InstallAppDeviceBase, DevelopmentTask, AlarmConfiguration>(page, "deviceDropDual", OptionSavingMode.GENERAL,
-					10000, false, true) {
+					10000, false, false) {
 	
 				@Override
 				protected Map<String, InstallAppDeviceBase> getAttributesByGroup(DevelopmentTask group) {
 					Map<String, InstallAppDeviceBase> result = new HashMap<>();
 					for(InstallAppDeviceBase iad: group.templates().getAllElements()) {	
 						String devHandLabel = AlarmingConfigUtil.getDeviceHandlerShortId(iad);
-						result .put(devHandLabel, iad);
+						result.put(devHandLabel, iad);
 					}
 					return result ;
 				}
@@ -213,7 +212,23 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	
 				@Override
 				protected Collection<DevelopmentTask> getAllGroups() {
-					return controller.hwTableData.appConfigData.knownDevelopmentTasks().getAllElements();
+					List<DevelopmentTask> all = controller.hwTableData.appConfigData.knownDevelopmentTasks().getAllElements();
+					List<DevelopmentTask> result = new ArrayList<>();
+					for(DevelopmentTask dt: all) {
+						if(!dt.name().getValue().isEmpty())
+							result.add(dt);
+					}
+					return result;
+				}
+				
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					if(controller.hwTableData.appConfigData.knownDevelopmentTasks().size() == 0)
+						disable(req);
+					else {
+						enable(req);
+						super.onGET(req);
+					}
 				}
 			};			
 		} else {
@@ -293,6 +308,13 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 		
 		ButtonConfirm applyDefaultToTemplate = new ButtonConfirm(page, "applyDefaultToTemplate") {
 			@Override
+			public void onGET(OgemaHttpRequest req) {
+				if(controller.hwTableData.appConfigData.knownDevelopmentTasks().size() == 0)
+					disable(req);
+				else
+					enable(req);
+			}
+			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				GenericFilterFixedSingle<InstallAppDeviceBase> selectedFilter = (GenericFilterFixedSingle<InstallAppDeviceBase>) deviceDropLoc.getSelectedItem(req);
 				InstallAppDeviceBase selected = selectedFilter.getValue();
@@ -311,9 +333,6 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 		applyDefaultToTemplate.registerDependentWidget(alert);
 
 		secondTable = new StaticTable(1, 4);
-		if(isDevTaskTemplatePage) {
-			secondTable.setContent(0, 2, "");			
-		}
 		
 		secondTable.setContent(0, 0, deviceDropLoc.getFirstDropdown());
 		secondTable.setContent(0, 1, deviceDropLoc);
@@ -325,6 +344,9 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 
 	@Override
 	public Collection<AlarmConfiguration> getObjectsInTable(OgemaHttpRequest req) {
+		GenericFilterOption<InstallAppDeviceBase> selected = deviceDropLoc.getSelectedItem(req);
+		if(selected == null)
+			return Collections.emptyList();
 		Collection<AlarmConfiguration> all = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
 		return deviceDropLoc.getFiltered(all, req);
 	}

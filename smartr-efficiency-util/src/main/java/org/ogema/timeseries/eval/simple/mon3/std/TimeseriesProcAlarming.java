@@ -27,6 +27,7 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 	public static final String OUTVALUE_EVAL = "OUTVALUE_EVAL";
 	public static final String SETPREACT_EVAL = "SETPREACT_EVAL";
 	public static final String VALUECHANGED_EVAL = "VALUECHANGED_EVAL";
+	public static final String BATTERY_EVAL = "BATTERY_EVAL";
 	
 	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService) {
 		this(appMan, dpService, KPI_UPDATE_RATE_DEFAULT);
@@ -117,6 +118,23 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 		};
 		knownProcessors3.put(VALUECHANGED_EVAL, valueChangedProc);
 
+		TimeseriesSetProcessor3 batteryProc = new TimeseriesSetProcSingleToSingleArg3<Float>(
+				TimeProcUtil.ALARM_BATDURATION_SUFFIX, AbsoluteTiming.MONTH, TimeProcUtil.DAY_MILLIS, TimeseriesProcAlarming.this) {
+			@Override
+			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, Float irrelevant) {
+				return TimeSeriesServlet.getBatteryRemainingLifetimeEstimation(timeSeries, start, end, false);					
+			}
+
+			@Override
+			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {}
+
+			@Override
+			public Class<Float> getParamClass() {
+				return Float.class;
+			}
+		};
+		knownProcessors3.put(BATTERY_EVAL, batteryProc);
 	}
 
 	public static class SetpReactInput {

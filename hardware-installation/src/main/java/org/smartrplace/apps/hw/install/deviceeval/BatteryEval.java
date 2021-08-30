@@ -7,10 +7,10 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
 import org.ogema.devicefinder.api.TimedJobProvider;
-import org.ogema.devicefinder.util.BatteryEvalBase;
 import org.ogema.devicefinder.util.TimedJobMemoryData;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
+import org.ogema.timeseries.eval.simple.mon3.std.BatteryEvalBase3;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
@@ -23,7 +23,7 @@ import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.messaging.MessagePriority;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
-public class BatteryEval extends BatteryEvalBase {
+public class BatteryEval extends BatteryEvalBase3 {
 	
 	public static TimedJobMemoryData initWeeklyEmail(final ApplicationManagerPlus  appManPlus) {
 		AppID appId= appManPlus.appMan().getAppID();
@@ -88,7 +88,7 @@ public class BatteryEval extends BatteryEvalBase {
 		int unassignedNum = 0;
 		
 		for(InstallAppDevice iad: thermostats) {
-			BatteryStatusResult status = getFullBatteryStatus(iad, now);
+			BatteryStatusResult status = getFullBatteryStatus(iad, now, appMan.dpService());
 			if(status.status == BatteryStatus.NO_BATTERY)
 				continue;
 			evalResults.add(status);

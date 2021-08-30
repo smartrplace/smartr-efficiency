@@ -16,6 +16,8 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.SetpointData;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.BatteryEvalBase.BatteryStatus;
+import org.ogema.devicefinder.util.BatteryEvalBase.BatteryStatusPlus;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -36,6 +38,7 @@ public class StandardEvalAccess {
 	public static final String BASE_FEEDBACK_GAP_POSTFIX = "/$$dpFbGap";
 	public static final String BASE_SETPOINT_CHANGENUM_POSTFIX = "/$$dpSetpReqRealChange";
 	public static final String SETP_REACT_POSTFIX = "/$$dpSetpReact";
+	public static final String BATTERY_POSTFIX = "/$$dpBatDuration";
 
 	public static enum StandardDeviceEval {
 		/** GAP is defined for SingleValueResources (Datapoints) and for devices. For devices this is the
@@ -50,7 +53,9 @@ public class StandardEvalAccess {
 		/** Only defined for devices*/
 		BASE_SETPOINT_CHANGENUM,
 		/** Only defined for devices*/
-		SETP_REACT
+		SETP_REACT,
+		
+		BATTERY_EVAL
 	}
 	
 	private static TimeseriesProcAlarming util = null;
@@ -142,6 +147,16 @@ public class StandardEvalAccess {
 						
 			args.config = (ThermPlusConfig) allConfig.get(0);
 			args.setpFb = dpService.getDataPointStandard(allSetp.get(0).stateFeedback).getTimeSeries();
+			break;
+		case BATTERY_EVAL:
+			long now = dpService.getFrameworkTime();
+			BatteryStatusPlus data = BatteryEvalBase3.getBatteryStatusPlus(iad, false, now);
+			if(data.status == BatteryStatus.NO_BATTERY || data.batRes == null)
+				return null;
+			dpIn = dpService.getDataPointStandard(data.batRes);
+			evalName = TimeseriesProcAlarming.BATTERY_EVAL;
+			location = device.getLocation()+BATTERY_POSTFIX;
+			input = null;
 			break;
 		case BASE_MEASUREMENT_OUT:
 			throw new IllegalStateException("OutValue not supported as device standard type:"+type);
