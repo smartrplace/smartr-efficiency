@@ -27,7 +27,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 	
 	public static TimedJobMemoryData initWeeklyEmail(final ApplicationManagerPlus  appManPlus) {
 		AppID appId= appManPlus.appMan().getAppID();
-		appManPlus.getMessagingService().registerMessagingApp(appId, "DailyStatusEmail");
+		appManPlus.getMessagingService().registerMessagingApp(appId, "WeeklyStatusEmail");
 		
 		TimedJobProvider tprov = new TimedJobProvider() {
 			
