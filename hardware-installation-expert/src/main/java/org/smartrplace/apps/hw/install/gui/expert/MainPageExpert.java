@@ -11,9 +11,11 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -150,8 +152,7 @@ public class MainPageExpert extends MainPage {
 			vh.registerHeaderEntry("KniStatus");
 			vh.registerHeaderEntry(GAPS_LABEL);
 		} else {
-			IntegerResource kniStatus = object.knownFault().assigned();
-			KniStatus kniStat = getStatus(kniStatus);
+			KniStatus kniStat = getStatus(object);
 			Label kniLabel = vh.stringLabel("KniStatus", id, kniStat.text, row);
 			if(kniStat.style != null)
 				kniLabel.addStyle(kniStat.style, req);
@@ -316,10 +317,11 @@ public class MainPageExpert extends MainPage {
 		WidgetStyle<Label> style;
 		String text;
 	}
-	public static KniStatus getStatus(IntegerResource kniStatus) {
-		if(!kniStatus.isActive())
+	public static KniStatus getStatus(InstallAppDeviceBase iad) {
+		AlarmGroupData kni = iad.knownFault();
+		if(!kni.exists())
 			return new KniStatus(LabelData.BOOTSTRAP_GREEN, "No Open");
-		int kniVal = kniStatus.getValue();
+		int kniVal = kni.assigned().getValue();
 		switch(kniVal) {
 		case 0:
 			return new KniStatus(LabelData.BOOTSTRAP_RED, "Unassigned");
@@ -346,7 +348,7 @@ public class MainPageExpert extends MainPage {
 		case 6000:
 			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Other");
 		default:
-			throw new IllegalStateException("Unknown KniStatus:"+kniVal+" for "+kniStatus.getLocation());
+			throw new IllegalStateException("Unknown KniStatus:"+kniVal+" for "+kni.getLocation());
 		}
 	}
 }
