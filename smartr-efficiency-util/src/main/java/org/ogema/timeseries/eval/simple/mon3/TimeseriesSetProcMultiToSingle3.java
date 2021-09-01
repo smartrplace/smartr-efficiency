@@ -305,7 +305,8 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 			ts.loadInitData();
 if(Boolean.getBoolean("evaldebug0")) {
 	int newTs = ts.size();
-	System.out.println("Reading "+newTs+" timestamps into "+ts.dpLabel());
+	String label = ts.dpLabel();
+	System.out.println("Reading "+newTs+" timestamps into "+label);
 }
 			if(ts.getLastEndTime() <= 0) {
 				Long startRaw = ts.getFirstTimeStampInSource();
