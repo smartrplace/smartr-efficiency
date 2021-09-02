@@ -1,6 +1,8 @@
 package org.smartrplace.tsproc.persist;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
@@ -115,7 +117,8 @@ public class TsProcPersistUtil {
 			@Override
 			public void execute(long now, TimedJobMemoryData data) {
 				if(isGeneralJob) {
-					for(TimeseriesSimpleProcUtil3 utilLoc: knownUtils) {
+					List<TimeseriesSimpleProcUtil3> ku = new ArrayList<>(knownUtils);
+					for(TimeseriesSimpleProcUtil3 utilLoc: ku) {
 						utilLoc.saveUpdatesForAllData();						
 					}
 				} else
