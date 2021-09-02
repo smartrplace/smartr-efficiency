@@ -5,7 +5,7 @@ import java.util.Collection;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointService;
-import org.ogema.devicefinder.util.TimedJobMemoryData;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;

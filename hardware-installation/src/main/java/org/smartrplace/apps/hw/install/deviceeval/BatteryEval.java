@@ -6,8 +6,8 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobProvider;
-import org.ogema.devicefinder.util.TimedJobMemoryData;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.mon3.std.BatteryEvalBase3;

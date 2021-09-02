@@ -9,8 +9,8 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobProvider;
-import org.ogema.devicefinder.util.TimedJobMemoryData;
 import org.ogema.model.jsonresult.JsonOGEMAFileData;
 import org.ogema.model.jsonresult.JsonOGEMAFileManagementData;
 import org.ogema.timeseries.eval.simple.api.ProcTs3PersistentData;
@@ -30,6 +30,8 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 public class TsProcPersistUtil {
 	private static final String PROC3_WORKSPACE = "WSPRoc3";
 	public static final int MAX_LOCATION_FILENAME_LENGTH = 128;
+	
+	public static volatile int lastSaved = 0;
 	
 	protected static JsonOGEMAFileManagement<ProcTs3PersistentData, JsonOGEMAFileData> fileMgmt;
 	protected static Set<TimeseriesSimpleProcUtil3> knownUtils = new HashSet<>();
@@ -118,8 +120,9 @@ public class TsProcPersistUtil {
 			public void execute(long now, TimedJobMemoryData data) {
 				if(isGeneralJob) {
 					List<TimeseriesSimpleProcUtil3> ku = new ArrayList<>(knownUtils);
+					lastSaved = 0;
 					for(TimeseriesSimpleProcUtil3 utilLoc: ku) {
-						utilLoc.saveUpdatesForAllData();						
+						lastSaved += utilLoc.saveUpdatesForAllData();						
 					}
 				} else
 					util.saveUpdatesForAllData();
@@ -148,5 +151,14 @@ public class TsProcPersistUtil {
 			};
 		fileMgmt.setWorkspace(PROC3_WORKSPACE);	
 		}		
+	}
+	
+	public static int getTsNumToSaveTotal() {
+		int result = 0;
+		List<TimeseriesSimpleProcUtil3> ku = new ArrayList<>(knownUtils);
+		for(TimeseriesSimpleProcUtil3 utilLoc: ku) {
+			result += utilLoc.getTssNum();						
+		}
+		return result;
 	}
 }

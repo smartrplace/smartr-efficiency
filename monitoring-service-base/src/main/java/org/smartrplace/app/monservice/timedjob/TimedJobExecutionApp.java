@@ -6,10 +6,10 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobMgmtService;
 import org.ogema.devicefinder.api.TimedJobProvider;
-import org.ogema.devicefinder.util.TimedJobMemoryData;
-import org.ogema.devicefinder.util.TimedJobMgmtServiceImpl;
+import org.ogema.util.timedjob.TimedJobMgmtServiceImpl;
 
 @Component(specVersion = "1.2", immediate = true)
 @Service({Application.class, TimedJobMgmtService.class})

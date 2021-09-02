@@ -17,6 +17,7 @@ import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.model.jsonresult.JsonOGEMAFileData;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcMultiToSingle;
@@ -29,6 +30,9 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	protected final Map<String, TimeseriesSetProcessor3> knownProcessors3 = new HashMap<>();
 	
 	protected final Set<Datapoint> generatedTss = new HashSet<>();
+	public int getTssNum() {
+		return generatedTss.size();
+	}
 	
 	protected final ApplicationManager appMan;
 	public final DatapointService dpService;
@@ -38,8 +42,8 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	public void loadInitData3(Datapoint dp) {
 		TsProcPersistUtil.importTsFromFile(dp, appMan);		
 	}
-	public void saveData(Datapoint dp) {
-		TsProcPersistUtil.saveTsToFile(dp, appMan);		
+	public JsonOGEMAFileData saveData(Datapoint dp) {
+		return TsProcPersistUtil.saveTsToFile(dp, appMan);		
 	}
 	
 	public TimeseriesSetProcessor3 getProcessor3(String procID) {
@@ -167,10 +171,13 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 		return DPUtil.getTSList(process(tsProcessRequest, DPUtil.getDPList(input, nameProvider, aggProv)), null);
 	}
 	
-	public void saveUpdatesForAllData() {
+	public int saveUpdatesForAllData() {
+		int count = 0;
 		for(Datapoint dp: generatedTss) {
-			saveData(dp);
+			if(saveData(dp) != null)
+				count++;
 		}
+		return count;
 	}
 	/** Get MemoryTimeseries without TimedJob. Note that such a timeseries is not calculated automatically but new
 	 * time stamps need to be added directly via {@link ProcessedReadOnlyTimeSeries3#addValuesPublic(List)}. Such
