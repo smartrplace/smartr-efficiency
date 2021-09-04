@@ -59,14 +59,14 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 	
 	@Override
 	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
-			InstalledAppsSelector appSelector) {
+			InstalledAppsSelector appSelector, DeviceTableConfig config) {
 		return new DeviceTableBase(page, appMan, alert, appSelector, this) {
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 
-				final AirConditioner device = (AirConditioner) addNameWidget(object, vh, id, req, row, appMan);
+				final AirConditioner device = (AirConditioner) addNameWidget(object, vh, id, req, row, appMan, config.showOnlyBaseCols());
 				Label setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
 				if(req != null) {
 					TextField setpointSet = new TextFieldSetpoint(mainTable, "setpointSet"+id, alert, 4.5f, 30.5f, req) {
@@ -84,6 +84,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 					};
 					row.addCell("Set", setpointSet);
 					
+					if(!config.showOnlyBaseCols()) {
 					SimpleCheckbox onOff = new SimpleCheckboxSetpoint(mainTable, "onOff"+id, alert, req) {
 						
 						@Override
@@ -133,41 +134,20 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 						};
 						row.addCell("OpMode", opModeF);
 					}
-					/*TextField setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
-						private static final long serialVersionUID = 1L;
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							setValue(String.format("%.1f", device.temperatureSensor().settings().setpoint().getCelsius()), req);
-						}
-						@Override
-						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							String val = getValue(req);
-							val = val.replaceAll("[^\\d.]", "");
-							try {
-								float value  = Float.parseFloat(val);
-								if(value < 4.5f || value> 30.5f) {
-									alert.showAlert("Allowed range: 4.5 to 30°C", false, req);
-								} else
-									device.temperatureSensor().settings().setpoint().setCelsius(value);
-							} catch (NumberFormatException | NullPointerException e) {
-								if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
-								return;
-							}
-						}
-					};*/
 				} else {
 					vh.registerHeaderEntry("Set");
 					vh.registerHeaderEntry("OnOff");
 					vh.registerHeaderEntry("Fan speed");
 					vh.registerHeaderEntry("OpMode");
 				}
-				
+				}
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Room deviceRoom = device.location().room();
 				Label lastContact = addLastContact(vh, id, req, row, device.temperatureSensor().reading());
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row);
-				addInstallationStatus(object, vh, id, req, row);
+				if(!config.showOnlyBaseCols())
+					addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
 				if(req != null) {
 					tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
@@ -308,5 +288,10 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 	@Override
 	public String getTableTitle() {
 		return "Air Conditioners";
+	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
 	}
 }

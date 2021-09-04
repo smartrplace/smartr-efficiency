@@ -291,8 +291,8 @@ public class StandardEvalAccess {
 		int count = 0;
 		int countOK = 0;
 
-		long duration = endTime - startTime;
-		double QUALITY_MAX_MINUTES = duration/TimeProcUtil.MINUTE_MILLIS*AlarmingConfigUtil.QUALITY_TIME_SHARE_LIMIT;
+		double durationMinutes = ((double)(endTime - startTime))/TimeProcUtil.MINUTE_MILLIS;
+		double QUALITY_MAX_MINUTES = durationMinutes*(1-AlarmingConfigUtil.QUALITY_TIME_SHARE_LIMIT);
 		
 		if(allGaps.size() == 1 && allGaps.get(0) == null)
 			return new float[]{Float.NaN, Float.NaN};
@@ -304,6 +304,8 @@ public class StandardEvalAccess {
 			try {
 				List<SampledValue> gaps = ts.getValues(startTime, endTime);
 				double sum = AlarmingConfigUtil.getValueSum(gaps);
+				if(sum > durationMinutes)
+					sum = durationMinutes;
 				sumTot += sum;
 				count++;
 				if(sum <= QUALITY_MAX_MINUTES) {
@@ -317,7 +319,7 @@ public class StandardEvalAccess {
 		if(count == 0)
 			return new float[]{0.0f, 0.0f};
 		double sumTotAv = sumTot / count;
-		double rel = 1.0 - sumTotAv / duration;
+		double rel = 1.0 - sumTotAv / durationMinutes;
 		float share = ((float)countOK)/count;
 		return new float[]{(float) rel, share};		
 	}

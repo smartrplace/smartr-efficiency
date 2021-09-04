@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
@@ -18,6 +19,7 @@ import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
@@ -77,10 +79,11 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
 	@Reference
 	MessageReader mr;
 
-	/*@Activate
+	public BundleContext bc;
+	@Activate
 	   void activate(BundleContext bc) {
 	    this.bc = bc;
-	 }*/
+	 }
 	
     /*
      * This is the entry point to the application.

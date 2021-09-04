@@ -10,6 +10,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.storage.ElectricityStorage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -78,4 +79,8 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 		return BatteryPattern.class;
 	}
 
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
+	}
 }

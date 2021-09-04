@@ -12,7 +12,6 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
-import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.devices.sensoractordevices.WindSensor;
 import org.ogema.model.locations.Room;
@@ -22,7 +21,6 @@ import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 
 public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 
@@ -102,5 +100,10 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	@Override
 	public String getInitVersion() {
 		return "A";
+	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
 	}
 }

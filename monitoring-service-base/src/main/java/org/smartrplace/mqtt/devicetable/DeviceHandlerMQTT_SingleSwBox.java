@@ -203,4 +203,9 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 	public String getTableTitle() {
 		return "Single Switchboxes";
 	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
+	}
 }

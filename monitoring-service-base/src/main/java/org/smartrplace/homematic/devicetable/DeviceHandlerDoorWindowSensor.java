@@ -59,7 +59,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindo
 	}
 
 	@Override
-	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert, InstalledAppsSelector appSelector) {
+	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert, InstalledAppsSelector appSelector, DeviceTableConfig config) {
 		return new DeviceTableBase(page, appMan, alert, appSelector, this) {
 
 			@Override

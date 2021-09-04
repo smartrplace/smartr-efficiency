@@ -36,7 +36,6 @@ import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.LogConfigSP;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
-import org.smartrplace.tsproc.persist.TsProcPersistUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -391,5 +390,10 @@ System.out.println("   *** IOTAwatt virtual datapoints took "+(end-start)+" msec
 	@Override
 	public String getInitVersion() {
 		return "A";
+	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
 	}
 }

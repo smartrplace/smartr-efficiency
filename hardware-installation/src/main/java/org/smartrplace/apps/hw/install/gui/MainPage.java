@@ -65,7 +65,8 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 
 	public static enum ShowModeHw {
 		STANDARD,
-		KNI
+		KNI,
+		NETWORK
 	}
 	
 	public MainPage(WidgetPage<?> page, final HardwareInstallController controller, boolean triggerFinishConstructorAutomatically) {

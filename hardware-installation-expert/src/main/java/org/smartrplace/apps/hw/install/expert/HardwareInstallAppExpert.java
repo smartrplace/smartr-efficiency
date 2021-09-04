@@ -83,7 +83,6 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			final WidgetPage<?> page = widgetApp.createStartPage();
 			MainPageExpert expertPage = new MainPageExpert(page, controller, (showModeOrder == 0)?ShowModeHw.STANDARD:ShowModeHw.KNI);
 			controller.mainPageExts.add(expertPage);
-			//menu.addEntry("Expert page", page);
 			menu.addEntry(expertPage.getHeader(), page);
 			page.getMenuConfiguration().setCustomNavigation(menu);
 			
@@ -91,10 +90,20 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			final WidgetPage<?> pageExp2 = widgetApp.createWidgetPage("mainExpert2.html");
 			MainPageExpert expertPage2 = new MainPageExpert(pageExp2, controller, (showModeOrder != 0)?ShowModeHw.STANDARD:ShowModeHw.KNI);
 			controller.mainPageExts.add(expertPage2);
-			//menu.addEntry("Expert page", pageExp2);
 			menu.addEntry(expertPage2.getHeader(), pageExp2);
 			pageExp2.getMenuConfiguration().setCustomNavigation(menu);
 			
+			widgetApp = guiService.createWidgetApp(urlPath, appMan);
+			final WidgetPage<?> pageExp3 = widgetApp.createWidgetPage("mainExpertNetwork.html");
+			MainPageExpert expertPage3 = new MainPageExpert(pageExp3, controller, ShowModeHw.NETWORK) {
+				protected boolean showOnlyBaseColsHWT() {
+					return true;
+				}
+			};
+			controller.mainPageExts.add(expertPage3);
+			menu.addEntry(expertPage3.getHeader(), pageExp3);
+			pageExp3.getMenuConfiguration().setCustomNavigation(menu);
+
 			for(InstallAppDevice dev: controller.appConfigData.knownDevices().getAllElements()) {
 				if(dev.isTrash().getValue()) {
 					DeviceHandlerProvider<?> devHand = controller.getDeviceHandler(dev);

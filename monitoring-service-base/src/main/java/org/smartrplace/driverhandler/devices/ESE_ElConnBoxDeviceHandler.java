@@ -272,4 +272,9 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	public String getTableTitle() {
 		return "Energy Server Electricity Meters";
 	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
+	}
 }

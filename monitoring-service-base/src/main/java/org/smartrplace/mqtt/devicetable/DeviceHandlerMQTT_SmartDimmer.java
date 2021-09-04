@@ -200,4 +200,9 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 	public String getTableTitle() {
 		return "Smart Dimmers";
 	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
+	}
 }

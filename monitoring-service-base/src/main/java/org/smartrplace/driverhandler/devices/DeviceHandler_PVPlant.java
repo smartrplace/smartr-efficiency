@@ -190,4 +190,9 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 	public String getTableTitle() {
 		return "PV Plants";
 	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
+	}
 }

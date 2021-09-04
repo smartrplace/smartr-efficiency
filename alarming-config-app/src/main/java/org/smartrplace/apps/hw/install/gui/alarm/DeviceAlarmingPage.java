@@ -1,6 +1,5 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -8,7 +7,6 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
-import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.DpGroupUtil;
@@ -18,7 +16,6 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.hwinstall.basetable.BooleanResourceButton;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -184,15 +181,13 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				selectTemplButton.setDefaultText("Select as Template");
 				row.addCell(WidgetHelper.getValidWidgetId("Select Template"), selectTemplButton);
 				
-				TemplateDropdown<DevelopmentTask> devTaskDrop = new TemplateDropdown<DevelopmentTask>(vh.getParent(), "devTaskDrop"+id, req) {
+				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan,
+						vh.getParent(), "devTaskDrop"+id, req);
+				/*new TemplateDropdown<DevelopmentTask>(vh.getParent(), "devTaskDrop"+id, req) {
 					@Override
 					public void onGET(OgemaHttpRequest req) {
-						List<DevelopmentTask> all = resData.appConfigData.knownDevelopmentTasks().getAllElements();
-						List<DevelopmentTask> items = new ArrayList<>();
-						for(DevelopmentTask dt: all) {
-							if(!dt.name().getValue().isEmpty())
-								items.add(dt);
-						}
+						//List<DevelopmentTask> all = resData.appConfigData.knownDevelopmentTasks().getAllElements();
+						List<DevelopmentTask> items = DevelopmentTaskDropdown.getEffectiveKnownDevTasks(resData.appConfigData.knownDevelopmentTasks());
 						DevelopmentTask select = null;
 						if(object.devTask().exists())
 							select = object.devTask().getLocationResource();
@@ -202,7 +197,8 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						DevelopmentTask select = getSelectedItem(req);
-						if(select == null && object.devTask().isReference(false))
+						DevelopmentTaskDropdown.selectDevelopmentTask(select, object, appMan);
+						/*if(select == null && object.devTask().isReference(false))
 							object.devTask().delete();
 						else {
 							object.devTask().setAsReference(select);
@@ -213,8 +209,8 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 								select.overWriteTemplateRequest().setValue(false);
 							}
 							AlarmingConfigUtil.getOrCreateTemplate(object, select.templates(), appMan);
-						}
-					}
+						}*/
+				/*	}
 				};
 				devTaskDrop.setDefaultAddEmptyOption(true, "--");
 				devTaskDrop.setTemplate(new DefaultDisplayTemplate<DevelopmentTask>() {
@@ -222,11 +218,10 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					public String getLabel(DevelopmentTask object, OgemaLocale locale) {
 						return ResourceUtils.getHumanReadableShortName(object);
 					}
-				});
+				});*/
 				row.addCell(WidgetHelper.getValidWidgetId("Special Settings(Dev)"), devTaskDrop);
 			}			
 		};
 		
 	}
-	
 }

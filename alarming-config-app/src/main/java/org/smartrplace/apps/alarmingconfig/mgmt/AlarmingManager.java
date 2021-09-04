@@ -39,6 +39,7 @@ import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.recordreplay.testing.RecReplayAlarmingBaseObserver;
+import org.ogema.timeseries.eval.simple.api.AlarmingStartedService;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
@@ -53,8 +54,7 @@ import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 
-public class AlarmingManager {
-	
+public class AlarmingManager implements AlarmingStartedService {
 	//private static final long SCHEDULE_CHECK_RATE = 60000;
 	private static final long NOVALUE_CHECK_RATE = 10000;
 	//public static final long HOUR_MILLIS = 60*60000;
@@ -65,6 +65,10 @@ public class AlarmingManager {
 	protected final ApplicationManagerPlus appManPlus;
 	protected final Map<String, AppID> appsForSending;
 	//protected final RoomLabelProvider tsNameProv;
+	
+	public volatile boolean initDone = false;
+	@Override
+	public boolean isAlarmingStarted() {return initDone;}
 	
 	public final Integer maxMessageBeforeBulk;
 	public final long bulkMessageInterval;
@@ -127,6 +131,7 @@ public class AlarmingManager {
 			addConfigsForDevice(iad, activeAlarms, now);
 		}
 		
+		
 		BaseAlarmI baseAlarm = new BaseAlarmI() {
 			@Override
 			public void sendMessage(String title2, String message2, MessagePriority prio2, MessageDestination md) {
@@ -152,6 +157,9 @@ public class AlarmingManager {
 		
 		noValueTimer = appManPlus.appMan().createTimer(NOVALUE_CHECK_RATE, new AlarmNoValueListener());
 	
+		//at this point any initial open alarmings should be sent
+		initDone = true;
+		
 		System.out.println("New AlarmingManagement started.");
 	}
 	

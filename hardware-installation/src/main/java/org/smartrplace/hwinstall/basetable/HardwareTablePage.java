@@ -11,6 +11,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProvider.DeviceTableConfig;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.gateway.EvalCollection;
@@ -40,6 +41,10 @@ import de.iwes.widgets.html.form.label.Label;
 @SuppressWarnings("serial")
 /** Note that only the method getDevicesSelected is really implemented here*/
 public class HardwareTablePage implements InstalledAppsSelector { //extends DeviceTablePageFragment
+
+	//Overwrite to reduce columns
+	protected boolean showOnlyBaseColsHWT() {return false;}
+
 	//protected final HardwareInstallController controller;
 	protected final WidgetPage<?> page;
 	protected final Alert alert;
@@ -241,7 +246,14 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 				continue;
 			}
 			tableProvidersDone.add(id);
-			DeviceTableBase tableLoc = pe.getDeviceTable(page, alert, this);
+			DeviceTableBase tableLoc = pe.getDeviceTable(page, alert, this, new DeviceTableConfig() {
+
+				@Override
+				public boolean showOnlyBaseCols() {
+					return HardwareTablePage.this.showOnlyBaseColsHWT();
+				}
+				
+			});
 			tableLoc.triggerPageBuild();
 			installFilterDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.registerDependentWidget(tableLoc.getMainTable());

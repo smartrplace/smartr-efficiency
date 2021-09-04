@@ -30,9 +30,11 @@ import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.gateway.LocalGatewayInformation;
+import org.ogema.timeseries.eval.simple.api.AlarmingStartedService;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.TimeseriesProcAlarming;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.apps.alarmconfig.util.AppIDImpl;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
@@ -99,6 +101,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public final ResourceList<MessagingApp> appList;
 	public final MessageReader mr;
 	
+	protected ServiceRegistration<AlarmingStartedService> srStarted = null;
+
 	//location of device resource->InstallAppDevice resouce
 	private Map<String, InstallAppDevice> iads = new HashMap<>();
 	public InstallAppDevice getIAD(String devLocation) {
@@ -231,6 +235,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		MainPage.alarmingUpdater = this;
 		HardwareInstallController.alarmingUpdater = this;
 
+		srStarted = initApp.bc.registerService(AlarmingStartedService.class, alarmMan, null);
+
+		
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
 			WidgetPage<?> pageRes12 = initApp.widgetApp.createWidgetPage("templateconfig.html", true); //initApp.widgetApp.createWidgetPage("devices.html");
 			devicePage = new DeviceTypePage(pageRes12, appManPlus, true, this, false, false);
@@ -483,6 +490,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
     }
 
 	public void close() {
+    	if (srStarted != null) srStarted.unregister();
 		if(alarmMan != null) {
 			alarmMan.close();
 			alarmMan = null;

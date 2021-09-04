@@ -1,11 +1,13 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.SetpointData;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableRaw;
@@ -56,6 +58,8 @@ public class MainPageExpert extends MainPage {
 	
 	@Override
 	public String getHeader() {
+		if(showMode==ShowModeHw.NETWORK)
+			return "Device Setup and Configuration Expert (Network)";
 		return "Device Setup and Configuration Expert "+((showMode==ShowModeHw.STANDARD)?"(Locations)":"(Known Issues/Gaps)");
 	}
 
@@ -69,16 +73,25 @@ public class MainPageExpert extends MainPage {
 		this.isTrashPage = isTrashPage;
 		this.showMode = showModeHw;
 		
-		Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				for(InstallAppDevice iad: controller.appConfigData.knownDevices().getAllElements()) {
-					DeviceHandlerProvider<?> tableProvider = controller.getDeviceHandler(iad);
-					if(tableProvider != null)
-						controller.updateDatapoints(tableProvider, iad);
-				}
+		if(showModeHw == ShowModeHw.NETWORK) {
+			String link = System.getProperty("org.smartrplace.apps.hw.install.gui.expert.wikipagelink");
+			if(link != null) {
+				RedirectButton wikiPage = new RedirectButton(page, "wikiPageBut", "Wiki IP Debugging",
+						link);
+				topTable.setContent(0, 4, wikiPage);
 			}
-		};
-		topTable.setContent(0, 4, updateDatapoints);
+		} else {
+			Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					for(InstallAppDevice iad: controller.appConfigData.knownDevices().getAllElements()) {
+						DeviceHandlerProvider<?> tableProvider = controller.getDeviceHandler(iad);
+						if(tableProvider != null)
+							controller.updateDatapoints(tableProvider, iad);
+					}
+				}
+			};
+			topTable.setContent(0, 4, updateDatapoints);
+		}
 	}
 	
 	@Override
@@ -109,24 +122,6 @@ public class MainPageExpert extends MainPage {
 				(showMode==ShowModeHw.STANDARD)?"KnI/Gap Eval":"Locations",
 				isIndex?"/org/smartrplace/hardwareinstall/expert/mainExpert2.html":"/org/smartrplace/hardwareinstall/expert/index.html");
 
-		/*showModeFilter = new SingleFilteringDirect<ShowModeHw>(page, "showModeFilter", 
-				OptionSavingMode.PER_USER, 5000, false) {
-
-			@Override
-			protected List<GenericFilterOption<ShowModeHw>> getOptionsDynamic(OgemaHttpRequest req) {
-				List<GenericFilterOption<ShowModeHw>> result = new ArrayList<>();
-				result.add(new GenericFilterFixed<ShowModeHw>(ShowModeHw.STANDARD, "Locations"));
-				result.add(new GenericFilterFixed<ShowModeHw>(ShowModeHw.KNI, "Issue and Gap Eval"));
-				return result ;
-			}
-
-			@Override
-			protected long getFrameworkTime() {
-				return appMan.getFrameworkTime();
-			}
-		};
-		showModeFilter.setDefaultPreSelectionGeneral("Locations");*/
-		
 		secondTable.setContent(0, 0, stdCharts).setContent(0, 1, homeScreen).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert)
 				.setContent(0,  5, otherMainPageBut);
 		page.append(secondTable);
@@ -148,6 +143,12 @@ public class MainPageExpert extends MainPage {
 		if(showMode == ShowModeHw.STANDARD) {
 			vh.stringLabel("IAD", id, object.getName(), row);
 			vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
+		} else if(showMode == ShowModeHw.NETWORK) {
+			//vh.stringLabel("IAD", id, object.getName(), row);
+			//vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
+			vh.stringEdit("Identifier_IP_VPN_MAC_Sub_Bridge", id, object.networkIdentifier(), row, alert);
+			vh.stringEdit("MAC_Address_If_Possible", id, object.macAddress(), row, alert);
+			vh.stringEdit("Last_IP_Address_Optional", id, object.lastAddress(), row, alert);
 		} else if(req == null) {
 			vh.registerHeaderEntry("KniStatus");
 			vh.registerHeaderEntry(GAPS_LABEL);
@@ -171,19 +172,26 @@ public class MainPageExpert extends MainPage {
 				gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
 		}
 		if(req == null) {
-			vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
-			vh.registerHeaderEntry("Plot");
-			vh.registerHeaderEntry("Action");
-			vh.registerHeaderEntry("Perform");
+			if(showMode == ShowModeHw.NETWORK) {
+				vh.registerHeaderEntry("Plot");
+			} else {
+				vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
+				vh.registerHeaderEntry("Plot");
+				vh.registerHeaderEntry("Action");
+				vh.registerHeaderEntry("Perform");
+			}
 			return;
 		}
 
 		DeviceHandlerProvider<?> devHandForTrash = null;
 		if(isTrashPage)
 			devHandForTrash = controller.getDeviceHandlerForTrash(object);
+		
 		final GetPlotButtonResult logResult = getPlotButton(id, object, controller, true, vh, row, req, devHandForTrash);
 		if(logResult.devHand != null) {
 			row.addCell("Plot", logResult.plotButton);
+			if(showMode == ShowModeHw.NETWORK)
+				return;
 			
 			final boolean isTemplate = DeviceTableRaw.isTemplate(object, logResult.devHand);
 			final TemplateDropdown<String> actionDrop = new TemplateDropdown<String>(vh.getParent(), "actionDrop"+id, req) {
@@ -351,4 +359,14 @@ public class MainPageExpert extends MainPage {
 			throw new IllegalStateException("Unknown KniStatus:"+kniVal+" for "+kni.getLocation());
 		}
 	}
+	
+	@Override
+	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
+		if(showMode != ShowModeHw.NETWORK)
+			return super.getDevicesSelected(devHand, req);
+		if(devHand.getComType() != ComType.IP)
+			return Collections.emptyList();
+		return super.getDevicesSelected(devHand, req);
+	}
+
 }

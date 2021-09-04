@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.storage.ChargingPoint;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -50,4 +51,8 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 		return ChargingPointPattern.class;
 	}
 
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
+	}
 }

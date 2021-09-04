@@ -144,6 +144,8 @@ if(Boolean.getBoolean("jobdebug")) {
 			return true;
 		long free = rt.freeMemory()/(1024*1024);
 if(Boolean.getBoolean("jobdebug")) System.out.println("Finished after "+lastRunDuration+" msec job of provider:"+prov.id()+" Free:"+free+" not saved:"+countSinceLastGC);
+		if(!Boolean.getBoolean("org.ogema.util.timedjob.intermediatesaving"))
+			return true;
 		if(free < MIN_FREE_MEMORY_MB) {
 			//rt.gc();
 			if((countSinceLastGC > 10) &&

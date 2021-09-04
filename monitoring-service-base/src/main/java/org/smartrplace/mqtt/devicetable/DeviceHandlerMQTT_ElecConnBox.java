@@ -15,9 +15,9 @@ import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
-import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -299,5 +299,10 @@ if(mapData1 == null) {
 
 	public String getTableTitle() {
 		return "Electricity Meters";
+	}
+	
+	@Override
+	public ComType getComType() {
+		return ComType.IP;
 	}
 }
