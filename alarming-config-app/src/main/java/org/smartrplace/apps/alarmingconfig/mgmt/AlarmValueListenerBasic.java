@@ -163,7 +163,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 						retard) {
 					@Override
 					public void delayedExecution() {
-						boolean noMessage = sendNoValueMessageOrRelease(vl, now, false);
+						boolean noMessage = sendValueLimitMessageOrRelease(vl, now, false);
 						executeAlarm(ac, value, upper, lower, alarmStatus, noMessage);
 						vl.isAlarmActive = true;
 						vl.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
@@ -192,7 +192,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.lastTimeOfNewData = now;
 	}
 	
-	protected boolean sendNoValueMessageOrRelease(ValueListenerData vl, long now, boolean isRelease) {
+	protected boolean sendValueLimitMessageOrRelease(ValueListenerData vl, long now, boolean isRelease) {
 		boolean noMessage;
 		if(vl.knownDeviceFault == null) {
 			vl.knownDeviceFault = AlarmingManager.getDeviceKnownAlarmState(vl.listener.getAc());
