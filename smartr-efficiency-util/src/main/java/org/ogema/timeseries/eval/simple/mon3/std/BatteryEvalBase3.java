@@ -126,7 +126,7 @@ public class BatteryEvalBase3 extends BatteryEvalBase {
 		if(svFirst == null)
 			return null;
 		
-		Datapoint batEval = StandardEvalAccess.getDeviceBaseEval(iad, StandardDeviceEval.BATTERY_EVAL, dpService, null);
+		Datapoint batEval = StandardEvalAccess.getDeviceBaseEval(iad, StandardDeviceEval.BATTERY_REMAINING, dpService, null);
 		if(batEval != null) {
 			SampledValue sv = batEval.getTimeSeries().getPreviousValue(now);
 			if(sv != null) {

@@ -40,6 +40,8 @@ import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -197,6 +199,11 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			ValueResourceHelper.setCreate(dev.getSubResource("maximumValvePosition", FloatResource.class), 1.0f);
 		addDatapoint(dev.getSubResource("maximumValvePosition", FloatResource.class), result);
 		addtStatusDatapointsHomematic(dev, dpService, result);
+		
+		StandardEvalAccess.addVirtualDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
+				dpService, appMan.getResourceAccess(), false);
+		StandardEvalAccess.addVirtualDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
+				dpService, appMan.getResourceAccess(), false);
 		return result;
 	}
 

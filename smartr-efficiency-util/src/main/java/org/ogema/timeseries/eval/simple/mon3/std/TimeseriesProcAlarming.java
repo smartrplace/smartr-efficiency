@@ -1,11 +1,14 @@
 package org.ogema.timeseries.eval.simple.mon3.std;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DpUpdateAPI.DpUpdated;
@@ -13,6 +16,8 @@ import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
+import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet.BatteryEvalResult;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingle3Dependent;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingleArg3;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
@@ -28,6 +33,8 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 	public static final String SETPREACT_EVAL = "SETPREACT_EVAL";
 	public static final String VALUECHANGED_EVAL = "VALUECHANGED_EVAL";
 	public static final String BATTERY_EVAL = "BATTERY_EVAL";
+
+	protected static final String BAT_VOLT_MIN_ID = "batVoltMin";
 	
 	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService) {
 		this(appMan, dpService, KPI_UPDATE_RATE_DEFAULT);
@@ -123,7 +130,11 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 			@Override
 			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
 					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, Float irrelevant) {
-				return TimeSeriesServlet.getBatteryRemainingLifetimeEstimation(timeSeries, start, end, false);					
+				BatteryEvalResult result = TimeSeriesServlet.getBatteryRemainingLifetimeEstimation(timeSeries, start, end, false);
+				Datapoint dpVoltMin = newTs2.getDependentTimeseries(BAT_VOLT_MIN_ID);
+				((ProcessedReadOnlyTimeSeries3)dpVoltMin.getTimeSeries()).updateValuesStoredForcedForDependentTimeseries(
+						end, result.voltageMinimal);
+				return result.remainingLifeTime;
 			}
 
 			@Override
@@ -132,6 +143,15 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 			@Override
 			public Class<Float> getParamClass() {
 				return Float.class;
+			}
+			
+			@Override
+			protected Map<String, Datapoint> addDependetTimeseries(Datapoint input) {
+				Datapoint goldTs = new TimeseriesSetProcSingleToSingle3Dependent("_batVoltageMin", TimeseriesProcAlarming.this).
+						getResultSeriesSingle(input, false, dpService);
+				Map<String, Datapoint> result = new HashMap<>();
+				result.put(BAT_VOLT_MIN_ID, goldTs);
+				return result ;
 			}
 		};
 		knownProcessors3.put(BATTERY_EVAL, batteryProc);

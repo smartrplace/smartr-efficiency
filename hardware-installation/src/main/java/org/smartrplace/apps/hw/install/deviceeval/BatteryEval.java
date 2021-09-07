@@ -124,7 +124,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		mes += "Number of empty batteries:"+emptyNum +"\r\n";
 		mes += "Number of batteries that need to be changed soon or urgently:"+warnNum +"\r\n";
 		mes += "Number of batteries that shall be changed with next visit:"+changeNum +"\r\n";
-		mes += "Number of batteries without status:"+unknownNum;
+		mes += "Number of batteries without status:"+unknownNum+"\r\n";
 		mes += "Number of devices without contact (physical check required):"+dnRNum +"\r\n";
 		mes += "Number of devices that require repeater:"+sigstrengthNum +"\r\n";
 		mes += "Number of devices UNASSIGNED:"+unassignedNum +"\r\n";
@@ -166,6 +166,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		for(String val: vals) {
 			result += getRightAlignedString(val, COLUMN_WIDTH)+" | ";			
 		}
+		result += "\r\n";
 		return result;
 	}
 

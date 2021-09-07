@@ -36,7 +36,10 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 	/** change startTime and endTime of parameter if necessary*/
 	protected abstract void alignUpdateIntervalFromSource(DpUpdated updateInterval);
 	
-	/** Overwrite to add dependent time series*/
+	/** Overwrite to add dependent time series
+	 * @return map ID -> datapoint containing dependent time series. The ID can be used to obtain
+	 * the dependent timeseries via {@link ProcessedReadOnlyTimeSeries3#getDependentTimeseries(String)}
+	 * for usage of the timeseries and to provide to the calculation algorithm.*/
 	protected Map<String, Datapoint> addDependetTimeseries(Datapoint input) {return null;}
 	/** Overwrite this if no input timeseries is provided*/
 	protected Long getFirstTimestampInSource() {return null;}

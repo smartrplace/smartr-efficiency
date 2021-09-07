@@ -8,6 +8,9 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
@@ -21,7 +24,9 @@ import org.ogema.devicefinder.util.BatteryEvalBase.BatteryStatusPlus;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.api.TimeseriesUpdateListener;
 import org.ogema.timeseries.eval.simple.mon3.std.TimeseriesProcAlarming.SetpReactInput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +35,11 @@ import org.smartrplace.apps.alarmingconfig.model.eval.EvaluationByAlarmingOption
 import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTimeHelper;
 
 public class StandardEvalAccess {
 	public static final String BASE_MEASUREMENT_GAP_POSTFIX = "/$$dpMesGap";
@@ -39,6 +47,7 @@ public class StandardEvalAccess {
 	public static final String BASE_SETPOINT_CHANGENUM_POSTFIX = "/$$dpSetpReqRealChange";
 	public static final String SETP_REACT_POSTFIX = "/$$dpSetpReact";
 	public static final String BATTERY_POSTFIX = "/$$dpBatDuration";
+	public static final String BATTERY_VOLTMIN_POSTFIX = "/$$dpBatVoltMin";
 
 	public static enum StandardDeviceEval {
 		/** GAP is defined for SingleValueResources (Datapoints) and for devices. For devices this is the
@@ -46,6 +55,17 @@ public class StandardEvalAccess {
 		BASE_MEASUREMENT_GAP,
 		/** Only defined for SingleValueResources */
 		BASE_MEASUREMENT_OUT,
+		/** The standard counter-based evals are generated hourly, daily, monthly. Different sets with a
+		 * different base can be defined (currently 15-minute based).<br>
+		 * TODO: For now this is always counter to interval-value, the input mode is set by the util framework.
+		 * There could also be solutions for power to interval-value including summing up phases or meters
+		 * in the future.*/
+		COUNTER_TO_HOURLY,
+		COUNTER_TO_DAILY,
+		COUNTER_TO_MONTHLY,
+		COUNTER_TO_15MIN,
+		COUNTER_TO_DAILY_B15,
+		COUNTER_TO_MONTHLY_B15,
 		
 		/** Only defined for devices. Note that currently only the first setpoint(=actory) of
 		 * each device is used for the result*/
@@ -55,7 +75,8 @@ public class StandardEvalAccess {
 		/** Only defined for devices*/
 		SETP_REACT,
 		
-		BATTERY_EVAL
+		BATTERY_VOLTAGE_MINIMAL,
+		BATTERY_REMAINING
 	}
 	
 	private static TimeseriesProcAlarming util = null;
@@ -77,6 +98,113 @@ public class StandardEvalAccess {
 		util(appManPlus.appMan(), appManPlus.dpService());
 	}
 	
+	//TODO: Check if getAlias is really required. Usually one should directly request the
+	//result datapoint
+	/*public static String getAlias(InstallAppDevice iad, StandardDeviceEval type) {
+		
+	}
+	public static String getAlias(PhysicalElement dev, StandardDeviceEval type) {
+		
+	}*/
+	public static String getAlias(SingleValueResource sourceRes, StandardDeviceEval type,
+			DatapointService dpService) {
+		Datapoint dpIn = dpService.getDataPointStandard(sourceRes);
+		return getAlias(dpIn, type);
+	}
+	public static String getAlias(Datapoint dpIn, StandardDeviceEval type) {
+		switch(type) {
+		case COUNTER_TO_MONTHLY:
+			return dpIn.getLocation()+TimeProcUtil.PER_MONTH_SUFFIX;
+		case COUNTER_TO_DAILY:
+			return dpIn.getLocation()+TimeProcUtil.PER_DAY_SUFFIX;
+		case COUNTER_TO_HOURLY:
+			return dpIn.getLocation()+TimeProcUtil.PER_HOUR_SUFFIX;
+		case COUNTER_TO_MONTHLY_B15:
+			return dpIn.getLocation()+TimeProcUtil.PER_MONTH_SUFFIX;
+		case COUNTER_TO_DAILY_B15:
+			return dpIn.getLocation()+TimeProcUtil.PER_DAY_SUFFIX;
+		case COUNTER_TO_15MIN:
+			return dpIn.getLocation()+TimeProcUtil.PER_15M_SUFFIX;
+		default:
+			throw new IllegalStateException("Only non-device types supported without parameters here as input, found:"+type);
+		}
+	}
+	
+	public static Datapoint getDatapointBaseEval(Datapoint dpIn, StandardDeviceEval type,
+			DatapointService dpService) {
+		synchronized (dpIn) {
+			Datapoint dpDay = null;
+			Datapoint dpMonth = null;
+			switch(type) {
+			case COUNTER_TO_MONTHLY:
+				dpMonth = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_MONTHLY));
+				if(dpMonth != null)
+					return dpMonth;
+			case COUNTER_TO_DAILY:
+				dpDay = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_DAILY));
+				if(dpDay != null)
+					return dpDay;
+				Datapoint dpBase60 = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_HOURLY));
+				Datapoint dpBase15 = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_15MIN));
+				if((dpBase15 != null && dpBase60 == null) 
+						|| (Boolean.getBoolean("standardeval.15minutedefaultforhour") && dpBase60 == null)) {
+					if(type == StandardDeviceEval.COUNTER_TO_DAILY)
+						return getDatapointBaseEval(dpIn, StandardDeviceEval.COUNTER_TO_DAILY_B15, dpService);
+					else
+						return getDatapointBaseEval(dpIn, StandardDeviceEval.COUNTER_TO_MONTHLY_B15, dpService);
+				}
+			case COUNTER_TO_HOURLY:
+				Datapoint dpBase = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_HOURLY));
+				if(dpBase == null) {
+					dpBase = util().processSingle(TimeProcUtil.PER_HOUR_EVAL, dpIn);
+				}
+				if(type != StandardDeviceEval.COUNTER_TO_HOURLY) {
+					if(dpDay == null) {
+						dpDay = util().processSingle(TimeProcUtil.PER_DAY_EVAL, dpBase);
+					}
+					if(type == StandardDeviceEval.COUNTER_TO_MONTHLY) {
+						if(dpMonth == null) {
+							dpMonth = util().processSingle(TimeProcUtil.PER_MONTH_EVAL, dpDay);
+						}
+						return dpMonth;
+					}
+					return dpDay;
+				}
+				return dpBase;
+			//Only fallback is different below
+			case COUNTER_TO_MONTHLY_B15:
+				dpMonth = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_MONTHLY_B15));
+				if(dpMonth != null)
+					return dpMonth;
+			case COUNTER_TO_DAILY_B15:
+				dpDay = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_DAILY_B15));
+				if(dpDay != null)
+					return dpDay;
+			case COUNTER_TO_15MIN:
+				dpBase = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_15MIN));
+				if(dpBase == null) {
+					dpBase = util().processSingle(TimeProcUtil.PER_15M_EVAL, dpIn);
+				}
+				if(type != StandardDeviceEval.COUNTER_TO_15MIN) {
+					if(dpDay == null) {
+						dpDay = util().processSingle(TimeProcUtil.PER_DAY_EVAL, dpBase);
+					}
+					if(type == StandardDeviceEval.COUNTER_TO_MONTHLY_B15) {
+						if(dpMonth == null) {
+							dpMonth = util().processSingle(TimeProcUtil.PER_MONTH_EVAL, dpDay);
+						}
+						return dpMonth;
+					}
+					return dpDay;
+				}
+				return dpBase;
+			default:
+				throw new IllegalStateException("Only non-device types supported without parameters here as input, found:"+type);
+			}
+		}		
+		
+	}
+	
 	/** Get standard evaluation datapoint
 	 * 
 	 * @param device
@@ -90,6 +218,7 @@ public class StandardEvalAccess {
 		InstallAppDevice iad = dpService.getMangedDeviceResource(device);
 		return getDeviceBaseEval(iad, type, dpService, resAcc);
 	}
+	@SuppressWarnings("incomplete-switch")
 	public static Datapoint getDeviceBaseEval(InstallAppDevice iad, StandardDeviceEval type,
 			DatapointService dpService, ResourceAccess resAcc) {
 		PhysicalElement device = iad.device().getLocationResource();
@@ -148,7 +277,8 @@ public class StandardEvalAccess {
 			args.config = (ThermPlusConfig) allConfig.get(0);
 			args.setpFb = dpService.getDataPointStandard(allSetp.get(0).stateFeedback).getTimeSeries();
 			break;
-		case BATTERY_EVAL:
+		case BATTERY_REMAINING:
+		case BATTERY_VOLTAGE_MINIMAL:
 			long now = dpService.getFrameworkTime();
 			BatteryStatusPlus data = BatteryEvalBase3.getBatteryStatusPlus(iad, false, now);
 			if(data.status == BatteryStatus.NO_BATTERY || data.batRes == null)
@@ -180,6 +310,17 @@ public class StandardEvalAccess {
 			result = util().processSingle(evalName, dpIn , input);			
 		}
 		result.addAlias(location);
+		String depLocation;
+		switch(type) {
+		case BATTERY_REMAINING:
+		case BATTERY_VOLTAGE_MINIMAL:
+			Datapoint depResult = ((ProcessedReadOnlyTimeSeries3)result.getTimeSeries()).getDependentTimeseries(
+					TimeseriesProcAlarming.BAT_VOLT_MIN_ID);
+			depLocation = device.getLocation()+BATTERY_VOLTMIN_POSTFIX;
+			depResult.addAlias(depLocation);
+			if(type == StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL)
+				return depResult;
+		}
 		return result;
 	}
 	
@@ -393,5 +534,148 @@ public class StandardEvalAccess {
 		long now = appMan.getFrameworkTime();
 		long startShort = now - 4*TimeProcUtil.DAY_MILLIS;
 		return getSetpReactValuesPerDevice(iad, appManPlus, startShort, now);
+	}
+	
+	public static SingleValueResource getVirtualDeviceResource(StandardDeviceEval type, PhysicalElement device) {
+		return getVirtualDeviceResource(type, device, null);
+	}
+	public static SingleValueResource getVirtualDeviceResource(StandardDeviceEval type, PhysicalElement device,
+			SingleValueResource sourceForName) {
+		switch(type) {
+		case BASE_MEASUREMENT_GAP:
+		case BASE_MEASUREMENT_OUT:
+		case BASE_FEEDBACK_GAP:
+			throw new IllegalStateException("GAP and OUT shall not be established as virtual resources (not required for alarming, would grow too fast!)");
+		case BASE_SETPOINT_CHANGENUM:
+			return device.getSubResource("setpointChangenum", IntegerResource.class);
+		case SETP_REACT:
+			return device.getSubResource("setpointReactGaps", FloatResource.class);
+		case BATTERY_REMAINING:
+			return device.getSubResource("remainingBatteryLifeDays", FloatResource.class);
+		case BATTERY_VOLTAGE_MINIMAL:
+			return device.getSubResource("batteryVoltageFewVal", FloatResource.class);
+		case COUNTER_TO_HOURLY:
+			String name;
+			if(sourceForName != null)
+				name = sourceForName.getName()+"-hourly";
+			else
+				name = ResourceHelper.getUniqueNameForNewSubResource(device, "meter-hourly");
+			return device.getSubResource(name, FloatResource.class);
+		case COUNTER_TO_DAILY:
+		case COUNTER_TO_DAILY_B15:
+			if(sourceForName != null)
+				name = sourceForName.getName()+"-daily";
+			else
+				name = ResourceHelper.getUniqueNameForNewSubResource(device, "meter-daily");
+			return device.getSubResource(name, FloatResource.class);
+		case COUNTER_TO_MONTHLY:
+		case COUNTER_TO_MONTHLY_B15:
+			if(sourceForName != null)
+				name = sourceForName.getName()+"-monthly";
+			else
+				name = ResourceHelper.getUniqueNameForNewSubResource(device, "meter-monthly");
+			return device.getSubResource(name, FloatResource.class);
+		case COUNTER_TO_15MIN:
+			if(sourceForName != null)
+				name = sourceForName.getName()+"-per15min";
+			else
+				name = ResourceHelper.getUniqueNameForNewSubResource(device, "meter-per15min");
+			return device.getSubResource(name, FloatResource.class);
+		default:
+			throw new IllegalStateException("Unknown StandardDeviceEval:"+type);
+		}
+	}
+	
+	public static class RemoteScheduleData {
+		Integer absoluteTiming;
+	}
+	
+	public static Datapoint addVirtualDatapoint(InstallAppDevice iad, StandardDeviceEval type,
+			DatapointService dpService, ResourceAccess resAcc,
+			boolean registerRemoteScheduleViaHeartbeat) {
+		Datapoint dp = getDeviceBaseEval(iad, type, dpService, resAcc);
+		PhysicalElement device = iad.device().getLocationResource();
+		SingleValueResource destRes = getVirtualDeviceResource(type, device);
+		return addVirtualDatapoint(destRes, dp, false, registerRemoteScheduleViaHeartbeat, 
+				null, dpService);
+	}
+	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
+			DatapointService dpService) {
+		return addVirtualDatapoint(destRes, evalDp, false, false, null, dpService);
+	}
+	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
+			boolean registerRemoteScheduleViaHeartbeat,
+			DatapointService dpService) {
+		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, dpService);
+	}
+	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
+			boolean registerGovernedSchedule, boolean registerRemoteScheduleViaHeartbeat,
+			Integer absoluteTiming,
+			DatapointService dpService) {
+	
+		long intervalToStayBehindNow = TimeProcUtil.MINUTE_MILLIS;
+		if(absoluteTiming == null) {
+			absoluteTiming = ((ProcessedReadOnlyTimeSeries3)evalDp.getTimeSeries()).absoluteTiming();
+		}
+		if(registerGovernedSchedule) {
+			dpService.virtualScheduleService().addDefaultSchedule(evalDp, intervalToStayBehindNow);
+		} else
+			dpService.virtualScheduleService().add(evalDp, null, intervalToStayBehindNow);
+		
+		ReadOnlyTimeSeries accTs = evalDp.getTimeSeries();
+		Datapoint resourceDp = dpService.getDataPointStandard(destRes);
+		resourceDp.setTimeSeries(accTs);
+		logger.trace("   Starting VirtualDatapoint for:"+destRes.getLocation()+ " DP size:"+accTs.size());
+		
+		if(registerRemoteScheduleViaHeartbeat) {
+			ViaHeartbeatSchedules schedProv = ViaHeartbeatSchedules.registerDatapointForHeartbeatDp2Schedule(
+					evalDp, null, absoluteTiming);
+			if(destRes != null)
+				resourceDp.setParameter(Datapoint.HEARTBEAT_STRING_PROVIDER_PARAM, schedProv);
+		}
+
+if(Boolean.getBoolean("suppress.addSourceResourceListenerFloat"))
+return resourceDp;
+
+		if(!(accTs instanceof ProcessedReadOnlyTimeSeries3))
+			return resourceDp;
+		final Integer absoluteTimingFinal = absoluteTiming;
+		TimeseriesUpdateListener listener = new TimeseriesUpdateListener() {
+			
+			@Override
+			public void updated(List<SampledValue> newVals) {
+				long nowReal = dpService.getFrameworkTime();
+				long nowItvStart;
+				if(absoluteTimingFinal != null)
+					nowItvStart = AbsoluteTimeHelper.getIntervalStart(nowReal, absoluteTimingFinal);
+				else 
+					nowItvStart = nowReal;
+				
+				long lastWritten = destRes.getLastUpdateTime();
+
+				//If we have already written once during the current interval then we do not have
+				//to write again
+				if(lastWritten > nowItvStart)
+					return;
+
+				SampledValue lastSv = null;
+				ReadOnlyTimeSeries accTs = evalDp.getTimeSeries();
+				lastSv = accTs.getPreviousValue(nowItvStart);
+				if(lastSv == null)
+					return;
+
+				float value = lastSv.getValue().getFloatValue();
+				if(Float.isNaN(value))
+					return;
+				if(destRes instanceof FloatResource)
+					ValueResourceHelper.setCreate(((FloatResource)destRes), value);
+				else if(destRes instanceof IntegerResource)
+					ValueResourceHelper.setCreate(((IntegerResource)destRes), (int)value);
+				else if(destRes instanceof BooleanResource)
+					ValueResourceHelper.setCreate(((BooleanResource)destRes), value>0.5f);
+			}
+		};
+		((ProcessedReadOnlyTimeSeries3)evalDp.getTimeSeries()).listener = listener;
+		return resourceDp;
 	}
 }
