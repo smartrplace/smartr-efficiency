@@ -3,47 +3,70 @@ package org.smartrplace.apps.hw.install.gui.expert;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.VoltageResource;
+import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
-import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
-import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
 
-public class BatteryPage extends MainPage {
+@SuppressWarnings("serial")
+public class WindowStatusPage extends BatteryPage {
+	public static final long DEFAULT_POLL_RATE = 5000;
 
 	DeviceTableBase devTable;
 	
 	@Override
-	protected String getHeader() {return "Battery Overview";}
+	public String getHeader() {return "Thermostat Window Overview";}
 
-	public BatteryPage(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller, false);
+	public WindowStatusPage(WidgetPage<?> page, HardwareInstallController controller) {
+		super(page, controller);
 		finishConstructor();
 		
-		/*StaticTable configTable = new StaticTable(3, 2);
-		TimeResourceTextField retardEdit = new TimeResourceTextField(page, "retardEdit", Interval.hours);
-		BatteryAlarmExtensionData config = ResourceListHelper.getOrCreateNamedElementFlex(controller.appConfigData.alarmingConfig(),
-				BatteryAlarmExtensionData.class);
-		retardEdit.selectDefaultItem(config.alarmRetard());
-		configTable.setContent(0, 0, "Low time before sending alarm (hours)").setContent(0, 1, retardEdit);
-		page.append(configTable);*/
+		/*Button triggerUpdate = new Button(page, "triggerUpdateBut", "Update all") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				lastUpds = lastHmParamUpdate(hmDevice));
+			}
+		};
+		topTable.setContent(0, 4, triggerUpdate);*/
 	}
 
+	protected Label addParamLabel(PhysicalElement device, PropType type, String colName,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+			String id, OgemaHttpRequest req, Row row) {
+		if(req == null) {
+			vh.registerHeaderEntry(colName);
+			return null;
+		}
+		final SingleValueResource sres = PropType.getHmParam(device, type, true);
+		Label result = new Label(vh.getParent(), "paramLabel"+type.toString()+id, req) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String text = ValueResourceUtils.getValue(sres);
+				setText(text, req);
+			}
+		};
+		result.setPollingInterval(DEFAULT_POLL_RATE, req);
+		row.addCell(colName, result);
+		return result;
+	}
+	
 	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
@@ -56,35 +79,40 @@ public class BatteryPage extends MainPage {
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				final PhysicalElement device2 = addNameWidget(object, vh, id, req, row, appMan).getLocationResource();
-				AddBatteryVoltageResult voltageLab = addBatteryVoltage(vh, id, req, row, device2);
-				Label lastContactVoltage = null;
-				Label lastContactStatus = null;
-				if(req == null)
-					vh.registerHeaderEntry("Last Voltage");
-				else if(voltageLab != null)
-					lastContactVoltage = addLastContact("Last Voltage", vh, "LV"+id, req, row, voltageLab.reading);
-				AddBatteryVoltageResult statusLab = addBatteryStatus(vh, id, req, row, device2);
-				if(req == null)
+				
+				addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_MODE, "Mode", vh, id, req, row);
+				addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_TEMPERATURE, "Setpoint", vh, id, req, row);
+				addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_MINUTES, "Minutes", vh, id, req, row);
+				addParamLabel(device2, PropType.THERMOSTAT_VALVE_MAXPOSITION, "ValveMax", vh, id, req, row);
+
+				if(req == null) {
 					vh.registerHeaderEntry("Last Status");
-				else if(statusLab != null)
-					lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
+				} else {
+					Button triggerUpdate = new Button(page, "triggerUpdateBut", "Update") {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							long[] lastUpds = PropType.lastHmParamUpdate(device2);
+							String text;
+							if(lastUpds != null)
+								text = "Upd("+StringFormatHelper.getFormattedAgoValue(controller.appMan, lastUpds[0])+
+									"/"+StringFormatHelper.getFormattedAgoValue(controller.appMan, lastUpds[0])+")";
+							else
+								text = "Update";
+							setText(text, req);
+						}
+						
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							PropType.triggerHmUpdate(device2);
+						}
+					};
+					triggerUpdate.setPollingInterval(DEFAULT_POLL_RATE, req);
+					row.addCell("Last Status", triggerUpdate);
+				}
+				
 				Room deviceRoom = device2.location().room();
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 			 	addSubLocation(object, vh, id, req, row);
-				if(req != null) {
-					String text = getHomematicCCUId(object.device().getLocation());
-					vh.stringLabel("RT", id, text, row);
-				} else
-					vh.registerHeaderEntry("RT");	
-				
-				if(voltageLab != null)
-					voltageLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
-				if(statusLab != null)
-					statusLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
-				if(lastContactVoltage != null)
-					lastContactVoltage.setPollingInterval(DEFAULT_POLL_RATE, req);
-				if(lastContactStatus != null)
-					lastContactStatus.setPollingInterval(DEFAULT_POLL_RATE, req);
 			}
 			
 			@Override
@@ -95,12 +123,12 @@ public class BatteryPage extends MainPage {
 
 			@Override
 			protected String id() {
-				return "BatteryDetails";
+				return "ThermostatWindowOverview";
 			}
 			
 			@Override
 			public String getTableTitleRaw() {
-				return "Battery State Overview";
+				return "Thermostat Property Overview";
 			}
 			
 			@Override
@@ -128,22 +156,4 @@ public class BatteryPage extends MainPage {
 		
 	}
 	
-	@Override
-	public boolean sortByRoom() {
-		return true;
-	}
-
-	public static PhysicalElement addNameWidgetStatic(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
-			OgemaHttpRequest req, Row row, ApplicationManagerPlus appManPlus) {
-		final PhysicalElement device;
-		if(req == null) {
-			device = ResourceHelper.getSampleResource(SensorDevice.class);
-		} else
-			device = object.device().getLocationResource();
-		final String name;
-		name = DeviceTableRaw.getName(object, appManPlus); //ResourceUtils.getHumanReadableShortName(device);
-		vh.stringLabel("Name", id, name, row);
-		vh.stringLabel("ID", id, object.deviceId().getValue(), row);
-		return device;
-	}
 }

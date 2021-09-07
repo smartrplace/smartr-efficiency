@@ -4,5 +4,6 @@ import org.ogema.core.model.simple.TimeResource;
 import org.ogema.model.prototypes.Configuration;
 
 public interface BatteryAlarmExtensionData extends Configuration {
+	@Deprecated
 	TimeResource alarmRetard();
 }

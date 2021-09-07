@@ -38,6 +38,7 @@ import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
+import org.smartrplace.apps.hw.install.gui.expert.WindowStatusPage;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
 import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
 
@@ -141,6 +142,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			new BatteryPage(batteryPage, controller);
 			menu.addEntry("Battery Overview", batteryPage);
 			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> thermWindowPage = widgetApp.createWidgetPage("thermostatWindows.hmtl");
+			WindowStatusPage twpage = new WindowStatusPage(thermWindowPage, controller);
+			menu.addEntry(twpage.getHeader(), thermWindowPage);
+			thermWindowPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> trashPage = widgetApp.createWidgetPage("trashDevices.hmtl");
 			synchronized(controller.mainPageExts) {

@@ -29,7 +29,7 @@ public class ThermostatPage extends MainPage {
 	DeviceTableBase devTable;
 	
 	@Override
-	protected String getHeader() {return "Smartrplace Hardware InstallationApp Expert";}
+	protected String getHeader() {return "Thermostat Page";}
 
 	public ThermostatPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller, false);
@@ -134,7 +134,7 @@ public class ThermostatPage extends MainPage {
 			
 			@Override
 			public String getTableTitleRaw() {
-				return "Thermostat Details";
+				return "Current Thermostat Measurements";
 			}
 			
 			@Override
