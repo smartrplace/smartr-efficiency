@@ -277,8 +277,12 @@ public class StandardEvalAccess {
 			args.config = (ThermPlusConfig) allConfig.get(0);
 			args.setpFb = dpService.getDataPointStandard(allSetp.get(0).stateFeedback).getTimeSeries();
 			break;
-		case BATTERY_REMAINING:
 		case BATTERY_VOLTAGE_MINIMAL:
+			String depLocation = device.getLocation()+BATTERY_VOLTMIN_POSTFIX;
+			Datapoint depResult = dpService.getDataPointAsIs(depLocation);
+			if(depResult != null)
+				return depResult;
+		case BATTERY_REMAINING:
 			long now = dpService.getFrameworkTime();
 			BatteryStatusPlus data = BatteryEvalBase3.getBatteryStatusPlus(iad, false, now);
 			if(data.status == BatteryStatus.NO_BATTERY || data.batRes == null)
