@@ -104,15 +104,16 @@ public class BatteryEvalBase3 extends BatteryEvalBase {
 		return getBatteryStatusPlus(iad, changeInfoRelevant, now).status;
 	}
 	public static BatteryStatusPlus getBatteryStatusPlus(InstallAppDevice iad, boolean changeInfoRelevant, Long now) {
+		VoltageResource sres = DeviceHandlerBase.getBatteryVoltage(iad.device().getLocationResource());
 		if(iad.knownFault().assigned().exists()) {
 			int kni = iad.knownFault().assigned().getValue();
 			if(kni == 2100) {
 				BatteryStatusPlus result = new BatteryStatusPlus();
 				result.status = BatteryStatus.EMPTY;
+				result.batRes = sres;
 				return result;
 			}
 		}
-		VoltageResource sres = DeviceHandlerBase.getBatteryVoltage(iad.device());
 		return getBatteryStatusPlus(sres, changeInfoRelevant, now);
 	}
 	

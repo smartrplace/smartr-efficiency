@@ -47,10 +47,10 @@ public class BatteryPage extends MainPage {
 	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
-			@Override
-			public String getLineId(InstallAppDevice object) {
-				return object.getName()+"_BAT";
-			}
+			//@Override
+			//public String getLineId(InstallAppDevice object) {
+			//	return object.getName()+"_BAT";
+			//}
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,

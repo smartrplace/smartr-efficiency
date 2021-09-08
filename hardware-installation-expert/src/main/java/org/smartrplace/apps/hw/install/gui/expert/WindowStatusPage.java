@@ -6,17 +6,18 @@ import java.util.List;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
-import org.ogema.core.model.units.VoltageResource;
 import org.ogema.devicefinder.api.PropType;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -36,7 +37,7 @@ public class WindowStatusPage extends BatteryPage {
 
 	public WindowStatusPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller);
-		finishConstructor();
+		//finishConstructor();
 		
 		/*Button triggerUpdate = new Button(page, "triggerUpdateBut", "Update all") {
 			@Override
@@ -55,7 +56,7 @@ public class WindowStatusPage extends BatteryPage {
 			return null;
 		}
 		final SingleValueResource sres = PropType.getHmParam(device, type, true);
-		Label result = new Label(vh.getParent(), "paramLabel"+type.toString()+id, req) {
+		Label result = new Label(vh.getParent(), WidgetHelper.getValidWidgetId("paramLabel"+type.toString()+id), req) {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String text = ValueResourceUtils.getValue(sres);
@@ -63,17 +64,17 @@ public class WindowStatusPage extends BatteryPage {
 			}
 		};
 		result.setPollingInterval(DEFAULT_POLL_RATE, req);
-		row.addCell(colName, result);
+		row.addCell(WidgetHelper.getValidWidgetId(colName), result);
 		return result;
 	}
 	
 	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
-			@Override
-			public String getLineId(InstallAppDevice object) {
-				return object.getName()+"_BAT";
-			}
+			//@Override
+			//public String getLineId(InstallAppDevice object) {
+			//	return object.getName()+"_BAT";
+			//}
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
@@ -88,7 +89,7 @@ public class WindowStatusPage extends BatteryPage {
 				if(req == null) {
 					vh.registerHeaderEntry("Last Status");
 				} else {
-					Button triggerUpdate = new Button(page, "triggerUpdateBut", "Update") {
+					Button triggerUpdate = new Button(vh.getParent(), "triggerUpdateBut"+id, "Update", req) {
 						@Override
 						public void onGET(OgemaHttpRequest req) {
 							long[] lastUpds = PropType.lastHmParamUpdate(device2);
@@ -107,7 +108,7 @@ public class WindowStatusPage extends BatteryPage {
 						}
 					};
 					triggerUpdate.setPollingInterval(DEFAULT_POLL_RATE, req);
-					row.addCell("Last Status", triggerUpdate);
+					row.addCell(WidgetHelper.getValidWidgetId("Last Status"), triggerUpdate);
 				}
 				
 				Room deviceRoom = device2.location().room();
@@ -143,9 +144,7 @@ public class WindowStatusPage extends BatteryPage {
 				List<InstallAppDevice> result = new ArrayList<InstallAppDevice>();
 				for(InstallAppDevice dev: all) {
 					PhysicalElement device2 = dev.device().getLocationResource();
-					VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(device2); //ResourceHelper.getSubResourceOfSibbling(device2,
-							//"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
-					if(batteryVoltage != null)
+					if((device2 instanceof Thermostat))
 						result.add(dev);
 				}
 				return result;

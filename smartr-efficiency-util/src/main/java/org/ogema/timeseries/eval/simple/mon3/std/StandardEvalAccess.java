@@ -615,6 +615,8 @@ public class StandardEvalAccess {
 	
 		long intervalToStayBehindNow = TimeProcUtil.MINUTE_MILLIS;
 		if(absoluteTiming == null) {
+			if(evalDp == null || evalDp.getTimeSeries() == null)
+				return null;
 			absoluteTiming = ((ProcessedReadOnlyTimeSeries3)evalDp.getTimeSeries()).absoluteTiming();
 		}
 		if(registerGovernedSchedule) {
