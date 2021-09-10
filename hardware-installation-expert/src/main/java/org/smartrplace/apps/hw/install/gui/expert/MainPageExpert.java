@@ -23,6 +23,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
+import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
@@ -51,10 +52,18 @@ public class MainPageExpert extends MainPage {
 	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, APPLY_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TRASH = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH_RESET, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
-	private static final String GAPS_LABEL = "Qual4d/perTs/SetpReact/perTs";
+	private static final String GAPS_LABEL = "Qual4d_perTs_Qual28d";
+	private static final String SETPREACT_LABEL = "SetpReact_perTs";
 
 	protected final boolean isTrashPage;
 	protected final ShowModeHw showMode;
+	
+	@Override
+	protected boolean showOnlyBaseColsHWT() {
+		if(showMode == ShowModeHw.STANDARD)
+			return false;
+		return true;
+	}
 	
 	@Override
 	public String getHeader() {
@@ -68,10 +77,12 @@ public class MainPageExpert extends MainPage {
 	}
 	public MainPageExpert(WidgetPage<?> page, final HardwareInstallController controller, boolean isTrashPage,
 			ShowModeHw showModeHw) {
-		super(page, controller, true);
+		super(page, controller, false);
 		StandardEvalAccess.init(controller.appManPlus);
 		this.isTrashPage = isTrashPage;
 		this.showMode = showModeHw;
+		if(!isTrashPage)
+			finishConstructor();
 		
 		if(showModeHw == ShowModeHw.NETWORK) {
 			String link = System.getProperty("org.smartrplace.apps.hw.install.gui.expert.wikipagelink");
@@ -124,6 +135,18 @@ public class MainPageExpert extends MainPage {
 
 		secondTable.setContent(0, 0, stdCharts).setContent(0, 1, homeScreen).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert)
 				.setContent(0,  5, otherMainPageBut);
+		if(showMode == ShowModeHw.NETWORK) {
+			Label scanForIp = new Label(page, "scanForIp") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					String localIp = IPNetworkHelper.getNonVPNAddress();
+					String netw24 = localIp.substring(0, localIp.lastIndexOf('.')+1);
+					String ipText = String.format("sudo nmap -sn %s1/24 |grep -B 2 XX:XX", netw24);
+					setText(ipText, req);					
+				}
+			};
+			secondTable.setContent(0, 4, scanForIp);
+		}
 		page.append(secondTable);
 		super.finishConstructor();
 	}
@@ -152,19 +175,36 @@ public class MainPageExpert extends MainPage {
 		} else if(req == null) {
 			vh.registerHeaderEntry("KniStatus");
 			vh.registerHeaderEntry(GAPS_LABEL);
+			if(tableProvider != null) {
+				List<SetpointData> setp = tableProvider.getSetpointData(object);
+				if(setp != null)
+					vh.registerHeaderEntry(SETPREACT_LABEL);					
+			}
 		} else {
 			KniStatus kniStat = getStatus(object);
 			Label kniLabel = vh.stringLabel("KniStatus", id, kniStat.text, row);
 			if(kniStat.style != null)
 				kniLabel.addStyle(kniStat.style, req);
 			float[] gapData = StandardEvalAccess.getQualityValuesPerDeviceStandard(object, appMan, controller.appManPlus);
-			String gapText = String.format("%.1f", gapData[0]*100)+" / "+String.format("%.1f", gapData[1]*100);
+			String gapText;
+			if(gapData[0] == -1) {
+				gapText = " ---";
+				gapData[0] = 999;
+			} else
+				gapText = String.format("%.1f", gapData[0]*100)+" / "+String.format("%.1f", gapData[1]*100);
+			if(gapData[2] != -1) {
+				gapText += " / " + String.format("%.1f", gapData[2]*100)+" / "+String.format("%.1f", gapData[3]*100);				
+			}
 			if(tableProvider != null) {
-			List<SetpointData> setp = tableProvider.getSetpointData(object);
+				List<SetpointData> setp = tableProvider.getSetpointData(object);
 				if(setp != null && (!setp.isEmpty())) {
 					float[] setpReactData = StandardEvalAccess.getSetpReactValuesPerDeviceStandard(object, appMan, controller.appManPlus);
-					if(!Float.isNaN(setpReactData[0]))
-						gapText += " / "+String.format("%.1f", setpReactData[0]*100)+" / "+String.format("%.1f", setpReactData[1]*100);
+					if(!Float.isNaN(setpReactData[0])) {
+						String setpRText = String.format("%.1f", setpReactData[0]*100)+" / "+String.format("%.1f", setpReactData[1]*100);
+						Label setpRLabel = vh.stringLabel(SETPREACT_LABEL, id, setpRText, row);
+						if(setpReactData[0] < 0.9f)
+							setpRLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
+					}
 				}
 			}
 			Label gapLabel = vh.stringLabel(GAPS_LABEL, id, gapText, row);

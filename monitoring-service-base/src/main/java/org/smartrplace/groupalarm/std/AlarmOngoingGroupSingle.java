@@ -79,7 +79,7 @@ public class AlarmOngoingGroupSingle implements AlarmOngoingGroup {
 	}
 
 	@Override
-	public AlarmGroupData getResource() {
+	public AlarmGroupData getResource(boolean forceToCreate) {
 		if(resource == null) {
 			AlarmingData ad = ResourceHelper.getOrCreateTopLevelResource(AlarmingData.class, appMan);
 			resource = ResourceListHelper.getOrCreateNamedElementFlex(id(), ad.ongoingGroups());

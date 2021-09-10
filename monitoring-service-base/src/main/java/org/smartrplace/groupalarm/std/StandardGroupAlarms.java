@@ -161,7 +161,7 @@ public class StandardGroupAlarms implements AlarmingExtension {
 			isRegistered = dpService.alarming().getOngoingGroup(id) != null;
 		if(result == null) {
 			result = new AlarmOngoingGroupMulti(id, now,
-					device!=null?AlarmingGroupType.DeviceFailed:groupType, appManPlus, 10000l) {
+					device!=null?AlarmingGroupType.DeviceFailed:groupType, appManPlus, 10000l, ba.isRelease) {
 				
 				@Override
 				protected void sendMessage() {

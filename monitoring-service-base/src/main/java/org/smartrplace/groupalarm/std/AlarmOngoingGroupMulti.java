@@ -77,7 +77,7 @@ public abstract class AlarmOngoingGroupMulti implements AlarmOngoingGroup {//ext
 	
 	public AlarmOngoingGroupMulti(String subType, long startTime, AlarmingGroupType groupType,
 			ApplicationManagerPlus appManPlus,
-			Long sendMessageRetard) {
+			Long sendMessageRetard, boolean isRelease) {
 		//super(null, subType, startTime, groupType, appManPlus);
 		this.subType = subType;
 		this.startTime = startTime;
@@ -105,7 +105,9 @@ public abstract class AlarmOngoingGroupMulti implements AlarmOngoingGroup {//ext
 			};
 		}
 		
-		AlarmGroupData perData = getResource();
+		if(isRelease)
+			return;
+		AlarmGroupData perData = getResource(true);
 		ValueResourceHelper.setCreate(perData.ongoingAlarmStartTime(), startTime);
 		ValueResourceHelper.setCreate(perData.minimumTimeBetweenAlarms(), -1);
 	}
@@ -138,8 +140,10 @@ public abstract class AlarmOngoingGroupMulti implements AlarmOngoingGroup {//ext
 	}
 	
 	@Override
-	public AlarmGroupData getResource() {
+	public AlarmGroupData getResource(boolean forceToCreate) {
 		if(resource == null) {
+			if(!forceToCreate)
+				return null;
 			if(device != null) {
 				resource = device.knownFault().create();
 				resource.activate(true);

@@ -52,7 +52,7 @@ public class AlarmGroupPage extends ObjectGUITablePageNamed<AlarmOngoingGroup, R
 		vh.stringLabel("Finished", id, ""+object.isFinished(), row);
 		vh.stringLabel("Base Alarms", id, ""+object.baseAlarms().size(), row);
 		vh.stringLabel("Type", id, ""+object.getType().label(null), row);
-		AlarmGroupData res = object.getResource();
+		AlarmGroupData res = object.getResource(false);
 		if(res != null) {
 			res.create();
 			vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);

@@ -462,7 +462,7 @@ public class StandardEvalAccess {
 			}
 		}
 		if(count == 0)
-			return new float[]{0.0f, 0.0f};
+			return new float[]{-1f, 0.0f};
 		double sumTotAv = sumTot / count;
 		double rel = 1.0 - sumTotAv / durationMinutes;
 		float share = ((float)countOK)/count;
@@ -530,7 +530,10 @@ public class StandardEvalAccess {
 			ApplicationManager appMan, ApplicationManagerPlus appManPlus) {
 		long now = appMan.getFrameworkTime();
 		long startShort = now - 4*TimeProcUtil.DAY_MILLIS;
-		return getQualityValuesPerDevice(iad, appManPlus, startShort, now);
+		float[] res1 = getQualityValuesPerDevice(iad, appManPlus, startShort, now);
+		long startLong = now - 28*TimeProcUtil.DAY_MILLIS;
+		float[] res2 = getQualityValuesPerDevice(iad, appManPlus, startLong, now);
+		return new float[] {res1[0], res1[1], res2[0], res2[1]}; 
 	}
 	
 	public static float[] getSetpReactValuesPerDeviceStandard(InstallAppDevice iad,
@@ -628,20 +631,26 @@ public class StandardEvalAccess {
 		} else
 			dpService.virtualScheduleService().add(evalDp, null, intervalToStayBehindNow);
 		
+		if(destRes == null) {
+			if(registerRemoteScheduleViaHeartbeat) {
+				ViaHeartbeatSchedules.registerDatapointForHeartbeatDp2Schedule(
+						evalDp, null, absoluteTiming);
+			}			
+			return evalDp;
+		}
+		
 		ReadOnlyTimeSeries accTs = evalDp.getTimeSeries();
 		Datapoint resourceDp = dpService.getDataPointStandard(destRes);
 		resourceDp.setTimeSeries(accTs);
 		logger.trace("   Starting VirtualDatapoint for:"+destRes.getLocation()+ " DP size:"+accTs.size());
-		
 		if(registerRemoteScheduleViaHeartbeat) {
 			ViaHeartbeatSchedules schedProv = ViaHeartbeatSchedules.registerDatapointForHeartbeatDp2Schedule(
 					evalDp, null, absoluteTiming);
-			if(destRes != null)
-				resourceDp.setParameter(Datapoint.HEARTBEAT_STRING_PROVIDER_PARAM, schedProv);
+			resourceDp.setParameter(Datapoint.HEARTBEAT_STRING_PROVIDER_PARAM, schedProv);
 		}
+		if(Boolean.getBoolean("suppress.addSourceResourceListenerFloat"))
+			return resourceDp;
 
-if(Boolean.getBoolean("suppress.addSourceResourceListenerFloat"))
-return resourceDp;
 
 		if(!(accTs instanceof ProcessedReadOnlyTimeSeries3))
 			return resourceDp;
@@ -684,4 +693,26 @@ return resourceDp;
 		((ProcessedReadOnlyTimeSeries3)evalDp.getTimeSeries()).listener = listener;
 		return resourceDp;
 	}
+	
+	public static Datapoint addMemoryDatapoint(InstallAppDevice iad, StandardDeviceEval type,
+			DatapointService dpService, ResourceAccess resAcc,
+			boolean registerRemoteScheduleViaHeartbeat,
+			boolean removeVirtualDpResource,
+			String dpLabel) {
+		Datapoint dp = getDeviceBaseEval(iad, type, dpService, resAcc);
+		if(removeVirtualDpResource) {
+			PhysicalElement device = iad.device().getLocationResource();
+			SingleValueResource destRes = getVirtualDeviceResource(type, device);
+			if(destRes.exists())
+				destRes.delete();
+			if(dpLabel != null) {
+				dp.setLabelDefault(dpLabel);
+				dp.setLabel(dpLabel, null);
+			}
+		}
+		addVirtualDatapoint(null, dp, false, registerRemoteScheduleViaHeartbeat, 
+				null, dpService);
+		return dp;
+	}
+
 }

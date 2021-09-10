@@ -107,6 +107,8 @@ public class StandardGroupAlarmsV1 implements AlarmingExtension {
 		}
 		String commTypeFinal = commType;
 		AlarmOngoingGroupMulti commGroup = multiGroups.get(commType);
+		if(baseAlarm.isRelease)
+			return result;
 		if(commGroup == null) {
 			commGroup = new AlarmOngoingGroupMulti(commType, now, getType(commType), appManPlus, 15000l) {
 				

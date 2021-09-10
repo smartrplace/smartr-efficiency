@@ -10,8 +10,10 @@ import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -42,6 +44,23 @@ public class OngoingBaseAlarmsPage extends MainPage {
 	}
 	
 	@Override
+	public void addWidgets(AlarmConfiguration object,
+			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
+			Row row, ApplicationManager appMan) {
+		super.addWidgets(object, vh, id, req, row, appMan);
+		if(req == null) {
+			vh.registerHeaderEntry("DevId");
+			return;
+		}
+		InstallAppDevice iad = ResourceHelper.getFirstParentOfType(object, InstallAppDevice.class);
+		if(iad != null) {
+			String devId = iad.deviceId().getValue();
+			vh.stringLabel("DevId", id, devId, row);
+		}
+		//vh.stringLabel("Res.Location", id, object.getLocation(), row);
+	}
+
+	@Override
 	protected void addAdditionalWidgets(AlarmConfiguration sr,
 			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
 			Row row, ApplicationManager appMan) {
@@ -56,5 +75,15 @@ public class OngoingBaseAlarmsPage extends MainPage {
 			vh.timeLabel("Last Update", id, lastUpd, row, 2);
 		}
 		
+	}
+	
+	@Override
+	public String getLineId(AlarmConfiguration object) {
+		InstallAppDevice iad = ResourceHelper.getFirstParentOfType(object, InstallAppDevice.class);
+		if(iad != null) {
+			String devId = iad.deviceId().getValue();
+			return devId+super.getLineId(object);
+		}
+		return super.getLineId(object);
 	}
 }

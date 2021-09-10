@@ -24,6 +24,8 @@ import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -120,7 +122,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	@Override
 	protected Collection<Datapoint> getDatapoints(Thermostat device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
-		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		Datapoint dpRef = addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
 		addDatapoint(device.temperatureSensor().deviceFeedback().setpoint(), result);
 		addDatapoint(device.temperatureSensor().settings().setpoint(), result);
 		addDatapoint(device.getSubResource("humiditySensor", HumiditySensor.class).reading(), result, dpService);
@@ -137,6 +139,9 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 				}
 			}
 		}
+		
+		DeviceHandlerThermostat.addMemoryDps(dpRef, deviceConfiguration, result, dpService, appMan.getResourceAccess(), false);
+		
 		return result;
 	}
 

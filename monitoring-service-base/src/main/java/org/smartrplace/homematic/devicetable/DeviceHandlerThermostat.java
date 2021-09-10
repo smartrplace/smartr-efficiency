@@ -3,6 +3,7 @@ package org.smartrplace.homematic.devicetable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +20,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -116,33 +118,36 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 					name = ResourceUtils.getHumanReadableShortName(device);
 				vh.stringLabel("Name", id, name, row);
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
-				Label setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
-				if(req != null) {
-					TextField setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
-						private static final long serialVersionUID = 1L;
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							setValue(String.format("%.1f", device.temperatureSensor().settings().setpoint().getCelsius()), req);
-						}
-						@Override
-						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							String val = getValue(req);
-							val = val.replaceAll("[^\\d.]", "");
-							try {
-								float value  = Float.parseFloat(val);
-								if(value < 4.5f || value> 30.5f) {
-									alert.showAlert("Allowed range: 4.5 to 30°C", false, req);
-								} else
-									device.temperatureSensor().settings().setpoint().setCelsius(value);
-							} catch (NumberFormatException | NullPointerException e) {
-								if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
-								return;
+				if(!config.showOnlyBaseCols()) {
+					Label setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
+					if(req != null) {
+						TextField setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
+							private static final long serialVersionUID = 1L;
+							@Override
+							public void onGET(OgemaHttpRequest req) {
+								setValue(String.format("%.1f", device.temperatureSensor().settings().setpoint().getCelsius()), req);
 							}
-						}
-					};
-					row.addCell("Set", setpointSet);
-				} else
-					vh.registerHeaderEntry("Set");
+							@Override
+							public void onPOSTComplete(String data, OgemaHttpRequest req) {
+								String val = getValue(req);
+								val = val.replaceAll("[^\\d.]", "");
+								try {
+									float value  = Float.parseFloat(val);
+									if(value < 4.5f || value> 30.5f) {
+										alert.showAlert("Allowed range: 4.5 to 30°C", false, req);
+									} else
+										device.temperatureSensor().settings().setpoint().setCelsius(value);
+								} catch (NumberFormatException | NullPointerException e) {
+									if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
+									return;
+								}
+							}
+						};
+						row.addCell("Set", setpointSet);
+						setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
+					} else
+						vh.registerHeaderEntry("Set");
+				}
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Label batLab = vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
 				if(req != null)
@@ -158,21 +163,20 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				Room deviceRoom = device.location().room();
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 				addSubLocation(object, vh, id, req, row);
-				addInstallationStatus(object, vh, id, req, row);
+				if(!config.showOnlyBaseCols())
+					addInstallationStatus(object, vh, id, req, row);
 				addComment(object, vh, id, req, row);
+				
+				if(req != null) {
+					tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
+					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+				}
+
 				if(req != null) {
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);
 				} else
 					vh.registerHeaderEntry("RT");	
-				
-				
-				
-				if(req != null) {
-					tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
-					setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
-					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
-				}
 				return device;
 			}
 			
@@ -189,7 +193,8 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		List<Datapoint> result = new ArrayList<>();
 		Thermostat dev = (Thermostat) installDeviceRes.device();
 		if (null == dev) return result;
-		result.add(dpService.getDataPointStandard(dev.temperatureSensor().reading()));
+		Datapoint dpRef = dpService.getDataPointStandard(dev.temperatureSensor().reading());
+		result.add(dpRef);
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.valve().setting().stateFeedback()));
@@ -200,13 +205,23 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		addDatapoint(dev.getSubResource("maximumValvePosition", FloatResource.class), result);
 		addtStatusDatapointsHomematic(dev, dpService, result);
 		
-		StandardEvalAccess.addVirtualDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
-				dpService, appMan.getResourceAccess(), false);
-		StandardEvalAccess.addVirtualDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
-				dpService, appMan.getResourceAccess(), false);
+		addMemoryDps(dpRef, installDeviceRes, result, dpService, appMan.getResourceAccess(), true);
+		
 		return result;
 	}
 
+	public static void addMemoryDps(Datapoint dpRef, InstallAppDevice installDeviceRes,
+			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,
+			boolean removeVirtualDpResource) {
+		String refLabel = dpRef.label(null);
+		String gradLabel = refLabel.replace("Temperature measured at thermostat","BatVoltageFew");
+		result.add(StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
+				dpService, resAcc, false, removeVirtualDpResource, gradLabel));
+		gradLabel = refLabel.replace("Temperature measured at thermostat","BatRemainingDays");
+		result.add(StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
+				dpService, resAcc, false, removeVirtualDpResource, gradLabel));		
+	}
+	
 	@Override
 	protected Class<? extends ResourcePattern<Thermostat>> getPatternClass() {
 		return ThermostatPattern.class;
@@ -515,10 +530,12 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 	@Override
 	public List<SetpointData> getSetpointData(Thermostat device,
 			InstallAppDevice deviceConfiguration) {
+		if(deviceConfiguration == null)
+			return Collections.emptyList();
 		List<SetpointData> result = new ArrayList<>();
 		result.add(new SetpointData(device.temperatureSensor().settings().setpoint(),
 				device.temperatureSensor().deviceFeedback().setpoint()));
-		return result ;
+		return result;
 	}
 	
 	@Override
