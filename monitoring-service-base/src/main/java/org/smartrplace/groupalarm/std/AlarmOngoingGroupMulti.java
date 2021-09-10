@@ -108,7 +108,8 @@ public abstract class AlarmOngoingGroupMulti implements AlarmOngoingGroup {//ext
 		if(isRelease)
 			return;
 		AlarmGroupData perData = getResource(true);
-		ValueResourceHelper.setCreate(perData.ongoingAlarmStartTime(), startTime);
+		if(ValueResourceHelper.setIfNew(perData.ongoingAlarmStartTime(), startTime))
+			perData.ongoingAlarmStartTime().activate(false);
 		ValueResourceHelper.setCreate(perData.minimumTimeBetweenAlarms(), -1);
 	}
 

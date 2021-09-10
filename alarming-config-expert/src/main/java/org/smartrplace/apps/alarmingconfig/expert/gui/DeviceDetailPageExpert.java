@@ -44,6 +44,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
@@ -79,6 +80,14 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 	public void addWidgetsAboveTable() {
 		// TODO Auto-generated method stub
 		super.addWidgetsAboveTable();
+		
+		if(isDevTaskTemplatePage()) {
+			alert.setDefaultText("To enable a device type, first assign a device of the type to the Development Task. Then you can edit"
+					+ " the template for the device type here.");
+		    alert.addDefaultStyle(AlertData.BOOTSTRAP_INFO);
+		    alert.setDefaultVisibility(true);
+		    alert.setDefaultAllowDismiss(true);
+		}
 	}
 	
 	@Override
@@ -215,6 +224,8 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 					List<DevelopmentTask> all = controller.hwTableData.appConfigData.knownDevelopmentTasks().getAllElements();
 					List<DevelopmentTask> result = new ArrayList<>();
 					for(DevelopmentTask dt: all) {
+						if(dt.templates().size() == 0)
+							continue;
 						if(!dt.name().getValue().isEmpty())
 							result.add(dt);
 					}
@@ -223,7 +234,7 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 				
 				@Override
 				public void onGET(OgemaHttpRequest req) {
-					if(controller.hwTableData.appConfigData.knownDevelopmentTasks().size() == 0)
+					if((controller.hwTableData.appConfigData.knownDevelopmentTasks().size() == 0) || getAllGroups().isEmpty())
 						disable(req);
 					else {
 						enable(req);
