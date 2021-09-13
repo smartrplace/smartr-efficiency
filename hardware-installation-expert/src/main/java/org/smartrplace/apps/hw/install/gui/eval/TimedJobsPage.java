@@ -164,6 +164,6 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 
 	@Override
 	public String getLineId(TimedJobMemoryData object) {
-		return object.prov().id();
+		return String.format("%05d", object.res().persistentIndex().getValue())+object.prov().id();
 	}
 }

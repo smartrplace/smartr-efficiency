@@ -152,10 +152,12 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	@Override
 	public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue) {
 		long now = timeStamp;
+		if(vl.knownDeviceFault == null)
+			vl.knownDeviceFault = AlarmingManager.getDeviceKnownAlarmState(vl.listener.getAc());
 		if(vl.isNoValueAlarmActive) {
 			releaseAlarm(ac, value, Float.NaN, Float.NaN, alarmStatus, false);
 			vl.isNoValueAlarmActive = false;
-		} else if(vl.knownDeviceFault != null) { 
+		} else if(vl.knownDeviceFault.exists()) { 
 			int assigned = vl.knownDeviceFault.assigned().getValue();
 			if((vl.maxIntervalBetweenNewValues > 0) &&
 					(assigned == AlarmingConfigUtil.ASSIGNMENT_DEVICE_NOT_REACHEABLE)) {
