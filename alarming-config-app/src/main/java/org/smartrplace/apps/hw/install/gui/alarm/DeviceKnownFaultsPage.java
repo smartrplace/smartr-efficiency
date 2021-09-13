@@ -2,6 +2,7 @@ package org.smartrplace.apps.hw.install.gui.alarm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,7 +36,9 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
+import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.html.form.label.LabelData;
 
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
@@ -144,7 +147,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
 				if(req == null) {
-					vh.registerHeaderEntry("Finished");
+					//vh.registerHeaderEntry("Finished");
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Assigned");
@@ -153,6 +156,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Edit TT");
 					vh.registerHeaderEntry("Plot");
+					vh.registerHeaderEntry("For");
 					vh.registerHeaderEntry("Release");
 					vh.registerHeaderEntry("Special Set(Dev)");
 					//vh.registerHeaderEntry("Details");
@@ -171,7 +175,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.dropdown("Diagnosis",  id, res.diagnosis(), row, dignosisVals);
 					return;
 				}
-				vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
+				//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				if(res.exists()) {
 					vh.stringEdit("Comment",  id, res.comment(), row, alert);
@@ -209,9 +213,27 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					}
 					vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);					
 				}
+				SimpleCheckbox forRelease = new SimpleCheckbox(mainTable, "forRelease"+id, "", req) {
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						int status = res.forRelease().getValue();
+						setValue(status>0, req);
+						if(status > 1)
+							setStyle(LabelData.BOOTSTRAP_ORANGE, req);
+						else
+							setStyles(Collections.emptyList(), req);
+					}
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						boolean status = getValue(req);
+						ValueResourceHelper.setCreate(res.forRelease(), status?1:0);
+					}
+				};
+				row.addCell("For", forRelease);
+				
 				Button releaseBut;
 				if(res.assigned().isActive() &&
-						(res.assigned().getValue() > 0)) {
+						(res.assigned().getValue() > 0) && (res.forRelease().getValue() == 0)) {
 					ButtonConfirm butConfirm = new ButtonConfirm(mainTable, "releaseBut"+id, req) {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -225,6 +247,15 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					releaseBut.setText("Release", req);
 				} else if(res.exists()) {
 					releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
+						public void onGET(OgemaHttpRequest req) {
+							int status = res.forRelease().getValue();
+							if(status > 1)
+								setStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+							else if(status > 0)
+								setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+							else
+								setStyles(Collections.emptyList(), req);							
+						};
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							//TODO: In the future we may want to keep this information in a log of solved issues

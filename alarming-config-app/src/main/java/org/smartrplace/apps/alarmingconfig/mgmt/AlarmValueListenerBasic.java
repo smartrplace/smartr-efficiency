@@ -21,8 +21,8 @@ import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.ValueListenerData;
-import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 
 public abstract class AlarmValueListenerBasic<T extends SingleValueResource> implements ResourceValueListener<T>, AlarmValueListenerI {
@@ -41,7 +41,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	protected final String baseUrl;
 	
 	protected abstract void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-			IntegerResource alarmStatus);
+			IntegerResource alarmStatus, boolean forceSendMessage);
 	protected abstract void sendMessage(String title, Integer alarmValue, String message, MessagePriority prio,
 			AlarmingExtension extSource)
 			throws RejectedExecutionException, IllegalStateException;
@@ -153,10 +153,21 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue) {
 		long now = timeStamp;
 		if(vl.isNoValueAlarmActive) {
-			releaseAlarm(ac, value, Float.NaN, Float.NaN, alarmStatus);
+			releaseAlarm(ac, value, Float.NaN, Float.NaN, alarmStatus, false);
 			vl.isNoValueAlarmActive = false;
+		} else if(vl.knownDeviceFault != null) { 
+			int assigned = vl.knownDeviceFault.assigned().getValue();
+			if((vl.maxIntervalBetweenNewValues > 0) &&
+					(assigned == AlarmingConfigUtil.ASSIGNMENT_DEVICE_NOT_REACHEABLE)) {
+				ValueResourceHelper.setCreate(vl.knownDeviceFault.forRelease(), 1);
+				releaseAlarm(ac, value, Float.NaN, Float.NaN, alarmStatus, true);
+			} else if((lower > 0.5f && lower < 2.8f && upper > 1.5f && upper < 4.0f)
+					&& (assigned == AlarmingConfigUtil.ASSIGNMENT_BATTERYLOW && (value > (lower+0.3f)))) {
+				//we assume a battery
+				ValueResourceHelper.setCreate(vl.knownDeviceFault.forRelease(), 1);
+				releaseAlarm(ac, value, Float.NaN, Float.NaN, alarmStatus, true);
+			}
 		}
-		
 		if(TimeSeriesServlet.isViolated(value, lower, upper)) {
 			if(AlarmingManager.isNewAlarmRetardPhaseAllowed(vl, appManPlus.appMan())) {
 				vl.timer = new CountDownDelayedExecutionTimer(appManPlus.appMan(), 
@@ -181,7 +192,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 					retardLoc) {
 				@Override
 				public void delayedExecution() {
-					releaseAlarm(ac, value, upper, lower, alarmStatus);
+					releaseAlarm(ac, value, upper, lower, alarmStatus, false);
 					vl.isAlarmActive = false;
 					vl.alarmReleaseTimer = null;
 				}

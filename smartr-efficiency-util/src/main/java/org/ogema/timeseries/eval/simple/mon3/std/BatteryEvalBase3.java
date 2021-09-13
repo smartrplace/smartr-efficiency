@@ -8,8 +8,10 @@ import org.ogema.core.model.units.VoltageResource;
 import org.ogema.core.recordeddata.RecordedData;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.BatteryEvalBase;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -107,7 +109,7 @@ public class BatteryEvalBase3 extends BatteryEvalBase {
 		VoltageResource sres = DeviceHandlerBase.getBatteryVoltage(iad.device().getLocationResource());
 		if(iad.knownFault().assigned().exists()) {
 			int kni = iad.knownFault().assigned().getValue();
-			if(kni == 2100) {
+			if(kni == AlarmingConfigUtil.ASSIGNMENT_BATTERYLOW) {
 				BatteryStatusPlus result = new BatteryStatusPlus();
 				result.status = BatteryStatus.EMPTY;
 				result.batRes = sres;

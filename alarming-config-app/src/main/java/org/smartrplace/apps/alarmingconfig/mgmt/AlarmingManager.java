@@ -52,6 +52,7 @@ import org.smartrplace.util.message.MessageImpl;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 
 public class AlarmingManager implements AlarmingStartedService {
@@ -308,6 +309,17 @@ public class AlarmingManager implements AlarmingStartedService {
 			if(vl.knownDeviceFault == null)
 				throw new IllegalStateException("No Known Default for:"+vl.listener.getAc().getPath());
 		}
+		/*int assigned = vl.knownDeviceFault.assigned().getValue();
+		if(isRelease && (assigned == AlarmingConfigUtil.ASSIGNMENT_BATTERYLOW) && (vl.knownDeviceFault.forRelease().getValue() == 0)) {
+			ValueResourceHelper.setCreate(vl.knownDeviceFault.forRelease(), 1);
+			return false;
+		}
+		else if(isRelease && (
+				assigned == AlarmingConfigUtil.ASSIGNMENT_DEVICE_NOT_REACHEABLE) && (vl.knownDeviceFault.forRelease().getValue() == 0)) {
+			//TODO: Move to resourceChanged, add counter
+			ValueResourceHelper.setCreate(vl.knownDeviceFault.forRelease(), 1);
+			return false;
+		}*/
 		if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() < 0)
 			//do not generate new messages here, releases are generated with AlarmValueListener
 			noMessage = true;
@@ -396,10 +408,10 @@ public class AlarmingManager implements AlarmingStartedService {
 
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-				IntegerResource alarmStatus) {
+				IntegerResource alarmStatus, boolean forceSendMessage) {
 			//TODO: For now we block releases for limit alarms and noValue-alarms
 			long now = appManPlus.getFrameworkTime();
-			boolean noMessage = sendNoValueMessageOrRelease(vl, now, true);
+			boolean noMessage = (!forceSendMessage) && sendNoValueMessageOrRelease(vl, now, true);
 			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, noMessage);		
 		}
 
@@ -430,9 +442,9 @@ public class AlarmingManager implements AlarmingStartedService {
 
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-				IntegerResource alarmStatus) {
+				IntegerResource alarmStatus, boolean forceSendMessage) {
 			long now = appManPlus.getFrameworkTime();
-			boolean noMessage = sendNoValueMessageOrRelease(vl, now, true);
+			boolean noMessage = (!forceSendMessage) && sendNoValueMessageOrRelease(vl, now, true);
 			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, noMessage);		
 		}
 
@@ -500,9 +512,9 @@ public class AlarmingManager implements AlarmingStartedService {
 
 		@Override
 		protected void releaseAlarm(AlarmConfiguration ac, float value, float upper, float lower,
-				IntegerResource alarmStatus) {
+				IntegerResource alarmStatus, boolean forceSendMessage) {
 			long now = appManPlus.getFrameworkTime();
-			boolean noMessage = sendNoValueMessageOrRelease(vl, now, true);
+			boolean noMessage = (!forceSendMessage) && sendNoValueMessageOrRelease(vl, now, true);
 			AlarmingManager.this.releaseAlarm(ac, value, upper, lower, alarmStatus, noMessage);		
 		}
 
@@ -601,8 +613,10 @@ public class AlarmingManager implements AlarmingStartedService {
 		if(!Float.isNaN(lower))
 			message += "\r\n"+"  Lower limit: "+lower+
 				"\r\n"+"  Upper limit: "+upper;
-		if(baseUrl != null)
+		if(baseUrl != null) {
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
+			message +="\r\nTo release: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+		}
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(ac, 0, title, message, prio, ac.alarmingAppId());
