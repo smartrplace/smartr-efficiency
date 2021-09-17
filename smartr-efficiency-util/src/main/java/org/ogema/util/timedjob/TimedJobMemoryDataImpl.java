@@ -8,13 +8,16 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobMgmtService;
 import org.ogema.devicefinder.api.TimedJobProvider;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resourcemanipulator.timer.CountDownAbsoluteTimer;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.ogema.util.timedjob.TimedJobMgmtServiceImpl.TimedJobMgmtData;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
+import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.tsproc.persist.TsProcPersistUtil;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsolutePersistentTimer;
 import de.iwes.util.timer.AbsoluteTimeHelper;
@@ -277,14 +280,8 @@ if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from
 							
 							@Override
 							public void timerElapsed(CountDownAbsoluteTimer myTimer, long absoluteTime, long timeStep) {
-								if(interval > 0 && interval < 1000) {
-									new DirectRunner() {
-										
-										@Override
-										protected void asapExecution() {
-											executeBlockingOnceFromTimer();
-										}
-									};
+								if(interval > 0 && interval < 10000) {
+									executeBlockingOnceFromTimer();
 								} else if(interval > 0) {
 									new CountDownDelayedExecutionTimer(appMan, interval) {
 										@Override
@@ -311,22 +308,24 @@ if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from
 				delay = 1;
 			nextScheduledStart = appMan.getFrameworkTime() + delay;
 
-			new DirectRunner() {
-				
-				@Override
-				protected void asapExecution() {
-					nextScheduledStart = nextScheduledStartWithoutStart;
-					executeBlockingOnce();
-				}
-			};
-			
-			/*new CountDownDelayedExecutionTimer(appMan, delay) {
-				@Override
-				public void delayedExecution() {
-					nextScheduledStart = nextScheduledStartWithoutStart;
-					executeBlockingOnce();
-				}
-			};*/
+			if(delay > 0 && delay < 10000) {
+				new DirectRunner() {
+					
+					@Override
+					protected void asapExecution() {
+						nextScheduledStart = nextScheduledStartWithoutStart;
+						executeBlockingOnce();
+					}
+				};
+			} else  {
+				new CountDownDelayedExecutionTimer(appMan, delay) {
+					@Override
+					public void delayedExecution() {
+						nextScheduledStart = nextScheduledStartWithoutStart;
+						executeBlockingOnce();
+					}
+				};
+			}
 		} else
 			nextScheduledStart = nextScheduledStartWithoutStart;
 

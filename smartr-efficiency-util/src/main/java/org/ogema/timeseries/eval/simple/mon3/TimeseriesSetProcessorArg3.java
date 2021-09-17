@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 
 public interface TimeseriesSetProcessorArg3<T> extends TimeseriesSetProcessor3 {
 	@Override

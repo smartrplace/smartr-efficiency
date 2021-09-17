@@ -54,15 +54,15 @@ public class TimedJobMgmtServiceImpl implements TimedJobMgmtService {
 			if(!result.res.isActive()) {
 				prov.initConfigResource(result.res);
 				result.res.activate(true);
+			} else {
+				final String provVersion = prov.getInitVersion();
+				final String shortID = provVersion.isEmpty()?id:(id+"_"+provVersion);
+				LocalGatewayInformation gw = ResourceHelper.getLocalGwInfo(appMan);
+				if((!InitialConfig.checkInitAndMarkAsDone(shortID, gw.initDoneStatus(), id))) {	
+					prov.initConfigResource(result.res);				
+				}
 			}
 			knownJobs.put(id, result);
-		} else {
-			final String provVersion = prov.getInitVersion();
-			final String shortID = provVersion.isEmpty()?id:(id+"_"+provVersion);
-			LocalGatewayInformation gw = ResourceHelper.getLocalGwInfo(appMan);
-			if((!InitialConfig.isInitDone(shortID, gw.initDoneStatus()))) {	
-				prov.initConfigResource(result.res);				
-			}
 		}
 		result.startTimerIfNotStarted();
 		return result;

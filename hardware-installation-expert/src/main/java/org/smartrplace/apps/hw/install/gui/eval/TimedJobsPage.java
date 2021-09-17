@@ -18,6 +18,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 
 @SuppressWarnings("serial")
 public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, TimedJobConfig> {
@@ -126,6 +127,10 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 					}
 				}
 			};
+			if(timerActive)
+				startButton.addStyle(ButtonData.BOOTSTRAP_GREEN, req);
+			else
+				startButton.addStyle(ButtonData.BOOTSTRAP_RED, req);
 		}
 		startButton.registerDependentWidget(alert);
 		row.addCell("Start", startButton);

@@ -18,6 +18,7 @@ import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil.MeterReference;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.smartrplace.tsproc.persist.TsProcPersistUtil;
 
@@ -183,7 +184,8 @@ public class TimeseriesSimpleProcUtil3 extends TimeseriesSimpleProcUtilBase3 {
 		};
 		knownProcessors3.put(TimeProcUtil.PER_YEAR_EVAL, yearProc);
 
-		TimeseriesSetProcessor3 sumProc = new TimeseriesSetProcessor3() {
+		/** TODO: Outer time series processor has no alignment*/
+		TimeseriesSetProcessor3 sumProcDay = new TimeseriesSetProcessor3Base() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
@@ -204,9 +206,9 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 				return result;
 			}
 		};
-		knownProcessors3.put(TimeProcUtil.SUM_PER_DAY_EVAL, sumProc);
+		knownProcessors3.put(TimeProcUtil.SUM_PER_DAY_EVAL, sumProcDay);
 
-		TimeseriesSetProcessor3 sumProcHour = new TimeseriesSetProcessor3() {
+		TimeseriesSetProcessor3 sumProcHour = new TimeseriesSetProcessor3Base() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
@@ -228,7 +230,7 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 		};
 		knownProcessors3.put(TimeProcUtil.SUM_PER_HOUR_EVAL, sumProcHour);
 
-		TimeseriesSetProcessor3 sumProc15Min = new TimeseriesSetProcessor3() {
+		TimeseriesSetProcessor3 sumProc15Min = new TimeseriesSetProcessor3Base() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
@@ -250,7 +252,7 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 		};
 		knownProcessors3.put(TimeProcUtil.SUM_PER_15M_EVAL, sumProc15Min);
 		
-		TimeseriesSetProcessor3 sumProcMinute = new TimeseriesSetProcessor3() {
+		TimeseriesSetProcessor3 sumProcMinute = new TimeseriesSetProcessor3Base() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
@@ -272,7 +274,7 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 		};
 		knownProcessors3.put(TimeProcUtil.SUM_PER_MINUTE_EVAL, sumProcMinute);
 
-		TimeseriesSetProcessor3 sumProcMonth = new TimeseriesSetProcessor3() {
+		TimeseriesSetProcessor3 sumProcMonth = new TimeseriesSetProcessor3Base() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
@@ -295,7 +297,7 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 		};
 		knownProcessors3.put(TimeProcUtil.SUM_PER_MONTH_EVAL, sumProcMonth);
 
-		TimeseriesSetProcessor3 sumProcYear = new TimeseriesSetProcessor3() {
+		TimeseriesSetProcessor3 sumProcYear = new TimeseriesSetProcessor3Base() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
@@ -318,7 +320,7 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 		knownProcessors3.put(TimeProcUtil.SUM_PER_YEAR_EVAL, sumProcYear);
 
 		/* TODO: This might not really work yet für PS3!*/
-		TimeseriesSetProcessor3 dayPerRoomProc = new TimeseriesSetProcessor3() {
+		TimeseriesSetProcessor3 dayPerRoomProc = new TimeseriesSetProcessor3Base() {
 			
 			@Override
 			public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {

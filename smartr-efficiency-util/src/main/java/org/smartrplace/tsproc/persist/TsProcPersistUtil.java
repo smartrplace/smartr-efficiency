@@ -107,13 +107,13 @@ public class TsProcPersistUtil {
 			public boolean initConfigResource(TimedJobConfig config) {
 				ValueResourceHelper.setCreate(config.alignedInterval(), AbsoluteTiming.DAY);
 				ValueResourceHelper.setCreate(config.performOperationOnStartUpWithDelay(), 15);
-				ValueResourceHelper.setCreate(config.disable(), false);
+				ValueResourceHelper.setCreate(config.disable(), Boolean.getBoolean("org.ogema.util.timedjob.noautosavingfortesting"));
 				return true;
 			}
 			
 			@Override
 			public String getInitVersion() {
-				return "A";
+				return Boolean.getBoolean("org.ogema.util.timedjob.noautosavingfortesting")?"ZZZTest":"A";
 			}
 			
 			@Override

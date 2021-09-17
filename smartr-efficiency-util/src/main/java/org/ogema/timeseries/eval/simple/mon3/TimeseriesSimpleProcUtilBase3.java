@@ -12,19 +12,23 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
-import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AggregationModeProvider;
 import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.jsonresult.JsonOGEMAFileData;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcMultiToSingle;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtilBase;
+import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.tsproc.persist.TsProcPersistUtil;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
+import de.iwes.util.resource.ResourceHelper;
 
 public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleProcUtilBase {
 	protected final Map<String, TimeseriesSetProcessor3> knownProcessors3 = new HashMap<>();
@@ -49,6 +53,24 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	public TimeseriesSetProcessor3 getProcessor3(String procID) {
 		return knownProcessors3.get(procID);
 	}
+	
+	/** Overwrite this to make sure calculations are done from a certain time even if some values have
+	 * been processed and the result has been saved already.<br> 
+	 * Make sure the ID is unique when you overwrite this: This is the time stamp from which on
+	 * all input data will be re-used. Real start time is the aligned start of the interval of the
+	 * time stamp according to the alignment (if alignment is set).<br>
+	 * IMPORTANT: Do not reuse exactly the same time stamp when you want to trigger again. As long
+	 * as the known IDs in the gateway resource is not cleaned each time stamp is only processed once. But
+	 * you can just add 1 msec to get another time stamp.
+	 * @param ts */
+	protected Long recalcFromTime(ProcessedReadOnlyTimeSeries3 ts) {
+		return Long.getLong("org.ogema.timeseries.eval.simple.api.recalcfrom");
+	};
+	
+	public String id() {
+		return getClass().getName();
+	}
+
 	
 	public TimeseriesSimpleProcUtilBase3(ApplicationManager appMan, DatapointService dpService) {
 		//super(appMan, dpService);
@@ -212,5 +234,17 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 		Datapoint result = dpService.getDataPointStandard(location);
 		result.setTimeSeries(ts);
 		return result;
+	}
+	
+	protected Long checkForTimeReset(ProcessedReadOnlyTimeSeries3 ts) {
+		final Long recalcFrom = recalcFromTime(ts);
+		if(recalcFrom != null) {
+			final String shortRecalId = id()+"_"+recalcFrom;
+			LocalGatewayInformation gw = ResourceHelper.getLocalGwInfo(appMan);
+			if((!InitialConfig.checkInitAndMarkAsDone(shortRecalId, gw.initDoneStatus(), id()))) {	
+				return recalcFrom;
+			}
+		}
+		return null;
 	}
 }

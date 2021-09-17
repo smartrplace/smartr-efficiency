@@ -20,11 +20,13 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeri
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingle;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.tissue.util.logconfig.PerformanceLog;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -44,6 +46,21 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 	public static PerformanceLog tsSingleLog;
 	public static PerformanceLog aggregateLog;
 	public final TimeseriesSimpleProcUtil3 util3;
+	
+	@Override
+	public Integer getAbsoluteTiming() {
+		return absoluteTiming;
+	}
+
+	@Override
+	public TimeseriesSimpleProcUtil3 getUtilProc() {
+		return util3;
+	}
+	
+	@Override
+	public long getMinIntervalForReCalc() {
+		return minIntervalForReCalc;
+	}
 	
 	protected abstract float aggregateValues(Float[] values, long timestamp, AggregationMode mode);
 	
@@ -118,7 +135,7 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 	public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
 
-		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3((TimeSeriesNameProvider)null, null) {
+		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3((TimeSeriesNameProvider)null, null, null) {
 			@Override
 			protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
 					long end, AggregationMode mode) {
@@ -215,6 +232,7 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 				return TimeseriesSetProcSingleToSingle3.getFirstTsInSource(input);
 			}
 		};
+		resultTs.proc = this;
 
 		String location = resultLoction(input); //getinputSingle.dpIn.getLocation()+"";
 		Datapoint newtsdi = TimeseriesSetProcSingleToSingle3.getOrUpdateTsDp(location, resultTs, dpService);
@@ -303,11 +321,23 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 		long start;
 		if(ts.getLastEndTime() <= 0) {
 			ts.loadInitData();
-if(Boolean.getBoolean("evaldebug0")) {
-	int newTs = ts.size();
-	String label = ts.dpLabel();
-	System.out.println("Reading "+newTs+" timestamps into "+label);
-}
+			if(Boolean.getBoolean("evaldebug0")) {
+				int newTs = ts.size();
+				String label = ts.dpLabel();
+				//if(newTs > 0) {
+				//SampledValue last = ts.getPreviousValue(Long.MAX_VALUE);
+				System.out.println("Reading "+newTs+" timestamps, lastIn:"+
+						StringFormatHelper.getTimeDateInLocalTimeZone(ts.getLastEndTime())+" into "+label);
+				//} else
+				//	System.out.println("Reading "+newTs+" timestamps into "+label);
+			}
+			if(ts.proc != null && ts.proc.getUtilProc() != null &&
+					(ts.proc.getUtilProc() instanceof TimeseriesSimpleProcUtilBase3)) {
+				TimeseriesSimpleProcUtilBase3 utilProc3 = (TimeseriesSimpleProcUtilBase3) ts.proc.getUtilProc();
+				Long reset = utilProc3.checkForTimeReset(ts);
+				if(reset != null && ts.getLastEndTime() > reset)
+					ts.initLastEndTime(reset);
+			}
 			if(ts.getLastEndTime() <= 0) {
 				Long startRaw = ts.getFirstTimeStampInSource();
 				if(startRaw == null)

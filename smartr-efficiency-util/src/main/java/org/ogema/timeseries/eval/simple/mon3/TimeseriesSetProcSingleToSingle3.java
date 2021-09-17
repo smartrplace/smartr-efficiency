@@ -14,11 +14,27 @@ import org.ogema.devicefinder.api.DpUpdateAPI.DpUpdated;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 
 public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetProcessor3 {
 	protected final Integer absoluteTiming;
 	protected final long minIntervalForReCalc;
 	public final TimeseriesSimpleProcUtil3 util3;
+	
+	@Override
+	public Integer getAbsoluteTiming() {
+		return absoluteTiming;
+	}
+
+	@Override
+	public TimeseriesSimpleProcUtil3 getUtilProc() {
+		return util3;
+	}
+	
+	@Override
+	public long getMinIntervalForReCalc() {
+		return minIntervalForReCalc;
+	}
 	
 	/** Perform calculation on a certain input series.
 	 * 
@@ -69,49 +85,8 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 	public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
 		for(Datapoint tsdi: input) {
-			/*String location = ProcessedReadOnlyTimeSeries2.getDpLocation(tsdi, labelPostfix);
-			ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3(tsdi) {
-				@Override
-				protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
-						long end, AggregationMode mode) {
-SampledValue sv = timeSeries.getPreviousValue(Long.MAX_VALUE);
-if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()+" lastInput:"+((sv!=null)?TimeProcPrint.getFullTime(sv.getTimestamp()):"no sv"));
-					return calculateValues(timeSeries, start, end, mode, this);						
-				}
-				@Override
-				protected String getLabelPostfix() {
-					return labelPostfix;
-				}
-				
-				@Override
-				protected long getCurrentTime() {
-					return dpService.getFrameworkTime();
-				}
-				
-				@Override
-				protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {
-					TimeseriesSetProcSingleToSingle3.this.alignUpdateIntervalFromSource(updateInterval);
-				}
-				@Override
-				protected List<SampledValue> getResultValuesMulti(List<ReadOnlyTimeSeries> timeSeries,
-						long start, long end, AggregationMode mode) {
-					return null;
-				}
-				
-				@Override
-				public Long getFirstTimeStampInSource() {
-					return getFirstTsInSource(input);
-				}
-			};
-			Datapoint newtsdi = getOrUpdateTsDp(location, resultTs , dpService);
-			if(registersTimedJob) {
-				//throw new UnsupportedOperationException("Own TimedJob for Single2Single not implemented yet!");
-				TimeseriesSetProcMultiToSingle3.registerTimedJob(resultTs, input, resultTs.resultLabel(),
-						newtsdi.getLocation(), "S2S", minIntervalForReCalc, dpService);
-			}*/
 			Datapoint newtsdi = getResultSeriesSingle(tsdi, registersTimedJob, dpService);
 			result.add(newtsdi);
-			
 		}
 		return result;
 	}
@@ -121,7 +96,7 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 		Map<String, Datapoint> deps = addDependetTimeseries(tsdi);
 		List<Datapoint> input = Arrays.asList(new Datapoint[] {tsdi});
 		final Datapoint newtsdi;
-		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3(tsdi, deps) {
+		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3(tsdi, deps, absoluteTiming) {
 			@Override
 			protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
 					long end, AggregationMode mode) {
@@ -166,6 +141,7 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 				return getFirstTsInSource(input);
 			}
 		};
+		resultTs.proc = this;
 		newtsdi = getOrUpdateTsDp(location, resultTs , dpService);
 		if(registersTimedJob) {
 			//throw new UnsupportedOperationException("Own TimedJob for Single2Single not implemented yet!");

@@ -52,7 +52,7 @@ public abstract class TimeseriesSetProcSingleToSingleArg3<T> extends TimeseriesS
 		Map<String, Datapoint> deps = addDependetTimeseries(tsdi);
 		List<Datapoint> input = Arrays.asList(new Datapoint[] {tsdi});
 		final Datapoint newtsdi;
-		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3(tsdi, deps) {
+		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3(tsdi, deps, absoluteTiming) {
 			@Override
 			protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
 					long end, AggregationMode mode) {
@@ -97,6 +97,7 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 				return getFirstTsInSource(input);
 			}
 		};
+		resultTs.proc = this;
 		newtsdi = getOrUpdateTsDp(location, resultTs , dpService);
 		if(registersTimedJob) {
 			//throw new UnsupportedOperationException("Own TimedJob for Single2Single not implemented yet!");

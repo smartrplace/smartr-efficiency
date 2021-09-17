@@ -1,5 +1,6 @@
 package org.ogema.timeseries.eval.simple.mon3.std;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,11 +16,11 @@ import org.ogema.devicefinder.api.DpUpdateAPI.DpUpdated;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet.BatteryEvalResult;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingle3Dependent;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcSingleToSingleArg3;
-import org.ogema.timeseries.eval.simple.mon3.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 
@@ -40,6 +41,14 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 		this(appMan, dpService, KPI_UPDATE_RATE_DEFAULT);
 	}
 	
+	/*@Override
+	protected Long recalcFromTime(ProcessedReadOnlyTimeSeries3 ts) {
+		//TODO: DEBUG
+		if(ts.datapointForChangeNotification.getLocation().equals("homematic192_168_2_105_ip/interfaceInfo/dutyCycle/reading_gap"))
+			return 1626103903000l;
+		return super.recalcFromTime(ts);
+	}*/
+	
 	public TimeseriesProcAlarming(ApplicationManager appMan, DatapointService dpService, long minIntervalForReCalc) {
 		super(appMan, dpService, 2, minIntervalForReCalc);
 		
@@ -50,7 +59,12 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2, Float maxGapSizeIn) {
 				//long maxGapSize = (long) (param.maxIntervalBetweenNewValues().getValue()*TimeProcUtil.MINUTE_MILLIS);
 				long maxGapSize = (long) (maxGapSizeIn*TimeProcUtil.MINUTE_MILLIS);
-				return TimeSeriesServlet.getGaps(timeSeries, start, end, maxGapSize);					
+try  {
+				return TimeSeriesServlet.getGaps(timeSeries, start, end, maxGapSize); //, absoluteTiming);
+} catch(OutOfMemoryError e) {
+	e.printStackTrace();
+	return Collections.emptyList();
+}
 			}
 
 			@Override
