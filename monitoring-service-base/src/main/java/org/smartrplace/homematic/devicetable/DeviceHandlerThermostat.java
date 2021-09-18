@@ -199,10 +199,13 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().deviceFeedback().setpoint()));
 		result.add(dpService.getDataPointStandard(dev.valve().setting().stateFeedback()));
 		
-		//TODO: just for testing
-		if(!dev.getSubResource("maximumValvePosition", FloatResource.class).isActive())
-			ValueResourceHelper.setCreate(dev.getSubResource("maximumValvePosition", FloatResource.class), 1.0f);
-		addDatapoint(dev.getSubResource("maximumValvePosition", FloatResource.class), result);
+		FloatResource maxValvePosCtrl = (FloatResource) PropType.getHmParam(dev, PropType.THERMOSTAT_VALVE_MAXPOSITION, false); //paramsMaster.getSubResource("VALVE_MAXIMUM_POSITION", FloatResource.class);
+		addDatapoint(maxValvePosCtrl, result);
+		FloatResource maxValvePosFb= (FloatResource) PropType.getHmParam(dev, PropType.THERMOSTAT_VALVE_MAXPOSITION, true);
+		addDatapoint(maxValvePosFb, result);
+		//TODO: Remove this when all gateways are cleaned up
+		if(dev.getSubResource("maximumValvePosition", FloatResource.class).exists())
+			dev.getSubResource("maximumValvePosition", FloatResource.class).delete();
 		addtStatusDatapointsHomematic(dev, dpService, result);
 		
 		addMemoryDps(dpRef, installDeviceRes, result, dpService, appMan.getResourceAccess(), true);
