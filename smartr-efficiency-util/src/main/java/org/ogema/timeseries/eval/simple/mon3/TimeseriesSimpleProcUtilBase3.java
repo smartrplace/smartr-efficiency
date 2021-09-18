@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.channelmanager.measurements.SampledValue;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
@@ -239,9 +240,17 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	protected Long checkForTimeReset(ProcessedReadOnlyTimeSeries3 ts) {
 		final Long recalcFrom = recalcFromTime(ts);
 		if(recalcFrom != null) {
-			final String shortRecalId = id()+"_"+recalcFrom;
-			LocalGatewayInformation gw = ResourceHelper.getLocalGwInfo(appMan);
-			if((!InitialConfig.checkInitAndMarkAsDone(shortRecalId, gw.initDoneStatus(), id()))) {	
+			final String shortRecalId;
+			final StringResource initDoneStatus;
+			if(ts.timedJob != null) {
+				shortRecalId = "RC_"+recalcFrom;
+				initDoneStatus = ts.timedJob.res().initDoneStatus();
+			} else {
+				shortRecalId = ts.datapointForChangeNotification.getLocation()+"_"+recalcFrom;
+				LocalGatewayInformation gw = ResourceHelper.getLocalGwInfo(appMan);
+				initDoneStatus = gw.initDoneStatus();
+			}
+			if((!InitialConfig.checkInitAndMarkAsDone(shortRecalId, initDoneStatus, ts.datapointForChangeNotification.getLocation()))) {	
 				return recalcFrom;
 			}
 		}

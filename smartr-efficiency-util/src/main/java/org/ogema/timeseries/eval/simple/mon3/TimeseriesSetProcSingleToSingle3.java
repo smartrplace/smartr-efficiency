@@ -141,6 +141,8 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 				return getFirstTsInSource(input);
 			}
 		};
+		if(deps != null)
+			util3.generatedTss.addAll(deps.values());
 		resultTs.proc = this;
 		newtsdi = getOrUpdateTsDp(location, resultTs , dpService);
 		if(registersTimedJob) {

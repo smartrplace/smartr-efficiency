@@ -66,7 +66,7 @@ public class TimeseriesProcUtilKni extends TimeseriesSimpleProcUtil3 {
 					resultGold.add(new SampledValue(new FloatValue(res1[1]), startCurrentDay, Quality.GOOD));
 				}
 				Datapoint dpGold = newTs2.getDependentTimeseries("goldTs");
-				((ProcessedReadOnlyTimeSeries3)dpGold.getTimeSeries()).updateValuesStoredForcedForDependentTimeseries(end, resultGold);
+				((ProcessedReadOnlyTimeSeries3)dpGold.getTimeSeries()).updateValuesStoredForcedForDependentTimeseries(start, end, resultGold);
 				return result;
 			}
 

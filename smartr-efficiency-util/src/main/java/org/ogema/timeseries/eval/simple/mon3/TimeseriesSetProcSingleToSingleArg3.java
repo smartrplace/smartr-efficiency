@@ -98,6 +98,8 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 			}
 		};
 		resultTs.proc = this;
+		if(deps != null)
+			util3.generatedTss.addAll(deps.values());
 		newtsdi = getOrUpdateTsDp(location, resultTs , dpService);
 		if(registersTimedJob) {
 			//throw new UnsupportedOperationException("Own TimedJob for Single2Single not implemented yet!");
