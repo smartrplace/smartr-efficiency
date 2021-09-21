@@ -52,6 +52,8 @@ public class UserAdminBaseUtil {
 		GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-2d");
 		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.centralonly"))
 			GUEST_APPS.add("org.smartrplace.apps.smartrcockpit-link");
+		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.showsavings"))
+			GUEST_APPS.add("org.smartrplace.apps.smartrcop-savings-link");
 	}
 
 	public static Collection<String> DISPLAY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
