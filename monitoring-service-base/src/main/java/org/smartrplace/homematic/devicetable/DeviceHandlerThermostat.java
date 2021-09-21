@@ -143,10 +143,10 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 								}
 							}
 						};
-						row.addCell("Set", setpointSet);
+						row.addCell("SetpSet", setpointSet);
 						setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 					} else
-						vh.registerHeaderEntry("Set");
+						vh.registerHeaderEntry("SetpSet");
 				}
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Label batLab = vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");

@@ -87,10 +87,10 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 					}
 				}
 			};
-			row.addCell("Set", setpointSet);
+			row.addCell("SetpSet", setpointSet);
 			setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 		} else
-			vh.registerHeaderEntry("Set");
+			vh.registerHeaderEntry("SetpSet");
 		Label batLab = vh.floatLabel("Battery", id, device.battery().internalVoltage().reading(), row, "%.1f#min:0.1");
 		if(req != null)
 			BatteryEvalBase.addBatteryStyle(batLab, device.battery().internalVoltage().reading().getValue(), false, req);

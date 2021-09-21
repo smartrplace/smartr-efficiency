@@ -90,9 +90,9 @@ public class ThermostatPage extends MainPage {
 							}
 						}
 					};
-					row.addCell("Set", setpointSet);
+					row.addCell("SetpointSet", setpointSet);
 				} else
-					vh.registerHeaderEntry("Set");
+					vh.registerHeaderEntry("SetpointSet");
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Label lastContact = null;
 				if(req != null) {
