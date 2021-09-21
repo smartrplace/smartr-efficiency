@@ -349,7 +349,7 @@ public class MainPageExpert extends MainPage {
 		//remove all alarming
 		for(AlarmConfiguration alarm: object.alarms().getAllElements()) {
 			IntegerResource status = AlarmingConfigUtil.getAlarmStatus(alarm.sensorVal(), false);
-			if(status.exists())
+			if(status != null && status.exists())
 				status.delete();
 			alarm.delete();
 		}
