@@ -237,6 +237,14 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 
 		if(alarmMan != null)
 			srStarted = initApp.bc.registerService(AlarmingStartedService.class, alarmMan, null);
+		else
+			srStarted = initApp.bc.registerService(AlarmingStartedService.class, new AlarmingStartedService() {
+				
+				@Override
+				public boolean isAlarmingStarted() {
+					return false;
+				}
+			}, null);
 
 		
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
