@@ -48,8 +48,8 @@ public class UserAdminBaseUtil {
 		GUEST_APPS = new ArrayList<String>(BASE_APPS);
 		GUEST_APPS.add("org.smartrplace.apps.smartrplace-heatcontrol-servlet");
 		GUEST_APPS.add("org.smartrplace.apps.heatcontrol-frontend");
-		GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-we");
-		GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-2d");
+		//GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-we");
+		//GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-2d");
 		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.centralonly"))
 			GUEST_APPS.add("org.smartrplace.apps.smartrcockpit-link");
 		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.showsavings"))
@@ -102,7 +102,7 @@ public class UserAdminBaseUtil {
 	protected static Collection<String> getPermissionsCoordinates(UserStatus status,
 			UserPermissionService userPermService, boolean useWorkingCopy) {
 		Set<String> result = new HashSet<>(GUEST_APPS); //new ArrayList<>(GUEST_APPS);
-		for(String permType: UserPermissionService.APP_ACCESS_PERMISSIONS) {
+		for(String permType: UserPermissionService.APP_ACCESS_PERMISSIONS_ALL) {
 			int hasPerm = userPermService.getUserStatusAppPermission(status, permType,
 					useWorkingCopy);
 			if(hasPerm <= 0)
@@ -131,7 +131,7 @@ public class UserAdminBaseUtil {
 				break;
 			case UserPermissionService.INSTALLATION_SETUP:
 				result.add("org.smartrplace.apps.hardware-installation");
-				result.add("org.smartrplace.drivers.bacnet-ogema-sp-gui");
+				//result.add("org.smartrplace.drivers.bacnet-ogema-sp-gui");
 				result.add("org.ogema.tools.modbus-sever-viewer");
 				//custom apps
 				result.add("org.smartrplace.tools.smartfactory-kpi");				
@@ -139,7 +139,7 @@ public class UserAdminBaseUtil {
 				result.add("org.smartrplace.apps.smartrcockpit-link");
 				break;
 			case UserPermissionService.GROUP_AND_PERMISSION_MANAGEMENT:
-				result.add("org.smartrplace.apps.smartrplace-heatcontrol-v2");
+				//result.add("org.smartrplace.apps.smartrplace-heatcontrol-v2");
 				result.add("org.smartrplace.apps.access-admin");
 				break;
 			case UserPermissionService.APPSTORE:
@@ -147,6 +147,24 @@ public class UserAdminBaseUtil {
 				// apps in test mode
 				//result.add("org.smartrplace.apps.react.roomcontrol-we");
 				//result.add("org.smartrplace.apps.react.roomcontrol-2d");
+				break;
+			case UserPermissionService.BACNET:
+				result.add("org.smartrplace.drivers.bacnet-ogema-sp-gui");
+				break;
+			case UserPermissionService.DASHBOARD_GENERAL:
+				result.add("org.smartrplace.apps.smartrcockpit-link");
+				break;
+			case UserPermissionService.DASHBOARD_SAVINGS:
+				result.add("org.smartrplace.apps.smartrcop-savings-link");
+				break;
+			case UserPermissionService.ROOMCONTROL_WE:
+				result.add("org.smartrplace.apps.react.roomcontrol-we");
+				break;
+			case UserPermissionService.ROOMCONTROL_2D:
+				result.add("org.smartrplace.apps.react.roomcontrol-2d");
+				break;
+			case UserPermissionService.MODBUS_SERVER:
+				result.add("org.ogema.tools.modbus-sever-viewer");
 				break;
 			}
 		}
