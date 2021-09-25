@@ -89,7 +89,11 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 
 				List<Datapoint> sums;
 				Integer absoluteTiming;
-				if(newSubResName.toLowerCase().contains("hour")) {
+				if(newSubResName.toLowerCase().contains("15min")) {
+					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
+							"15min");
+					absoluteTiming = AbsoluteTiming.FIFTEEN_MINUTE;
+				} else if(newSubResName.toLowerCase().contains("hour")) {
 					sums = VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, tsProcUtil, dpService,
 							"hour");
 					absoluteTiming = AbsoluteTiming.HOUR;
@@ -162,10 +166,12 @@ public class Iotawatt_DeviceHandler extends DeviceHandlerSimple<IotaWattElectric
 		}
 long start = dpService.getFrameworkTime();
 System.out.println("   *** IOTAwatt virtual datapoints starting for "+device.getLocation());
-		VirtualSensorKPIDataBase dpHourly = utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
-				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+		VirtualSensorKPIDataBase dpHourly = utilAggSubPhases.addVirtualDatapoint(energy, "energySum15min", device,
+				5*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+		//VirtualSensorKPIDataBase dpHourly = utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
+		//		5*TimeProcUtil.MINUTE_MILLIS, false, true, result);
 		utilAggSubPhases.addVirtualDatapoint(Arrays.asList(new Datapoint[] {dpHourly.evalDp}), "energySumDaily", device,
-				15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+			5*TimeProcUtil.MINUTE_MILLIS, false, true, result);
 
 long end = dpService.getFrameworkTime();
 System.out.println("   *** IOTAwatt virtual datapoints took "+(end-start)+" msec for "+device.getLocation());

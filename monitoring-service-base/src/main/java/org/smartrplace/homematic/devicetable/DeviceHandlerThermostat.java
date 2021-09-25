@@ -218,11 +218,11 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			boolean removeVirtualDpResource) {
 		String refLabel = dpRef.label(null);
 		String gradLabel = refLabel.replace("Temperature measured at thermostat","BatVoltageFew");
-		result.add(StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
-				dpService, resAcc, false, removeVirtualDpResource, gradLabel));
+		StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
+				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result);
 		gradLabel = refLabel.replace("Temperature measured at thermostat","BatRemainingDays");
-		result.add(StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
-				dpService, resAcc, false, removeVirtualDpResource, gradLabel));		
+		StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
+				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result);		
 	}
 	
 	@Override

@@ -599,26 +599,30 @@ public class StandardEvalAccess {
 	
 	public static Datapoint addVirtualDatapoint(InstallAppDevice iad, StandardDeviceEval type,
 			DatapointService dpService, ResourceAccess resAcc,
-			boolean registerRemoteScheduleViaHeartbeat) {
+			boolean registerRemoteScheduleViaHeartbeat,
+			List<Datapoint> result) {
 		Datapoint dp = getDeviceBaseEval(iad, type, dpService, resAcc);
 		PhysicalElement device = iad.device().getLocationResource();
 		SingleValueResource destRes = getVirtualDeviceResource(type, device);
 		return addVirtualDatapoint(destRes, dp, false, registerRemoteScheduleViaHeartbeat, 
-				null, dpService);
+				null, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
-			DatapointService dpService) {
-		return addVirtualDatapoint(destRes, evalDp, false, false, null, dpService);
+			DatapointService dpService,
+			List<Datapoint> result) {
+		return addVirtualDatapoint(destRes, evalDp, false, false, null, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			boolean registerRemoteScheduleViaHeartbeat,
-			DatapointService dpService) {
-		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, dpService);
+			DatapointService dpService,
+			List<Datapoint> result) {
+		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			boolean registerGovernedSchedule, boolean registerRemoteScheduleViaHeartbeat,
 			Integer absoluteTiming,
-			DatapointService dpService) {
+			DatapointService dpService,
+			List<Datapoint> result) {
 	
 		long intervalToStayBehindNow = TimeProcUtil.MINUTE_MILLIS;
 		if(absoluteTiming == null) {
@@ -691,6 +695,8 @@ public class StandardEvalAccess {
 			}
 		};
 		((ProcessedReadOnlyTimeSeries3)evalDp.getTimeSeries()).listener = listener;
+		if(result != null)
+			result.add(resourceDp);
 		return resourceDp;
 	}
 	
@@ -698,7 +704,8 @@ public class StandardEvalAccess {
 			DatapointService dpService, ResourceAccess resAcc,
 			boolean registerRemoteScheduleViaHeartbeat,
 			boolean removeVirtualDpResource,
-			String dpLabel) {
+			String dpLabel,
+			List<Datapoint> result) {
 		Datapoint dp = getDeviceBaseEval(iad, type, dpService, resAcc);
 		if(removeVirtualDpResource) {
 			PhysicalElement device = iad.device().getLocationResource();
@@ -711,7 +718,7 @@ public class StandardEvalAccess {
 			}
 		}
 		addVirtualDatapoint(null, dp, false, registerRemoteScheduleViaHeartbeat, 
-				null, dpService);
+				null, dpService, result);
 		return dp;
 	}
 
