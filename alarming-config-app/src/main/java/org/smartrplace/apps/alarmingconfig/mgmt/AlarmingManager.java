@@ -52,6 +52,7 @@ import org.smartrplace.util.message.MessageImpl;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 
 public class AlarmingManager implements AlarmingStartedService {
@@ -307,6 +308,10 @@ public class AlarmingManager implements AlarmingStartedService {
 			vl.knownDeviceFault = getDeviceKnownAlarmState(vl.listener.getAc());
 			if(vl.knownDeviceFault == null)
 				throw new IllegalStateException("No Known Default for:"+vl.listener.getAc().getPath());
+		}
+		if((!isRelease) && (!vl.knownDeviceFault.exists()) ) {
+			ValueResourceHelper.setCreate(vl.knownDeviceFault.ongoingAlarmStartTime(), now);
+			vl.knownDeviceFault.activate(true);
 		}
 		if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() < 0)
 			//do not generate new messages here, releases are generated with AlarmValueListener

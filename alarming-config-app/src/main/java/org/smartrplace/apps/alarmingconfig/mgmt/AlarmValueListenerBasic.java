@@ -212,6 +212,11 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			if(vl.knownDeviceFault == null)
 				throw new IllegalStateException("No Known Default for:"+vl.listener.getAc().getPath());
 		}
+		if((!isRelease) && (!vl.knownDeviceFault.exists()) ) {
+			ValueResourceHelper.setCreate(vl.knownDeviceFault.ongoingAlarmStartTime(), now);
+			vl.knownDeviceFault.activate(true);
+		}
+
 		if(vl.knownDeviceFault.assigned().getValue() == 0)
 			noMessage = false;
 		else if(vl.knownDeviceFault.minimumTimeBetweenAlarms().getValue() < 0)
