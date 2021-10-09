@@ -282,7 +282,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						ScheduleViewerConfigProvAlarm.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
 				
-				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan,
+				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
 						vh.getParent(), "devTaskDrop"+id, req);
 				row.addCell(WidgetHelper.getValidWidgetId("Special Set(Dev)"), devTaskDrop);
 

@@ -1,7 +1,6 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
 import java.util.Collection;
-import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
@@ -12,7 +11,6 @@ import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -23,7 +21,6 @@ import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
@@ -31,11 +28,11 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
-import de.iwes.widgets.template.DefaultDisplayTemplate;
 
 @SuppressWarnings("serial")
 public class DeviceAlarmingPage extends HardwareTablePage {
 	protected Button commitButton;
+	protected final AlarmingConfigAppController controller;
 	
 	protected int getTopTableLines() {
 		return 2;
@@ -53,6 +50,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 	
 	public DeviceAlarmingPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller.appManPlus, controller.accessAdminApp, controller.hwTableData, true, FilterMode.KNOWN_FAULTS);
+		this.controller = controller;
 		
 		getCommitButton(); //make sure it is initialized
 
@@ -181,7 +179,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				selectTemplButton.setDefaultText("Select as Template");
 				row.addCell(WidgetHelper.getValidWidgetId("Select Template"), selectTemplButton);
 				
-				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan,
+				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
 						vh.getParent(), "devTaskDrop"+id, req);
 				/*new TemplateDropdown<DevelopmentTask>(vh.getParent(), "devTaskDrop"+id, req) {
 					@Override

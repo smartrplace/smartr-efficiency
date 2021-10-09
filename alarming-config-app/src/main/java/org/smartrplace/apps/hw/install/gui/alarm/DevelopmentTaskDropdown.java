@@ -7,7 +7,9 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.DevelopmentTask;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
@@ -24,13 +26,16 @@ public class DevelopmentTaskDropdown extends TemplateDropdown<DevelopmentTask> {
 	protected final HardwareTableData resData;
 	protected final ApplicationManager appMan;
 	
+	protected final AlarmingConfigAppController controller;
+	
 	public DevelopmentTaskDropdown(InstallAppDevice object, HardwareTableData resData,
-			ApplicationManager appMan,
+			ApplicationManager appMan, AlarmingConfigAppController controller,
 			OgemaWidget parent, String id, OgemaHttpRequest req) {
 		super(parent, id, req);
 		this.object = object;
 		this.resData = resData;
 		this.appMan = appMan;
+		this.controller = controller;
 		setDefaultAddEmptyOption(true, "--");
 		setTemplate(new DefaultDisplayTemplate<DevelopmentTask>() {
 			@Override
@@ -53,6 +58,7 @@ public class DevelopmentTaskDropdown extends TemplateDropdown<DevelopmentTask> {
 	public void onPOSTComplete(String data, OgemaHttpRequest req) {
 		DevelopmentTask select = getSelectedItem(req);
 		selectDevelopmentTask(select, object, appMan);
+		controller.updateAlarming(TimeProcUtil.MINUTE_MILLIS, true);
 	}
 
 	public static List<DevelopmentTask> getEffectiveKnownDevTasks(ResourceList<DevelopmentTask> knownDevelopmentTasks) {

@@ -548,6 +548,34 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			alarmMan = null;
 	}
 	
+	volatile boolean allowRestartWithNewCall = true;
+	volatile CountDownDelayedExecutionTimer alUpdTimer = null;
+	@Override
+	public void updateAlarming(long maximumRetard, boolean restartWithNewCall) {
+		synchronized (this) {
+			if(alUpdTimer == null) {
+				initAlUpdTimer(maximumRetard);
+				allowRestartWithNewCall = restartWithNewCall;
+			} else if(allowRestartWithNewCall)
+				allowRestartWithNewCall = restartWithNewCall;
+			if(allowRestartWithNewCall) {
+				alUpdTimer.destroy();
+				initAlUpdTimer(maximumRetard);
+			}
+		}
+		
+	}
+	private void initAlUpdTimer(long maximumRetard) {
+		alUpdTimer = new CountDownDelayedExecutionTimer(appMan, maximumRetard) {
+			
+			@Override
+			public void delayedExecution() {
+				updateAlarming();
+				alUpdTimer = null;
+			}
+		};
+	}
+	
 	public DeviceHandlerProvider<?> getDeviceHandler(InstallAppDevice appDevice) {
 		return getDeviceHandler(appDevice.devHandlerInfo().getValue());
 	}
