@@ -205,7 +205,7 @@ public class AlarmingManager implements AlarmingStartedService {
 
 			AlarmConfiguration devTac = null;
 			if(devT != null) {
-				CopyAlarmsSettings set = data.get(ac.getLocation());
+				CopyAlarmsSettings set = data.get(ac.sensorVal().getLocation());
 				if(set != null)
 					devTac = set.templateConfig;
 			}	

@@ -15,6 +15,7 @@
  */
 package org.smartrplace.apps.hw.install;
 
+import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import org.ogema.devicefinder.util.DatapointImpl.DeviceLabelPlus;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
+import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -53,6 +55,7 @@ import org.ogema.tools.resource.util.LoggingUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.deviceeval.BatteryEval;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
@@ -65,6 +68,7 @@ import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.logging.fendodb.FendoTimeSeries;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 
@@ -222,6 +226,7 @@ public class HardwareInstallController {
 		ValueResourceHelper.setIfNew(appConfigData.bulkMessageIntervalDuration(), 4*TimeProcUtil.HOUR_MILLIS);
 		ValueResourceHelper.setIfNew(appConfigData.maxMessageNumBeforeBulk(), 3);
 		appConfigData.knownDevelopmentTasks().create();
+		cleanUpDevelopmentTasks();
 		appConfigData.activate(true);
     }
     
@@ -672,5 +677,28 @@ public class HardwareInstallController {
 				return dev;
 		}
 		return null;
+	}
+	
+	protected void cleanUpDevelopmentTasks() {
+		for(DevelopmentTask devT: appConfigData.knownDevelopmentTasks().getAllElements()) {
+			for(InstallAppDeviceBase templ: devT.templates().getAllElements()) {
+				if(!templ.device().exists() && templ.alarms().size() > 0) {
+					SingleValueResource sensorVal = templ.alarms().getAllElements().get(0).sensorVal();
+					if(!sensorVal.exists())
+						continue;
+					String sensorLoc = sensorVal.getLocation();
+					for(InstallAppDevice iad: dpService.managedDeviceResoures(null)) {
+						if(sensorLoc.startsWith(iad.device().getLocation())) {
+							templ.device().setAsReference(iad.device());
+							break;
+						}
+					}
+					if(!templ.device().exists()) {
+						System.out.println("No device for template found: "+templ.devHandlerInfo().getValue()+" / "+templ.getLocation());
+						templ.delete();
+					}
+				}
+			}
+		}
 	}
 }
