@@ -159,7 +159,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.isNoValueAlarmActive = false;
 		} else if(vl.knownDeviceFault.exists() && (vl.knownDeviceFault.forRelease().getValue() == 0)) { 
 			int assigned = vl.knownDeviceFault.assigned().getValue();
-			if((vl.maxIntervalBetweenNewValues > 0) &&
+			if((vl.maxIntervalBetweenNewValues > 0 && vl.maxIntervalBetweenNewValues < 40000) &&
 					(assigned == AlarmingConfigUtil.ASSIGNMENT_DEVICE_NOT_REACHEABLE)) {
 				ValueResourceHelper.setCreate(vl.knownDeviceFault.forRelease(), 1);
 				releaseAlarm(ac, value, Float.NaN, Float.NaN, alarmStatus, true);
