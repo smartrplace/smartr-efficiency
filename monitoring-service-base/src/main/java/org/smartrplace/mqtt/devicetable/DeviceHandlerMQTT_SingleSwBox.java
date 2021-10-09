@@ -174,6 +174,7 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 			addDatapoint(comStat.getSubResource("RSSI", FloatResource.class), result, dpService);
 			addDatapoint(comStat.getSubResource("Signal", FloatResource.class), result, dpService);
 		}
+		addtStatusDatapointsHomematic(dev, dpService, result, false);
 		return result;
 	}
 	
