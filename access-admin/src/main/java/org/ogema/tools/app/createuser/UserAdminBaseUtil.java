@@ -54,6 +54,8 @@ public class UserAdminBaseUtil {
 			GUEST_APPS.add("org.smartrplace.apps.smartrcockpit-link");
 		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.showsavings"))
 			GUEST_APPS.add("org.smartrplace.apps.smartrcop-savings-link");
+		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.showcustomerdoc"))
+			GUEST_APPS.add("org.smartrplace.apps.smartrcop-customerdoc-link");
 	}
 
 	public static Collection<String> DISPLAY_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
@@ -156,6 +158,9 @@ public class UserAdminBaseUtil {
 				break;
 			case UserPermissionService.DASHBOARD_SAVINGS:
 				result.add("org.smartrplace.apps.smartrcop-savings-link");
+				break;
+			case UserPermissionService.DASHBOARD_CUSTOMERDOC:
+				result.add("org.smartrplace.apps.smartrcop-customerdoc-link");
 				break;
 			case UserPermissionService.ROOMCONTROL_WE:
 				result.add("org.smartrplace.apps.react.roomcontrol-we");
