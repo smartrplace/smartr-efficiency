@@ -2,6 +2,7 @@ package org.smartrplace.homematic.devicetable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -24,8 +25,6 @@ import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
-import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
-import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -140,7 +139,8 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 			}
 		}
 		
-		DeviceHandlerThermostat.addMemoryDps(dpRef, deviceConfiguration, result, dpService, appMan.getResourceAccess(), false);
+		DeviceHandlerThermostat.addMemoryDps(dpRef, deviceConfiguration, result, dpService, appMan.getResourceAccess(), false, this);
+		DeviceHandlerThermostat.addSetpReactDp(dpRef, deviceConfiguration, device, result, dpService, appMan.getResourceAccess(), this);
 		
 		return result;
 	}
@@ -173,7 +173,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public String getInitVersion() {
-		return "J";
+		return "K";
 	}
 	
 	public static <S extends Resource> ResourceDropdown<S> referenceDropdownFixedChoice(String widgetId, final List<S> destinations, String altId,
@@ -226,5 +226,16 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	@Override
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "WT";
+	}
+	
+	@Override
+	public List<SetpointData> getSetpointData(Thermostat device,
+			InstallAppDevice deviceConfiguration) {
+		if(deviceConfiguration == null)
+			return Collections.emptyList();
+		List<SetpointData> result = new ArrayList<>();
+		result.add(new SetpointData(device.temperatureSensor().settings().setpoint(),
+				device.temperatureSensor().deviceFeedback().setpoint()));
+		return result;
 	}
 }

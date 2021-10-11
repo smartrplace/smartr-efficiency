@@ -25,6 +25,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DriverPropertySuccessHandler;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
@@ -39,6 +40,7 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.DoorWindowSensor;
+import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -208,21 +210,38 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			dev.getSubResource("maximumValvePosition", FloatResource.class).delete();
 		addtStatusDatapointsHomematic(dev, dpService, result);
 		
-		addMemoryDps(dpRef, installDeviceRes, result, dpService, appMan.getResourceAccess(), true);
+		addMemoryDps(dpRef, installDeviceRes, result, dpService, appMan.getResourceAccess(), true, this);
+		addSetpReactDp(dpRef, installDeviceRes, dev, result, dpService, appMan.getResourceAccess(), this);
 		
 		return result;
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void addMemoryDps(Datapoint dpRef, InstallAppDevice installDeviceRes,
 			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,
-			boolean removeVirtualDpResource) {
+			boolean removeVirtualDpResource,
+			DeviceHandlerProviderDP<Thermostat> devHand) {
 		String refLabel = dpRef.label(null);
 		String gradLabel = refLabel.replace("Temperature measured at thermostat","BatVoltageFew");
-		StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
-				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result);
+		StandardEvalAccess.addMemoryDatapointForInit(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
+				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result, (DeviceHandlerProviderDP)devHand);
 		gradLabel = refLabel.replace("Temperature measured at thermostat","BatRemainingDays");
-		StandardEvalAccess.addMemoryDatapoint(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
-				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result);		
+		StandardEvalAccess.addMemoryDatapointForInit(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
+				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result, (DeviceHandlerProviderDP)devHand);
+	}
+	public static void addSetpReactDp(Datapoint dpRef, InstallAppDevice iad, Thermostat device,
+			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,
+			DeviceHandlerProviderDP<Thermostat> devHand) {
+		FloatResource setpReactRes = getSetpReactRes(device);
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		Datapoint evalDp = StandardEvalAccess.getDeviceBaseEvalForInit(iad,
+				StandardDeviceEval.SETP_REACT, dpService, resAcc, (DeviceHandlerProviderDP)devHand);
+		Datapoint dpRes = StandardEvalAccess.addVirtualDatapoint(setpReactRes,
+				evalDp, dpService, result);
+		dpRes.addToSubRoomLocationAtomic(null, null, "-setpreact", false);
+	}	
+	public static FloatResource getSetpReactRes(Thermostat device) {
+		return device.getSubResource("setpreact", GenericFloatSensor.class).reading();
 	}
 	
 	@Override
@@ -293,7 +312,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	
 	@Override
 	public String getInitVersion() {
-		return "L";
+		return "M";
 	}
 	
 	public static Thermostat initAlarmingForDeviceThermostatCommon(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
@@ -308,6 +327,8 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				0f, 1.0f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		//		0f, 100f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.addAlarmingHomematic(device, appDevice, 2, false);
+		AlarmingUtiH.setTemplateValues(appDevice, getSetpReactRes(device),
+				0f, 60f, 1, -1);
 		appDevice.alarms().activate(true);
 		return device;
 	}

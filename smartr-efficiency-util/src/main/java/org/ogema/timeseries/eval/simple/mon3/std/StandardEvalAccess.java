@@ -215,15 +215,26 @@ public class StandardEvalAccess {
 	 */
 	public static Datapoint getDeviceBaseEval(PhysicalElement device, StandardDeviceEval type,
 			DatapointService dpService, ResourceAccess resAcc) {
-		InstallAppDevice iad = dpService.getMangedDeviceResource(device);
-		return getDeviceBaseEval(iad, type, dpService, resAcc);
+		return getDeviceBaseEvalForInit(device, type, dpService, resAcc, null);
 	}
-	@SuppressWarnings("incomplete-switch")
+	public static Datapoint getDeviceBaseEvalForInit(PhysicalElement device, StandardDeviceEval type,
+			DatapointService dpService, ResourceAccess resAcc,
+			DeviceHandlerProviderDP<Resource> devHand) {
+		InstallAppDevice iad = dpService.getMangedDeviceResource(device);
+		return getDeviceBaseEvalForInit(iad, type, dpService, resAcc, devHand);
+	}
 	public static Datapoint getDeviceBaseEval(InstallAppDevice iad, StandardDeviceEval type,
 			DatapointService dpService, ResourceAccess resAcc) {
+		return getDeviceBaseEvalForInit(iad, type, dpService, resAcc, null);
+	}
+	@SuppressWarnings("incomplete-switch")
+	public static Datapoint getDeviceBaseEvalForInit(InstallAppDevice iad, StandardDeviceEval type,
+			DatapointService dpService, ResourceAccess resAcc,
+			DeviceHandlerProviderDP<Resource> devHand) {
 		PhysicalElement device = iad.device().getLocationResource();
 		
-		DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(iad);
+		if(devHand == null)
+			devHand = dpService.getDeviceHandlerProvider(iad);
 		String location;
 
 		//Only relevant for gap
@@ -271,7 +282,7 @@ public class StandardEvalAccess {
 			
 			location = device.getLocation()+SETP_REACT_POSTFIX;
 			evalName = TimeseriesProcAlarming.SETPREACT_EVAL;
-			dpIn = getDeviceBaseEval(iad, StandardDeviceEval.BASE_SETPOINT_CHANGENUM, dpService, null);
+			dpIn = getDeviceBaseEvalForInit(iad, StandardDeviceEval.BASE_SETPOINT_CHANGENUM, dpService, null, devHand);
 			SetpReactInput args = (SetpReactInput) (input = new SetpReactInput());
 						
 			args.config = (ThermPlusConfig) allConfig.get(0);
@@ -540,7 +551,10 @@ public class StandardEvalAccess {
 			ApplicationManager appMan, ApplicationManagerPlus appManPlus) {
 		long now = appMan.getFrameworkTime();
 		long startShort = now - 4*TimeProcUtil.DAY_MILLIS;
-		return getSetpReactValuesPerDevice(iad, appManPlus, startShort, now);
+		float[] shortRes = getSetpReactValuesPerDevice(iad, appManPlus, startShort, now);
+		long startLong = now - 28*TimeProcUtil.DAY_MILLIS;
+		float[] longRes = getSetpReactValuesPerDevice(iad, appManPlus, startLong, now);
+		return new float[] {shortRes[0], longRes[0]};
 	}
 	
 	public static SingleValueResource getVirtualDeviceResource(StandardDeviceEval type, PhysicalElement device) {
@@ -706,7 +720,17 @@ public class StandardEvalAccess {
 			boolean removeVirtualDpResource,
 			String dpLabel,
 			List<Datapoint> result) {
-		Datapoint dp = getDeviceBaseEval(iad, type, dpService, resAcc);
+		return addMemoryDatapointForInit(iad, type, dpService, resAcc, registerRemoteScheduleViaHeartbeat, removeVirtualDpResource, dpLabel, result,
+				null);
+	}
+	public static Datapoint addMemoryDatapointForInit(InstallAppDevice iad, StandardDeviceEval type,
+			DatapointService dpService, ResourceAccess resAcc,
+			boolean registerRemoteScheduleViaHeartbeat,
+			boolean removeVirtualDpResource,
+			String dpLabel,
+			List<Datapoint> result,
+			DeviceHandlerProviderDP<Resource> devHand) {
+		Datapoint dp = getDeviceBaseEvalForInit(iad, type, dpService, resAcc, devHand);
 		if(removeVirtualDpResource) {
 			PhysicalElement device = iad.device().getLocationResource();
 			SingleValueResource destRes = getVirtualDeviceResource(type, device);
