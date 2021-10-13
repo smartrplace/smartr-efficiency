@@ -277,4 +277,10 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	public ComType getComType() {
 		return ComType.IP;
 	}
+
+	@Override
+	public SingleValueResource getMainSensorValue(ElectricityConnectionBox device,
+			InstallAppDevice deviceConfiguration) {
+		return device.connection().powerSensor().reading();
+	}
 }

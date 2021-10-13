@@ -126,6 +126,16 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 	public String getTableTitle() {
 		return "Sensor Devices";
 	}
+
+	@Override
+	public SingleValueResource getMainSensorValue(SensorDevice box, InstallAppDevice deviceConfiguration) {
+		for(Sensor sens: box.sensors().getAllElements()) {
+			if(sens.reading() instanceof FloatResource) {
+				return (FloatResource)sens.reading();
+			}
+		}
+		return null;
+	}
 }
 
 

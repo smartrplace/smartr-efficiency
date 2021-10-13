@@ -305,4 +305,18 @@ if(mapData1 == null) {
 	public ComType getComType() {
 		return ComType.IP;
 	}
+
+	@Override
+	public SingleValueResource getMainSensorValue(ElectricityConnectionBox box,
+			InstallAppDevice deviceConfiguration) {
+		ElectricityConnection cc = box.connection();
+		if(cc.powerSensor().isActive())
+			return cc.powerSensor().reading();
+		else for (ElectricityConnection c : box.getSubResources(ElectricityConnection.class, true)) {
+			if(c.powerSensor().isActive()) {
+				return c.powerSensor().reading();
+			}
+		}
+		return null;
+	}
 }

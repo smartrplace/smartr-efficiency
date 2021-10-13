@@ -8,6 +8,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
@@ -204,5 +205,14 @@ public class DeviceHandlerMQTT_SmartDimmer extends DeviceHandlerBase<SensorDevic
 	@Override
 	public ComType getComType() {
 		return ComType.IP;
+	}
+
+	@Override
+	public SingleValueResource getMainSensorValue(SensorDevice box, InstallAppDevice deviceConfiguration) {
+		List<ElectricLight> dimmers = box.getSubResources(ElectricLight.class, false);
+		if(!dimmers.isEmpty()) {
+			return dimmers.get(0).setting().stateFeedback();
+		}
+		return box.electricityConnection().powerSensor().reading();
 	}
 }

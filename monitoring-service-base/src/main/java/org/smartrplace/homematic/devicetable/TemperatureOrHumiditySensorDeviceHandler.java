@@ -18,6 +18,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
+import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.HumiditySensor;
@@ -46,6 +47,16 @@ public class TemperatureOrHumiditySensorDeviceHandler extends DeviceHandlerBase<
 		appMan.getLogger().info("{} created :)", this.getClass().getSimpleName());
 	}
 
+	@Override
+	public SingleValueResource getMainSensorValue(SensorDevice device2, InstallAppDevice deviceConfiguration) {
+		final SensorElements device = getElements(device2);
+		if(device.tempSens != null)
+			return device.tempSens.reading();
+		if(device.humSens != null)
+			return device.humSens.reading();			
+		return null;
+	}
+	
 	@Override
 	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert, InstalledAppsSelector appSelector) {
 		return new DeviceTableBase(page, appMan, alert, appSelector, this) {

@@ -9,6 +9,8 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
@@ -174,7 +176,15 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 			addDatapoint(comStat.getSubResource("RSSI", FloatResource.class), result, dpService);
 			addDatapoint(comStat.getSubResource("Signal", FloatResource.class), result, dpService);
 		}
+		if(dev.getLocation().startsWith("Tasmota")) {
+			IntegerResource restartReason = dev.getSubResource("restartReason", IntegerResource.class);
+			if(!restartReason.exists())
+				restartReason.create().activate(false);
+			addDatapoint(restartReason, result, dpService, true);
+		}
+			
 		addtStatusDatapointsHomematic(dev, dpService, result, false);
+		
 		return result;
 	}
 	
@@ -208,5 +218,10 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 	@Override
 	public ComType getComType() {
 		return ComType.IP;
+	}
+
+	@Override
+	public SingleValueResource getMainSensorValue(SingleSwitchBox box, InstallAppDevice deviceConfiguration) {
+		return box.onOffSwitch().stateFeedback();
 	}
 }

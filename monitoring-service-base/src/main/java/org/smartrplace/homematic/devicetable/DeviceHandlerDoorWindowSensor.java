@@ -367,7 +367,8 @@ System.out.println("  ++++ Wrote Property "+propType.id()+" for "+accData.anchor
 
 	@Override
 	public SingleValueResource getMainSensorValue(DoorWindowSensor device, InstallAppDevice deviceConfiguration) {
-		throw new IllegalStateException("Should not be used yet!");
+		return device.reading();
+		//throw new IllegalStateException("Should not be used yet!");
 		//return null;
 	}
 

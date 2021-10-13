@@ -8,6 +8,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -194,5 +195,10 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 	@Override
 	public ComType getComType() {
 		return ComType.IP;
+	}
+
+	@Override
+	public SingleValueResource getMainSensorValue(PVPlant device, InstallAppDevice deviceConfiguration) {
+		return device.electricityConnection().powerSensor().reading();
 	}
 }

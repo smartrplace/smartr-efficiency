@@ -7,6 +7,7 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
@@ -129,5 +130,10 @@ public class OnOffSwitch_DeviceHandler extends DeviceHandlerBase<OnOffSwitch> {
 	@Override
 	public String getTableTitle() {
 		return "OnOffSwitches without SwitchBoxes";
+	}
+
+	@Override
+	public SingleValueResource getMainSensorValue(OnOffSwitch device, InstallAppDevice deviceConfiguration) {
+		return device.stateFeedback();
 	}
 }

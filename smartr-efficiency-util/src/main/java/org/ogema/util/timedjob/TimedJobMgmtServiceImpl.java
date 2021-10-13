@@ -14,6 +14,7 @@ import org.smartrplace.apps.eval.timedjob.TimedEvalJobConfig;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.gateway.device.MemoryTimeseriesPST;
+import org.smartrplace.tissue.util.logconfig.PerformanceLog;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -34,11 +35,7 @@ public class TimedJobMgmtServiceImpl implements TimedJobMgmtService {
 	
 	public TimedJobMgmtServiceImpl(ApplicationManager appMan) {
 		this.appMan = appMan;
-		MemoryTimeseriesPST logResource = ResourceHelper.getEvalCollection(appMan).getSubResource("memoryTimeseriesPST", MemoryTimeseriesPST.class);
-		if(!logResource.exists()) {
-			logResource.create();
-			logResource.activate(false);
-		}
+		MemoryTimeseriesPST logResource = PerformanceLog.getPSTResource(appMan);
 		this.jobData = new TimedJobMgmtData(logResource);
 	}
 
@@ -53,6 +50,8 @@ public class TimedJobMgmtServiceImpl implements TimedJobMgmtService {
 			createPersistentIndex(result.res);
 			if(!result.res.isActive()) {
 				prov.initConfigResource(result.res);
+				if(!result.res.disable().exists())
+					ValueResourceHelper.setCreate(result.res.disable(), false);
 				result.res.activate(true);
 			} else {
 				final String provVersion = prov.getInitVersion();

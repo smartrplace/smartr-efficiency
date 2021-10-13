@@ -15,6 +15,9 @@
  */
 package org.smartrplace.apps.hw.install.expert;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
@@ -22,6 +25,7 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
@@ -47,7 +51,9 @@ import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.LocaleDictionary;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 /**
  * Template OGEMA application class
@@ -176,6 +182,26 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			new TimedJobsPage(timedJobPage, controller.appManPlus, false);
 			menu.addEntry("Evaluation and Timed Jobs Overview", timedJobPage);
 			timedJobPage.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> timedJobPage2 = widgetApp.createWidgetPage("timedjobsnoneval.hmtl");
+			new TimedJobsPage(timedJobPage2, controller.appManPlus, false) {
+				protected String getHeader(OgemaLocale locale) {
+					return "Base Timed Jobs Overview";
+				};
+				
+				public Collection<TimedJobMemoryData> getObjectsInTable(OgemaHttpRequest req) {
+					Collection<TimedJobMemoryData> all = dpService.timedJobService().getAllProviders();
+					ArrayList<TimedJobMemoryData> result = new ArrayList<>();
+					for(TimedJobMemoryData obj: all) {
+						if(obj.prov().evalJobType() <= 0) {
+							result.add(obj);
+						}
+					}
+					return result;
+				};
+			};
+			menu.addEntry("Base Timed Jobs Overview", timedJobPage2);
+			timedJobPage2.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> timedJobPageEval = widgetApp.createWidgetPage("timedjobseval.hmtl");
 			new TimedEvalJobsPage(timedJobPageEval, controller.appManPlus);
