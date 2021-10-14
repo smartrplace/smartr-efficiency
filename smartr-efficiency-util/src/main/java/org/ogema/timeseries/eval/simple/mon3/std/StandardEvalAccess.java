@@ -731,6 +731,8 @@ public class StandardEvalAccess {
 			List<Datapoint> result,
 			DeviceHandlerProviderDP<Resource> devHand) {
 		Datapoint dp = getDeviceBaseEvalForInit(iad, type, dpService, resAcc, devHand);
+		if(dp == null)
+			return null;
 		if(removeVirtualDpResource) {
 			PhysicalElement device = iad.device().getLocationResource();
 			SingleValueResource destRes = getVirtualDeviceResource(type, device);
