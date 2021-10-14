@@ -324,7 +324,7 @@ public class ConfigurationPageHWInstall {
 				"thermostatTestingConfig", ThermostatTestingConfig.class);
 		TimeResourceTextField testSwitchingEdit =
 				new TimeResourceTextField(page, "testSwitchingEdit", Interval.minutes, thTest.testSwitchingInterval());
-		configTable.setContent(i, 0, "Test switching interval (min) - started only after system relaunch:").setContent(i, 1, testSwitchingEdit);
+		configTable.setContent(i, 0, "Test switching interval (min) - started only after system relaunch. Set zero to disable:").setContent(i, 1, testSwitchingEdit);
 		i++;
 		
 		FloatResource maxDutyCycle = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(

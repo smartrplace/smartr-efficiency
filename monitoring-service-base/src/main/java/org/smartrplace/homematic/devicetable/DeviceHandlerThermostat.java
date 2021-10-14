@@ -110,9 +110,13 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				final Thermostat device;
 				if(req == null)
 					device = ResourceHelper.getSampleResource(Thermostat.class);
-				else
+				else {
+					if(!(object.device() instanceof Thermostat)) {
+						System.out.println("Device of IAD is not really thermostat: "+object.getLocation());
+						return null;
+					}
 					device = (Thermostat) object.device();
-				//if(!(object.device() instanceof Thermostat)) return;
+				}
 				final String name;
 				if(device.getLocation().toLowerCase().contains("homematic")) {
 					name = "Thermostat HM:"+ScheduleViewerOpenButtonEval.getDeviceShortId(device.getLocation());
