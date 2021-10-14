@@ -318,7 +318,8 @@ System.out.println("RequiredPerms:"+StringFormatHelper.getListToPrint(require));
 System.out.println("Missing["+(missingPerms!=null?""+missingPerms.size():"!null!")+"]:"+StringFormatHelper.getListToPrint(missingPerms));
 System.out.println("ToRemoveAll:"+StringFormatHelper.getListToPrint(toRemovePerms));
 
-		toRemovePerms.removeAll(additionalPermissionstoMaintain);
+//		toRemovePerms.removeAll(additionalPermissionstoMaintain);
+//System.out.println("ToRemoveReally:"+StringFormatHelper.getListToPrint(toRemovePerms));
 		removePerms(userData, toRemovePerms, appManPlus);
 		
 		addMissingPerms(userData, missingPerms, appManPlus);
@@ -366,6 +367,7 @@ System.out.println("Removing app: "+bundleSymbolicName+ "::"+props.getAppname()+
 		} catch (Exception e) {
 			appManPlus.appMan().getLogger().error("Could not add permissions for user {}",userName,e);
 		}
+System.out.println("Finished removing app: "+bundleSymbolicName);
 	}
 
 
