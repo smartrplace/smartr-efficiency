@@ -85,9 +85,9 @@ public class UserRegisterHelper {
         final Checkbox2 cbSendInvite = new Checkbox2(page, "cbInvite");
         DefaultCheckboxEntry cbe = new DefaultCheckboxEntry("sendInvite", "", true);
         cbSendInvite.addDefaultEntry(cbe);
-        final Checkbox2 cbRest = new Checkbox2(page, "cbRest");
-        DefaultCheckboxEntry cberest = new DefaultCheckboxEntry("createRest", "", true);
-        cbRest.addDefaultEntry(cberest);
+        //final Checkbox2 cbRest = new Checkbox2(page, "cbRest");
+        //DefaultCheckboxEntry cberest = new DefaultCheckboxEntry("createRest", "", true);
+        //cbRest.addDefaultEntry(cberest);
 		
         String loginNameTitle = requestUserNameAsEmail?"Email:":"Login name:";
         
@@ -95,7 +95,7 @@ public class UserRegisterHelper {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public List<OgemaWidget> providePopupWidgets(OgemaHttpRequest req) {
-				StaticTable dualTable = new StaticTable(6, 2);
+				StaticTable dualTable = new StaticTable(5, 2);
 				int c = 0;
 				dualTable.setContent(c, 0, loginNameTitle).setContent(c, 1, textLoginName);
 				c++;
@@ -114,8 +114,8 @@ public class UserRegisterHelper {
 				dualTable.setContent(c, 0, "Password:").setContent(c, 1, textPw);
                 c++;
                 dualTable.setContent(c, 0, "Send Invitation:").setContent(c, 1, cbSendInvite);
-                c++;
-                dualTable.setContent(c, 0, "Create mobile account:").setContent(c, 1, cbRest);
+                //c++;
+                //dualTable.setContent(c, 0, "Create mobile account:").setContent(c, 1, cbRest);
 				getPopupSnippet().append(dualTable, null);
 				return null;
 			}
@@ -126,8 +126,8 @@ public class UserRegisterHelper {
 					String name = textFullUserName.getValue(req);
 					String password = textPw.getValue(req);
 					UserAccount data = createAccount(userName, loginNameTitle, password, userBuilder,
-							cbSendInvite.isChecked("sendInvite", req),
-							cbRest.isChecked("createRest", req));
+							cbSendInvite.isChecked("sendInvite", req), false);
+							//cbRest.isChecked("createRest", req));
 					if(data == null) {
 						alert.showAlert("User name "+name+" could not be created, maybe already exists!", false, req);
 						return;
