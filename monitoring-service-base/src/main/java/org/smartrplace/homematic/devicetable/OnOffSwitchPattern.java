@@ -37,6 +37,8 @@ public class OnOffSwitchPattern extends ResourcePattern<OnOffSwitch> {
 	@Override
 	public boolean accept() {
 		Resource parent = model.getParent();
+		if(model.location().room().isActive())
+			return true;
 		if(model.getName().startsWith("VIRTUAL_SWITCH_FEEDBACK_"))
 			return false;
 		if(DeviceTableRaw.isCO2SensorHm(model.getLocation()))
