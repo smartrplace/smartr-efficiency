@@ -328,7 +328,7 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 			tableProvidersDone.add(id);
 			DeviceTableBase tableLoc = getDeviceTable(page, alert, this, pe);
 			tableLoc.triggerPageBuild();
-			installFilterDrop.registerDependentWidget(tableLoc.getMainTable());
+			typeFilterDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.getFirstDropdown().registerDependentWidget(tableLoc.getMainTable());
 			subTables.add(new SubTableData(pe, tableLoc));

@@ -2,8 +2,10 @@ package org.smartrplace.hwinstall.basetable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -18,7 +20,7 @@ import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.apps.hw.install.gui.InstallationStatusFilterDropdown2;
+import org.smartrplace.apps.hw.install.gui.DeviceTypeFilterDropdown;
 import org.smartrplace.gui.filtering.DualFiltering;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFiltering2Steps;
@@ -42,6 +44,8 @@ import de.iwes.widgets.html.form.label.Label;
 /** Note that only the method getDevicesSelected is really implemented here*/
 public class HardwareTablePage implements InstalledAppsSelector { //extends DeviceTablePageFragment
 
+	public static final int MAX_DEVICE_PER_ALL = 20;
+
 	//Overwrite to reduce columns
 	protected boolean showOnlyBaseColsHWT() {return false;}
 
@@ -62,7 +66,8 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	private Header header;
 	//protected RoomSelectorDropdown roomsDrop;
 	protected RoomFiltering2Steps<InstallAppDevice> roomsDrop;
-	protected InstallationStatusFilterDropdown2 installFilterDrop;
+	//protected InstallationStatusFilterDropdown2 installFilterDrop;
+	protected DeviceTypeFilterDropdown typeFilterDrop;
 	protected DualFiltering<Room, InstallAppDevice, InstallAppDevice> finalFilter;
 	//protected final InstalledAppsSelector instAppsSelector;
 	protected final StaticTable topTable;
@@ -155,17 +160,34 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		roomsDrop = new RoomFiltering2Steps<InstallAppDevice>(page, "roomsDrop",
 				OptionSavingMode.GENERAL, 10000, roomGroups, appManPlus, true) {
 
-					@Override
-					protected Room getAttribute(InstallAppDevice object) {
-						return object.device().location().room().getLocationResource();
-					}
+			@Override
+			protected Room getAttribute(InstallAppDevice object) {
+				return object.device().location().room().getLocationResource();
+			}
 			
+			@Override
+			protected boolean isAllOptionAllowed(OgemaHttpRequest req) {
+				//if(typeFilterDrop.getSelectedItem(req) != typeFilterDrop.getAllOption(req))
+				//	return true;
+				int size = HardwareTablePage.this.resData.appConfigData.knownDevices().size();
+				return size < MAX_DEVICE_PER_ALL;
+			}
 		};
 		//installFilterDrop = new InstallationStatusFilterDropdown(page, "installFilterDrop", controller);
-		installFilterDrop = new InstallationStatusFilterDropdown2(page, "installFilterDrop",
-				OptionSavingMode.PER_USER, appMan,
-				filterMode==FilterMode.KNOWN_FAULTS?true:false);
-		finalFilter = new DualFiltering<Room, InstallAppDevice, InstallAppDevice>(roomsDrop, installFilterDrop);
+		//installFilterDrop = new InstallationStatusFilterDropdown2(page, "installFilterDrop",
+		//		OptionSavingMode.PER_USER, appMan,
+		//		filterMode==FilterMode.KNOWN_FAULTS?true:false);
+		typeFilterDrop = new DeviceTypeFilterDropdown(page, "devTypeFilterDrop", OptionSavingMode.PER_USER, appMan, appManPlus.dpService()) {
+			/*@Override
+			protected boolean isAllOptionAllowed(OgemaHttpRequest req) {
+				//if(roomsDrop.getSelectedItem(req) != roomsDrop.getAllOption(req))
+				//	return true;
+				int size = HardwareTablePage.this.resData.appConfigData.knownDevices().size();
+				return size < MAX_DEVICE_PER_ALL;
+			}*/			
+		};
+		finalFilter = new DualFiltering<Room, InstallAppDevice, InstallAppDevice>(roomsDrop, typeFilterDrop);
+		
 		
 		//RedirectButton roomLinkButton = new RedirectButton(page, "roomLinkButton", "Room Administration", "/de/iwes/apps/roomlink/gui/index.html");
 		
@@ -188,7 +210,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		int installFilterCol=3;
 		topTable.setContent(0, 0, roomsDrop.getFirstDropdown())
 				.setContent(0, 1, roomsDrop)
-				.setContent(0, installFilterCol, installFilterDrop)
+				.setContent(0, installFilterCol, typeFilterDrop)
 				.setContent(0, installFilterCol+2, installMode);//setContent(0, 2, roomLinkButton).
 		if(commitBtn != null)
 			topTable.setContent(0, 2, commitBtn);
@@ -255,7 +277,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 				
 			});
 			tableLoc.triggerPageBuild();
-			installFilterDrop.registerDependentWidget(tableLoc.getMainTable());
+			typeFilterDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.getFirstDropdown().registerDependentWidget(tableLoc.getMainTable());
 			subTables.add(new SubTableData(pe, tableLoc));
@@ -271,9 +293,16 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
+if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
+	System.out.println("Searching all devices for "+devHand.label(null));
 		List<InstallAppDevice> all = getDevices(devHand);
 //System.out.println("For "+pe.label(null)+" before filter:"+all.size());
-		return finalFilter.getFiltered(all, req);
+if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
+	System.out.println("Filtering "+all.size()+" for "+devHand.label(null));
+		List<InstallAppDevice> result = finalFilter.getFiltered(all, req);
+if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
+	System.out.println("After Filtering has "+result.size()+" for "+devHand.label(null));
+		return result;
 	}
 	
 	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider) {
@@ -281,21 +310,43 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		//return getDevices(tableProvider, includeInactiveDevices, false);
 		return getDevices(tableProvider, false);
 	}
+	
+	private Map<String, List<InstallAppDevice>> devPerHandler = new HashMap<>();
+	private long lastMapUpd = -1;
 	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
 			boolean includeTrash) {
-		List<InstallAppDevice> result = new ArrayList<>();
-		for(InstallAppDevice install: resData.appConfigData.knownDevices().getAllElements()) {
-			if((!includeTrash) && install.isTrash().getValue())
-				continue;
-			if(tableProvider == null) {
-				result.add(install);
-				continue;
+		synchronized (devPerHandler) {
+			long now = appMan.getFrameworkTime();
+			if(now - lastMapUpd < 10000) {
+				List<InstallAppDevice> result = devPerHandler.get(tableProvider.id());
+				if(result != null)
+					return result;
 			}
-			if(tableProvider.id().equals(install.devHandlerInfo().getValue()))	{
-				result.add(install);
+		
+			lastMapUpd = now;
+			devPerHandler.clear();
+			
+			List<InstallAppDevice> result = new ArrayList<>();
+			for(InstallAppDevice install: resData.appConfigData.knownDevices().getAllElements()) {
+				if((!includeTrash) && install.isTrash().getValue())
+					continue;
+				if(tableProvider == null) {
+					result.add(install);
+					continue;
+				}
+				if(tableProvider.id().equals(install.devHandlerInfo().getValue()))	{
+					result.add(install);
+				}
+				String provLoc = install.devHandlerInfo().getValue();
+				List<InstallAppDevice> listLoc = devPerHandler.get(provLoc);
+				if(listLoc == null) {
+					listLoc = new ArrayList<>();
+					devPerHandler.put(provLoc, listLoc);
+				}
+				listLoc.add(install);
 			}
+			return result;
 		}
-		return result;
 	}
 
 	

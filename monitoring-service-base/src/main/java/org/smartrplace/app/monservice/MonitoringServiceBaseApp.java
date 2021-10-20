@@ -42,6 +42,7 @@ import org.smartrplace.driverhandler.devices.HeatingLabThermalValve_DeviceHandle
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
 import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.LightWLANDevHandler;
+import org.smartrplace.driverhandler.devices.MultiSwitchHandler;
 import org.smartrplace.driverhandler.devices.OpenWeatherMapBigBlueRoom_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
@@ -250,6 +251,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srBeacon = null;
 	private BluetoothBeaconHandler devHandBeacon;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srMSwitch = null;
+	private MultiSwitchHandler devHandMSwitch;
 	
 	@Activate
 	   void activate(BundleContext bc) {
@@ -352,6 +356,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
 	   devHandBeacon = new BluetoothBeaconHandler(controller.appManPlus);
 	   srBeacon = bc.registerService(DeviceHandlerProvider.class, devHandBeacon, null);
+	   devHandMSwitch = new MultiSwitchHandler(controller.appManPlus);
+	   srMSwitch = bc.registerService(DeviceHandlerProvider.class, devHandMSwitch, null);
  	}
  	
      /*
@@ -397,6 +403,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
     	if (knxDriver != null) knxDriver.unregister();
        	if (srBeacon != null) srBeacon.unregister();
+       	if (srMSwitch != null) srMSwitch.unregister();
 
        	if (controller != null)
     		controller.close();

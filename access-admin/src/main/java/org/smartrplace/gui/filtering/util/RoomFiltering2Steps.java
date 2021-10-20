@@ -24,7 +24,7 @@ public abstract class RoomFiltering2Steps<T> extends DualFiltering2Steps<Room, B
 	//protected final AccessAdminController controller;
 	protected final ApplicationManagerPlus appManPlus;
 	protected final ResourceList<BuildingPropertyUnit> roomGroups;
-
+	
 	public RoomFiltering2Steps(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode, long optionSetUpdateRate,
 			ResourceList<BuildingPropertyUnit> roomGroups, ApplicationManagerPlus appManPlus, boolean addAllOptionLeftDropdown) {
 		super(page, id, saveOptionMode, optionSetUpdateRate, addAllOptionLeftDropdown);

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.ogema.accessadmin.api.util.RoomEditHelper;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
@@ -15,6 +16,7 @@ import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
+import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -23,6 +25,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.RedirectButton;
 
 public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPropertyUnit, Room> {
@@ -49,11 +52,14 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		return object;
 	}
 
-	/*@Override
+	@Override
 	protected void addWidgetsBeforeMultiSelect(Room object, ObjectResourceGUIHelper<Room, Room> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-		vh.dropdown("Room Type", id, object.type(), row, valuesToSet);
-	}*/
+		//vh.dropdown("Room Type", id, object.type(), row, valuesToSet);
+		if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering")) {
+			vh.stringLabel("Location", id, object.getLocation(), row);
+		}
+	}
 	
 	@Override
 	protected String getHeader(OgemaLocale locale) {

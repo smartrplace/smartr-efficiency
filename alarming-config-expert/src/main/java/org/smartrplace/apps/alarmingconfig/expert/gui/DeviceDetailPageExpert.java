@@ -275,8 +275,11 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 				
 				@Override
 				protected List<String> getGroups(InstallAppDeviceBase object) {
-					if(!(object instanceof InstallAppDevice))
+					if(!(object instanceof InstallAppDevice)) {
+						if(object instanceof InstallAppDeviceBase)
+							return Collections.emptyList();
 						throw new IllegalStateException("Wrong type for "+object.getLocation());
+					}
 					DatapointGroup devTypeGrp = getDeviceTypeGroup((InstallAppDevice) object);
 					if(devTypeGrp == null) {
 						//should never occur

@@ -144,7 +144,7 @@ public class ThermostatPage extends MainPage {
 			
 			@Override
 			public List<InstallAppDevice> getObjectsInTable(OgemaHttpRequest req) {
-				List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, installFilterDrop, req);
+				List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
 				//List<InstallAppDevice> all = appSelector.getDevicesSelected();
 				List<InstallAppDevice> result = new ArrayList<InstallAppDevice>();
 				for(InstallAppDevice dev: all) {
@@ -156,7 +156,7 @@ public class ThermostatPage extends MainPage {
 			}
 		};
 		devTable.triggerPageBuild();
-		installFilterDrop.registerDependentWidget(devTable.getMainTable());
+		typeFilterDrop.registerDependentWidget(devTable.getMainTable());
 		
 	}
 	

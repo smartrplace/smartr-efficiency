@@ -39,6 +39,7 @@ import org.ogema.tools.simulation.service.apiplus.SimulationConfigurationModel;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gui.filtering.DualFiltering;
+import org.smartrplace.gui.filtering.SingleFilteringDirect;
 import org.smartrplace.gui.filtering.util.RoomFiltering2Steps;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
@@ -223,7 +224,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 	public static List<InstallAppDevice> getDevicesSelectedDefault(DeviceHandlerProvider<?> devHand,
 			HardwareInstallController controller,
 			RoomFiltering2Steps<InstallAppDevice> roomsDrop,
-			InstallationStatusFilterDropdown2 installFilterDrop,
+			SingleFilteringDirect<InstallAppDevice> installFilterDrop,
 			OgemaHttpRequest req) {
 		List<InstallAppDevice> all = controller.getDevices(devHand);
 		DualFiltering<Room, InstallAppDevice, InstallAppDevice> finalFilterLoc = new DualFiltering<Room, InstallAppDevice, InstallAppDevice>(roomsDrop, installFilterDrop);

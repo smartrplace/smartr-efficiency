@@ -532,6 +532,15 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	}
 
 	@Override
+	public List<DeviceHandlerProviderDP<?>> getDeviceHandlerProviders() {
+		List<DeviceHandlerProviderDP<?>> result = new ArrayList<DeviceHandlerProviderDP<?>>();
+		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
+			result.add(prov);
+		}
+		return result;
+	}
+	
+	@Override
 	public long getFrameworkTime() {
 		return appMan.getFrameworkTime();
 	}
