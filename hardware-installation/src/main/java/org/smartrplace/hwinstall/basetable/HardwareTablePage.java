@@ -44,7 +44,7 @@ import de.iwes.widgets.html.form.label.Label;
 /** Note that only the method getDevicesSelected is really implemented here*/
 public class HardwareTablePage implements InstalledAppsSelector { //extends DeviceTablePageFragment
 
-	public static final int MAX_DEVICE_PER_ALL = 20;
+	public static final int MAX_DEVICE_PER_ALL = 400;
 
 	//Overwrite to reduce columns
 	protected boolean showOnlyBaseColsHWT() {return false;}
