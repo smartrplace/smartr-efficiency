@@ -3,17 +3,25 @@ package org.ogema.tools.app.createuser;
 import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.model.user.NaturalPerson;
+import org.ogema.tools.app.useradmin.config.UserAdminData;
+import org.smartrplace.widget.extensions.GUIUtilHelper;
+
+import de.iwes.util.resource.ValueResourceHelper;
 
 public class UserBuilder {
 	private final ApplicationManager appMan;
 	//private final PermissionManager permissionManager;
+	private UserAdminData ownConfigData() {
+		return appMan.getResourceAccess().getResource("userAdminData");
+	}
 	
 	public UserBuilder(ApplicationManager appMan, PermissionManager permissionManager) {
 		this.appMan = appMan;
 		//this.permissionManager = permissionManager;
 	}
 	public UserBuilder(ApplicationManager appMan) {
-		this.appMan = appMan;
+		this(appMan, null);
 	}
 
 
@@ -44,17 +52,17 @@ public class UserBuilder {
 		return account;
 	}
 	
-	// using static policy instead; see ogema.policy
-	/*private void addBundlePermissionForUser(String userName, String bundleSymbolicName) {
-		//AppID appID = findAppIdForString(appIdString);
-		AppPermissionFilter props = new AppPermissionFilter(bundleSymbolicName, "*", "*",
-				Version.emptyVersion
-						.toString());
-						// appID.getOwnerUser(), appID.getOwnerGroup(), appID.getVersion() 
-		try {
-			permissionManager.getAccessManager().addPermission(userName, props);
-		} catch (Exception e) {
-			appMan.getLogger().error("Could not add permissions for user {}",userName,e);
-		}
-	}*/
+	public boolean enableEmailSending() {
+		return (ownConfigData() != null) && (ownConfigData().enableInviteMessagesForUserCreation().getValue() > 0);
+	}
+	
+	public void notifyEmailInvitationSentOut(String userName) {
+		NaturalPerson userData = getOrCreateNaturalUserData(userName, ownConfigData());
+		ValueResourceHelper.setCreate(userData.inviteSentOut(), true);		
+	}
+	
+    public static NaturalPerson getOrCreateNaturalUserData(String userName, UserAdminData ownConfigData) {
+    	NaturalPerson userRes = GUIUtilHelper.getOrCreateUserPropertyResource(userName, ownConfigData.userData()); 
+    	return userRes;
+    }
 }

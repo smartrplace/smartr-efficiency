@@ -26,6 +26,7 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.checkbox.Checkbox2;
 import de.iwes.widgets.html.form.checkbox.DefaultCheckboxEntry;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.object.widget.popup.ClosingPopup;
 import de.iwes.widgets.object.widget.popup.ClosingPopup.ClosingMode;
@@ -82,12 +83,26 @@ public class UserRegisterHelper {
 		};
 		textLoginName.registerDependentWidget(textPw);
         //final TextField textEmail = new TextField(page, "textEmail");
-        final Checkbox2 cbSendInvite = new Checkbox2(page, "cbInvite");
+        final Checkbox2 cbSendInvite = new Checkbox2(page, "cbInvite") {
+        	@Override
+        	public void onGET(OgemaHttpRequest req) {
+        		if(userBuilder.enableEmailSending())
+        			enable(req);
+        		else
+        			disable(req);
+        	}
+        };
         DefaultCheckboxEntry cbe = new DefaultCheckboxEntry("sendInvite", "", true);
         cbSendInvite.addDefaultEntry(cbe);
-        //final Checkbox2 cbRest = new Checkbox2(page, "cbRest");
-        //DefaultCheckboxEntry cberest = new DefaultCheckboxEntry("createRest", "", true);
-        //cbRest.addDefaultEntry(cberest);
+        Label inviteLabel = new Label(page, "inviteLabel") {
+        	@Override
+        	public void onGET(OgemaHttpRequest req) {
+        		if(userBuilder.enableEmailSending())
+        			setText("Send Invitation:", req);
+        		else
+        			setText("Send Invitation (disabled due to ongoing installation mode):", req);
+        	}
+        };
 		
         String loginNameTitle = requestUserNameAsEmail?"Email:":"Login name:";
         
@@ -113,7 +128,7 @@ public class UserRegisterHelper {
 		        }
 				dualTable.setContent(c, 0, "Password:").setContent(c, 1, textPw);
                 c++;
-                dualTable.setContent(c, 0, "Send Invitation:").setContent(c, 1, cbSendInvite);
+                dualTable.setContent(c, 0, inviteLabel).setContent(c, 1, cbSendInvite);
                 //c++;
                 //dualTable.setContent(c, 0, "Create mobile account:").setContent(c, 1, cbRest);
 				getPopupSnippet().append(dualTable, null);
@@ -132,21 +147,6 @@ public class UserRegisterHelper {
 						alert.showAlert("User name "+name+" could not be created, maybe already exists!", false, req);
 						return;
 					}
-					/*boolean hasEmail = isValidEmail(userName);
-					System.out.println("User to be created :"+userName+" (in onOK)");
-					UserAccount data = userBuilder.addUser(userName, textPw.getValue(req), false);
-					System.out.println("User account adUser finished :"+userName+" (in onOK)");
-					if(data == null) {
-						alert.showAlert("User name "+name+" could not be created, maybe already exists!", false, req);
-						return;
-					}
-					if(hasEmail)
-						data.getProperties().put(UserConstants.EMAIL, userName);
-                    data.getProperties().put(UserConstants.FORMATTED_NAME, textFullUserName.getValue(req));
-                    if (cbSendInvite.isChecked("sendInvite", req) && hasEmail) {
-                        data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
-                    }
-            		System.out.println("User account propertySetting finished :"+userName+" (in onOK)");*/
 
 					if(newUserHandler != null) newUserHandler.newUserCreated(data, name, req);
 					
@@ -201,7 +201,8 @@ public class UserRegisterHelper {
 		System.out.println("User account propertySetting finished :"+userName+" (in onOK)");
         if (sendEmailInvitation && hasEmail) {
             data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
-        }
+			userBuilder.notifyEmailInvitationSentOut(userName);
+       }
         if(createRestAccount) {
         	try {
         		String restUser = userName+"_rest";
