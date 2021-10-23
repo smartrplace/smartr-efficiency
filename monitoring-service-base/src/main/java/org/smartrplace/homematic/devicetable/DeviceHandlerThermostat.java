@@ -291,6 +291,9 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	@Override
 	public List<RoomInsideSimulationBase> startSimulationForDevice(InstallAppDevice device, Thermostat deviceResource,
 			SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		if(Boolean.getBoolean("org.smartrplace.homematic.devicetable.sim.extended.thermostat.SKIP"))
+			return Collections.emptyList();
+		
 		List<RoomInsideSimulationBase> result = new ArrayList<>();
 
 		//Return value is currently not used anyways
