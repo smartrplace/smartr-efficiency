@@ -15,7 +15,6 @@
  */
 package org.smartrplace.apps.hw.install;
 
-import java.nio.channels.IllegalSelectorException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,12 +62,12 @@ import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.autoconfig.api.InitialConfig;
+import org.smartrplace.device.export.csv.DeviceTableCSVExporter;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.logging.fendodb.FendoTimeSeries;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 
@@ -101,6 +100,8 @@ public class HardwareInstallController {
 	public ResourceList<DataLogTransferInfo> datalogs;
 	//WidgetApp widgetApp;
 	public volatile boolean cleanUpOnStartDone = false;
+	
+	public final DeviceTableCSVExporter csvExport;
 	
 	private final Map<String, DeviceTypeProvider<?>> deviceTypeProviders = new HashMap<>();
 	public Map<String, DeviceTypeProvider<?>> getDeviceTypeProviders() {
@@ -171,6 +172,7 @@ public class HardwareInstallController {
 		this.accessAdminConfigRes = appMan.getResourceAccess().getResource("accessAdminConfig");
 		initConfigurationResource();
 		this.hwTableData = new HardwareTableData(appMan);
+		this.csvExport = new DeviceTableCSVExporter(appConfigData.knownDevices());
 		
 		cleanupOnStart();
 		cleanUpOnStartDone = true;

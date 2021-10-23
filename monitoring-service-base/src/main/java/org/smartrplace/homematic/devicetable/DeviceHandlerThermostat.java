@@ -36,7 +36,6 @@ import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
-import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.DoorWindowSensor;
@@ -46,7 +45,6 @@ import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -107,8 +105,8 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			public Thermostat addWidgetsInternal(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				//if(!(object.device() instanceof Thermostat) && (req != null)) return null;
-				final Thermostat device;
-				if(req == null)
+				final Thermostat device = (Thermostat) addNameWidget(object, vh, id, req, row, appMan);
+				/*if(req == null)
 					device = ResourceHelper.getSampleResource(Thermostat.class);
 				else {
 					if(!(object.device() instanceof Thermostat)) {
@@ -123,7 +121,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 				} else
 					name = ResourceUtils.getHumanReadableShortName(device);
 				vh.stringLabel("Name", id, name, row);
-				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
+				vh.stringLabel("ID", id, object.deviceId().getValue(), row);*/
 				if(!config.showOnlyBaseCols()) {
 					Label setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
 					if(req != null) {

@@ -1,5 +1,6 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -27,10 +28,14 @@ import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.filedownload.FileDownload;
+import de.iwes.widgets.html.filedownload.FileDownloadData;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
@@ -103,6 +108,10 @@ public class MainPageExpert extends MainPage {
 			};
 			topTable.setContent(0, 4, updateDatapoints);
 		}
+		
+		//StaticTable bottomTable = new StaticTable(1, 4);
+		//bottomTable.setContent(0, 0, exportCSV);
+		//page.append(bottomTable);
 	}
 	
 	@Override
@@ -133,8 +142,31 @@ public class MainPageExpert extends MainPage {
 				(showMode==ShowModeHw.STANDARD)?"KnI/Gap Eval":"Locations",
 				isIndex?"/org/smartrplace/hardwareinstall/expert/mainExpert2.html":"/org/smartrplace/hardwareinstall/expert/index.html");
 
-		secondTable.setContent(0, 0, stdCharts).setContent(0, 1, homeScreen).setContent(0,  2, alarming).setContent(0,  3, alarmingExpert)
-				.setContent(0,  5, otherMainPageBut);
+		final FileDownload download;
+	    download = new FileDownload(page, "downloadcsv", appMan.getWebAccessManager(), true);
+	    download.triggerAction(download, TriggeringAction.GET_REQUEST, FileDownloadData.STARTDOWNLOAD);
+	    page.append(download);
+		Button exportCSV = new Button(page, "exportCSV", "Export CSV") {
+			/*@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				String fileStr = controller.csvExport.exportToFile();
+				if(fileStr != null)
+					alert.showAlert("Exported to "+fileStr, true, req);
+			}*/
+
+			@Override
+	    	public void onPrePOST(String data, OgemaHttpRequest req) {
+	    		download.setDeleteFileAfterDownload(true, req);
+				String fileStr = controller.csvExport.exportToFile();
+	    		File csvFile = new File(fileStr);
+				download.setFile(csvFile, "devices.csv", req);
+	    	}
+		};
+		exportCSV.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
+		exportCSV.triggerOnPOST(alert);
+		
+		secondTable.setContent(0, 0, stdCharts).setContent(0, 1, homeScreen).setContent(0, 2, alarming).setContent(0, 3, alarmingExpert)
+		.setContent(0, 4, exportCSV).setContent(0, 5, otherMainPageBut);
 		if(showMode == ShowModeHw.NETWORK) {
 			Label scanForIp = new Label(page, "scanForIp") {
 				@Override

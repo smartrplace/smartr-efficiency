@@ -32,6 +32,7 @@ import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.LocalDeviceId;
 import org.smartrplace.apps.hw.install.expert.plottest.ScheduleViewerTest;
 import org.smartrplace.apps.hw.install.gui.ScheduleViewerConfigProvHW;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
@@ -43,10 +44,12 @@ import org.smartrplace.util.virtualdevice.HmCentralManager;
 import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
@@ -239,7 +242,7 @@ public class ConfigurationPageHWInstall {
 				controller.dpService, controller.appMan, Arrays.asList(new Datapoint[] {dp}), schedViewProv);
 		
 		
-		StaticTable configTable = new StaticTable(20, 2);
+		StaticTable configTable = new StaticTable(21, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
@@ -282,6 +285,69 @@ public class ConfigurationPageHWInstall {
 			setContent(i, 1, gwIdLabel);
 			i++;
 		}
+		
+		Button manualDeviceIdBut = new Button(page, "manualDeviceIdBut") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				long status = app.appConfigData.deviceIdManipulationUntil().getValue();
+				if(status == 0)
+					setText("Enable for 1 hour", req);
+				else {
+					long now = app.appMan.getFrameworkTime();
+					if(status < now) {
+						app.appConfigData.deviceIdManipulationUntil().setValue(0);
+						setText("Enable for 1 hour", req);
+					} else
+						setText("Disable remaining "+StringFormatHelper.getFormattedFutureValue(app.appMan, status), req);
+				}
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				long status = app.appConfigData.deviceIdManipulationUntil().getValue();
+				if(status == 0)
+					ValueResourceHelper.setCreate(app.appConfigData.deviceIdManipulationUntil(),
+							app.appMan.getFrameworkTime()+TimeProcUtil.HOUR_MILLIS);
+				else
+					app.appConfigData.deviceIdManipulationUntil().setValue(0);
+			}
+		};
+		ButtonConfirm autoResetDeviceIds = new ButtonConfirm(page, "autoResetDeviceIds") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				boolean status = app.appConfigData.blockAutoResetOfDeviceIds().getValue();
+				if(status) {
+					setText("Auto-reset blocked", req);
+					disable(req);
+					return;
+				} else {
+					setText("Auto-reset", req);
+				}
+				long manUntil = app.appConfigData.deviceIdManipulationUntil().getValue();
+				if(manUntil == 0)
+					disable(req);
+				else {
+					long now = app.appMan.getFrameworkTime();
+					if(manUntil < now) {
+						manUntil = 0;
+						disable(req);
+					} else
+						enable(req);					
+				}
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				boolean status = app.appConfigData.blockAutoResetOfDeviceIds().getValue() ||
+						(app.appConfigData.deviceIdManipulationUntil().getValue()==0);
+				if(status)
+					return;
+				LocalDeviceId.resetDeviceIds(app.appConfigData.knownDevices().getAllElements(), app.dpService);
+				ValueResourceHelper.setCreate(app.appConfigData.blockAutoResetOfDeviceIds(), true);
+			}
+		};
+		autoResetDeviceIds.setDefaultConfirmMsg("!!! REALLY RESET ALL DEVICEIDs ?  Note that this must NEVER be done when the "
+				+ "hardware devices already have been labelled !!!");
+		
 		configTable.setContent(i, 0, "Local IP Address:").
 		setContent(i, 1, localIP);
 		i++;		
@@ -341,6 +407,8 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Maximum Setpoint writes per hour before limit:").setContent(i, 1, maxWritePerCCUperHourEdit);
 		i++;
 		configTable.setContent(i, 0, "Test Plot:").setContent(i, 1, testPlot);
+		i++;
+		configTable.setContent(i, 0, "Enable manual editing of deviceIds:").setContent(i, 1, manualDeviceIdBut).setContent(i, 1, autoResetDeviceIds);
 		i++;
 
 		page.append(configTable);
