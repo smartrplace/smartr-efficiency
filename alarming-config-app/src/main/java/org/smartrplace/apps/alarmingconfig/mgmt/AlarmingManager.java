@@ -1,6 +1,7 @@
 package org.smartrplace.apps.alarmingconfig.mgmt;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +49,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.gateway.device.VirtualTestDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
+import org.smartrplace.util.message.FirebaseUtil;
 import org.smartrplace.util.message.MessageImpl;
 
 import de.iwes.util.format.StringFormatHelper;
@@ -281,11 +283,13 @@ public class AlarmingManager implements AlarmingStartedService {
 				continue;
 			if(alarmStatus.getValue() > 1000)
 				vl.isNoValueAlarmActive = true;
-			else if(alarmStatus.getValue() > 0)
-				vl.isAlarmActive = true;
-			//This should only be done for persistent resources
-			else if(!Float.isNaN(currentValue)) {
-				vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
+			else {
+				if(alarmStatus.getValue() > 0)
+					vl.isAlarmActive = true;
+				//This should only be done for persistent resources
+				if(!Float.isNaN(currentValue)) {
+					vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
+				}
 			}
 		}
 	}
@@ -678,9 +682,21 @@ public class AlarmingManager implements AlarmingStartedService {
 		}
 		return result;
 	}
+	
+	long lastFirebaseMessage = -1;
+	String firebaseUser = System.getProperty("org.smartrplace.apps.alarmingconfig.mgmt.firebaseuser");
 	protected void sendMessageIntern(String title, String message, MessagePriority prio,
 			String appToUse) throws RejectedExecutionException, IllegalStateException {
 		long now = appManPlus.appMan().getFrameworkTime();
+		
+		if(firebaseUser != null && prio == MessagePriority.HIGH &&
+				(now - lastFirebaseMessage > 60*TimeProcUtil.MINUTE_MILLIS)) {
+			String titleEN = "MULTI-DEVICE ALARM";
+			FirebaseUtil.sendMessageToUsers(titleEN, title, null, null,
+				null, Arrays.asList(new String[] {firebaseUser}) , "All", appManPlus,
+					"Sending MULTI-DEVICE-ALARM with title:");
+			lastFirebaseMessage = now;
+		}
 		
 		SendMessageData sd = sendData(prio);
 		if((maxMessageBeforeBulk != null)&&(sd.numSingleMessage >= this.maxMessageBeforeBulk)) {
