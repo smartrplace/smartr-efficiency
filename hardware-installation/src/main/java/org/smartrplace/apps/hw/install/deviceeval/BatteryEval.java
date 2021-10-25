@@ -125,9 +125,15 @@ public class BatteryEval extends BatteryEvalBase3 {
 		
 		String baseUrl = ResourceHelper.getLocalGwInfo(appMan.appMan()).gatewayBaseUrl().getValue();
 		String mes = buildMessageHTML(emptyNum, warnNum, changeNum, unknownNum, dnRNum, sigstrengthNum,
-				unassignedNum, evalResults, dNRResults, sigStrengthResults, baseUrl, unknownNum);
+				unassignedNum, evalResults, dNRResults, sigStrengthResults, baseUrl, now);
+		String gwName = baseUrl;
+		if(gwName.startsWith("https://"))
+			gwName = gwName.substring("https://".length());
+		int idx = gwName.indexOf(".smartrplace.");
+		if(idx >= 0)
+			gwName = gwName.substring(0, idx);
 		
-		reallySendMessage("Weekly Battery Evaluation Report", mes, MessagePriority.MEDIUM, appMan);
+		reallySendMessage("Weekly Battery Evaluation Report "+gwName, mes, MessagePriority.MEDIUM, appMan);
 	}
 	
 	protected static String buildMessageHTML(int emptyNum, int warnNum, int changeNum, int unknownNum,

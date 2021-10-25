@@ -1,11 +1,15 @@
 package org.smartrplace.external.accessadmin.gui;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.RoomEditHelper;
+import org.ogema.accessadmin.api.util.UserPermissionUtil;
+import org.ogema.apps.roomlink.NewRoomPopupBuilder.RoomCreationListern;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.model.locations.BuildingPropertyUnit;
@@ -13,6 +17,8 @@ import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
+import org.smartrplace.external.accessadmin.config.AccessConfigBase;
+import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
@@ -30,6 +36,7 @@ import de.iwes.widgets.html.form.button.RedirectButton;
 
 public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPropertyUnit, Room> {
 	public final static Map<String, String> valuesToSet = new HashMap<>();
+	public static final String ALL_ROOMS_GROUP_NAME = "All Rooms";
 	static {
 		int[] ks = RoomHelper.getRoomTypeKeys();
 		for(int type: ks) {
@@ -86,7 +93,13 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		topTable.setContent(0, 1, "").setContent(0,  2, roomFilter);
 		if(!Boolean.getBoolean("org.smartrplace.external.accessadmin.gui.suppresscreateroom")) {
 			RoomEditHelper.addButtonsToStaticTable(topTable, (WidgetPage<RoomLinkDictionary>) page,
-					alert, appMan, 0, 2);
+					alert, appMan, 0, 2, new RoomCreationListern() {
+						
+				@Override
+				public void roomCreated(Room room) {
+					initRoom(room);
+				}
+			});
 			RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
 					"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 			topTable.setContent(0, 4, calendarConfigButton);
@@ -156,6 +169,10 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 
 	@Override
 	protected void setGroups(Room object, List<BuildingPropertyUnit> groups, OgemaHttpRequest req) {
+		setGroups(object, groups);
+	}
+
+	protected void setGroups(Room object, List<BuildingPropertyUnit> groups) {
 		for(BuildingPropertyUnit bu: groups) {
 			ResourceListHelper.addReferenceUnique(bu.rooms(), object);
 		}
@@ -165,5 +182,34 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 			ResourceListHelper.removeReferenceOrObject(bu.rooms(), object);
 		}
 	}
-
+	
+	protected void initRoom(Room object) {
+		BuildingPropertyUnit allRoomsGroup = null;
+		for(BuildingPropertyUnit g: controller.getGroups(object)) {
+			if(ResourceUtils.getHumanReadableShortName(object).equals(ALL_ROOMS_GROUP_NAME)) {
+				allRoomsGroup = g;
+				break;
+			}
+		}
+		if(allRoomsGroup == null) {
+			//create
+			allRoomsGroup = ResourceListHelper.createNewNamedElement(
+					controller.appConfigData.roomGroups(),
+					ALL_ROOMS_GROUP_NAME, false);
+			allRoomsGroup.activate(true);
+			for(AccessConfigUser userPerm: controller.appConfigData.userPermissions().getAllElements()) {
+				if(userPerm.isGroup().getValue() != 2)
+					continue;
+				switch(userPerm.name().getValue()) {
+				case "User Standard":
+				case "Secretary":
+				case "Facility Manager":
+				case "Master Administrator":
+					AccessConfigBase configRes = userPerm.roompermissionData();
+					UserPermissionUtil.addPermission(allRoomsGroup.getLocation(), UserPermissionService.USER_ROOM_PERM, configRes);
+				}
+			}
+		}
+		setGroups(object, Arrays.asList(new BuildingPropertyUnit[] {allRoomsGroup}));
+	}
 }

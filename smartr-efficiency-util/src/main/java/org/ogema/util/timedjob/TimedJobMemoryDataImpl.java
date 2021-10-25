@@ -203,6 +203,7 @@ if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from
 		@Override
 		public void resourceChanged(IntegerResource resource) {
 			try {
+				res.triggerTimedJobStartsWithoutDelay().removeValueListener(myThreadForRunningDirect);
 				asapExecution();
 	        } catch(Exception e) {
 	            e.printStackTrace();

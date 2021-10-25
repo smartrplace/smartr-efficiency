@@ -619,22 +619,42 @@ public class StandardEvalAccess {
 		PhysicalElement device = iad.device().getLocationResource();
 		SingleValueResource destRes = getVirtualDeviceResource(type, device);
 		return addVirtualDatapoint(destRes, dp, false, registerRemoteScheduleViaHeartbeat, 
-				null, dpService, result);
+				null, null, dpService, result);
+	}
+	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
+			 Long minimumWriteIntervalForMaxValue,
+			 DatapointService dpService,
+			List<Datapoint> result) {
+		return addVirtualDatapoint(destRes, evalDp, false, false, null, minimumWriteIntervalForMaxValue, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			DatapointService dpService,
 			List<Datapoint> result) {
-		return addVirtualDatapoint(destRes, evalDp, false, false, null, dpService, result);
+		return addVirtualDatapoint(destRes, evalDp, false, false, null, null, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			boolean registerRemoteScheduleViaHeartbeat,
 			DatapointService dpService,
 			List<Datapoint> result) {
-		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, dpService, result);
+		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, null, dpService, result);
 	}
+	/**
+	 * 
+	 * @param destRes
+	 * @param evalDp
+	 * @param registerGovernedSchedule
+	 * @param registerRemoteScheduleViaHeartbeat
+	 * @param absoluteTiming
+	 * @param minimumWriteIntervalForMaxValue if not null then the maximum value during each unaligned period is
+	 * 		written instead of aligned writing. This is especially useful for
+	 * 		virtual datapoints with a long absoluteTiming that are used for alarming
+	 * @param dpService
+	 * @param result
+	 * @return
+	 */
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			boolean registerGovernedSchedule, boolean registerRemoteScheduleViaHeartbeat,
-			Integer absoluteTiming,
+			Integer absoluteTiming, Long minimumWriteIntervalForMaxValue,
 			DatapointService dpService,
 			List<Datapoint> result) {
 	
@@ -674,6 +694,8 @@ public class StandardEvalAccess {
 			return resourceDp;
 		final Integer absoluteTimingFinal = absoluteTiming;
 		TimeseriesUpdateListener listener = new TimeseriesUpdateListener() {
+			long lastWriteTime = -1;
+			Float maxValue = null;
 			
 			@Override
 			public void updated(List<SampledValue> newVals) {
@@ -686,6 +708,20 @@ public class StandardEvalAccess {
 				
 				long lastWritten = destRes.getLastUpdateTime();
 
+				if(minimumWriteIntervalForMaxValue != null) {
+					if((nowReal - lastWriteTime) > minimumWriteIntervalForMaxValue) {
+						lastWriteTime = nowReal;
+						if(maxValue != null) {
+							performWrite(maxValue);
+							maxValue = null;
+						}
+					} else if(!newVals.isEmpty()) {
+						float val = newVals.get(newVals.size()-1).getValue().getFloatValue();
+						if(maxValue == null || (Math.abs(val) > Math.abs(maxValue)))
+							maxValue = val;
+					}
+					return;
+				}
 				//If we have already written once during the current interval then we do not have
 				//to write again
 				if(lastWritten > nowItvStart)
@@ -696,8 +732,10 @@ public class StandardEvalAccess {
 				lastSv = accTs.getPreviousValue(nowItvStart);
 				if(lastSv == null)
 					return;
-
-				float value = lastSv.getValue().getFloatValue();
+				performWrite(lastSv.getValue().getFloatValue());
+			}
+			
+			protected void performWrite(float value) {
 				if(Float.isNaN(value))
 					return;
 				if(destRes instanceof FloatResource)
@@ -705,7 +743,7 @@ public class StandardEvalAccess {
 				else if(destRes instanceof IntegerResource)
 					ValueResourceHelper.setCreate(((IntegerResource)destRes), (int)value);
 				else if(destRes instanceof BooleanResource)
-					ValueResourceHelper.setCreate(((BooleanResource)destRes), value>0.5f);
+					ValueResourceHelper.setCreate(((BooleanResource)destRes), value>0.5f);				
 			}
 		};
 		((ProcessedReadOnlyTimeSeries3)evalDp.getTimeSeries()).listener = listener;
@@ -744,7 +782,7 @@ public class StandardEvalAccess {
 			}
 		}
 		addVirtualDatapoint(null, dp, false, registerRemoteScheduleViaHeartbeat, 
-				null, dpService, result);
+				null, null, dpService, result);
 		return dp;
 	}
 

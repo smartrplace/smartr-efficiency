@@ -1,6 +1,7 @@
 package org.ogema.accessadmin.api.util;
 
 import org.ogema.apps.roomlink.NewRoomPopupBuilder;
+import org.ogema.apps.roomlink.NewRoomPopupBuilder.RoomCreationListern;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary_de;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary_en;
@@ -18,7 +19,7 @@ import de.iwes.widgets.html.popup.Popup;
 
 public class RoomEditHelper {
 	public static void addButtonsToStaticTable(StaticTable stable, final WidgetPage<RoomLinkDictionary> widgetPage, Alert alert,
-			ApplicationManager appManager, int tableRow, int firstCol) {
+			ApplicationManager appManager, int tableRow, int firstCol, RoomCreationListern listener) {
         /*Popup editRoomPopup = new Popup(widgetPage, "editRoomPopup", true);
         final Dropdown roomSelector = EditRoomPopupBuilder.addWidgets(widgetPage, editRoomPopup, alert, null, appManager);
         Button editRoomPopupTrigger =new Button(widgetPage, "editRoomPopupTrigger") {
@@ -39,10 +40,10 @@ public class RoomEditHelper {
         editRoomPopupTrigger.triggerAction(editRoomPopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);
         */
         Popup newRoomPopup = new Popup(widgetPage, "newRoomPopup", true);
-        Button createBtn = NewRoomPopupBuilder.addWidgets(widgetPage, newRoomPopup, alert, appManager, false);
+        Button createBtn = NewRoomPopupBuilder.addWidgets(widgetPage, newRoomPopup, alert, appManager, false, listener);
         //createBtn.triggerAction(ddAssign, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
         createBtn.triggerAction(newRoomPopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
-        Button newRoomPopupTrigger =new Button(widgetPage, "newRoomPopupTrigger") {
+        Button newRoomPopupTrigger = new Button(widgetPage, "newRoomPopupTrigger") {
 
 			private static final long serialVersionUID = 1L;
 
