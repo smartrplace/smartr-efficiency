@@ -45,12 +45,15 @@ import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.widgets.api.extended.util.UserLocaleUtil;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
@@ -60,12 +63,13 @@ import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
 import de.iwes.widgets.resource.widget.textfield.TimeResourceTextField;
 import de.iwes.widgets.resource.widget.textfield.TimeResourceTextField.Interval;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
+import de.iwes.widgets.template.DefaultDisplayTemplate;
 
+@SuppressWarnings("serial")
 public class ConfigurationPageHWInstall {
 	//private final WidgetPage<?> page;
 	private final HardwareInstallController controller;
 
-	@SuppressWarnings("serial")
 	public ConfigurationPageHWInstall(final WidgetPage<?> page, final HardwareInstallController app) {
 		
 		//this.page = page;
@@ -79,6 +83,33 @@ public class ConfigurationPageHWInstall {
 		
 		final Alert alert = new Alert(page, "alert", "");
 		page.append(alert);
+		
+		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan);
+		TemplateDropdown<OgemaLocale> languageDrop = new TemplateDropdown<OgemaLocale>(page,
+				"languageDrop") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String sel = gwInfo.systemLocale().getValue();
+				if(sel == null || sel.isEmpty())
+					sel = "de"; //TODO
+				OgemaLocale l = OgemaLocale.getLocale(sel);
+				selectItem(l, req);
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				OgemaLocale l = OgemaLocale.getLocale(getSelectedValue(req));
+				if (l == null) return;
+				ValueResourceHelper.setCreate(gwInfo.systemLocale(), l.getLanguage());
+				UserLocaleUtil.setSystemDefaultLocale(l.getLanguage());
+			}
+		};
+		languageDrop.setTemplate(new DefaultDisplayTemplate<OgemaLocale>() {
+			@Override
+			public String getLabel(OgemaLocale object, OgemaLocale locale) {
+				return object.getLocale().getDisplayLanguage();
+			}
+		});
+		languageDrop.setDefaultItems(OgemaLocale.getAllLocales());
 		
 		ValueResourceDropdown<IntegerResource> loggingAutoActivation = new ValueResourceDropdown<IntegerResource>(page, "loggingAutoMode",
 				app.appConfigData.autoLoggingActivation(), Arrays.asList(new String[] {"do not activate logging automatically",
@@ -242,8 +273,11 @@ public class ConfigurationPageHWInstall {
 				controller.dpService, controller.appMan, Arrays.asList(new Datapoint[] {dp}), schedViewProv);
 		
 		
-		StaticTable configTable = new StaticTable(21, 2);
+		StaticTable configTable = new StaticTable(22, 2);
 		int i = 0;
+		configTable.setContent(i, 0, "System default language").
+		setContent(i, 1, languageDrop);
+		i++;
 		configTable.setContent(i, 0, "Auto-logging activation for new and existing devices").
 		setContent(i, 1, loggingAutoActivation);
 		i++;
@@ -264,7 +298,6 @@ public class ConfigurationPageHWInstall {
 		setContent(i, 1, bulkIntervalEdit);
 		i++;
 		
-		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan.getResourceAccess());
 		if(gwInfo != null) {
 			StringResource baseUrlRes = gwInfo.gatewayBaseUrl();
 			ResourceTextField<StringResource> baseUrl = new ValueResourceTextField<StringResource>(page,

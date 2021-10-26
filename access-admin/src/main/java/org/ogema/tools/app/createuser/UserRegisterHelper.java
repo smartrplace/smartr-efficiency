@@ -15,6 +15,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 
+import de.iwes.widgets.api.extended.util.UserLocaleUtil;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -196,9 +197,10 @@ public class UserRegisterHelper {
 		}
 		if(hasEmail)
 			data.getProperties().put(UserConstants.EMAIL, userName);
+		UserLocaleUtil.setLocaleString(userName, UserLocaleUtil.getSystemDefaultLocaleString(), userBuilder.appMan);
         if(realName != null)
         	data.getProperties().put(UserConstants.FORMATTED_NAME, realName);
-		System.out.println("User account propertySetting finished :"+userName+" (in onOK)");
+        System.out.println("User account propertySetting finished :"+userName+" (in onOK)");
         if (sendEmailInvitation && hasEmail) {
             data.getProperties().put(UserConstants.SEND_INVITATION_BY_EMAIL, "true");
 			userBuilder.notifyEmailInvitationSentOut(userName);

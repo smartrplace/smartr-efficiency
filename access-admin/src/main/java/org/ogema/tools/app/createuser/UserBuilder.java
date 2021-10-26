@@ -10,7 +10,7 @@ import org.smartrplace.widget.extensions.GUIUtilHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 
 public class UserBuilder {
-	private final ApplicationManager appMan;
+	final ApplicationManager appMan;
 	//private final PermissionManager permissionManager;
 	private UserAdminData ownConfigData() {
 		return appMan.getResourceAccess().getResource("userAdminData");

@@ -68,7 +68,9 @@ import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.logging.fendodb.FendoTimeSeries;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.widgets.api.extended.util.UserLocaleUtil;
 import de.iwes.widgets.api.widgets.WidgetPage;
 
 // here the controller logic is implemented
@@ -170,6 +172,12 @@ public class HardwareInstallController {
 		this.appManPlus.setGuiService(hardwareInstallApp.guiService);
 		
 		this.accessAdminConfigRes = appMan.getResourceAccess().getResource("accessAdminConfig");
+		
+		//first step init
+		String localeString = ResourceHelper.getLocalGwInfo(appMan).systemLocale().getValue();
+		if(localeString == null || localeString.isEmpty())
+			localeString = "de"; //TODO
+		UserLocaleUtil.setSystemDefaultLocale(localeString);
 		initConfigurationResource();
 		this.hwTableData = new HardwareTableData(appMan);
 		this.csvExport = new DeviceTableCSVExporter(appConfigData.knownDevices());
