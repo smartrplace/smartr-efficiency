@@ -219,10 +219,9 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 	@Override
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			Thermostat deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
-		HmCentralManager.getInstance(appMan).registerSensor(deviceResource.temperatureSensor().settings().setpoint());
-		return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);
+		return DeviceHandlerThermostat.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService, appMan);
 	}
-	
+
 	@Override
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "WT";

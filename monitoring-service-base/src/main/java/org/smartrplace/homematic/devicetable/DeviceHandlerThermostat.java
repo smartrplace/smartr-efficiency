@@ -259,6 +259,11 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	@Override
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			Thermostat deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
+		return startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService, appMan);
+	}
+	public static List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
+			Thermostat deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService,
+			ApplicationManagerPlus appMan) {
 
 		HmCentralManager hmMan = HmCentralManager.getInstance(appMan);
 		hmMan.registerSensor(deviceResource.temperatureSensor().settings().setpoint());
