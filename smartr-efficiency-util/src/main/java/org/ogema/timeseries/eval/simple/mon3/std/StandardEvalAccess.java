@@ -709,16 +709,17 @@ public class StandardEvalAccess {
 				long lastWritten = destRes.getLastUpdateTime();
 
 				if(minimumWriteIntervalForMaxValue != null) {
+					if(!newVals.isEmpty()) {
+						float val = newVals.get(newVals.size()-1).getValue().getFloatValue();
+						if(maxValue == null || (Math.abs(val) > Math.abs(maxValue)))
+							maxValue = val;
+					}
 					if((nowReal - lastWriteTime) > minimumWriteIntervalForMaxValue) {
 						lastWriteTime = nowReal;
 						if(maxValue != null) {
 							performWrite(maxValue);
 							maxValue = null;
 						}
-					} else if(!newVals.isEmpty()) {
-						float val = newVals.get(newVals.size()-1).getValue().getFloatValue();
-						if(maxValue == null || (Math.abs(val) > Math.abs(maxValue)))
-							maxValue = val;
 					}
 					return;
 				}
