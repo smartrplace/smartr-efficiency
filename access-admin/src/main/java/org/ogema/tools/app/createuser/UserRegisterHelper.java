@@ -141,7 +141,7 @@ public class UserRegisterHelper {
 					String userName = textLoginName.getValue(req);
 					String name = textFullUserName.getValue(req);
 					String password = textPw.getValue(req);
-					UserAccount data = createAccount(userName, loginNameTitle, password, userBuilder,
+					UserAccount data = createAccount(userName, name, password, userBuilder,
 							cbSendInvite.isChecked("sendInvite", req), false);
 							//cbRest.isChecked("createRest", req));
 					if(data == null) {
