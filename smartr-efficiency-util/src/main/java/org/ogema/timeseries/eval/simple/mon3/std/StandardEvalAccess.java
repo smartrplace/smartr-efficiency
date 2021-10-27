@@ -37,6 +37,7 @@ import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
@@ -693,6 +694,8 @@ public class StandardEvalAccess {
 		if(!(accTs instanceof ProcessedReadOnlyTimeSeries3))
 			return resourceDp;
 		final Integer absoluteTimingFinal = absoluteTiming;
+if(Boolean.getBoolean("debugsetpreact"))
+System.out.println("addVirtualDatapoint Timer"+" mWiFMv:"+minimumWriteIntervalForMaxValue+" destRes:"+destRes.getLocation());
 		TimeseriesUpdateListener listener = new TimeseriesUpdateListener() {
 			long lastWriteTime = -1;
 			Float maxValue = null;
@@ -709,11 +712,15 @@ public class StandardEvalAccess {
 				long lastWritten = destRes.getLastUpdateTime();
 
 				if(minimumWriteIntervalForMaxValue != null) {
+if(Boolean.getBoolean("debugsetpreact"))
+System.out.println("SETPREACT: Updated:"+destRes.getLocation()+" mWiFMv:"+minimumWriteIntervalForMaxValue+" newVals#"+newVals.size());
 					if(!newVals.isEmpty()) {
 						float val = newVals.get(newVals.size()-1).getValue().getFloatValue();
 						if(maxValue == null || (Math.abs(val) > Math.abs(maxValue)))
 							maxValue = val;
 					}
+if(Boolean.getBoolean("debugsetpreact") && (maxValue != null)) System.out.println("SETPREACT: maxValue after:"+maxValue+" write:"+((nowReal - lastWriteTime) > minimumWriteIntervalForMaxValue)+
+		" last:"+StringFormatHelper.getTimeDateInLocalTimeZone(lastWriteTime));
 					if((nowReal - lastWriteTime) > minimumWriteIntervalForMaxValue) {
 						lastWriteTime = nowReal;
 						if(maxValue != null) {
