@@ -620,24 +620,25 @@ public class StandardEvalAccess {
 		PhysicalElement device = iad.device().getLocationResource();
 		SingleValueResource destRes = getVirtualDeviceResource(type, device);
 		return addVirtualDatapoint(destRes, dp, false, registerRemoteScheduleViaHeartbeat, 
-				null, null, dpService, result);
+				null, null, false, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
-			 Long minimumWriteIntervalForMaxValue,
+			 Long minimumWriteIntervalForMaxValue, boolean writeZeroForNoValue,
 			 DatapointService dpService,
 			List<Datapoint> result) {
-		return addVirtualDatapoint(destRes, evalDp, false, false, null, minimumWriteIntervalForMaxValue, dpService, result);
+		return addVirtualDatapoint(destRes, evalDp, false, false, null,
+				minimumWriteIntervalForMaxValue, writeZeroForNoValue, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			DatapointService dpService,
 			List<Datapoint> result) {
-		return addVirtualDatapoint(destRes, evalDp, false, false, null, null, dpService, result);
+		return addVirtualDatapoint(destRes, evalDp, false, false, null, null, false, dpService, result);
 	}
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			boolean registerRemoteScheduleViaHeartbeat,
 			DatapointService dpService,
 			List<Datapoint> result) {
-		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, null, dpService, result);
+		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, null, false, dpService, result);
 	}
 	/**
 	 * 
@@ -649,13 +650,17 @@ public class StandardEvalAccess {
 	 * @param minimumWriteIntervalForMaxValue if not null then the maximum value during each unaligned period is
 	 * 		written instead of aligned writing. This is especially useful for
 	 * 		virtual datapoints with a long absoluteTiming that are used for alarming
+	 * @param writeZeroForNoValue only relevant if minimumWriteIntervalForMaxValue is set. If no new values are
+	 * 		found then only zero values are written to really maintain the interval if this is true. The real
+	 * 		interval also depends on the evaluation period. Writing cannot be performed more often than the
+	 * 		evaluation period (minIntervalForReCalc)
 	 * @param dpService
 	 * @param result
 	 * @return
 	 */
 	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
 			boolean registerGovernedSchedule, boolean registerRemoteScheduleViaHeartbeat,
-			Integer absoluteTiming, Long minimumWriteIntervalForMaxValue,
+			Integer absoluteTiming, Long minimumWriteIntervalForMaxValue, final boolean writeZeroForNoValue,
 			DatapointService dpService,
 			List<Datapoint> result) {
 	
@@ -718,7 +723,8 @@ System.out.println("SETPREACT: Updated:"+destRes.getLocation()+" mWiFMv:"+minimu
 						float val = newVals.get(newVals.size()-1).getValue().getFloatValue();
 						if(maxValue == null || (Math.abs(val) > Math.abs(maxValue)))
 							maxValue = val;
-					}
+					} else if(maxValue == null || writeZeroForNoValue)
+						maxValue = 0f;
 if(Boolean.getBoolean("debugsetpreact") && (maxValue != null)) System.out.println("SETPREACT: maxValue after:"+maxValue+" write:"+((nowReal - lastWriteTime) > minimumWriteIntervalForMaxValue)+
 		" last:"+StringFormatHelper.getTimeDateInLocalTimeZone(lastWriteTime));
 					if((nowReal - lastWriteTime) > minimumWriteIntervalForMaxValue) {
@@ -790,7 +796,7 @@ if(Boolean.getBoolean("debugsetpreact") && (maxValue != null)) System.out.printl
 			}
 		}
 		addVirtualDatapoint(null, dp, false, registerRemoteScheduleViaHeartbeat, 
-				null, null, dpService, result);
+				null, null, false, dpService, result);
 		return dp;
 	}
 

@@ -239,7 +239,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		Datapoint evalDp = StandardEvalAccess.getDeviceBaseEvalForInit(iad,
 				StandardDeviceEval.SETP_REACT, dpService, resAcc, (DeviceHandlerProviderDP)devHand);
 		Datapoint dpRes = StandardEvalAccess.addVirtualDatapoint(setpReactRes,
-				evalDp, TimeProcUtil.HOUR_MILLIS, dpService, result);
+				evalDp, TimeProcUtil.HOUR_MILLIS, true, dpService, result);
 		dpRes.addToSubRoomLocationAtomic(null, null, "-setpreact", false);
 	}	
 	public static FloatResource getSetpReactRes(Thermostat device) {
