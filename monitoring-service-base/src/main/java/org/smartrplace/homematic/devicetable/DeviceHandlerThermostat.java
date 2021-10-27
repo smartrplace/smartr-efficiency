@@ -32,6 +32,7 @@ import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.api.PropertyService;
 import org.ogema.devicefinder.util.BatteryEvalBase;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
@@ -233,14 +234,20 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 	}
 	public static void addSetpReactDp(Datapoint dpRef, InstallAppDevice iad, Thermostat device,
 			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,
-			DeviceHandlerProviderDP<Thermostat> devHand) {
+			DeviceHandlerSimple<Thermostat> devHand) {
 		FloatResource setpReactRes = getSetpReactRes(device);
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		Datapoint evalDp = StandardEvalAccess.getDeviceBaseEvalForInit(iad,
-				StandardDeviceEval.SETP_REACT, dpService, resAcc, (DeviceHandlerProviderDP)devHand);
+		//Datapoint evalDp = StandardEvalAccess.getDeviceBaseEvalForInit(iad,
+		//		StandardDeviceEval.SETP_REACT, dpService, resAcc, (DeviceHandlerProviderDP)devHand);
+		//result.add(evalDp);
+		String refLabel = dpRef.label(null);
+		String gradLabel = refLabel.replace("Temperature measured at thermostat","SetpReactEval");
+		Datapoint evalDp = StandardEvalAccess.addMemoryDatapointForInit(iad,
+				StandardDeviceEval.SETP_REACT, dpService, resAcc, false, false, gradLabel, result, (DeviceHandlerProviderDP)devHand);
 		Datapoint dpRes = StandardEvalAccess.addVirtualDatapoint(setpReactRes,
 				evalDp, TimeProcUtil.HOUR_MILLIS, true, dpService, result);
 		dpRes.addToSubRoomLocationAtomic(null, null, "-setpreact", false);
+		//devHand.addDatapoint(setpReactRes, result);	
 	}	
 	public static FloatResource getSetpReactRes(Thermostat device) {
 		return device.getSubResource("setpreact", GenericFloatSensor.class).reading();

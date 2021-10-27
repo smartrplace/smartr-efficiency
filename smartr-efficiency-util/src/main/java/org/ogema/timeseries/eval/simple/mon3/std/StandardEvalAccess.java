@@ -24,6 +24,7 @@ import org.ogema.devicefinder.util.BatteryEvalBase.BatteryStatusPlus;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeseriesUpdateListener;
@@ -653,7 +654,8 @@ public class StandardEvalAccess {
 	 * @param writeZeroForNoValue only relevant if minimumWriteIntervalForMaxValue is set. If no new values are
 	 * 		found then only zero values are written to really maintain the interval if this is true. The real
 	 * 		interval also depends on the evaluation period. Writing cannot be performed more often than the
-	 * 		evaluation period (minIntervalForReCalc)
+	 * 		evaluation period (minIntervalForReCalc). In this case the input datapoint is NOT used as timeseries,
+	 * 		but the values shall be logged by slotsDB
 	 * @param dpService
 	 * @param result
 	 * @return
@@ -685,7 +687,10 @@ public class StandardEvalAccess {
 		
 		ReadOnlyTimeSeries accTs = evalDp.getTimeSeries();
 		Datapoint resourceDp = dpService.getDataPointStandard(destRes);
-		resourceDp.setTimeSeries(accTs);
+		if(result != null)
+			result.add(resourceDp);
+		if(!writeZeroForNoValue)
+			resourceDp.setTimeSeries(accTs);
 		logger.trace("   Starting VirtualDatapoint for:"+destRes.getLocation()+ " DP size:"+accTs.size());
 		if(registerRemoteScheduleViaHeartbeat) {
 			ViaHeartbeatSchedules schedProv = ViaHeartbeatSchedules.registerDatapointForHeartbeatDp2Schedule(
@@ -719,8 +724,14 @@ System.out.println("addVirtualDatapoint Timer"+" mWiFMv:"+minimumWriteIntervalFo
 				if(minimumWriteIntervalForMaxValue != null) {
 if(Boolean.getBoolean("debugsetpreact"))
 System.out.println("SETPREACT: Updated:"+destRes.getLocation()+" mWiFMv:"+minimumWriteIntervalForMaxValue+" newVals#"+newVals.size());
+					SampledValue svLast = null;
 					if(!newVals.isEmpty()) {
-						float val = newVals.get(newVals.size()-1).getValue().getFloatValue();
+						svLast = newVals.get(newVals.size()-1);
+						if(nowReal - svLast.getTimestamp() > (3*minimumWriteIntervalForMaxValue))
+							svLast = null;
+					}
+					if(svLast != null) {
+						float val = svLast.getValue().getFloatValue();
 						if(maxValue == null || (Math.abs(val) > Math.abs(maxValue)))
 							maxValue = val;
 					} else if(maxValue == null || writeZeroForNoValue)
@@ -761,8 +772,6 @@ if(Boolean.getBoolean("debugsetpreact") && (maxValue != null)) System.out.printl
 			}
 		};
 		((ProcessedReadOnlyTimeSeries3)evalDp.getTimeSeries()).listener = listener;
-		if(result != null)
-			result.add(resourceDp);
 		return resourceDp;
 	}
 	
@@ -790,13 +799,22 @@ if(Boolean.getBoolean("debugsetpreact") && (maxValue != null)) System.out.printl
 			SingleValueResource destRes = getVirtualDeviceResource(type, device);
 			if(destRes.exists())
 				destRes.delete();
-			if(dpLabel != null) {
-				dp.setLabelDefault(dpLabel);
-				dp.setLabel(dpLabel, null);
-			}
 		}
-		addVirtualDatapoint(null, dp, false, registerRemoteScheduleViaHeartbeat, 
-				null, null, false, dpService, result);
+		if(dpLabel != null) {
+			dp.setLabelDefault(dpLabel);
+			dp.setLabel(dpLabel, null);
+		}
+		if(result != null)
+			result.add(dp);
+		if(registerRemoteScheduleViaHeartbeat) {
+			Integer absoluteTiming = null;
+			if(dp.getTimeSeries() != null && (dp.getTimeSeries() instanceof ProcessedReadOnlyTimeSeries))
+				absoluteTiming = ((ProcessedReadOnlyTimeSeries)dp.getTimeSeries()).absoluteTiming();
+			ViaHeartbeatSchedules.registerDatapointForHeartbeatDp2Schedule(
+					dp, null, absoluteTiming);
+		}
+		//addVirtualDatapoint(null, dp, false, registerRemoteScheduleViaHeartbeat, 
+		//		null, null, false, dpService, result);
 		return dp;
 	}
 
