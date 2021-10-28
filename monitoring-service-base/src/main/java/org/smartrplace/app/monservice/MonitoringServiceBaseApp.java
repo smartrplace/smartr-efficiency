@@ -49,6 +49,7 @@ import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.homematic.devicetable.CO2SensorHmHandler;
 import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
 import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
+import org.smartrplace.homematic.devicetable.MotionSensorHandler;
 import org.smartrplace.homematic.devicetable.OnOffSwitch_DeviceHandler;
 import org.smartrplace.homematic.devicetable.SmokeDetector_DeviceHandler;
 import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
@@ -195,6 +196,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srOpenWeather = null;
 	private OpenWeatherMapBigBlueRoom_DeviceHandler devHandOpenWeather;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srMotion = null;
+	private MotionSensorHandler devHandMotion;
 	
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srPv = null;
@@ -315,6 +319,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srWeather = bc.registerService(DeviceHandlerProvider.class, devHandWeather, null);
 	   devHandOpenWeather = new OpenWeatherMapBigBlueRoom_DeviceHandler(controller.appManPlus);
 	   srOpenWeather = bc.registerService(DeviceHandlerProvider.class, devHandOpenWeather, null);
+	   devHandMotion = new MotionSensorHandler(controller.appManPlus);
+	   srMotion = bc.registerService(DeviceHandlerProvider.class, devHandMotion, null);
 	   
 	   devHandPv = new DeviceHandler_PVPlant(controller.appManPlus);
 	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
@@ -398,6 +404,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srSmoke != null) srSmoke.unregister();
     	if (srWeather != null) srWeather.unregister();
     	if (srOpenWeather != null) srOpenWeather.unregister();
+       	if (srMotion != null) srMotion.unregister();
     	
     	if (jmbusDriver != null) jmbusDriver.unregister();
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();

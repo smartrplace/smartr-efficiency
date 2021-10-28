@@ -51,6 +51,8 @@ public class WeatherStation_DeviceHandler extends DeviceHandlerSimple<SensorDevi
 		addDatapoint(device.sensors().getSubResource("TEMPERATURE", TemperatureSensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("WIND_DIRECTION", AngleSensor.class).reading(), result);
 		addDatapoint(device.sensors().getSubResource("WIND_SPEED", VelocitySensor.class).reading(), result);
+
+		addtStatusDatapointsHomematic(device, dpService, result);
 		return result;
 	}
 
