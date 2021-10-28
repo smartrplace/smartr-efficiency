@@ -727,7 +727,8 @@ System.out.println("SETPREACT: Updated:"+destRes.getLocation()+" mWiFMv:"+minimu
 					SampledValue svLast = null;
 					if(!newVals.isEmpty()) {
 						svLast = newVals.get(newVals.size()-1);
-						if(nowReal - svLast.getTimestamp() > (3*minimumWriteIntervalForMaxValue))
+						if(nowReal - svLast.getTimestamp() - (svLast.getValue().getFloatValue()*TimeProcUtil.MINUTE_MILLIS) > 
+								(3*minimumWriteIntervalForMaxValue))
 							svLast = null;
 					}
 					if(svLast != null) {
