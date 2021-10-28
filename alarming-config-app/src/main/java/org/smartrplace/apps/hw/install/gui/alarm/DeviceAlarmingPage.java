@@ -163,7 +163,10 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 							setText("is Template", req);
 							disable(req);
 						} else {
-							setText("Select as Template", req);
+							if(DeviceTableRaw.isTemplate(object, null))
+								setText("Select as Template (**)", req);
+							else
+								setText("Select as Template", req);
 							enable(req);							
 						}
 					}
@@ -181,42 +184,6 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				
 				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
 						vh.getParent(), "devTaskDrop"+id, req);
-				/*new TemplateDropdown<DevelopmentTask>(vh.getParent(), "devTaskDrop"+id, req) {
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						//List<DevelopmentTask> all = resData.appConfigData.knownDevelopmentTasks().getAllElements();
-						List<DevelopmentTask> items = DevelopmentTaskDropdown.getEffectiveKnownDevTasks(resData.appConfigData.knownDevelopmentTasks());
-						DevelopmentTask select = null;
-						if(object.devTask().exists())
-							select = object.devTask().getLocationResource();
-						update(items, select, req);
-					}
-					
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						DevelopmentTask select = getSelectedItem(req);
-						DevelopmentTaskDropdown.selectDevelopmentTask(select, object, appMan);
-						/*if(select == null && object.devTask().isReference(false))
-							object.devTask().delete();
-						else {
-							object.devTask().setAsReference(select);
-							if(select.overWriteTemplateRequest().getValue()) {
-								InstallAppDeviceBase existing = AlarmingConfigUtil.getTemplate(object, select.templates().getAllElements());
-								if(existing != null)
-									existing.delete();
-								select.overWriteTemplateRequest().setValue(false);
-							}
-							AlarmingConfigUtil.getOrCreateTemplate(object, select.templates(), appMan);
-						}*/
-				/*	}
-				};
-				devTaskDrop.setDefaultAddEmptyOption(true, "--");
-				devTaskDrop.setTemplate(new DefaultDisplayTemplate<DevelopmentTask>() {
-					@Override
-					public String getLabel(DevelopmentTask object, OgemaLocale locale) {
-						return ResourceUtils.getHumanReadableShortName(object);
-					}
-				});*/
 				row.addCell(WidgetHelper.getValidWidgetId("Special Settings(Dev)"), devTaskDrop);
 			}			
 		};
