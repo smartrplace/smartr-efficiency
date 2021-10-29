@@ -39,10 +39,12 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
+import org.ogema.model.locations.Room;
 import org.ogema.recordreplay.testing.RecReplayAlarmingBaseObserver;
 import org.ogema.timeseries.eval.simple.api.AlarmingStartedService;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.LoggingUtils;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
@@ -707,9 +709,15 @@ public class AlarmingManager implements AlarmingStartedService {
 		if(firebaseUser != null && prio == MessagePriority.HIGH &&
 				(now - lastFirebaseMessage > 60*TimeProcUtil.MINUTE_MILLIS)) {
 			String titleEN = "MULTI-DEVICE ALARM";
+			Map<String, Object> additionalProperties = new HashMap<>();
+			String roomId = ResourceUtils.getValidResourceName(appManPlus.getResourceAccess().getResources(Room.class).get(0).getLocation());
+			additionalProperties.put("roomId", roomId);
 			FirebaseUtil.sendMessageToUsers(titleEN, title, null, null,
-				null, Arrays.asList(new String[] {firebaseUser}) , "All", appManPlus,
-					"Sending MULTI-DEVICE-ALARM with title:");
+					additionalProperties, Arrays.asList(new String[] {firebaseUser}) , roomId, appManPlus,
+						"Sending MULTI-DEVICE-ALARM with title:");
+			//FirebaseUtil.sendMessageToUsers(titleEN, title, null, null,
+			//	null, Arrays.asList(new String[] {firebaseUser}) , "All", appManPlus,
+			//		"Sending MULTI-DEVICE-ALARM with title:");
 			lastFirebaseMessage = now;
 		}
 		
