@@ -42,6 +42,7 @@ import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.recordreplay.testing.RecReplayAlarmingBaseObserver;
 import org.ogema.timeseries.eval.simple.api.AlarmingStartedService;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.tools.resource.util.LoggingUtils;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
@@ -53,6 +54,7 @@ import org.smartrplace.util.message.FirebaseUtil;
 import org.smartrplace.util.message.MessageImpl;
 
 import de.iwes.util.format.StringFormatHelper;
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
@@ -204,7 +206,8 @@ public class AlarmingManager implements AlarmingStartedService {
 			final ValueListenerData vl;
 			
 			float currentValue = Float.NaN;
-
+			Long lastValueWritten = null; 
+			
 			AlarmConfiguration devTac = null;
 			if(devT != null) {
 				CopyAlarmsSettings set = data.get(ac.sensorVal().getLocation());
@@ -221,6 +224,8 @@ public class AlarmingManager implements AlarmingStartedService {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
+				if(res.isActive())
+					lastValueWritten = LogHelper.getLastWriteTime(res);
 				if(res.isActive() && (!res.isNonpersistent()))
 					currentValue = mylistener.getHumanValue(res);
 				//continue;
@@ -233,6 +238,8 @@ public class AlarmingManager implements AlarmingStartedService {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
+				if(res.isActive())
+					lastValueWritten = LogHelper.getLastWriteTime(res);
 				if(res.isActive() && (!res.isNonpersistent()))
 					currentValue = mylistener.getHumanValue(res);
 				//continue;
@@ -245,6 +252,8 @@ public class AlarmingManager implements AlarmingStartedService {
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
+				if(res.isActive())
+					lastValueWritten = LogHelper.getLastWriteTime(res);
 				if(res.isActive() && (!res.isNonpersistent()))
 					currentValue = mylistener.getHumanValue(res);
 
@@ -281,9 +290,15 @@ public class AlarmingManager implements AlarmingStartedService {
 			IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(sres);
 			if(alarmStatus == null)
 				continue;
-			if(alarmStatus.getValue() > 1000)
-				vl.isNoValueAlarmActive = true;
-			else {
+			if(alarmStatus.getValue() > 1000) {
+				//it seems that many resources indicate the startup time as lastValueWritten if no value has been written later on
+				//so we are using last value logged
+				if((vl.maxIntervalBetweenNewValues < 0) ||
+						((lastValueWritten != null) && ((now-lastValueWritten) < vl.maxIntervalBetweenNewValues)))
+					alarmStatus.setValue(0);
+				else
+					vl.isNoValueAlarmActive = true;
+			} else {
 				if(alarmStatus.getValue() > 0)
 					vl.isAlarmActive = true;
 				//This should only be done for persistent resources
