@@ -15,6 +15,7 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobProvider;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
@@ -113,6 +114,11 @@ public class ComSystemEval {
 		for(InstallAppDevice iad: all0) {
 			if(iad.isTrash().getValue())
 				continue;
+			if(iad.knownFault().exists()) {
+				int assigned = iad.knownFault().assigned().getValue();
+				if((assigned != 0) && (assigned != AlarmingConfigUtil.ASSIGNMENT_SPECIALSETS))
+					continue;
+			}
 			if(!DeviceTableBase.isHomematic(iad.device().getLocation()))
 				continue;
 			ComSystemEvalData data = evalHmData.get(iad.getLocation());

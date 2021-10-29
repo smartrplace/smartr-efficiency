@@ -405,27 +405,27 @@ public class MainPageExpert extends MainPage {
 		switch(kniVal) {
 		case 0:
 			return new KniStatus(LabelData.BOOTSTRAP_RED, "Unassigned");
-		case 2100:
+		case AlarmingConfigUtil.ASSIGNMENT_BATTERYLOW:
 			return new KniStatus(LabelData.BOOTSTRAP_ORANGE, "Battery");
-		case 2150:
+		case AlarmingConfigUtil.ASSIGNMENT_DEVICE_NOT_REACHEABLE:
 			return new KniStatus(LabelData.BOOTSTRAP_LIGHT_BLUE, "NoReach");
-		case 2200:
+		case AlarmingConfigUtil.ASSIGNMENT_SIGNALSTRENGTH:
 			return new KniStatus(LabelData.BOOTSTRAP_BLUE, "Signal Strength");
-		case 2000:
+		case AlarmingConfigUtil.ASSIGNMENT_OPERATION:
 			return new KniStatus(LabelData.BOOTSTRAP_BLUE, "Operation Other");
-		case 2500:
+		case AlarmingConfigUtil.ASSIGNMENT_OPERATRION_EXTERNAL:
 			return new KniStatus(LabelData.BOOTSTRAP_BLUE, "Operation (Ext)");
-		case 4000:
+		case AlarmingConfigUtil.ASSIGNMENT_CUSTOMER:
 			return new KniStatus(LabelData.BOOTSTRAP_LIGHT_BLUE, "Customer");
-		case 3000:
+		case AlarmingConfigUtil.ASSIGNMENT_DEVELOPMENT:
 			return new KniStatus(null, "Development");
-		case 3500:
+		case AlarmingConfigUtil.ASSIGNMENT_DEVELOPMENT_EXTERNAL:
 			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Dev (Ext)");
-		case 7000:
+		case AlarmingConfigUtil.ASSIGNMENT_SPECIALSETS:
 			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Special");
-		case 1000:
-		case 5000:
-		case 6000:
+		case AlarmingConfigUtil.ASSIGNMENT_OTHER:
+		case AlarmingConfigUtil.ASSIGNMENT_BACKLOG:
+		case AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT:
 			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Other");
 		default:
 			throw new IllegalStateException("Unknown KniStatus:"+kniVal+" for "+kni.getLocation());

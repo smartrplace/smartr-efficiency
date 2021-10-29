@@ -112,10 +112,10 @@ public class BatteryEval extends BatteryEvalBase3 {
 			if(!iad.knownFault().assigned().exists())
 				continue;
 			int stat = iad.knownFault().assigned().getValue();
-			if(stat == 2150) {
+			if(stat == AlarmingConfigUtil.ASSIGNMENT_DEVICE_NOT_REACHEABLE) {
 				dNRResults.add(iad);
 				dnRNum++;
-			} else if(stat == 2200) {
+			} else if(stat == AlarmingConfigUtil.ASSIGNMENT_SIGNALSTRENGTH) {
 				sigstrengthNum++;
 				sigStrengthResults.add(iad);
 			} else if(stat == 0) {
