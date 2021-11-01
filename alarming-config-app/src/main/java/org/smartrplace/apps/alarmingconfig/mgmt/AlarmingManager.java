@@ -308,7 +308,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				if(alarmStatus.getValue() > 0)
 					vl.isAlarmActive = true;
 				//This should only be done for persistent resources
-				if(!Float.isNaN(currentValue) && ac.upperLimit().getValue() < -99990) {
+				if(!Float.isNaN(currentValue) && (ac.upperLimit().getValue() > -99990)) {
 					vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
 				}
 			}
