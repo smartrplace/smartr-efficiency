@@ -272,8 +272,10 @@ public class ConfigurationPageHWInstall {
 		final ScheduleViewerOpenButton testPlot = ScheduleViewerTest.getPlotButton(page, "testPlot",
 				controller.dpService, controller.appMan, Arrays.asList(new Datapoint[] {dp}), schedViewProv);
 		
+		ValueResourceTextField<StringResource> co2singleUserEdit = new ValueResourceTextField<StringResource>(page, "co2singleUserEdit",
+				app.appConfigData.singleCO2AlarmingUser());
 		
-		StaticTable configTable = new StaticTable(22, 2);
+		StaticTable configTable = new StaticTable(23, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "System default language").
 		setContent(i, 1, languageDrop);
@@ -440,6 +442,9 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Maximum Setpoint writes per hour before limit:").setContent(i, 1, maxWritePerCCUperHourEdit);
 		i++;
 		configTable.setContent(i, 0, "Test Plot:").setContent(i, 1, testPlot);
+		i++;
+		configTable.setContent(i, 0, "If this NOT empty then only to a user with the userName given by this "
+				+ "value CO2 air quality alarming messages will be sent via firebase:").setContent(i, 1, co2singleUserEdit);
 		i++;
 		configTable.setContent(i, 0, "Enable manual editing of deviceIds:").setContent(i, 1, manualDeviceIdBut).setContent(i, 1, autoResetDeviceIds);
 		i++;
