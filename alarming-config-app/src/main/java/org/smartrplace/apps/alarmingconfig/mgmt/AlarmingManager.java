@@ -190,7 +190,18 @@ public class AlarmingManager implements AlarmingStartedService {
 						continue;
 				}
 			}
-			if((!ac.sendAlarm().getValue())) {
+			AlarmConfiguration devTac = null;
+			if(devT != null) {
+				CopyAlarmsSettings set = data.get(ac.sensorVal().getLocation());
+				if(set != null)
+					devTac = set.templateConfig;
+			}
+			final boolean sendAlarm;
+			if(devTac != null)
+				sendAlarm = devTac.sendAlarm().getValue();
+			else
+				sendAlarm = ac.sendAlarm().getValue();
+			if(!sendAlarm) {
 				try  {
 					IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal());
 					if(alarmStatus != null)
@@ -209,12 +220,6 @@ public class AlarmingManager implements AlarmingStartedService {
 			float currentValue = Float.NaN;
 			Long lastValueWritten = null; 
 			
-			AlarmConfiguration devTac = null;
-			if(devT != null) {
-				CopyAlarmsSettings set = data.get(ac.sensorVal().getLocation());
-				if(set != null)
-					devTac = set.templateConfig;
-			}	
 			
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
@@ -303,7 +308,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				if(alarmStatus.getValue() > 0)
 					vl.isAlarmActive = true;
 				//This should only be done for persistent resources
-				if(!Float.isNaN(currentValue)) {
+				if(!Float.isNaN(currentValue) && ac.upperLimit().getValue() < -99990) {
 					vl.listener.resourceChanged(currentValue, alarmStatus, now, true);
 				}
 			}
