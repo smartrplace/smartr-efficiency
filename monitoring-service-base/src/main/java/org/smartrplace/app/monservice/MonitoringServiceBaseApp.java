@@ -37,6 +37,7 @@ import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
 import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatingLabFlowSens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabTempSens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabThermalValve_DeviceHandler;
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
@@ -234,6 +235,9 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srFlowProbe = null;
 	private FlowScopeDevHandler devHandFlowProbe;
 	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srFlowSensSingle = null;
+	private HeatingLabFlowSens_DeviceHandler devHandFlowSensSingle;
+	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srTempSensSingle = null;
 	private HeatingLabTempSens_DeviceHandler devHandTempSensSingle;
 	@SuppressWarnings("rawtypes")
@@ -345,6 +349,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   devHandFlowProbe = new FlowScopeDevHandler(controller.appManPlus);
 	   srFlowProbe = bc.registerService(DeviceHandlerProvider.class, devHandFlowProbe, null);
 	   
+	   devHandFlowSensSingle = new HeatingLabFlowSens_DeviceHandler(controller.appManPlus);
+	   srFlowSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandFlowSensSingle, null);
 	   devHandTempSensSingle = new HeatingLabTempSens_DeviceHandler(controller.appManPlus);
 	   srTempSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandTempSensSingle, null);
 	   devHandThValve = new HeatingLabThermalValve_DeviceHandler(controller.appManPlus);
@@ -393,6 +399,7 @@ public class MonitoringServiceBaseApp implements Application {
       	if (srIota != null) srIota.unregister();
       	if (srIotaSimple!= null) srIotaSimple.unregister();
      	if (srFlowProbe!= null) srFlowProbe.unregister();
+     	if (srFlowSensSingle!= null) srFlowSensSingle.unregister();
      	if (srTempSensSingle!= null) srTempSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
     	if (srWall!= null) srWall.unregister();
