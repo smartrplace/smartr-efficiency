@@ -208,7 +208,7 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 	}
 
 	@Override
-	public Datapoint getObject(String objectId) {
+	public Datapoint getObject(String objectId, String user) {
 		Datapoint obj;
 		if(objectId.contains("::")) {
 			String[] gwd = DatapointGroup.getGroupIdAndGwForDp(objectId);

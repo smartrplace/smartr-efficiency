@@ -164,7 +164,7 @@ public class ConsumptionEvalServlet implements ServletPageProvider<ConsumptionEv
 	}
 
 	@Override
-	public ConsumptionEvalPageEntry getObject(String objectId) {
+	public ConsumptionEvalPageEntry getObject(String objectId, String user) {
 		return lines.get(objectId);
 	}
 	

@@ -52,7 +52,7 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 	}
 
 	@Override
-	public TimeSeriesDataImpl getObject(String objectId) {
+	public TimeSeriesDataImpl getObject(String objectId, String user) {
 		TimeSeriesDataImpl obj = UserServlet.knownTS.get(objectId);
 		if(obj != null) return obj;
 		Object objRaw = OGEMAConfigurations.getObject(UserServlet.TimeSeriesServletImplClassName, objectId);

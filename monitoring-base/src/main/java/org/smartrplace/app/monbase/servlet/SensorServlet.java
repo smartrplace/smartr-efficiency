@@ -100,7 +100,7 @@ public class SensorServlet implements ServletPageProvider<Room> {
 	}
 
 	@Override
-	public Room getObject(String objectId) {
+	public Room getObject(String objectId, String user) {
 		for(Room room: knownRooms) {
 			if(room.getLocation().equals(objectId) || ResourceUtils.getHumanReadableShortName(room).equals(objectId))
 				return room;

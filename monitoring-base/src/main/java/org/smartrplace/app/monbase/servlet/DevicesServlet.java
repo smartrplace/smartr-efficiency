@@ -134,7 +134,7 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 	}
 
 	@Override
-	public InstallAppDevice getObject(String objectId) {
+	public InstallAppDevice getObject(String objectId, String user) {
 		return UserServletUtil.getObject(objectId, getAllObjects(null));
 	}
 	

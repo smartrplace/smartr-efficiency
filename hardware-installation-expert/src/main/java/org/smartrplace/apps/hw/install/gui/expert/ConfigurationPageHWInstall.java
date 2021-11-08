@@ -100,7 +100,7 @@ public class ConfigurationPageHWInstall {
 				OgemaLocale l = OgemaLocale.getLocale(getSelectedValue(req));
 				if (l == null) return;
 				ValueResourceHelper.setCreate(gwInfo.systemLocale(), l.getLanguage());
-				UserLocaleUtil.setSystemDefaultLocale(l.getLanguage());
+				UserLocaleUtil.setSystemDefaultLocale(l.getLanguage(), null);
 			}
 		};
 		languageDrop.setTemplate(new DefaultDisplayTemplate<OgemaLocale>() {

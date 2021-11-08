@@ -17,6 +17,7 @@ import org.ogema.devicefinder.api.DpUpdateAPI.DpUpdated;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
+import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -176,6 +177,11 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 			protected List<SampledValue> getResultValuesMulti(List<ReadOnlyTimeSeries> timeSeries,
 					long start, long end, AggregationMode mode) {
 				long startOfAgg = dpService.getFrameworkTime();
+if(!timeSeries.isEmpty() && (timeSeries.get(0) instanceof ProcessedReadOnlyTimeSeries) &&
+	(((ProcessedReadOnlyTimeSeries)timeSeries.get(0)).datapointForChangeNotification != null) &&
+	((ProcessedReadOnlyTimeSeries)timeSeries.get(0)).datapointForChangeNotification.id().contains("serverMirror/__19139/mirrorDevices/iota_10_19_31_200_S1/elConn/subPhaseConnections/L1/energySensor/reading_proTag")) {
+	System.out.println("  DPDEBUG:"+((ProcessedReadOnlyTimeSeries)timeSeries.get(0)).datapointForChangeNotification.id());
+}
 if(Boolean.getBoolean("evaldebug")) System.out.println("Starting aggregation for "+getShortId());
 				long startOfCalc = dpService.getFrameworkTime();
 						
@@ -319,6 +325,10 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 
 	protected static void updateTimeseries(ProcessedReadOnlyTimeSeries3 ts, long now) {
 		long start;
+if((ts.datapointForChangeNotification != null) &&
+		ts.datapointForChangeNotification.id().contains("serverMirror/__19139/mirrorDevices/iota_10_19_31_200_S1/elConn/subPhaseConnections/L1/energySensor/reading_proTag")) {
+	System.out.println("  DPDEBUG UPD:"+ts.datapointForChangeNotification.id());
+}
 		if(ts.getLastEndTime() <= 0) {
 			ts.loadInitData();
 			if(Boolean.getBoolean("evaldebug0")) {

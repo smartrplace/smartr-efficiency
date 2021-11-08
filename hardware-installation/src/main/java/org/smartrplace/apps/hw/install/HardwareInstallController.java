@@ -177,7 +177,7 @@ public class HardwareInstallController {
 		String localeString = ResourceHelper.getLocalGwInfo(appMan).systemLocale().getValue();
 		if(localeString == null || localeString.isEmpty())
 			localeString = "de"; //TODO
-		UserLocaleUtil.setSystemDefaultLocale(localeString);
+		UserLocaleUtil.setSystemDefaultLocale(localeString, appMan.getAdministrationManager());
 		initConfigurationResource();
 		this.hwTableData = new HardwareTableData(appMan);
 		this.csvExport = new DeviceTableCSVExporter(appConfigData.knownDevices());
