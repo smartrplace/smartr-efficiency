@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
-import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
@@ -30,12 +29,12 @@ public class UserGroupPermissionPage extends StandardPermissionPage<AccessConfig
 	//protected UserFilteringBase<Room> userFilter;
 	//protected RoomFilteringWithGroups<Room> roomFilter;
 
-	protected ResourceList<AccessConfigUser> userPerms;
+	//protected ResourceList<AccessConfigUser> userPerms;
 	
 	public UserGroupPermissionPage(WidgetPage<?> page, AccessAdminController controller) {
 		super(page, controller.appMan, ResourceHelper.getSampleResource(AccessConfigUser.class));
 		this.controller = controller;
-		userPerms = controller.appConfigData.userPermissions();
+		//userPerms = controller.appConfigData.userPermissions();
 		triggerPageBuild();
 	}
 

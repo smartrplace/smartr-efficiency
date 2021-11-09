@@ -3,6 +3,7 @@ package org.smartrplace.external.accessadmin.gui;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
@@ -110,7 +111,7 @@ public class UserSetupPage extends ObjectGUITablePageNamed<AccessConfigUser, Boo
 
 	@Override
 	public Collection<AccessConfigUser> getObjectsInTable(OgemaHttpRequest req) {
-		List<AccessConfigUser> all = AccessAdminController.getUserGroups(false, true, appConfigData);
+		List<AccessConfigUser> all = SubcustomerUtil.getUserGroups(false, true, appConfigData);
 		return all;
 	}
 

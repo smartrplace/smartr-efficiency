@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
+import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionUtil;
 import org.ogema.core.application.ApplicationManager;
@@ -54,7 +55,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "4. User - Room Group Mapping";
+		return "4. User - Room Group Mapping (currently not used)";
 	}
 	
 	@Override
@@ -118,7 +119,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 	
 	@Override
 	public Collection<AccessConfigUser> getObjectsInTable(OgemaHttpRequest req) {
-		List<AccessConfigUser> all = AccessAdminController.getUserGroups(false, true, controller.appConfigData);
+		List<AccessConfigUser> all = SubcustomerUtil.getUserGroups(false, true, controller.appConfigData);
 		return all;
 	}
 

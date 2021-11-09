@@ -14,6 +14,9 @@ import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.AccessAdminExtensionProvider;
 import org.smartrplace.external.accessadmin.expert.gui.UserRoomGroupPermissionPageExpert;
+import org.smartrplace.external.accessadmin.gui.RoomConfigPage;
+import org.smartrplace.external.accessadmin.gui.SubcustomerSetupPage;
+import org.smartrplace.external.accessadmin.gui.UserConfigPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
@@ -77,11 +80,30 @@ public class AccessAdminAppExpert implements Application, AccessAdminExtensionPr
 			menu.addEntry("1. User App Mapping (Superadmin)", pageRes6);
 			configMenuConfig(pageRes6.getMenuConfiguration());
 
+			WidgetPage<?> pageRes3 = widgetApp.createWidgetPage("roomconfigexpert.html");
+			new RoomConfigPage(pageRes3, controller, true);
+			menu.addEntry("2. Room Configuration Expert", pageRes3);
+			configMenuConfig(pageRes3.getMenuConfiguration());
+
 			WidgetPage<?> pageRes2 = widgetApp.createWidgetPage("userroomgroupmap.html");
-			//WidgetPage<?> pageRes2 = widgetApp.createWidgetPage("userroompermexpert.html");
 			new UserRoomGroupPermissionPageExpert(pageRes2, controller);
 			menu.addEntry("4. User - Room Group Mapping", pageRes2);
 			configMenuConfig(pageRes2.getMenuConfiguration());
+
+			WidgetPage<?> pageRes5 = widgetApp.createWidgetPage("subcustomerexpert.html");
+			new SubcustomerSetupPage(pageRes5, controller);
+			menu.addEntry("5. Subcustomer Setup", pageRes5);
+			configMenuConfig(pageRes5.getMenuConfiguration());
+
+			WidgetPage<?> pageRes8 = widgetApp.createWidgetPage("userconfigpermissions.html");
+			new UserConfigPermissionPage(pageRes8, controller);
+			menu.addEntry("6. User Config Permissions", pageRes8);
+			configMenuConfig(pageRes8.getMenuConfiguration());
+
+			/*WidgetPage<?> pageRes7 = widgetApp.createWidgetPage("subcustomerusermap.html");
+			new UserSubcustomerPermissionPage(pageRes7, controller.appConfigData, controller.appManPlus);
+			menu.addEntry("6. Subcustomer User Mapping", pageRes7);
+			configMenuConfig(pageRes7.getMenuConfiguration());*/
 		}
 	};
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
 import org.ogema.core.administration.UserAccount;
@@ -183,18 +184,7 @@ public class AccessAdminController {
 		return result ;*/
 	}
 	public List<AccessConfigUser> getUserGroups(boolean includeNaturalUsers, boolean includetype2Groups) {
-		return getUserGroups(includeNaturalUsers, includetype2Groups, appConfigData);
-	}
-	public static List<AccessConfigUser> getUserGroups(boolean includeNaturalUsers, boolean includetype2Groups,
-			AccessAdminConfig appConfigData) {
-		List<AccessConfigUser> result = new ArrayList<>();
-		for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
-			if(!includetype2Groups && (user.isGroup().getValue() == 2))
-				continue;
-			if(includeNaturalUsers || (user.isGroup().getValue() > 0))
-				result.add(user);
-		}
-		return result ;
+		return SubcustomerUtil.getUserGroups(includeNaturalUsers, includetype2Groups, appConfigData);
 	}
 	
 	public AccessConfigUser getUserConfig(String userName) {

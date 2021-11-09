@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.tools.app.createuser.UserAdminBaseUtil;
@@ -48,7 +49,7 @@ public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String,
 	@Override
 	protected List<GenericFilterFixedGroup<String, AccessConfigUser>> getGroupOptionsDynamic() {
 		List<GenericFilterFixedGroup<String, AccessConfigUser>> result = new ArrayList<>();
-		for(AccessConfigUser grp: AccessAdminController.getUserGroups(false, true, appConfigData)) {
+		for(AccessConfigUser grp: SubcustomerUtil.getUserGroups(false, true, appConfigData)) {
 			GenericFilterFixedGroup<String, AccessConfigUser> newOption = getGroupOptionDynamic(grp);
 			if(newOption == null)
 				continue;
