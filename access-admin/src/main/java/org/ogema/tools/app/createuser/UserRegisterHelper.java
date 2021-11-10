@@ -52,11 +52,12 @@ public class UserRegisterHelper {
 	 */
 	public static ClosingPopup<Object> registerUserAddPopup(WidgetPage<?> page, UserBuilder userBuilder,
 			Alert alert, NewUserHandler newUserHandler, boolean requestUserNameAsEmail) {
-		return registerUserAddPopup(page, userBuilder, alert, newUserHandler, requestUserNameAsEmail, false, null);
+		return registerUserAddPopup(page, userBuilder, alert, newUserHandler, requestUserNameAsEmail, false, null, null);
 	}
 	public static ClosingPopup<Object> registerUserAddPopup(WidgetPage<?> page, UserBuilder userBuilder,
 			Alert alert, NewUserHandler newUserHandler, boolean requestUserNameAsEmail,
-			boolean hasPrimaryRoomOptions, ApplicationManagerPlus appManPlus) {
+			boolean hasPrimaryRoomOptions, String defaultPassword,
+			ApplicationManagerPlus appManPlus) {
 		final TextField textLoginName = new TextField(page, "textLoginName");
 		final TextField textFullUserName = new TextField(page, "textFullUserName");
 		final TemplateDropdown<Room> dropPrimaryRoom;
@@ -141,6 +142,8 @@ public class UserRegisterHelper {
 					String userName = textLoginName.getValue(req);
 					String name = textFullUserName.getValue(req);
 					String password = textPw.getValue(req);
+					if((password == null || password.isEmpty()) && (defaultPassword != null))
+						password = defaultPassword;
 					UserAccount data = createAccount(userName, name, password, userBuilder,
 							cbSendInvite.isChecked("sendInvite", req), false);
 							//cbRest.isChecked("createRest", req));
