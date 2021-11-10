@@ -21,10 +21,10 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 	//protected final boolean noImplicitNullStatus;
 	
 	public static class ConfigurablePermission implements PermissionCellData {
-		String resourceId;
-		String permissionId;
-		AccessConfigBase accessConfig;
-		boolean defaultStatus;
+		public String resourceId;
+		public String permissionId;
+		public AccessConfigBase accessConfig;
+		public boolean defaultStatus;
 		//ResourceList<AccessConfigUser> userPerms;
 		//String userName;
 		//boolean supportsUnset = true;
