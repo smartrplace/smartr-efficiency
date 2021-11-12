@@ -274,42 +274,42 @@ public class UserAdminBaseUtil {
 	}
 	
 	public static List<String> setPerms(UserAccount userData, List<String> currentUserPerms,
-			UserStatus destinationStatus, List<String> additionalPermissionstoMaintain,
+			UserStatus destinationStatus,
 			ApplicationManagerPlus appManPlus, boolean useWorkingCopy) {
 		switch(destinationStatus) {
 		case SUPERADMIN:
-			return setPerms(userData, currentUserPerms, SUPERADMIN_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, SUPERADMIN_APPS(appManPlus.userPermService(), useWorkingCopy),
 					appManPlus);
 		//case TESTER:
 		//	return setPerms(userData, currentUserPerms, TESTER_APPS, additionalPermissionstoMaintain);
 		case ADMIN:
-			return setPerms(userData, currentUserPerms, ADMIN_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, ADMIN_APPS(appManPlus.userPermService(), useWorkingCopy),
 					appManPlus);
 		case SECRETARY:
-			return setPerms(userData, currentUserPerms, SECRETARY_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, SECRETARY_APPS(appManPlus.userPermService(), useWorkingCopy),
 					appManPlus);
 		case USER_STD:
-			return setPerms(userData, currentUserPerms, USER_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, USER_APPS(appManPlus.userPermService(), useWorkingCopy),
 					appManPlus);
 		case DISPLAY:
-			return setPerms(userData, currentUserPerms, DISPLAY_APPS(appManPlus.userPermService(), useWorkingCopy), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, DISPLAY_APPS(appManPlus.userPermService(), useWorkingCopy),
 					appManPlus);
 		//case GUEST:
 		//	return setPerms(userData, currentUserPerms, GUEST_APPS, additionalPermissionstoMaintain);
 		//case RAW:
 		//	return setPerms(userData, currentUserPerms, BASE_APPS, additionalPermissionstoMaintain);
 		case PUBLIC:
-			return setPerms(userData, currentUserPerms, BASE_APPS, additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, BASE_APPS,
 					appManPlus);
 		case DISABLED:
-			return setPerms(userData, currentUserPerms, Collections.emptyList(), additionalPermissionstoMaintain,
+			return setPerms(userData, currentUserPerms, Collections.emptyList(),
 					appManPlus);
 		}
 		throw new IllegalStateException("Unknown user status type:"+destinationStatus);		
 	}
 
 	public static List<String> setPerms(UserAccount userData, List<String> currentUserPerms,
-			Collection<String> require, List<String> additionalPermissionstoMaintain,
+			Collection<String> require,
 			ApplicationManagerPlus appManPlus) {
 		List<String> missingPerms = getAdditionalPerms(require, currentUserPerms);
 		List<String> toRemovePerms = getAdditionalPerms(currentUserPerms, require);
@@ -326,6 +326,24 @@ System.out.println("ToRemoveAll:"+StringFormatHelper.getListToPrint(toRemovePerm
 		return missingPerms;
 	}
 	
+/*	public static List<String> setPerms(UserAccount userData, List<String> currentUserPerms,
+			Collection<String> require, List<String> additionalPermissionstoMaintain,
+			ApplicationManagerPlus appManPlus) {
+		List<String> missingPerms = getAdditionalPerms(require, currentUserPerms);
+		List<String> toRemovePerms = getAdditionalPerms(currentUserPerms, require);
+System.out.println("CurrentPerms:"+StringFormatHelper.getListToPrint(currentUserPerms));
+System.out.println("RequiredPerms:"+StringFormatHelper.getListToPrint(require));
+System.out.println("Missing["+(missingPerms!=null?""+missingPerms.size():"!null!")+"]:"+StringFormatHelper.getListToPrint(missingPerms));
+System.out.println("ToRemoveAll:"+StringFormatHelper.getListToPrint(toRemovePerms));
+
+		toRemovePerms.removeAll(additionalPermissionstoMaintain);
+System.out.println("ToRemoveReally:"+StringFormatHelper.getListToPrint(toRemovePerms));
+		removePerms(userData, toRemovePerms, appManPlus);
+		
+		addMissingPerms(userData, missingPerms, appManPlus);
+		return missingPerms;
+	}*/
+
 	public static void addMissingPerms(UserAccount userData,
 			Collection<String> missingPerms, ApplicationManagerPlus appManPlus) {
 		for(String misPerm: missingPerms) {
@@ -466,7 +484,7 @@ System.out.println("Finished removing app: "+bundleSymbolicName);
 			ConditionalPermissionAdmin cpa = (ConditionalPermissionAdmin) sysAdmin;
 			userPerms  = UserAdminBaseUtil.getPermissions(userName, cpa);
 		}
-		return setPerms(userData, userPerms, destStatus, currentStatusRes.addPerms, appManPlus, false);	
+		return setPerms(userData, userPerms, destStatus, appManPlus, false);	
 	}
 	public static List<String> updateUserPermissionsToWorkingStatus(UserAccount userData,
 			ApplicationManagerPlus appManPlus) {
@@ -481,7 +499,7 @@ System.out.println("Finished removing app: "+bundleSymbolicName);
 			ConditionalPermissionAdmin cpa = (ConditionalPermissionAdmin) sysAdmin;
 			userPerms  = UserAdminBaseUtil.getPermissions(userName, cpa);
 		}
-		return setPerms(userData, userPerms, destStatus, currentStatusRes.addPerms, appManPlus, true);	
+		return setPerms(userData, userPerms, destStatus, appManPlus, true);	
 	}
 	
 	public static void initAcc(AccessAdminConfig appConfigData) {
