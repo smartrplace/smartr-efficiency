@@ -32,7 +32,6 @@ import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.api.PropertyService;
 import org.ogema.devicefinder.util.BatteryEvalBase;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
@@ -224,6 +223,8 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,
 			boolean removeVirtualDpResource,
 			DeviceHandlerProviderDP<Thermostat> devHand) {
+		if(dpRef == null)
+			return;
 		String refLabel = dpRef.label(null);
 		String gradLabel = refLabel.replace("Temperature measured at thermostat","BatVoltageFew");
 		StandardEvalAccess.addMemoryDatapointForInit(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
@@ -236,12 +237,14 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,
 			DeviceHandlerSimple<Thermostat> devHand) {
 		FloatResource setpReactRes = getSetpReactRes(device);
-		@SuppressWarnings({ "unchecked", "rawtypes" })
 		//Datapoint evalDp = StandardEvalAccess.getDeviceBaseEvalForInit(iad,
 		//		StandardDeviceEval.SETP_REACT, dpService, resAcc, (DeviceHandlerProviderDP)devHand);
 		//result.add(evalDp);
+		if(dpRef == null)
+			return;
 		String refLabel = dpRef.label(null);
 		String gradLabel = refLabel.replace("Temperature measured at thermostat","SetpReactEval");
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		Datapoint evalDp = StandardEvalAccess.addMemoryDatapointForInit(iad,
 				StandardDeviceEval.SETP_REACT, dpService, resAcc, false, false, gradLabel, result, (DeviceHandlerProviderDP)devHand);
 		Datapoint dpRes = StandardEvalAccess.addVirtualDatapoint(setpReactRes,
