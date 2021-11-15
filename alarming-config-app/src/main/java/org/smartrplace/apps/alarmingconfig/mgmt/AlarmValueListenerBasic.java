@@ -177,7 +177,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 					@Override
 					public void delayedExecution() {
 						boolean noMessage = sendValueLimitMessageOrRelease(vl, now, false);
-						executeAlarm(ac, value, upper, lower, alarmStatus, noMessage);
+						executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage);
 						vl.isAlarmActive = true;
 						vl.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
 							vl.resendRetard();
@@ -235,14 +235,14 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	}
 
 	@Override
-	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
+	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard,
 			IntegerResource alarmStatus, boolean noMessage) {
 		String title = AlarmingManager.getTsName(ac, dp)+" (Alarming Wert)"; //dp.label(null)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
 		}
 		String message = "Current value: "+value+"\r\n"+"  Lower limit: "+lower+
-				"\r\n"+"  Upper limit: "+upper;
+				"\r\n"+"  Upper limit: "+upper+"\r\n"+"  Retard min: "+String.format("%,1f", retard/60000f);
 		if(baseUrl != null)
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		int status = ac.alarmLevel().getValue();

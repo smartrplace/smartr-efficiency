@@ -271,10 +271,10 @@ public class AlarmingManager implements AlarmingStartedService {
 						AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vlb,
 								appManPlus, dp) {
 							@Override
-							public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
+							public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard,
 									IntegerResource alarmStatus, boolean noMessage) {
 								onOff.stateControl().setValue(true);
-								super.executeAlarm(ac, value, upper, lower, alarmStatus, noMessage);
+								super.executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage);
 							}
 						};
 						vlb.listener = onOffListener;
@@ -405,7 +405,7 @@ public class AlarmingManager implements AlarmingStartedService {
 	
 	protected interface AlarmValueListenerI {
 		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue);		
-		void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower,
+		void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard, 
 				IntegerResource alarmStatus, boolean noMessage);
 		AlarmConfiguration getAc();
 		ResourceValueListener<?> getListener();	
@@ -499,9 +499,9 @@ public class AlarmingManager implements AlarmingStartedService {
 
 		//TODO: override
 		@Override
-		public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, IntegerResource alarmStatus,
+		public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard, IntegerResource alarmStatus,
 				boolean noMessage) {
-			alarmValListenerBase.executeAlarm(ac, value, upper, lower, alarmStatus, noMessage);
+			alarmValListenerBase.executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage);
 		}	
 		
 		@Override
@@ -756,6 +756,7 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 			} else if(sd.numBulkMessage == 2*maxMessageBeforeBulk) {
 				title = alarmID+": More "+sd.numBulkMessage+" alarms occured...";
 				String infoMessage = "Number of alarms aggregated by now: "+(sd.numBulkMessage);
+				infoMessage +="\r\nDevice Issue Status: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 				reallySendMessage(title, infoMessage , prio, appToUse);
 				System.out.println("         SENT BULKINFOMESSAGE "+title+":\r\n"+infoMessage);						
 			}
@@ -769,6 +770,7 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 			}
 			if(sd.numSingleMessage >= (maxMessageBeforeBulk))
 				message += "\r\n (More messages may be aggregated, will be sent after "+(bulkMessageInterval/TimeProcUtil.MINUTE_MILLIS)+" minutes!)";
+			message +="\r\nDevice Issue Status: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 			reallySendMessage(alarmID+": "+title, message, prio, appToUse);
 			System.out.println("         SENT MESSAGE "+alarmID+": "+title+":\r\n"+message);		
 		}
@@ -794,6 +796,8 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 		SendMessageData sd = sendData(prio);
 		sd.firstBulkMessage = -1;
 		String title = alarmID+": "+sd.numBulkMessage+" Aggregated alarms: ";
+		sd.bulkMessage ="Device Issue Status: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html\r\n" +
+				sd.bulkMessage;
 		appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
 				new MessageImpl(title, sd.bulkMessage, prio));
 		System.out.println("         SENT BULKMESSAGE "+title+":\r\n"+sd.bulkMessage);		
