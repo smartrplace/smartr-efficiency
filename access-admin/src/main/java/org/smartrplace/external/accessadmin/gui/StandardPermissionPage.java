@@ -2,10 +2,9 @@ package org.smartrplace.external.accessadmin.gui;
 
 import java.util.List;
 
-import org.ogema.accessadmin.api.util.UserPermissionUtil;
+import org.ogema.accessadmin.api.PermissionCellData;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.BooleanResource;
-import org.smartrplace.external.accessadmin.config.AccessConfigBase;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -20,40 +19,6 @@ public abstract class StandardPermissionPage<T> extends ObjectGUITablePageNamed<
 	protected void finishPermissionButton(Button perm) {}
 	//protected final boolean noImplicitNullStatus;
 	
-	public static class ConfigurablePermission implements PermissionCellData {
-		public String resourceId;
-		public String permissionId;
-		public AccessConfigBase accessConfig;
-		public boolean defaultStatus;
-		//ResourceList<AccessConfigUser> userPerms;
-		//String userName;
-		//boolean supportsUnset = true;
-		
-		@Override
-		public Boolean getOwnstatus() {
-			return UserPermissionUtil.getPermissionStatus(resourceId, permissionId, accessConfig);
-		}
-		@Override
-		public void setOwnStatus(Boolean newStatus) {
-			if(newStatus == null) {
-				UserPermissionUtil.removePermissionSetting(resourceId, permissionId, accessConfig);				
-			} else {
-				UserPermissionUtil.addPermission(resourceId, permissionId, accessConfig,
-						newStatus==null?null:(newStatus?1:0));
-			}
-		}
-		@Override
-		public boolean getDefaultStatus() {
-			return defaultStatus;
-		}
-		@Override
-		public boolean supportsUnset() {
-			return true;
-		}
-		
-		public ConfigurablePermission() {
-		}
-	}
 	protected abstract List<String> getPermissionNames();
 	protected abstract PermissionCellData getAccessConfig(T object, String permissionID,
 			OgemaHttpRequest req);

@@ -6,9 +6,10 @@ import java.util.List;
 import javax.servlet.http.HttpSession;
 
 import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.accessadmin.api.UserPermissionUtil;
+import org.ogema.accessadmin.api.UserPermissionUtil.PermissionForLevelProvider;
+import org.ogema.accessadmin.api.UserPermissionUtil.RoomPermissionData;
 import org.ogema.accessadmin.api.UserStatus;
-import org.ogema.accessadmin.api.util.UserPermissionUtil.PermissionForLevelProvider;
-import org.ogema.accessadmin.api.util.UserPermissionUtil.RoomPermissionData;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.model.ResourceList;
 import org.ogema.internationalization.util.LocaleHelper;

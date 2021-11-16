@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ConfigurablePermission;
+import org.ogema.accessadmin.api.PermissionCellData;
 import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.core.administration.UserAccount;

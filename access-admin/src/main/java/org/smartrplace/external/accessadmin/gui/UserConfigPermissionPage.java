@@ -4,8 +4,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ConfigurablePermission;
 import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.util.UserPermissionUtil;
+import org.ogema.accessadmin.api.UserPermissionUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;

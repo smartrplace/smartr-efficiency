@@ -6,10 +6,11 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.accessadmin.api.ConfigurablePermission;
 import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomer;
 import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.util.UserPermissionUtil;
+import org.ogema.accessadmin.api.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.ResourceUtils;

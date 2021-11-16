@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.util.UserPermissionUtil;
+import org.ogema.accessadmin.api.UserPermissionUtil;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;

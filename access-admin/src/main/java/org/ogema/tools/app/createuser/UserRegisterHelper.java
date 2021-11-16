@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.util.UserPermissionUtil;
+import org.ogema.accessadmin.api.UserPermissionUtil;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.administration.UserConstants;
 import org.ogema.model.locations.Room;
