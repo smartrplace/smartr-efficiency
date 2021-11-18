@@ -325,10 +325,6 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 
 	protected static void updateTimeseries(ProcessedReadOnlyTimeSeries3 ts, long now) {
 		long start;
-if((ts.datapointForChangeNotification != null) &&
-		ts.datapointForChangeNotification.id().contains("serverMirror/__19139/mirrorDevices/iota_10_19_31_200_S1/elConn/subPhaseConnections/L1/energySensor/reading_proTag")) {
-	System.out.println("  DPDEBUG UPD:"+ts.datapointForChangeNotification.id());
-}
 		if(ts.getLastEndTime() <= 0) {
 			ts.loadInitData();
 			if(Boolean.getBoolean("evaldebug0")) {

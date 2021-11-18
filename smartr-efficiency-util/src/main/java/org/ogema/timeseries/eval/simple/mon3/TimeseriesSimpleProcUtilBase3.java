@@ -65,6 +65,12 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	 * you can just add 1 msec to get another time stamp.
 	 * @param ts */
 	protected Long recalcFromTime(ProcessedReadOnlyTimeSeries3 ts) {
+		String tsFilter = System.getProperty("org.ogema.timeseries.eval.simple.api.tsfilter");
+		if(tsFilter != null &&
+				((ts.datapointForChangeNotification == null) ||
+						(!ts.datapointForChangeNotification.getLocation().contains(tsFilter)))) {
+			return null;
+		}
 		return Long.getLong("org.ogema.timeseries.eval.simple.api.recalcfrom");
 	};
 	
