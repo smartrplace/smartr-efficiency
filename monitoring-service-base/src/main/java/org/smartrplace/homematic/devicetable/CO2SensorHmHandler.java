@@ -3,7 +3,6 @@ package org.smartrplace.homematic.devicetable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -17,30 +16,19 @@ import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
-import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.CO2Sensor;
 import org.ogema.model.sensors.HumiditySensor;
-import org.ogema.model.sensors.Sensor;
 import org.ogema.model.sensors.TemperatureSensor;
-import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
-import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler.SensorElements;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
-import org.smartrplace.util.virtualdevice.HmCentralManager;
 
-import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
-import de.iwes.widgets.api.widgets.OgemaWidget;
-import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
-import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.label.Label;
-import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 
 public class CO2SensorHmHandler extends DeviceHandlerSimple<CO2Sensor> {
@@ -136,17 +124,29 @@ public class CO2SensorHmHandler extends DeviceHandlerSimple<CO2Sensor> {
 		public OnOffSwitch onOffSwitch;
 	}
 	SensorElements getElements(CO2Sensor co2) {
-		Resource dev = co2.getParent();
+		Resource dev = co2.getLocationResource().getParent();
 		SensorElements result = new SensorElements();
 		if(dev == null)
 			return result;
 		//List<Resource> allSubs = dev.sensors().getSubResources(false);
-		List<TemperatureSensor> tss = dev.getSubResources(TemperatureSensor.class, true);
+		List<TemperatureSensor> tss = dev.getSubResources(TemperatureSensor.class, false);
 		if(tss.size() == 1)
 			result.tempSens = tss.get(0);
-		List<HumiditySensor> hss = dev.getSubResources(HumiditySensor.class, true);
+		List<HumiditySensor> hss = dev.getSubResources(HumiditySensor.class, false);
 		if(hss.size() == 1)
 			result.humSens = hss.get(0);
+		if(result.humSens == null && result.tempSens == null) {
+			List<SensorDevice> sensDev = dev.getSubResources(SensorDevice.class, false);
+			if(sensDev.size() == 1) {
+				tss = sensDev.get(0).getSubResources(TemperatureSensor.class, true);
+				if(tss.size() == 1)
+					result.tempSens = tss.get(0);
+				hss = sensDev.get(0).getSubResources(HumiditySensor.class, true);
+				if(hss.size() == 1)
+					result.humSens = hss.get(0);				
+			}
+		}
+		
 		List<OnOffSwitch> oos = dev.getSubResources(OnOffSwitch.class, false);
 		if(hss.size() == 1)
 			result.onOffSwitch = oos.get(0);
