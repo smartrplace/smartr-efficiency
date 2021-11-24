@@ -11,6 +11,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFileFilter;
 import org.ogema.accesscontrol.RestAccess;
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
@@ -137,7 +138,8 @@ public class InitUtil {
 	
  	/** Call this from all applications implementing this bundle*/
  	public static boolean registerGenericMonitoringServlet(MonitoringController controller,
- 			boolean includeSpecialTimeseriesServlet, RestAccess restAcc) {
+ 			boolean includeSpecialTimeseriesServlet, RestAccess restAcc,
+ 			ApplicationManager appManForPermission) {
  		synchronized (UserServletTestMon.userServletHolder) {
  	 		if(UserServletTestMon.userServletHolder.userServlet != null)
  	 			return false;
@@ -149,10 +151,10 @@ public class InitUtil {
  			String userServletPathAPI = MonitoringApp.urlPathServletAPIWeb;
  			String genericFileUploadServletPath = "/upload";
  			String genericFileDownloadServletPath = "/download/";
- 			UserServlet userServlet = registerServlet(userServletPath, controller, includeSpecialTimeseriesServlet);
+ 			UserServlet userServlet = registerServlet(userServletPath, controller, includeSpecialTimeseriesServlet, appManForPermission);
  			UserServletTestMon.userServletHolder.userServlet = userServlet;
  			UserServletTestMon.restAcc = restAcc;
- 			UserServlet userServletAPI = registerServlet(userServletPathAPI, controller, includeSpecialTimeseriesServlet);
+ 			UserServlet userServletAPI = registerServlet(userServletPathAPI, controller, includeSpecialTimeseriesServlet, appManForPermission);
  			UserServletTestMonAPI.userServlet = userServletAPI;
  			UserServletTestMonAPI.restAcc = restAcc;			
  			UploadState uploadListener = new UploadState() {
@@ -162,7 +164,7 @@ public class InitUtil {
  					File destFile = new File(GENERIC_UPLOAD_FOR_WEB_PATH, item.getName());
  					try {
  						Files.copy(item.getInputStream(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
- 						registerDownload(destFile, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
+ 						registerDownload(destFile, genericFileDownloadServletPath, appManForPermission.getWebAccessManager());
  					} catch (IOException e) {
  						e.printStackTrace();
  					}
@@ -170,15 +172,16 @@ public class InitUtil {
  				}
  			};
  			FileUploadServlet fileUploadServlet = new FileUploadServlet(uploadListener, includeSpecialTimeseriesServlet, GENERIC_UPLOAD_FOR_WEB_PATH, null);
- 			controller.appMan.getWebAccessManager().registerWebResource(genericFileUploadServletPath, fileUploadServlet);
- 			registerDownloads(GENERIC_UPLOAD_FOR_WEB_PATH, genericFileDownloadServletPath, controller.appMan.getWebAccessManager());
+ 			appManForPermission.getWebAccessManager().registerWebResource(genericFileUploadServletPath, fileUploadServlet);
+ 			registerDownloads(GENERIC_UPLOAD_FOR_WEB_PATH, genericFileDownloadServletPath, appManForPermission.getWebAccessManager());
 		}
 		
 		return true;
  	}
  	
  	public static UserServlet registerServlet(String servletPath, MonitoringController controller,
- 			boolean includeSpecialTimeseriesServlet) {
+ 			boolean includeSpecialTimeseriesServlet,
+ 			ApplicationManager appManForPermission) {
  		UserServlet userServlet = new UserServlet(servletPath, controller.appManPlusMon); //.getInstance();
  		SensorServlet sensServlet = new SensorServlet(controller);
 		userServlet.addPage("sensorsByRoom", sensServlet);
@@ -194,7 +197,7 @@ public class InitUtil {
 		}
 		ConsumptionEvalServlet conEvalServlet = new ConsumptionEvalServlet(controller);
 		userServlet.addPage("consumptionData", conEvalServlet);
-		controller.appMan.getWebAccessManager().registerWebResource(servletPath, userServlet);
+		appManForPermission.getWebAccessManager().registerWebResource(servletPath, userServlet);
  		return userServlet;
  	}
  	
