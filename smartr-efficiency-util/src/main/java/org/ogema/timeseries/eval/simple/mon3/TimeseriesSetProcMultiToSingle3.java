@@ -136,7 +136,7 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 	public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
 
-		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3((TimeSeriesNameProvider)null, null, null) {
+		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3((TimeSeriesNameProvider)null, null, absoluteTiming) {
 			@Override
 			protected List<SampledValue> getResultValues(ReadOnlyTimeSeries timeSeries, long start,
 					long end, AggregationMode mode) {
@@ -360,6 +360,11 @@ if((tsFilter != null) && (ts.datapointForChangeNotification != null) &&
 				start = ts.getLastEndTime();
 		} else
 			start = ts.getLastEndTime();
+		if(start > now) {
+			//Should only occur in debug mode, could occur when recalc time is beyond now
+			ts.initLastEndTime(now);
+			return;
+		}
 		ts.updateValuesStoredAligned(start, now, false);		
 	}
 }
