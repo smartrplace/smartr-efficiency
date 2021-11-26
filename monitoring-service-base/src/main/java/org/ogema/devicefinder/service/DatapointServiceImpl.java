@@ -500,10 +500,10 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		List<InstallAppDevice> result = new ArrayList<>();
 		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
 			if(shortId) {
-				if(iad.deviceId().getValue().endsWith(deviceHandlerId))
+				if(iad.devHandlerInfo().getValue().endsWith(deviceHandlerId))
 					result.add(iad);
 			} else {
-				if(deviceHandlerId.equals(iad.deviceId().getValue()))
+				if(deviceHandlerId.equals(iad.devHandlerInfo().getValue()))
 					result.add(iad);
 			}
 		}

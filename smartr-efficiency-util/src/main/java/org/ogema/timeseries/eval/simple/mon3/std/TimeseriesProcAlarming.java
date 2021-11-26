@@ -44,9 +44,9 @@ public class TimeseriesProcAlarming extends TimeseriesSimpleProcUtil3 {
 	@Override
 	protected Long recalcFromTime(ProcessedReadOnlyTimeSeries3 ts) {
 		//TODO: DEBUG
-		if(ts.datapointForChangeNotification.getLocation().endsWith("_batduration"))
+		//if(ts.datapointForChangeNotification.getLocation().endsWith("_batduration"))
 		//if(ts.datapointForChangeNotification.getLocation().equals("homematic192_168_2_105_ip/interfaceInfo/dutyCycle/reading_gap"))
-			return 1111l;
+			//return 1111l;
 		return super.recalcFromTime(ts);
 	}
 	
