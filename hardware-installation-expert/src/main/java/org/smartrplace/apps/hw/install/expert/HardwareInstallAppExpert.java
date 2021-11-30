@@ -37,7 +37,6 @@ import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
-import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageChartExport;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
@@ -135,10 +134,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Configuration Page", configPagebase);
 			configPagebase.getMenuConfiguration().setCustomNavigation(menu);
 			
-			WidgetPage<?> configChartExport = widgetApp.createWidgetPage("configChartExport.hmtl");
+			/*WidgetPage<?> configChartExport = widgetApp.createWidgetPage("configChartExport.hmtl");
 			new ConfigurationPageChartExport(configChartExport, controller);
 			menu.addEntry("Chart Export Configuration Page", configChartExport);
-			configChartExport.getMenuConfiguration().setCustomNavigation(menu);
+			configChartExport.getMenuConfiguration().setCustomNavigation(menu);*/
+			menu.addEntry("Chart Export Configuration Page", "/de/iwes/tools/schedule/viewer-basic-example/chartconfigPage.html");
 
 			WidgetPage<LocaleDictionary> page2 = widgetApp.createWidgetPage("deviceConfig.html");
 			new DeviceConfigPage(page2, controller);
