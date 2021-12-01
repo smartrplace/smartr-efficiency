@@ -17,6 +17,7 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.CO2Sensor;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.TemperatureSensor;
@@ -105,6 +106,29 @@ public class CO2SensorHmHandler extends DeviceHandlerSimple<CO2Sensor> {
 			addDatapoint(sens.onOffSwitch.stateFeedback(), result);
 		}
 		addtStatusDatapointsHomematic(device, dpService, result);
+		return result;
+	}
+
+	@Override
+	public List<Resource> devicesControlled(InstallAppDevice iad) {
+		List<Resource> result = new ArrayList<>();
+		PhysicalElement device = iad.device();
+		result.add(device);
+		
+		final SensorElements sens = getElements((CO2Sensor) device);
+		if(sens.onOffSwitch != null) {
+			result.add(sens.onOffSwitch);			
+		}
+		
+		Resource parent = device.getLocationResource().getParent();
+		if(parent != null) {
+			List<SensorDevice> allSensDev = parent.getSubResources(SensorDevice.class, false);
+			for(SensorDevice sensDev: allSensDev) {
+				if(!sensDev.getName().startsWith("WEATHER"))
+					continue;
+				result.add(sensDev);
+			}
+		}
 		return result;
 	}
 
