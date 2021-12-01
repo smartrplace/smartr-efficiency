@@ -21,6 +21,7 @@ import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.locations.Room;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
@@ -29,7 +30,6 @@ import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
-import org.smartrplace.util.virtualdevice.HmCentralManager;
 
 import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -145,6 +145,24 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 		return result;
 	}
 
+	@Override
+	public List<Resource> devicesControlled(InstallAppDevice iad) {
+		List<Resource> result = new ArrayList<>();
+		PhysicalElement device = iad.device();
+		result.add(device);
+		
+		Resource parent = device.getLocationResource().getParent();
+		if(parent != null) {
+			List<SensorDevice> allSensDev = parent.getSubResources(SensorDevice.class, false);
+			for(SensorDevice sensDev: allSensDev) {
+				if(!sensDev.getName().startsWith("WEATHER"))
+					continue;
+				result.add(sensDev);
+			}
+		}
+		return result;
+	}
+	
 	@Override
 	public String getTableTitle() {
 		return "Wall Thermostats";

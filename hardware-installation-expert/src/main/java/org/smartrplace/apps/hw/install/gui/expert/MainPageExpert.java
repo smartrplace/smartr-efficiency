@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
@@ -385,7 +386,12 @@ public class MainPageExpert extends MainPage {
 				status.delete();
 			alarm.delete();
 		}
-		object.device().getLocationResource().deactivate(true);
+		if(devHand == null) {
+			object.device().getLocationResource().deactivate(true);										
+		} else 	for(Resource dev: devHand.devicesControlled(object)) {
+			dev.getLocationResource().deactivate(true);					
+		}
+		//object.device().getLocationResource().deactivate(true);
 		ValueResourceHelper.setCreate(object.isTrash(), true);		
 	}
 	

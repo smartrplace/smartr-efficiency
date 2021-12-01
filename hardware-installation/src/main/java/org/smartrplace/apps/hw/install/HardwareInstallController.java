@@ -38,6 +38,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DatapointImpl;
@@ -583,7 +584,7 @@ public class HardwareInstallController {
 		//dpRes.addDecorator(AlarmingService.ALARMSTATUS_RES_NAME, IntegerResource.class).activate(false);
 	}
 	
-	protected void cleanupOnStart() {
+	public void cleanupOnStart() {
 		List<String> knownDevLocs = new ArrayList<>();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if(!install.device().exists())
@@ -592,6 +593,14 @@ public class HardwareInstallController {
 				install.delete();
 			else
 				knownDevLocs.add(install.device().getLocation());
+			if(install.isTrash().getValue()) {
+				DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(install);
+				if(devHand == null) {
+					install.device().getLocationResource().deactivate(true);										
+				} else for(Resource dev: devHand.devicesControlled(install)) {
+					dev.getLocationResource().deactivate(true);					
+				}
+			}
 		}
 		
 	}

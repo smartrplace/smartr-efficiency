@@ -60,6 +60,7 @@ import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper.RecIdVal;
 import de.iwes.timeseries.eval.garo.api.helper.base.GaRoEvalHelper.TypeChecker;
 import de.iwes.util.logconfig.EvalHelper;
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of central Data Point Service
@@ -517,6 +518,17 @@ public abstract class DatapointServiceImpl implements DatapointService {
 				return iad;
 		}
 		return null;
+	}
+	
+	@Override
+	public InstallAppDevice getMangedDeviceResourceForSubresource(Resource subRes) {
+		PhysicalElement device = LogHelper.getDeviceResource(subRes, true);
+		if(device != null)
+			return getMangedDeviceResource(device);
+		device = LogHelper.getDeviceResource(subRes, false);
+		if(device == null)
+			return null;
+		return getMangedDeviceResource(device);
 	}
 	
 	@SuppressWarnings("unchecked")

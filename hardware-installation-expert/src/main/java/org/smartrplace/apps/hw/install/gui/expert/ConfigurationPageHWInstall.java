@@ -275,7 +275,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<StringResource> co2singleUserEdit = new ValueResourceTextField<StringResource>(page, "co2singleUserEdit",
 				app.appConfigData.singleCO2AlarmingUser());
 		
-		StaticTable configTable = new StaticTable(23, 2);
+		StaticTable configTable = new StaticTable(24, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "System default language").
 		setContent(i, 1, languageDrop);
@@ -445,6 +445,15 @@ public class ConfigurationPageHWInstall {
 		i++;
 		configTable.setContent(i, 0, "If this NOT empty then only to a user with the userName given by this "
 				+ "value CO2 air quality alarming messages will be sent via firebase:").setContent(i, 1, co2singleUserEdit);
+		i++;
+		
+		Button cleanUpIADsBut = new Button(page, "cleanUpIADsBut", "Clean up device data") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				controller.cleanupOnStart();
+			}
+		};
+		configTable.setContent(i, 0, "Cleanup device data:").setContent(i, 1, cleanUpIADsBut);
 		i++;
 		configTable.setContent(i, 0, "Enable manual editing of deviceIds:").setContent(i, 1, manualDeviceIdBut).setContent(i, 1, autoResetDeviceIds);
 		i++;

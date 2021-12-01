@@ -3,6 +3,7 @@ package org.smartrplace.apps.hw.install.gui.expert;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -44,7 +45,10 @@ public class MainPageExpertTrash extends MainPageExpert {
 
 	@Override
 	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
-		object.device().getLocationResource().activate(true);
+		for(Resource dev: devHand.devicesControlled(object)) {
+			dev.getLocationResource().activate(true);					
+		}
+		//object.device().getLocationResource().activate(true);
 		object.isTrash().setValue(false);
 		//re-init alarming and datapoints in general
 		controller.updateDatapoints(devHand, object);
