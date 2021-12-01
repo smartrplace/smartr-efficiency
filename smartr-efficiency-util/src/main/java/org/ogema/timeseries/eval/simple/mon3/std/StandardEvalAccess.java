@@ -2,6 +2,7 @@ package org.ogema.timeseries.eval.simple.mon3.std;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -498,10 +499,13 @@ public class StandardEvalAccess {
 			List<Datapoint> allGaps = getDeviceBaseEvalMulti(dev, StandardDeviceEval.BASE_MEASUREMENT_GAP, dpService);
 			for(Datapoint dp: allGaps) {
 				ReadOnlyTimeSeries ts = dp.getTimeSeries();
-				if(ts == null)
-					throw new IllegalStateException("No gap timeseries in "+dp.getLocation());
+				final List<SampledValue> gaps;
 				try {
-					List<SampledValue> gaps = ts.getValues(startTime, endTime);
+					if(ts == null) {
+						gaps = Collections.emptyList();
+						new IllegalStateException("No gap timeseries in "+dp.getLocation()).printStackTrace();
+					} else
+						gaps = ts.getValues(startTime, endTime);
 					double sum = AlarmingConfigUtil.getValueSum(gaps);
 					if(sum <= QUALITY_MAX_MINUTES) {
 						countShortOkGold++;
