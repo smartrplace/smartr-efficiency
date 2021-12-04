@@ -17,6 +17,8 @@ import org.ogema.accesscontrol.AppPermissionFilter;
 import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.model.user.NaturalPerson;
+import org.ogema.tools.app.useradmin.config.UserAdminData;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Version;
@@ -547,16 +549,53 @@ System.out.println("Finished removing app: "+bundleSymbolicName);
 		return result;
 	}
 	
-	/*public static List<UserAccount> getAllNaturalUsers(boolean includeMaster, ApplicationManagerPlus appManPlus) {
-		List<UserAccount> allUsers = appManPlus.appMan().getAdministrationManager().getAllUsers();
-		List<UserAccount> result = new ArrayList<>();
-		for(UserAccount ac: allUsers) {
-			if((!includeMaster) && (ac.getName().equals("master")||ac.getName().equals("guest2")))
-				continue;
-			if(!appManPlus.permMan().getAccessManager().isNatural(ac.getName()))
-				continue;
-			result.add(ac);
+    public static void updateUserStatusInResources(UserAdminData ownConfigData,
+    		ApplicationManagerPlus appManPlus) {
+    	ownConfigData.userData().create();
+    	for(UserAccount ac: UserAdminBaseUtil.getNaturalUsers(appManPlus.appMan(),
+    			appManPlus.permMan(), null)) {
+			NaturalPerson userRes = ResourceListHelper.getOrCreateNamedElementFlex(ac.getName(), ownConfigData.userData());
+			UserStatusResult status = UserAdminBaseUtil.getUserStatus(ac, appManPlus, false);
+			ValueResourceHelper.setCreate(userRes.userRole(), status.status.toString());
 		}
-		return result;
-	}*/
+    	ownConfigData.restUserData().create();
+    	for(UserAccount ac: UserAdminBaseUtil.getRESTUsers(appManPlus.appMan(), appManPlus.permMan())) {
+			ResourceListHelper.getOrCreateNamedElementFlex(ac.getName(), ownConfigData.restUserData());
+		}  	
+    }
+    
+    public static List<String> setUserRole(UserAccount userAccount, UserStatus destStatus,
+    		UserAdminData ownConfigData, ApplicationManagerPlus appManPlus, ConditionalPermissionAdmin cpa) {
+    	List<String> currentUserPerms = getPermissions(userAccount.getName(), cpa);
+    	return setUserRole(userAccount, destStatus, ownConfigData, appManPlus, currentUserPerms);
+    }
+    
+	public static List<String> setUserRole(UserAccount userAccount, UserStatus destStatus, UserAdminData ownConfigData,
+			ApplicationManagerPlus appManPlus, List<String> currentUserPerms) {
+    	List<String> result = UserAdminBaseUtil.setPerms(userAccount, currentUserPerms, destStatus,
+				appManPlus, false);
+		updateUserStatusInResources(ownConfigData, appManPlus);
+    	return result;
+    }
+    
+    /** Set user role and access permissions
+     * 
+     * @param userAccount for which role shall be changed
+     * @param destStatus new status of user account
+     * @param ownConfigData the general UserAdminData resource (usually toplevel)
+     * @param appMan
+     * @param permMan
+     * @param userPermService accessible as OSGi service
+     * @param cpa
+     * @return new user permissions set for the new role
+     */
+    public static List<String> setUserRole(UserAccount userAccount, UserStatus destStatus,
+    		UserAdminData ownConfigData,
+    		ApplicationManager appMan, PermissionManager permMan, UserPermissionService userPermService,
+    		ConditionalPermissionAdmin cpa) {
+    	ApplicationManagerPlus appManPlus = new ApplicationManagerPlus(appMan);
+    	appManPlus.setPermMan(permMan);
+    	appManPlus.setUserPermService(userPermService);
+    	return setUserRole(userAccount, destStatus, ownConfigData, appManPlus, cpa);
+    }
 }

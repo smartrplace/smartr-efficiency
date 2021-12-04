@@ -4,7 +4,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.sensors.OccupancySensor;
 
-public class OccSensorPattern extends ResourcePattern<OccupancySensor> { 
+public class MotionSensorPattern extends ResourcePattern<OccupancySensor> { 
 	
 	/**
 	 * Device name. Only devices whose "name"
@@ -17,7 +17,7 @@ public class OccSensorPattern extends ResourcePattern<OccupancySensor> {
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public OccSensorPattern(Resource device) {
+	public MotionSensorPattern(Resource device) {
 		super(device);
 	}
 }

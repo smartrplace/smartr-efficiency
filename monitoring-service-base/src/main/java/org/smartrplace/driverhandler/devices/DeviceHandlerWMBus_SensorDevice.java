@@ -110,9 +110,21 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
 		SensorDevice dev = (SensorDevice) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
+		boolean addElementName = dev.sensors().size() > 1;
+		boolean isJmbus = dev.getLocation().toLowerCase().contains("jmbus");
+		String sensorDevName = null;
+		if(!isJmbus)
+			sensorDevName = dev.getLocationResource().getName();
 		for(Sensor sens: dev.sensors().getAllElements()) {
-			if(sens.reading() instanceof SingleValueResource)
-				addDatapoint((SingleValueResource) sens.reading(), result, dpService);			
+			if(sens.reading() instanceof SingleValueResource) {
+				if(isJmbus)
+					addDatapoint((SingleValueResource) sens.reading(), result, dpService);
+				else if(addElementName)
+					addDatapoint((SingleValueResource) sens.reading(), result,
+							sensorDevName+"-"+sens.getName(), dpService);
+				else
+					addDatapoint((SingleValueResource) sens.reading(), result, sensorDevName, dpService);
+			}
 		}
 		return result;
 	}

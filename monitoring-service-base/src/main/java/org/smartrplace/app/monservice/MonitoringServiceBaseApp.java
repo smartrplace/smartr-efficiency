@@ -9,6 +9,7 @@ import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.ReferenceCardinality;
 import org.apache.felix.scr.annotations.ReferencePolicy;
+import org.apache.felix.scr.annotations.ReferencePolicyOption;
 import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
@@ -64,8 +65,7 @@ import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_SmartDimmer;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
-import de.iwes.widgets.api.widgets.navigation.NavigationMenu;  
-import org.apache.felix.scr.annotations.ReferencePolicyOption;
+import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 @References({
 	@Reference(

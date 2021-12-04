@@ -44,7 +44,7 @@ public class MotionSensorHandler extends DeviceHandlerSimple<OccupancySensor> {
 
 	@Override
 	protected Class<? extends ResourcePattern<OccupancySensor>> getPatternClass() {
-		return OccSensorPattern.class;
+		return MotionSensorPattern.class;
 	}
 
 }
