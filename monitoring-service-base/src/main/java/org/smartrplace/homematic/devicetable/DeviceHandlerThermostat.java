@@ -212,7 +212,7 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 			dev.getSubResource("maximumValvePosition", FloatResource.class).delete();
 		addtStatusDatapointsHomematic(dev, dpService, result);
 		
-		addMemoryDps(dpRef, installDeviceRes, result, dpService, appMan.getResourceAccess(), true, this);
+		addMemoryDps(dpRef, installDeviceRes, result, dpService, appMan, true, this);
 		addSetpReactDp(dpRef, installDeviceRes, dev, result, dpService, appMan.getResourceAccess(), this);
 		
 		return result;
@@ -220,18 +220,19 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static void addMemoryDps(Datapoint dpRef, InstallAppDevice installDeviceRes,
-			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,
+			List<Datapoint> result, DatapointService dpService, ApplicationManagerPlus appMan,
 			boolean removeVirtualDpResource,
 			DeviceHandlerProviderDP<Thermostat> devHand) {
 		if(dpRef == null)
 			return;
 		String refLabel = dpRef.label(null);
 		String gradLabel = refLabel.replace("Temperature measured at thermostat","BatVoltageFew");
+		StandardEvalAccess.init(appMan);
 		StandardEvalAccess.addMemoryDatapointForInit(installDeviceRes, StandardDeviceEval.BATTERY_VOLTAGE_MINIMAL,
-				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result, (DeviceHandlerProviderDP)devHand);
+				dpService, appMan.getResourceAccess(), false, removeVirtualDpResource, gradLabel, result, (DeviceHandlerProviderDP)devHand);
 		gradLabel = refLabel.replace("Temperature measured at thermostat","BatRemainingDays");
 		StandardEvalAccess.addMemoryDatapointForInit(installDeviceRes, StandardDeviceEval.BATTERY_REMAINING,
-				dpService, resAcc, false, removeVirtualDpResource, gradLabel, result, (DeviceHandlerProviderDP)devHand);
+				dpService, appMan.getResourceAccess(), false, removeVirtualDpResource, gradLabel, result, (DeviceHandlerProviderDP)devHand);
 	}
 	public static void addSetpReactDp(Datapoint dpRef, InstallAppDevice iad, Thermostat device,
 			List<Datapoint> result, DatapointService dpService, ResourceAccess resAcc,

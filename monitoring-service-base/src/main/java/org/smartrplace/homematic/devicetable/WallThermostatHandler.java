@@ -139,7 +139,7 @@ public class WallThermostatHandler extends DeviceHandlerSimple<Thermostat> {
 			}
 		}
 		
-		DeviceHandlerThermostat.addMemoryDps(dpRef, deviceConfiguration, result, dpService, appMan.getResourceAccess(), false, this);
+		DeviceHandlerThermostat.addMemoryDps(dpRef, deviceConfiguration, result, dpService, appMan, false, this);
 		DeviceHandlerThermostat.addSetpReactDp(dpRef, deviceConfiguration, device, result, dpService, appMan.getResourceAccess(), this);
 		
 		return result;
