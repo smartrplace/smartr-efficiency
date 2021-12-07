@@ -71,6 +71,19 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 				deviceIdInt = iad.getLocation().hashCode();
 		}
 		
+		final String locationStr;
+		if(object.isLocal()) {
+			locationStr = object.getLocation();
+		} else {
+			String locloc = object.getLocation();
+			String gw = object.getGatewayId();
+			locationStr = DatapointGroup.getGroupIdForGw(locloc, gw);
+			ServletStringProvider gateway = new ServletStringProvider(gw);
+			result.put("gateway", gateway);
+			ServletStringProvider locationLocal = new ServletStringProvider(locloc);
+			result.put("locationLocal", locationLocal);
+		}
+
 		if(!UserServletUtil.isPOST(parameters)) {
 			//perform filtering
 			String roomFilter = UserServlet.getParameter("room", parameters);
@@ -91,6 +104,9 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			if(dpTypeFilter != null) {
 				if(Boolean.getBoolean("org.smartrplace.app.monbase.servlet.replaceCurrentByForecast") && dpTypeFilter.equals("OutsideTemperatureExt"))
 					dpTypeFilter = "OutsideTemperaturePerForcecast";
+				String outSideTempUseOnly = System.getProperty("org.smartrplace.app.monbase.servlet.outsideTemp.useOnly");
+				if((outSideTempUseOnly != null) && dpTypeFilter.equals("OutsideTemperatureExt") && (!locationStr.equals(outSideTempUseOnly)))
+					return null;
 				if(garo == null)
 					return null;
 				if(!dpTypeFilter.equals(typeId))
@@ -112,18 +128,6 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			}
 		}
 
-		String locationStr;
-		if(object.isLocal()) {
-			locationStr = object.getLocation();
-		} else {
-			String locloc = object.getLocation();
-			String gw = object.getGatewayId();
-			locationStr = DatapointGroup.getGroupIdForGw(locloc, gw);
-			ServletStringProvider gateway = new ServletStringProvider(gw);
-			result.put("gateway", gateway);
-			ServletStringProvider locationLocal = new ServletStringProvider(locloc);
-			result.put("locationLocal", locationLocal);
-		}
 		ServletNumProvider id = new ServletNumProvider(getNumericalId(locationStr));
 		result.put("id", id);
 		
