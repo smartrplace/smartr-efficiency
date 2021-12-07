@@ -120,8 +120,11 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 			ServletNumProvider roomId = new ServletNumProvider(roomIdInt);
 			result.put("roomId", roomId);
 		}
-		ServletStringProvider subLocation = new ServletStringProvider(object.installationLocation().getValue());
-		result.put("subLocation", subLocation);
+		String subloc = object.installationLocation().getValue();
+		if(subloc != null) {
+			ServletStringProvider subLocation = new ServletStringProvider(subloc);
+			result.put("subLocation", subLocation);
+		}
 		ServletNumProvider isActive = new ServletNumProvider(!object.isTrash().getValue());
 		result.put("isActive", isActive);
 		

@@ -171,9 +171,11 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			ServletNumProvider roomId = new ServletNumProvider(roomIdInt);
 			result.put("roomId", roomId);
 		}
-		ServletStringProvider subLocation = new ServletStringProvider(object.getSubRoomLocation(null, null));
-		result.put("subLocation", subLocation);
-		
+		String subloc = object.getSubRoomLocation(null, null);
+		if(subloc != null) {
+			ServletStringProvider subLocation = new ServletStringProvider(subloc);
+			result.put("subLocation", subLocation);
+		}
 		if(iad != null) {
 			ServletNumProvider deviceId = new ServletNumProvider(iad.getLocation().hashCode());
 			result.put("deviceId", deviceId);
