@@ -40,6 +40,7 @@ import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HMIEC_ElConnDeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabFlowSens_DeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatingLabGeneralData_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabTempSens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabThermalValve_DeviceHandler;
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
@@ -245,6 +246,9 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srThValve = null;
 	private HeatingLabThermalValve_DeviceHandler devHandThValve;
 	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srHeatlabGeneral = null;
+	private HeatingLabGeneralData_DeviceHandler devHandHeatlabGeneral;
+	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srWall = null;
 	private WallThermostatHandler devHandWall;
 	@SuppressWarnings("rawtypes")
@@ -359,6 +363,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srTempSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandTempSensSingle, null);
 	   devHandThValve = new HeatingLabThermalValve_DeviceHandler(controller.appManPlus);
 	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
+	   devHandHeatlabGeneral = new HeatingLabGeneralData_DeviceHandler(controller.appManPlus);
+	   srHeatlabGeneral = bc.registerService(DeviceHandlerProvider.class, devHandHeatlabGeneral, null);
 	   devHandWall = new WallThermostatHandler(controller.appManPlus);
 	   srWall = bc.registerService(DeviceHandlerProvider.class, devHandWall, null);
 	   devHandCO2Hm = new CO2SensorHmHandler(controller.appManPlus);
@@ -408,6 +414,7 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srFlowSensSingle!= null) srFlowSensSingle.unregister();
      	if (srTempSensSingle!= null) srTempSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
+     	if (srHeatlabGeneral!= null) srHeatlabGeneral.unregister();
     	if (srWall!= null) srWall.unregister();
     	if (srCO2Hm!= null) srCO2Hm.unregister();
 

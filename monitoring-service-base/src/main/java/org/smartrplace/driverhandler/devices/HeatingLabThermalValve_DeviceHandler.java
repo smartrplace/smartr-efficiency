@@ -10,13 +10,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.connectiondevices.ThermalValve;
-import org.ogema.model.sensors.EnergyAccumulatedSensor;
-import org.ogema.model.sensors.FlowSensor;
-import org.ogema.model.sensors.TemperatureSensor;
-import org.ogema.model.sensors.VolumeAccumulatedSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-
-import de.fhg.iee.ogema.labdata.HeatingLabData;
 
 public class HeatingLabThermalValve_DeviceHandler extends DeviceHandlerSimple<ThermalValve> {
 
