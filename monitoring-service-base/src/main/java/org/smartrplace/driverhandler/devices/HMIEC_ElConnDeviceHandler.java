@@ -154,23 +154,8 @@ public class HMIEC_ElConnDeviceHandler extends DeviceHandlerSimple<ElectricityCo
 			Datapoint dpDaily = StandardEvalAccess.addVirtualDatapoint(dailyTraffic,
 					evalDpDaily, dpService, result);
 			dpDaily.addToSubRoomLocationAtomic(null, null, meter.getName()+"-daily", false);
-
-			
-			
-	/*long start = dpService.getFrameworkTime();
-	System.out.println("   *** HM-IEC virtual datapoints starting for "+meter.getLocation());
-			VirtualSensorKPIDataBase dpHourly = utilAggSubPhases.addVirtualDatapointSingle(dpenergy, "energySum15min", device,
-					5*TimeProcUtil.MINUTE_MILLIS, false, true, result);
-			//VirtualSensorKPIDataBase dpHourly = utilAggSubPhases.addVirtualDatapoint(energy, "energySumHourly", device,
-			//		5*TimeProcUtil.MINUTE_MILLIS, false, true, result);
-			utilAggSubPhases.addVirtualDatapoint(Arrays.asList(new Datapoint[] {dpHourly.evalDp}), "energySumDaily", device,
-				5*TimeProcUtil.MINUTE_MILLIS, false, true, result);
-
-	long end = dpService.getFrameworkTime();
-	System.out.println("   *** HM_IEC virtual datapoints took "+(end-start)+" msec for "+meter.getLocation());*/
 		}
-
-		//final VirtualSensorKPIDataBase mapData1 = utilAggSubPhases.getDatapointDataAccumulation(energy, "total"+device.getName(), device,
+		addtStatusDatapointsHomematic(device, dpService, result);
 		
 		return result;
 	}

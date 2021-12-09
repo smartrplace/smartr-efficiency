@@ -128,7 +128,10 @@ public class ComSystemEval {
 			}
 			if(data.mainSensor == null) {
 				DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(iad);
-				data.mainSensor = devHand.getMainSensorValue(iad);
+				if(devHand != null)
+					data.mainSensor = devHand.getMainSensorValue(iad);
+				else
+					appMan.getLogger().warn("No device handler for "+iad.getLocation());
 			}
 			if(data.mainSensor == null)
 				continue;

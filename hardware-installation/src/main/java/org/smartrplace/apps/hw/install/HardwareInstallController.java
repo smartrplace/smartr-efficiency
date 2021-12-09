@@ -706,7 +706,7 @@ public class HardwareInstallController {
 					if(!sensorVal.exists())
 						continue;
 					String sensorLoc = sensorVal.getLocation();
-					for(InstallAppDevice iad: dpService.managedDeviceResoures(null)) {
+					for(InstallAppDevice iad: dpService.managedDeviceResoures(null, true, true)) {
 						if(sensorLoc.startsWith(iad.device().getLocation())) {
 							templ.device().setAsReference(iad.device());
 							break;
