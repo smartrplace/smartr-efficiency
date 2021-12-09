@@ -220,6 +220,10 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 					public boolean isInSelection(String object, AccessConfigUser group) {
 						UserAccount userAccount = controller.appMan.getAdministrationManager().getUser(object);
 						UserStatusResult status = UserAdminBaseUtil.getUserStatus(userAccount, controller.appManPlus, false);
+						if(status.status == null) {
+							controller.log.warn("Status for user "+userAccount.getName()+" null!!");
+							return false;
+						}
 						return userGroupName.equals(UserStatus.getLabel(status.status, null));
 					}
 				};
