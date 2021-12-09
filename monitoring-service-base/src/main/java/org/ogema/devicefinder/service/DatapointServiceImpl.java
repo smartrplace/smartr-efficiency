@@ -488,6 +488,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			return installAppList().getAllElements();
 		List<InstallAppDevice> result = new ArrayList<>();
 		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
+			if(iad.isTrash().getValue())
+				continue;
 			if(resourceType.isAssignableFrom(iad.device().getResourceType()))
 				result.add(iad);
 		}
@@ -500,6 +502,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			return installAppList().getAllElements();
 		List<InstallAppDevice> result = new ArrayList<>();
 		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
+			if(iad.isTrash().getValue())
+				continue;
 			if(shortId) {
 				if(iad.devHandlerInfo().getValue().endsWith(deviceHandlerId))
 					result.add(iad);
