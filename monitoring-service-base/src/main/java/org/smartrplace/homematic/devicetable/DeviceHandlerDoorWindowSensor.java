@@ -243,7 +243,7 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindo
 						return;
 					}
 					String label = dpService.getDataPointStandard(deviceResource.reading()).label(null);
-					appMan.getLogger().warn("Request value property #"+valueRequestsentNum+" for DoowWindowSensor "+label+" ("+deviceResource.getLocation()+")");
+					appMan.getLogger().debug("Request value property #"+valueRequestsentNum+" for DoowWindowSensor "+label+" ("+deviceResource.getLocation()+")");
 					propService.getProperty(deviceResource, PropType.CURRENT_SENSOR_VALUE, 
 							new DriverPropertySuccessHandler<Resource>() {
 								@Override
@@ -265,9 +265,9 @@ public class DeviceHandlerDoorWindowSensor extends DeviceHandlerSimple<DoorWindo
 										}
 									}
 									if(message != null)
-										appMan.getLogger().warn("Reading value property #"+valueRequestsentNum+" took "+duration+" msec, received message: "+message);
+										appMan.getLogger().trace("Reading value property #"+valueRequestsentNum+" took "+duration+" msec, received message: "+message);
 									else
-										appMan.getLogger().warn("Reading value property #"+valueRequestsentNum+" took "+duration+" msec");
+										appMan.getLogger().trace("Reading value property #"+valueRequestsentNum+" took "+duration+" msec");
 								}
 							});
 					valueRequestsentNum ++;
