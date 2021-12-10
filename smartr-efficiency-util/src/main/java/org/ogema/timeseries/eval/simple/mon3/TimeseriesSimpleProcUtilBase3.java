@@ -202,7 +202,8 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	
 	public int saveUpdatesForAllData() {
 		int count = 0;
-		for(Datapoint dp: generatedTss) {
+		List<Datapoint> generatedTssLoc = new ArrayList<>(generatedTss);
+		for(Datapoint dp: generatedTssLoc) {
 			if(saveData(dp) != null)
 				count++;
 		}

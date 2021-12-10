@@ -2,7 +2,9 @@ package org.smartrplace.mqtt.devicetable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -28,6 +30,7 @@ import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.ElectricCurrentSensor;
 import org.ogema.model.sensors.ElectricEnergySensor;
+import org.ogema.model.sensors.ElectricPowerSensor;
 import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.ReactivePowerAngleSensor;
@@ -54,19 +57,27 @@ import de.iwes.widgets.html.form.label.Label;
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<ElectricityConnectionBox> {
 	private final ApplicationManagerPlus appMan;
-	private final VirtualSensorKPIMgmt utilAggDaily;
-	private final VirtualSensorKPIMgmt utilAggMonthly;
+	private final VirtualSensorKPIMgmtMeter2Interval utilAggDaily;
+	private final VirtualSensorKPIMgmtMeter2Interval utilAggDailyFromPower;
+	private final VirtualSensorKPIMgmtMeter2Interval utilAggMonthly;
+	private final VirtualSensorKPIMgmtMeter2Interval utilAggYearly;
 	
 	protected class VirtualSensorKPIMgmtMeter2Interval extends VirtualSensorKPIMgmt {
 		protected final int interval;
-
+		protected final AggregationMode sourceAggMode;
+		
 		public VirtualSensorKPIMgmtMeter2Interval(int interval, TimeseriesSimpleProcUtil util, Logger logger,
 				DatapointService dpService) {
+			this(interval, util, logger, dpService, AggregationMode.Meter2Meter);
+		}
+		public VirtualSensorKPIMgmtMeter2Interval(int interval, TimeseriesSimpleProcUtil util, Logger logger,
+				DatapointService dpService, AggregationMode sourceAggMode) {
 			super(util, logger, dpService);
 			this.interval = interval;
+			this.sourceAggMode = sourceAggMode;
 		}
 
-		@Override
+		/*@Override
 		public VirtualSensorKPIDataBase getDatapointDataAccumulationSingle(Datapoint dpSource,
 				String newSubResName, Resource device,
 				Long intervalToStayBehindNow,
@@ -77,7 +88,7 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 					intervalToStayBehindNow>=0?intervalToStayBehindNow:15*TimeProcUtil.MINUTE_MILLIS,
 					registerGovernedSchedule, registerRemoteScheduleViaHeartbeat, result);
 			return mapData;
-		}
+		}*/
 		
 		@Override
 		public SingleValueResource getAndConfigureValueResourceSingle(Datapoint dpSource, VirtualSensorKPIDataBase mapData,
@@ -87,14 +98,28 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 			energyDailyRealAgg.getSubResource("unit", StringResource.class).<StringResource>create().setValue("kWh");
 			energyDailyRealAgg.getParent().activate(true);
 			
-			dpSource.info().setAggregationMode(AggregationMode.Meter2Meter);
-			mapData.evalDp = tsProcUtil.processSingle(
-					interval==AbsoluteTiming.MONTH?TimeProcUtil.SUM_PER_MONTH_EVAL:TimeProcUtil.SUM_PER_DAY_EVAL,
-					dpSource);
+			//dpSource.info().setAggregationMode(AggregationMode.Meter2Meter);
+			dpSource.info().setAggregationMode(sourceAggMode);
+			mapData.evalDp = createEvalDp(dpSource);
 			//If the datapoint requires absoluteTiming, set it here
 			mapData.absoluteTiming = interval;
 			
 			return energyDailyRealAgg;
+		}
+		
+		public Datapoint createEvalDp(Datapoint dpSource) {
+			final String evalStr;
+			switch(interval) {
+			case AbsoluteTiming.YEAR:
+				evalStr = TimeProcUtil.PER_YEAR_EVAL;
+				break;
+			case AbsoluteTiming.MONTH:
+				evalStr = TimeProcUtil.PER_MONTH_EVAL;
+				break;
+			default:
+				evalStr = TimeProcUtil.PER_DAY_EVAL;
+			}
+			return tsProcUtil.processSingle(evalStr, dpSource);
 		}
 	}
 	
@@ -104,10 +129,15 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		utilAggDaily = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.DAY,
 				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
 				appMan.getLogger(), appMan.dpService());
+		utilAggDailyFromPower = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.DAY,
+				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				appMan.getLogger(), appMan.dpService(), AggregationMode.Power2Meter);
 		utilAggMonthly = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.MONTH,
 				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
 				appMan.getLogger(), appMan.dpService());
-		
+		utilAggYearly = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.YEAR,
+				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				appMan.getLogger(), appMan.dpService());		
 	}
 	
 	@Override
@@ -187,26 +217,49 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		return appMan.getResourcePatternAccess();
 	}
 
+	Set<String> devDone = new HashSet<>();
 	@Override
 	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
 		ElectricityConnectionBox dev = (ElectricityConnectionBox) installDeviceRes.device();
+		if(Boolean.getBoolean("org.smartrplace.mqtt.devicetable.activate")) {
+			if(!devDone.contains(dev.getLocation())) {
+				dev.activate(true);
+				devDone.add(dev.getLocation());
+			}
+		}
 		List<Datapoint> result = new ArrayList<>();
-		Datapoint energyDp = addConnDatapoints(result, dev.connection(), null, dpService);
+		Datapoint[] connDps = addConnDatapoints(result, dev.connection(), null, dpService);
+		Datapoint energyDp = connDps[0];
+		Datapoint powerDp = connDps[1];
 		for(ElectricityConnection subConn: dev.connection().subPhaseConnections().getAllElements()) {
 			addConnDatapoints(result, subConn, subConn.getName(), dpService);			
 		}
-		if(!Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppressdaily") && dev.getLocation().startsWith("elMetersPM2x") && energyDp != null) {
-			Datapoint daily = provideIntervalFromMeterDatapoint("energyDaily", energyDp, result, dev.connection(), dpService, utilAggDaily);			
-			provideIntervalFromMeterDatapoint("energyMonthly", daily, result, dev.connection(), dpService, utilAggMonthly);		
+		//if(!Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppressdaily") &&
+		//		(dev.getLocation().startsWith("elMetersPM2x") || dev.getLocation().startsWith("MQTTMeter"))) {
+		if(!Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppressdaily")) {
+			Datapoint daily = null;
+			boolean createResource = !Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppress_resourcecreation_plus");
+			if(energyDp != null) {
+				daily = provideIntervalFromMeterDatapoint("energyDaily", energyDp, result, dev.connection(), dpService,
+						utilAggDaily, createResource);			
+			} else if(powerDp != null) {
+				daily = provideIntervalFromMeterDatapoint("energyDaily", powerDp, result, dev.connection(), dpService,
+						utilAggDailyFromPower, createResource);
+			}
+			if(daily != null) {
+				Datapoint monthly = provideIntervalFromMeterDatapoint("energyMonthly", daily, result, dev.connection(), dpService, utilAggMonthly, createResource);
+				if(Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyYearly"))
+					provideIntervalFromMeterDatapoint("energyYearly", monthly, result, dev.connection(), dpService, utilAggYearly, createResource);				
+			}
 		}
-		
 		return result;
 	}
 	
 	/** Return Datapoint for the energy counter*/
-	protected Datapoint addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, String phase, DatapointService dpService) {
+	protected Datapoint[] addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, String phase, DatapointService dpService) {
+		Datapoint[] returnVal = new Datapoint[2];
 		addDatapoint(conn.voltageSensor().reading(), result, phase, dpService);
-		addDatapoint(conn.powerSensor().reading(), result, phase, dpService);
+		Datapoint powerDp = addDatapoint(conn.powerSensor().reading(), result, phase, dpService);
 		addDatapoint(conn.powerSensor().settings().setpoint(), result, phase, dpService);
 		addDatapoint(conn.reactivePowerSensor().reading(), result, phase, dpService);
 		addDatapoint(conn.reactivePowerSensor().settings().setpoint(), result, phase, dpService);
@@ -220,10 +273,17 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		addDecoratorDatapoints(conn.getSubResources(PowerSensor.class, false), result, phase, dpService);
 		addDecoratorDatapoints(conn.getSubResources(ReactivePowerAngleSensor.class, false), result, phase, dpService);
 		
-		addDatapoint(conn.getSubResource("QPCC_max", PowerResource.class), result, phase, dpService);
-		addDatapoint(conn.getSubResource("QPCC_min", PowerResource.class), result, phase, dpService);
+		addDatapoint(conn.getSubResource("apparentPowerSensor", ElectricPowerSensor.class).reading(), result, phase, dpService);
+		//addDatapoint(conn.getSubResource("voltageSensorAB", ElectricVoltageSensor.class).reading(), result, phase, dpService);
+		//addDatapoint(conn.getSubResource("voltageSensorBC", ElectricVoltageSensor.class).reading(), result, phase, dpService);
+		//addDatapoint(conn.getSubResource("voltageSensorCA", ElectricVoltageSensor.class).reading(), result, phase, dpService);
 		
-		return energyDp;
+		addDatapoint(conn.getSubResource("QPCC_min", PowerResource.class), result, phase, dpService);
+		addDatapoint(conn.getSubResource("QPCC_max", PowerResource.class), result, phase, dpService);
+		
+		returnVal[0] = energyDp;
+		returnVal[1] = powerDp;
+		return returnVal;
 	}
 	
 	protected <T extends Sensor> void addDecoratorDatapoints(List<T> valRess, List<Datapoint> result, String phase, DatapointService dpService) {
@@ -254,10 +314,20 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 	protected static Datapoint provideIntervalFromMeterDatapoint(String newSubResName,
 			Datapoint dpSource,
 			List<Datapoint> result, ElectricityConnection conn, DatapointService dpService,
-			VirtualSensorKPIMgmt util) {
+			VirtualSensorKPIMgmtMeter2Interval util, boolean createResource) {
 		if(dpSource != null && util != null) {
-			final VirtualSensorKPIDataBase mapData1 = util.getDatapointDataAccumulationSingle(dpSource, newSubResName, conn,
-					15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+			final VirtualSensorKPIDataBase mapData1;
+			if(createResource)
+				mapData1 = util.addVirtualDatapointSingle(dpSource, newSubResName, conn,
+						15*TimeProcUtil.MINUTE_MILLIS, false, true, result);
+			else {
+				Datapoint dp = util.createEvalDp(dpSource);
+				if(result != null)
+					result.add(dp);
+				return dp;
+			}
+			/*final VirtualSensorKPIDataBase mapData1 = util.getDatapointDataAccumulationSingle(dpSource, newSubResName, conn,
+					15*TimeProcUtil.MINUTE_MILLIS, false, true, result);*/
 if(mapData1 == null) {
 	System.out.println("   !!!!  WARNING: Unexpected null value in provideIntervalFromMeterDatapoint for "+dpSource.getLocation()+" nSubRN:"+newSubResName);
 	return null;
