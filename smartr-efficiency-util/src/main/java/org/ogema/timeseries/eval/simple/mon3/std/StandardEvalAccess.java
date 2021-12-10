@@ -16,6 +16,7 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.SetpointData;
@@ -38,6 +39,7 @@ import org.smartrplace.apps.alarmingconfig.model.eval.ThermPlusConfig;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
+import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -60,9 +62,14 @@ public class StandardEvalAccess {
 		BASE_MEASUREMENT_OUT,
 		/** The standard counter-based evals are generated hourly, daily, monthly. Different sets with a
 		 * different base can be defined (currently 15-minute based).<br>
-		 * TODO: For now this is always counter to interval-value, the input mode is set by the util framework.
-		 * There could also be solutions for power to interval-value including summing up phases or meters
-		 * in the future.*/
+		 * The {@link AggregationMode} has to be set by the calling application. So this can be used for
+		 * different aggregation modes as input.
+		 * TODO: Test for different from Meter2Meter.
+		 * TODO: This will always create hourly or 15minute timeseries if you want to start e.g. with daily
+		 * 		values as smallest interval then you currently have to use your own implementation. See
+		 *      DeviceHandlerMQTT_ElecConnBox for this.
+		 * TODO: There could also be solutions for summing up phases or meters
+		 * in the future. Currently only a single energy or power input time series is accepcted as input.*/
 		COUNTER_TO_HOURLY,
 		COUNTER_TO_DAILY,
 		COUNTER_TO_MONTHLY,
@@ -133,7 +140,7 @@ public class StandardEvalAccess {
 		}
 	}
 	
-	public static Datapoint getDatapointBaseEval(Datapoint dpIn, StandardDeviceEval type,
+	public static Datapoint getDatapointBaseEvalMetering(Datapoint dpIn, StandardDeviceEval type,
 			DatapointService dpService) {
 		synchronized (dpIn) {
 			Datapoint dpDay = null;
@@ -152,14 +159,16 @@ public class StandardEvalAccess {
 				if((dpBase15 != null && dpBase60 == null) 
 						|| (Boolean.getBoolean("standardeval.15minutedefaultforhour") && dpBase60 == null)) {
 					if(type == StandardDeviceEval.COUNTER_TO_DAILY)
-						return getDatapointBaseEval(dpIn, StandardDeviceEval.COUNTER_TO_DAILY_B15, dpService);
+						return getDatapointBaseEvalMetering(dpIn, StandardDeviceEval.COUNTER_TO_DAILY_B15, dpService);
 					else
-						return getDatapointBaseEval(dpIn, StandardDeviceEval.COUNTER_TO_MONTHLY_B15, dpService);
+						return getDatapointBaseEvalMetering(dpIn, StandardDeviceEval.COUNTER_TO_MONTHLY_B15, dpService);
 				}
 			case COUNTER_TO_HOURLY:
 				Datapoint dpBase = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_HOURLY));
 				if(dpBase == null) {
 					dpBase = util().processSingle(TimeProcUtil.PER_HOUR_EVAL, dpIn);
+					//for the following steps we always have to proceed with Meter2Meter
+					dpBase.info().setAggregationMode(AggregationMode.Meter2Meter);
 				}
 				if(type != StandardDeviceEval.COUNTER_TO_HOURLY) {
 					if(dpDay == null) {
@@ -645,7 +654,8 @@ public class StandardEvalAccess {
 			List<Datapoint> result) {
 		return addVirtualDatapoint(destRes, evalDp, false, registerRemoteScheduleViaHeartbeat, null, null, false, dpService, result);
 	}
-	/**
+	/** TODO: This is almost the same as {@link VirtualSensorKPIMgmt#addVirtualDatapoint(List, String, Resource, long, boolean, boolean, List)}
+	 * Here we assume that the evaluation datapoint is created via
 	 * 
 	 * @param destRes
 	 * @param evalDp

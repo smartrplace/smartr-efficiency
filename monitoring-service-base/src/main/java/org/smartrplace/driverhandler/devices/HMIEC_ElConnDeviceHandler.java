@@ -143,10 +143,10 @@ public class HMIEC_ElConnDeviceHandler extends DeviceHandlerSimple<ElectricityCo
 			}
 			
 			dp.info().setAggregationMode(AggregationMode.Meter2Meter);
-			Datapoint evalDp = StandardEvalAccess.getDatapointBaseEval(dp,
+			Datapoint evalDp = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
 					StandardDeviceEval.COUNTER_TO_15MIN, dpService);
 			result.add(evalDp);
-			Datapoint evalDpDaily = StandardEvalAccess.getDatapointBaseEval(dp,
+			Datapoint evalDpDaily = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
 					StandardDeviceEval.COUNTER_TO_DAILY_B15, dpService);
 
 			FloatResource dailyTraffic = meter.getSubResource("energySumDaily", FloatResource.class);
