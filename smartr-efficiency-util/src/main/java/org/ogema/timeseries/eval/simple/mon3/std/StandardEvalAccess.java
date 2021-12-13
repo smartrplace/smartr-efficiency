@@ -77,6 +77,12 @@ public class StandardEvalAccess {
 		COUNTER_TO_DAILY_B15,
 		COUNTER_TO_MONTHLY_B15,
 		
+		AVERAGE_DAILY,
+		//AVERAGE_WEEKLY,
+		AVERAGE_MONTHY,
+		AVERAGE_YEARLY,
+		
+		
 		/** Only defined for devices. Note that currently only the first setpoint(=actory) of
 		 * each device is used for the result*/
 		BASE_FEEDBACK_GAP,

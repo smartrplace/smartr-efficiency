@@ -49,13 +49,16 @@ public class PageBuilderSimple {
 	private final MailPopup popup;
 	//private final TextField hoursToShow;
 	private final ApplicationManager appMan;
+	private final boolean showCloseButton;
 
 	public PageBuilderSimple(final WidgetPage<MessagesDictionary> page, final MessageReader mr,
-			ApplicationManager appMan) {
+			ApplicationManager appMan, boolean showCloseButton) {
 		this.page = page;
 		this.mr = mr;
 		this.appMan = appMan;
-		this.header = new Header(page, "mainPageHeader", "Ereignisliste"); /* {
+		this.showCloseButton = showCloseButton;
+		this.header = new Header(page, "mainPageHeader", Boolean.getBoolean("org.ogema.messaging.basic.services.config.fixconfigenglish")?
+				"Alarm Messages":"Ereignisliste"); /* {
 
 			private static final long serialVersionUID = 1L;
 
@@ -75,10 +78,12 @@ public class PageBuilderSimple {
 		StaticTable topTable = new StaticTable(1, 3, new int[] {2, 2, 8});
 		topTable.setContent(0, 0, "Letzte Stunden anzeigen:").setContent(0, 1, hoursToShow);
 		page.append(topTable);*/
-		//WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
-		//		System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
-		//closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
-		//page.append(closeTabButton).linebreak();
+		if(showCloseButton) {
+			WindowCloseButton closeTabButton = new WindowCloseButton(page, "closeTabButtonBuilding",
+					System.getProperty("org.ogema.app.navigation.closetabbuttontext", "Fertig"));
+			closeTabButton.addDefaultStyle(ButtonData.BOOTSTRAP_RED);
+			page.append(closeTabButton).linebreak();
+		}
 		
 		this.dataTable = new MessageTable(page, "messagesTable") {
 
@@ -182,16 +187,22 @@ public class PageBuilderSimple {
 	private Map<String, String> getColumnTitles(MessagesDictionary dict, OgemaLocale locale) {
 		Map<String, String> map = new LinkedHashMap<String, String>();
 		//map.put("nr", "Nr");
-		map.put("time", "Zeitstempel");
-		map.put("title", "Betreff         ");
+		map.put("time", Boolean.getBoolean("org.ogema.messaging.basic.services.config.fixconfigenglish")?
+				"Time Stamp ":
+				"Zeitstempel");
+		map.put("title", Boolean.getBoolean("org.ogema.messaging.basic.services.config.fixconfigenglish")?
+				"Subject         ":
+				"Betreff         ");
 		map.put("msg", "Text           ");
 		//map.put("prio", "Prio.");
-		map.put("app", "Quelle");
+		map.put("app", Boolean.getBoolean("org.ogema.messaging.basic.services.config.fixconfigenglish")?
+				"Source":
+				"Quelle");
 		//map.put("status", dict.getColTitleStatuts());
 		return map;
 	}
 
-	static String getTimeString(long tm) {
+	public static String getTimeString(long tm) {
 		final Date date = new Date(tm);
 		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
 	}

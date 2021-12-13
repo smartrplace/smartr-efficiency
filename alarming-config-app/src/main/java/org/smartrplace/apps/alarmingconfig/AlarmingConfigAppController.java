@@ -91,7 +91,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public MainPage mainPage;
 	public DeviceTypePage devicePage;
 	//public DeviceAlarmingPage deviceOverviewPage;
-	public final PageBuilderSimple messagePage;
+	//public final PageBuilderSimple messagePage;
 	public final PageInit forwardingPage;
 	public ReceiverPageBuilder receiverPage;
 	WidgetApp widgetApp;
@@ -267,18 +267,11 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		appList.setElementType(MessagingApp.class);
 		mr = initApp.mr;
 		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing")) {
-			WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
-			pageRes11.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
-			messagePage = new PageBuilderSimple(pageRes11, initApp.mr, appMan);
-			initApp.menu.addEntry("Alarm Messages", pageRes11);
-			initApp.configMenuConfig(pageRes11.getMenuConfiguration());
-			
 			WidgetPage<SelectConnectorDictionary> pageRes2 = initApp.widgetApp.createWidgetPage("forwarding.html", false);
 			forwardingPage = new PageInit(pageRes2, appMan, appList, initApp.mr);
 			initApp.menu.addEntry("Message Forwarding Configuration", pageRes2);
 			initApp.configMenuConfig(pageRes2.getMenuConfiguration());
 		} else {
-			messagePage = null;
 			forwardingPage = null;
 		}
 		
@@ -289,7 +282,18 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				WidgetPage<MessageSettingsDictionary> pageRes3 = initApp.widgetApp.createWidgetPage("receiver.html", !isGw);
 				setupMessageReceiverConfiguration(initApp.mr, appList, pageRes3, false);
 				initApp.menu.addEntry(messageSettingsHeader(), pageRes3);
-				initApp.configMenuConfig(pageRes3.getMenuConfiguration());		
+				initApp.configMenuConfig(pageRes3.getMenuConfiguration());
+				
+				if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showFullAlarmiing") ||
+						Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.showMessageReader")) {
+					WidgetPage<MessagesDictionary> pageRes11 = initApp.widgetApp.createWidgetPage("messages.html", false);
+					pageRes11.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
+					new PageBuilderSimple(pageRes11, initApp.mr, appMan, false);
+					initApp.menu.addEntry("3. Alarm Messages List", pageRes11);
+					initApp.configMenuConfig(pageRes11.getMenuConfiguration());
+				} //else
+					//messagePage = null;
+
 			}
 		};
 		
