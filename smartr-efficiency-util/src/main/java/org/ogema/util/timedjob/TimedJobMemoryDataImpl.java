@@ -181,7 +181,7 @@ if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from
 	public boolean skipKJobForTesting() {
 		if(Boolean.getBoolean("org.ogema.devicefinder.util.skipalljobs"))
 			return true;
-		if((prov.evalJobType()>0) && (!Boolean.getBoolean("org.ogema.devicefinder.util.runevaljobs")))
+		if((prov.evalJobType()>0) && (Boolean.getBoolean("org.ogema.devicefinder.util.skipevaljobs")))
 			return true;
 		return false;
 	}

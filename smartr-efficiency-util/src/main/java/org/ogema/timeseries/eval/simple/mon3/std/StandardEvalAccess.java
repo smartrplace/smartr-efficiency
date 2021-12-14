@@ -79,7 +79,7 @@ public class StandardEvalAccess {
 		
 		AVERAGE_DAILY,
 		//AVERAGE_WEEKLY,
-		AVERAGE_MONTHY,
+		AVERAGE_MONTHLY,
 		AVERAGE_YEARLY,
 		
 		
@@ -141,6 +141,13 @@ public class StandardEvalAccess {
 			return dpIn.getLocation()+TimeProcUtil.PER_DAY_SUFFIX;
 		case COUNTER_TO_15MIN:
 			return dpIn.getLocation()+TimeProcUtil.PER_15M_SUFFIX;
+
+		case AVERAGE_DAILY:
+			return dpIn.getLocation()+TimeProcUtil.PER_DAY_AV_SUFFIX;
+		case AVERAGE_MONTHLY:
+			return dpIn.getLocation()+TimeProcUtil.PER_MONTH_AV_SUFFIX;
+		case AVERAGE_YEARLY:
+			return dpIn.getLocation()+TimeProcUtil.PER_YEAR_AV_SUFFIX;
 		default:
 			throw new IllegalStateException("Only non-device types supported without parameters here as input, found:"+type);
 		}
@@ -151,6 +158,10 @@ public class StandardEvalAccess {
 		synchronized (dpIn) {
 			Datapoint dpDay = null;
 			Datapoint dpMonth = null;
+			
+			Datapoint dpAvMonth = null;
+			Datapoint dpAvYear = null;
+
 			switch(type) {
 			case COUNTER_TO_MONTHLY:
 				dpMonth = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.COUNTER_TO_MONTHLY));
@@ -216,6 +227,34 @@ public class StandardEvalAccess {
 					return dpDay;
 				}
 				return dpBase;
+				
+			case AVERAGE_YEARLY:
+				dpAvYear = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.AVERAGE_YEARLY));
+				if(dpAvYear != null)
+					return dpAvYear;
+			case AVERAGE_MONTHLY:
+				dpAvMonth = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.AVERAGE_MONTHLY));
+				if(dpAvMonth != null)
+					return dpAvMonth;
+			case AVERAGE_DAILY:
+				dpBase = dpService.getDataPointAsIs(getAlias(dpIn, StandardDeviceEval.AVERAGE_DAILY));
+				if(dpBase == null) {
+					dpBase = util().processSingle(TimeProcUtil.PER_DAY_AV_EVAL, dpIn);
+				}
+				if(type != StandardDeviceEval.AVERAGE_DAILY) {
+					if(dpAvMonth == null) {
+						dpAvMonth = util().processSingle(TimeProcUtil.PER_MONTH_AV_EVAL, dpBase);
+					}
+					if(type == StandardDeviceEval.AVERAGE_YEARLY) {
+						if(dpAvYear == null) {
+							dpAvYear = util().processSingle(TimeProcUtil.PER_YEAR_AV_EVAL, dpBase);
+						}
+						return dpAvYear;
+					}
+					return dpAvMonth;
+				}
+				return dpBase;
+				
 			default:
 				throw new IllegalStateException("Only non-device types supported without parameters here as input, found:"+type);
 			}

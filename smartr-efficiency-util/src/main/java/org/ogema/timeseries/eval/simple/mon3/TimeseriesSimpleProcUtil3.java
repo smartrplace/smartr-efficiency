@@ -364,5 +364,65 @@ if(Boolean.getBoolean("evaldebug")) TimeProcPrint.printTimeSeriesSet(input, "IN(
 		};
 
 		knownProcessors3.put(TimeProcUtil.SUM_PER_DAY_PER_ROOM_EVAL, dayPerRoomProc);
+		
+		TimeseriesSetProcessor3 avDayProc = new TimeseriesSetProcSingleToSingle3(TimeProcUtil.PER_DAY_AV_SUFFIX,
+				AbsoluteTiming.DAY, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
+			
+			@Override
+			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2) {
+				List<SampledValue> result = TimeSeriesServlet.getAverageValues(timeSeries, start, end,
+						newTs2.getInputDp()!=null?newTs2.getInputDp().getScale():null, false, AbsoluteTiming.DAY);
+				return result;
+			}
+
+			@Override
+			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {
+				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.DAY);
+				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.DAY)-1;				
+			}
+		};
+		knownProcessors3.put(TimeProcUtil.PER_DAY_AV_EVAL, avDayProc);
+		
+		TimeseriesSetProcessor3 avMonthProc = new TimeseriesSetProcSingleToSingle3(TimeProcUtil.PER_MONTH_AV_SUFFIX,
+				AbsoluteTiming.MONTH, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
+			
+			@Override
+			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2) {
+				List<SampledValue> result = TimeSeriesServlet.getAverageValues(timeSeries, start, end,
+						newTs2.getInputDp()!=null?newTs2.getInputDp().getScale():null, false, AbsoluteTiming.MONTH);
+				return result;
+			}
+
+			@Override
+			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {
+				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.MONTH);
+				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.MONTH)-1;				
+			}
+		};
+		knownProcessors3.put(TimeProcUtil.PER_MONTH_AV_EVAL, avMonthProc);
+
+		TimeseriesSetProcessor3 avYearProc = new TimeseriesSetProcSingleToSingle3(TimeProcUtil.PER_YEAR_AV_SUFFIX,
+				AbsoluteTiming.YEAR, minIntervalForReCalc,
+				TimeseriesSimpleProcUtil3.this) {
+			
+			@Override
+			protected List<SampledValue> calculateValues(ReadOnlyTimeSeries timeSeries, long start, long end,
+					AggregationMode mode, ProcessedReadOnlyTimeSeries3 newTs2) {
+				List<SampledValue> result = TimeSeriesServlet.getAverageValues(timeSeries, start, end,
+						newTs2.getInputDp()!=null?newTs2.getInputDp().getScale():null, false, AbsoluteTiming.YEAR);
+				return result;
+			}
+
+			@Override
+			protected void alignUpdateIntervalFromSource(DpUpdated updateInterval) {
+				updateInterval.start = AbsoluteTimeHelper.getIntervalStart(updateInterval.start, AbsoluteTiming.YEAR);
+				updateInterval.end = AbsoluteTimeHelper.getNextStepTime(updateInterval.end, AbsoluteTiming.YEAR)-1;				
+			}
+		};
+		knownProcessors3.put(TimeProcUtil.PER_YEAR_AV_EVAL, avYearProc);
 	}
 }

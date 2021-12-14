@@ -19,10 +19,13 @@ import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.SolarIrradiationSensor;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
+
 
 	public OpenWeatherMapBigBlueRoom_DeviceHandler(ApplicationManagerPlus appMan) {
 		super(appMan, true);
@@ -53,12 +56,45 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 				addDatapoint(openWroom.temperatureSensor().reading().forecast(), result);
 				addDatapoint(openWroom.humiditySensor().reading(), result);
 				addDatapoint(openWroom.humiditySensor().reading().forecast(), result);
-				addDatapoint(openWroom .getSubResource("solarIrradiationSensor", SolarIrradiationSensor.class).reading(), result);
+				SolarIrradiationSensor solIrrSens = openWroom .getSubResource("solarIrradiationSensor", SolarIrradiationSensor.class);
+				Datapoint realSolIrrDp = addDatapoint(solIrrSens.reading(), result);
 				addDatapoint(openWroom .getSubResource("solarIrradiationSensor", SolarIrradiationSensor.class).reading().forecast(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).direction().reading(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).direction().reading().forecast(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).speed().reading(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).speed().reading().forecast(), result);
+				
+				if(Boolean.getBoolean("org.smartrplace.driverhandler.devices.weather_average")) {
+					//Datapoint daily = null;
+					if(realSolIrrDp != null) {
+						Datapoint evalDp = StandardEvalAccess.getDatapointBaseEvalMetering(realSolIrrDp,
+								StandardDeviceEval.AVERAGE_DAILY, dpService);
+						result.add(evalDp);
+						Datapoint evalDpMonthly = StandardEvalAccess.getDatapointBaseEvalMetering(realSolIrrDp,
+								StandardDeviceEval.AVERAGE_MONTHLY, dpService);
+						result.add(evalDpMonthly);
+						Datapoint evalDpYearly = StandardEvalAccess.getDatapointBaseEvalMetering(realSolIrrDp,
+								StandardDeviceEval.AVERAGE_YEARLY, dpService);
+						result.add(evalDpYearly);
+					}
+					/*if(dp != null) {
+						Datapoint evalDp = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
+								StandardDeviceEval.AVERAGE_DAILY, dpService);
+						result.add(evalDp);
+						Datapoint evalDpMonthly = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
+								StandardDeviceEval.AVERAGE_MONTHLY, dpService);
+						result.add(evalDpMonthly);
+						Datapoint evalDpYearly = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
+								StandardDeviceEval.AVERAGE_YEARLY, dpService);
+						result.add(evalDpYearly);
+						//evalDp.addToSubRoomLocationAtomic(null, null, ifac.getName()+"-hourly", false);
+
+						//daily = provideIntervalFromMeterDatapoint("avIrradiationDaily", realSolIrrDp, result, solIrrSens, dpService,
+						//		utilAggDaily, false);
+					}*/
+				}
+
+				
 				return result;
 			}
 		}
@@ -105,5 +141,5 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	@Override
 	public ComType getComType() {
 		return ComType.IP;
-	}
+	}	
 }
