@@ -36,7 +36,7 @@ import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.ReactivePowerAngleSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
+import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.slf4j.Logger;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -66,11 +66,11 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		protected final int interval;
 		protected final AggregationMode sourceAggMode;
 		
-		public VirtualSensorKPIMgmtMeter2Interval(int interval, TimeseriesSimpleProcUtil util, Logger logger,
+		public VirtualSensorKPIMgmtMeter2Interval(int interval, TimeseriesSimpleProcUtil3 util, Logger logger,
 				DatapointService dpService) {
 			this(interval, util, logger, dpService, AggregationMode.Meter2Meter);
 		}
-		public VirtualSensorKPIMgmtMeter2Interval(int interval, TimeseriesSimpleProcUtil util, Logger logger,
+		public VirtualSensorKPIMgmtMeter2Interval(int interval, TimeseriesSimpleProcUtil3 util, Logger logger,
 				DatapointService dpService, AggregationMode sourceAggMode) {
 			super(util, logger, dpService);
 			this.interval = interval;
@@ -127,16 +127,16 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		this.appMan = appMan;
 		
 		utilAggDaily = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.DAY,
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
 				appMan.getLogger(), appMan.dpService());
 		utilAggDailyFromPower = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.DAY,
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
 				appMan.getLogger(), appMan.dpService(), AggregationMode.Power2Meter);
 		utilAggMonthly = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.MONTH,
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
 				appMan.getLogger(), appMan.dpService());
 		utilAggYearly = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.YEAR,
-				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
 				appMan.getLogger(), appMan.dpService());		
 	}
 	
