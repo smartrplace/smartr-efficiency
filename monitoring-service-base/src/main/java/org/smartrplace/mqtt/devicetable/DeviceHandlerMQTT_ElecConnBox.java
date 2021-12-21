@@ -127,16 +127,16 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		this.appMan = appMan;
 		
 		utilAggDaily = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.DAY,
-				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval", 10000)),
 				appMan.getLogger(), appMan.dpService());
 		utilAggDailyFromPower = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.DAY,
-				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval", 10000)),
 				appMan.getLogger(), appMan.dpService(), AggregationMode.Power2Meter);
 		utilAggMonthly = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.MONTH,
-				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval", 10000)),
 				appMan.getLogger(), appMan.dpService());
 		utilAggYearly = new VirtualSensorKPIMgmtMeter2Interval(AbsoluteTiming.YEAR,
-				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval")),
+				new TimeseriesSimpleProcUtil3(appMan.appMan(), appMan.dpService(), 4, Long.getLong("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.mininterval", 10000)),
 				appMan.getLogger(), appMan.dpService());		
 	}
 	

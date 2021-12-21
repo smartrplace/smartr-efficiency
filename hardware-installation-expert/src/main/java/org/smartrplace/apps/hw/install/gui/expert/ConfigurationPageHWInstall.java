@@ -30,6 +30,7 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.gateway.LocalGatewayInformation;
+import org.ogema.model.metering.ElectricityMeter;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.LocalDeviceId;
@@ -77,7 +78,7 @@ public class ConfigurationPageHWInstall {
 		if(app.appConfigData.mainMeter().exists()) {
 		//	CompletableFuture.runAsync(() -> {
 				VirtualSensorKPIMgmt.waitForCollectingGatewayServerInit(app.appMan.getResourceAccess());
-				setMainMeter(app.appConfigData.mainMeter());
+				setIotawattAsMainMeter(app.appConfigData.mainMeter());
 		//	});
 		}
 		
@@ -251,12 +252,75 @@ public class ConfigurationPageHWInstall {
 				IotaWattElectricityConnection selected = getSelectedItem(req);
 				if(selected != null) {
 					app.appConfigData.mainMeter().setAsReference(selected.elConn());
-					setMainMeter(selected.elConn());
-				} else if(app.appConfigData.mainMeter().exists())
-					app.appConfigData.mainMeter().delete();
+					setIotawattAsMainMeter(selected.elConn());
+				} else if(app.appConfigData.mainMeter().exists()) {
+					IotaWattElectricityConnection selected1 = ResourceHelper.getFirstParentOfType(app.appConfigData.mainMeter().getLocationResource(), IotaWattElectricityConnection.class);
+					if(selected1 != null)
+						app.appConfigData.mainMeter().delete();					
+				}
 			}
 		};
 		mainMeterDrop.setDefaultAddEmptyOption(true, "No main meter selected");
+
+		ResourceDropdown<ElectricityConnectionBox> mainMeterOtherDrop = new ResourceDropdown<ElectricityConnectionBox>(page, "mainMeterOtherDrop",
+				false, ElectricityConnectionBox.class, null, controller.appMan.getResourceAccess()) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				ElectricityConnectionBox selected = null;
+				if(app.appConfigData.mainMeter().isReference(false)) {
+					IotaWattElectricityConnection selected1 = ResourceHelper.getFirstParentOfType(app.appConfigData.mainMeter().getLocationResource(), IotaWattElectricityConnection.class);
+					if(selected1 == null) {
+						selected = ResourceHelper.getFirstParentOfType(app.appConfigData.mainMeter().getLocationResource(), ElectricityConnectionBox.class);
+					}
+				}
+				if(selected != null && selected.exists())
+					selectItem(selected, req);
+				else
+					selectItem(null, req);
+			}
+		
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				ElectricityConnectionBox selected = getSelectedItem(req);
+				if(selected != null) {
+					app.appConfigData.mainMeter().setAsReference(selected.connection());
+					//setIotawattAsMainMeter(selected.elConn());
+				} else if(app.appConfigData.mainMeter().exists()) {
+					IotaWattElectricityConnection selected1 = ResourceHelper.getFirstParentOfType(app.appConfigData.mainMeter().getLocationResource(), IotaWattElectricityConnection.class);
+					if(selected1 == null)
+						app.appConfigData.mainMeter().delete();
+				}
+			}
+		};
+		mainMeterOtherDrop.setDefaultAddEmptyOption(true, "No main meter selected");
+
+		ResourceDropdown<ElectricityMeter> mainMeterIECDrop = new ResourceDropdown<ElectricityMeter>(page, "mainMeterIECDrop",
+				false, ElectricityMeter.class, null, controller.appMan.getResourceAccess()) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				ElectricityMeter selected = null;
+				if(app.appConfigData.mainMeterAsElMeter().isReference(false)) {
+					selected = app.appConfigData.mainMeterAsElMeter();
+				}
+				if(selected != null && selected.exists())
+					selectItem(selected, req);
+				else
+					selectItem(null, req);
+			}
+		
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				ElectricityMeter selected = getSelectedItem(req);
+				if(selected != null) {
+					app.appConfigData.mainMeterAsElMeter().setAsReference(selected);
+					//setIotawattAsMainMeter(selected.elConn());
+				} else if(app.appConfigData.mainMeterAsElMeter().exists()) {
+					app.appConfigData.mainMeterAsElMeter().delete();
+				}
+			}
+		};
+		mainMeterIECDrop.setDefaultAddEmptyOption(true, "No main meter selected");
+
 		//mainMeterDrop.setTemplate(template);
 		
 		ValueResourceDropdown<IntegerResource> extendedViewModeDrop =
@@ -275,7 +339,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<StringResource> co2singleUserEdit = new ValueResourceTextField<StringResource>(page, "co2singleUserEdit",
 				app.appConfigData.singleCO2AlarmingUser());
 		
-		StaticTable configTable = new StaticTable(24, 2);
+		StaticTable configTable = new StaticTable(26, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "System default language").
 		setContent(i, 1, languageDrop);
@@ -413,6 +477,16 @@ public class ConfigurationPageHWInstall {
 		setContent(i, 1, mainMeterDrop);
 		i++;
 		
+		configTable.setContent(i, 0, "Main Meter (Others). Note that selecting a main meter here overrides a Iotawatt main meter and vice-versa. "
+				+ "Note that this has to be supported in the respective device handler and no Non-Iotawatt meters support this currently.").
+		setContent(i, 1, mainMeterOtherDrop);
+		i++;
+
+		configTable.setContent(i, 0, "Main Meter (HM-IEC). Note that selecting a meter here can be done in addition to a Iotawatt or Other, but "
+				+ " may lead to an unpredictable mainMeterConsumption datapoint alias").
+		setContent(i, 1, mainMeterIECDrop);
+		i++;
+
 		//configTable.setContent(i, 0, "Update generalBackup.zip file").
 		//setContent(i, 1, generalBackupUpdateButton);
 		//i++;
@@ -461,7 +535,7 @@ public class ConfigurationPageHWInstall {
 		page.append(configTable);
 	}
 	
-	public void setMainMeter(ElectricityConnection conn) {
+	public void setIotawattAsMainMeter(ElectricityConnection conn) {
 		VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, controller.util, controller.dpService,
 				TimeProcUtil.SUM_PER_DAY_EVAL, true);
 	}

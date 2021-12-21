@@ -136,6 +136,8 @@ public abstract class DatapointServiceImpl implements DatapointService {
 
 	@Override
 	public Datapoint getDataPointStandard(String resourceLocation, String gatewayId) {
+		if(gatewayId == null)
+			gatewayId = GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID;
 		Datapoint result = getDataPointAsIs(resourceLocation, gatewayId);
 		if(result == null) {
 			result = new DatapointImpl(resourceLocation, gatewayId, null, null, this) {
@@ -174,6 +176,9 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	public Datapoint getDataPointAsIs(String resourceLocation, String gatewayId) {
 		if(gatewayId != null)
 			gatewayId = ViaHeartbeatUtil.getBaseGwId(gatewayId);
+		else 
+			gatewayId = GaRoMultiEvalDataProvider.LOCAL_GATEWAY_ID;
+
 		Map<String, Datapoint> subMap = knownDps.get(gatewayId);
 		if(subMap == null) {
 			return getDataPointAsIsFromAlias(resourceLocation, gatewayId);

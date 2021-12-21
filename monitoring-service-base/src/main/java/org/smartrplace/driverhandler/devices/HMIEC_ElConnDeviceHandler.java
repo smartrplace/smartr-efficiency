@@ -21,6 +21,7 @@ import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDevi
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
+import org.smartrplace.tissue.util.resource.MeterUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -149,11 +150,13 @@ public class HMIEC_ElConnDeviceHandler extends DeviceHandlerSimple<ElectricityCo
 			Datapoint evalDpDaily = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
 					StandardDeviceEval.COUNTER_TO_DAILY_B15, dpService);
 
-			FloatResource dailyTraffic = meter.getSubResource("energySumDaily", FloatResource.class);
-			dailyTraffic.create().activate(true);
-			Datapoint dpDaily = StandardEvalAccess.addVirtualDatapoint(dailyTraffic,
-					evalDpDaily, dpService, result);
-			dpDaily.addToSubRoomLocationAtomic(null, null, meter.getName()+"-daily", false);
+			//FloatResource dailyTraffic = meter.getSubResource("energySumDaily", FloatResource.class);
+			//dailyTraffic.create().activate(true);
+			//Datapoint dpDaily = StandardEvalAccess.addVirtualDatapoint(dailyTraffic,
+			//		evalDpDaily, dpService, result);
+			//dpDaily.addToSubRoomLocationAtomic(null, null, meter.getName()+"-daily", false);
+			if(MeterUtil.isMainMeter(meter, appMan.getResourceAccess()))
+				evalDpDaily.addAlias(Datapoint.ALIAS_MAINMETER_DAILYCONSUMPTION);
 		}
 		addtStatusDatapointsHomematic(device, dpService, result);
 		

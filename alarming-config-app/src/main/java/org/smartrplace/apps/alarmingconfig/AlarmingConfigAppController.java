@@ -51,6 +51,7 @@ import org.smartrplace.apps.kni.quality.eval.QualityEvalUtil;
 import org.smartrplace.gateway.device.VirtualTestDevice;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
+import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -148,10 +149,11 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	}
 	
 	public String getAlarmingDomain() {
-		LocalGatewayInformation ogGw = ResourceHelper.getLocalGwInfo(appMan.getResourceAccess());
+		return GatewayUtil.getGatewayId(appMan.getResourceAccess(), "SRCA");
+		/*LocalGatewayInformation ogGw = ResourceHelper.getLocalGwInfo(appMan.getResourceAccess());
 		if(ogGw != null && ogGw.id().exists())
 			return ogGw.id().getValue();
-		return System.getProperty("org.smartrplace.remotesupervision.gateway.id", "SRCA");
+		return System.getProperty("org.smartrplace.remotesupervision.gateway.id", "SRCA");*/
 	}
 	
 	public static class MessageSettingsDictAlarming_de extends MessageSettingsDictionary_de {
