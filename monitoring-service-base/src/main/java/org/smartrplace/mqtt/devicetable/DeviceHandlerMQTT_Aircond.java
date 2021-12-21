@@ -15,6 +15,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
@@ -61,7 +62,6 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
 			InstalledAppsSelector appSelector, DeviceTableConfig config) {
 		return new DeviceTableBase(page, appMan, alert, appSelector, this) {
-			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
@@ -85,21 +85,21 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 					row.addCell("Set", setpointSet);
 					
 					if(!config.showOnlyBaseCols()) {
-					SimpleCheckbox onOff = new SimpleCheckboxSetpoint(mainTable, "onOff"+id, alert, req) {
-						
-						@Override
-						protected boolean setValueOnPost(boolean value, OgemaHttpRequest req) {
-							device.onOffSwitch().stateControl().setValue(value);
-							return true;
-						}
-						
-						@Override
-						protected boolean getValuePreset(OgemaHttpRequest req) {
-							return device.onOffSwitch().stateFeedback().getValue();
-						}
-					};
-					row.addCell("OnOff", onOff);
-
+						SimpleCheckbox onOff = new SimpleCheckboxSetpoint(mainTable, "onOff"+id, alert, req) {
+							
+							@Override
+							protected boolean setValueOnPost(boolean value, OgemaHttpRequest req) {
+								device.onOffSwitch().stateControl().setValue(value);
+								return true;
+							}
+							
+							@Override
+							protected boolean getValuePreset(OgemaHttpRequest req) {
+								return device.onOffSwitch().stateFeedback().getValue();
+							}
+						};
+						row.addCell("OnOff", onOff);
+					}
 					MechanicalFan mfan = device.getSubResource("fan", MechanicalFan.class);
 					if(mfan != null && mfan.exists()) {
 						TextField fan = new TextFieldSetpoint(mainTable, "fanspeed"+id, alert, 0f, 5f, req) {
@@ -140,7 +140,6 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 					vh.registerHeaderEntry("Fan speed");
 					vh.registerHeaderEntry("OpMode");
 				}
-				}
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Room deviceRoom = device.location().room();
 				Label lastContact = addLastContact(vh, id, req, row, device.temperatureSensor().reading());
@@ -166,7 +165,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 			@Override
 			protected String id() {
 				return DeviceHandlerMQTT_Aircond.this.id();
-			}
+			}			
 		};
 	}
 
