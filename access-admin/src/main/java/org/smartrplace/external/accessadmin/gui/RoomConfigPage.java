@@ -28,6 +28,7 @@ import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 
 import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -114,12 +115,19 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 					}
 					vh.dropdown("Room Type", id, object.type(), row, valuesToSet);
 				}
+				
 			}
 		}
 		
 		if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering")) {
 			vh.stringLabel("Location", id, object.getLocation(), row);
 		}
+	}
+	
+	@Override
+	protected void addWidgetsAfterMultiSelect(Room object, ObjectResourceGUIHelper<Room, Room> vh, String id,
+			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
+		GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);
 	}
 	
 	@Override
@@ -219,8 +227,8 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	
 	protected void initRoom(Room object) {
 		BuildingPropertyUnit allRoomsGroup = null;
-		for(BuildingPropertyUnit g: controller.getGroups(object)) {
-			if(ResourceUtils.getHumanReadableShortName(object).equals(ALL_ROOMS_GROUP_NAME)) {
+		for(BuildingPropertyUnit g: controller.roomGroups.getAllElements()) {
+			if(ResourceUtils.getHumanReadableShortName(g).equals(ALL_ROOMS_GROUP_NAME)) {
 				allRoomsGroup = g;
 				break;
 			}
@@ -228,7 +236,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		if(allRoomsGroup == null) {
 			//create
 			allRoomsGroup = ResourceListHelper.createNewNamedElement(
-					controller.appConfigData.roomGroups(),
+					controller.roomGroups,
 					ALL_ROOMS_GROUP_NAME, false);
 			allRoomsGroup.activate(true);
 			for(AccessConfigUser userPerm: controller.appConfigData.userPermissions().getAllElements()) {
