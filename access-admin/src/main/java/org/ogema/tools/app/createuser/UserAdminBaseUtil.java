@@ -173,6 +173,9 @@ public class UserAdminBaseUtil {
 			case UserPermissionService.MODBUS_SERVER:
 				result.add("org.ogema.tools.modbus-sever-viewer");
 				break;
+			case UserPermissionService.MONTORING_CHART_EXPERT:
+				result.add("org.smartrplace.apps.srcmon-app-expert");
+				break;
 			}
 		}
 		return result ;
