@@ -149,12 +149,15 @@ public class HMIEC_ElConnDeviceHandler extends DeviceHandlerSimple<ElectricityCo
 			result.add(evalDp);
 			Datapoint evalDpDaily = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
 					StandardDeviceEval.COUNTER_TO_DAILY_B15, dpService);
-
-			//FloatResource dailyTraffic = meter.getSubResource("energySumDaily", FloatResource.class);
-			//dailyTraffic.create().activate(true);
-			//Datapoint dpDaily = StandardEvalAccess.addVirtualDatapoint(dailyTraffic,
-			//		evalDpDaily, dpService, result);
-			//dpDaily.addToSubRoomLocationAtomic(null, null, meter.getName()+"-daily", false);
+			if(!Boolean.getBoolean("meterConfigs.createResourceForAlarming"))
+				result.add(evalDpDaily);
+			else {
+				FloatResource dailyTraffic = meter.getSubResource("energySumDaily", FloatResource.class);
+				dailyTraffic.create().activate(true);
+				Datapoint dpDaily = StandardEvalAccess.addVirtualDatapoint(dailyTraffic,
+					evalDpDaily, dpService, result);
+				dpDaily.addToSubRoomLocationAtomic(null, null, meter.getName()+"-daily", false);
+			}
 			if(MeterUtil.isMainMeter(meter, appMan.getResourceAccess()))
 				evalDpDaily.addAlias(Datapoint.ALIAS_MAINMETER_DAILYCONSUMPTION);
 		}
