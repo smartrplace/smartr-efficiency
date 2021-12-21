@@ -293,6 +293,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 					new PageBuilderSimple(pageRes11, initApp.mr, appMan, false);
 					initApp.menu.addEntry("3. Alarm Messages List", pageRes11);
 					initApp.configMenuConfig(pageRes11.getMenuConfiguration());
+					WidgetPage<MessagesDictionary> pageRes12 = initApp.widgetApp.createWidgetPage("messagesraw.html", false);
+					pageRes12.registerLocalisation(MessagesDictionary_en.class).registerLocalisation(MessagesDictionary_de.class).registerLocalisation(MessagesDictionary_fr.class);
+					new PageBuilderSimple(pageRes12, initApp.mr, appMan, false, false);
 				} //else
 					//messagePage = null;
 

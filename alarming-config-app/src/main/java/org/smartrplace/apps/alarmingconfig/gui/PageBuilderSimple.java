@@ -49,14 +49,27 @@ public class PageBuilderSimple {
 	private final MailPopup popup;
 	//private final TextField hoursToShow;
 	private final ApplicationManager appMan;
-	private final boolean showCloseButton;
+	//private final boolean showCloseButton;
 
 	public PageBuilderSimple(final WidgetPage<MessagesDictionary> page, final MessageReader mr,
 			ApplicationManager appMan, boolean showCloseButton) {
+		this(page, mr, appMan, showCloseButton, true);
+	}
+	public PageBuilderSimple(final WidgetPage<MessagesDictionary> page, final MessageReader mr,
+			ApplicationManager appMan, boolean showCloseButton,
+			boolean showNavigation) {
 		this.page = page;
 		this.mr = mr;
 		this.appMan = appMan;
-		this.showCloseButton = showCloseButton;
+		//this.showCloseButton = showCloseButton;
+		
+		if(!showNavigation) {
+			page.getMenuConfiguration().setNavigationVisible(false);
+			page.getMenuConfiguration().setLanguageSelectionVisible(false);
+			page.getMenuConfiguration().setShowMessages(false);
+			page.getMenuConfiguration().setMenuVisible(false);
+			page.getMenuConfiguration().setShowLogoutBtn(false);
+		}
 		this.header = new Header(page, "mainPageHeader", Boolean.getBoolean("org.ogema.messaging.basic.services.config.fixconfigenglish")?
 				"Alarm Messages":"Ereignisliste"); /* {
 
