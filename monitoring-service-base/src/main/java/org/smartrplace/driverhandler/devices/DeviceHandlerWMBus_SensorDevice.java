@@ -119,10 +119,15 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 			if(sens.reading() instanceof SingleValueResource) {
 				if(isJmbus)
 					addDatapoint((SingleValueResource) sens.reading(), result, dpService);
-				else if(addElementName)
+				else if(addElementName) {
+					String elName;
+					if(sens.isReference(false))
+						elName= sens.getLocationResource().getName();
+					else
+						elName= sens.getName();
 					addDatapoint((SingleValueResource) sens.reading(), result,
-							sensorDevName+"-"+sens.getName(), dpService);
-				else
+							sensorDevName+"-"+elName, dpService);
+				} else
 					addDatapoint((SingleValueResource) sens.reading(), result, sensorDevName, dpService);
 			}
 		}

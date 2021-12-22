@@ -31,8 +31,9 @@ public class ESE_ElConnBoxPattern extends ResourcePattern<ElectricityConnectionB
 
 	@Override
 	public boolean accept() {
-		if(DeviceTableRaw.isEnergyServerDevice(model.getLocation()))
-			return true;
-		return false;
+		return !DeviceTableRaw.isHMIECDevice(model.getLocation());
+		//if(DeviceTableRaw.isEnergyServerDevice(model.getLocation()))
+		//	return true;
+		//return false;
 	}
 }
