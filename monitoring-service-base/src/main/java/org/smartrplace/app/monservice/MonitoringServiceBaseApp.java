@@ -41,6 +41,7 @@ import org.smartrplace.driverhandler.devices.HMIEC_ElConnDeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabFlowSens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabGeneralData_DeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatingLabHumiditySens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabTempSens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabThermalValve_DeviceHandler;
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
@@ -240,6 +241,9 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srFlowSensSingle = null;
 	private HeatingLabFlowSens_DeviceHandler devHandFlowSensSingle;
 	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srHumSensSingle = null;
+	private HeatingLabHumiditySens_DeviceHandler devHandHumSensSingle;
+	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srTempSensSingle = null;
 	private HeatingLabTempSens_DeviceHandler devHandTempSensSingle;
 	@SuppressWarnings("rawtypes")
@@ -359,6 +363,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   
 	   devHandFlowSensSingle = new HeatingLabFlowSens_DeviceHandler(controller.appManPlus);
 	   srFlowSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandFlowSensSingle, null);
+	   devHandHumSensSingle = new HeatingLabHumiditySens_DeviceHandler(controller.appManPlus);
+	   srHumSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandHumSensSingle, null);
 	   devHandTempSensSingle = new HeatingLabTempSens_DeviceHandler(controller.appManPlus);
 	   srTempSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandTempSensSingle, null);
 	   devHandThValve = new HeatingLabThermalValve_DeviceHandler(controller.appManPlus);
@@ -413,6 +419,7 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srFlowProbe!= null) srFlowProbe.unregister();
      	if (srFlowSensSingle!= null) srFlowSensSingle.unregister();
      	if (srTempSensSingle!= null) srTempSensSingle.unregister();
+    	if (srHumSensSingle!= null) srHumSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
      	if (srHeatlabGeneral!= null) srHeatlabGeneral.unregister();
     	if (srWall!= null) srWall.unregister();

@@ -19,16 +19,17 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.connections.ThermalConnection;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.TemperatureSensor;
 
 import de.iwes.util.resource.ResourceHelper;
 
-public class HeatingLabTempsSensPattern extends ResourcePattern<TemperatureSensor> {
+public class HeatingLabHumiditySensPattern extends ResourcePattern<HumiditySensor> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public HeatingLabTempsSensPattern(Resource device) {
+	public HeatingLabHumiditySensPattern(Resource device) {
 		super(device);
 	}
 	

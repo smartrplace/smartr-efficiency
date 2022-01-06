@@ -25,6 +25,8 @@ public class CO2SensorHmPattern extends ResourcePattern<CO2Sensor> {
 
 	@Override
 	public boolean accept() {
+		if(model.getLocation().startsWith("knx"))
+			return true;
 		return DeviceTableRaw.isCO2SensorHm(model.getLocation());
 	}
 }
