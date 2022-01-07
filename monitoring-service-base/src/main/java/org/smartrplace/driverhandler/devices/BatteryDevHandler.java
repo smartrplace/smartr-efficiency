@@ -101,16 +101,16 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 			if(peaTop != null) {
 			
 				PhysicalElement scc = peaTop.getSubResource("SCC1", PhysicalElement.class);
-				createVirtualSensorDevice(peaTop, scc, "sensDevSCC1", true);
+				createVirtualSensorDevice(peaTop, scc, "sensDevSCC1", false, true);
 				scc = peaTop.getSubResource("SCC2", PhysicalElement.class);
-				createVirtualSensorDevice(peaTop, scc, "sensDevSCC2", true);
+				createVirtualSensorDevice(peaTop, scc, "sensDevSCC2", false, true);
 				scc = peaTop.getSubResource("SCC3", PhysicalElement.class);
-				createVirtualSensorDevice(peaTop, scc, "sensDevSCC3", true);
+				createVirtualSensorDevice(peaTop, scc, "sensDevSCC3", false, true);
 				scc = peaTop.getSubResource("SCC4", PhysicalElement.class);
-				createVirtualSensorDevice(peaTop, scc, "sensDevSCC4", true);
+				createVirtualSensorDevice(peaTop, scc, "sensDevSCC4", false, true);
 	
 				Resource totals = peaTop.getSubResource("totals", Resource.class);
-				createVirtualSensorDevice(peaTop, totals, "sensDevTotals", false);
+				createVirtualSensorDevice(peaTop, totals, "sensDevTotals", false, false);
 				
 			}
 		}
@@ -144,7 +144,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 	}
 	
 	protected SensorDevice createVirtualSensorDevice(Resource bdiMain, Resource orgList, String name,
-			boolean recursive) {
+			boolean recursive, boolean chargerPv) {
 		if(orgList.isActive()) {
 			SensorDevice sensDev = bdiMain.getSubResource(name, SensorDevice.class);
 			sensDev.create();
@@ -152,11 +152,33 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 			List<Sensor> senss = orgList.getSubResources(Sensor.class, recursive);
 			for(Sensor el: senss) {
 				sensDev.sensors().addDecorator(el.getName(), el);
-				//sensDev.sensors().add(el);				
+			}
+			if(chargerPv) {
+				removeIfExitsting(sensDev.sensors(), "currentSensor");
+				removeIfExitsting(sensDev.sensors(), "dailyEnergy");
+				removeIfExitsting(sensDev.sensors(), "dailyEnergyAh");
+				removeIfExitsting(sensDev.sensors(), "energySensor");
+				removeIfExitsting(sensDev.sensors(), "energySensorAh");
+				removeIfExitsting(sensDev.sensors(), "powerSensor");
+				removeIfExitsting(sensDev.sensors(), "voltageSensor");
+				senss = orgList.getSubResource("chargerConnection", ElectricityConnection.class).getSubResources(Sensor.class, false);
+				for(Sensor el: senss) {
+					sensDev.sensors().addDecorator("charger_"+el.getName(), el);
+				}
+				senss = orgList.getSubResource("pvConnection", ElectricityConnection.class).getSubResources(Sensor.class, false);
+				for(Sensor el: senss) {
+					sensDev.sensors().addDecorator("pv_"+el.getName(), el);
+				}
 			}
 			sensDev.activate(true);
 			return sensDev;
 		}
 		return null;		
+	}
+	
+	private void removeIfExitsting(Resource orgList, String name) {
+		Resource res = orgList.getSubResource(name);
+		if((res != null) && res.isReference(false))
+			res.delete();
 	}
 }

@@ -121,10 +121,10 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 					addDatapoint((SingleValueResource) sens.reading(), result, dpService);
 				else if(addElementName) {
 					String elName;
-					if(sens.isReference(false))
-						elName= sens.getLocationResource().getName();
-					else
-						elName= sens.getName();
+					//if(sens.isReference(false))
+					//	elName= sens.getLocationResource().getName();
+					//else
+					elName= sens.getName();
 					addDatapoint((SingleValueResource) sens.reading(), result,
 							sensorDevName+"-"+elName, dpService);
 				} else
