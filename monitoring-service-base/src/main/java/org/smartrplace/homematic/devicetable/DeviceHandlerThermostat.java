@@ -248,9 +248,11 @@ public class DeviceHandlerThermostat extends DeviceHandlerSimple<Thermostat> {
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		Datapoint evalDp = StandardEvalAccess.addMemoryDatapointForInit(iad,
 				StandardDeviceEval.SETP_REACT, dpService, resAcc, false, false, gradLabel, result, (DeviceHandlerProviderDP)devHand);
-		Datapoint dpRes = StandardEvalAccess.addVirtualDatapoint(setpReactRes,
-				evalDp, TimeProcUtil.HOUR_MILLIS, true, dpService, result);
-		dpRes.addToSubRoomLocationAtomic(null, null, "-setpreact", false);
+		if(evalDp != null) {
+			Datapoint dpRes = StandardEvalAccess.addVirtualDatapoint(setpReactRes,
+					evalDp, TimeProcUtil.HOUR_MILLIS, true, dpService, result);
+			dpRes.addToSubRoomLocationAtomic(null, null, "-setpreact", false);
+		}
 		//devHand.addDatapoint(setpReactRes, result);	
 	}	
 	public static FloatResource getSetpReactRes(Thermostat device) {

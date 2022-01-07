@@ -702,7 +702,7 @@ public class StandardEvalAccess {
 	/** TODO: This is almost the same as {@link VirtualSensorKPIMgmt#addVirtualDatapoint(List, String, Resource, long, boolean, boolean, List)}
 	 * Here we assume that the evaluation datapoint is created via
 	 * 
-	 * @param destRes
+	 * @param destRes if null then only governed schudule/heartbeat registration is done
 	 * @param evalDp
 	 * @param registerGovernedSchedule
 	 * @param registerRemoteScheduleViaHeartbeat
@@ -719,7 +719,7 @@ public class StandardEvalAccess {
 	 * @param result
 	 * @return
 	 */
-	public static Datapoint addVirtualDatapoint(SingleValueResource destRes, Datapoint evalDp,
+	public static Datapoint addVirtualDatapoint(final SingleValueResource destRes, Datapoint evalDp,
 			boolean registerGovernedSchedule, boolean registerRemoteScheduleViaHeartbeat,
 			Integer absoluteTiming, Long minimumWriteIntervalForMaxValue, final boolean writeZeroForNoValue,
 			DatapointService dpService,
@@ -745,6 +745,7 @@ public class StandardEvalAccess {
 		}
 		
 		ReadOnlyTimeSeries accTs = evalDp.getTimeSeries();
+		destRes.create();
 		Datapoint resourceDp = dpService.getDataPointStandard(destRes);
 		if(result != null)
 			result.add(resourceDp);
