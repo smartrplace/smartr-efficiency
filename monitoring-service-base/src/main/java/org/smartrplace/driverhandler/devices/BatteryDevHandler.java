@@ -18,6 +18,8 @@ import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.devices.storage.ElectricityStorage;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.sensors.ElectricCurrentSensor;
+import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
@@ -74,6 +76,15 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 		dp = addDatapoint(device.getSubResource("initControl", IntegerResource.class), result);
 		if(dp != null)
 			dp.addToSubRoomLocationAtomic(null, null, "initControl", false);
+		
+		//Workaround for BDI devices
+		Resource parent = device.getParent();
+		if((parent != null) && (parent instanceof PhysicalElement) && (parent.getName().equals("BDI"))) {
+			addDatapoint(parent.getSubResource("bdiDcCurrent", ElectricCurrentSensor.class).reading(), result, "bdiDcCurrent", dpService);
+			addDatapoint(parent.getSubResource("bdiDcPower", PowerSensor.class).reading(), result, "bdiDcPower", dpService);
+			addDatapoint(parent.getSubResource("bdiExtDcCurrent", ElectricCurrentSensor.class).reading(), result, "bdiExtDcCurrent", dpService);
+		}
+		
 		return result;
 	}
 
@@ -100,6 +111,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 	
 				Resource totals = peaTop.getSubResource("totals", Resource.class);
 				createVirtualSensorDevice(peaTop, totals, "sensDevTotals", false);
+				
 			}
 		}
 		return super.startSupportingLogicForDevice(device, deviceResource, roomSimulation, dpService);
