@@ -78,7 +78,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 			dp.addToSubRoomLocationAtomic(null, null, "initControl", false);
 		
 		//Workaround for BDI devices
-		Resource parent = device.getParent();
+		Resource parent = device.getLocationResource().getParent();
 		if((parent != null) && (parent instanceof PhysicalElement) && (parent.getName().equals("BDI"))) {
 			addDatapoint(parent.getSubResource("bdiDcCurrent", ElectricCurrentSensor.class).reading(), result, "bdiDcCurrent", dpService);
 			addDatapoint(parent.getSubResource("bdiDcPower", PowerSensor.class).reading(), result, "bdiDcPower", dpService);
