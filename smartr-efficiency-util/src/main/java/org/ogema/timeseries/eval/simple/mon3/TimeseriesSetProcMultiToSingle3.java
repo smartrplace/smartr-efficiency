@@ -20,6 +20,7 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeri
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
+import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingle;
@@ -178,10 +179,10 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 					long start, long end, AggregationMode mode) {
 				long startOfAgg = dpService.getFrameworkTime();
 
-String tsFilter = System.getProperty("org.ogema.timeseries.eval.simple.api.tsfilter");
-if((tsFilter != null) && (!timeSeries.isEmpty()) && (timeSeries.get(0) instanceof ProcessedReadOnlyTimeSeries) &&
+String tsFilterIN = System.getProperty("org.ogema.timeseries.eval.simple.api.tsfilter_IN");
+if((tsFilterIN != null) && (!timeSeries.isEmpty()) && (timeSeries.get(0) instanceof ProcessedReadOnlyTimeSeries) &&
 		(((ProcessedReadOnlyTimeSeries)timeSeries.get(0)).datapointForChangeNotification != null) &&
-		((ProcessedReadOnlyTimeSeries)timeSeries.get(0)).datapointForChangeNotification.id().contains(tsFilter)) {
+		((ProcessedReadOnlyTimeSeries)timeSeries.get(0)).datapointForChangeNotification.id().contains(tsFilterIN)) {
 	System.out.println("  DPDEBUG:"+((ProcessedReadOnlyTimeSeries)timeSeries.get(0)).datapointForChangeNotification.id());
 }
 if(Boolean.getBoolean("evaldebug")) System.out.println("Starting aggregation for "+getShortId());
@@ -307,6 +308,14 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 			
 			@Override
 			public void execute(long now, TimedJobMemoryData data) {
+/*String tsFilter = System.getProperty("org.ogema.timeseries.eval.simple.api.tsfilter");
+if((tsFilter != null) && (
+		((ts instanceof ProcessedReadOnlyTimeSeries) && (((ProcessedReadOnlyTimeSeries)ts).datapointForChangeNotification != null ) &&
+				((ProcessedReadOnlyTimeSeries)ts).datapointForChangeNotification.getLocation().contains(tsFilter))
+		)) {
+	System.out.println("  DPDEBUG UPD:"+TimeProcPrint.getTimeseriesName(ts, true));
+}*/
+
 				for(Datapoint indp: input) {
 					ReadOnlyTimeSeries ints = indp.getTimeSeries();
 					if(ints instanceof ProcessedReadOnlyTimeSeries3) {
