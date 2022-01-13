@@ -114,6 +114,7 @@ public class UserAdminBaseUtil {
 			switch(permType) {
 			case UserPermissionService.ROOM_STATUS_CONTROL:
 				result.add("org.smartrplace.apps.smartrplace-heatcontrol-v2");
+				result.add("org.smartrplace.apps.react.roomcontrol-we");
 				break;
 			case UserPermissionService.MONITORING:
 				result.add("org.smartrplace.apps.srcmon-app");
