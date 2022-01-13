@@ -50,6 +50,8 @@ public class UserAdminBaseUtil {
 		GUEST_APPS = new ArrayList<String>(BASE_APPS);
 		GUEST_APPS.add("org.smartrplace.apps.smartrplace-heatcontrol-servlet");
 		GUEST_APPS.add("org.smartrplace.apps.heatcontrol-frontend");
+		GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-we");
+
 		//GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-we");
 		//GUEST_APPS.add("org.smartrplace.apps.react.roomcontrol-2d");
 		if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.centralonly"))
@@ -114,7 +116,6 @@ public class UserAdminBaseUtil {
 			switch(permType) {
 			case UserPermissionService.ROOM_STATUS_CONTROL:
 				result.add("org.smartrplace.apps.smartrplace-heatcontrol-v2");
-				result.add("org.smartrplace.apps.react.roomcontrol-we");
 				break;
 			case UserPermissionService.MONITORING:
 				result.add("org.smartrplace.apps.srcmon-app");
