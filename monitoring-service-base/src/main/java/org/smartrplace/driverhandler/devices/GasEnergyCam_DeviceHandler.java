@@ -6,14 +6,18 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.VolumeAccumulatedSensor;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
+import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 
@@ -53,7 +57,33 @@ public class GasEnergyCam_DeviceHandler extends DeviceHandlerSimple<SensorDevice
 
 		}
 
-		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		Datapoint dp = addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		
+		if(Boolean.getBoolean("virtualSensors.disable")) {
+			//System.out.println("   *** Disabling HM_IEC virtualSensors based on energySensor: "+device.getLocation());
+			return result;
+		}
+		if(dp == null) {
+			//System.out.println("   !!! WARNING: HM-IEC without energySensor to use: "+device.getLocation());
+			return result;
+		}
+		
+		dp.info().setAggregationMode(AggregationMode.Meter2Meter);
+		Datapoint evalDp = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
+				StandardDeviceEval.COUNTER_TO_15MIN, dpService);
+		result.add(evalDp);
+		Datapoint evalDpDaily = StandardEvalAccess.getDatapointBaseEvalMetering(dp,
+				StandardDeviceEval.COUNTER_TO_DAILY_B15, dpService);
+		if(!Boolean.getBoolean("meterConfigs.createResourceForAlarming"))
+			result.add(evalDpDaily);
+		else {
+			FloatResource dailyTraffic = device.getSubResource("energySumDaily", FloatResource.class);
+			dailyTraffic.create().activate(true);
+			Datapoint dpDaily = StandardEvalAccess.addVirtualDatapoint(dailyTraffic,
+				evalDpDaily, dpService, result);
+			dpDaily.addToSubRoomLocationAtomic(null, null, device.getName()+"-daily", false);
+		}
+
 		return result;
 	}
 
