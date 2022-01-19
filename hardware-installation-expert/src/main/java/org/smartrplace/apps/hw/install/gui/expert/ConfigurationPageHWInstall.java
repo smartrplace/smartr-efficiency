@@ -16,6 +16,7 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
@@ -25,6 +26,7 @@ import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
 import org.ogema.model.connections.ElectricityConnection;
@@ -34,6 +36,7 @@ import org.ogema.model.metering.ElectricityMeter;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.LocalDeviceId;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.expert.plottest.ScheduleViewerTest;
 import org.smartrplace.apps.hw.install.gui.ScheduleViewerConfigProvHW;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
@@ -339,7 +342,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<StringResource> co2singleUserEdit = new ValueResourceTextField<StringResource>(page, "co2singleUserEdit",
 				app.appConfigData.singleCO2AlarmingUser());
 		
-		StaticTable configTable = new StaticTable(26, 2);
+		StaticTable configTable = new StaticTable(27, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "System default language").
 		setContent(i, 1, languageDrop);
@@ -444,6 +447,21 @@ public class ConfigurationPageHWInstall {
 				ValueResourceHelper.setCreate(app.appConfigData.blockAutoResetOfDeviceIds(), true);
 			}
 		};
+		
+		Button testDevHand = new Button(page, "testDevHand", "Test DeviceHandler on console") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				String path = "hardwareInstallConfig/knownDevices/knownDevices_117";
+				System.out.println("Testing "+path+"...");
+				InstallAppDevice dev = controller.appMan.getResourceAccess().getResource(path);
+				if(dev == null)
+					System.out.println("Resouce not found!");
+				DeviceHandlerProviderDP<Resource> devHand = controller.dpService.getDeviceHandlerProvider(dev);
+				Collection<Datapoint> dps = devHand.getDatapoints(dev, controller.dpService);
+				System.out.println("Found dps:"+dps.size());
+			}
+		};
+		
 		autoResetDeviceIds.setDefaultConfirmMsg("!!! REALLY RESET ALL DEVICEIDs ?  Note that this must NEVER be done when the "
 				+ "hardware devices already have been labelled !!!");
 		
@@ -527,6 +545,8 @@ public class ConfigurationPageHWInstall {
 				controller.cleanupOnStart();
 			}
 		};
+		configTable.setContent(i, 0, "Test Button (result on console only):").setContent(i, 1, testDevHand);
+		i++;
 		configTable.setContent(i, 0, "Cleanup device data:").setContent(i, 1, cleanUpIADsBut);
 		i++;
 		configTable.setContent(i, 0, "Enable manual editing of deviceIds:").setContent(i, 1, manualDeviceIdBut).setContent(i, 1, autoResetDeviceIds);
