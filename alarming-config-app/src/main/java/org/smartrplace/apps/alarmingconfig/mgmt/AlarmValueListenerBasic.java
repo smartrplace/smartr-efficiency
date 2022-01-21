@@ -57,9 +57,18 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		this.dp = dp;
 		this.alarmID = alarmID;
 		this.baseUrl = baseUrl;
-		upper = ac.upperLimit().getValue();
-		lower = ac.lowerLimit().getValue();
-		retard = (int) (ac.maxViolationTimeWithoutAlarm().getValue()*60000);
+		if(devTac != null)
+			upper = devTac.upperLimit().getValue();
+		else
+			upper = ac.upperLimit().getValue();
+		if(devTac != null)
+			lower = devTac.lowerLimit().getValue();
+		else
+			lower = ac.lowerLimit().getValue();
+		if(devTac != null)
+			retard = (int) (devTac.maxViolationTimeWithoutAlarm().getValue()*60000);
+		else
+			retard = (int) (ac.maxViolationTimeWithoutAlarm().getValue()*60000);
 		int resendRetardLoc = (int)(ac.alarmRepetitionTime().getValue()*60000);
 		vl.init(ac, resendRetardLoc);
 		this.ac = ac;
