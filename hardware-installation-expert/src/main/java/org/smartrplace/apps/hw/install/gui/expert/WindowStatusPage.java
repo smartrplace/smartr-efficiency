@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
@@ -139,15 +140,16 @@ public class WindowStatusPage extends BatteryPage {
 			
 			@Override
 			public List<InstallAppDevice> getObjectsInTable(OgemaHttpRequest req) {
-				List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
+				Collection<InstallAppDevice> result = controller.dpService.managedDeviceResoures(Thermostat.class);
+				/*List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
 				//List<InstallAppDevice> all = appSelector.getDevicesSelected();
 				List<InstallAppDevice> result = new ArrayList<InstallAppDevice>();
 				for(InstallAppDevice dev: all) {
 					PhysicalElement device2 = dev.device().getLocationResource();
 					if((device2 instanceof Thermostat))
 						result.add(dev);
-				}
-				return result;
+				}*/
+				return new ArrayList<InstallAppDevice>(result);
 			}
 		};
 		devTable.triggerPageBuild();
