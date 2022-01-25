@@ -128,7 +128,7 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			}
 		}
 
-		ServletNumProvider id = new ServletNumProvider(getNumericalId(locationStr));
+		ServletNumProvider id = new ServletNumProvider(ServletPageProvider.getNumericalId(locationStr));
 		result.put("id", id);
 		
 		if(object.getResource() != null && (object.getResource() instanceof SingleValueResource)) {

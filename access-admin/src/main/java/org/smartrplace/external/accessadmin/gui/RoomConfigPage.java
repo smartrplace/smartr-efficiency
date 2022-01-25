@@ -29,6 +29,7 @@ import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
+import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 
 import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -81,6 +82,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 			if(req == null) {
 				vh.registerHeaderEntry("Subcustomer");
 				vh.registerHeaderEntry("Room Type");
+				vh.registerHeaderEntry("ID");
 			} else {
 				List<SubCustomerData> subcs = SubcustomerUtil.getSubcustomers(appMan);
 				SubCustomerData subcustomerRef = SubcustomerUtil.getDataForRoom(object, appMan);
@@ -115,6 +117,9 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 					}
 					vh.dropdown("Room Type", id, object.type(), row, valuesToSet);
 				}
+				
+				String roomId = ServletPageProvider.getNumericalIdString(object.getLocation(), true);
+				vh.stringLabel("ID", id, roomId, row);
 				
 			}
 		}
