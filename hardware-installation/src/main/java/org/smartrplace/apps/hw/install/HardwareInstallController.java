@@ -69,6 +69,7 @@ import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.logging.fendodb.FendoTimeSeries;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
 
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.extended.util.UserLocaleUtil;
@@ -562,9 +563,14 @@ public class HardwareInstallController {
 			}
 			if(disable)
 				LoggingUtils.deactivateLogging(rec);
-			else
+			else {
+				Resource dpRes = dp.getResource();
+				if(Boolean.getBoolean("org.smartrplace.apps.hw.install.initnonpersistent_fromlog") && (dpRes != null)
+						&& (dpRes instanceof SingleValueResource))
+					LogHelper.setNonpersistentResourceWithLastLog((SingleValueResource) dp.getResource());
 				LoggingUtils.activateLogging(rec, -2);
-		}		
+			}	
+		}
 	}
 	
 	protected <T extends Resource> void initAlarming(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice, Datapoint dp) {
