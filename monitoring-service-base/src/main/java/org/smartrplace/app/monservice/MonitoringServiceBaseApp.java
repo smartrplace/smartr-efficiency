@@ -37,6 +37,7 @@ import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
 import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
+import org.smartrplace.driverhandler.devices.HMGas_MeterDeviceHandler;
 import org.smartrplace.driverhandler.devices.HMIEC_ElConnDeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabFlowSens_DeviceHandler;
@@ -274,6 +275,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srIECMeter = null;
 	private HMIEC_ElConnDeviceHandler devHandIECMeter;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srGasMeter = null;
+	private HMGas_MeterDeviceHandler devHandGasMeter;
 	
 	@Activate
 	   void activate(BundleContext bc) {
@@ -388,6 +392,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srMSwitch = bc.registerService(DeviceHandlerProvider.class, devHandMSwitch, null);
 	   devHandIECMeter = new HMIEC_ElConnDeviceHandler(controller.appManPlus);
 	   srIECMeter = bc.registerService(DeviceHandlerProvider.class, devHandIECMeter, null);
+	   devHandGasMeter = new HMGas_MeterDeviceHandler(controller.appManPlus);
+	   srGasMeter = bc.registerService(DeviceHandlerProvider.class, devHandGasMeter, null);
  	}
  	
      /*
@@ -439,6 +445,7 @@ public class MonitoringServiceBaseApp implements Application {
        	if (srBeacon != null) srBeacon.unregister();
        	if (srMSwitch != null) srMSwitch.unregister();
       	if (srIECMeter != null) srIECMeter.unregister();
+     	if (srGasMeter != null) srGasMeter.unregister();
 
        	if (controller != null)
     		controller.close();
