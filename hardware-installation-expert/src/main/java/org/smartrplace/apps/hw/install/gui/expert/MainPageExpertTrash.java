@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
@@ -44,7 +45,7 @@ public class MainPageExpertTrash extends MainPageExpert {
 	}
 
 	@Override
-	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
+	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProviderDP<?> devHand) {
 		for(Resource dev: devHand.devicesControlled(object)) {
 			dev.getLocationResource().activate(true);					
 		}

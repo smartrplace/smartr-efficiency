@@ -9,6 +9,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.SetpointData;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
@@ -101,7 +102,7 @@ public class MainPageExpert extends MainPage {
 			Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
 					for(InstallAppDevice iad: controller.appConfigData.knownDevices().getAllElements()) {
-						DeviceHandlerProvider<?> tableProvider = controller.getDeviceHandler(iad);
+						DeviceHandlerProviderDP<?> tableProvider = controller.getDeviceHandler(iad);
 						if(tableProvider != null)
 							controller.updateDatapoints(tableProvider, iad);
 					}
@@ -357,7 +358,7 @@ public class MainPageExpert extends MainPage {
 						}
 						break;
 					case APPLY_DEFAULT_ALARM:
-						DeviceHandlerProvider<?> tableProvider = controller.getDeviceHandler(object);
+						DeviceHandlerProviderDP<?> tableProvider = controller.getDeviceHandler(object);
 						if(tableProvider != null)
 							tableProvider.initAlarmingForDevice(object, controller.appConfigData);
 						break;
@@ -375,7 +376,7 @@ public class MainPageExpert extends MainPage {
 		return "Really mark "+object.device().getLocation()+" as trash?";
 	}
 
-	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProvider<?> devHand) {
+	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProviderDP<?> devHand) {
 		//deactivate logging
 		if(devHand != null)
 			controller.activateLogging(devHand, object, false, true);

@@ -14,6 +14,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProvider.DeviceTableConfig;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.gateway.EvalCollection;
@@ -305,20 +306,20 @@ if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 		return result;
 	}
 	
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider) {
+	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand) {
 		//boolean includeInactiveDevices = resData.appConfigData.includeInactiveDevices().getValue();
 		//return getDevices(tableProvider, includeInactiveDevices, false);
-		return getDevices(tableProvider, false);
+		return getDevices(devHand, false);
 	}
 	
 	private Map<String, List<InstallAppDevice>> devPerHandler = new HashMap<>();
 	private long lastMapUpd = -1;
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
+	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand,
 			boolean includeTrash) {
 		synchronized (devPerHandler) {
 			long now = appMan.getFrameworkTime();
 			if(now - lastMapUpd < 10000) {
-				List<InstallAppDevice> result = devPerHandler.get(tableProvider.id());
+				List<InstallAppDevice> result = devPerHandler.get(devHand.id());
 				if(result != null)
 					return result;
 			}
@@ -330,11 +331,11 @@ if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 			for(InstallAppDevice install: resData.appConfigData.knownDevices().getAllElements()) {
 				if((!includeTrash) && install.isTrash().getValue())
 					continue;
-				if(tableProvider == null) {
+				if(devHand == null) {
 					result.add(install);
 					continue;
 				}
-				if(tableProvider.id().equals(install.devHandlerInfo().getValue()))	{
+				if(devHand.id().equals(install.devHandlerInfo().getValue()))	{
 					result.add(install);
 				}
 				String provLoc = install.devHandlerInfo().getValue();

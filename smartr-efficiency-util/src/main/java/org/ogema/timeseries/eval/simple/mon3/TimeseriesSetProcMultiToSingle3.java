@@ -20,10 +20,10 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeri
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
-import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingle;
+import org.ogema.util.timedjob.TimedJobMemoryDataImpl;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.tissue.util.logconfig.PerformanceLog;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
@@ -295,7 +295,11 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 			@Override
 			public boolean initConfigResource(TimedJobConfig config) {
 				ValueResourceHelper.setCreate(config.alignedInterval(), -1);
-				ValueResourceHelper.setCreate(config.interval(), (float) (((double)repetitionTime)/TimeProcUtil.MINUTE_MILLIS));
+				float minuteVal = (float) (((double)repetitionTime)/TimeProcUtil.MINUTE_MILLIS);
+				if(minuteVal > TimedJobMemoryDataImpl.MINIMUM_MINUTES_FOR_TIMER_START)
+					ValueResourceHelper.setCreate(config.interval(), minuteVal);
+				else
+					ValueResourceHelper.setCreate(config.interval(), TimedJobMemoryDataImpl.MINIMUM_MINUTES_FOR_TIMER_START);
 				ValueResourceHelper.setCreate(config.disable(), false);
 				ValueResourceHelper.setCreate(config.performOperationOnStartUpWithDelay(), 0);
 				return true;

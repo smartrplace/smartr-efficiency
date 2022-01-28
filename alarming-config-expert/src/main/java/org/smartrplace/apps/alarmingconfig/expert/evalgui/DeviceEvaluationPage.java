@@ -14,6 +14,7 @@ import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.AlarmingExtension.EvaluationConfigurationExtensionDevice;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
@@ -367,7 +368,7 @@ public class DeviceEvaluationPage extends HardwareTablePage {
 	}
 
 	@Override
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
+	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> tableProvider,
 			boolean includeTrash) {
 		List<InstallAppDevice> result = new ArrayList<>();
 		for(InstallAppDevice install: resData.appConfigData.knownDevices().getAllElements()) {

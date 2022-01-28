@@ -244,11 +244,7 @@ public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<Electricity
 		}
 		//if(!Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppressdaily") &&
 		//		(dev.getLocation().startsWith("elMetersPM2x") || dev.getLocation().startsWith("MQTTMeter"))) {
-if(installDeviceRes.getLocation().contains("knownDevices_117"))
-System.out.println("   !!!!!!!   powerPath(1):"+(powerDp!=null?powerDp.getLocation():"null"));
 		if(!Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppressdaily")) {
-if(installDeviceRes.getLocation().contains("knownDevices_117"))
-System.out.println("   !!!!!!!   powerPath(2):"+(powerDp!=null?powerDp.getLocation():"null"));
 			Datapoint daily = null;
 			boolean createResource = !Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppress_resourcecreation_plus");
 			if(energyDp != null) {
@@ -260,7 +256,7 @@ System.out.println("   !!!!!!!   powerPath(2):"+(powerDp!=null?powerDp.getLocati
 if(installDeviceRes.getLocation().contains("knownDevices_117"))
 System.out.println("result#:"+result.size()+" daily:"+(daily!=null?daily.getLocation():"null"));
 				if(energyDp == null && Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergy.power2meter")) {
-					provideIntervalFromMeterDatapoint("energyY", powerDp, result, dev.connection(), dpService, utilAggPower2Meter, createResource);
+					provideIntervalFromMeterDatapoint("energy", powerDp, result, dev.connection(), dpService, utilAggPower2Meter, createResource);
 				}
 			}
 			if(daily != null) {

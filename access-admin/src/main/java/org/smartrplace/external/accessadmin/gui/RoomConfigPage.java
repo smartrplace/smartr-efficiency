@@ -3,6 +3,7 @@ package org.smartrplace.external.accessadmin.gui;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -87,7 +88,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 				List<SubCustomerData> subcs = SubcustomerUtil.getSubcustomers(appMan);
 				SubCustomerData subcustomerRef = SubcustomerUtil.getDataForRoom(object, appMan);
 
-				TemplateDropdown<SubCustomerData> subCustDrop = new TemplateDropdown<SubCustomerData>(page, "subCustDrop"+id) {
+				TemplateDropdown<SubCustomerData> subCustDrop = new TemplateDropdown<SubCustomerData>(mainTable, "subCustDrop"+id, req) {
 					@Override
 					public void onGET(OgemaHttpRequest req) {
 						update(subcs, req);
@@ -108,7 +109,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 				row.addCell("Subcustomer", subCustDrop);
 				
 				if(subcustomerRef.exists()) {
-					Map<String, String> valuesToSet = new HashMap<>();
+					Map<String, String> valuesToSet = new LinkedHashMap<>();
 					int sid = subcustomerRef.subCustomerType().getValue();
 					SubCustomerType data = SubcustomerUtil.subCustomerTypes.get(sid);
 					for(Entry<Integer, NamedIntegerType> roomEntry: data.roomTypes.entrySet()) {

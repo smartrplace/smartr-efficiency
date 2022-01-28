@@ -94,7 +94,7 @@ public class HardwareInstallController {
 	public static AlarmingUpdater alarmingUpdater = null;
 
 	/** Location of InstallAppDevice -> DeviceHandlerProvider*/
-	private final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
+	//private final Map<String, DeviceHandlerProvider<?>> handlerByDevice = new HashMap<>();
 	/** Location of InstallAppDevice -> Device simulations*/
 	public final Map<String, List<RoomInsideSimulationBase>> simByDevice = new HashMap<>();
 	
@@ -192,24 +192,6 @@ public class HardwareInstallController {
 		util = new TimeseriesSimpleProcUtil3(appMan, appManPlus.dpService(), 4, 3*TimeProcUtil.MINUTE_MILLIS);
 		
 		BatteryEval.initWeeklyEmail(appManPlus);
-		
-		if(hardwareInstallApp == null)
-			return;
-		
-		//hardwareInstallApp.menu.addEntry("Device Setup and Configuration", page);
-		//hardwareInstallApp.configMenuConfig(page.getMenuConfiguration());
-		
-		
-		/*WidgetPage<LocaleDictionary> page2 = hardwareInstallApp.widgetApp.createWidgetPage("deviceConfig.html");
-		deviceConfigPage = new DeviceConfigPage(page2, this);
-		hardwareInstallApp.menu.addEntry("Hardware Driver Configuration", page2);
-		hardwareInstallApp.configMenuConfig(page2.getMenuConfiguration());*/
-		
-		/*WidgetPage<?> page3 = hardwareInstallApp.widgetApp.createWidgetPage("deviceTypeConfig.html");
-		new DeviceTypeConfigPage(page3, this);
-		hardwareInstallApp.menu.addEntry("Device Configuration based on Device Type Database", page3);
-		hardwareInstallApp.configMenuConfig(page3.getMenuConfiguration());*/
-
 	}
 
 	protected MainPage getMainPage(WidgetPage<?> page) {
@@ -447,7 +429,7 @@ public class HardwareInstallController {
 	@SuppressWarnings("unchecked")
 	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
 			T device) {
-		handlerByDevice.put(appDevice.getLocation(), tableProvider);
+		//handlerByDevice.put(appDevice.getLocation(), tableProvider);
 		//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.autologging")) {
 		updateDatapoints(tableProvider, appDevice);
 		if(appConfigData.autoLoggingActivation().getValue() == 2) {
@@ -482,7 +464,7 @@ public class HardwareInstallController {
 			simByDevice.put(appDevice.getLocation(), sims);
 	}
 	
-	public <T extends Resource> void updateDatapoints(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
+	public <T extends Resource> void updateDatapoints(DeviceHandlerProviderDP<?> tableProvider, InstallAppDevice appDevice) {
 		String deviceLocation = appDevice.device().getLocation();
 		DatapointGroup dev = dpService.getGroup(deviceLocation);
 		//String devName = DeviceTableRaw.getName(appDevice, appManPlus);
@@ -539,11 +521,11 @@ public class HardwareInstallController {
 			e.printStackTrace();
 		}
 	}
-	public <T extends Resource> void activateLogging(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
+	public <T extends Resource> void activateLogging(DeviceHandlerProviderDP<?> devHand, InstallAppDevice appDevice,
 			boolean onylDefaultLoggingDps, boolean disable) {
-		Collection<Datapoint> allDps = tableProvider.getDatapoints(appDevice, dpService);
+		Collection<Datapoint> allDps = devHand.getDatapoints(appDevice, dpService);
 		for(Datapoint dp: allDps) {
-			if((!tableProvider.relevantForDefaultLogging(dp)) && onylDefaultLoggingDps)
+			if((!devHand.relevantForDefaultLogging(dp)) && onylDefaultLoggingDps)
 				continue;
 			ReadOnlyTimeSeries ts = dp.getTimeSeries();
 			if(ts == null || (!(ts instanceof RecordedData)))
@@ -573,7 +555,7 @@ public class HardwareInstallController {
 		}
 	}
 	
-	protected <T extends Resource> void initAlarming(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice, Datapoint dp) {
+	protected <T extends Resource> void initAlarming(DeviceHandlerProviderDP<?> tableProvider, InstallAppDevice appDevice, Datapoint dp) {
 		if(!appDevice.alarms().isActive()) {
 			appDevice.alarms().create().activate(false);
 		}
@@ -644,8 +626,8 @@ public class HardwareInstallController {
 		InitialConfig.addString("A", appConfigData.initDoneStatus());
 	}
 	
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider) {
-		return mainPage.getDevices(tableProvider);
+	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand) {
+		return mainPage.getDevices(devHand);
 		/*boolean includeInactiveDevices = appConfigData.includeInactiveDevices().getValue();
 		return getDevices(tableProvider, includeInactiveDevices, false);*/
 	}
@@ -684,8 +666,9 @@ public class HardwareInstallController {
 		}
 		return result;
 	}*/
-	public DeviceHandlerProvider<?> getDeviceHandler(InstallAppDevice source) {
-		return handlerByDevice.get(source.getLocation());
+	public DeviceHandlerProviderDP<Resource> getDeviceHandler(InstallAppDevice source) {
+		return dpService.getDeviceHandlerProvider(source);
+		//return handlerByDevice.get(source.getLocation());
 	}
 	
 	public DeviceHandlerProvider<?> getDeviceHandlerForTrash(InstallAppDevice install) {
@@ -693,10 +676,10 @@ public class HardwareInstallController {
 	}
 	
 	public InstallAppDevice getTemplateDevice(InstallAppDevice source) {
-		DeviceHandlerProvider<?> devHand = handlerByDevice.get(source.getLocation());
+		DeviceHandlerProviderDP<?> devHand = getDeviceHandler(source); //handlerByDevice.get(source.getLocation());
 		return getTemplateDevice(devHand);
 	}
-	public InstallAppDevice getTemplateDevice(DeviceHandlerProvider<?> devHand) {
+	public InstallAppDevice getTemplateDevice(DeviceHandlerProviderDP<?> devHand) {
 		for(InstallAppDevice dev: getDevices(devHand)) {
 			if(dev.isTemplate().isActive() && dev.isTemplate().getValue().equals(devHand.id()))
 				return dev;

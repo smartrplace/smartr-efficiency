@@ -23,6 +23,7 @@ import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
@@ -232,7 +233,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 	}
 	
 	public static class GetPlotButtonResult {
-		public DeviceHandlerProvider<?> devHand;
+		public DeviceHandlerProviderDP<?> devHand;
 		public Collection<Datapoint> datapoints;
 		public Label dataPointInfoLabel;
 		public ScheduleViewerOpenButton plotButton;
@@ -252,11 +253,11 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 			boolean addDataPointInfoLabel,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, Row row, OgemaHttpRequest req,
 			DeviceHandlerProvider<?> devHandForTrash) {
-		DeviceHandlerProvider<?> devHand;
+		DeviceHandlerProviderDP<?> devHand;
 		if(devHandForTrash != null)
 			devHand = devHandForTrash;
 		else
-			devHand = controller.getDeviceHandler(object);
+			devHand = (DeviceHandlerProvider<?>) controller.getDeviceHandler(object);
 		return getPlotButton(id, object, controller.dpService, controller.appMan,
 				addDataPointInfoLabel, vh, row, req, devHand,
 				ScheduleViewerConfigProvHW.getInstance(), controller.datalogs);
@@ -265,7 +266,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 			DatapointService dpService, final ApplicationManager appMan,//final HardwareInstallController controller2,
 			boolean addDataPointInfoLabel,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, Row row, OgemaHttpRequest req,
-			DeviceHandlerProvider<?> devHand,
+			DeviceHandlerProviderDP<?> devHand,
 			DefaultScheduleViewerConfigurationProviderExtended schedViewProv,
 			ResourceList<DataLogTransferInfo> datalogs) {
 		final GetPlotButtonResult resultMain = new GetPlotButtonResult();

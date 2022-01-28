@@ -24,7 +24,7 @@ import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
-import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
@@ -113,7 +113,7 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 
 			for(InstallAppDevice dev: controller.appConfigData.knownDevices().getAllElements()) {
 				if(dev.isTrash().getValue()) {
-					DeviceHandlerProvider<?> devHand = controller.getDeviceHandler(dev);
+					DeviceHandlerProviderDP<?> devHand = controller.getDeviceHandler(dev);
 					expertPage.performTrashOperation(dev, devHand);
 				}
 			}
