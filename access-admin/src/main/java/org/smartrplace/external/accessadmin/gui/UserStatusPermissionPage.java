@@ -8,6 +8,7 @@ import java.util.List;
 import org.ogema.accessadmin.api.ConfigurablePermission;
 import org.ogema.accessadmin.api.PermissionCellData;
 import org.ogema.accessadmin.api.UserPermissionService;
+import org.ogema.accessadmin.api.UserPermissionUtil;
 import org.ogema.accessadmin.api.UserStatus;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.model.simple.BooleanResource;
@@ -61,7 +62,7 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 
 	@Override
 	protected PermissionCellData getAccessConfig(UserStatus object, String permissionID, OgemaHttpRequest req) {
-		ConfigurablePermission result = new ConfigurablePermission() {
+		/*ConfigurablePermission result = new ConfigurablePermission() {
 			@Override
 			public void setOwnStatus(Boolean newStatus) {
 				super.setOwnStatus(newStatus);
@@ -72,15 +73,16 @@ public class UserStatusPermissionPage extends StandardPermissionPage<UserStatus>
 				return false;
 			}
 		};
+		result.accessConfig = controller.appConfigData.userStatusPermissionWorkingCopy(); //userAcc.roompermissionData();
+		result.resourceId = object.name();
+		result.permissionId = permissionID;
+		result.defaultStatus = false; //controller.userPermService.getUserStatusAppPermission(object, permissionID, true) > 0;*/
 		CopyParams copyParams = new CopyParams(appMan, true, 0);
 		if(!controller.appConfigData.userStatusPermissionWorkingCopy().isActive())
 			OGEMAResourceCopyHelper.copySubResourceIntoDestination(
 					controller.appConfigData.userStatusPermissionWorkingCopy(),
 					controller.appConfigData.userStatusPermission(), copyParams );
-		result.accessConfig = controller.appConfigData.userStatusPermissionWorkingCopy(); //userAcc.roompermissionData();
-		result.resourceId = object.name();
-		result.permissionId = permissionID;
-		result.defaultStatus = false; //controller.userPermService.getUserStatusAppPermission(object, permissionID, true) > 0;
+		ConfigurablePermission result = UserPermissionUtil.getUserAppAccessConfig(controller.appConfigData, permissionID, object, true);
 		return result;
 	}
 

@@ -55,7 +55,7 @@ public class UserRoomGroupPermissionPage2 extends PerMultiselectConfigPage<Acces
 
 	@Override
 	protected String getHeader(OgemaLocale locale) {
-		return "4. User - Room Group Mapping (currently not used)";
+		return "4. User - Room Group Mapping";
 	}
 	
 	@Override
