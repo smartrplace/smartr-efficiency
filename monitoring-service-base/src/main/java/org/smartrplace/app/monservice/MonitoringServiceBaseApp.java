@@ -49,18 +49,8 @@ import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
 import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.LightWLANDevHandler;
 import org.smartrplace.driverhandler.devices.MultiSwitchHandler;
-import org.smartrplace.driverhandler.devices.OpenWeatherMapBigBlueRoom_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
-import org.smartrplace.homematic.devicetable.CO2SensorHmHandler;
-import org.smartrplace.homematic.devicetable.DeviceHandlerDoorWindowSensor;
-import org.smartrplace.homematic.devicetable.DeviceHandlerThermostat;
-import org.smartrplace.homematic.devicetable.MotionSensorHandler;
-import org.smartrplace.homematic.devicetable.OnOffSwitch_DeviceHandler;
-import org.smartrplace.homematic.devicetable.SmokeDetector_DeviceHandler;
-import org.smartrplace.homematic.devicetable.TemperatureOrHumiditySensorDeviceHandler;
-import org.smartrplace.homematic.devicetable.WallThermostatHandler;
-import org.smartrplace.homematic.devicetable.WeatherStation_DeviceHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_SingleSwBox;
@@ -174,37 +164,12 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srSwBox = null;
 	private DeviceHandlerMQTT_SingleSwBox devHandSwBox;
 	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srOnOff = null;
-	private OnOffSwitch_DeviceHandler devHandOnOff;
-	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srSmartDim = null;
 	private DeviceHandlerMQTT_SmartDimmer devHandSmartDim;
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srLight = null;
 	private LightWLANDevHandler devHandLight;
 
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srDoorWindowSensor = null;
-	private DeviceHandlerDoorWindowSensor devHandDoorWindowSensor;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srThermostat = null;
-	private DeviceHandlerThermostat devHandThermostat;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srTempHumSens = null;
-	private TemperatureOrHumiditySensorDeviceHandler devHandTempHumSens;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srSmoke = null;
-	private SmokeDetector_DeviceHandler devHandSmoke;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srWeather = null;
-	private WeatherStation_DeviceHandler devHandWeather;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srOpenWeather = null;
-	private OpenWeatherMapBigBlueRoom_DeviceHandler devHandOpenWeather;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srMotion = null;
-	private MotionSensorHandler devHandMotion;
-	
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srPv = null;
 	private DeviceHandler_PVPlant devHandPv;
@@ -253,12 +218,6 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srHeatlabGeneral = null;
 	private HeatingLabGeneralData_DeviceHandler devHandHeatlabGeneral;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srWall = null;
-	private WallThermostatHandler devHandWall;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srCO2Hm = null;
-	private CO2SensorHmHandler devHandCO2Hm;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -318,29 +277,10 @@ public class MonitoringServiceBaseApp implements Application {
 	   srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
 	   devHandSwBox = new DeviceHandlerMQTT_SingleSwBox(controller.appManPlus);
 	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
-	   devHandOnOff = new OnOffSwitch_DeviceHandler(controller.appManPlus);
-	   srOnOff = bc.registerService(DeviceHandlerProvider.class, devHandOnOff, null);
 	   devHandSmartDim = new DeviceHandlerMQTT_SmartDimmer(controller.appManPlus);
 	   srSmartDim = bc.registerService(DeviceHandlerProvider.class, devHandSmartDim, null);
 	   devHandLight = new LightWLANDevHandler(controller.appManPlus);
 	   srLight = bc.registerService(DeviceHandlerProvider.class, devHandLight, null);
-
-	   devHandThermostat = new DeviceHandlerThermostat(controller.appManPlus);
-	   srThermostat = bc.registerService(DeviceHandlerProvider.class, devHandThermostat, null);
-	   
-	   devHandTempHumSens = new TemperatureOrHumiditySensorDeviceHandler(controller.appManPlus);
-	   srTempHumSens = bc.registerService(DeviceHandlerProvider.class, devHandTempHumSens, null);
-
-	   devHandDoorWindowSensor = new DeviceHandlerDoorWindowSensor(controller.appManPlus);
-	   srDoorWindowSensor = bc.registerService(DeviceHandlerProvider.class, devHandDoorWindowSensor, null);
-	   devHandSmoke = new SmokeDetector_DeviceHandler(controller.appManPlus);
-	   srSmoke = bc.registerService(DeviceHandlerProvider.class, devHandSmoke, null);
-	   devHandWeather = new WeatherStation_DeviceHandler(controller.appManPlus);
-	   srWeather = bc.registerService(DeviceHandlerProvider.class, devHandWeather, null);
-	   devHandOpenWeather = new OpenWeatherMapBigBlueRoom_DeviceHandler(controller.appManPlus);
-	   srOpenWeather = bc.registerService(DeviceHandlerProvider.class, devHandOpenWeather, null);
-	   devHandMotion = new MotionSensorHandler(controller.appManPlus);
-	   srMotion = bc.registerService(DeviceHandlerProvider.class, devHandMotion, null);
 	   
 	   devHandPv = new DeviceHandler_PVPlant(controller.appManPlus);
 	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
@@ -375,10 +315,6 @@ public class MonitoringServiceBaseApp implements Application {
 	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
 	   devHandHeatlabGeneral = new HeatingLabGeneralData_DeviceHandler(controller.appManPlus);
 	   srHeatlabGeneral = bc.registerService(DeviceHandlerProvider.class, devHandHeatlabGeneral, null);
-	   devHandWall = new WallThermostatHandler(controller.appManPlus);
-	   srWall = bc.registerService(DeviceHandlerProvider.class, devHandWall, null);
-	   devHandCO2Hm = new CO2SensorHmHandler(controller.appManPlus);
-	   srCO2Hm = bc.registerService(DeviceHandlerProvider.class, devHandCO2Hm, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
@@ -408,7 +344,6 @@ public class MonitoringServiceBaseApp implements Application {
        	if (srAircond != null) srAircond.unregister();
     	if (srElecConn != null) srElecConn.unregister();
     	if (srSwBox != null) srSwBox.unregister();
-    	if (srOnOff != null) srOnOff.unregister();
     	if (srSmartDim != null) srSmartDim.unregister();
     	if (srLight != null) srLight.unregister();    	
     	
@@ -428,17 +363,7 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srHumSensSingle!= null) srHumSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
      	if (srHeatlabGeneral!= null) srHeatlabGeneral.unregister();
-    	if (srWall!= null) srWall.unregister();
-    	if (srCO2Hm!= null) srCO2Hm.unregister();
 
-    	if (srDoorWindowSensor != null) srDoorWindowSensor.unregister();
-    	if (srThermostat != null) srThermostat.unregister();
-    	if (srTempHumSens != null) srTempHumSens.unregister();
-    	if (srSmoke != null) srSmoke.unregister();
-    	if (srWeather != null) srWeather.unregister();
-    	if (srOpenWeather != null) srOpenWeather.unregister();
-       	if (srMotion != null) srMotion.unregister();
-    	
     	if (jmbusDriver != null) jmbusDriver.unregister();
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
     	if (knxDriver != null) knxDriver.unregister();
