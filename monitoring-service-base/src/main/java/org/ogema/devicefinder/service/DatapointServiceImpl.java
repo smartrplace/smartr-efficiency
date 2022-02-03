@@ -558,7 +558,6 @@ public abstract class DatapointServiceImpl implements DatapointService {
 			if(prov.id().equals(installAppDeviceRes.devHandlerInfo().getValue()))
 				return (DeviceHandlerProviderDP<T>) prov;
 		}
-		
 		return null;
 	}
 

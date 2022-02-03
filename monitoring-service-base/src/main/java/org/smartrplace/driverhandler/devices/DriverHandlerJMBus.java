@@ -207,9 +207,14 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 
 	@Override
 	public List<DeviceHandlerProvider<?>> getDeviceHandlerProviders(boolean registerByFramework) {
+		return Collections.emptyList();
+	}
+
+	/*@Override
+	public List<DeviceHandlerProvider<?>> getDeviceHandlerProviders(boolean registerByFramework) {
 		// TODO: Add device handler providers for energy cam,...
 		return Arrays.asList(new DeviceHandlerProvider<?>[] {deviceHandlerSensDev});
-	}
+	}*/
 
 	@Override
 	public DeviceTableRaw<DriverHandlerProvider, Resource> getDriverInitTable(WidgetPage<?> page, Alert alert) {

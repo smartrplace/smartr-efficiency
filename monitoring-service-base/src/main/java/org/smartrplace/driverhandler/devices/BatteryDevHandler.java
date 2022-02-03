@@ -17,6 +17,7 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.devices.storage.ElectricityStorage;
+import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.ElectricCurrentSensor;
 import org.ogema.model.sensors.PowerSensor;
@@ -108,6 +109,8 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 				createVirtualSensorDevice(peaTop, scc, "sensDevSCC3", false, true);
 				scc = peaTop.getSubResource("SCC4", PhysicalElement.class);
 				createVirtualSensorDevice(peaTop, scc, "sensDevSCC4", false, true);
+				Room weatherRoom = peaTop.getSubResource("WeatherData", Room.class);
+				createVirtualSensorDevice(peaTop, weatherRoom, "sensDevWeatherData", true, false);
 	
 				Resource totals = peaTop.getSubResource("totals", Resource.class);
 				createVirtualSensorDevice(peaTop, totals, "sensDevTotals", false, false);

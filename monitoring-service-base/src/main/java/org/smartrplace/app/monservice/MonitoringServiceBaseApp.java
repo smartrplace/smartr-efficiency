@@ -30,6 +30,7 @@ import org.osgi.service.cm.ConfigurationAdmin;
 import org.smartrplace.driverhandler.devices.BatteryDevHandler;
 import org.smartrplace.driverhandler.devices.BluetoothBeaconHandler;
 import org.smartrplace.driverhandler.devices.ChargingPointDevHandler;
+import org.smartrplace.driverhandler.devices.DeviceHandlerWMBus_SensorDevice;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
 import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
@@ -218,6 +219,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srHeatlabGeneral = null;
 	private HeatingLabGeneralData_DeviceHandler devHandHeatlabGeneral;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srSensDevGeneric = null;
+	private DeviceHandlerWMBus_SensorDevice devHandSensDevGeneric;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -315,6 +319,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
 	   devHandHeatlabGeneral = new HeatingLabGeneralData_DeviceHandler(controller.appManPlus);
 	   srHeatlabGeneral = bc.registerService(DeviceHandlerProvider.class, devHandHeatlabGeneral, null);
+	   devHandSensDevGeneric = new DeviceHandlerWMBus_SensorDevice(controller.appManPlus);
+	   srSensDevGeneric = bc.registerService(DeviceHandlerProvider.class, devHandSensDevGeneric, null);
 
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
