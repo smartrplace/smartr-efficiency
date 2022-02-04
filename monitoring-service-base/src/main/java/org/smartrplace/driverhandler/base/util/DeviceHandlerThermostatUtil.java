@@ -128,7 +128,7 @@ public class DeviceHandlerThermostatUtil {
 		if(Boolean.getBoolean("org.smartrplace.driverhandler.base.util.thermostatauto.all")) {
 			return 1;
 		}
-		String addTherm = System.getProperty("org.smartrplace.driverhandler.base.util.thermostatauto.all");
+		String addTherm = System.getProperty("org.smartrplace.driverhandler.base.util.thermostatauto.list");
 		if(addTherm != null && addTherm.contains(device.getName())) {
 			return 1;
 		}
