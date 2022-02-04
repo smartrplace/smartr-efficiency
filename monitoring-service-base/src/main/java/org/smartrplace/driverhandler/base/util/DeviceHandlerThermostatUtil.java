@@ -9,6 +9,7 @@ import java.util.Set;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
@@ -117,5 +118,23 @@ public class DeviceHandlerThermostatUtil {
 		}
 		ValueResourceHelper.setCreate(testConfig.testSwitchingLocation(), locs);
 		ValueResourceHelper.setCreate(testConfig.testSwitchingSetpoint(), vals);
+	}
+	
+	/** How to set thermostat auto-config?
+	 * 
+	 * @return 1: create, 0: do not change, -1: delete
+	 */
+	public static int autoModeStatus(PhysicalElement device) {
+		if(Boolean.getBoolean("org.smartrplace.driverhandler.base.util.thermostatauto.all")) {
+			return 1;
+		}
+		String addTherm = System.getProperty("org.smartrplace.driverhandler.base.util.thermostatauto.all");
+		if(addTherm != null && addTherm.contains(device.getName())) {
+			return 1;
+		}
+		if(Boolean.getBoolean("org.smartrplace.driverhandler.base.util.thermostatauto.none")) {
+			return -1;
+		}
+		return 0;
 	}
 }
