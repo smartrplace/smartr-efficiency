@@ -65,6 +65,7 @@ public class HMGas_MeterDeviceHandler extends DeviceHandlerSimple<GasMeter> {
 				evalDpDaily, dpService, result);
 			dpDaily.addToSubRoomLocationAtomic(null, null, device.getName()+"-daily", false);
 		}
+		addtStatusDatapointsHomematic(device, dpService, result);
 
 		return result;
 	}
