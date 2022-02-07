@@ -20,7 +20,19 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 
 public class DeviceHandlerThermostatUtil {
-
+	public static final Map<Integer, String> valveErrorCodes = new HashMap<Integer, String>();
+	static  {
+		valveErrorCodes.put(0, "STATE_NOT_AVAILABLE"); //Zustand unbestimmt
+		valveErrorCodes.put(1, "RUN_TO_START"); // nach dem einlegen der Batterien (im Display VALVE install)
+		valveErrorCodes.put(2, "WAIT_FOR_ADAPTION"); // wartet darauf das die Boost Taste gedrückt wird um die Adaptionsfahrt zu beginnen (im Display VALVE adapt)
+		valveErrorCodes.put(3, "ADAPTION_IN_PROGRESS"); // Adaptionsfahrt läuft (im Display VALVE adapt)
+		valveErrorCodes.put(4, "ADAPTION_DONE"); // Adaptionsfahrt abgeschlossen
+		valveErrorCodes.put(5, "TOO_TIGHT"); // Fehler F1 Ventil schwergängig
+		valveErrorCodes.put(6, "ADJUSTMENT_TOO_BIG"); // Fehler F2 Stellbereich zu groß
+		valveErrorCodes.put(7, "ADJUSTMENT_TOO_SMALL"); // Fehler F3 Stellbereich zu klein
+		valveErrorCodes.put(8, "ERROR_POSITION"); //vermutlich wird hier die Frostschutz Ventilposition angefahren, wenn die Batterieschwelle einen gewisse Schwelle unterschreitet		
+	}
+	
 	protected static CountDownDelayedExecutionTimer testSwitchTimer = null;
 	protected static ThermostatTestingConfig testConfig;
 	protected static class SetpointToTest {

@@ -23,6 +23,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.form.textfield.TextField;
 
 public class ThermostatPage extends MainPage {
@@ -40,13 +41,14 @@ public class ThermostatPage extends MainPage {
 	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
-			@Override
+			/*@Override
 			public String getLineId(InstallAppDevice object) {
+				super.getLineId(object);
 				Room deviceRoom = object.device().location().room();
 				if(deviceRoom.exists())
 					return ResourceUtils.getHumanReadableShortName(deviceRoom)+object.getName()+"_THERMOSTAT";
 				return object.getName()+"_THERMOSTAT";
-			}
+			}*/
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
@@ -107,9 +109,14 @@ public class ThermostatPage extends MainPage {
 				
 				FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
 				if(valveError.exists() || (req == null)) {
-					Label valveErrL = vh.floatLabel("VErr", id, valveError.getValue(), row, "%.0f");
+					float val = valveError.getValue();
+					Label valveErrL = vh.floatLabel("VErr", id, val, row, "%.0f");
 					Label lastContactValveErr = addLastContact("Last VErr", vh, "Valve"+id, req, row, valveError);
 					if(req != null) {
+						if(val < 4)
+							valveErrL.addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+						else if(val > 4)
+							valveErrL.addStyle(LabelData.BOOTSTRAP_RED, req);
 						valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 						lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
