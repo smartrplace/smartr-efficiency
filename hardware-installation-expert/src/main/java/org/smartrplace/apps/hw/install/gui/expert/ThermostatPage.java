@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
@@ -104,6 +105,16 @@ public class ThermostatPage extends MainPage {
 				Label valvePos = vh.floatLabel("Valve", id, device.valve().setting().stateFeedback().getValue()*100f, row, "%.1f");
 				Label lastContactValve = addLastContact("Last Valve", vh, "Valve"+id, req, row, device.valve().setting().stateFeedback());
 				
+				FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
+				if(valveError.exists() || (req == null)) {
+					Label valveErrL = vh.floatLabel("VErr", id, valveError.getValue(), row, "%.0f");
+					Label lastContactValveErr = addLastContact("Last VErr", vh, "Valve"+id, req, row, valveError);
+					if(req != null) {
+						valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
+						lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+					}
+				}
+
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device.location().room();
 				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
