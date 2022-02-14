@@ -8,6 +8,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
@@ -217,13 +218,26 @@ System.out.println("Fzufoiude");
 
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device.location().room();
-				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
-			 	addSubLocation(object, vh, id, req, row);
+				//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+				//addSubLocation(object, vh, id, req, row);
+				String roomSubLoc = ResourceUtils.getHumanReadableShortName(deviceRoom);
+				if(object.installationLocation().exists() && !object.installationLocation().getValue().isEmpty()) {
+					roomSubLoc += "-"+object.installationLocation().getValue();
+				}
+				vh.stringLabel("Room-Loc", id, roomSubLoc, row);
+				
 				if(req != null) {
+					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
+					final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
+							ScheduleViewerConfigProvThermDebug.getInstance(), null);
+					row.addCell("Plot", logResult.plotButton);
+
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);
-				} else
-					vh.registerHeaderEntry("RT");	
+				} else {
+					vh.registerHeaderEntry("Plot");
+					vh.registerHeaderEntry("RT");
+				}
 				
 				
 				
