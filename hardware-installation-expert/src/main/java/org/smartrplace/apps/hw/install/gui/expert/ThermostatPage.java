@@ -111,16 +111,35 @@ public class ThermostatPage extends MainPage {
 				Label valvePos = vh.floatLabel("Valve", id, device.valve().setting().stateFeedback().getValue()*100f, row, "%.1f");
 				Label lastContactValve = addLastContact("Last Valve", vh, "Valve"+id, req, row, device.valve().setting().stateFeedback());
 				
-				FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
+				final FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
 				if(valveError.exists() || (req == null)) {
-					float val = valveError.getValue();
-					Label valveErrL = vh.floatLabel("VErr", id, val, row, "%.0f");
-					Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
-					if(req != null) {
-						if(val < 4)
-							valveErrL.addStyle(LabelData.BOOTSTRAP_ORANGE, req);
-						else if(val > 4)
-							valveErrL.addStyle(LabelData.BOOTSTRAP_RED, req);
+					if(req == null) {
+						vh.registerHeaderEntry("VErr");
+						vh.registerHeaderEntry("Last VErr");
+					} else {
+						//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
+						Label valveErrL = new Label(mainTable, "Verr"+id, req) {
+							boolean hasStyle = false;
+							
+							@Override
+							public void onGET(OgemaHttpRequest req) {
+								float val = valveError.getValue();
+								if(val < 4) {
+									addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+									hasStyle = true;
+								} else if(val > 4) {
+									addStyle(LabelData.BOOTSTRAP_RED, req);
+									hasStyle = true;
+								} else if(hasStyle){
+									removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+									removeStyle(LabelData.BOOTSTRAP_RED, req);
+									addStyle(LabelData.BOOTSTRAP_GREEN, req);
+								}
+								setText(String.format("%.1f", val), req);
+							}
+						};
+						row.addCell(WidgetHelper.getValidWidgetId("VErr"), valveErrL);
+						Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
 						valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 						lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
@@ -139,6 +158,8 @@ System.out.println("Fzufoiude");
 					final IntegerResource controlMode = device.getSubResource("controlMode", IntegerResource.class);
 					final IntegerResource controlModeFeedback = device.getSubResource("controlModeFeedback", IntegerResource.class);
 					Label errLabel = new Label(mainTable, "errLabel"+id, req) {
+						boolean hasStyle = false;
+
 						@Override
 						public void onGET(OgemaHttpRequest req) {
 							String text = "";
@@ -169,14 +190,17 @@ System.out.println("Fzufoiude");
 							}
 							if(error == 1) {
 								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
-								removeStyle(LabelData.BOOTSTRAP_RED, req);
+								hasStyle = true;
 							} else if(error == 2) {
-								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
 								addStyle(LabelData.BOOTSTRAP_RED, req);
+								hasStyle = true;
 							} else {
 								text = "OK";
-								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
-								removeStyle(LabelData.BOOTSTRAP_RED, req);
+								if(hasStyle) {
+									removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+									removeStyle(LabelData.BOOTSTRAP_RED, req);
+									addStyle(LabelData.BOOTSTRAP_GREEN, req);
+								}
 							}
 							setText(text, req);
 						}
