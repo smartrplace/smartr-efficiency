@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
@@ -26,6 +28,7 @@ import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.form.textfield.TextField;
 
+@SuppressWarnings("serial")
 public class ThermostatPage extends MainPage {
 
 	DeviceTableBase devTable;
@@ -58,7 +61,7 @@ public class ThermostatPage extends MainPage {
 				if(req == null)
 					device = ResourceHelper.getSampleResource(Thermostat.class);
 				else
-					device = (Thermostat) object.device();
+					device = (Thermostat) object.device().getLocationResource();
 				//if(!(object.device() instanceof Thermostat)) return;
 				final String name;
 				if(device.getLocation().toLowerCase().contains("homematic")) {
@@ -111,7 +114,7 @@ public class ThermostatPage extends MainPage {
 				if(valveError.exists() || (req == null)) {
 					float val = valveError.getValue();
 					Label valveErrL = vh.floatLabel("VErr", id, val, row, "%.0f");
-					Label lastContactValveErr = addLastContact("Last VErr", vh, "Valve"+id, req, row, valveError);
+					Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
 					if(req != null) {
 						if(val < 4)
 							valveErrL.addStyle(LabelData.BOOTSTRAP_ORANGE, req);
@@ -120,6 +123,96 @@ public class ThermostatPage extends MainPage {
 						valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 						lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
+				}
+				if(req == null) {
+					vh.registerHeaderEntry("Com/Err");
+					vh.registerHeaderEntry("Last Err");
+					vh.registerHeaderEntry("CtrlMode");
+				} else {
+					final IntegerResource errorCode = ResourceHelper.getSubResourceOfSibbling(device,
+							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "errorCode", IntegerResource.class);
+if(device.getLocation().contains("homematicgl_ar300_144cb1_local_ip/devices/HM_HmIP_eTRV_C_2_002CDD89930302"))
+System.out.println("Fzufoiude");
+					final BooleanResource configPending = ResourceHelper.getSubResourceOfSibbling(device,
+							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "configPending", BooleanResource.class);
+					final IntegerResource controlMode = device.getSubResource("controlMode", IntegerResource.class);
+					final IntegerResource controlModeFeedback = device.getSubResource("controlModeFeedback", IntegerResource.class);
+					Label errLabel = new Label(mainTable, "errLabel"+id, req) {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							String text = "";
+							int error = 0;
+							BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(device,
+									"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
+							if(comDisturbed != null && comDisturbed.exists() && comDisturbed.getValue()) {
+								text += "CD";
+								error = 2;
+							}
+							if(configPending != null && configPending.exists()) {
+								if(configPending.getValue()) {
+									text += " CfP";
+									error = 2;
+								}
+							} else {
+								text += " NCfP";
+								if(error == 0) error = 1;
+							}
+							if(errorCode != null && errorCode.exists()) {
+								if(errorCode.getValue() > 0) {
+									text += " EC"+errorCode.getValue();
+									error = 2;
+								}
+							} else {
+								text += " NEC";
+								if(error == 0) error = 1;
+							}
+							if(error == 1) {
+								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+								removeStyle(LabelData.BOOTSTRAP_RED, req);
+							} else if(error == 2) {
+								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+								addStyle(LabelData.BOOTSTRAP_RED, req);
+							} else {
+								text = "OK";
+								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+								removeStyle(LabelData.BOOTSTRAP_RED, req);
+							}
+							setText(text, req);
+						}
+					};
+					row.addCell(WidgetHelper.getValidWidgetId("Com/Err"), errLabel);
+					errLabel.setPollingInterval(DEFAULT_POLL_RATE, req);
+					
+					if(errorCode != null && errorCode.exists()) {
+						Label lastContactErrcode = addLastContact("Last Err", vh, id, req, row, errorCode);
+						lastContactErrcode.setPollingInterval(DEFAULT_POLL_RATE, req);
+					}
+
+					Label ctrlModeLb = new Label(mainTable, "ctrlModeLb"+id, req) {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							String text;
+							if(controlMode != null && controlMode.exists())
+								text = ""+controlMode.getValue()+" / ";
+							else
+								text = "- / ";
+							if(controlModeFeedback != null && controlModeFeedback.exists())
+								text += controlModeFeedback.getValue();
+							else
+								text += "-";
+							boolean isFaulty = (!controlMode.exists()) || (!controlModeFeedback.exists()) ||
+									(controlMode.getValue() != controlModeFeedback.getValue());
+							setText(text, req);
+							if(isFaulty) {
+								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+							} else {
+								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+							}
+						}
+					};
+					row.addCell(WidgetHelper.getValidWidgetId("CtrlMode"), ctrlModeLb);
+					ctrlModeLb.setPollingInterval(DEFAULT_POLL_RATE, req);
+				
 				}
 
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
