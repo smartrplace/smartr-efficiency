@@ -184,9 +184,9 @@ System.out.println("Fzufoiude");
 									text += " EC"+errorCode.getValue();
 									error = 2;
 								}
-							} else {
-								text += " NEC";
-								if(error == 0) error = 1;
+							//} else {
+							//	text += " NEC";
+							//	if(error == 0) error = 1;
 							}
 							if(error == 1) {
 								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
