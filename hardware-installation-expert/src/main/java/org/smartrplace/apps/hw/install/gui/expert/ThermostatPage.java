@@ -108,7 +108,21 @@ public class ThermostatPage extends MainPage {
 				} else
 					vh.registerHeaderEntry("Last Measurment");
 
-				Label valvePos = vh.floatLabel("Valve", id, device.valve().setting().stateFeedback().getValue()*100f, row, "%.1f");
+				if(req == null) {
+					vh.registerHeaderEntry("Valve");
+				} else {
+					Label valvePos = new Label(mainTable, "Valve"+id, req) {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							String text = String.format("%.0f%%",  device.valve().setting().stateFeedback().getValue()*100f);
+							setText(text, req);
+						}
+					};
+					valvePos.setPollingInterval(DEFAULT_POLL_RATE, req);
+					row.addCell("Valve", valvePos);
+					
+					//vh.floatLabel("Valve", id, device.valve().setting().stateFeedback().getValue()*100f, row, "%.1f");
+				}
 				Label lastContactValve = addLastContact("Last Valve", vh, "Valve"+id, req, row, device.valve().setting().stateFeedback());
 				
 				final FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
@@ -271,7 +285,6 @@ System.out.println("Fzufoiude");
 					lastContactFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 					setpointSet.setPollingInterval(DEFAULT_POLL_RATE, req);
 					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
-					valvePos.setPollingInterval(DEFAULT_POLL_RATE, req);
 					lastContactValve.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
 			}
