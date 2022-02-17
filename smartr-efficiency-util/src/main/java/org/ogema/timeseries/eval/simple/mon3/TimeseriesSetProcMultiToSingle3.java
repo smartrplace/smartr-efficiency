@@ -307,7 +307,7 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 			
 			@Override
 			public String getInitVersion() {
-				return "A";
+				return "XXX";
 			}
 			
 			@Override
