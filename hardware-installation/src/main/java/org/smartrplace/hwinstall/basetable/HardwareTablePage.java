@@ -12,6 +12,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProvider.DeviceTableConfig;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
@@ -94,6 +95,11 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		return WidgetHelper.getValidWidgetId(this.getClass().getName());
 	}
 	protected String getHeader() {return "Device Setup and Configuration";}
+	
+	protected boolean isAllOptionAllowedSuper(OgemaHttpRequest req) {
+		int size = HardwareTablePage.this.resData.appConfigData.knownDevices().size();
+		return size < MAX_DEVICE_PER_ALL;		
+	}
 
 	public HardwareTablePage(WidgetPage<?> page, final ApplicationManagerPlus appManPlus,
 			final DeviceHandlerAccess devHandAcc, HardwareTableData resData) {
@@ -158,6 +164,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		}
 		//roomsDrop = new RoomSelectorDropdown(page, "roomsDrop", controller);
 		ResourceList<BuildingPropertyUnit> roomGroups = resData.accessAdminConfigRes.roomGroups();
+		final IntegerResource allAllowedMode = HardwareTablePage.this.resData.appConfigData.allowAllDevicesInTablePagesMode();
 		roomsDrop = new RoomFiltering2Steps<InstallAppDevice>(page, "roomsDrop",
 				OptionSavingMode.GENERAL, 10000, roomGroups, appManPlus, true) {
 
@@ -168,10 +175,9 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 			
 			@Override
 			protected boolean isAllOptionAllowed(OgemaHttpRequest req) {
-				//if(typeFilterDrop.getSelectedItem(req) != typeFilterDrop.getAllOption(req))
-				//	return true;
-				int size = HardwareTablePage.this.resData.appConfigData.knownDevices().size();
-				return size < MAX_DEVICE_PER_ALL;
+				if(allAllowedMode.isActive())
+					return allAllowedMode.getValue()>=2?false:true;
+				return isAllOptionAllowedSuper(req);
 			}
 		};
 		//installFilterDrop = new InstallationStatusFilterDropdown(page, "installFilterDrop", controller);

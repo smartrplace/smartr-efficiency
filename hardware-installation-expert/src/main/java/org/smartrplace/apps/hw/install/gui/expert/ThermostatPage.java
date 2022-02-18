@@ -32,11 +32,22 @@ import de.iwes.widgets.html.form.textfield.TextField;
 @SuppressWarnings("serial")
 public class ThermostatPage extends MainPage {
 
+	private static final int THERMOSTAT_MAX_FOR_ALL = 500;
 	DeviceTableBase devTable;
 	
 	@Override
 	protected String getHeader() {return "Thermostat Page";}
 
+	static Boolean isAllAllowed = null;
+	@Override
+	protected boolean isAllOptionAllowedSuper(OgemaHttpRequest req) {
+		if(isAllAllowed == null) {
+			int thermNum = appMan.getResourceAccess().getResources(Thermostat.class).size();
+			isAllAllowed = (thermNum <= THERMOSTAT_MAX_FOR_ALL);
+		}
+		return isAllAllowed;
+	}
+	
 	public ThermostatPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller, false);
 		finishConstructor();

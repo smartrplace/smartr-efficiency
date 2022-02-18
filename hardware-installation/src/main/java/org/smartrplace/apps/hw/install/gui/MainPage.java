@@ -2,6 +2,7 @@ package org.smartrplace.apps.hw.install.gui;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -216,7 +217,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 			vh.registerHeaderEntry("Plot");
 			return;
 		}
-		final GetPlotButtonResult logResult = getPlotButton(id, object, controller, true, vh, row, req, null);
+		final GetPlotButtonResult logResult = getPlotButton(id, object, controller, false, vh, row, req, null);
 		if(logResult.devHand != null) {
 			row.addCell("Plot", logResult.plotButton);
 		}
@@ -234,7 +235,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 	
 	public static class GetPlotButtonResult {
 		public DeviceHandlerProviderDP<?> devHand;
-		public Collection<Datapoint> datapoints;
+		public Collection<Datapoint> datapoints2;
 		public Label dataPointInfoLabel;
 		public ScheduleViewerOpenButton plotButton;
 	}
@@ -262,8 +263,8 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 				addDataPointInfoLabel, vh, row, req, devHand,
 				ScheduleViewerConfigProvHW.getInstance(), controller.datalogs);
 	}
-	public static GetPlotButtonResult getPlotButton(String id, InstallAppDevice object,
-			DatapointService dpService, final ApplicationManager appMan,//final HardwareInstallController controller2,
+	public static GetPlotButtonResult getPlotButton(String id, final InstallAppDevice object,
+			final DatapointService dpService, final ApplicationManager appMan,//final HardwareInstallController controller2,
 			boolean addDataPointInfoLabel,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, Row row, OgemaHttpRequest req,
 			DeviceHandlerProviderDP<?> devHand,
@@ -273,31 +274,38 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 		
 		resultMain.devHand = devHand;
 		if(resultMain.devHand != null) {
-			resultMain.datapoints = resultMain.devHand.getDatapoints(object, dpService);
-			int logged = 0;
-			int transferred = 0;
-			for(Datapoint dp: resultMain.datapoints) {
-				ReadOnlyTimeSeries ts = dp.getTimeSeries();
-				if(ts == null || (!(ts instanceof RecordedData)))
-					continue;
-				RecordedData rec = (RecordedData)ts;
-				if(LoggingUtils.isLoggingEnabled(rec))
-					logged++;
-				if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
-					Resource res = appMan.getResourceAccess().getResource(rec.getPath());
-					if(res != null && (res instanceof SingleValueResource) && (datalogs != null) &&
-							LogTransferUtil.isResourceTransferred((SingleValueResource) res, datalogs)) {
-						transferred++;
+			if(!addDataPointInfoLabel)
+				resultMain.datapoints2 = null;
+			else  {
+				if(Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.omitdatapoints"))
+					resultMain.datapoints2 = Collections.emptyList();
+				else
+					resultMain.datapoints2 = resultMain.devHand.getDatapoints(object, dpService);
+				int logged = 0;
+				int transferred = 0;
+				for(Datapoint dp: resultMain.datapoints2) {
+					ReadOnlyTimeSeries ts = dp.getTimeSeries();
+					if(ts == null || (!(ts instanceof RecordedData)))
+						continue;
+					RecordedData rec = (RecordedData)ts;
+					if(LoggingUtils.isLoggingEnabled(rec))
+						logged++;
+					if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) {
+						Resource res = appMan.getResourceAccess().getResource(rec.getPath());
+						if(res != null && (res instanceof SingleValueResource) && (datalogs != null) &&
+								LogTransferUtil.isResourceTransferred((SingleValueResource) res, datalogs)) {
+							transferred++;
+						}
 					}
 				}
-			}
-			String text = ""+resultMain.datapoints.size()+"/"+logged+"/"+transferred;
-			final boolean isTemplate = DeviceTableRaw.isTemplate(object, resultMain.devHand);
-			if(isTemplate) {
-				text += "/T";
-			}
-			if(addDataPointInfoLabel)
-				resultMain.dataPointInfoLabel = vh.stringLabel(DATAPOINT_INFO_HEADER, id, text, row);
+				String text = ""+resultMain.datapoints2.size()+"/"+logged+"/"+transferred;
+				final boolean isTemplate = DeviceTableRaw.isTemplate(object, resultMain.devHand);
+				if(isTemplate) {
+					text += "/T";
+				}
+				if(addDataPointInfoLabel)
+					resultMain.dataPointInfoLabel = vh.stringLabel(DATAPOINT_INFO_HEADER, id, text, row);
+				}
 			
 			SchedOpenDataProvider provider = new SchedOpenDataProvider() {
 				
@@ -310,7 +318,9 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 				public List<TimeSeriesData> getData(OgemaHttpRequest req) {
 					List<TimeSeriesData> result = new ArrayList<>();
 					OgemaLocale locale = req!=null?req.getLocale():null;
-					for(Datapoint dp: resultMain.datapoints) {
+					if(resultMain.datapoints2 == null)
+						resultMain.datapoints2 = resultMain.devHand.getDatapoints(object, dpService);
+					for(Datapoint dp: resultMain.datapoints2) {
 						TimeSeriesDataImpl tsd = dp.getTimeSeriesDataImpl(locale);
 						if(tsd == null)
 							continue;

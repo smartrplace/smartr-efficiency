@@ -27,7 +27,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 @SuppressWarnings("serial")
 public class MainPageExpertProps extends MainPage {
 
-	private static final String DATAPOINT_INFO_HEADER = "DP/Log/Transfer/Tmpl";
+	//private static final String DATAPOINT_INFO_HEADER = "DP/Log/Transfer/Tmpl";
 
 	private static final List<String> PROPS = new ArrayList<>();
 	static {

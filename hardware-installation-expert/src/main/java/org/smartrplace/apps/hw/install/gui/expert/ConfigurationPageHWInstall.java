@@ -41,6 +41,8 @@ import org.smartrplace.apps.hw.install.expert.plottest.ScheduleViewerTest;
 import org.smartrplace.apps.hw.install.gui.ScheduleViewerConfigProvHW;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
+import org.smartrplace.hwinstall.basetable.IntegerMultiButton;
+import org.smartrplace.hwinstall.basetable.IntegerResourceMultiButton;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 import org.smartrplace.util.virtualdevice.HmCentralManager;
@@ -342,7 +344,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<StringResource> co2singleUserEdit = new ValueResourceTextField<StringResource>(page, "co2singleUserEdit",
 				app.appConfigData.singleCO2AlarmingUser());
 		
-		StaticTable configTable = new StaticTable(27, 2);
+		StaticTable configTable = new StaticTable(28, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "System default language").
 		setContent(i, 1, languageDrop);
@@ -545,9 +547,29 @@ public class ConfigurationPageHWInstall {
 				controller.cleanupOnStart();
 			}
 		};
+		
+		IntegerMultiButton allowAllInTablePages = new IntegerResourceMultiButton(page, "allowAllInTablePages",
+				controller.appConfigData.allowAllDevicesInTablePagesMode()) {
+			
+			@Override
+			protected String getText(int state, OgemaHttpRequest req) {
+				switch(state) {
+				case 0:
+					return "Page default";
+				case 1:
+					return "Allow ALL";
+				case 2:
+					return "Deny ALL";
+				default:
+					throw new IllegalStateException("Unknown allowAllDeviceInTablePagesMode state:"+state);
+				}
+			}
+		};
 		configTable.setContent(i, 0, "Test Button (result on console only):").setContent(i, 1, testDevHand);
 		i++;
 		configTable.setContent(i, 0, "Cleanup device data:").setContent(i, 1, cleanUpIADsBut);
+		i++;
+		configTable.setContent(i, 0, "Allow All Devices in Table Pages:").setContent(i, 1, allowAllInTablePages);
 		i++;
 		configTable.setContent(i, 0, "Enable manual editing of deviceIds:").setContent(i, 1, manualDeviceIdBut).setContent(i, 1, autoResetDeviceIds);
 		i++;
