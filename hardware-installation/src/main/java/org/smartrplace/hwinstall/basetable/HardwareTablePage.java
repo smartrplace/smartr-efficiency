@@ -45,7 +45,7 @@ import de.iwes.widgets.html.form.label.Label;
 /** Note that only the method getDevicesSelected is really implemented here*/
 public class HardwareTablePage implements InstalledAppsSelector { //extends DeviceTablePageFragment
 
-	public static final int MAX_DEVICE_PER_ALL = 400;
+	public static final int MAX_DEVICE_PER_ALL = Integer.getInteger("org.smartrplace.hwinstall.basetable.maxdeviceforall", 400);
 
 	//Overwrite to reduce columns
 	protected boolean showOnlyBaseColsHWT() {return false;}
