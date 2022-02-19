@@ -43,6 +43,7 @@ import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
 import org.smartrplace.apps.hw.install.gui.expert.WindowStatusPage;
+import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
 import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
 
@@ -146,10 +147,15 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			page2.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> thermPage = widgetApp.createWidgetPage("thermostatDetails.hmtl");
-			new ThermostatPage(thermPage, controller);
+			new ThermostatPage(thermPage, controller, ThermostatPageType.STANDARD);
 			menu.addEntry("Thermostat Debugging", thermPage);
 			thermPage.getMenuConfiguration().setCustomNavigation(menu);
 			
+			WidgetPage<?> thermPageAuto = widgetApp.createWidgetPage("thermostatAuto.hmtl");
+			new ThermostatPage(thermPageAuto, controller, ThermostatPageType.AUTO_MODE);
+			menu.addEntry("Thermostat Auto-Mode Management", thermPageAuto);
+			thermPageAuto.getMenuConfiguration().setCustomNavigation(menu);
+
 			WidgetPage<?> batteryPage = widgetApp.createWidgetPage("batteryStates.hmtl");
 			new BatteryPage(batteryPage, controller);
 			menu.addEntry("Battery Overview", batteryPage);

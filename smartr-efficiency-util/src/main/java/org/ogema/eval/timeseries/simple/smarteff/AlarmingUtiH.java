@@ -439,4 +439,19 @@ public class AlarmingUtiH {
 			EditPageGeneric.setDefault(data.sendAlarm(), false, mode);
 		return data;
 	}
+	
+	public static String getAutoThermostatModeShort(int value) {
+		switch(value) {
+		case 0:
+			return "CfP-dependent";
+		case 1:
+			return "ON";
+		case 2:
+			return "OFF";
+		case 3:
+			return "OFF Forced";
+		default:
+			return "UNKNOWN STATE:"+value;
+		}
+	}
 }

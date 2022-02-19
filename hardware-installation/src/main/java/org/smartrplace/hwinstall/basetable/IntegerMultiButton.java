@@ -3,6 +3,7 @@ package org.smartrplace.hwinstall.basetable;
 import java.util.Arrays;
 import java.util.List;
 
+import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -21,6 +22,12 @@ public abstract class IntegerMultiButton extends Button {
 	protected abstract String getText(int state, OgemaHttpRequest req);
 	protected abstract int getState(OgemaHttpRequest req);
 	protected abstract void setState(int state, OgemaHttpRequest req);
+	
+	public IntegerMultiButton(OgemaWidget parent, String id, OgemaHttpRequest req, WidgetStyle<Button>[] optionColors) {
+		super(parent, id, req);
+		this.optionColors = Arrays.asList(optionColors);
+		triggerOnPOST(this);
+	}
 	
 	@SuppressWarnings("unchecked")
 	public IntegerMultiButton(WidgetPage<?> page, String id) {

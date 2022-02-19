@@ -3,8 +3,11 @@ package org.smartrplace.hwinstall.basetable;
 import org.ogema.core.model.simple.IntegerResource;
 
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.form.button.Button;
 
 public abstract class IntegerResourceMultiButton extends IntegerMultiButton {
 	private static final long serialVersionUID = -4536262212000581377L;
@@ -32,4 +35,9 @@ public abstract class IntegerResourceMultiButton extends IntegerMultiButton {
 		this.res = res;
 	}
 
+	public IntegerResourceMultiButton(OgemaWidget parent, String id, OgemaHttpRequest req,
+			IntegerResource res, WidgetStyle<Button>[] optionColors) {
+		super(parent, id, req, optionColors);
+		this.res = res;
+	}
 }

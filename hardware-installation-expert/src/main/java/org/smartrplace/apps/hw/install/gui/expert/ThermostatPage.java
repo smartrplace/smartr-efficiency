@@ -9,22 +9,30 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.hwinstall.basetable.IntegerResourceMultiButton;
+import org.smartrplace.util.directobjectgui.LabelFormatter;
+import org.smartrplace.util.directobjectgui.LabelFormatterFloatRes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.form.textfield.TextField;
@@ -35,8 +43,14 @@ public class ThermostatPage extends MainPage {
 	private static final int THERMOSTAT_MAX_FOR_ALL = 500;
 	DeviceTableBase devTable;
 	
+	public enum ThermostatPageType {
+		STANDARD,
+		AUTO_MODE
+	}
+	protected final ThermostatPageType type;
+	
 	@Override
-	protected String getHeader() {return "Thermostat Page";}
+	protected String getHeader() {return type==ThermostatPageType.STANDARD?"Thermostat Page":"Thermostat Auto-Mode Management";}
 
 	static Boolean isAllAllowed = null;
 	@Override
@@ -48,8 +62,10 @@ public class ThermostatPage extends MainPage {
 		return isAllAllowed;
 	}
 	
-	public ThermostatPage(WidgetPage<?> page, HardwareInstallController controller) {
+	public ThermostatPage(WidgetPage<?> page, HardwareInstallController controller,
+			ThermostatPageType type) {
 		super(page, controller, false);
+		this.type = type;
 		finishConstructor();
 	}
 
@@ -82,35 +98,80 @@ public class ThermostatPage extends MainPage {
 					name = ResourceUtils.getHumanReadableShortName(device);
 				vh.stringLabel("Name", id, name, row);
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
-				Label setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
-				Label lastContactFB = addLastContact("Last FB", vh, "FB"+id, req, row,device.temperatureSensor().deviceFeedback().setpoint());
-				TextField setpointSet = null;
-				if(req != null) {
-					setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
-						private static final long serialVersionUID = 1L;
+				final Label setpointFB;
+				if(type == ThermostatPageType.STANDARD)
+					setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
+				else {
+					setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f",
+							new LabelFormatterFloatRes() {
+								@Override
+								public int getState(float value, OgemaHttpRequest req) {
+									float valFb = device.temperatureSensor().deviceFeedback().setpoint().getValue();
+									float valSetp = device.temperatureSensor().settings().setpoint().getValue();
+									float diff = valFb - valSetp;
+									if(diff < -0.3f)
+										return 2;
+									else if(diff > 0.3f)
+										return 0;
+									else
+										return 1;
+								}
+					});
+					/*setpointFB = new Label(mainTable, "Setpoint"+id, req) {
+						boolean hasStyle = false;
+						
 						@Override
 						public void onGET(OgemaHttpRequest req) {
-							setValue(String.format("%.1f", device.temperatureSensor().settings().setpoint().getCelsius()), req);
-						}
-						@Override
-						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							String val = getValue(req);
-							val = val.replaceAll("[^\\d.]", "");
-							try {
-								float value  = Float.parseFloat(val);
-								if(value < 4.5f || value> 30.5f) {
-									alert.showAlert("Allowed range: 4.5 to 30°C", false, req);
-								} else
-									device.temperatureSensor().settings().setpoint().setCelsius(value);
-							} catch (NumberFormatException | NullPointerException e) {
-								if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
-								return;
+							setText(String.format("%.1f", device.temperatureSensor().deviceFeedback().setpoint().getCelsius()), req);
+							float valFb = device.temperatureSensor().deviceFeedback().setpoint().getValue();
+							float valSetp = device.temperatureSensor().settings().setpoint().getValue();
+							float diff = valFb - valSetp;
+							if(diff < -0.3f) {
+								addStyle(LabelData.BOOTSTRAP_RED, req);
+								hasStyle = true;
+							} else if(diff > 0.3f) {
+								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+								hasStyle = true;
+							} else if(hasStyle){
+								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+								removeStyle(LabelData.BOOTSTRAP_RED, req);
+								addStyle(LabelData.BOOTSTRAP_GREEN, req);
 							}
 						}
 					};
-					row.addCell("SetpointSet", setpointSet);
-				} else
-					vh.registerHeaderEntry("SetpointSet");
+					row.addCell("Setpoint", setpointFB);*/
+				}
+				Label lastContactFB = addLastContact("Last FB", vh, "FB"+id, req, row,device.temperatureSensor().deviceFeedback().setpoint());
+				if(type == ThermostatPageType.STANDARD) {
+					TextField setpointSet = null;
+					if(req != null) {
+						setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
+							private static final long serialVersionUID = 1L;
+							@Override
+							public void onGET(OgemaHttpRequest req) {
+								setValue(String.format("%.1f", device.temperatureSensor().settings().setpoint().getCelsius()), req);
+							}
+							@Override
+							public void onPOSTComplete(String data, OgemaHttpRequest req) {
+								String val = getValue(req);
+								val = val.replaceAll("[^\\d.]", "");
+								try {
+									float value  = Float.parseFloat(val);
+									if(value < 4.5f || value> 30.5f) {
+										alert.showAlert("Allowed range: 4.5 to 30°C", false, req);
+									} else
+										device.temperatureSensor().settings().setpoint().setCelsius(value);
+								} catch (NumberFormatException | NullPointerException e) {
+									if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
+									return;
+								}
+							}
+						};
+						row.addCell("SetpointSet", setpointSet);
+					} else
+						vh.registerHeaderEntry("SetpointSet");
+					setpointSet.setPollingInterval(DEFAULT_POLL_RATE, req);
+				}
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Label lastContact = null;
 				if(req != null) {
@@ -119,23 +180,25 @@ public class ThermostatPage extends MainPage {
 				} else
 					vh.registerHeaderEntry("Last Measurment");
 
-				if(req == null) {
-					vh.registerHeaderEntry("Valve");
-				} else {
-					Label valvePos = new Label(mainTable, "Valve"+id, req) {
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							String text = String.format("%.0f%%",  device.valve().setting().stateFeedback().getValue()*100f);
-							setText(text, req);
-						}
-					};
-					valvePos.setPollingInterval(DEFAULT_POLL_RATE, req);
-					row.addCell("Valve", valvePos);
-					
-					//vh.floatLabel("Valve", id, device.valve().setting().stateFeedback().getValue()*100f, row, "%.1f");
+				if(type == ThermostatPageType.STANDARD) {
+					if(req == null) {
+						vh.registerHeaderEntry("Valve");
+					} else {
+						Label valvePos = new Label(mainTable, "Valve"+id, req) {
+							@Override
+							public void onGET(OgemaHttpRequest req) {
+								String text = String.format("%.0f%%",  device.valve().setting().stateFeedback().getValue()*100f);
+								setText(text, req);
+							}
+						};
+						valvePos.setPollingInterval(DEFAULT_POLL_RATE, req);
+						row.addCell("Valve", valvePos);
+						
+						//vh.floatLabel("Valve", id, device.valve().setting().stateFeedback().getValue()*100f, row, "%.1f");
+					}
+					Label lastContactValve = addLastContact("Last Valve", vh, "Valve"+id, req, row, device.valve().setting().stateFeedback());
+					lastContactValve.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
-				Label lastContactValve = addLastContact("Last Valve", vh, "Valve"+id, req, row, device.valve().setting().stateFeedback());
-				
 				final FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
 				if(valveError.exists() || (req == null)) {
 					if(req == null) {
@@ -143,7 +206,22 @@ public class ThermostatPage extends MainPage {
 						vh.registerHeaderEntry("Last VErr");
 					} else {
 						//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
-						Label valveErrL = new Label(mainTable, "Verr"+id, req) {
+						Label valveErrL = vh.stringLabel("VErr", id, new LabelFormatter() {
+							
+							@Override
+							public OnGETData getData(OgemaHttpRequest req) {
+								float val = valveError.getValue();
+								int state;
+								if(val < 4)
+									state = 0;
+								else if(val > 4)
+									state = 2;
+								else
+									state = 1;
+								return new OnGETData(String.format("%.1f", val), state);
+							}
+						}, row);
+						/*Label valveErrL = new Label(mainTable, "Verr"+id, req) {
 							boolean hasStyle = false;
 							
 							@Override
@@ -163,7 +241,7 @@ public class ThermostatPage extends MainPage {
 								setText(String.format("%.1f", val), req);
 							}
 						};
-						row.addCell(WidgetHelper.getValidWidgetId("VErr"), valveErrL);
+						row.addCell(WidgetHelper.getValidWidgetId("VErr"), valveErrL);*/
 						Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
 						valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 						lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
@@ -275,6 +353,34 @@ System.out.println("Fzufoiude");
 				}
 				vh.stringLabel("Room-Loc", id, roomSubLoc, row);
 				
+				if(req != null && (type == ThermostatPageType.AUTO_MODE)) {
+					IntegerResource autoThermostatModeSingle = object.getSubResource("autoThermostatModeSingle", IntegerResource.class);
+					@SuppressWarnings("unchecked")
+					IntegerResourceMultiButton autoModeButton = new IntegerResourceMultiButton(mainTable,
+							"autoModeButton"+id, req, autoThermostatModeSingle,
+							new WidgetStyle[] {ButtonData.BOOTSTRAP_LIGHTGREY, ButtonData.BOOTSTRAP_GREEN,
+									ButtonData.BOOTSTRAP_RED, ButtonData.BOOTSTRAP_DARKGREY}) {
+						
+						@Override
+						protected String getText(int state, OgemaHttpRequest req) {
+							int overallState = 	controller.hwTableData.appConfigData.autoThermostatMode().getValue();
+							if(overallState == 3)
+								return "(OFF)";
+							switch(state) {
+							case 0:
+								return "("+AlarmingUtiH.getAutoThermostatModeShort(overallState)+")";
+							case 1:
+								return "ON";
+							case 2:
+								return "OFF";
+							case 3:
+								return AlarmingUtiH.getAutoThermostatModeShort(0);
+							}
+							return null;
+						}
+					};
+					row.addCell(WidgetHelper.getValidWidgetId("Auto Mode"), autoModeButton);
+				}
 				if(req != null) {
 					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
 					final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
@@ -284,6 +390,8 @@ System.out.println("Fzufoiude");
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);
 				} else {
+					if(type == ThermostatPageType.AUTO_MODE)
+						vh.registerHeaderEntry("Auto Mode");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("RT");
 				}
@@ -294,9 +402,7 @@ System.out.println("Fzufoiude");
 					tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
 					setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 					lastContactFB.setPollingInterval(DEFAULT_POLL_RATE, req);
-					setpointSet.setPollingInterval(DEFAULT_POLL_RATE, req);
 					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
-					lastContactValve.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
 			}
 			
