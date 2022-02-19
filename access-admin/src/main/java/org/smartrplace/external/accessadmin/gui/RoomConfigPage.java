@@ -1,5 +1,6 @@
 package org.smartrplace.external.accessadmin.gui;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,20 +86,29 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 				vh.registerHeaderEntry("Room Type");
 				vh.registerHeaderEntry("ID");
 			} else {
-				List<SubCustomerData> subcs = SubcustomerUtil.getSubcustomers(appMan);
-				SubCustomerData subcustomerRef = SubcustomerUtil.getDataForRoom(object, appMan);
+				List<SubCustomerData> subcsAll = SubcustomerUtil.getSubcustomers(appMan);
+				List<SubCustomerData> subcs = new ArrayList<>();
+				for(SubCustomerData sub: subcsAll) {
+					if(sub.aggregationType().getValue() <= 0) {
+						subcs.add(sub);
+					}
+				}
+				SubCustomerData subcustomerRef = SubcustomerUtil.getDataForRoom(object, appMan, false);
+				final SubCustomerData subcustomerRefFin = subcustomerRef;
 
 				TemplateDropdown<SubCustomerData> subCustDrop = new TemplateDropdown<SubCustomerData>(mainTable, "subCustDrop"+id, req) {
 					@Override
 					public void onGET(OgemaHttpRequest req) {
 						update(subcs, req);
-						selectItem(subcustomerRef, req);
+						selectItem(subcustomerRefFin, req);
 					}
 					
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						SubCustomerData selected = getSelectedItem(req);
 						for(SubCustomerData subc: subcs) {
+							if(subc.aggregationType().getValue() > 0)
+								continue;
 							ResourceListHelper.removeReferenceOrObject(subc.roomGroup().rooms(), object);
 						}
 						SubcustomerUtil.addRoomToGroup(object, selected.roomGroup());
@@ -106,9 +116,12 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 					
 				};
 				subCustDrop.setTemplate(new DefaultDisplayTemplate<SubCustomerData>());
+				subCustDrop.setAddEmptyOption(true, "not set", req);
 				row.addCell("Subcustomer", subCustDrop);
 				
-				if(subcustomerRef.exists()) {
+				if(subcustomerRef == null)
+					subcustomerRef = SubcustomerUtil.getDataForRoom(object, appMan, true);
+				if(subcustomerRef != null && subcustomerRef.exists()) {
 					Map<String, String> valuesToSet = new LinkedHashMap<>();
 					int sid = subcustomerRef.subCustomerType().getValue();
 					SubCustomerType data = SubcustomerUtil.subCustomerTypes.get(sid);
