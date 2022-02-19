@@ -21,6 +21,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
+import org.ogema.util.extended.eval.widget.BooleanResourceButton;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeFilterDropdown;
 import org.smartrplace.gui.filtering.DualFiltering;

@@ -2,8 +2,8 @@ package org.smartrplace.apps.hw.install.gui;
 
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.util.extended.eval.widget.BooleanResourceButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
-import org.smartrplace.hwinstall.basetable.BooleanResourceButton;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;

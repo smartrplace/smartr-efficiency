@@ -9,7 +9,7 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
-import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -17,11 +17,10 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
-import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
-import org.smartrplace.hwinstall.basetable.IntegerResourceMultiButton;
 import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.LabelFormatterFloatRes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -168,9 +167,9 @@ public class ThermostatPage extends MainPage {
 							}
 						};
 						row.addCell("SetpointSet", setpointSet);
+						setpointSet.setPollingInterval(DEFAULT_POLL_RATE, req);
 					} else
 						vh.registerHeaderEntry("SetpointSet");
-					setpointSet.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Label lastContact = null;
@@ -183,6 +182,7 @@ public class ThermostatPage extends MainPage {
 				if(type == ThermostatPageType.STANDARD) {
 					if(req == null) {
 						vh.registerHeaderEntry("Valve");
+						vh.registerHeaderEntry("Last Valve");
 					} else {
 						Label valvePos = new Label(mainTable, "Valve"+id, req) {
 							@Override
@@ -195,9 +195,9 @@ public class ThermostatPage extends MainPage {
 						row.addCell("Valve", valvePos);
 						
 						//vh.floatLabel("Valve", id, device.valve().setting().stateFeedback().getValue()*100f, row, "%.1f");
+						Label lastContactValve = addLastContact("Last Valve", vh, "Valve"+id, req, row, device.valve().setting().stateFeedback());
+						lastContactValve.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
-					Label lastContactValve = addLastContact("Last Valve", vh, "Valve"+id, req, row, device.valve().setting().stateFeedback());
-					lastContactValve.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
 				final FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
 				if(valveError.exists() || (req == null)) {
@@ -354,32 +354,33 @@ System.out.println("Fzufoiude");
 				vh.stringLabel("Room-Loc", id, roomSubLoc, row);
 				
 				if(req != null && (type == ThermostatPageType.AUTO_MODE)) {
-					IntegerResource autoThermostatModeSingle = object.getSubResource("autoThermostatModeSingle", IntegerResource.class);
+					IntegerResource autoThermostatModeSingle = DeviceHandlerBase.getAutoThermostatModeSingle(device);
 					@SuppressWarnings("unchecked")
 					IntegerResourceMultiButton autoModeButton = new IntegerResourceMultiButton(mainTable,
 							"autoModeButton"+id, req, autoThermostatModeSingle,
 							new WidgetStyle[] {ButtonData.BOOTSTRAP_LIGHTGREY, ButtonData.BOOTSTRAP_GREEN,
-									ButtonData.BOOTSTRAP_RED, ButtonData.BOOTSTRAP_DARKGREY}) {
+									ButtonData.BOOTSTRAP_RED, ButtonData.BOOTSTRAP_LIGHT_BLUE}) {
 						
 						@Override
 						protected String getText(int state, OgemaHttpRequest req) {
 							int overallState = 	controller.hwTableData.appConfigData.autoThermostatMode().getValue();
 							if(overallState == 3)
-								return "(OFF)";
+								return "(Off Forced)";
 							switch(state) {
 							case 0:
 								return "("+AlarmingUtiH.getAutoThermostatModeShort(overallState)+")";
 							case 1:
-								return "ON";
+								return "Allow";
 							case 2:
-								return "OFF";
+								return "Off";
 							case 3:
 								return AlarmingUtiH.getAutoThermostatModeShort(0);
+							default:
+								return "UNKNOWN ST:"+state;
 							}
-							return null;
 						}
 					};
-					row.addCell(WidgetHelper.getValidWidgetId("Auto Mode"), autoModeButton);
+					row.addCell(WidgetHelper.getValidWidgetId("Allow Auto"), autoModeButton);
 				}
 				if(req != null) {
 					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
@@ -391,7 +392,7 @@ System.out.println("Fzufoiude");
 					vh.stringLabel("RT", id, text, row);
 				} else {
 					if(type == ThermostatPageType.AUTO_MODE)
-						vh.registerHeaderEntry("Auto Mode");
+						vh.registerHeaderEntry("Allow Auto");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("RT");
 				}

@@ -445,9 +445,9 @@ public class AlarmingUtiH {
 		case 0:
 			return "CfP-dependent";
 		case 1:
-			return "ON";
+			return "Allow";
 		case 2:
-			return "OFF";
+			return "Off";
 		case 3:
 			return "OFF Forced";
 		default:
