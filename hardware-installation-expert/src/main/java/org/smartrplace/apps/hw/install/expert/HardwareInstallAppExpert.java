@@ -34,6 +34,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
+import org.smartrplace.apps.hw.install.gui.PreKnownDeviceTable;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
@@ -220,6 +221,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Evaluation Jobs Details", timedJobPageEval);
 			timedJobPageEval.getMenuConfiguration().setCustomNavigation(menu);
 
+			WidgetPage<?> pagePre = widgetApp.createWidgetPage("devicePreData.html");
+			new PreKnownDeviceTable(pagePre, controller);
+			menu.addEntry("Preknown Devices", pagePre);
+			pagePre.getMenuConfiguration().setCustomNavigation(menu);
+ 
 			WidgetPage<?> page3 = widgetApp.createWidgetPage("deviceTypeConfig.html");
 			new DeviceTypeConfigPage(page3, controller);
 			menu.addEntry("Device Configuration based on Device Type Database", page3);
