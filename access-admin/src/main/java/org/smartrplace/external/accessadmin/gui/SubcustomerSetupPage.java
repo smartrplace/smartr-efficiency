@@ -12,19 +12,25 @@ import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomer;
 import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomerType;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.util.extended.eval.widget.IntegerMultiButton;
+import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.external.accessadmin.AccessAdminController;
+import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 
 @SuppressWarnings("serial")
 public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, SubCustomerData> {
@@ -61,32 +67,27 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				SubcustomerUtil.addSubcustomer(10, "New Subcustomer", Collections.emptyList(), appMan);
-				/*SubCustomerData grp = ResourceListHelper.createNewNamedElement(
-						controller.appConfigData.subCustomers(),
-						"New Subcustomer", false);
-				grp.activate(true);*/
 			}
 		};
 		addGroup.registerDependentWidget(mainTable);
 
-		topTable.setContent(1, 1, addGroup); //.setContent(1, 2, userAdminLink);
-		page.append(topTable);
-
-		/*Alert info = new Alert(page, "description","Explanation") {
-
+		@SuppressWarnings("unchecked")
+		IntegerResourceMultiButton modeSelect = new IntegerResourceMultiButton(page, "modeSelect",
+				controller.appConfigData.subcustomerUserMode(),
+				new WidgetStyle[] {ButtonData.BOOTSTRAP_RED, ButtonData.BOOTSTRAP_GREEN}) {
+			
 			@Override
-	    	public void onGET(OgemaHttpRequest req) {
-	    		String text = "Change the label of room attributes here. The mapping of individual rooms to the attributes can be set on the page "
-	    				+ "<a href=\"" + ROOM_GROUP_MAPPING_LINK + "\"><b>Room Configuration</b></a>.";
-				setHtml(text, req);
-	    		allowDismiss(true, req);
-	    		autoDismiss(-1, req);
-	    	}
-	    	
-	    };
-	    info.addDefaultStyle(AlertData.BOOTSTRAP_INFO);
-	    info.setDefaultVisibility(true);
-	    page.append(info);*/
+			protected String getText(int state, OgemaHttpRequest req) {
+				if(state == 0)
+					return "All users see All";
+				if(state == 1);
+					return "Standard user-tenant access";
+			}
+		};
+		
+		topTable.setContent(1, 1, addGroup); //.setContent(1, 2, userAdminLink);
+		topTable.setContent(1,  3, modeSelect);
+		page.append(topTable);
 	}
 	
 	@Override
@@ -115,6 +116,10 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 		if(req == null) {
 			vh.registerHeaderEntry(getTypeName(null));
 			vh.registerHeaderEntry("Type");
+			vh.registerHeaderEntry("Eco mode");
+			vh.registerHeaderEntry("Room#");
+			vh.registerHeaderEntry("User#");
+			vh.registerHeaderEntry("Agg");
 			vh.registerHeaderEntry("Delete");
 			return;
 		}
@@ -124,7 +129,21 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 			valuesToSet.put(""+type.getKey(), type.getValue().labelReq(req));
 		}
 		vh.dropdown("Type", id, object.res.subCustomerType(), row, valuesToSet);
-		GUIHelperExtension.addDeleteButton(null, object.res, mainTable, id, alert, row,
+		if(object.res.aggregationType().getValue() <= 0)
+			vh.booleanEdit("Eco mode", id, object.res.ecoModeActive(), row);
+		else {
+			BooleanResource ecoAll = appMan.getResourceAccess().getResource("smartrplaceHeatcontrolConfig/ecoModeActive");
+			if(ecoAll != null)
+				vh.booleanLabel("Eco mode", id, ecoAll, row, 0);
+		}
+		int roomNum = object.res.roomGroup().rooms().size();
+		vh.stringLabel("Room#", id, ""+roomNum, row);
+		List<AccessConfigUser> users = SubcustomerUtil.getAllUsersForSubcustomer(object.res, appMan);
+		int userNum = users.size();
+		vh.stringLabel("User#", id, ""+userNum, row);
+		vh.intLabel("Agg", id, object.res.aggregationType(), row, 0);
+		
+		GUIHelperExtension.addDeleteButton(null, object.res, mainTable, id, alert, "Delete", row,
 				vh, req);
 	}
 	
