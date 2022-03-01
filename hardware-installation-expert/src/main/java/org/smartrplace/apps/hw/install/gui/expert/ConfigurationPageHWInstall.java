@@ -73,6 +73,7 @@ import de.iwes.widgets.template.DefaultDisplayTemplate;
 
 @SuppressWarnings("serial")
 public class ConfigurationPageHWInstall {
+	public static final Float DEFAULT_TEACHIN_DURATION = 30f;
 	//private final WidgetPage<?> page;
 	private final HardwareInstallController controller;
 
@@ -344,7 +345,7 @@ public class ConfigurationPageHWInstall {
 		ValueResourceTextField<StringResource> co2singleUserEdit = new ValueResourceTextField<StringResource>(page, "co2singleUserEdit",
 				app.appConfigData.singleCO2AlarmingUser());
 		
-		StaticTable configTable = new StaticTable(28, 2);
+		StaticTable configTable = new StaticTable(29, 2);
 		int i = 0;
 		configTable.setContent(i, 0, "System default language").
 		setContent(i, 1, languageDrop);
@@ -565,9 +566,15 @@ public class ConfigurationPageHWInstall {
 				}
 			}
 		};
+		
+		ValueResourceTextField<FloatResource> techInModeDuration = new ValueResourceTextField<>(page, "techInDuration",
+				controller.appConfigData.techInModeDuration(), DEFAULT_TEACHIN_DURATION);
+		
 		configTable.setContent(i, 0, "Test Button (result on console only):").setContent(i, 1, testDevHand);
 		i++;
 		configTable.setContent(i, 0, "Cleanup device data:").setContent(i, 1, cleanUpIADsBut);
+		i++;
+		configTable.setContent(i, 0, "TeachInMode Duration (minutes):").setContent(i, 1, techInModeDuration);
 		i++;
 		configTable.setContent(i, 0, "Allow All Devices in Table Pages:").setContent(i, 1, allowAllInTablePages);
 		i++;
