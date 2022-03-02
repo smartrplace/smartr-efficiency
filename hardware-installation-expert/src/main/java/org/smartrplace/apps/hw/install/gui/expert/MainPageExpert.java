@@ -13,7 +13,9 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.SetpointData;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
@@ -28,6 +30,8 @@ import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -52,12 +56,13 @@ public class MainPageExpert extends MainPage {
 	private static final String DELETE = "Delete";
 	private static final String RESET = "Reset";
 	private static final String TRASH = "Mark as Trash";
+	private static final String TRASH2DELETE = "Set Trash for Delete";
 	private static final String TRASH_RESET = "Back from Trash";
 	private static final String MAKE_TEMPLATE = "Make Template";
 	private static final String APPLY_TEMPLATE = "Apply Template To Devices";
 	private static final String APPLY_DEFAULT_ALARM = "Apply Default Alarm Settings";
-	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
-	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH, APPLY_TEMPLATE, APPLY_DEFAULT_ALARM});
+	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, TRASH2DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
+	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, TRASH2DELETE, RESET, TRASH, APPLY_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TRASH = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH_RESET, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final String GAPS_LABEL = "Qual4d_perTs_Qual28d";
 	private static final String SETPREACT_LABEL = "SetpReact_perTs";
@@ -98,7 +103,7 @@ public class MainPageExpert extends MainPage {
 						link);
 				topTable.setContent(0, 4, wikiPage);
 			}
-		} else {
+		} else if(!isTrashPage) {
 			Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
 					for(InstallAppDevice iad: controller.appConfigData.knownDevices().getAllElements()) {
@@ -193,7 +198,7 @@ public class MainPageExpert extends MainPage {
 	@Override
 	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, final InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
-			ApplicationManager appMan) {
+			final ApplicationManager appMan) {
 		if(tableProvider != null)
 			tableProvider.addMoreWidgetsExpert(object, vh, id, req, row, appMan);
 		
@@ -294,7 +299,10 @@ public class MainPageExpert extends MainPage {
 						setConfirmMsg("Really log no datapoints for "+object.device().getLocation()+" ?", req);
 						break;
 					case DELETE:
-						setConfirmMsg("Really delete "+object.device().getLocation()+" ?", req);
+						setConfirmMsg("Really delete "+object.device().getLocation()+" and remove from CCU if applicable ?", req);
+						break;
+					case TRASH2DELETE:
+						setConfirmMsg("Really set to trash and delete "+object.device().getLocation()+" when trash is cleared ?", req);
 						break;
 					case RESET:
 						setConfirmMsg("Really delete installation&setup configuration for "+object.device().getLocation()+
@@ -330,12 +338,15 @@ public class MainPageExpert extends MainPage {
 						controller.activateLogging(logResult.devHand, object, false, true);
 						break;
 					case DELETE:
-						object.device().getLocationResource().delete();
-						object.delete();
+						deleteDevice(object);
 						break;
 					case RESET:
 						object.delete();
 						break;
+					case TRASH2DELETE:
+						long dayEnd = AbsoluteTimeHelper.getNextStepTime(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
+						ValueResourceHelper.setCreate(controller.appConfigData.nextTimeToDeleteMarkedDevices(), dayEnd);
+						ValueResourceHelper.setCreate(object.trashStatus(), 1);
 					case TRASH_RESET:
 					case TRASH:
 						performTrashOperation(object, logResult.devHand);
@@ -370,6 +381,19 @@ public class MainPageExpert extends MainPage {
 			
 		}
 		
+	}
+	
+	protected static void deleteDevice(InstallAppDevice object) {
+		Resource device = object.device().getLocationResource();
+		if(DeviceTableBase.isHomematic(device.getLocation())) {
+			Resource parent = device.getParent();
+			if(parent != null && (parent instanceof HmDevice))
+				parent.delete();
+			else
+				device.delete();
+		} else
+			device.delete();
+		object.delete();	
 	}
 	
 	protected String getTrashConfirmation(InstallAppDevice object) {

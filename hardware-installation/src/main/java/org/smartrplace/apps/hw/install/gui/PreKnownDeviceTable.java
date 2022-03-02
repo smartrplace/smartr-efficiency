@@ -9,6 +9,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.PreKnownDeviceData;
+import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
@@ -18,6 +19,7 @@ import de.iwes.util.resource.OGEMAResourceCopyHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
@@ -52,7 +54,31 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 			vh.registerHeaderEntry("Add/delete");
 			return;
 		}
-		vh.stringEdit(SERIAL_NUMBER_HEAD, id, object.deviceEndCode(), row, alert);
+		//vh.stringEdit(SERIAL_NUMBER_HEAD, id, object.deviceEndCode(), row, alert);
+		
+		TextField serialEdit = new TextField(mainTable, "serialEdit"+id, req) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				setValue(object.deviceEndCode().getValue(), req);
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				String val = getValue(req).toUpperCase();
+				if(!object.deviceEndCode().exists()) {
+					object.deviceEndCode().create();
+					object.deviceEndCode().setValue(val);
+					object.deviceEndCode().activate(true);
+				} else {
+					object.deviceEndCode().setValue(val);
+				}
+				if(alert != null) alert.showAlert("New value: " + val, true, req);
+				
+			}
+		};
+		serialEdit.registerDependentWidget(serialEdit);
+		row.addCell(WidgetHelper.getValidWidgetId(SERIAL_NUMBER_HEAD), serialEdit);
+
 		
 		TextField deviceIdEdit = new TextField(mainTable, "deviceIdEdit"+id, req) {
 			@Override
@@ -102,9 +128,10 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 						alert.showAlert("DeviceId cannot be empty!", false, req);
 						return;												
 					}
-					if(deviceId.length() < 4) {
+					Integer devNum = null;
+					if(deviceId.length() <= 4) {
 						try {
-							int devNum = Integer.parseInt(deviceId);
+							devNum = Integer.parseInt(deviceId);
 							if(devNum >= 0) {
 								deviceId = String.format("%04d", devNum);
 								object.deviceIdNumber().setValue(deviceId);
@@ -129,16 +156,21 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 							controller.appMan, true);
 					
 					object.deviceEndCode().setValue("");
-					object.deviceIdNumber().setValue("");
-					if(object.comment().exists())
-						object.comment().delete();
-					if(object.room().isReference(false))
-						object.room().delete();
+					if(devNum == null)
+						object.deviceIdNumber().setValue("");
+					else
+						object.deviceIdNumber().setValue(String.format("%04d", devNum+1));
+					//if(object.comment().exists())
+					//	object.comment().delete();
+					//if(object.room().isReference(false))
+					//	object.room().delete();
 				}
 			};
 			row.addCell(WidgetHelper.getValidWidgetId("Add/delete"), addButton);
 			addButton.registerDependentWidget(alert);
 			addButton.registerDependentWidget(mainTable);
+			addButton.registerDependentWidget(serialEdit);
+			addButton.registerDependentWidget(deviceIdEdit);
 			return;
 		} else {
 			GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, "Add/delete",
@@ -157,7 +189,15 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 		Header header = new Header(page, "header", "Preknown Devices");
 		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
 		page.append(header).linebreak();
-	}
+		
+		DeviceTypeFilterDropdown typeFilterDrop = new DeviceTypeFilterDropdown(page, "devTypeFilterDrop",
+				OptionSavingMode.PER_USER, appMan, controller.dpService);
+		StaticTable topTable = new StaticTable(1, 7, new int[] {2, 2, 1, 2, 1, 2, 2});
+		topTable.setContent(0, 0, "")
+				.setContent(0, 1, "")
+				.setContent(0, 3, typeFilterDrop);
+		page.append(topTable);
+	}	
 
 	@Override
 	public Collection<PreKnownDeviceData> getObjectsInTable(OgemaHttpRequest req) {
@@ -168,4 +208,10 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 		return result;
 	}
 
+	@Override
+	public String getLineId(PreKnownDeviceData object) {
+		if(object.getLocation().startsWith("EvalCollection"))
+			return "0000"+super.getLineId(object);
+		return object.deviceIdNumber().getValue()+super.getLineId(object);
+	}
 }
