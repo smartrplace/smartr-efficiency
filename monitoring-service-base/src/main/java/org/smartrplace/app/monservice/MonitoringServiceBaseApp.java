@@ -40,6 +40,7 @@ import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HMGas_MeterDeviceHandler;
 import org.smartrplace.driverhandler.devices.HMIEC_ElConnDeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatMeter2_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabFlowSens_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabGeneralData_DeviceHandler;
@@ -193,6 +194,9 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srHeat = null;
 	private HeatMeter_DeviceHandler devHandHeat;
 	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srHeat2 = null;
+	private HeatMeter2_DeviceHandler devHandHeat2;
+	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srGas = null;
 	private GasEnergyCam_DeviceHandler devHandGas;
 	@SuppressWarnings("rawtypes")
@@ -300,6 +304,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srWater = bc.registerService(DeviceHandlerProvider.class, devHandWater, null);
 	   devHandHeat = new HeatMeter_DeviceHandler(controller.appManPlus);
 	   srHeat = bc.registerService(DeviceHandlerProvider.class, devHandHeat, null);
+	   devHandHeat2 = new HeatMeter2_DeviceHandler(controller.appManPlus);
+	   srHeat2 = bc.registerService(DeviceHandlerProvider.class, devHandHeat2, null);
 	   devHandGas = new GasEnergyCam_DeviceHandler(controller.appManPlus);
 	   srGas = bc.registerService(DeviceHandlerProvider.class, devHandGas, null);
 	   devHandIota = new Iotawatt_DeviceHandler(controller.appManPlus);
@@ -360,6 +366,7 @@ public class MonitoringServiceBaseApp implements Application {
        	if (srSmartProtect != null) srSmartProtect.unregister();
        	if (srWater!= null) srWater.unregister();
        	if (srHeat != null) srHeat.unregister();
+       	if (srHeat2 != null) srHeat2.unregister();
        	if (srGas != null) srGas.unregister();
       	if (srIota != null) srIota.unregister();
       	if (srIotaSimple!= null) srIotaSimple.unregister();

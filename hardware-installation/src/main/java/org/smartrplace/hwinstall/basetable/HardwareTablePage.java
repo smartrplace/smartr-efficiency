@@ -1,11 +1,10 @@
 package org.smartrplace.hwinstall.basetable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -303,7 +302,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
 if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 	System.out.println("Searching all devices for "+devHand.label(null));
-		List<InstallAppDevice> all = getDevices(devHand);
+		Collection<InstallAppDevice> all = getDevices(devHand);
 //System.out.println("For "+pe.label(null)+" before filter:"+all.size());
 if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 	System.out.println("Filtering "+all.size()+" for "+devHand.label(null));
@@ -313,17 +312,18 @@ if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 		return result;
 	}
 	
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand) {
+	public <T extends Resource> Collection<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand) {
 		//boolean includeInactiveDevices = resData.appConfigData.includeInactiveDevices().getValue();
 		//return getDevices(tableProvider, includeInactiveDevices, false);
 		return getDevices(devHand, false);
 	}
 	
-	private Map<String, List<InstallAppDevice>> devPerHandler = new HashMap<>();
-	private long lastMapUpd = -1;
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand,
+	//private Map<String, List<InstallAppDevice>> devPerHandler = new HashMap<>();
+	//private long lastMapUpd = -1;
+	public <T extends Resource> Collection<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand,
 			boolean includeTrash) {
-		synchronized (devPerHandler) {
+		return appManPlus.dpService().managedDeviceResoures(devHand==null?null:devHand.id(), false, includeTrash);
+		/*synchronized (devPerHandler) {
 			long now = appMan.getFrameworkTime();
 			if(now - lastMapUpd < 10000) {
 				List<InstallAppDevice> result = devPerHandler.get(devHand.id());
@@ -353,8 +353,7 @@ if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 				}
 				listLoc.add(install);
 			}
-			return result;
-		}
+			return result;*/
 	}
 
 	

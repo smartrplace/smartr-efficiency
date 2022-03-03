@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +74,7 @@ public class RoomSelectorDropdown extends TemplateDropdown<String> {
 		items.add(room.getLocation());
 	}
 	
-	public List<InstallAppDevice> getDevicesSelected(List<InstallAppDevice> devices) {
+	public List<InstallAppDevice> getDevicesSelected(Collection<InstallAppDevice> devices) {
 		List<InstallAppDevice> devicesSelected = new ArrayList<>();
 		String arg0 = controller.appConfigData.room().getValue();
 		for(InstallAppDevice dev: devices) {

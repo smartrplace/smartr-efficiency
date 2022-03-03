@@ -228,7 +228,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 			RoomFiltering2Steps<InstallAppDevice> roomsDrop,
 			SingleFilteringDirect<InstallAppDevice> installFilterDrop,
 			OgemaHttpRequest req) {
-		List<InstallAppDevice> all = controller.getDevices(devHand);
+		Collection<InstallAppDevice> all = controller.getDevices(devHand);
 		DualFiltering<Room, InstallAppDevice, InstallAppDevice> finalFilterLoc = new DualFiltering<Room, InstallAppDevice, InstallAppDevice>(roomsDrop, installFilterDrop);
 		return finalFilterLoc.getFiltered(all, req);
 	}

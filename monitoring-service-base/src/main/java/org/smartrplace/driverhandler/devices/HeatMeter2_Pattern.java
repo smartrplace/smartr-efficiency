@@ -17,23 +17,23 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.model.actors.MultiSwitch;
+import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.metering.HeatMeter;
 
-public class MultiSwitchPattern extends ResourcePattern<MultiSwitch> {
+public class HeatMeter2_Pattern extends ResourcePattern<HeatMeter> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public MultiSwitchPattern(Resource device) {
+	public HeatMeter2_Pattern(Resource device) {
 		super(device);
 	}
 	
 	@Override
 	public boolean accept() {
-		if(Boolean.getBoolean("org.smartrplace.driverhandler.devices.suppress.multiswitch.knx"))
-			return false;
-		if(model.getLocation().startsWith("knx_"))
-			return true;
-		return false;
+		//if(DeviceTableRaw.isHeatMeterDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
+		return true;
+		//return false;
 	}
 }

@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
@@ -26,7 +27,7 @@ public class MainPageExpertTrash extends MainPageExpert {
 				"Delete Devices Marked") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				List<InstallAppDevice> all = controller.getDevices(null, true);
+				Collection<InstallAppDevice> all = controller.getDevices(null, true);
 				for(InstallAppDevice dev: all) {
 					if((!dev.isTrash().getValue()) || (dev.trashStatus().getValue() <= 0))
 						continue;
@@ -54,12 +55,16 @@ public class MainPageExpertTrash extends MainPageExpert {
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
 		//List<InstallAppDevice> all = controller.getDevices(devHand, true, true);
-		List<InstallAppDevice> all = controller.getDevices(devHand, true);
+		Collection<InstallAppDevice> all = controller.getDevices(devHand, true);
 		/*all = roomsDrop.getDevicesSelected(all, req);
 		if (installFilterDrop != null)  // FIXME seems to always be null here
 			all = installFilterDrop.getDevicesSelected(all, req);*/
 		List<InstallAppDevice> allTrash = new ArrayList<>();
 		for(InstallAppDevice dev: all) {
+			if((!dev.device().exists()) && dev.trashStatus().getValue() >= 1) {
+				//workaround for error of re-creation
+				dev.delete();
+			}
 			if(dev.isTrash().getValue())
 				allTrash.add(dev);
 		}
@@ -79,6 +84,10 @@ public class MainPageExpertTrash extends MainPageExpert {
 		}
 		//object.device().getLocationResource().activate(true);
 		object.isTrash().setValue(false);
+		if(object.trashStatus().exists()) {
+			object.trashStatus().setValue(0);
+			object.trashStatus().delete();
+		}
 		//re-init alarming and datapoints in general
 		controller.updateDatapoints(devHand, object);
 	}

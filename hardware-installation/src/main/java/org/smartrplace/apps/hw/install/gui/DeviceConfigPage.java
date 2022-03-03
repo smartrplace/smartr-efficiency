@@ -62,8 +62,8 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 		}
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
-		List<InstallAppDevice> all = controller.getDevices(devHand);
-		all = roomsDrop.getDevicesSelected(all);
+		Collection<InstallAppDevice> all1 = controller.getDevices(devHand);
+		List<InstallAppDevice> all = roomsDrop.getDevicesSelected(all1);
 		if (installFilterDrop != null)  // FIXME seems to always be null here
 			all = installFilterDrop.getDevicesSelected(all);
 		return all;

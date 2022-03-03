@@ -626,12 +626,12 @@ public class HardwareInstallController {
 		InitialConfig.addString("A", appConfigData.initDoneStatus());
 	}
 	
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand) {
+	public <T extends Resource> Collection<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand) {
 		return mainPage.getDevices(devHand);
 		/*boolean includeInactiveDevices = appConfigData.includeInactiveDevices().getValue();
 		return getDevices(tableProvider, includeInactiveDevices, false);*/
 	}
-	public <T extends Resource> List<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
+	public <T extends Resource> Collection<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
 //			boolean includeInactiveDevices,
 			boolean includeTrash) {
 		return mainPage.getDevices(tableProvider, includeTrash);
