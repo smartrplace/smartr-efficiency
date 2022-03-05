@@ -26,8 +26,8 @@ import de.iwes.widgets.reswidget.scheduleviewer.api.ScheduleViewerConfigurationP
 
 @Service(ScheduleViewerConfigurationProvider.class)
 @Component
-public class ScheduleViewerConfigProvThermDebug extends DefaultScheduleViewerConfigurationProviderExtended {
-	public static final String PROVIDER_ID = "OfflineEvaluationControlTherm";
+public class ScheduleViewerConfigProvCCUDebug extends DefaultScheduleViewerConfigurationProviderExtended {
+	public static final String PROVIDER_ID = "OfflineEvaluationControlCCU";
 
 	protected static volatile Map<String, SessionConfiguration> configs = new ConcurrentHashMap<>();
 	protected static int lastConfig = 0;
@@ -49,18 +49,18 @@ public class ScheduleViewerConfigProvThermDebug extends DefaultScheduleViewerCon
 	}
 	
 	public static DefaultScheduleViewerConfigurationProviderExtended getInstance() {
-		if(instance == null) instance = new ScheduleViewerConfigProvThermDebug();
+		if(instance == null) instance = new ScheduleViewerConfigProvCCUDebug();
 		return instance;
 	}
 
-	protected static volatile ScheduleViewerConfigProvThermDebug instance = null;
+	protected static volatile ScheduleViewerConfigProvCCUDebug instance = null;
 	@Override
 	protected DefaultScheduleViewerConfigurationProviderExtended getInstanceObj() {
 		return instance;
 	}
 	@Override
 	protected void setInstance(DefaultScheduleViewerConfigurationProviderExtended instanceIn) {
-		instance = (ScheduleViewerConfigProvThermDebug) instanceIn;
+		instance = (ScheduleViewerConfigProvCCUDebug) instanceIn;
 	}
 
 }

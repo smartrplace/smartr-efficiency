@@ -38,6 +38,7 @@ import org.smartrplace.apps.hw.install.gui.PreKnownDeviceTable;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
+import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
@@ -156,6 +157,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			new ThermostatPage(thermPageAuto, controller, ThermostatPageType.AUTO_MODE);
 			menu.addEntry("Thermostat Auto-Mode Management", thermPageAuto);
 			thermPageAuto.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> ccuPage = widgetApp.createWidgetPage("ccutDetails.hmtl");
+			new CCUPage(ccuPage, controller);
+			menu.addEntry("CCU Details", ccuPage);
+			ccuPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> batteryPage = widgetApp.createWidgetPage("batteryStates.hmtl");
 			new BatteryPage(batteryPage, controller);

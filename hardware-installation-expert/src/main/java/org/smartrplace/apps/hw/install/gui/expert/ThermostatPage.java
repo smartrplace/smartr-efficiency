@@ -15,6 +15,7 @@ import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
+import org.ogema.model.devices.buildingtechnology.ThermostatProgram;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
@@ -25,6 +26,10 @@ import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.LabelFormatterFloatRes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHControlMode;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHIntTrigger;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
+import org.smartrplace.util.virtualdevice.SensorData;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -381,6 +386,30 @@ System.out.println("Fzufoiude");
 						}
 					};
 					row.addCell(WidgetHelper.getValidWidgetId("Allow Auto"), autoModeButton);
+					
+					Label sendManLb = vh.stringLabel("SendMan", id, new LabelFormatter() {
+
+						@Override
+						public OnGETData getData(OgemaHttpRequest req) {
+							String status = "";
+							HmSetpCtrlManagerTHSetp setpMan = HmSetpCtrlManagerTHSetp.getInstance(appManPlus);
+							SensorData sens = setpMan.getSensorData(device.temperatureSensor().settings().setpoint());
+							status += "|"+SensorData.getStatus(sens);
+							HmSetpCtrlManagerTHControlMode setpManCM = HmSetpCtrlManagerTHControlMode.getInstance(appManPlus);
+							sens = setpManCM.getSensorData(device.getSubResource("controlMode", IntegerResource.class));
+							status += "|"+SensorData.getStatus(sens);
+							status += "|";
+							HmSetpCtrlManagerTHIntTrigger setpManAuto = HmSetpCtrlManagerTHIntTrigger.getInstance(appManPlus);
+							sens = setpManAuto.getSensorData(device.getSubResource("program", ThermostatProgram.class).update());
+							status += "|"+SensorData.getStatus(sens);
+							int state = (status.equals("|0|0|0|"))?1:0;
+							if(state == 0 && (!status.startsWith("|0|")))
+								state = 2;
+							OnGETData result = new OnGETData(status, state);
+							return result;
+						}					
+					}, row);
+					sendManLb.setDefaultPollingInterval(DEFAULT_POLL_RATE);
 				}
 				if(req != null) {
 					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
@@ -391,8 +420,10 @@ System.out.println("Fzufoiude");
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);
 				} else {
-					if(type == ThermostatPageType.AUTO_MODE)
+					if(type == ThermostatPageType.AUTO_MODE) {
 						vh.registerHeaderEntry("Allow Auto");
+						vh.registerHeaderEntry("SendMan");
+					}
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("RT");
 				}
@@ -438,6 +469,5 @@ System.out.println("Fzufoiude");
 		devTable.triggerPageBuild();
 		typeFilterDrop.registerDependentWidget(devTable.getMainTable());
 		
-	}
-	
+	}	
 }

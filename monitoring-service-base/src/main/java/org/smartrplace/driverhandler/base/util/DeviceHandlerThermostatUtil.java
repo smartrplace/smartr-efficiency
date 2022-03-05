@@ -13,8 +13,8 @@ import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
-import org.smartrplace.util.virtualdevice.HmCentralManager;
-import org.smartrplace.util.virtualdevice.SetpointControlManager;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManager.WritePrioLevel;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -36,17 +36,17 @@ public class DeviceHandlerThermostatUtil {
 	protected static CountDownDelayedExecutionTimer testSwitchTimer = null;
 	protected static ThermostatTestingConfig testConfig;
 	protected static class SetpointToTest {
-		public SetpointToTest(TemperatureResource setp, HmCentralManager hmMan) {
+		public SetpointToTest(TemperatureResource setp, HmSetpCtrlManagerTHSetp hmMan) {
 			this.setp = setp;
 			this.hmMan = hmMan;
 		}
 		TemperatureResource setp;
-		HmCentralManager hmMan;
+		HmSetpCtrlManagerTHSetp hmMan;
 	}
 	protected static Set<SetpointToTest> setpointsToTest = new HashSet<>();
 	protected static Map<String, Float> testValue;
 
-	public static void addThermostatToTestSwitch(Thermostat th, ApplicationManager appMan, HmCentralManager hmMan) {
+	public static void addThermostatToTestSwitch(Thermostat th, ApplicationManager appMan, HmSetpCtrlManagerTHSetp hmMan) {
 		synchronized(DeviceHandlerThermostatUtil.class) {
 			if(testConfig == null) {
 				testConfig = ResourceHelper.getEvalCollection(appMan).getSubResource(
@@ -88,7 +88,7 @@ public class DeviceHandlerThermostatUtil {
 					if(destValue < (273.15f+4.5f))
 						destValue = 273.15f+5.0f;
 					if(setp.hmMan != null)
-						setp.hmMan.requestSetpointWrite(setp.setp, destValue, SetpointControlManager.CONDITIONAL_PRIO);
+						setp.hmMan.requestSetpointWrite(setp.setp, destValue, WritePrioLevel.CONDITIONAL, false);
 					else
 						setp.setp.setValue(destValue);
 					if(!isBack) {

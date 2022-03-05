@@ -45,7 +45,7 @@ import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
-import org.smartrplace.util.virtualdevice.HmCentralManager;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.format.StringFormatHelper;
@@ -523,18 +523,18 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Test switching interval (min) - started only after system relaunch. Set zero to disable:").setContent(i, 1, testSwitchingEdit);
 		i++;
 		
-		FloatResource maxDutyCycle = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(
+		/*FloatResource maxDutyCycle = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(
 				HmCentralManager.paramMaxDutyCycle, FloatResource.class);
 		ValueResourceTextField<FloatResource> maxDutyCycleEdit =
 				new ValueResourceTextField<FloatResource>(page, "maxDutyCycleEdit", maxDutyCycle);
 		configTable.setContent(i, 0, "Maximum Duty Cycle before traffic limit (0..1.0):").setContent(i, 1, maxDutyCycleEdit);
-		i++;
+		i++;*/
 
 		FloatResource maxWritePerCCUperHour = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(
-				HmCentralManager.paramMaxWritePerCCUperHour, FloatResource.class);
+				HmSetpCtrlManagerTHSetp.paramMaxWritePerCCUperHour, FloatResource.class);
 		ValueResourceTextField<FloatResource> maxWritePerCCUperHourEdit =
 				new ValueResourceTextField<FloatResource>(page, "maxWritePerCCUperHourEdit", maxWritePerCCUperHour);
-		configTable.setContent(i, 0, "Maximum Setpoint writes per hour before limit:").setContent(i, 1, maxWritePerCCUperHourEdit);
+		configTable.setContent(i, 0, "Maximum Setpoint writes per hour checked in addition to CCU-spefic duty cycle limit. This value is regarded equivalent to DutyCycle=100%:").setContent(i, 1, maxWritePerCCUperHourEdit);
 		i++;
 		configTable.setContent(i, 0, "Test Plot:").setContent(i, 1, testPlot);
 		i++;
