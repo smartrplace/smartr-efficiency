@@ -45,7 +45,9 @@ import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManager;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
+import org.smartrplace.util.virtualdevice.SetpointControlManager;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.format.StringFormatHelper;
@@ -533,7 +535,8 @@ public class ConfigurationPageHWInstall {
 		FloatResource maxWritePerCCUperHour = ResourceHelper.getEvalCollection(controller.appMan).getSubResource(
 				HmSetpCtrlManagerTHSetp.paramMaxWritePerCCUperHour, FloatResource.class);
 		ValueResourceTextField<FloatResource> maxWritePerCCUperHourEdit =
-				new ValueResourceTextField<FloatResource>(page, "maxWritePerCCUperHourEdit", maxWritePerCCUperHour);
+				new ValueResourceTextField<FloatResource>(page, "maxWritePerCCUperHourEdit", maxWritePerCCUperHour,
+				HmSetpCtrlManager.DEFAULT_MAX_WRITE_PER_HOUR);
 		configTable.setContent(i, 0, "Maximum Setpoint writes per hour checked in addition to CCU-spefic duty cycle limit. This value is regarded equivalent to DutyCycle=100%:").setContent(i, 1, maxWritePerCCUperHourEdit);
 		i++;
 		configTable.setContent(i, 0, "Test Plot:").setContent(i, 1, testPlot);

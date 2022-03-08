@@ -12,6 +12,7 @@ import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider.DriverDeviceConfig;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -79,7 +80,7 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 	}
 	
 	@Override
-	public <T extends Resource> InstallAppDevice addDeviceIfNew(T model, DeviceHandlerProvider<T> tableProvider) {
+	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T model, DeviceHandlerProvider<T> tableProvider) {
 		throw new UnsupportedOperationException("addDevice not relevant for DriverProviders!");
 	}
 
@@ -94,7 +95,7 @@ public class DeviceConfigPage extends DeviceTablePageFragmentRaw<InstallAppDevic
 	}
 
 	@Override
-	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
+	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
 		throw new UnsupportedOperationException("Start simulation not relevant for DriverProviders!");
 		
 	}

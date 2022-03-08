@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.units.PercentageResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableBase;
@@ -18,6 +19,7 @@ import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.eval.hardware.HmCCUPageUtils;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
+import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -26,7 +28,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
 
-@SuppressWarnings("serial")
+//@SuppressWarnings("serial")
 public class CCUPage extends MainPage {
 
 	private static final int CCU_MAX_FOR_ALL = 50;
@@ -66,7 +68,22 @@ public class CCUPage extends MainPage {
 					device = (HmInterfaceInfo) object.device().getLocationResource();
 				final String name;
 				if(device.getLocation().toLowerCase().contains("homematic")) {
-					name = "CCU HM:"+ScheduleViewerOpenButtonEval.getDeviceShortId(device.getLocation());
+					Resource parent = device.getParent();
+					String loc;
+					String suffix = "";
+					if(parent != null) {
+						loc = parent.getLocation();
+						suffix = "";
+						if(loc.endsWith("_ip") || loc.endsWith("_cc")) {
+							suffix = loc.substring(loc.length()-2);
+							loc = loc.substring(0, loc.length()-3);
+						} else if(loc.endsWith("ip") || loc.endsWith("cc")) {
+							suffix = loc.substring(loc.length()-2);
+							loc = loc.substring(0, loc.length()-2);
+						}
+					} else
+						loc = device.getLocation();
+					name = "CCU HM:"+ScheduleViewerOpenButtonEval.getLastCharsWithDigitsPreferred(loc, 4)+suffix;
 				} else
 					name = ResourceUtils.getHumanReadableShortName(device);
 				vh.stringLabel("Name", id, name, row);
@@ -74,6 +91,7 @@ public class CCUPage extends MainPage {
 				
 				if(req == null) {
 					vh.registerHeaderEntry("DutyCcl");
+					vh.registerHeaderEntry("DC5minMax");
 					vh.registerHeaderEntry("Last Contact");
 					vh.registerHeaderEntry("yellow");
 					vh.registerHeaderEntry("red");
@@ -85,6 +103,9 @@ public class CCUPage extends MainPage {
 				}
 				Label dutyCycleLb = ChartsUtil.getDutyCycleLabel(device, object, vh, id);
 				row.addCell("DutyCcl", dutyCycleLb);
+				Label dutyCycleLb5MM = ChartsUtil.getDutyCycleLabel(device, "DC5minMax", object, vh, id,
+						object.getSubResource(HmSetpCtrlManagerTHSetp.dutyCycleMax, FloatResource.class));
+				row.addCell("DC5minMax", dutyCycleLb5MM);
 				Label lastContact = addLastContact(vh, id, req, row, device.dutyCycle().reading());
 				vh.floatEdit("yellow", id, object.getSubResource(HmSetpCtrlManagerTHSetp.dutyCycleYellowMin, PercentageResource.class),
 						row, alert, 0, 1.0f, "Only 0 to 100% allowed");
@@ -99,7 +120,7 @@ public class CCUPage extends MainPage {
 				lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 				
 				DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
-				final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
+				final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 						ScheduleViewerConfigProvCCUDebug.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
 			}

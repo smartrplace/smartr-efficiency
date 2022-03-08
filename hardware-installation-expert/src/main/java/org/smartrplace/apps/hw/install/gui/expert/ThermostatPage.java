@@ -26,6 +26,8 @@ import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.LabelFormatterFloatRes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.virtualdevice.ChartsUtil;
+import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHControlMode;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHIntTrigger;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
@@ -49,12 +51,23 @@ public class ThermostatPage extends MainPage {
 	
 	public enum ThermostatPageType {
 		STANDARD,
-		AUTO_MODE
+		AUTO_MODE,
+		STANDARD_VIEW_ONLY
 	}
 	protected final ThermostatPageType type;
 	
 	@Override
-	protected String getHeader() {return type==ThermostatPageType.STANDARD?"Thermostat Page":"Thermostat Auto-Mode Management";}
+	protected String getHeader() {
+		switch(type) {
+		case STANDARD:
+			return "Thermostat Page";
+		case AUTO_MODE:
+			return "Thermostat Auto-Mode Management";
+		case STANDARD_VIEW_ONLY:
+			return "Thermostat Page V2";
+		}
+		throw new IllegalStateException("Unknown type:"+type);
+	}
 
 	static Boolean isAllAllowed = null;
 	@Override
@@ -76,14 +89,6 @@ public class ThermostatPage extends MainPage {
 	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
-			/*@Override
-			public String getLineId(InstallAppDevice object) {
-				super.getLineId(object);
-				Room deviceRoom = object.device().location().room();
-				if(deviceRoom.exists())
-					return ResourceUtils.getHumanReadableShortName(deviceRoom)+object.getName()+"_THERMOSTAT";
-				return object.getName()+"_THERMOSTAT";
-			}*/
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
@@ -121,29 +126,6 @@ public class ThermostatPage extends MainPage {
 										return 1;
 								}
 					});
-					/*setpointFB = new Label(mainTable, "Setpoint"+id, req) {
-						boolean hasStyle = false;
-						
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							setText(String.format("%.1f", device.temperatureSensor().deviceFeedback().setpoint().getCelsius()), req);
-							float valFb = device.temperatureSensor().deviceFeedback().setpoint().getValue();
-							float valSetp = device.temperatureSensor().settings().setpoint().getValue();
-							float diff = valFb - valSetp;
-							if(diff < -0.3f) {
-								addStyle(LabelData.BOOTSTRAP_RED, req);
-								hasStyle = true;
-							} else if(diff > 0.3f) {
-								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
-								hasStyle = true;
-							} else if(hasStyle){
-								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
-								removeStyle(LabelData.BOOTSTRAP_RED, req);
-								addStyle(LabelData.BOOTSTRAP_GREEN, req);
-							}
-						}
-					};
-					row.addCell("Setpoint", setpointFB);*/
 				}
 				Label lastContactFB = addLastContact("Last FB", vh, "FB"+id, req, row,device.temperatureSensor().deviceFeedback().setpoint());
 				if(type == ThermostatPageType.STANDARD) {
@@ -184,7 +166,7 @@ public class ThermostatPage extends MainPage {
 				} else
 					vh.registerHeaderEntry("Last Measurment");
 
-				if(type == ThermostatPageType.STANDARD) {
+				if(type == ThermostatPageType.STANDARD || type == ThermostatPageType.STANDARD_VIEW_ONLY) {
 					if(req == null) {
 						vh.registerHeaderEntry("Valve");
 						vh.registerHeaderEntry("Last Valve");
@@ -226,27 +208,6 @@ public class ThermostatPage extends MainPage {
 								return new OnGETData(String.format("%.1f", val), state);
 							}
 						}, row);
-						/*Label valveErrL = new Label(mainTable, "Verr"+id, req) {
-							boolean hasStyle = false;
-							
-							@Override
-							public void onGET(OgemaHttpRequest req) {
-								float val = valveError.getValue();
-								if(val < 4) {
-									addStyle(LabelData.BOOTSTRAP_ORANGE, req);
-									hasStyle = true;
-								} else if(val > 4) {
-									addStyle(LabelData.BOOTSTRAP_RED, req);
-									hasStyle = true;
-								} else if(hasStyle){
-									removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
-									removeStyle(LabelData.BOOTSTRAP_RED, req);
-									addStyle(LabelData.BOOTSTRAP_GREEN, req);
-								}
-								setText(String.format("%.1f", val), req);
-							}
-						};
-						row.addCell(WidgetHelper.getValidWidgetId("VErr"), valveErrL);*/
 						Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
 						valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 						lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
@@ -259,8 +220,6 @@ public class ThermostatPage extends MainPage {
 				} else {
 					final IntegerResource errorCode = ResourceHelper.getSubResourceOfSibbling(device,
 							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "errorCode", IntegerResource.class);
-if(device.getLocation().contains("homematicgl_ar300_144cb1_local_ip/devices/HM_HmIP_eTRV_C_2_002CDD89930302"))
-System.out.println("Fzufoiude");
 					final BooleanResource configPending = ResourceHelper.getSubResourceOfSibbling(device,
 							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "configPending", BooleanResource.class);
 					final IntegerResource controlMode = device.getSubResource("controlMode", IntegerResource.class);
@@ -292,9 +251,6 @@ System.out.println("Fzufoiude");
 									text += " EC"+errorCode.getValue();
 									error = 2;
 								}
-							//} else {
-							//	text += " NEC";
-							//	if(error == 0) error = 1;
 							}
 							if(error == 1) {
 								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
@@ -386,7 +342,8 @@ System.out.println("Fzufoiude");
 						}
 					};
 					row.addCell(WidgetHelper.getValidWidgetId("Allow Auto"), autoModeButton);
-					
+				}
+				if(req != null && ((type == ThermostatPageType.AUTO_MODE) || type == ThermostatPageType.STANDARD_VIEW_ONLY)) {
 					Label sendManLb = vh.stringLabel("SendMan", id, new LabelFormatter() {
 
 						@Override
@@ -402,8 +359,8 @@ System.out.println("Fzufoiude");
 							HmSetpCtrlManagerTHIntTrigger setpManAuto = HmSetpCtrlManagerTHIntTrigger.getInstance(appManPlus);
 							sens = setpManAuto.getSensorData(device.getSubResource("program", ThermostatProgram.class).update());
 							status += "|"+SensorData.getStatus(sens);
-							int state = (status.equals("|0|0|0|"))?1:0;
-							if(state == 0 && (!status.startsWith("|0|")))
+							int state = (status.equals("|ok|ok|ok|"))?1:0;
+							if(state == 0 && (!status.startsWith("|ok|")))
 								state = 2;
 							OnGETData result = new OnGETData(status, state);
 							return result;
@@ -411,9 +368,12 @@ System.out.println("Fzufoiude");
 					}, row);
 					sendManLb.setDefaultPollingInterval(DEFAULT_POLL_RATE);
 				}
+				if(req != null && (type == ThermostatPageType.STANDARD_VIEW_ONLY)) {
+					MainPageExpert.addKniStatus(object, devHand, vh, id, req, row, appManPlus);
+				}
 				if(req != null) {
 					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
-					final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
+					final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 							ScheduleViewerConfigProvThermDebug.getInstance(), null);
 					row.addCell("Plot", logResult.plotButton);
 
@@ -423,6 +383,9 @@ System.out.println("Fzufoiude");
 					if(type == ThermostatPageType.AUTO_MODE) {
 						vh.registerHeaderEntry("Allow Auto");
 						vh.registerHeaderEntry("SendMan");
+					} else if(type == ThermostatPageType.STANDARD_VIEW_ONLY) {
+						vh.registerHeaderEntry("KniStatus");
+						vh.registerHeaderEntry("SendMan");						
 					}
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("RT");

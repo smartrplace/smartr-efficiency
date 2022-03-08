@@ -20,6 +20,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.util.extended.eval.widget.BooleanResourceButton;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeFilterDropdown;
@@ -362,7 +363,7 @@ if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 		throw new UnsupportedOperationException("Not implemented in HardwareTableBase!");
 	}
 	@Override
-	public <T extends Resource> InstallAppDevice addDeviceIfNew(T model, DeviceHandlerProvider<T> tableProvider) {
+	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T model, DeviceHandlerProvider<T> tableProvider) {
 		throw new UnsupportedOperationException("Not implemented in HardwareTableBase!");
 	}
 	@Override
@@ -370,7 +371,7 @@ if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 		throw new UnsupportedOperationException("Not implemented in HardwareTableBase!");
 	}
 	@Override
-	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
+	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
 		throw new UnsupportedOperationException("Not implemented in HardwareTableBase!");		
 	}
 	@Override

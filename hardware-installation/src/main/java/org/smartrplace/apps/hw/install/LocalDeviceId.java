@@ -36,7 +36,7 @@ public abstract class LocalDeviceId {
 
     private static final Pattern ID_PATTERN = Pattern.compile("\\w+-(\\d+)");
 
-	public static <T extends Resource> String generateDeviceId(InstallAppDevice dev, HardwareInstallConfig cfg,
+	public static <T extends PhysicalElement> String generateDeviceId(InstallAppDevice dev, HardwareInstallConfig cfg,
 			DeviceHandlerProvider<T> tableProvider, DatapointService dpService) {
 
 		final String typeId;

@@ -21,11 +21,11 @@ import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.apps.hw.install.gui.MainPage;
-import org.smartrplace.apps.hw.install.gui.MainPage.GetPlotButtonResult;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.virtualdevice.ChartsUtil;
+import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -278,7 +278,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				}
 				row.addCell("Release", releaseBut);
 				
-				final GetPlotButtonResult logResult = MainPage.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
+				final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 						ScheduleViewerConfigProvAlarm.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
 				

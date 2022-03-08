@@ -148,6 +148,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Hardware Driver Configuration", page2);
 			page2.getMenuConfiguration().setCustomNavigation(menu);
 
+			WidgetPage<?> thermPage2 = widgetApp.createWidgetPage("thermostatDetails2.hmtl");
+			new ThermostatPage(thermPage2, controller, ThermostatPageType.STANDARD_VIEW_ONLY);
+			menu.addEntry("Thermostat Page V2", thermPage2);
+			thermPage2.getMenuConfiguration().setCustomNavigation(menu);
+
 			WidgetPage<?> thermPage = widgetApp.createWidgetPage("thermostatDetails.hmtl");
 			new ThermostatPage(thermPage, controller, ThermostatPageType.STANDARD);
 			menu.addEntry("Thermostat Debugging", thermPage);

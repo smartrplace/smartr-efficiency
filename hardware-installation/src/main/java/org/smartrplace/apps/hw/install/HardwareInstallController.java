@@ -48,6 +48,7 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
@@ -275,7 +276,7 @@ public class HardwareInstallController {
 	 * if the app needs to consider dependencies between different pattern types,
 	 * they can be processed here.
 	 */
-	public <T extends Resource> InstallAppDevice addDeviceIfNew(T device, DeviceHandlerProvider<T> tableProvider) {
+	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T device, DeviceHandlerProvider<T> tableProvider) {
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if(install.device().equalsLocation(device)) {
 				initializeDevice(install, device, tableProvider); // only initialize missing resources
@@ -308,7 +309,7 @@ public class HardwareInstallController {
 	
 	volatile CountDownDelayedExecutionTimer alarmingRestartTimer = null;
 	
-	protected <T extends Resource> void initAlarmingForDevice(final InstallAppDevice install, final DeviceHandlerProvider<T> tableProvider) {
+	protected <T extends PhysicalElement> void initAlarmingForDevice(final InstallAppDevice install, final DeviceHandlerProvider<T> tableProvider) {
 		final String deviceId = install.deviceId().getValue();
 		final String provVersion = tableProvider.getInitVersion();
 		final String shortID = provVersion.isEmpty()?deviceId:(deviceId+"_"+provVersion); //tableProvider.getDeviceTypeShortId(install, dpService);
@@ -360,7 +361,7 @@ public class HardwareInstallController {
 		return null;
 	}
 	
-	private <T extends Resource> void initializeDevice(InstallAppDevice install, T device,
+	private <T extends PhysicalElement> void initializeDevice(InstallAppDevice install, T device,
 			DeviceHandlerProvider<T> tableProvider) {
 
 		if (!install.exists()) install.create();
@@ -377,7 +378,7 @@ public class HardwareInstallController {
 		install.activate(true);
 	}
 	
-	public <T extends Resource> void startSimulations(DeviceHandlerProvider<T> tableProvider) {
+	public <T extends PhysicalElement> void startSimulations(DeviceHandlerProvider<T> tableProvider) {
 		//Class<?> tableType = tableProvider.getResourceType();
 		Collection<DeviceTypeProvider<?>> dtbproviders = tableProvider.getDeviceTypeProviders();
 		if(dtbproviders != null) for(DeviceTypeProvider<?> prov: dtbproviders) synchronized(deviceTypeProviders) {
@@ -409,7 +410,7 @@ public class HardwareInstallController {
 
 		}
 	}
-	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
+	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, T device) {
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if(install.isTrash().getValue())
 				continue;
@@ -420,14 +421,14 @@ public class HardwareInstallController {
 		}
 	}
 	protected Map<String, Set<String>> simulationsStarted = new HashMap<>();
-	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
+	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
 		@SuppressWarnings("unchecked")
 		T device = (T) appDevice.device();
 		startSimulation(tableProvider, appDevice, device);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Resource> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
+	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
 			T device) {
 		//handlerByDevice.put(appDevice.getLocation(), tableProvider);
 		//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.autologging")) {
@@ -631,7 +632,7 @@ public class HardwareInstallController {
 		/*boolean includeInactiveDevices = appConfigData.includeInactiveDevices().getValue();
 		return getDevices(tableProvider, includeInactiveDevices, false);*/
 	}
-	public <T extends Resource> Collection<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
+	public <T extends PhysicalElement> Collection<InstallAppDevice> getDevices(DeviceHandlerProvider<T> tableProvider,
 //			boolean includeInactiveDevices,
 			boolean includeTrash) {
 		return mainPage.getDevices(tableProvider, includeTrash);

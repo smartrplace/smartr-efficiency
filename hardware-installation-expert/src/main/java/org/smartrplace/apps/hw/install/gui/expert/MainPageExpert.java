@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -26,6 +27,8 @@ import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.virtualdevice.ChartsUtil;
+import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
@@ -220,7 +223,8 @@ public class MainPageExpert extends MainPage {
 					vh.registerHeaderEntry(SETPREACT_LABEL);					
 			}
 		} else {
-			KniStatus kniStat = getStatus(object);
+			addKniStatus(object, tableProvider, vh, id, req, row, appManPlus);
+			/*KniStatus kniStat = getStatus(object);
 			Label kniLabel = vh.stringLabel("KniStatus", id, kniStat.text, row);
 			if(kniStat.style != null)
 				kniLabel.addStyle(kniStat.style, req);
@@ -248,13 +252,13 @@ public class MainPageExpert extends MainPage {
 			}
 			Label gapLabel = vh.stringLabel(GAPS_LABEL, id, gapText, row);
 			if(gapData[0] < 0.9f)
-				gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
+				gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);*/
 		}
 		if(req == null) {
 			if(showMode == ShowModeHw.NETWORK) {
 				vh.registerHeaderEntry("Plot");
 			} else {
-				vh.registerHeaderEntry(DATAPOINT_INFO_HEADER);
+				vh.registerHeaderEntry(ChartsUtil.DATAPOINT_INFO_HEADER);
 				vh.registerHeaderEntry("Plot");
 				vh.registerHeaderEntry("Action");
 				vh.registerHeaderEntry("Perform");
@@ -472,4 +476,39 @@ public class MainPageExpert extends MainPage {
 		return super.getDevicesSelected(devHand, req);
 	}
 
+	public static Label addKniStatus(InstallAppDevice object, DeviceHandlerProvider<?> tableProvider,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+			String id, OgemaHttpRequest req, Row row,
+			ApplicationManagerPlus appManPlus) {
+		KniStatus kniStat = getStatus(object);
+		Label kniLabel = vh.stringLabel("KniStatus", id, kniStat.text, row);
+		if(kniStat.style != null)
+			kniLabel.addStyle(kniStat.style, req);
+		float[] gapData = StandardEvalAccess.getQualityValuesPerDeviceStandard(object, appManPlus.appMan(), appManPlus);
+		String gapText;
+		if(gapData[0] == -1) {
+			gapText = " ---";
+			gapData[0] = 999;
+		} else
+			gapText = String.format("%.1f", gapData[0]*100)+" / "+String.format("%.1f", gapData[1]*100);
+		if(gapData[2] != -1) {
+			gapText += " / " + String.format("%.1f", gapData[2]*100)+" / "+String.format("%.1f", gapData[3]*100);				
+		}
+		if(tableProvider != null) {
+			List<SetpointData> setp = tableProvider.getSetpointData(object);
+			if(setp != null && (!setp.isEmpty())) {
+				float[] setpReactData = StandardEvalAccess.getSetpReactValuesPerDeviceStandard(object, appManPlus.appMan(), appManPlus);
+				if(!Float.isNaN(setpReactData[0])) {
+					String setpRText = String.format("%.1f", setpReactData[0]*100)+" / "+String.format("%.1f", setpReactData[1]*100);
+					Label setpRLabel = vh.stringLabel(SETPREACT_LABEL, id, setpRText, row);
+					if(setpReactData[0] < 0.9f)
+						setpRLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
+				}
+			}
+		}
+		Label gapLabel = vh.stringLabel(GAPS_LABEL, id, gapText, row);
+		if(gapData[0] < 0.9f)
+			gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
+		return kniLabel;
+	}
 }
