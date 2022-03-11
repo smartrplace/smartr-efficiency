@@ -315,33 +315,37 @@ public class ThermostatPage extends MainPage {
 				vh.stringLabel("Room-Loc", id, roomSubLoc, row);
 				
 				if(req != null && (type == ThermostatPageType.AUTO_MODE)) {
-					IntegerResource autoThermostatModeSingle = DeviceHandlerBase.getAutoThermostatModeSingle(device);
-					@SuppressWarnings("unchecked")
-					IntegerResourceMultiButton autoModeButton = new IntegerResourceMultiButton(mainTable,
-							"autoModeButton"+id, req, autoThermostatModeSingle,
-							new WidgetStyle[] {ButtonData.BOOTSTRAP_LIGHTGREY, ButtonData.BOOTSTRAP_GREEN,
-									ButtonData.BOOTSTRAP_RED, ButtonData.BOOTSTRAP_LIGHT_BLUE}) {
-						
-						@Override
-						protected String getText(int state, OgemaHttpRequest req) {
-							int overallState = 	controller.hwTableData.appConfigData.autoThermostatMode().getValue();
-							if(overallState == 3)
-								return "(Off Forced)";
-							switch(state) {
-							case 0:
-								return "("+AlarmingUtiH.getAutoThermostatModeShort(overallState)+")";
-							case 1:
-								return "Allow";
-							case 2:
-								return "Off";
-							case 3:
-								return AlarmingUtiH.getAutoThermostatModeShort(0);
-							default:
-								return "UNKNOWN ST:"+state;
+					if(DeviceHandlerBase.getHmThermProgram(device) == null) {
+						vh.stringLabel("Allow Auto", id, "No Program", row);
+					} else {
+						IntegerResource autoThermostatModeSingle = DeviceHandlerBase.getAutoThermostatModeSingle(device);
+						@SuppressWarnings("unchecked")
+						IntegerResourceMultiButton autoModeButton = new IntegerResourceMultiButton(mainTable,
+								"autoModeButton"+id, req, autoThermostatModeSingle,
+								new WidgetStyle[] {ButtonData.BOOTSTRAP_LIGHTGREY, ButtonData.BOOTSTRAP_GREEN,
+										ButtonData.BOOTSTRAP_RED, ButtonData.BOOTSTRAP_LIGHT_BLUE}) {
+							
+							@Override
+							protected String getText(int state, OgemaHttpRequest req) {
+								int overallState = 	controller.hwTableData.appConfigData.autoThermostatMode().getValue();
+								if(overallState == 3)
+									return "(Off Forced)";
+								switch(state) {
+								case 0:
+									return "("+AlarmingUtiH.getAutoThermostatModeShort(overallState)+")";
+								case 1:
+									return "Allow";
+								case 2:
+									return "Off";
+								case 3:
+									return AlarmingUtiH.getAutoThermostatModeShort(0);
+								default:
+									return "UNKNOWN ST:"+state;
+								}
 							}
-						}
-					};
-					row.addCell(WidgetHelper.getValidWidgetId("Allow Auto"), autoModeButton);
+						};
+						row.addCell(WidgetHelper.getValidWidgetId("Allow Auto"), autoModeButton);
+					}
 				}
 				if(req != null && ((type == ThermostatPageType.AUTO_MODE) || type == ThermostatPageType.STANDARD_VIEW_ONLY)) {
 					Label sendManLb = vh.stringLabel("SendMan", id, new LabelFormatter() {
