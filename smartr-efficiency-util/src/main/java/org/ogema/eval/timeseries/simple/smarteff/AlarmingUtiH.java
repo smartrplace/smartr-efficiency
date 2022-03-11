@@ -62,13 +62,16 @@ public class AlarmingUtiH {
 	public static interface AlarmingUpdater {
 		void updateAlarming();
 		
+		/** Update alarming with some delay leaving time for further changes to take place*/
+		void updateAlarmingWithRetard();
+		
 		/** Trigger an update of alarming, but allow some retard for more configuration changes to be applied
 		 * 
 		 * @param maximumRetard
 		 * @param restartWithNewCall if true and not another call with this flag set false is pending then the
 		 * 		maximumRetard is reset
 		 */
-		void updateAlarming(long maximumRetard, boolean restartWithNewCall);
+		//void updateAlarming(long maximumRetard, boolean restartWithNewCall);
 	}
 
 	public static void cleanUpAlarmConfigs(ResourceList<AlarmConfiguration> configs) {

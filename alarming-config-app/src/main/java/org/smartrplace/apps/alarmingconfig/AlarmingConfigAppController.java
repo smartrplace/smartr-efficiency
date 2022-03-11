@@ -29,7 +29,6 @@ import org.ogema.messaging.configuration.MessagePriorityDropdown;
 import org.ogema.messaging.configuration.PageInit;
 import org.ogema.messaging.configuration.localisation.SelectConnectorDictionary;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
-import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.AlarmingStartedService;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.TimeseriesProcAlarming;
@@ -54,6 +53,7 @@ import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.util.logconfig.CountdownTimerMulti2Single;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.messaging.listener.MessageListener;
@@ -97,6 +97,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public ReceiverPageBuilder receiverPage;
 	WidgetApp widgetApp;
 	boolean isGw = false;
+	final CountdownTimerMulti2Single alUpdTimer;
 
 	public final TimeseriesProcAlarming tsProcAl;
 	public final ResourceList<MessagingApp> appList;
@@ -207,6 +208,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		appManPlus.setUserPermService(userPermService);
 		appManPlus.setGuiService(initApp.guiService);
 		appManPlus.setDpService(dpService);
+		this.alUpdTimer = new CountdownTimerMulti2Single(appMan, TimeProcUtil.MINUTE_MILLIS) {
+			
+			@Override
+			public void delayedExecution() {
+				updateAlarming();
+			}
+		};
 		
 		this.appsToSend = new HashMap<String, AppID>();
 		registerMessagingApp(AlarmingUtiH.SP_SUPPORT_FIRST, null);
@@ -557,7 +565,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			alarmMan = null;
 	}
 	
-	volatile boolean allowRestartWithNewCall = true;
+	/*volatile boolean allowRestartWithNewCall = true;
 	volatile CountDownDelayedExecutionTimer alUpdTimer = null;
 	@Override
 	public void updateAlarming(long maximumRetard, boolean restartWithNewCall) {
@@ -583,12 +591,17 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				alUpdTimer = null;
 			}
 		};
-	}
+	}*/
 	
 	public DeviceHandlerProvider<?> getDeviceHandler(InstallAppDevice appDevice) {
 		return getDeviceHandler(appDevice.devHandlerInfo().getValue());
 	}
 	public DeviceHandlerProvider<?> getDeviceHandler(String id) {
 		return accessAdminApp.getTableProviders().get(id);
+	}
+
+	@Override
+	public void updateAlarmingWithRetard() {
+		alUpdTimer.newEvent();
 	}
 }

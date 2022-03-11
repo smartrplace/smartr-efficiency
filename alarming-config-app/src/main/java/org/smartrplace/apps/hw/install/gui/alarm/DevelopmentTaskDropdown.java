@@ -7,7 +7,6 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.DevelopmentTask;
-import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -58,7 +57,8 @@ public class DevelopmentTaskDropdown extends TemplateDropdown<DevelopmentTask> {
 	public void onPOSTComplete(String data, OgemaHttpRequest req) {
 		DevelopmentTask select = getSelectedItem(req);
 		selectDevelopmentTask(select, object, appMan);
-		controller.updateAlarming(TimeProcUtil.MINUTE_MILLIS, true);
+		controller.updateAlarmingWithRetard();
+		//controller.updateAlarming(TimeProcUtil.MINUTE_MILLIS, true);
 	}
 
 	public static List<DevelopmentTask> getEffectiveKnownDevTasks(ResourceList<DevelopmentTask> knownDevelopmentTasks) {
