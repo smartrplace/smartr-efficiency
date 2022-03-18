@@ -46,6 +46,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
@@ -71,6 +72,7 @@ public class AlarmingManager implements AlarmingStartedService {
 	protected final ApplicationManagerPlus appManPlus;
 	protected final Map<String, AppID> appsForSending;
 	//protected final RoomLabelProvider tsNameProv;
+	protected final AlarmingConfigAppController controller;
 	
 	public volatile boolean initDone = false;
 	@Override
@@ -105,10 +107,11 @@ public class AlarmingManager implements AlarmingStartedService {
 	
 	public AlarmingManager(List<InstallAppDevice> iads, ApplicationManagerPlus appManPlus,
 			Map<String, AppID> appsForSending,
-			String alarmID) {
+			String alarmID, AlarmingConfigAppController controller) {
 		//this.configs = iads;
 		this.appManPlus = appManPlus;
 		this.appsForSending = appsForSending;
+		this.controller = controller;
 		//this.tsNameProv = tsNameProv;
 		this.alarmID = alarmID;	
 		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
@@ -226,7 +229,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp, devTac);
+				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp, devTac, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -240,7 +243,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp, devTac);
+				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp, devTac, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -254,7 +257,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp, devTac);
+				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp, devTac, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -269,12 +272,12 @@ public class AlarmingManager implements AlarmingStartedService {
 						BooleanResource bres = onOff.stateFeedback().getLocationResource();
 						ValueListenerData vlb = new ValueListenerData(bres);
 						AlarmValueListenerBooleanOnOff onOffListener = new AlarmValueListenerBooleanOnOff(1.0f, 1.0f, 60000, 600000, ac, vlb,
-								appManPlus, dp) {
+								appManPlus, dp, controller) {
 							@Override
 							public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard,
-									IntegerResource alarmStatus, boolean noMessage) {
+									IntegerResource alarmStatus, boolean noMessage, AlarmGroupData knownIssue) {
 								onOff.stateControl().setValue(true);
-								super.executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage);
+								super.executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage, knownIssue);
 							}
 						};
 						vlb.listener = onOffListener;
@@ -373,7 +376,7 @@ public class AlarmingManager implements AlarmingStartedService {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.res);
 						float val = getHumanValue(vl.res);
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
-								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage);
+								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage, vl.knownDeviceFault);
 						//reset value
 						//if(!Boolean.getBoolean("org.smartrplace.monbase.alarming.suppressSettingNaNInAlarmedResources"))
 						//	vl.res.setValue(Float.NaN);
@@ -381,12 +384,12 @@ public class AlarmingManager implements AlarmingStartedService {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.bres);
 						float val = vl.bres.getValue()?1.0f:0.0f;
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
-								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage);
+								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage, vl.knownDeviceFault);
 					} else 	if(vl.ires != null) {
 						IntegerResource alarmStatus = AlarmingConfigUtil.getAlarmStatus(vl.ires);
 						float val = vl.ires.getValue();
 						executeNoValueAlarm(vl.listener.getAc(), val, vl.lastTimeOfNewData,
-								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage);
+								vl.maxIntervalBetweenNewValues, alarmStatus, noMessage, vl.knownDeviceFault);
 					} else {
 						//IntegerResource alarmStatus = getAlarmStatus(vl.listener.getAc().supervisedTS().schedule());
 						//executeNoValueAlarm(vl.listener.getAc(), Float.NaN, vl.lastTimeOfNewData,
@@ -406,22 +409,23 @@ public class AlarmingManager implements AlarmingStartedService {
 	protected interface AlarmValueListenerI {
 		public void resourceChanged(float value, IntegerResource alarmStatus, long timeStamp, boolean isValueCheckForOldValue);		
 		void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard, 
-				IntegerResource alarmStatus, boolean noMessage);
+				IntegerResource alarmStatus, boolean noMessage, AlarmGroupData knownDeviceFault);
 		AlarmConfiguration getAc();
 		ResourceValueListener<?> getListener();	
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBasic<FloatResource> {
 		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
-				AlarmConfiguration devTac) {
+				AlarmConfiguration devTac, AlarmingConfigAppController controller) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl, devTac);
+					dp, AlarmingManager.this.baseUrl, devTac, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListener(float upper, float lower, int retard, int resendRetard,
-				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
+				AlarmingConfigAppController controller) {
 			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl);
+					dp, AlarmingManager.this.baseUrl, controller);
 		}
 
 		@Override
@@ -446,16 +450,17 @@ public class AlarmingManager implements AlarmingStartedService {
 	}
 	protected class AlarmValueListenerBoolean extends AlarmValueListenerBasic<BooleanResource> {
 		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
-				AlarmConfiguration devTac) {
+				AlarmConfiguration devTac, AlarmingConfigAppController controller) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl, devTac);
+					dp, AlarmingManager.this.baseUrl, devTac, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
 		public AlarmValueListenerBoolean(float upper, float lower, int retard, int resendRetard,
-				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
+				AlarmingConfigAppController controller) {
 			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl);
+					dp, AlarmingManager.this.baseUrl, controller);
 		}
 
 		@Override
@@ -483,8 +488,8 @@ public class AlarmingManager implements AlarmingStartedService {
 		protected final AlarmValueListener alarmValListenerBase;
 		
 		public AlarmValueListenerBooleanOnOff(float upper, float lower, int retard, int resendRetard, AlarmConfiguration ac, ValueListenerData vl,
-				ApplicationManagerPlus appManPlus, Datapoint dp) {
-			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, appManPlus, dp);
+				ApplicationManagerPlus appManPlus, Datapoint dp, AlarmingConfigAppController controller) {
+			alarmValListenerBase = new AlarmValueListener(upper, lower, retard, resendRetard, ac, vl, appManPlus, dp, controller);
 		}
 		@Override
 		public void resourceChanged(BooleanResource resource) {
@@ -500,8 +505,8 @@ public class AlarmingManager implements AlarmingStartedService {
 		//TODO: override
 		@Override
 		public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard, IntegerResource alarmStatus,
-				boolean noMessage) {
-			alarmValListenerBase.executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage);
+				boolean noMessage, AlarmGroupData knownIssue) {
+			alarmValListenerBase.executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage, knownIssue);
 		}	
 		
 		@Override
@@ -516,16 +521,17 @@ public class AlarmingManager implements AlarmingStartedService {
 	
 	protected class AlarmValueListenerInteger extends AlarmValueListenerBasic<IntegerResource> {
 		public AlarmValueListenerInteger(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
-				AlarmConfiguration devTac) {
+				AlarmConfiguration devTac, AlarmingConfigAppController controller) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl, devTac);
+					dp, AlarmingManager.this.baseUrl, devTac, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerInteger used for OnOffSwitch supervision
 		public AlarmValueListenerInteger(float upper, float lower, int retard, int resendRetard,
-				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp) {
+				AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
+				AlarmingConfigAppController controller) {
 			super(upper, lower, retard, resendRetard, ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl);
+					dp, AlarmingManager.this.baseUrl, controller);
 		}
 
 		@Override
@@ -598,7 +604,7 @@ public class AlarmingManager implements AlarmingStartedService {
 	}
 	
 	protected void executeNoValueAlarm(AlarmConfiguration ac, float value, long lastTime, long maxInterval,
-			IntegerResource alarmStatus, boolean noMessage) {
+			IntegerResource alarmStatus, boolean noMessage, AlarmGroupData knownDeviceFault) {
 		int status = ac.alarmLevel().getValue()+1000;
 		if(alarmStatus != null) {
 			alarmStatus.setValue(status);
@@ -613,6 +619,7 @@ public class AlarmingManager implements AlarmingStartedService {
 		if(baseUrl != null)
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
+		controller.escMan.knownIssueNotification(knownDeviceFault, title, message);
 		if(prio != null)
 			sendMessage(ac, status, title, message, prio, ac.alarmingAppId());
 	}

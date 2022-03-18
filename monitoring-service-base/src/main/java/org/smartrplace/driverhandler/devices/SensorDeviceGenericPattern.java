@@ -47,6 +47,8 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 			return false;
 		if(DeviceTableRaw.isHAPDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
+		if(DeviceTableRaw.isFaultMessageDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
+			return false;
 		//If more special SensorDevices are supported in the future add check here
 		return true;
 		/*if(model.getLocation().startsWith("JMBUS_BASE"))

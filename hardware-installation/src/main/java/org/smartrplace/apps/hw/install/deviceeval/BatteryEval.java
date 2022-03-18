@@ -73,6 +73,11 @@ public class BatteryEval extends BatteryEvalBase3 {
 	public static final int COLUMN_WIDTH_1 = 30;
 	public static final int COLUMN_WIDTH = 10;
 	public static void sendWeeklyEmail(ApplicationManagerPlus appMan) {
+		AppID appId = appMan.appMan().getAppID();
+		sendWeeklyEmail(appMan, appId, "Weekly Battery Evaluation Report ", MessagePriority.MEDIUM);
+	}
+	public static void sendWeeklyEmail(ApplicationManagerPlus appMan, AppID appId,
+			String titleWithoutGw, MessagePriority prio) {
 		long now = appMan.getFrameworkTime();
 		
 		Collection<InstallAppDevice> thermostats = appMan.dpService().managedDeviceResoures(Thermostat.class);
@@ -133,7 +138,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		if(idx >= 0)
 			gwName = gwName.substring(0, idx);
 		
-		reallySendMessage("Weekly Battery Evaluation Report "+gwName, mes, MessagePriority.MEDIUM, appMan);
+		reallySendMessage(titleWithoutGw+gwName, mes, prio, appMan, appId);
 	}
 	
 	protected static String buildMessageHTML(int emptyNum, int warnNum, int changeNum, int unknownNum,
@@ -238,7 +243,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		return " <tr><td style=\"padding: 5px\">"+text+"</td></tr>\r\n";
 	}
 
-	protected static String buildMessageV1(int emptyNum, int warnNum, int changeNum, int unknownNum,
+	/*protected static String buildMessageV1(int emptyNum, int warnNum, int changeNum, int unknownNum,
 			int dnRNum, int sigstrengthNum, int unassignedNum,
 			List<BatteryStatusResult> evalResults, List<InstallAppDevice> dNRResults, List<InstallAppDevice> sigStrengthResults,
 			String baseUrl, long now) {
@@ -280,7 +285,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		mes += "Details: "+link+" \r\n";
 		
 		return mes;
-	}
+	}*/
 
 	public static String getValueLine(String name, Room room, String... vals) {
 		String result = getLeftAlignedString(name, COLUMN_WIDTH_1)+" | " +

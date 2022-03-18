@@ -1,8 +1,6 @@
 package org.ogema.timeseries.eval.simple.mon3.std;
 
 import org.apache.commons.lang3.StringUtils;
-import org.ogema.accessadmin.api.ApplicationManagerPlus;
-import org.ogema.core.application.AppID;
 import org.ogema.core.channelmanager.measurements.SampledValue;
 import org.ogema.core.model.units.VoltageResource;
 import org.ogema.core.recordeddata.RecordedData;
@@ -12,9 +10,6 @@ import org.ogema.devicefinder.util.BatteryEvalBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.util.message.MessageImpl;
-
-import de.iwes.widgets.api.messaging.MessagePriority;
 
 public class BatteryEvalBase3 extends BatteryEvalBase {
 	public static String getRightAlignedString(String in, int len) {
@@ -26,12 +21,11 @@ public class BatteryEvalBase3 extends BatteryEvalBase {
 		return in+StringUtils.repeat(' ', len-in.length());
 	}
 	
-	protected static void reallySendMessage(String title, String message, MessagePriority prio,
-			ApplicationManagerPlus appManPlus) {
-		AppID appId = appManPlus.appMan().getAppID();
+	/*protected static void reallySendMessage(String title, String message, MessagePriority prio,
+			ApplicationManagerPlus appManPlus, AppID appId) {
 		appManPlus.guiService().getMessagingService().sendMessage(appId,
 				new MessageImpl(title, message, prio));		
-	}
+	}*/
 	
 	public static BatteryStatusResult getFullBatteryStatus(InstallAppDevice iad, long now,
 			DatapointService dpService) {

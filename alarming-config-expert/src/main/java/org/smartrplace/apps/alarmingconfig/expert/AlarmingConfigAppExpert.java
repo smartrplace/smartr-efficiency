@@ -10,9 +10,11 @@ import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
+import org.smartrplace.apps.hw.install.gui.alarm.AlarmingLevelPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
+import org.smartrplace.apps.hw.install.gui.alarm.MessagingAppConfigPage;
 
 import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.OgemaGuiService;
@@ -94,8 +96,18 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			new DevelopmentTaskPage(pageRes12, controller);
 			menu.addEntry("5. Development Special Settings", pageRes12);
 			configMenuConfig(pageRes12.getMenuConfiguration());
+			
+			WidgetPage<?> pageRes6 = widgetApp.createWidgetPage("messagingapps.html");
+			new MessagingAppConfigPage(pageRes6, controller);
+			menu.addEntry("6. Alarming Messaging App Configuration (Message destination groups)", pageRes6);
+			configMenuConfig(pageRes6.getMenuConfiguration());
 
-	        LogHelper.logStartup(4, appMan);
+			WidgetPage<?> pageRes7 = widgetApp.createWidgetPage("escalationproviders.html");
+			new AlarmingLevelPage(pageRes7, controller);
+			menu.addEntry("7. Alarming Escalation Levels", pageRes7);
+			configMenuConfig(pageRes7.getMenuConfiguration());
+
+			LogHelper.logStartup(4, appMan);
 		}
 	};
 

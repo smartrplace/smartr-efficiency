@@ -17,8 +17,10 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.AlarmingExtensionBase.AlarmListenerDataBase;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.timeseries.eval.simple.mon.TimeSeriesServlet;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.AlarmValueListenerI;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager.ValueListenerData;
 
@@ -35,6 +37,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	final List<AlarmingExtensionListener> extensions = new ArrayList<>();
 
 	final ApplicationManagerPlus appManPlus;
+	protected final AlarmingConfigAppController controller;
+	
 	//protected final RoomLabelProvider tsNameProv2;
 	protected final Datapoint dp;
 	final String alarmID;
@@ -52,8 +56,10 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
 	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
 			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl,
-			AlarmConfiguration devTac) {
+			AlarmConfiguration devTac,
+			final AlarmingConfigAppController controller) {
 		this.appManPlus = appManPlus;
+		this.controller = controller;
 		this.dp = dp;
 		this.alarmID = alarmID;
 		this.baseUrl = baseUrl;
@@ -93,8 +99,10 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	/** This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision*/
 	public AlarmValueListenerBasic(float upper, float lower, int retard, int resendRetard,
 			AlarmConfiguration ac, ValueListenerData vl,
-			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl) {
+			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl,
+			final AlarmingConfigAppController controller) {
 		this.appManPlus = appManPlus;
+		this.controller = controller;
 		this.dp = dp;
 		this.alarmID = alarmID;
 		this.baseUrl = baseUrl;
@@ -186,7 +194,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 					@Override
 					public void delayedExecution() {
 						boolean noMessage = sendValueLimitMessageOrRelease(vl, now, false);
-						executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage);
+						executeAlarm(ac, value, upper, lower, retard, alarmStatus, noMessage,
+								vl.knownDeviceFault);
 						vl.isAlarmActive = true;
 						vl.nextTimeAlarmAllowed = appManPlus.appMan().getFrameworkTime() +
 							vl.resendRetard();
@@ -245,7 +254,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 
 	@Override
 	public void executeAlarm(AlarmConfiguration ac, float value, float upper, float lower, int retard,
-			IntegerResource alarmStatus, boolean noMessage) {
+			IntegerResource alarmStatus, boolean noMessage, AlarmGroupData knownDeviceFault) {
 		String title = AlarmingManager.getTsName(ac, dp)+" (Alarming Wert)"; //dp.label(null)+" (Alarming Wert)";
 		if(upper == 1.0f && lower == 1.0f) {
 			title += "(Schalter)";
@@ -261,6 +270,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		if(noMessage)
 			return;
 		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
+		controller.escMan.knownIssueNotification(vl.knownDeviceFault, title, message);
 		if(prio != null)
 			sendMessage(title, status, message, prio, null);		
 	}

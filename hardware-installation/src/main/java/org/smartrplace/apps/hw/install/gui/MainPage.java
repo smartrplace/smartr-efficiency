@@ -86,7 +86,7 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 		controller.startSimulation(tableProvider, device);
 	}
 	
-	Map<String, SingleRoomSimulationBaseImpl> roomSimulations = new HashMap<>();
+	private Map<String, SingleRoomSimulationBaseImpl> roomSimulations = new HashMap<>();
 	Timer simTimer = null;
 	long lastTime;
 	//Map<String, Timer> roomSimTimers = new HashMap<>();
@@ -164,17 +164,21 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 				return 50f;
 			}
 		};
-		roomSimulations.put(room.getLocation(), roomSim);
+		synchronized (roomSimulations) {
+			roomSimulations.put(room.getLocation(), roomSim);			
+		}
 		if(simTimer == null) {
 			simTimer = appMan.createTimer(5000, new TimerListener() {
 				
 				@Override
 				public void timerElapsed(Timer arg0) {
-					long now = appMan.getFrameworkTime();
-					for(SingleRoomSimulationBaseImpl sim: roomSimulations.values()) {
-						sim.step(now, now - lastTime);
+					synchronized (roomSimulations) {
+						long now = appMan.getFrameworkTime();
+						for(SingleRoomSimulationBaseImpl sim: roomSimulations.values()) {
+							sim.step(now, now - lastTime);
+						}
+						lastTime = now;	
 					}
-					lastTime = now;					
 				}
 			});
 			lastTime = appMan.getFrameworkTime();

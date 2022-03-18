@@ -34,6 +34,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.TimeseriesProcAlarming;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.osgi.framework.ServiceRegistration;
+import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.apps.alarmconfig.util.AppIDImpl;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
@@ -43,6 +44,7 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_en;
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
+import org.smartrplace.apps.alarmingconfig.mgmt.EscalationManager;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -89,6 +91,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	public AlarmingConfigApp accessAdminApp;
     public final ApplicationManagerPlus appManPlus;
 	
+    public final EscalationManager escMan;
+    
 	public MainPage mainPage;
 	public DeviceTypePage devicePage;
 	//public DeviceAlarmingPage deviceOverviewPage;
@@ -135,7 +139,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		ALARM_APP_TYPE_EN.put(AlarmingUtiH.CUSTOMER_FIRST, AlarmingUtiH.CUSTOMER_FIRST);
 		ALARM_APP_TYPE_EN.put(AlarmingUtiH.CUSTOMER_SP_SAME, AlarmingUtiH.CUSTOMER_SP_SAME);
 	}
-	protected void registerMessagingApp(String typeName, String suffix) {
+	public void registerMessagingApp(String typeName, String suffix) {
 		AppID appId;
 		String idExt;
 		if(suffix == null) {
@@ -147,6 +151,21 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 		appManPlus.getMessagingService().registerMessagingApp(appId, getAlarmingDomain()+idExt, "Alarming: "+typeName);
 		appsToSend.put(typeName, appId);		
+	}
+	public void unregisterMessagingApp(String typeName, String suffix) {
+		AppID appId;
+		if(suffix == null) {
+			appId = appMan.getAppID();
+		} else {
+			appId = new AppIDImpl(appMan.getAppID(), suffix);
+		}
+		appManPlus.getMessagingService().unregisterMessagingApp(appId);
+		//Todo: Check if relevant
+		appsToSend.remove(typeName);	
+	}
+
+	public AppID getAppId(AlarmingMessagingApp mapp) {
+		return appsToSend.get(mapp.name().getValue());
 	}
 	
 	public String getAlarmingDomain() {
@@ -216,11 +235,6 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			}
 		};
 		
-		this.appsToSend = new HashMap<String, AppID>();
-		registerMessagingApp(AlarmingUtiH.SP_SUPPORT_FIRST, null);
-		registerMessagingApp(AlarmingUtiH.CUSTOMER_FIRST, "CF");
-		registerMessagingApp(AlarmingUtiH.CUSTOMER_SP_SAME, "SAM");
-
 		tsProcAl = new TimeseriesProcAlarming(appMan, dpService);
 		
 		hwTableData = new HardwareTableData(appMan);
@@ -242,6 +256,17 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		
 		hwTableData.appConfigData.isAlarmingActive().addValueListener(alarmingActiveListener, false);
 		
+		this.appsToSend = new HashMap<String, AppID>();
+		registerMessagingApp(AlarmingUtiH.SP_SUPPORT_FIRST, null);
+		registerMessagingApp(AlarmingUtiH.CUSTOMER_FIRST, "CF");
+		registerMessagingApp(AlarmingUtiH.CUSTOMER_SP_SAME, "SAM");
+		List<AlarmingMessagingApp> registeredApps = hwTableData.appConfigData.escalation().messagigApps().getAllElements();
+		for(AlarmingMessagingApp app: registeredApps) {
+			registerMessagingApp(app.name().getValue(), app.getName());
+			ValueResourceHelper.setCreate(app.lastNameRegistered(), app.name().getValue());
+		}
+		this.escMan = new EscalationManager(this);
+
 		MainPage.alarmingUpdater = this;
 		HardwareInstallController.alarmingUpdater = this;
 
@@ -560,7 +585,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		if(hwTableData.appConfigData.isAlarmingActive().getValue()) {
 			List<InstallAppDevice> iads = hwTableData.appConfigData.knownDevices().getAllElements();
 			//List<AlarmConfiguration> configs = appMan.getResourceAccess().getResources(AlarmConfiguration.class);
-			alarmMan = new AlarmingManager(iads, appManPlus, appsToSend, getAlarmingDomain());
+			alarmMan = new AlarmingManager(iads, appManPlus, appsToSend, getAlarmingDomain(), this);
 		} else
 			alarmMan = null;
 	}
