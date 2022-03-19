@@ -11,9 +11,11 @@ import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.Actor;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -50,7 +52,7 @@ public class FaultMessageDeviceHandler extends DeviceHandlerSimple<SensorDevice>
 		//for(OnOffSwitch onoff: onOffs) {
 		//	addDatapoint(onoff.stateFeedback(), result);			
 		//}
-		List<Actor> actors = device.getLocationResource().getSubResources(Actor.class, false);
+		List<Actor> actors = device.sensors().getSubResources(Actor.class, false);
 		for(Actor act: actors) {
 			if(act instanceof OnOffSwitch) {
 				addDatapoint(((OnOffSwitch)act).stateFeedback(), result);							
@@ -63,6 +65,11 @@ public class FaultMessageDeviceHandler extends DeviceHandlerSimple<SensorDevice>
 	}
 
 	@Override
+	public Datapoint addDatapoint(SingleValueResource res, List<Datapoint> result) {
+		return addDatapointWithResOrSensorName(res, result);
+	}
+	
+	@Override
 	protected Class<? extends ResourcePattern<SensorDevice>> getPatternClass() {
 		return FaultMessageDevicePattern.class;
 	}
@@ -73,7 +80,7 @@ public class FaultMessageDeviceHandler extends DeviceHandlerSimple<SensorDevice>
 			return faultCounter;
 		}
 		int count = 0;
-		List<Actor> actors = device.getSubResources(Actor.class, false);
+		List<Actor> actors = device.sensors().getSubResources(Actor.class, false);
 		for(Actor act: actors) {
 			if(act instanceof OnOffSwitch) {
 				if(((OnOffSwitch)act).stateFeedback().getValue())
@@ -87,5 +94,22 @@ public class FaultMessageDeviceHandler extends DeviceHandlerSimple<SensorDevice>
 		}
 		ValueResourceHelper.setCreate(faultCounter, count);
 		return faultCounter;
+	}
+	
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		SensorDevice device = (SensorDevice) appDevice.device();
+		List<Actor> actors = device.sensors().getSubResources(Actor.class, false);
+		for(Actor act: actors) {
+			if(act instanceof OnOffSwitch) {
+				AlarmingUtiH.setTemplateValues(appDevice, ((OnOffSwitch)act).stateFeedback(),
+						0f, 0.5f, 0.1f, -1);
+			} else if(act.stateFeedback() instanceof IntegerResource)
+				AlarmingUtiH.setTemplateValues(appDevice, (IntegerResource)act.stateFeedback(),
+						0f, 0.5f, 0.1f, -1);
+			else if(act.stateFeedback() instanceof BooleanResource)
+				AlarmingUtiH.setTemplateValues(appDevice, (BooleanResource)act.stateFeedback(),
+						0f, 0.5f, 0.1f, -1);
+		}
 	}
 }

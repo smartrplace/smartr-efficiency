@@ -1,6 +1,7 @@
 package org.ogema.timeseries.eval.simple.mon3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -271,10 +272,29 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 		return "Multi_"+((resultSeriesStore!=null)?resultSeriesStore.dpLabel():"?");
 	}
 
+	public static final List<String> registerOnlyEvalJobRegProp;
+	static {
+		String prop = System.getProperty("org.ogema.devicefinder.util.registration.only.evaljobs");
+		if(prop == null)
+			registerOnlyEvalJobRegProp = null;
+		else
+			registerOnlyEvalJobRegProp = Arrays.asList(prop.split(","));
+	}
+	public static boolean skipEvalJobRegistration(String resultLocation) {
+		if(registerOnlyEvalJobRegProp == null)
+			return false;
+		for(String only: registerOnlyEvalJobRegProp) {
+			if(resultLocation.contains(only))
+				return false;
+		}
+		return true;
+	}
 	protected static TimedJobMemoryData registerTimedJob(ProcessedReadOnlyTimeSeries3 ts, List<Datapoint> input,
 			String label, String resultLocation, String idBase,
 			long repetitionTime,
 			DatapointService dpService) {
+		if(skipEvalJobRegistration(resultLocation))
+			return null;
 		TimedJobMemoryData result = dpService.timedJobService().registerTimedJobProvider(new TimedJobProvider() {
 
 			@Override
