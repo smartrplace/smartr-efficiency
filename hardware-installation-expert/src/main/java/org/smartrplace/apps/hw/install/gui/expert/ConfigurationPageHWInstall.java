@@ -40,9 +40,12 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.LocalDeviceId;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.expert.plottest.ScheduleViewerTest;
+import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.ScheduleViewerConfigProvHW;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.device.testing.ThermostatTestingConfig;
+import org.smartrplace.heartbeat.gw.gui.OpenRequestTable;
+import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManager;
@@ -171,6 +174,7 @@ public class ConfigurationPageHWInstall {
 				setText(text, req);
 			}
 		};
+		frameworkTimeLabel.setDefaultPollingInterval(OpenRequestTable.DEFAULT_POLL_RATE);
 
 		DatepickerTimeResource defaultRefTime = new DatepickerTimeResource(page, "defaultRefTime") {
 			@Override
