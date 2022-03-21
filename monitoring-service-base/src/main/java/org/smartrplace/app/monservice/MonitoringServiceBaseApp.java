@@ -53,6 +53,7 @@ import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.LightWLANDevHandler;
 import org.smartrplace.driverhandler.devices.MultiSwitchHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
+import org.smartrplace.driverhandler.devices.ThermalStorage_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
@@ -249,6 +250,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srFaultDev = null;
 	private FaultMessageDeviceHandler devHandFaultDev;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srThermStor = null;
+	private ThermalStorage_DeviceHandler devHandThermStor;
 	
 	@Activate
 	   void activate(BundleContext bc) {
@@ -349,6 +353,8 @@ public class MonitoringServiceBaseApp implements Application {
 
 	   devHandFaultDev = new FaultMessageDeviceHandler(controller.appManPlus);
 	   srFaultDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultDev, null);
+	   devHandThermStor = new ThermalStorage_DeviceHandler(controller.appManPlus);
+	   srThermStor = bc.registerService(DeviceHandlerProvider.class, devHandThermStor, null);
  	}
  	
      /*
@@ -392,6 +398,7 @@ public class MonitoringServiceBaseApp implements Application {
       	if (srIECMeter != null) srIECMeter.unregister();
      	if (srGasMeter != null) srGasMeter.unregister();
      	if (srFaultDev != null) srFaultDev.unregister();
+    	if (srThermStor != null) srThermStor.unregister();
 
        	if (controller != null)
     		controller.close();

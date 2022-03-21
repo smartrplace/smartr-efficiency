@@ -108,9 +108,9 @@ public class CCUPage extends MainPage {
 				row.addCell("DC5minMax", dutyCycleLb5MM);
 				Label lastContact = addLastContact(vh, id, req, row, device.dutyCycle().reading());
 				vh.floatEdit("yellow", id, object.getSubResource(HmSetpCtrlManagerTHSetp.dutyCycleYellowMin, PercentageResource.class),
-						row, alert, 0, 1.0f, "Only 0 to 100% allowed");
+						row, alert, 0, 100.0f, "Only 0 to 100% allowed");
 				vh.floatEdit("red", id, object.getSubResource(HmSetpCtrlManagerTHSetp.dutyCycleRedMin, PercentageResource.class),
-						row, alert, 0, 1.0f, "Only 0 to 100% allowed");
+						row, alert, 0, 100.0f, "Only 0 to 100% allowed");
 				
 				HmCCUPageUtils.addTechInModeButton(object, device, vh, id, req, row, appMan, hwConfig);
 				vh.stringLabel("Location", id, object.installationLocation(), row);

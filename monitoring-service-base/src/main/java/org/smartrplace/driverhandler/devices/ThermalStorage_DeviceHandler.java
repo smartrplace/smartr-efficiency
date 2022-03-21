@@ -2,9 +2,12 @@ package org.smartrplace.driverhandler.devices;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
@@ -32,8 +35,14 @@ public class ThermalStorage_DeviceHandler extends DeviceHandlerSimple<ThermalSto
 		return ThermalStorage.class;
 	}
 
+	Set<String> initActivate = new HashSet<>(); 
 	@Override
 	public SingleValueResource getMainSensorValue(ThermalStorage device, InstallAppDevice deviceConfiguration) {
+		if(!initActivate.contains(device.getLocation())) {
+			initActivate.add(device.getLocation());
+			ThermalStorage dev2 = device.getLocationResource();
+			dev2.activate(true);
+		}
 		if(device.chargeSensor().reading().isActive())
 			return device.chargeSensor().reading();
 		if(device.storageTemperature().reading().isActive())
@@ -45,15 +54,17 @@ public class ThermalStorage_DeviceHandler extends DeviceHandlerSimple<ThermalSto
 	protected Collection<Datapoint> getDatapoints(ThermalStorage device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
 		SingleValueResource main = getMainSensorValue(device, deviceConfiguration);
-		addDatapoint(main, result);
-		addDatapoint(device.getSubResource("storageTemperatureBottom", TemperatureSensor.class).reading(), result);
-		if(!main.getLocation().contains("storageTemperatureMiddle"))
-			addDatapoint(device.getSubResource("storageTemperatureMiddle", TemperatureSensor.class).reading(), result);
-		addDatapoint(device.getSubResource("storageTemperatureTop", TemperatureSensor.class).reading(), result);
+		String mainLoc = main.getLocation();
+		if(!mainLoc.contains("storageTemperatureMiddle")) {
+			addDatapoint(main, result);
+		}
+		addDatapointWithResOrSensorName(device.getSubResource("storageTemperatureMiddle", TemperatureSensor.class).reading(), result);
+		addDatapointWithResOrSensorName(device.getSubResource("storageTemperatureBottom", TemperatureSensor.class).reading(), result);
+		addDatapointWithResOrSensorName(device.getSubResource("storageTemperatureTop", TemperatureSensor.class).reading(), result);
 		if(!main.getLocation().contains("/storageTemperature/"))
 			addDatapoint(device.storageTemperature().reading(), result);
-		addDatapoint(device.getSubResource("icingDegree", GenericFloatSensor.class).reading(), result);
-		addDatapoint(device.getSubResource("fillLevel", GenericFloatSensor.class).reading(), result);
+		addDatapointWithResOrSensorName(device.getSubResource("icingDegree", GenericFloatSensor.class).reading(), result);
+		addDatapointWithResOrSensorName(device.getSubResource("fillLevel", GenericFloatSensor.class).reading(), result);
 		addDatapoint(device.heatConnections().getSubResource("heatExchangerExtraction", ThermalConnection.class).inputTemperature().reading(), result);
 		addDatapoint(device.heatConnections().getSubResource("heatExchangerExtraction", ThermalConnection.class).outputTemperature().reading(), result);
 		return result;
