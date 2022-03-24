@@ -145,7 +145,7 @@ public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMes
 
 	@Override
 	protected void setGroups(AlarmingMessagingApp object, List<String> groups, OgemaHttpRequest req) {
-		object.usersForPushMessage().setValues(groups.toArray(new String[0]));
+		ValueResourceHelper.setCreate(object.usersForPushMessage(), groups.toArray(new String[0]));
 	}
 
 	@Override

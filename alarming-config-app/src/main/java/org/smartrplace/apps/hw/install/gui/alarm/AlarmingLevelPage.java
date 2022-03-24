@@ -84,7 +84,7 @@ public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalati
 
 	@Override
 	protected List<AlarmingMessagingApp> getGroups(AlarmingEscalationLevel object, OgemaHttpRequest req) {
-		return object.messagingApps().getAllElements();
+		return ResourceListHelper.getAllElementsLocation(object.messagingApps());
 	}
 
 	@Override
