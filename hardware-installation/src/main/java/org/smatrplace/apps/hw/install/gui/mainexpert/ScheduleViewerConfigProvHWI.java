@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.apps.hw.install.gui.expert;
+package org.smatrplace.apps.hw.install.gui.mainexpert;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

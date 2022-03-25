@@ -40,14 +40,14 @@ import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
-import org.smartrplace.apps.hw.install.gui.expert.MainPageExpert;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
-import org.smartrplace.apps.hw.install.gui.expert.WindowStatusPage;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage.ThermostatPageType;
+import org.smartrplace.apps.hw.install.gui.expert.WindowStatusPage;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
 import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
+import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.OgemaGuiService;

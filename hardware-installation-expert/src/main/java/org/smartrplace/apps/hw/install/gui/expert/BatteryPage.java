@@ -29,7 +29,7 @@ public class BatteryPage extends MainPage {
 	DeviceTableBase devTable;
 	
 	@Override
-	protected String getHeader() {return "Battery Overview";}
+	public String getHeader() {return "Battery Overview";}
 
 	public BatteryPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller, false);

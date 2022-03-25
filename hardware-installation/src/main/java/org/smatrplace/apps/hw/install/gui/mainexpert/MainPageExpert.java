@@ -1,4 +1,4 @@
-package org.smartrplace.apps.hw.install.gui.expert;
+package org.smatrplace.apps.hw.install.gui.mainexpert;
 
 import java.io.File;
 import java.util.Arrays;

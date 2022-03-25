@@ -11,6 +11,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -20,6 +21,11 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 @SuppressWarnings("serial")
 public class MainPageExpertTrash extends MainPageExpert {
 
+	@Override
+	protected boolean isAllOptionAllowedSuper(OgemaHttpRequest req) {
+		return true;
+	}
+	
 	public MainPageExpertTrash(WidgetPage<?> page, final HardwareInstallController controller) {
 		super(page, controller, true, ShowModeHw.STANDARD);
 		

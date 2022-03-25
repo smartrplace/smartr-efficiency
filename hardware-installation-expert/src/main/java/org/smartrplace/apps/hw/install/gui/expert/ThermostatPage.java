@@ -32,6 +32,7 @@ import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHControlMode;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHIntTrigger;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 import org.smartrplace.util.virtualdevice.SensorData;
+import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -57,7 +58,7 @@ public class ThermostatPage extends MainPage {
 	protected final ThermostatPageType type;
 	
 	@Override
-	protected String getHeader() {
+	public String getHeader() {
 		switch(type) {
 		case STANDARD:
 			return "Thermostat Page";

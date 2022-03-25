@@ -45,7 +45,7 @@ import extensionmodel.smarteff.api.common.BuildingUnit;
 public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragment
 	protected final HardwareInstallController controller;
 
-	protected String getHeader() {return "Device Setup and Configuration";}
+	public String getHeader() {return "Device Setup and Configuration";}
 
 	public static enum ShowModeHw {
 		STANDARD,

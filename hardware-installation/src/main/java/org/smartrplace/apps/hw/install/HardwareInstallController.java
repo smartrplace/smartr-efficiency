@@ -60,6 +60,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.deviceeval.BatteryEval;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
@@ -69,12 +70,14 @@ import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
 import org.smartrplace.logging.fendodb.FendoTimeSeries;
 import org.smartrplace.tissue.util.logconfig.LogTransferUtil;
+import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.util.logconfig.LogHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.extended.util.UserLocaleUtil;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 // here the controller logic is implemented
 public class HardwareInstallController {
@@ -187,7 +190,20 @@ public class HardwareInstallController {
 		
 		cleanupOnStart();
 		cleanUpOnStartDone = true;
+		
 		mainPage = getMainPage(page);
+		if(Boolean.getBoolean("org.smartrplace.app.srcmon.ieehq")) {
+			final NavigationMenu menu = new NavigationMenu(" Browse pages");
+			menu.addEntry(mainPage.getHeader(), page);
+			page.getMenuConfiguration().setCustomNavigation(menu);
+			
+			final WidgetPage<?> pageExpert2 = hardwareInstallApp.widgetApp.createWidgetPage("customerexperthwpage.html");
+			MainPageExpert expertPage = new MainPageExpert(pageExpert2, this, ShowModeHw.STANDARD);
+			mainPageExts.add(expertPage);
+			menu.addEntry(expertPage.getHeader(), pageExpert2);
+			pageExpert2.getMenuConfiguration().setCustomNavigation(menu);
+		}
+		
 		initConfigResourceForOperation();
         initDemands();
 		util = new TimeseriesSimpleProcUtil3(appMan, appManPlus.dpService(), 4, 3*TimeProcUtil.MINUTE_MILLIS);

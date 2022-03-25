@@ -36,7 +36,7 @@ public class CCUPage extends MainPage {
 	HardwareInstallConfig hwConfig;
 	
 	@Override
-	protected String getHeader() {return "CCU Page";}
+	public String getHeader() {return "CCU Page";}
 
 	static Boolean isAllAllowed = null;
 	@Override

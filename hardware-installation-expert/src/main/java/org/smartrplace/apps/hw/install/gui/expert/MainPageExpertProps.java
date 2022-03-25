@@ -38,7 +38,7 @@ public class MainPageExpertProps extends MainPage {
 	}
 
 	@Override
-	protected String getHeader() {return "Device Setup and Configuration with Properties";}
+	public String getHeader() {return "Device Setup and Configuration with Properties";}
 
 	public MainPageExpertProps(WidgetPage<?> page, final HardwareInstallController controller) {
 		super(page, controller, true);
