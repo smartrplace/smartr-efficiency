@@ -363,8 +363,9 @@ public class ThermostatPage extends MainPage {
 							HmSetpCtrlManagerTHIntTrigger setpManAuto = HmSetpCtrlManagerTHIntTrigger.getInstance(appManPlus);
 							sens = setpManAuto.getSensorData(device.getSubResource("program", ThermostatProgram.class).update());
 							status += "|"+SensorData.getStatus(sens);
-							int state = (status.equals("|ok|ok|ok|"))?1:0;
-							if(state == 0 && (!status.startsWith("|ok|")))
+							//int state = (status.equals("|ok|ok|ok|"))?1:0;
+							int state = (status.startsWith("|ok|"))?1:0;
+							if(state == 0 && (!status.matches(".*\\d.*")))
 								state = 2;
 							OnGETData result = new OnGETData(status, state);
 							return result;

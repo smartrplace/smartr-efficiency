@@ -178,6 +178,9 @@ public class UserAdminBaseUtil {
 			case UserPermissionService.MONTORING_CHART_EXPERT:
 				result.add("org.smartrplace.apps.srcmon-app-expert");
 				break;
+			case UserPermissionService.RESOURCE_VIEW:
+				result.add("org.ogema.ref-impl.framework-administration");
+				break;
 			}
 		}
 		return result ;

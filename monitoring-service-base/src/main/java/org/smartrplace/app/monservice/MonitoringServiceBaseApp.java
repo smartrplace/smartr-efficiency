@@ -51,6 +51,7 @@ import org.smartrplace.driverhandler.devices.HeatingLabThermalValve_DeviceHandle
 import org.smartrplace.driverhandler.devices.IotawattSimple_DeviceHandler;
 import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.LightWLANDevHandler;
+import org.smartrplace.driverhandler.devices.MechanicalFan_DeviceHandler;
 import org.smartrplace.driverhandler.devices.MultiSwitchHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.ThermalStorage_DeviceHandler;
@@ -253,6 +254,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srThermStor = null;
 	private ThermalStorage_DeviceHandler devHandThermStor;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srFan = null;
+	private MechanicalFan_DeviceHandler devHandFan;
 	
 	@Activate
 	   void activate(BundleContext bc) {
@@ -355,6 +359,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srFaultDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultDev, null);
 	   devHandThermStor = new ThermalStorage_DeviceHandler(controller.appManPlus);
 	   srThermStor = bc.registerService(DeviceHandlerProvider.class, devHandThermStor, null);
+	   devHandFan = new MechanicalFan_DeviceHandler(controller.appManPlus);
+	   srFan = bc.registerService(DeviceHandlerProvider.class, devHandFan, null);
  	}
  	
      /*
@@ -399,6 +405,7 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srGasMeter != null) srGasMeter.unregister();
      	if (srFaultDev != null) srFaultDev.unregister();
     	if (srThermStor != null) srThermStor.unregister();
+       	if (srFan != null) srFan.unregister();
 
        	if (controller != null)
     		controller.close();
