@@ -6,11 +6,11 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
+import org.ogema.util.timedjob.TimedJobMemoryDataImpl;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
-import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -18,7 +18,6 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
-import de.iwes.widgets.html.form.button.ButtonData;
 
 @SuppressWarnings("serial")
 public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, TimedJobConfig> {
@@ -104,8 +103,8 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 		String type = (!isEval)?"Base":("Eval"+object.prov().evalJobType());
 		vh.stringLabel("Type", id, type, row);
 		
-		Button startButton;
-		if((!timerActive) && (!object.canTimerBeActivated())) {
+		Button startButton = TimedJobMemoryDataImpl.getTimedJobStatusButton(object, mainTable, id, req, alert, timerActive);
+		/*if((!timerActive) && (!object.canTimerBeActivated())) {
 			startButton = new Button(mainTable, "startBut"+id, "Itv short", req);
 			startButton.disable(req);
 		} else {
@@ -132,7 +131,7 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 			else
 				startButton.addStyle(ButtonData.BOOTSTRAP_RED, req);
 		}
-		startButton.registerDependentWidget(alert);
+		startButton.registerDependentWidget(alert);*/
 		row.addCell("Start", startButton);
 				
 		if(object.isRunning()) {
@@ -171,4 +170,5 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 	public String getLineId(TimedJobMemoryData object) {
 		return String.format("%05d", object.res().persistentIndex().getValue())+object.prov().id();
 	}
+	
 }

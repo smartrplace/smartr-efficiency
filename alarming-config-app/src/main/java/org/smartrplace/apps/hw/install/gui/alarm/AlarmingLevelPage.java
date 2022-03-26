@@ -4,7 +4,9 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.util.timedjob.TimedJobMemoryDataImpl;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
@@ -19,6 +21,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Header;
 
 public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalationLevel, AlarmingMessagingApp, AlarmingEscalationLevel> {
@@ -45,7 +48,11 @@ public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalati
 			return;
 		}
 		
-		vh.booleanEdit("Active", id, object.isProviderActive(), row);
+		String idProv = ResourceListHelper.getNameForElement(object.timedJobData().getLocationResource());
+		TimedJobMemoryData tdata = controller.dpService.timedJobService().getProvider(idProv);
+		Button activeBut = TimedJobMemoryDataImpl.getTimedJobStatusButton(tdata, mainTable, id, req, alert);
+		row.addCell("Active", activeBut);
+		//vh.booleanEdit("Active", id, object.isProviderActive(), row);
 		vh.floatEdit("Interval (min)", id, object.timedJobData().interval(), row, alert, 0, Float.MAX_VALUE, "Negative values not allowed!", 0);
 		vh.dropdown("Aligned interval", id, object.timedJobData().alignedInterval(), row, AbsoluteTiming.INTERVAL_NAME_MAP);
 		//vh.floatEdit("Init run after", id, object.timedJobData().performOperationOnStartUpWithDelay(), row, alert,

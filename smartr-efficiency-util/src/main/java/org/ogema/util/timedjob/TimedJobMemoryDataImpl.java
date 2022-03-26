@@ -8,20 +8,22 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobMgmtService;
 import org.ogema.devicefinder.api.TimedJobProvider;
-import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resourcemanipulator.timer.CountDownAbsoluteTimer;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.ogema.util.timedjob.TimedJobMgmtServiceImpl.TimedJobMgmtData;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
-import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.tsproc.persist.TsProcPersistUtil;
 
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsolutePersistentTimer;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTimerListener;
+import de.iwes.widgets.api.widgets.OgemaWidget;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 
 /** Data for a TimedJob that is not stored persistently*/
 public class TimedJobMemoryDataImpl implements TimedJobMemoryData {
@@ -380,5 +382,60 @@ if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from
 			else
 				return "WOres:"+super.toString();
 		}
+	}
+	
+	public static Button getTimedJobStatusButton(final TimedJobMemoryData object, OgemaWidget mainTable,
+			String id, OgemaHttpRequest req, final Alert alert) {
+		final boolean timerActive = object.isTimerActive();
+		return getTimedJobStatusButton(object, mainTable, id, req, alert, timerActive);
+	}
+	public static Button getTimedJobStatusButton(final TimedJobMemoryData object, OgemaWidget mainTable,
+			String id, OgemaHttpRequest req, final Alert alert,
+			final boolean timerActivePre) {
+		Button startButton;
+		if((!timerActivePre) && (!object.canTimerBeActivated())) {
+			startButton = new Button(mainTable, "startBut"+id, "Itv short", req);
+			startButton.disable(req);
+		} else {
+			startButton = new Button(mainTable, "startBut"+id, req) {
+				private static final long serialVersionUID = 9186426428229396643L;
+
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					final boolean timerActive = object.isTimerActive();
+					if(timerActive) {
+						addStyle(ButtonData.BOOTSTRAP_GREEN, req);
+						removeStyle(ButtonData.BOOTSTRAP_RED, req);
+						setText("Stop Timer", req);
+					} else {
+						setText("Start timer", req);
+						addStyle(ButtonData.BOOTSTRAP_RED, req);
+						removeStyle(ButtonData.BOOTSTRAP_GREEN, req);
+					}
+				}
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					final boolean timerActive = object.isTimerActive();
+					if(timerActive) {
+						ValueResourceHelper.setCreate(object.res().disable(), true);
+						object.stopTimerIfRunning();
+						if(alert != null)
+							alert.showAlert("Stopped timer for service "+object.prov().label(req.getLocale()), true, req);
+					}
+					else {
+						object.res().disable().setValue(false);
+						int result = object.startTimerIfNotStarted();
+						if(result == 0)
+							alert.showAlert("Started timer for service "+object.prov().label(req.getLocale()), true, req);
+						else
+							alert.showAlert("Could not start timer for service "+object.prov().label(req.getLocale())+" ("+result+")", true, req);
+					}
+				}
+			};
+		}
+		if(alert != null)
+			startButton.registerDependentWidget(alert);
+		startButton.registerDependentWidget(startButton);
+		return startButton;
 	}
 }

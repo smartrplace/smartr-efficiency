@@ -58,7 +58,7 @@ public class EscalationManager {
 					final AlarmingEscalationLevel levelRes;
 					if(lvs.isEmpty()) {
 						levelRes = ResourceListHelper.getOrCreateNamedElement(prov.id(), escData.levelData());
-						ValueResourceHelper.setIfNew(levelRes.isProviderActive(), false);
+						//ValueResourceHelper.setIfNew(levelRes.isProviderActive(), false);
 						levelRes.timedJobData().setAsReference(config);
 						prov.initConfig(levelRes);
 					} else 	if(lvs.size() != 1)
@@ -68,7 +68,7 @@ public class EscalationManager {
 					persistData = levelRes;
 					
 					/** If disable is true then the service is not used at all */
-					if(!levelRes.isProviderActive().getValue())
+					if(levelRes.timedJobData().disable().getValue())
 						return true;
 					
 					List<InstallAppDevice> issueDevs = new ArrayList<>();
@@ -78,13 +78,13 @@ public class EscalationManager {
 					}
 					boolean start = prov.initProvider(levelRes, escData, issueDevs);
 					config.disable().setValue(!start);
-					levelRes.isProviderActive().setValue(start);
+					//levelRes.isProviderActive().setValue(start);
 					return true;
 				}
 				
 				@Override
 				public String getInitVersion() {
-					return "A";
+					return "XXX";
 				}
 				
 				@Override
