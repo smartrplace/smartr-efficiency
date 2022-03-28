@@ -1,10 +1,12 @@
 package org.smartrplace.apps.alarmingconfig.mgmt;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.ogema.core.application.AppID;
@@ -17,7 +19,6 @@ import org.smartrplace.alarming.escalation.util.EscalationProvider;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.widgets.messaging.model.MessagingApp;
 
 /** Template for the implementation of EscalationProviders
  * 
@@ -71,7 +72,7 @@ public abstract class EscalationProviderSimple<T extends EscalationKnownIssue> i
 	}
 
 	@Override
-	public boolean initProvider(AlarmingEscalationLevel persistData, AlarmingEscalationSettings settings,
+	public Boolean initProvider(AlarmingEscalationLevel persistData, AlarmingEscalationSettings settings,
 			List<InstallAppDevice> knownIssueDevices) {
 		this.persistData = persistData;
 		this.settings = settings;
@@ -79,7 +80,7 @@ public abstract class EscalationProviderSimple<T extends EscalationKnownIssue> i
 		for(InstallAppDevice iad: knownIssueDevices) {
 			knownIssueNotification(iad);
 		}
-		return true;
+		return null;
 	}
 
 	@Override
@@ -95,7 +96,9 @@ public abstract class EscalationProviderSimple<T extends EscalationKnownIssue> i
 			result.device = iad;
 		if(result.knownIssue == null)
 			result.knownIssue = iad.knownFault();
-		ongoingIssues.put(iad.getLocation(), result);
+		synchronized (ongoingIssues) {
+			ongoingIssues.put(iad.getLocation(), result);			
+		}
 	}
 	
 	@Override
@@ -106,6 +109,15 @@ public abstract class EscalationProviderSimple<T extends EscalationKnownIssue> i
 			} else {
 				persistData.blockedUntil().setValue(-1);
 			}
+		}
+		synchronized (ongoingIssues) {
+			List<String> toRemove = new ArrayList<>();
+			for(Entry<String, T> issue: ongoingIssues.entrySet()) {
+				if(!issue.getValue().knownIssue.isActive())
+					toRemove.add(issue.getKey());
+			}
+			for(String key: toRemove)
+				ongoingIssues.remove(key);
 		}
 		EscalationCheckResult eres = checkEscalation(ongoingIssues.values(), appIDs, now);
 		if(eres.blockedUntil != null) {

@@ -66,18 +66,21 @@ public class EscalationManager {
 					else
 						levelRes = lvs.get(0);
 					persistData = levelRes;
-					
-					/** If disable is true then the service is not used at all */
-					if(levelRes.timedJobData().disable().getValue())
-						return true;
-					
+										
 					List<InstallAppDevice> issueDevs = new ArrayList<>();
 					for(InstallAppDevice iad: controller.hwTableData.appConfigData.knownDevices().getAllElements()) {
+						if(iad.isTrash().getValue())
+							continue;
 						if(iad.knownFault().isActive())
 							issueDevs.add(iad);
 					}
-					boolean start = prov.initProvider(levelRes, escData, issueDevs);
-					config.disable().setValue(!start);
+
+					Boolean start = prov.initProvider(levelRes, escData, issueDevs);
+					if(start != null)
+						config.disable().setValue(!start);
+					if(config.disable().getValue())
+						return true;
+					
 					//levelRes.isProviderActive().setValue(start);
 					return true;
 				}

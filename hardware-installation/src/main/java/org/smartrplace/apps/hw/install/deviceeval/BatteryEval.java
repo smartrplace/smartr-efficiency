@@ -16,6 +16,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.tissue.util.resource.GatewayUtil;
 
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -114,7 +115,9 @@ public class BatteryEval extends BatteryEvalBase3 {
 		
 		Collection<InstallAppDevice> allDev = appMan.dpService().managedDeviceResoures(null);
 		for(InstallAppDevice iad: allDev) {
-			if(!iad.knownFault().assigned().exists())
+			if(iad.isTrash().getValue())
+				continue;
+			if(!iad.knownFault().isActive())
 				continue;
 			int stat = iad.knownFault().assigned().getValue();
 			if(stat == AlarmingConfigUtil.ASSIGNMENT_DEVICE_NOT_REACHEABLE) {
@@ -131,12 +134,13 @@ public class BatteryEval extends BatteryEvalBase3 {
 		String baseUrl = ResourceHelper.getLocalGwInfo(appMan.appMan()).gatewayBaseUrl().getValue();
 		String mes = buildMessageHTML(emptyNum, warnNum, changeNum, unknownNum, dnRNum, sigstrengthNum,
 				unassignedNum, evalResults, dNRResults, sigStrengthResults, baseUrl, now);
-		String gwName = baseUrl;
-		if(gwName.startsWith("https://"))
+		String gwName = GatewayUtil.getGatewayNameFromURL(appMan.appMan()); //baseUrl;
+		/*if(gwName.startsWith("https://"))
 			gwName = gwName.substring("https://".length());
 		int idx = gwName.indexOf(".smartrplace.");
 		if(idx >= 0)
 			gwName = gwName.substring(0, idx);
+		gwname = GatewayUtil.getGatewayNameFromURL(appMan.appMan());*/
 		
 		reallySendMessage(titleWithoutGw+gwName, mes, prio, appMan, appId);
 	}
@@ -170,6 +174,8 @@ public class BatteryEval extends BatteryEvalBase3 {
 		mes += getOverviewTableLine("Number of devices UNASSIGNED: "+unassignedNum);
 		String link = baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		mes += getOverviewTableLine("Details: <a href=\""+link+"\">Device Setup and Configuration</a>");
+		link = baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+		mes += getOverviewTableLine("Issues : <a href=\""+link+"\">Known Issues</a>");
 
 		mes += " </table>\r\n";
 		mes += " <table style=\"padding: 10px; background-color: #9bc0b5; min-width: 100%; color: white;\">\r\n";
@@ -213,6 +219,8 @@ public class BatteryEval extends BatteryEvalBase3 {
 		
 		mes += getValueLineHTML(headerProv, "Device", "Room", "Status", "Since");
 		for(InstallAppDevice iad: dNRResults) {
+			if(iad.isTrash().getValue())
+				continue;
 			String status = AlarmingConfigUtil.assignedText(iad.knownFault().assigned().getValue());
 			mes += getValueLineHTML(null, iad.deviceId().getValue(), getRoomName(iad), status,
 					StringFormatHelper.getDateInLocalTimeZone(iad.knownFault().ongoingAlarmStartTime().getValue()));
@@ -242,50 +250,6 @@ public class BatteryEval extends BatteryEvalBase3 {
 	private static String getOverviewTableLine(String text) {
 		return " <tr><td style=\"padding: 5px\">"+text+"</td></tr>\r\n";
 	}
-
-	/*protected static String buildMessageV1(int emptyNum, int warnNum, int changeNum, int unknownNum,
-			int dnRNum, int sigstrengthNum, int unassignedNum,
-			List<BatteryStatusResult> evalResults, List<InstallAppDevice> dNRResults, List<InstallAppDevice> sigStrengthResults,
-			String baseUrl, long now) {
-		String mes = "Time of message creation: "+TimeUtils.getDateAndTimeString(now)+"\r\n";
-		mes += "Number of empty batteries:"+emptyNum +"\r\n";
-		mes += "Number of batteries that need to be changed soon or urgently:"+warnNum +"\r\n";
-		mes += "Number of batteries that shall be changed with next visit:"+changeNum +"\r\n";
-		mes += "Number of batteries without status:"+unknownNum+"\r\n";
-		mes += "Number of devices without contact (physical check required):"+dnRNum +"\r\n";
-		mes += "Number of devices that require repeater:"+sigstrengthNum +"\r\n";
-		mes += "Number of devices UNASSIGNED:"+unassignedNum +"\r\n";
-		mes += "\r\n";
-		mes += "Battery exchanges required:\r\n";
-		mes += getLeftAlignedString("Device", COLUMN_WIDTH_1)+" | " + getLeftAlignedString("Room", COLUMN_WIDTH_1)+" | " + getRightAlignedString("Status", COLUMN_WIDTH)+" | "+ getRightAlignedString("Exp.Empty", COLUMN_WIDTH)+" | "+ getRightAlignedString("Voltage", COLUMN_WIDTH)+" | "+"\r\n";
-		for(BatteryStatusResult status: evalResults) {
-			if(status.status == BatteryStatus.OK)
-				continue;
-			mes += getValueLine(status.iad.deviceId().getValue(), ResourceUtils.getDeviceLocationRoom(status.iad.device().getLocationResource()),
-					""+status.status,
-					status.expectedEmptyDate!=null?StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate):"???",
-					String.format("%.1f", status.currentVoltage));
-		}
-		mes += "\r\n";
-		mes += "Physical checks required:\r\n";
-		mes += getLeftAlignedString("Device", COLUMN_WIDTH_1)+" | " + getLeftAlignedString("Room", COLUMN_WIDTH_1)+" | " + getRightAlignedString("Status", COLUMN_WIDTH)+" | "+ getRightAlignedString("Since", COLUMN_WIDTH)+"\r\n";
-		for(InstallAppDevice iad: dNRResults) {
-			mes += getValueLine(iad.deviceId().getValue(), ResourceUtils.getDeviceLocationRoom(iad.device().getLocationResource()),
-					StringFormatHelper.getDateInLocalTimeZone(iad.knownFault().ongoingAlarmStartTime().getValue()));
-		}
-		mes += "\r\n";
-		mes += "Devices that require repeater:\r\n";
-		mes += getLeftAlignedString("Device", COLUMN_WIDTH_1)+" | " + getLeftAlignedString("Room", COLUMN_WIDTH_1)+" | " + getRightAlignedString("Status", COLUMN_WIDTH)+" | "+ getRightAlignedString("Since", COLUMN_WIDTH)+"\r\n";
-		for(InstallAppDevice iad: sigStrengthResults) {
-			mes += getValueLine(iad.deviceId().getValue(), ResourceUtils.getDeviceLocationRoom(iad.device().getLocationResource()),
-					StringFormatHelper.getDateInLocalTimeZone(iad.knownFault().ongoingAlarmStartTime().getValue()));
-		}
-		mes += "\r\n";
-		String link = baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
-		mes += "Details: "+link+" \r\n";
-		
-		return mes;
-	}*/
 
 	public static String getValueLine(String name, Room room, String... vals) {
 		String result = getLeftAlignedString(name, COLUMN_WIDTH_1)+" | " +

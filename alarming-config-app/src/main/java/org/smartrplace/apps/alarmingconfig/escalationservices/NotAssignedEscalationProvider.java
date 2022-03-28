@@ -60,7 +60,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 		for(EscalationKnownIssue issue: issues) {
 			if(issue.knownIssue.assigned().getValue() > 0)
 				continue;
-			long duration = issue.knownIssue.ongoingAlarmStartTime().getValue() - now;
+			long duration = now - issue.knownIssue.ongoingAlarmStartTime().getValue();
 			if(duration < persistData.standardDelay().getValue())
 				continue;
 			if(duration > maxUnassigned) {
