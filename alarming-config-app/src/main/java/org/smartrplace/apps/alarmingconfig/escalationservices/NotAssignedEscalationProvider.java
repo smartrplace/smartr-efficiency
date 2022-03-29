@@ -42,7 +42,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 	public void initConfig(AlarmingEscalationLevel levelRes) {
 		//ValueResourceHelper.setCreate(levelRes.timedJobData().alignedInterval(), AbsoluteTiming.DAY);
 		ValueResourceHelper.setCreate(levelRes.timedJobData().interval(), 60);
-		ValueResourceHelper.setCreate(levelRes.standardDelay(), 36*60);
+		ValueResourceHelper.setCreate(levelRes.standardDelay(), 36*TimeProcUtil.HOUR_MILLIS);
 	}
 
 	@Override

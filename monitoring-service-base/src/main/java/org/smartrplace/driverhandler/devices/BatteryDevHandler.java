@@ -69,6 +69,9 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 		List<Datapoint> result = ESE_ElConnBoxDeviceHandler.getDatapointsStatic(device.electricityConnection(), dpService);
 		addDatapoint(device.electricityConnection().powerSensor().settings().setpoint(), result);
 		addDatapoint(device.electricityConnection().reactivePowerSensor().settings().setpoint(), result);
+		addDatapoint(device.electricityConnection().currentSensor().reading(), result);
+		addDatapoint(device.electricityConnection().voltageSensor().reading(), result);
+		addDatapoint(device.temperatureSensor().reading(), result);
 		addDatapoint(device.chargeSensor().reading(), result);
 		addDatapoint(device.chargeSensor().battery().internalVoltage().reading(), result);
 		Datapoint dp = addDatapoint(device.getSubResource("sma_type", IntegerResource.class), result);
