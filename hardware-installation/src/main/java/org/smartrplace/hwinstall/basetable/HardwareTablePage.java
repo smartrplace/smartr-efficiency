@@ -12,6 +12,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.resourcemanager.ResourceNotFoundException;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProvider.DeviceTableConfig;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
@@ -19,6 +20,7 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.gateway.EvalCollection;
 import org.ogema.model.locations.BuildingPropertyUnit;
+import org.ogema.model.locations.Location;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.util.extended.eval.widget.BooleanResourceButton;
@@ -171,7 +173,15 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 
 			@Override
 			protected Room getAttribute(InstallAppDevice object) {
-				return object.device().location().room().getLocationResource();
+				try {
+					return object.device().location().room().getLocationResource();
+				} catch(ResourceNotFoundException e) {
+					e.printStackTrace();
+					PhysicalElement dev = object.device();
+					Location loc = dev.getSubResource("location", Location.class);
+					Room room = loc.room();
+					return room.getLocationResource();
+				}
 			}
 			
 			@Override
