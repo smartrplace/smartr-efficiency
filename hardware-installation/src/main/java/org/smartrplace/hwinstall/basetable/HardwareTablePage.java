@@ -178,6 +178,12 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 				} catch(ResourceNotFoundException e) {
 					e.printStackTrace();
 					PhysicalElement dev = object.device();
+					Resource subres = dev.getSubResource("location");
+					if(subres != null) {
+						System.out.println("Location type:"+subres.getResourceType().getName());
+						subres.delete();
+					} else
+						System.out.println("Location is not available");
 					Location loc = dev.getSubResource("location", Location.class);
 					Room room = loc.room();
 					return room.getLocationResource();

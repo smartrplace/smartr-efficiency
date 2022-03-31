@@ -117,6 +117,7 @@ public class CCUPage extends MainPage {
 				vh.stringLabel("Comment", id, object.installationComment(), row);
 
 				dutyCycleLb.setPollingInterval(DEFAULT_POLL_RATE, req);
+				dutyCycleLb5MM.setPollingInterval(DEFAULT_POLL_RATE, req);
 				lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 				
 				DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
