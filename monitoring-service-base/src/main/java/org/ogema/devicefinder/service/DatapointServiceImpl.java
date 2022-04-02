@@ -482,10 +482,19 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	}
 
 	@Override
-	public Collection<Class<? extends Resource>> getManagedDeviceResoureceTypes() {
+	public Collection<Class<? extends Resource>> getManagedDeviceResourceTypes(boolean basedOnDeviceHandlers) {
 		Set<Class<? extends Resource>> result = new HashSet<>();
-		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
-			result.add(prov.getResourceType());
+		if(basedOnDeviceHandlers) {
+			for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
+				result.add(prov.getResourceType());
+			}
+			return result;
+		}
+		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
+			if(iad.isTrash().getValue())
+				continue;
+			Class<? extends Resource> resType = iad.device().getResourceType();
+			result.add(resType);
 		}
 		return result;
 	}
