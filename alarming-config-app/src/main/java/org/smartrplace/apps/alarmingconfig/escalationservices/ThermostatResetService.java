@@ -23,6 +23,7 @@ import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.message.FirebaseUtil;
 import org.smartrplace.util.message.MessageImpl;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.messaging.MessagePriority;
@@ -30,9 +31,11 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class ThermostatResetService extends EscalationProviderSimple<EscalationKnownIssue> {
 	protected final ApplicationManagerPlus appManPlus;
+	protected final String baseUrl;
 	
 	public ThermostatResetService(ApplicationManagerPlus appManPlus) {
 		this.appManPlus = appManPlus;
+		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
 	}
 
 	@Override
@@ -57,7 +60,11 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 	@Override
 	protected EscalationCheckResult checkEscalation(Collection<EscalationKnownIssue> issues, List<AppID> appIDs, long now) {
 		int maxFault = 0;
-		String emailMessage = null;
+		String emailMessage;
+		if(baseUrl == null)
+			emailMessage = null;
+		else
+			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 		int countDevice = 0;
 		for(EscalationKnownIssue issue: issues) {
 			if(issue.knownIssue.assigned().getValue() > 0)
