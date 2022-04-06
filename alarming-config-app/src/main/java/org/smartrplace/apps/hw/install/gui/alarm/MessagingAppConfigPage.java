@@ -12,6 +12,7 @@ import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.app.useradmin.config.MessagingAddress;
 import org.ogema.tools.app.useradmin.config.UserAdminData;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
@@ -29,7 +30,6 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Header;
-import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
 
 @SuppressWarnings("serial")
 public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMessagingApp, String, AlarmingMessagingApp> {
@@ -40,6 +40,8 @@ public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMes
 		super(page, controller.appMan, ResourceHelper.getSampleResource(AlarmingMessagingApp.class), false);
 		this.controller = controller;
 		this.userAdminData = controller.appMan.getResourceAccess().getResource("userAdminData");
+		if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.alarm.blockinit_escalation"))
+			initData();
 		triggerPageBuild();
 	}
 	
@@ -163,4 +165,22 @@ public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMes
 		return ResourceUtils.getHumanReadableShortName(obj);
 	}
 
+	public void initData() {
+		ResourceList<AlarmingMessagingApp> mesApps = controller.hwTableData.appConfigData.escalation().messagigApps();
+		ResourceList<AlarmingEscalationLevel> escProvs = controller.hwTableData.appConfigData.escalation().levelData();
+		AlarmingMessagingApp app0;
+		if(mesApps.size() == 0) {
+			mesApps.create();
+			app0 = mesApps.add();
+			ValueResourceHelper.setCreate(app0.name(), "Escalation-Std");
+			ValueResourceHelper.setCreate(app0.lastNameRegistered(), "Escalation-Std");
+			mesApps.activate(true);
+		} else
+			app0 = mesApps.getAllElements().get(0);
+		for(AlarmingEscalationLevel prov: escProvs.getAllElements()) {
+			if(ValueResourceHelper.setIfNew(prov.alarmLevel(), 2))
+				prov.timedJobData().disable().setValue(false);
+			ResourceListHelper.addReferenceUnique(prov.messagingApps(), app0);
+		}
+	}
 }
