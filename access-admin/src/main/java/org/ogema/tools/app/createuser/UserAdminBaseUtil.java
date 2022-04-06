@@ -133,7 +133,10 @@ public class UserAdminBaseUtil {
 				result.add("org.smartrplace.apps.smartr-efficiency-admin");*/
 				break;
 			case UserPermissionService.USER_MANAGEMENT:
-				result.add("org.ogema.tools.user-administration");
+				if(Boolean.getBoolean("org.ogema.apps.overview.usermgmt.viacms"))
+					result.add("org.smartrplace.apps.smartrcop-cms-link");
+				else
+					result.add("org.ogema.tools.user-administration");
 				break;
 			case UserPermissionService.INSTALLATION_SETUP:
 				result.add("org.smartrplace.apps.hardware-installation");
