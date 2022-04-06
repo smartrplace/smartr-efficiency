@@ -8,8 +8,8 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.ConfigurablePermission;
+import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.UserPermissionUtil;
 import org.ogema.core.model.ResourceList;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
@@ -70,7 +70,8 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 	protected ConfigurablePermission getAccessConfig(RoomTbl object, String permissionID,
 			OgemaHttpRequest req) {
 		String userName = userFilter.getSelectedUser(req);
-		AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
+		return SubcustomerUtil.getAccessConfig(object.room, permissionID, userName, appManPlus, userPerms);
+		/*AccessConfigUser userAcc = UserPermissionUtil.getUserPermissions(
 				userPerms, userName);
 		ConfigurablePermission result = new ConfigurablePermission() {
 			@Override
@@ -87,7 +88,7 @@ public class UserRoomPermissionPage extends StandardPermissionPageWithUserFilter
 		//String userName = userAcc.name().getValue();
 		result.defaultStatus = appManPlus.userPermService().getUserPermissionForRoom(userName, result.resourceId,
 				permissionID, true) > 0;
-		return result;
+		return result;*/
 	}
 
 	@Override
