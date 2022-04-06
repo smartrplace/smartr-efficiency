@@ -34,6 +34,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.TimeseriesProcAlarming;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.osgi.framework.ServiceRegistration;
+import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.apps.alarmconfig.util.AppIDImpl;
 import org.smartrplace.apps.alarmingconfig.gui.DeviceTypePage;
@@ -58,6 +59,7 @@ import org.smartrplace.util.format.WidgetHelper;
 import de.iwes.util.logconfig.CountdownTimerMulti2Single;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.messaging.listener.MessageListener;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -256,6 +258,9 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		
 		hwTableData.appConfigData.isAlarmingActive().addValueListener(alarmingActiveListener, false);
 		
+		if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.alarm.blockinit_escalation"))
+			initEscalationData();
+
 		this.appsToSend = new HashMap<String, AppID>();
 		registerMessagingApp(AlarmingUtiH.SP_SUPPORT_FIRST, null);
 		registerMessagingApp(AlarmingUtiH.CUSTOMER_FIRST, "CF");
@@ -628,5 +633,24 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 	@Override
 	public void updateAlarmingWithRetard() {
 		alUpdTimer.newEvent();
+	}
+	
+	public void initEscalationData() {
+		ResourceList<AlarmingMessagingApp> mesApps = hwTableData.appConfigData.escalation().messagigApps();
+		ResourceList<AlarmingEscalationLevel> escProvs = hwTableData.appConfigData.escalation().levelData();
+		AlarmingMessagingApp app0;
+		if(mesApps.size() == 0) {
+			mesApps.create();
+			app0 = mesApps.add();
+			ValueResourceHelper.setCreate(app0.name(), "Escalation-Std");
+			ValueResourceHelper.setCreate(app0.lastNameRegistered(), "Escalation-Std");
+			mesApps.activate(true);
+		} else
+			app0 = mesApps.getAllElements().get(0);
+		for(AlarmingEscalationLevel prov: escProvs.getAllElements()) {
+			if(ValueResourceHelper.setIfNew(prov.alarmLevel(), 2))
+				prov.timedJobData().disable().setValue(false);
+			ResourceListHelper.addReferenceUnique(prov.messagingApps(), app0);
+		}
 	}
 }

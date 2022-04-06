@@ -40,8 +40,6 @@ public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMes
 		super(page, controller.appMan, ResourceHelper.getSampleResource(AlarmingMessagingApp.class), false);
 		this.controller = controller;
 		this.userAdminData = controller.appMan.getResourceAccess().getResource("userAdminData");
-		if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.alarm.blockinit_escalation"))
-			initData();
 		triggerPageBuild();
 	}
 	
@@ -163,24 +161,5 @@ public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMes
 	@Override
 	protected String getLabel(AlarmingMessagingApp obj, OgemaHttpRequest req) {
 		return ResourceUtils.getHumanReadableShortName(obj);
-	}
-
-	public void initData() {
-		ResourceList<AlarmingMessagingApp> mesApps = controller.hwTableData.appConfigData.escalation().messagigApps();
-		ResourceList<AlarmingEscalationLevel> escProvs = controller.hwTableData.appConfigData.escalation().levelData();
-		AlarmingMessagingApp app0;
-		if(mesApps.size() == 0) {
-			mesApps.create();
-			app0 = mesApps.add();
-			ValueResourceHelper.setCreate(app0.name(), "Escalation-Std");
-			ValueResourceHelper.setCreate(app0.lastNameRegistered(), "Escalation-Std");
-			mesApps.activate(true);
-		} else
-			app0 = mesApps.getAllElements().get(0);
-		for(AlarmingEscalationLevel prov: escProvs.getAllElements()) {
-			if(ValueResourceHelper.setIfNew(prov.alarmLevel(), 2))
-				prov.timedJobData().disable().setValue(false);
-			ResourceListHelper.addReferenceUnique(prov.messagingApps(), app0);
-		}
 	}
 }
