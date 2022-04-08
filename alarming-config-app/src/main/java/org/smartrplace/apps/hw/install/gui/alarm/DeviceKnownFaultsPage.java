@@ -66,6 +66,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		return "3. Device Issue Status";
 	}
 	
+	@Override
+	protected boolean isAllOptionAllowedSuper(OgemaHttpRequest req) {
+		return true;
+	}
+	
 	public DeviceKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller);
 		
