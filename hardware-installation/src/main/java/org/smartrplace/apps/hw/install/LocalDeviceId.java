@@ -62,7 +62,8 @@ public abstract class LocalDeviceId {
 		
         int maxSerial = 0;
         for(InstallAppDevice d : cfg.knownDevices().getAllElements()) {
-            if (d.device().getClass() == dev.device().getClass()) {
+            if(d.deviceId().getValue().startsWith(typeId+"-")) {
+        	//if (d.device().getClass() == dev.device().getClass()) {
                 /*String id = d.deviceId().getValue();
                 Matcher m = ID_PATTERN.matcher(id);
                 if (!m.find()) continue;

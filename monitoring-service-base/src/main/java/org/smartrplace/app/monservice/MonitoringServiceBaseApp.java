@@ -37,6 +37,8 @@ import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
 import org.smartrplace.driverhandler.devices.FaultMessageDeviceHandler;
+import org.smartrplace.driverhandler.devices.FaultSingleDeviceHandler;
+import org.smartrplace.driverhandler.devices.FaultSingleDeviceIntegerHandler;
 import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HMGas_MeterDeviceHandler;
@@ -252,6 +254,12 @@ public class MonitoringServiceBaseApp implements Application {
 	protected ServiceRegistration<DeviceHandlerProvider> srFaultDev = null;
 	private FaultMessageDeviceHandler devHandFaultDev;
 	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srFaultSingleDev = null;
+	private FaultSingleDeviceHandler devHandFaultSingleDev;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srFaultSingleIntDev = null;
+	private FaultSingleDeviceIntegerHandler devHandFaultSingleIntDev;
+	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srThermStor = null;
 	private ThermalStorage_DeviceHandler devHandThermStor;
 	@SuppressWarnings("rawtypes")
@@ -357,7 +365,11 @@ public class MonitoringServiceBaseApp implements Application {
 
 	   devHandFaultDev = new FaultMessageDeviceHandler(controller.appManPlus);
 	   srFaultDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultDev, null);
+	   devHandFaultSingleDev = new FaultSingleDeviceHandler(controller.appManPlus);
+	   srFaultSingleDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultSingleDev, null);
 	   devHandThermStor = new ThermalStorage_DeviceHandler(controller.appManPlus);
+	   devHandFaultSingleIntDev = new FaultSingleDeviceIntegerHandler(controller.appManPlus);
+	   srFaultSingleIntDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultSingleIntDev, null);
 	   srThermStor = bc.registerService(DeviceHandlerProvider.class, devHandThermStor, null);
 	   devHandFan = new MechanicalFan_DeviceHandler(controller.appManPlus);
 	   srFan = bc.registerService(DeviceHandlerProvider.class, devHandFan, null);
@@ -404,6 +416,8 @@ public class MonitoringServiceBaseApp implements Application {
       	if (srIECMeter != null) srIECMeter.unregister();
      	if (srGasMeter != null) srGasMeter.unregister();
      	if (srFaultDev != null) srFaultDev.unregister();
+     	if (srFaultSingleDev != null) srFaultSingleDev.unregister();
+     	if (srFaultSingleIntDev != null) srFaultSingleIntDev.unregister();
     	if (srThermStor != null) srThermStor.unregister();
        	if (srFan != null) srFan.unregister();
 

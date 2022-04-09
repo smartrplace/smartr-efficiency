@@ -10,6 +10,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.Actor;
@@ -23,6 +24,7 @@ import de.iwes.util.resource.ValueResourceHelper;
 public class FaultMessageDeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 
 	private static final long MIN_UPDATE_TIME = 60000;
+	public static final int MAX_NONALARM_VALUE = 1;
 
 	public FaultMessageDeviceHandler(ApplicationManagerPlus appMan) {
 		super(appMan, false);
@@ -86,7 +88,7 @@ public class FaultMessageDeviceHandler extends DeviceHandlerSimple<SensorDevice>
 				if(((OnOffSwitch)act).stateFeedback().getValue())
 					count++;
 			} else if(act.stateFeedback() instanceof IntegerResource)
-				if(((IntegerResource)act.stateFeedback()).getValue() > 0)
+				if(((IntegerResource)act.stateFeedback()).getValue() > MAX_NONALARM_VALUE)
 					count++;
 			else if(act.stateFeedback() instanceof BooleanResource)
 				if(((BooleanResource)act.stateFeedback()).getValue())
@@ -106,10 +108,15 @@ public class FaultMessageDeviceHandler extends DeviceHandlerSimple<SensorDevice>
 						0f, 0.5f, 0.1f, -1);
 			} else if(act.stateFeedback() instanceof IntegerResource)
 				AlarmingUtiH.setTemplateValues(appDevice, (IntegerResource)act.stateFeedback(),
-						0f, 0.5f, 0.1f, -1);
+						0f, MAX_NONALARM_VALUE, 0.1f, -1);
 			else if(act.stateFeedback() instanceof BooleanResource)
 				AlarmingUtiH.setTemplateValues(appDevice, (BooleanResource)act.stateFeedback(),
 						0f, 0.5f, 0.1f, -1);
 		}
+	}
+	
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "FAMD";
 	}
 }
