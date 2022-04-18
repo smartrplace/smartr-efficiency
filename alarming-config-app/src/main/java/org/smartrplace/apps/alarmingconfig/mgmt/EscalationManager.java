@@ -15,6 +15,7 @@ import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.alarming.escalation.util.EscalationProvider;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.escalationservices.NotAssignedEscalationProvider;
+import org.smartrplace.apps.alarmingconfig.escalationservices.OnOffSwitchEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.ThermostatResetService;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -105,7 +106,7 @@ public class EscalationManager {
 					return 0;
 				}
 			};
-			TimedJobMemoryData timedData = controller.dpService.timedJobService().registerTimedJobProvider(timedJobP);
+			controller.dpService.timedJobService().registerTimedJobProvider(timedJobP);
 		}
 	}
 	
@@ -124,5 +125,8 @@ public class EscalationManager {
 		
 		NotAssignedEscalationProvider notAssigned = new NotAssignedEscalationProvider(controller.appManPlus);
 		knownEscProvs.put(notAssigned.id(), notAssigned);
+
+		OnOffSwitchEscalationProvider onOff = new OnOffSwitchEscalationProvider(controller.appManPlus);
+		knownEscProvs.put(onOff.id(), onOff);
 	}
 }
