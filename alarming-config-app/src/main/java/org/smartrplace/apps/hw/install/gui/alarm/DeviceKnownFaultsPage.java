@@ -26,6 +26,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
+import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -108,7 +109,32 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		};
 		releaseAllUnassigned.setDefaultText("Relase all Unassigned");
 		releaseAllUnassigned.setDefaultConfirmMsg("Really release all known issues that are not assigned?");
+		
 		topTable.setContent(1, 6, releaseAllUnassigned);
+		
+		RedirectButton homeScreen = new RedirectButton(page, "homeScreen", "Other Apps", "/org/smartrplace/apps/apps-overview/index.html") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(user.equals("master"))
+					setUrl("/ogema/index.html", req);
+			}
+			
+		};
+		topTable.setContent(1, 3, homeScreen);
+		
+		RedirectButton thermostatPage = new RedirectButton(page, "thermostatPage", "Devices", "/org/smartrplace/hardwareinstall/index.html") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(user.equals("master")) {
+					setUrl("/org/smartrplace/hardwareinstall/expert/thermostatDetails2.hmtl.html", req);
+					setText("Thermostats", req);
+				}
+			}
+			
+		};
+		topTable.setContent(1, 4, thermostatPage);
 	}
 
 	@Override

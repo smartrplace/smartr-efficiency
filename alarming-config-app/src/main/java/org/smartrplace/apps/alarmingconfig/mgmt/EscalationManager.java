@@ -20,6 +20,7 @@ import org.smartrplace.apps.alarmingconfig.escalationservices.ThermostatResetSer
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -112,7 +113,9 @@ public class EscalationManager {
 	
 	public void knownIssueNotification(AlarmGroupData knownDeviceFault, String title, String message) {
 		InstallAppDevice iad = knownDeviceFault.getParent();
-		ValueResourceHelper.setCreate(knownDeviceFault.lastMessage(), title+" :: "+message);
+		String text = StringFormatHelper.getTimeDateInLocalTimeZone(controller.appMan.getFrameworkTime())+" : "+title+
+				"\r\n"+message;
+		ValueResourceHelper.setCreate(knownDeviceFault.lastMessage(), text); //title+" :: "+message);
 		for(EscalationProvider prov: knownEscProvs.values()) {
 			prov.knownIssueNotification(iad);
 		}

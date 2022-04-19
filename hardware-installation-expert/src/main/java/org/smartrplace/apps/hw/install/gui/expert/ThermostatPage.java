@@ -217,7 +217,7 @@ public class ThermostatPage extends MainPage {
 				if(req == null) {
 					vh.registerHeaderEntry("Com/Err");
 					vh.registerHeaderEntry("Last Err");
-					vh.registerHeaderEntry("CtrlMode");
+					vh.registerHeaderEntry("ManuMode");
 				} else {
 					final IntegerResource errorCode = ResourceHelper.getSubResourceOfSibbling(device,
 							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "errorCode", IntegerResource.class);
@@ -300,7 +300,7 @@ public class ThermostatPage extends MainPage {
 							}
 						}
 					};
-					row.addCell(WidgetHelper.getValidWidgetId("CtrlMode"), ctrlModeLb);
+					row.addCell(WidgetHelper.getValidWidgetId("ManuMode"), ctrlModeLb);
 					ctrlModeLb.setPollingInterval(DEFAULT_POLL_RATE, req);
 				
 				}
