@@ -48,7 +48,8 @@ public class UserPermissionServiceImpl implements UserPermissionService {
 
 	@Override
 	public boolean hasUserPermissionForRoom(String userName, Room room) {
-		return hasUserPermissionForRoom(userName, room, USER_ROOM_PERM);
+		return hasUserPermissionForRoom(userName, room, USER_ROOM_PERM) ||
+				hasUserPermissionForRoom(userName, room, USER_PRIORITY_PERM);
 	}
 
 	@Override
