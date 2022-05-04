@@ -125,11 +125,14 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 					Map<String, String> valuesToSet = new LinkedHashMap<>();
 					int sid = subcustomerRef.subCustomerType().getValue();
 					SubCustomerType data = SubcustomerUtil.subCustomerTypes.get(sid);
-					for(Entry<Integer, NamedIntegerType> roomEntry: data.roomTypes.entrySet()) {
+					for(Entry<Integer, NamedIntegerType> roomEntry: data.roomTypes.entrySet()) {						
 						String label = roomEntry.getValue().labelReq(req);
 						valuesToSet.put(""+roomEntry.getKey(), label);
 					}
-					vh.dropdown("Room Type", id, object.type(), row, valuesToSet);
+					if(!valuesToSet.isEmpty())
+						vh.dropdown("Room Type", id, object.type(), row, valuesToSet);
+					else
+						controller.log.warn("Empty valuesToSet for "+subcustomerRef.getLocation());
 				}
 				
 				String roomId = ServletPageProvider.getNumericalIdString(object.getLocation(), true);

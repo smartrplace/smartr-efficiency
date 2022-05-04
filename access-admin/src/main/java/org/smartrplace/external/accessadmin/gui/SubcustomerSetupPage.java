@@ -125,8 +125,16 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 		}
 		addNameLabel(object, vh, id, row, req);
 		Map<String, String> valuesToSet = new HashMap<>();
+		Integer standardType = null;
 		for(Entry<Integer, SubCustomerType> type: SubcustomerUtil.subCustomerTypes.entrySet()) {
 			valuesToSet.put(""+type.getKey(), type.getValue().labelReq(req));
+			if(standardType == null)
+				standardType = type.getKey();
+		}
+		int curType = object.res.subCustomerType().getValue();
+		if(SubcustomerUtil.subCustomerTypes.get(curType) == null) {
+			object.res.subCustomerType().setValue(standardType);
+			appMan.getLogger().error("Found unknown type "+curType+" for subcustomer "+object.res.getLocation()+", setting to "+standardType);
 		}
 		vh.dropdown("Type", id, object.res.subCustomerType(), row, valuesToSet);
 		if(object.res.aggregationType().getValue() <= 0)
