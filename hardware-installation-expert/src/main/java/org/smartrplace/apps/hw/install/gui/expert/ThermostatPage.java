@@ -14,6 +14,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
+import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.buildingtechnology.ThermostatProgram;
 import org.ogema.model.locations.Room;
@@ -35,6 +36,7 @@ import org.smartrplace.util.virtualdevice.SensorData;
 import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -187,31 +189,57 @@ public class ThermostatPage extends MainPage {
 						lastContactValve.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
 				}
-				final FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
-				if(valveError.exists() || (req == null)) {
-					if(req == null) {
-						vh.registerHeaderEntry("VErr");
-						vh.registerHeaderEntry("Last VErr");
-					} else {
-						//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
-						Label valveErrL = vh.stringLabel("VErr", id, new LabelFormatter() {
-							
-							@Override
-							public OnGETData getData(OgemaHttpRequest req) {
-								float val = valveError.getValue();
-								int state;
-								if(val < 4)
-									state = 0;
-								else if(val > 4)
-									state = 2;
-								else
-									state = 1;
-								return new OnGETData(String.format("%.1f", val), state);
-							}
-						}, row);
-						Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
-						valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
-						lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+				if(type == ThermostatPageType.STANDARD) {
+					final FloatResource errorRun = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateControl();
+					final FloatResource errorRunFb = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateFeedback();
+					if(errorRun.exists() || (req == null)) {
+						if(req == null) {
+							vh.registerHeaderEntry("EmptyPos");
+							vh.registerHeaderEntry("Last EP");
+						} else {
+							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
+							Label valveErrL = vh.stringLabel("EmptyPos", id, new LabelFormatter() {
+								
+								@Override
+								public OnGETData getData(OgemaHttpRequest req) {
+									float val = errorRun.getValue();
+									float valFb = errorRunFb.getValue();
+									int state = ValueResourceHelper.isAlmostEqual(val, valFb)?1:0;
+									return new OnGETData(String.format("%.0f / %.0f", val*100, valFb*100), state);
+								}
+							}, row);
+							Label lastContactValveErr = addLastContact("Last EP", vh, id, req, row, errorRunFb);
+							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
+							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+						}
+					}					
+				} else {
+					final FloatResource valveError = device.valve().getSubResource("eq3state", FloatResource.class);
+					if(valveError.exists() || (req == null)) {
+						if(req == null) {
+							vh.registerHeaderEntry("VErr");
+							vh.registerHeaderEntry("Last VErr");
+						} else {
+							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
+							Label valveErrL = vh.stringLabel("VErr", id, new LabelFormatter() {
+								
+								@Override
+								public OnGETData getData(OgemaHttpRequest req) {
+									float val = valveError.getValue();
+									int state;
+									if(val < 4)
+										state = 0;
+									else if(val > 4)
+										state = 2;
+									else
+										state = 1;
+									return new OnGETData(String.format("%.1f", val), state);
+								}
+							}, row);
+							Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
+							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
+							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+						}
 					}
 				}
 				if(req == null) {

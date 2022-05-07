@@ -36,6 +36,7 @@ import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
+import org.smartrplace.driverhandler.devices.EventPushButtonHandler;
 import org.smartrplace.driverhandler.devices.FaultMessageDeviceHandler;
 import org.smartrplace.driverhandler.devices.FaultSingleDeviceHandler;
 import org.smartrplace.driverhandler.devices.FaultSingleDeviceIntegerHandler;
@@ -265,6 +266,9 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srFan = null;
 	private MechanicalFan_DeviceHandler devHandFan;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srEventBut = null;
+	private EventPushButtonHandler devHandEventBut;
 	
 	@Activate
 	   void activate(BundleContext bc) {
@@ -373,6 +377,8 @@ public class MonitoringServiceBaseApp implements Application {
 	   srThermStor = bc.registerService(DeviceHandlerProvider.class, devHandThermStor, null);
 	   devHandFan = new MechanicalFan_DeviceHandler(controller.appManPlus);
 	   srFan = bc.registerService(DeviceHandlerProvider.class, devHandFan, null);
+	   devHandEventBut = new EventPushButtonHandler(controller.appManPlus);
+	   srEventBut = bc.registerService(DeviceHandlerProvider.class, devHandEventBut, null);
  	}
  	
      /*
@@ -420,6 +426,7 @@ public class MonitoringServiceBaseApp implements Application {
      	if (srFaultSingleIntDev != null) srFaultSingleIntDev.unregister();
     	if (srThermStor != null) srThermStor.unregister();
        	if (srFan != null) srFan.unregister();
+       	if (srEventBut != null) srEventBut.unregister();
 
        	if (controller != null)
     		controller.close();
