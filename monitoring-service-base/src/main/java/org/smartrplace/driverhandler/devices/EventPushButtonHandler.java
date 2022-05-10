@@ -41,11 +41,11 @@ public class EventPushButtonHandler extends DeviceHandlerSimple<EventPushButton>
 	@Override
 	protected Collection<Datapoint> getDatapoints(EventPushButton device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
-		addDatapoint(device.event().reading(), result);
+		addDatapoint(device.event().reading(), "event", result);
 		addDatapoint(device.getSubResource("event_cnt", TimeResource.class), "event_cnt", result);
 		addDatapoint(device.battery().chargeSensor().reading(), result);
-		addDatapoint(device.online(), result);
-		addDatapoint(device.getSubResource("disableLedStatus", BooleanResource.class), result);
+		addDatapoint(device.online(), "online", result);
+		addDatapoint(device.getSubResource("disableLedStatus", BooleanResource.class), "disableLedStatus", result);
 		return result;
 	}
 
