@@ -60,14 +60,20 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	protected final AccessAdminController controller;
 	protected RoomFilteringWithGroups<Room> roomFilter;
 	protected final boolean isExpert;
+	protected final boolean showLocations;
 
 	public RoomConfigPage(WidgetPage<?> page, AccessAdminController controller) {
 		this(page, controller, false);
 	}
 	public RoomConfigPage(WidgetPage<?> page, AccessAdminController controller, boolean isExpert) {
+		this(page, controller, isExpert, false);
+	}
+	public RoomConfigPage(WidgetPage<?> page, AccessAdminController controller, boolean isExpert,
+			boolean showLocations) {
 		super(page, controller.appMan, ResourceHelper.getSampleResource(Room.class));
 		this.controller = controller;
 		this.isExpert = isExpert;
+		this.showLocations = showLocations;
 		triggerPageBuild();
 	}
 
@@ -150,6 +156,9 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	protected void addWidgetsAfterMultiSelect(Room object, ObjectResourceGUIHelper<Room, Room> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);
+		if(showLocations) {
+			vh.stringLabel("Location", id, object.getLocation(), row);
+		}
 	}
 	
 	@Override

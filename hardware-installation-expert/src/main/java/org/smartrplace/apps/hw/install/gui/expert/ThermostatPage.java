@@ -146,8 +146,9 @@ public class ThermostatPage extends MainPage {
 								val = val.replaceAll("[^\\d.]", "");
 								try {
 									float value  = Float.parseFloat(val);
-									if(value < 4.5f || value> 30.5f) {
-										alert.showAlert("Allowed range: 4.5 to 30°C", false, req);
+									if((Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints") && (value < -3f || value > 3f)) ||
+											((!Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints")) && (value < 4.5f || value> 30.5f))) {
+										alert.showAlert("Outside allowed range", false, req);
 									} else
 										device.temperatureSensor().settings().setpoint().setCelsius(value);
 								} catch (NumberFormatException | NullPointerException e) {

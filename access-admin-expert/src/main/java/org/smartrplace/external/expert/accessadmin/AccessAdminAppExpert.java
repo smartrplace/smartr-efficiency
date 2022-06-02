@@ -85,6 +85,11 @@ public class AccessAdminAppExpert implements Application, AccessAdminExtensionPr
 			menu.addEntry("2. Room Configuration Expert", pageRes3);
 			configMenuConfig(pageRes3.getMenuConfiguration());
 
+			WidgetPage<?> pageRes3b = widgetApp.createWidgetPage("roomconfigexpertlocations.html");
+			new RoomConfigPage(pageRes3b, controller, true, true);
+			menu.addEntry("3. Room Configuration Expert (with locations)", pageRes3b);
+			configMenuConfig(pageRes3b.getMenuConfiguration());
+
 			WidgetPage<?> pageRes2 = widgetApp.createWidgetPage("userroomgroupmap.html");
 			new UserRoomGroupPermissionPageExpert(pageRes2, controller);
 			menu.addEntry("4. User - Room Group Mapping", pageRes2);

@@ -58,9 +58,6 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
-/**
- * Template OGEMA application class
- */
 @Component(specVersion = "1.2", immediate = true)
 @Service({Application.class, HWInstallExtensionProvider.class})
 public class HardwareInstallAppExpert implements Application, HWInstallExtensionProvider {
