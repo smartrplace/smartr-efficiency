@@ -49,7 +49,7 @@ public abstract class LocalDeviceId {
 			typeId = "*" + dev.device().getClass().getSimpleName().replaceAll("[^A-Z]", "");
 		}
 
-		PreKnownDeviceData pre = getPreDeviceData(dev.device(), cfg);
+		PreKnownDeviceData pre = getPreDeviceData(dev.device(), cfg, tableProvider.id());
 		if(pre != null) {
 			String deviceId = getAndPrepareConflictFreeDeviceId(dev.device(), pre, typeId, cfg);
 			if(pre.room().isReference(false) && (!dev.device().location().room().exists()))
@@ -120,10 +120,29 @@ public abstract class LocalDeviceId {
 		}
     }
 
-	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg) {
+	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
+			String devHandId) {
+		PreKnownDeviceData forDevHand = getPreDeviceData(device, cfg, devHandId, true);
+		if(forDevHand != null)
+			return forDevHand;
+		return getPreDeviceData(device, cfg, devHandId, false);
+	}
+	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
+			String devHandId, boolean mustFitDeviceHandler) {
 		String hmId = LogHelper.getDeviceId(device);
 		for(PreKnownDeviceData pre : cfg.preKnownDevices().getAllElements()) {
-			if(hmId.equals(pre.deviceEndCode().getValue()))
+			if(mustFitDeviceHandler && 
+					((!pre.deviceHandlerId().isActive()) || (pre.deviceHandlerId().getValue().isEmpty())))
+				continue;
+			if(pre.deviceHandlerId().isActive()) {
+				String val = pre.deviceHandlerId().getValue();
+				if((!val.isEmpty()) && (!val.equals(devHandId)))
+					continue;
+			}
+			String endCode = pre.deviceEndCode().getValue();
+			if(endCode.length() != 4)
+				hmId = LogHelper.getDeviceId(device, endCode.length());
+			if(hmId.equals(endCode))
 				return pre;
 		}
 		return null;

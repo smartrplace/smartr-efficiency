@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.PreKnownDeviceData;
@@ -17,25 +18,29 @@ import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.OGEMAResourceCopyHelper;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.HeaderData;
 import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.template.DefaultDisplayTemplate;
 
 @SuppressWarnings("serial")
-public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, PreKnownDeviceData> {
+public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, PreKnownDeviceData> {
 	protected final HardwareInstallController controller;
 	protected static final String SERIAL_NUMBER_HEAD = "Last 4 digits of serial number";
 	protected static final String DEVICE_ID_HEAD = "DeviceId number";
 	protected static final String ROOM_HEADER = "Room (if known)";
 	protected static final String LOCATION_HEADER = "Location (if known)";
 	
-	public PreKnownDeviceTable(WidgetPage<?> page, HardwareInstallController controller) {
+	public PreKnownDevicePage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller.appMan, PreKnownDeviceData.class, false);
 		this.controller = controller;
 		triggerPageBuild();
@@ -50,6 +55,7 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 			vh.registerHeaderEntry(DEVICE_ID_HEAD);
 			vh.registerHeaderEntry(ROOM_HEADER);
 			vh.registerHeaderEntry(LOCATION_HEADER);
+			vh.registerHeaderEntry("Device Type");
 			vh.registerHeaderEntry("Comment");
 			vh.registerHeaderEntry("Add/delete");
 			return;
@@ -113,6 +119,49 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 		//vh.stringEdit(DEVICE_ID_HEAD, id, object.deviceIdNumber(), row, alert);
 		DeviceTableRaw.addRoomWidgetStatic(vh, id, req, row, controller.appMan, object.room(), ROOM_HEADER);
 		vh.stringEdit(LOCATION_HEADER, id, object.installationLocation(), row, alert);
+		
+		TemplateDropdown<DeviceHandlerProviderDP<?>> devTypeDrop = new TemplateDropdown<DeviceHandlerProviderDP<?>>(
+				mainTable, "devTypeDrop"+id, req) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String val = object.deviceHandlerId().getValue();
+				DeviceHandlerProviderDP<?> selected;
+				if(val == null || val.isEmpty())
+					selected = null;
+				else {
+					selected = controller.dpService.getDeviceHandlerProvider(val);
+				}
+				selectItem(selected, req);
+				
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				DeviceHandlerProviderDP<?> selected = getSelectedItem(req);
+				String val;
+				if(selected == null) {
+					object.deviceHandlerId().setValue("");
+				} else {
+					val = selected.id();
+					ValueResourceHelper.setCreate(object.deviceHandlerId(), val);
+					if(alert != null) alert.showAlert("New value: " + val, true, req);
+				}
+			}
+			
+		};
+		devTypeDrop.setTemplate(new DefaultDisplayTemplate<DeviceHandlerProviderDP<?>>() {
+			@Override
+			public String getLabel(DeviceHandlerProviderDP<?> object, OgemaLocale locale) {
+				if(object == null)
+					return "Any";
+				return object.getTableTitle();
+			}
+		});
+		List<DeviceHandlerProviderDP<?>> all = controller.dpService.getDeviceHandlerProviders();
+		devTypeDrop.setDefaultItems(all);
+		devTypeDrop.setDefaultAddEmptyOption(true, "Any");
+		row.addCell(WidgetHelper.getValidWidgetId("Device Type"), devTypeDrop);
+		
 		vh.stringEdit("Comment", id, object.comment(), row, alert);
 		if(object.getLocation().startsWith("EvalCollection")) {
 			Button addButton = new Button(mainTable, "addButton"+id, "Add", req) {
@@ -139,12 +188,20 @@ public class PreKnownDeviceTable extends ObjectGUITablePage<PreKnownDeviceData, 
 						} catch(NumberFormatException e) {}
 					}
 					ResourceList<PreKnownDeviceData> preResList = controller.appConfigData.preKnownDevices();
+					
+					String devHandId = object.deviceHandlerId().getValue();
 					List<PreKnownDeviceData> allExist = preResList.getAllElements();
 					for(PreKnownDeviceData pre: allExist) {
 						if(serialNumber.equals(pre.deviceEndCode().getValue())) {
-							alert.showAlert("Serial number already exists: "+serialNumber, false, req);
+							/** If we have the same serial number ending for two devices even from different types
+							 * then we should add more information to make it unique
+							 */
+							alert.showAlert("Serial number already exists: "+serialNumber+" . If two serial numbers have the same last 4 digits please provide 5 digit endings for both devices!", false, req);
 							return;													
 						}
+						String preDevHandId = pre.deviceHandlerId().getValue();
+						if(preDevHandId != null && devHandId != null && (!preDevHandId.equals(devHandId)))
+							continue;
 						if(deviceId.equals(pre.deviceIdNumber().getValue())) {
 							alert.showAlert("DeviceId already exists: "+deviceId, false, req);
 							return;													

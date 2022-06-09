@@ -559,15 +559,27 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		return getMangedDeviceResource(device);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends Resource> DeviceHandlerProviderDP<T> getDeviceHandlerProvider(
 			InstallAppDevice installAppDeviceRes) {
+		String devHandId = installAppDeviceRes.devHandlerInfo().getValue();
+		return getDeviceHandlerProvider(devHandId);
+		/*for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
+			if(prov.id().equals())
+				return (DeviceHandlerProviderDP<T>) prov;
+		}
+		return null;*/
+	}
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Resource> DeviceHandlerProviderDP<T> getDeviceHandlerProvider(
+			String devHandId) {
 		for(DeviceHandlerProvider<?> prov: getTableProviders().values()) {
-			if(prov.id().equals(installAppDeviceRes.devHandlerInfo().getValue()))
+			if(prov.id().equals(devHandId))
 				return (DeviceHandlerProviderDP<T>) prov;
 		}
 		return null;
+		
 	}
 
 	@Override
