@@ -4,13 +4,17 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.csv.CSVRecord;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.PreKnownDeviceData;
-import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
+import org.smartrplace.csv.upload.generic.CSVUploadWidgets;
+import org.smartrplace.csv.upload.generic.CSVUploadWidgets.CSVUploadListener;
+import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
@@ -21,7 +25,7 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
-import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.html.Linebreak;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -30,6 +34,7 @@ import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.HeaderData;
 import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.template.DefaultDisplayTemplate;
 
 @SuppressWarnings("serial")
@@ -167,7 +172,10 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			Button addButton = new Button(mainTable, "addButton"+id, "Add", req) {
 				@Override
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					String serialNumber = object.deviceEndCode().getValue().trim();
+					String errorMessage = addEntryLine(object);
+					if(errorMessage != null)
+						alert.showAlert(errorMessage, false, req);
+					/*String serialNumber = object.deviceEndCode().getValue().trim();
 					if(serialNumber.length() < 4) {
 						alert.showAlert("Serial number has less than 4 digits!", false, req);
 						return;
@@ -193,9 +201,9 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 					List<PreKnownDeviceData> allExist = preResList.getAllElements();
 					for(PreKnownDeviceData pre: allExist) {
 						if(serialNumber.equals(pre.deviceEndCode().getValue())) {
-							/** If we have the same serial number ending for two devices even from different types
-							 * then we should add more information to make it unique
-							 */
+							// If we have the same serial number ending for two devices even from different types
+							// then we should add more information to make it unique
+							//
 							alert.showAlert("Serial number already exists: "+serialNumber+" . If two serial numbers have the same last 4 digits please provide 5 digit endings for both devices!", false, req);
 							return;													
 						}
@@ -220,7 +228,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 					//if(object.comment().exists())
 					//	object.comment().delete();
 					//if(object.room().isReference(false))
-					//	object.room().delete();
+					//	object.room().delete();*/
 				}
 			};
 			row.addCell(WidgetHelper.getValidWidgetId("Add/delete"), addButton);
@@ -236,6 +244,56 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 		
 	}
 
+	protected String addEntryLine(PreKnownDeviceData object) {
+		String serialNumber = object.deviceEndCode().getValue().trim();
+		if(serialNumber.length() < 4) {
+			return "Serial number has less than 4 digits!";
+		}
+		String deviceId = object.deviceIdNumber().getValue().trim();
+		if(deviceId.isEmpty()) {
+			return "DeviceId cannot be empty!";												
+		}
+		Integer devNum = null;
+		if(deviceId.length() <= 4) {
+			try {
+				devNum = Integer.parseInt(deviceId);
+				if(devNum >= 0) {
+					deviceId = String.format("%04d", devNum);
+					object.deviceIdNumber().setValue(deviceId);
+				}
+			} catch(NumberFormatException e) {}
+		}
+		ResourceList<PreKnownDeviceData> preResList = controller.appConfigData.preKnownDevices();
+		
+		String devHandId = object.deviceHandlerId().getValue();
+		List<PreKnownDeviceData> allExist = preResList.getAllElements();
+		for(PreKnownDeviceData pre: allExist) {
+			if(serialNumber.equals(pre.deviceEndCode().getValue())) {
+				/** If we have the same serial number ending for two devices even from different types
+				 * then we should add more information to make it unique
+				 */
+				return "Serial number already exists: "+serialNumber+" . If two serial numbers have the same last 4 digits please provide 5 digit endings for both devices!";													
+			}
+			String preDevHandId = pre.deviceHandlerId().getValue();
+			if(preDevHandId != null && devHandId != null && (!preDevHandId.equals(devHandId)))
+				continue;
+			if(deviceId.equals(pre.deviceIdNumber().getValue())) {
+				return "DeviceId already exists: "+deviceId;													
+			}
+		}
+		
+		PreKnownDeviceData newEl = ResourceListHelper.getOrCreateNamedElementFlex(serialNumber, preResList, true, false);
+		OGEMAResourceCopyHelper.copySubResourceIntoDestination(newEl, object,
+				controller.appMan, true);
+		
+		object.deviceEndCode().setValue("");
+		if(devNum == null)
+			object.deviceIdNumber().setValue("");
+		else
+			object.deviceIdNumber().setValue(String.format("%04d", devNum+1));
+		return null;
+	}
+	
 	@Override
 	public PreKnownDeviceData getResource(PreKnownDeviceData object, OgemaHttpRequest req) {
 		return object;
@@ -247,13 +305,45 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
 		page.append(header).linebreak();
 		
-		DeviceTypeFilterDropdown typeFilterDrop = new DeviceTypeFilterDropdown(page, "devTypeFilterDrop",
+		/*DeviceTypeFilterDropdown typeFilterDrop = new DeviceTypeFilterDropdown(page, "devTypeFilterDrop",
 				OptionSavingMode.PER_USER, appMan, controller.dpService);
 		StaticTable topTable = new StaticTable(1, 7, new int[] {2, 2, 1, 2, 1, 2, 2});
 		topTable.setContent(0, 0, "")
 				.setContent(0, 1, "")
 				.setContent(0, 3, typeFilterDrop);
-		page.append(topTable);
+		page.append(topTable);*/
+		
+		CSVUploadListener listener = new CSVUploadListener() {
+			
+			@Override
+			public boolean fileUploaded(String filePath, OgemaHttpRequest req) {
+				return true;
+			}
+			
+			@Override
+			public void newLineAvailable(String filePath, CSVRecord record, OgemaHttpRequest req) {
+				PreKnownDeviceData addEl = ResourceHelper.getSampleResource(PreKnownDeviceData.class);
+				readLine(addEl.deviceEndCode(), record, "Last 4 digits of serial number");
+				readLine(addEl.deviceIdNumber(), record, "DeviceId number");
+				readLine(addEl.installationLocation(), record, "Location (if known)");
+				readLine(addEl.comment(), record, "comment");
+				addEntryLine(addEl);
+			}
+			
+			protected void readLine(StringResource dest, CSVRecord record, String col) {
+				try {
+					ValueResourceHelper.setCreate(dest, record.get(col));
+				} catch(IllegalArgumentException e) {}
+			}
+		};
+		CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
+				"Import Building as CSV", listener , appMan);
+		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
+				uploadCSV.csvButton, uploadCSV.uploader.getFileUpload());
+		page.append(flexLineCSV);
+		page.append(Linebreak.LINEBREAK);
+
 	}	
 
 	@Override

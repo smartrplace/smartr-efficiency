@@ -110,6 +110,7 @@ public class HardwareInstallController {
 	public volatile boolean cleanUpOnStartDone = false;
 	
 	public final DeviceTableCSVExporter csvExport;
+	//public final PreknownDeviceCSVImporter csvPreknownImport;
 	
 	private final Map<String, DeviceTypeProvider<?>> deviceTypeProviders = new HashMap<>();
 	public Map<String, DeviceTypeProvider<?>> getDeviceTypeProviders() {
