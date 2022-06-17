@@ -149,7 +149,6 @@ public class DeviceHandler_PVPlant extends DeviceHandlerBase<PVPlant> {
 			dp.addToSubRoomLocationAtomic(null, null, "apparentPowerLimit", false);
 			setBuildingAsRoom(dp, dpService);
 		}
-		checkDpSubLocations(appDevice, result);
 		return result;
 	}
 	
