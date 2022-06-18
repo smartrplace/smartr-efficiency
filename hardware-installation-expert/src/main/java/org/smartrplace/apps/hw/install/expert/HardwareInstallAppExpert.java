@@ -43,6 +43,7 @@ import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
+import org.smartrplace.apps.hw.install.gui.expert.ValveLinkPage;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.expert.WindowStatusPage;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
@@ -228,6 +229,13 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			new TimedEvalJobsPage(timedJobPageEval, controller.appManPlus);
 			menu.addEntry("Evaluation Jobs Details", timedJobPageEval);
 			timedJobPageEval.getMenuConfiguration().setCustomNavigation(menu);
+
+			if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
+				WidgetPage<?> pageValveLink = widgetApp.createWidgetPage("deviceValveLink.html");
+				new ValveLinkPage(pageValveLink, controller.appManPlus);
+				menu.addEntry("Link FAL230 valves to wall thermostats", pageValveLink);
+				pageValveLink.getMenuConfiguration().setCustomNavigation(menu);
+			}
 
 			WidgetPage<?> pagePre = widgetApp.createWidgetPage("devicePreData.html");
 			new PreKnownDevicePage(pagePre, controller);
