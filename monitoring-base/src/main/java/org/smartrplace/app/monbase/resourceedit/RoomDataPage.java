@@ -15,16 +15,21 @@ import org.ogema.eval.timeseries.simple.smarteff.KPIResourceAccessSmarEff;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.model.energysavings.BuildingThermalParameters;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Header;
+import de.iwes.widgets.html.form.textfield.NumberInputField;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
+@SuppressWarnings("serial")
 public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 	protected final DatapointService dpService;
 	
@@ -72,6 +77,23 @@ public class RoomDataPage extends ObjectGUITablePage<DPRoom, Room>{
 	public void addWidgetsAboveTable() {
 		Header header = new Header(page, "headerUtilPage", "Building Master Data");
 		page.append(header);
+		StaticTable topTable = new StaticTable(1, 6);
+		BuildingThermalParameters buildingThermalConfigRes = ResourceHelper.getAPIData(appMan).
+				getSubResource("buildingThermalParameters", BuildingThermalParameters.class);
+		NumberInputField heatLimitEdit = new NumberInputField(page, "heatLimitEdit") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				setValue(buildingThermalConfigRes.heatingLimitTemperature().getCelsius(), req);
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				float val = Float.parseFloat(getValue(req));
+				buildingThermalConfigRes.heatingLimitTemperature().setCelsius(val);
+			}
+			
+		};
+		topTable.setContent(0, 0, "Heating Limit Temperature °C:").setContent(0, 1, heatLimitEdit);
+		page.append(topTable);
 	}
 
 	@Override
