@@ -99,6 +99,7 @@ public class CCUPage extends MainPage {
 					vh.registerHeaderEntry("Location");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Plot");
+					vh.registerHeaderEntry("RT");
 					return;
 				}
 				Label dutyCycleLb = ChartsUtil.getDutyCycleLabel(device, object, vh, id);
@@ -124,6 +125,8 @@ public class CCUPage extends MainPage {
 				final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 						ScheduleViewerConfigProvCCUDebug.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
+				String text = getHomematicCCUId(object.device().getLocation());
+				vh.stringLabel("RT", id, text, row);
 			}
 			
 			@Override

@@ -29,6 +29,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
+import org.smartrplace.util.virtualdevice.HmSetpCtrlManager;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHControlMode;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHIntTrigger;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
@@ -414,6 +415,9 @@ public class ThermostatPage extends MainPage {
 
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);
+					InstallAppDevice ccuIad = HmSetpCtrlManager.getCCU(device, controller.dpService);
+					if(ccuIad != null)
+						vh.stringLabel("CCU", id, ccuIad.deviceId().getValue(), row);
 				} else {
 					if(type == ThermostatPageType.AUTO_MODE) {
 						vh.registerHeaderEntry("Allow Auto");
@@ -424,6 +428,7 @@ public class ThermostatPage extends MainPage {
 					}
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("RT");
+					vh.registerHeaderEntry("CCU");
 				}
 				
 				
