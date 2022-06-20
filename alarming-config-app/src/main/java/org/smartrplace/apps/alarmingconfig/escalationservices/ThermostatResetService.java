@@ -122,6 +122,36 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 		return new EscalationCheckResult();
 	}
 	
+	public static String sendMessageForKnownIssues(List<EscalationKnownIssue> issues, String baseUrl,
+			String title_afterDeviceNum,
+			List<AppID> appIDs, 
+			AlarmingEscalationLevel persistData,
+			ApplicationManagerPlus appManPlus) {
+		String emailMessage;
+		if(baseUrl == null)
+			emailMessage = null;
+		else
+			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+		for(EscalationKnownIssue issue: issues) {
+			if(emailMessage == null) {
+				//We put a return upfront as initial line will be filled with "Notification :" by EmailService, which disturbs when reading through the messages
+				emailMessage = "\r\n"+issue.knownIssue.lastMessage().getValue();
+			} else
+				emailMessage += "\r\n\r\n"+issue.knownIssue.lastMessage().getValue();
+		}
+		int countDevice = issues.size();
+		
+		String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
+		String title = gwId+"::"+countDevice+" "+title_afterDeviceNum+"!";
+		String firebaseMessage = countDevice + " " + title_afterDeviceNum;
+		String firebaseDebugInfoMessage= "Sending Unassigned warning message:"+title_afterDeviceNum;
+		sendEscalationMessage(title, emailMessage, firebaseMessage,
+				firebaseDebugInfoMessage,
+				appIDs, persistData, appManPlus);
+		return emailMessage;
+		
+	}
+
 	/** Send messages to all configured. This is to report unassigned messages for certain device
 	 * types
 	 * 

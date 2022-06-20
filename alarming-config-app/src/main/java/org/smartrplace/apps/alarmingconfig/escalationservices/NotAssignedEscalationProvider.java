@@ -1,5 +1,6 @@
 package org.smartrplace.apps.alarmingconfig.escalationservices;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import org.smartrplace.apps.hw.install.deviceeval.BatteryEval;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.message.FirebaseUtil;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.messaging.MessagePriority;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -28,9 +30,11 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 public class NotAssignedEscalationProvider extends EscalationProviderSimple<EscalationKnownIssue> {
 
 	protected final ApplicationManagerPlus appManPlus;
+	protected final String baseUrl;
 	
 	public NotAssignedEscalationProvider(ApplicationManagerPlus appManPlus) {
 		this.appManPlus = appManPlus;
+		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
 	}
 
 	@Override
@@ -57,6 +61,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 		long maxUnassigned = 0;
 		String maxMessage = null;
 		int count = 0;
+		List<EscalationKnownIssue> issuesToReport = new ArrayList<>();
 		for(EscalationKnownIssue issue: issues) {
 			if(issue.knownIssue.assigned().getValue() > 0)
 				continue;
@@ -68,6 +73,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 				maxMessage = issue.knownIssue.lastMessage().getValue();
 			}
 			count++;
+			issuesToReport.add(issue);
 			foundTooLate = true;
 		}
 		
@@ -76,8 +82,14 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 			MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(persistData.alarmLevel().getValue());
 			String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
 			String title = gwId+"::"+count+" devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h !";
+			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.summaryallowed")) {
+				String titleAfterNum = " devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h ";
+				ThermostatResetService.sendMessageForKnownIssues(issuesToReport, baseUrl,
+						titleAfterNum, appIDs, persistData, appManPlus);
+				return result;
+			}
 			for(AppID appId: appIDs) {
-				BatteryEval.sendWeeklyEmail(appManPlus, appId, title, prio);								
+				BatteryEval.sendWeeklyEmail(appManPlus, appId, title, prio);
 			}
 			result.blockedUntil = now + persistData.standardDelay().getValue();
 			String roomId = ResourceUtils.getValidResourceName(appManPlus.getResourceAccess().getResources(Room.class).get(0).getLocation());
