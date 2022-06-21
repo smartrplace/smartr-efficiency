@@ -14,7 +14,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
@@ -32,10 +32,11 @@ import de.iwes.widgets.html.form.label.Label;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDevice> {
+public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerSimple<SensorDevice> {
 	private final ApplicationManagerPlus appMan;
 	
 	public DeviceHandlerWMBus_SensorDevice(ApplicationManagerPlus appMan) {
+		super(appMan, true);
 		this.appMan = appMan;
 	}
 	
@@ -107,8 +108,8 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerBase<SensorDev
 	}
 
 	@Override
-	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
-		SensorDevice dev = (SensorDevice) appDevice.device();
+	public Collection<Datapoint> getDatapoints(SensorDevice dev, InstallAppDevice appDevice) {
+		//SensorDevice dev = (SensorDevice) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		boolean addElementName = dev.sensors().size() > 1;
 		boolean isJmbus = dev.getLocation().toLowerCase().contains("jmbus");

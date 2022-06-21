@@ -32,6 +32,7 @@ import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
+import de.iwes.util.performanceeval.ExecutionTimeLogger;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
@@ -72,6 +73,8 @@ public class MainPageExpert extends MainPage {
 
 	protected final boolean isTrashPage;
 	protected final ShowModeHw showMode;
+	
+	protected ExecutionTimeLogger etl = null;
 	
 	@Override
 	protected boolean showOnlyBaseColsHWT() {
@@ -199,11 +202,14 @@ public class MainPageExpert extends MainPage {
 	}
 	
 	@Override
-	public void addWidgetsExpert(DeviceHandlerProvider<?> tableProvider, final InstallAppDevice object,
+	public void addWidgetsExpert(final DeviceHandlerProvider<?> tableProvider, final InstallAppDevice object,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			final ApplicationManager appMan) {
-		if(tableProvider != null)
+		if(tableProvider != null) {
+			//etl().intermediateStep("Start addWidgetsExp:"+tableProvider.getTableTitle());
 			tableProvider.addMoreWidgetsExpert(object, vh, id, req, row, appMan);
+		} //else
+		//	etl().intermediateStep("Start addWidgetsExp:"+object.getName());
 		
 		if(showMode == ShowModeHw.STANDARD) {
 			vh.stringLabel("IAD", id, object.getName(), row);
@@ -223,36 +229,8 @@ public class MainPageExpert extends MainPage {
 					vh.registerHeaderEntry(SETPREACT_LABEL);					
 			}
 		} else {
+			//etl().intermediateStep("End addWidgetsExp(2.BEFKNI):"+tableProvider.getTableTitle());
 			addKniStatus(object, tableProvider, vh, id, req, row, appManPlus);
-			/*KniStatus kniStat = getStatus(object);
-			Label kniLabel = vh.stringLabel("KniStatus", id, kniStat.text, row);
-			if(kniStat.style != null)
-				kniLabel.addStyle(kniStat.style, req);
-			float[] gapData = StandardEvalAccess.getQualityValuesPerDeviceStandard(object, appMan, controller.appManPlus);
-			String gapText;
-			if(gapData[0] == -1) {
-				gapText = " ---";
-				gapData[0] = 999;
-			} else
-				gapText = String.format("%.1f", gapData[0]*100)+" / "+String.format("%.1f", gapData[1]*100);
-			if(gapData[2] != -1) {
-				gapText += " / " + String.format("%.1f", gapData[2]*100)+" / "+String.format("%.1f", gapData[3]*100);				
-			}
-			if(tableProvider != null) {
-				List<SetpointData> setp = tableProvider.getSetpointData(object);
-				if(setp != null && (!setp.isEmpty())) {
-					float[] setpReactData = StandardEvalAccess.getSetpReactValuesPerDeviceStandard(object, appMan, controller.appManPlus);
-					if(!Float.isNaN(setpReactData[0])) {
-						String setpRText = String.format("%.1f", setpReactData[0]*100)+" / "+String.format("%.1f", setpReactData[1]*100);
-						Label setpRLabel = vh.stringLabel(SETPREACT_LABEL, id, setpRText, row);
-						if(setpReactData[0] < 0.9f)
-							setpRLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
-					}
-				}
-			}
-			Label gapLabel = vh.stringLabel(GAPS_LABEL, id, gapText, row);
-			if(gapData[0] < 0.9f)
-				gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);*/
 		}
 		if(req == null) {
 			if(showMode == ShowModeHw.NETWORK) {
@@ -270,7 +248,9 @@ public class MainPageExpert extends MainPage {
 		if(isTrashPage)
 			devHandForTrash = controller.getDeviceHandlerForTrash(object);
 		
+		//etl().intermediateStep("End addWidgetsExp(2.1):"+object.getName());
 		final GetPlotButtonResult logResult = getPlotButton(id, object, controller, true, vh, row, req, devHandForTrash);
+		//etl().intermediateStep("End addWidgetsExp(2.2):"+object.getName());
 		if(logResult.devHand != null) {
 			row.addCell("Plot", logResult.plotButton);
 			if(showMode == ShowModeHw.NETWORK)
@@ -280,6 +260,7 @@ public class MainPageExpert extends MainPage {
 			final TemplateDropdown<String> actionDrop = new TemplateDropdown<String>(vh.getParent(), "actionDrop"+id, req) {
 				@Override
 				public void onGET(OgemaHttpRequest req) {
+					//etl().intermediateStep("ONGET ACD:"+object.getName());
 					if(isTrashPage)
 						update(ACTIONS_TRASH, req);
 					else if(isTemplate) {
@@ -291,6 +272,8 @@ public class MainPageExpert extends MainPage {
 			};
 			actionDrop.setDefaultItems(ACTIONS);
 			row.addCell("Action", actionDrop);
+			
+
 			ButtonConfirm performButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {
 				@Override
 				public void onGET(OgemaHttpRequest req) {
@@ -383,6 +366,7 @@ public class MainPageExpert extends MainPage {
 			row.addCell("Perform", performButton);
 			actionDrop.registerDependentWidget(performButton, req);
 			
+			//etl().intermediateStep("End addWidgetsExp(2F):"+object.getName());
 		}
 		
 	}
@@ -469,11 +453,17 @@ public class MainPageExpert extends MainPage {
 	
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
-		if(showMode != ShowModeHw.NETWORK)
-			return super.getDevicesSelected(devHand, req);
+		//etl().intermediateStep("GetDevs(0):"+devHand.getTableTitle());
+		if(showMode != ShowModeHw.NETWORK) {
+			List<InstallAppDevice> result = super.getDevicesSelected(devHand, req);
+			//etl().intermediateStep("GetDevs(1):"+devHand.getTableTitle());
+			return result;
+		}
 		if(devHand.getComType() != ComType.IP)
 			return Collections.emptyList();
-		return super.getDevicesSelected(devHand, req);
+		List<InstallAppDevice> result = super.getDevicesSelected(devHand, req);
+		//etl().intermediateStep("GetDevs(2):"+devHand.getTableTitle());
+		return result;
 	}
 
 	public static Label addKniStatus(InstallAppDevice object, DeviceHandlerProvider<?> tableProvider,
@@ -511,4 +501,12 @@ public class MainPageExpert extends MainPage {
 			gapLabel.addStyle(LabelData.BOOTSTRAP_RED, req);
 		return kniLabel;
 	}
+	
+	/*protected ExecutionTimeLogger etl() {
+		if(etl != null)
+			return etl;
+		etl = new ExecutionTimeLogger("LOAD HWINSTEXP", appMan);
+		etl.logAlwaysToConsole = true; //Boolean.getBoolean("org.smatrplace.apps.hw.install.gui.mainexpert.extensivelogging");
+		return etl;
+	}*/
 }

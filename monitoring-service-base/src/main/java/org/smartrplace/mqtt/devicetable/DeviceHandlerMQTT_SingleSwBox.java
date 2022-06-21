@@ -17,7 +17,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.communication.CommunicationStatus;
@@ -39,10 +39,11 @@ import de.iwes.widgets.html.form.label.Label;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitchBox> {
+public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerSimple<SingleSwitchBox> {
 	private final ApplicationManagerPlus appMan;
 	
 	public DeviceHandlerMQTT_SingleSwBox(ApplicationManagerPlus appMan) {
+		super(appMan, true);
 		this.appMan = appMan;
 	}
 	
@@ -158,8 +159,8 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerBase<SingleSwitc
 	}
 	
 	@Override
-	public Collection<Datapoint> getDatapoints(InstallAppDevice appDevice, DatapointService dpService) {
-		SingleSwitchBox dev = (SingleSwitchBox) appDevice.device();
+	public Collection<Datapoint> getDatapoints(SingleSwitchBox dev, InstallAppDevice appDevice) {
+		//SingleSwitchBox dev = (SingleSwitchBox) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(dev.onOffSwitch().stateControl(), result, dpService);
 		addDatapoint(dev.onOffSwitch().stateFeedback(), result, dpService);
