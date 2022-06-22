@@ -82,6 +82,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 			MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(persistData.alarmLevel().getValue());
 			String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
 			String title = gwId+"::"+count+" devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h !";
+			result.blockedUntil = now + persistData.standardDelay().getValue();
 			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.summaryallowed")) {
 				String titleAfterNum = " devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h ";
 				ThermostatResetService.sendMessageForKnownIssues(issuesToReport, baseUrl,
@@ -91,7 +92,6 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 			for(AppID appId: appIDs) {
 				BatteryEval.sendWeeklyEmail(appManPlus, appId, title, prio);
 			}
-			result.blockedUntil = now + persistData.standardDelay().getValue();
 			String roomId = ResourceUtils.getValidResourceName(appManPlus.getResourceAccess().getResources(Room.class).get(0).getLocation());
 			Map<String, Object> additionalProperties = new HashMap<>();
 			for(AlarmingMessagingApp mapp: persistData.messagingApps().getAllElements()) {
