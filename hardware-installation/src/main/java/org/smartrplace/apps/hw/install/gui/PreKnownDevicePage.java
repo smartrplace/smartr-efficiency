@@ -229,7 +229,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 				} else {
 					text = "!! "+sinfo.size()+" !!";
 					for(PreknownUsage stat: sinfo) {
-						System.out.println(stat.iad.deviceId().getValue()+" for "+object.deviceEndCode());
+						System.out.println(stat.iad.deviceId().getValue()+" for "+object.deviceEndCode().getValue()+" / "+stat.status);
 					}
 					vh.stringLabel("CCU", id, text, row);
 				}
