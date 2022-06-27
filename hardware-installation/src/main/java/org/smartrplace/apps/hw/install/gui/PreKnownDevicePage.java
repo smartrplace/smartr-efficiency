@@ -14,6 +14,7 @@ import org.ogema.devicefinder.api.InstallationProgressService;
 import org.ogema.devicefinder.api.InstallationProgressService.PreKnownDeviceDataUsageStatus;
 import org.ogema.devicefinder.api.InstallationProgressService.PreknownUsage;
 import org.ogema.devicefinder.api.InstallationProgressService.RouterInfo;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.drivers.homematic.xmlrpc.hl.types.HmInterfaceInfo;
@@ -365,7 +366,8 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			ccuSelectDrop.setTemplate(new DefaultDisplayTemplate<InstallAppDevice>() {
 				@Override
 				public String getLabel(InstallAppDevice object, OgemaLocale locale) {
-					return object.deviceId().getValue();
+					String rt = DeviceTableBase.getHomematicCCUId(object.device().getLocation());
+					return object.deviceId().getValue()+" - "+rt;
 				}
 			});
 			ccuSelectDrop.setDefaultAddEmptyOption(true, "No Teach-in active");
