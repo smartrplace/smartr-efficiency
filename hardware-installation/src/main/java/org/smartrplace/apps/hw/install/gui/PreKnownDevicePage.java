@@ -416,11 +416,18 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			List<Integer> items = new ArrayList<>();
 			items.add(0);
 			items.add(1);
+			items.add(2);
+			items.add(3);
 			selectCC_IPDrop.setDefaultItems(items);
 			selectCC_IPDrop.setTemplate(new DefaultDisplayTemplate<Integer>() {
 				@Override
 				public String getLabel(Integer object, OgemaLocale locale) {
-					return object==1?"CC":"IP";
+					switch(object) {
+					case 1: return "CC";
+					case 2: return "IP - noTeachIn";
+					case 3: return "CC - noTeachIn";
+					default: return "IP";
+					}
 				}
 			});
 			
