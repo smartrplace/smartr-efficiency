@@ -326,7 +326,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 
 	@Override
 	public void addWidgetsAboveTable() {
-		Header header = new Header(page, "header", "Preknown Devices");
+		Header header = new Header(page, "header", isFullTeachIn?"Homematic Teach-In Page":"Preknown Devices");
 		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
 		page.append(header).linebreak();
 		
@@ -356,7 +356,10 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 					if(ips == null)
 						return;
 					InstallAppDevice selected = getSelectedItem(req);
-					ips.setActiveRouter(selected.getLocation());
+					if(selected == null)
+						ips.setActiveRouter(null);
+					else
+						ips.setActiveRouter(selected.getLocation());
 				}
 			};
 			ccuSelectDrop.setTemplate(new DefaultDisplayTemplate<InstallAppDevice>() {
@@ -378,6 +381,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 						text += ("+OTHERS:"+(status%10));
 					if(status == 1) {
 						removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+						removeStyle(LabelData.BOOTSTRAP_GREEN, req);
 						addStyle(LabelData.BOOTSTRAP_BLUE, req);
 					} else if(status >= 10) {
 						removeStyle(LabelData.BOOTSTRAP_BLUE, req);
@@ -389,6 +393,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 					}
 				}
 			};
+			teachInStateLabel.setDefaultPollingInterval(UPDATE_RATE);
 			
 			TemplateDropdown<Integer> selectCC_IPDrop = new TemplateDropdown<Integer>(page, "selectCC_IPDrop") {
 				@Override

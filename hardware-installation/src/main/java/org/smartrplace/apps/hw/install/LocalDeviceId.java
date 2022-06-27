@@ -134,6 +134,8 @@ public abstract class LocalDeviceId {
 			String devHandId, boolean mustFitDeviceHandler) {
 		String hmId = LogHelper.getDeviceId(device);
 		HmDevice hmDevice = (HmDevice) ResourceHelper.getFirstParentOfType(device, "HmDevice");
+		if(hmDevice == null)
+			return null;
 		for(PreKnownDeviceData pre : cfg.preKnownDevices().getAllElements()) {
 			if(LogHelper.doesDeviceFitPreKnownData(hmDevice, pre, devHandId,
 					mustFitDeviceHandler?MustFitLevel.MUST_FIT:MustFitLevel.ANY_TYPE_ALLOWED,
