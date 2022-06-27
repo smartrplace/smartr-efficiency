@@ -14,9 +14,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.SetpointData;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
-import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
@@ -325,7 +323,7 @@ public class MainPageExpert extends MainPage {
 						controller.activateLogging(logResult.devHand, object, false, true);
 						break;
 					case DELETE:
-						deleteDevice(object);
+						DeviceTableRaw.deleteDevice(object);
 						break;
 					case RESET:
 						object.delete();
@@ -369,19 +367,6 @@ public class MainPageExpert extends MainPage {
 			//etl().intermediateStep("End addWidgetsExp(2F):"+object.getName());
 		}
 		
-	}
-	
-	protected static void deleteDevice(InstallAppDevice object) {
-		Resource device = object.device().getLocationResource();
-		if(DeviceTableBase.isHomematic(device.getLocation())) {
-			Resource parent = device.getParent();
-			if(parent != null && (parent instanceof HmDevice))
-				parent.delete();
-			else
-				device.delete();
-		} else
-			device.delete();
-		object.delete();	
 	}
 	
 	protected String getTrashConfirmation(InstallAppDevice object) {

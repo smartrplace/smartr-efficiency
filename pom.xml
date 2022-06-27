@@ -83,6 +83,7 @@
 		<module>alarming-config-superadmin</module>
 		<module>hardware-installation</module>
 		<module>hardware-installation-expert</module>
+		<module>hardware-installation-superadmin</module>
    </modules>
 
     <build>

@@ -64,11 +64,11 @@ public class ThermostatPage extends MainPage {
 	public String getHeader() {
 		switch(type) {
 		case STANDARD:
-			return "Thermostat Page";
+			return "Thermostat Special Selection";
 		case AUTO_MODE:
 			return "Thermostat Auto-Mode Management";
 		case STANDARD_VIEW_ONLY:
-			return "Thermostat Page V2";
+			return "Thermostat Page";
 		}
 		throw new IllegalStateException("Unknown type:"+type);
 	}

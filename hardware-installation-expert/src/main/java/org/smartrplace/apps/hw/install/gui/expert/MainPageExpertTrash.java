@@ -8,6 +8,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -37,7 +38,7 @@ public class MainPageExpertTrash extends MainPageExpert {
 				for(InstallAppDevice dev: all) {
 					if((!dev.isTrash().getValue()) || (dev.trashStatus().getValue() <= 0))
 						continue;
-					MainPageExpert.deleteDevice(dev);
+					DeviceTableRaw.deleteDevice(dev);
 				}
 			}
 		};

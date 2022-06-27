@@ -12,12 +12,15 @@ import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.PreKnownDeviceData;
 
 import de.iwes.util.logconfig.LogHelper;
+import de.iwes.util.logconfig.LogHelper.MustFitLevel;
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 
 public abstract class LocalDeviceId {
@@ -130,8 +133,13 @@ public abstract class LocalDeviceId {
 	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
 			String devHandId, boolean mustFitDeviceHandler) {
 		String hmId = LogHelper.getDeviceId(device);
+		HmDevice hmDevice = (HmDevice) ResourceHelper.getFirstParentOfType(device, "HmDevice");
 		for(PreKnownDeviceData pre : cfg.preKnownDevices().getAllElements()) {
-			if(mustFitDeviceHandler && 
+			if(LogHelper.doesDeviceFitPreKnownData(hmDevice, pre, devHandId,
+					mustFitDeviceHandler?MustFitLevel.MUST_FIT:MustFitLevel.ANY_TYPE_ALLOWED,
+					hmId))
+				return pre;
+			/*if(mustFitDeviceHandler && 
 					((!pre.deviceHandlerId().isActive()) || (pre.deviceHandlerId().getValue().isEmpty())))
 				continue;
 			if(pre.deviceHandlerId().isActive()) {
@@ -140,13 +148,17 @@ public abstract class LocalDeviceId {
 					continue;
 			}
 			String endCode = pre.deviceEndCode().getValue();
+			String hmIdLoc;
 			if(endCode.length() != 4)
-				hmId = LogHelper.getDeviceId(device, endCode.length());
-			if(hmId.equals(endCode))
-				return pre;
+				hmIdLoc = LogHelper.getDeviceId(device, endCode.length());
+			else
+				hmIdLoc = hmId;
+			if(hmIdLoc.equals(endCode))
+				return pre;*/
 		}
 		return null;
 	}
+
 	public static String getAndPrepareConflictFreeDeviceId(PhysicalElement device, PreKnownDeviceData pre, String typeIdIn,
 			HardwareInstallConfig cfg) {
         String preDevId = pre.deviceIdNumber().getValue();

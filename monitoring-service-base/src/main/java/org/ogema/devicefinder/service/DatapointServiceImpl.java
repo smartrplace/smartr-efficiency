@@ -29,6 +29,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DpConnection;
 import org.ogema.devicefinder.api.GatewayResource;
+import org.ogema.devicefinder.api.InstallationProgressService;
 import org.ogema.devicefinder.api.TimedJobMgmtService;
 import org.ogema.devicefinder.api.VirtualScheduleService;
 import org.ogema.devicefinder.util.AlarmingServiceImpl;
@@ -734,5 +735,14 @@ public abstract class DatapointServiceImpl implements DatapointService {
 		if(virtSchedService == null)
 			virtSchedService = new VirtualScheduleService(this, appMan);
 		return virtSchedService;
+	}
+	
+	private Map<String, InstallationProgressService> installationServices  = new HashMap<>();
+	public void addInstallationService(InstallationProgressService service) {
+		installationServices.put(service.getComSystemId(), service);
+	}
+	@Override
+	public InstallationProgressService installationService(String comSystemId) {
+		return installationServices.get(comSystemId);
 	}
 }

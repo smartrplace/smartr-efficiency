@@ -38,7 +38,6 @@ import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 
 import de.iwes.widgets.api.OgemaGuiService;
-import de.iwes.widgets.api.services.MessagingService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.MenuConfiguration;
@@ -118,7 +117,8 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     protected final GenericControllerProvider<HardwareInstallController> controllerProvider;
     public HardwareInstallApp() {
 		controllerProvider = new GenericControllerProvider<HardwareInstallController>(
-				"org.smartrplace.apps.hw.install.expert.HardwareInstallAppExpert");
+				"org.smartrplace.apps.hw.install.expert.HardwareInstallAppExpert",
+				"org.smartrplace.apps.hw.install.superadmin.HardwareInstallAppSuperadmin");
 	}
 	/*
      * This is the entry point to the application.

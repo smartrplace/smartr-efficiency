@@ -104,7 +104,8 @@ public class CCUPage extends MainPage {
 				}
 				Label dutyCycleLb = ChartsUtil.getDutyCycleLabel(device, object, vh, id);
 				row.addCell("DutyCcl", dutyCycleLb);
-				Label dutyCycleLb5MM = ChartsUtil.getDutyCycleLabel(device, "DC5minMax", object, vh, id,
+				Label dutyCycleLb5MM = ChartsUtil.getDutyCycleLabel(device, "DC5minMax", object,
+						vh.getParent(), vh.getReq(), id,
 						object.getSubResource(HmSetpCtrlManagerTHSetp.dutyCycleMax, FloatResource.class));
 				row.addCell("DC5minMax", dutyCycleLb5MM);
 				Label lastContact = addLastContact(vh, id, req, row, device.dutyCycle().reading());
