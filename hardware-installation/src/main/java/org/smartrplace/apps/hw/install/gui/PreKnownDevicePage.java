@@ -214,6 +214,8 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 				if(sinfo.size() == 1) {
 					final PreknownUsage stat = sinfo.get(0);
 					text = stat.iad.deviceId().getValue();
+					if(!object.ccu().equalsLocation(stat.iad))
+						object.ccu().setAsReference(stat.iad);
 					vh.stringLabel("CCU", id, text, row);
 					ButtonConfirm deleteAssoc = new ButtonConfirm(mainTable, id, req) {
 						@Override
@@ -503,6 +505,9 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 				}
 				
 			};
+			ccuSelectDrop.registerDependentWidget(entryFilter);
+			entryFilter.registerDependentWidget(mainTable);
+			ccuSelectDrop.registerDependentWidget(mainTable);
 			
 			StaticTable topTeachTable = new StaticTable(3, 6);
 			topTeachTable.setContent(0, 0, "Select CCU to start teach-in mode").setContent(0, 1, ccuSelectDrop).setContent(0, 2, teachInStateLabel);
