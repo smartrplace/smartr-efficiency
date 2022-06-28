@@ -565,7 +565,9 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			public void newLineAvailable(String filePath, CSVRecord record, OgemaHttpRequest req) {
 				PreKnownDeviceData addEl = ResourceHelper.getSampleResource(PreKnownDeviceData.class);
 				readLine(addEl.deviceEndCode(), record, "Last 4 digits of serial number");
+				readLine(addEl.deviceEndCode(), record, "Preknown");
 				readLine(addEl.deviceIdNumber(), record, "DeviceId number");
+				readLine(addEl.deviceIdNumber(), record, "ID");
 				readLine(addEl.installationLocation(), record, "Location (if known)");
 				readLine(addEl.comment(), record, "comment");
 				addEntryLine(addEl);
