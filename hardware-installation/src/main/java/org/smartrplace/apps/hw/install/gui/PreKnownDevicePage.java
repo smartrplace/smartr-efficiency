@@ -28,8 +28,10 @@ import org.smartrplace.gui.filtering.GenericFilterOption;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.SingleFilteringDirect;
 import org.smartrplace.smarteff.defaultservice.TSManagementPage;
+import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.directobjectgui.LabelFormatter.OnGETData;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
@@ -50,6 +52,7 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.HeaderData;
@@ -203,37 +206,53 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 		
 		vh.stringEdit("Comment", id, object.comment(), row, alert);
 		if(isFullTeachIn) {
-			InstallationProgressService ips = installService();
+			final InstallationProgressService ips = installService();
 			if(ips == null)
 				return;
 			List<PreknownUsage> sinfo = ips.getUsageStatus(object);
-			if(sinfo.isEmpty() || object.getLocation().startsWith("EvalCollection")) {
+			boolean isTeachInModeActive = ips.isTeachInModeActive();
+			if((sinfo.isEmpty() && (!isTeachInModeActive)) || object.getLocation().startsWith("EvalCollection") ) {
 				vh.referenceDropdownFixedChoice("CCU", id, object.ccu(), row,  ips.getValuesToSet());				
 			} else {
-				String text;
-				if(sinfo.size() == 1) {
-					final PreknownUsage stat = sinfo.get(0);
-					text = stat.iad.deviceId().getValue();
-					if(!object.ccu().equalsLocation(stat.iad))
-						object.ccu().setAsReference(stat.iad);
-					vh.stringLabel("CCU", id, text, row);
-					ButtonConfirm deleteAssoc = new ButtonConfirm(mainTable, id, req) {
+				if(sinfo.size() <= 1) {
+					LabelFormatter formatter = new LabelFormatter() {
+						
 						@Override
-						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							stat.remove();
+						public OnGETData getData(OgemaHttpRequest req) {
+							List<PreknownUsage> sinfo = ips.getUsageStatus(object);
+							if(sinfo.isEmpty())
+								return new OnGETData("--", 1);
+							final PreknownUsage stat = sinfo.get(0);
+							String text = stat.iad.deviceId().getValue();
+							return new OnGETData(text, 0);
 						}
 					};
-					deleteAssoc.setDefaultText("Remove:"+getStatusShortName(stat.status));
-					if(stat.status != PreKnownDeviceDataUsageStatus.RESOURCE_CONFIGURED)
-						deleteAssoc.addStyle(ButtonData.BOOTSTRAP_ORANGE, req);
-					deleteAssoc.setDefaultConfirmMsg("Really remove CCU Association for "+stat.iad.deviceId().getValue()+" ?");
-					row.addCell(WidgetHelper.getValidWidgetId("Remove Association"), deleteAssoc);
+					Label cculb = vh.stringLabel("CCU", id, formatter, row);
+					cculb.setDefaultPollingInterval(UPDATE_RATE);
+
+					if(sinfo.size() == 1) {
+						final PreknownUsage stat = sinfo.get(0);
+						if(!object.ccu().equalsLocation(stat.iad))
+							object.ccu().setAsReference(stat.iad);
+						ButtonConfirm deleteAssoc = new ButtonConfirm(mainTable, id, req) {
+							@Override
+							public void onPOSTComplete(String data, OgemaHttpRequest req) {
+								stat.remove();
+							}
+						};
+						deleteAssoc.setDefaultText("Remove:"+getStatusShortName(stat.status));
+						if(stat.status != PreKnownDeviceDataUsageStatus.RESOURCE_CONFIGURED)
+							deleteAssoc.addStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+						deleteAssoc.setDefaultConfirmMsg("Really remove CCU Association for "+stat.iad.deviceId().getValue()+" ?");
+						row.addCell(WidgetHelper.getValidWidgetId("Remove Association"), deleteAssoc);
+					}
 				} else {
-					text = "!! "+sinfo.size()+" !!";
+					String text = "!! "+sinfo.size()+" !!";
+					vh.linkingButton("CCU", id, object, row, text, "/org/sp/app/drivermonapp/ccuFaults.hmtl.html");
 					for(PreknownUsage stat: sinfo) {
 						System.out.println(stat.iad.deviceId().getValue()+" for "+object.deviceEndCode().getValue()+" / "+stat.status);
 					}
-					vh.stringLabel("CCU", id, text, row);
+					//vh.stringLabel("CCU", id, text, row);
 				}
 			}
 		}
@@ -509,6 +528,8 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			entryFilter.registerDependentWidget(mainTable);
 			ccuSelectDrop.registerDependentWidget(mainTable);
 			
+			RedirectButton ccuFaultsPageBtn = new RedirectButton(page, "ccuFaultsPageBtn", "Devices on CCUs", "/org/sp/app/drivermonapp/ccuFaults.hmtl.html");
+
 			StaticTable topTeachTable = new StaticTable(3, 6);
 			topTeachTable.setContent(0, 0, "Select CCU to start teach-in mode").setContent(0, 1, ccuSelectDrop).setContent(0, 2, teachInStateLabel);
 			
@@ -517,8 +538,10 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			topTeachTable.setContent(1, 0, entryFilter).setContent(1, 1, configPendingLabel).setContent(1, 2, "CCU-Faults/Res missing/Res Pending/Total");
 			topTeachTable.setContent(1, 3, faultEval).setContent(1, 4, hmDC_IPmax.dcLabel).setContent(1, 5, hmDC_CCmax.dcLabel);
 
+			topTeachTable.setContent(2, 0, ccuFaultsPageBtn);
 			topTeachTable.setContent(2, 4, hmDC_IP.lastContactLabel).setContent(2, 5, hmDC_CC.lastContactLabel);
 
+			
 			page.append(topTeachTable);
 
 		} //finish isFullTeachin
