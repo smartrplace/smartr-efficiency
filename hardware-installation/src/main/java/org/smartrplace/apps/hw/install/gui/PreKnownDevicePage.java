@@ -31,7 +31,6 @@ import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
-import org.smartrplace.util.directobjectgui.LabelFormatter.OnGETData;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
@@ -68,6 +67,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 	
 	private final HardwareInstallController controller;
 	private final boolean isFullTeachIn;
+	private String csvDevHandId = null;
 	
 	protected static final String SERIAL_NUMBER_HEAD = "Last 4 digits of serial number";
 	protected static final String DEVICE_ID_HEAD = "DeviceId number";
@@ -76,6 +76,70 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 	
 	TemplateDropdown<InstallAppDevice> ccuSelectDrop;
 	SingleFilteringDirect<PreKnownDeviceData> entryFilter;
+	
+	private abstract class DeviceTypeDropdown extends TemplateDropdown<DeviceHandlerProviderDP<?>> {
+		
+		protected abstract String getDeviceHandlerId(OgemaHttpRequest req);
+		protected abstract void setDeviceHandlerId(String devHandId, OgemaHttpRequest req);
+		
+		public DeviceTypeDropdown(OgemaWidget parent, String id, OgemaHttpRequest req) {
+			super(parent, id, req);
+
+			finishConstructor();
+		}
+
+		public DeviceTypeDropdown(WidgetPage<?> page, String id) {
+			super(page, id);
+			
+			finishConstructor();
+		}
+
+		private void finishConstructor() {
+			setTemplate(new DefaultDisplayTemplate<DeviceHandlerProviderDP<?>>() {
+				@Override
+				public String getLabel(DeviceHandlerProviderDP<?> object, OgemaLocale locale) {
+					if(object == null)
+						return "Any";
+					return object.getTableTitle();
+				}
+			});
+
+			setItems();
+			setDefaultAddEmptyOption(true, "Any");
+		}
+		
+		void setItems() {
+			List<DeviceHandlerProviderDP<?>> all = controller.dpService.getDeviceHandlerProviders();
+			setDefaultItems(all);			
+		}
+		
+		public void onGET(OgemaHttpRequest req) {
+			String val = getDeviceHandlerId(req);
+			DeviceHandlerProviderDP<?> selected;
+			if(val == null || val.isEmpty())
+				selected = null;
+			else {
+				selected = controller.dpService.getDeviceHandlerProvider(val);
+			}
+			selectItem(selected, req);
+			
+		}
+		
+		@Override
+		public void onPOSTComplete(String data, OgemaHttpRequest req) {
+			DeviceHandlerProviderDP<?> selected = getSelectedItem(req);
+			String val;
+			if(selected == null) {
+				setDeviceHandlerId("", req);
+			} else {
+				val = selected.id();
+				setDeviceHandlerId(val, req);
+				if(alert != null) alert.showAlert("New value: " + val, true, req);
+			}
+		}
+		
+	};
+	
 	
 	public PreKnownDevicePage(WidgetPage<?> page, HardwareInstallController controller, boolean isFullTeachIn) {
 		super(page, controller.appMan, PreKnownDeviceData.class, false);
@@ -162,7 +226,23 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 		DeviceTableRaw.addRoomWidgetStatic(vh, id, req, row, controller.appMan, object.room(), ROOM_HEADER);
 		vh.stringEdit(LOCATION_HEADER, id, object.installationLocation(), row, alert);
 		
-		TemplateDropdown<DeviceHandlerProviderDP<?>> devTypeDrop = new TemplateDropdown<DeviceHandlerProviderDP<?>>(
+		TemplateDropdown<DeviceHandlerProviderDP<?>> devTypeDrop = new DeviceTypeDropdown(mainTable, "devTypeDrop"+id, req) {
+			
+			@Override
+			protected void setDeviceHandlerId(String devHandId, OgemaHttpRequest req) {
+				if(devHandId == null || devHandId.isEmpty())
+					object.deviceHandlerId().setValue("");
+				else
+					ValueResourceHelper.setCreate(object.deviceHandlerId(), devHandId);				
+			}
+			
+			@Override
+			protected String getDeviceHandlerId(OgemaHttpRequest req) {
+				return object.deviceHandlerId().getValue();
+			}
+		};
+				
+		/*		new TemplateDropdown<DeviceHandlerProviderDP<?>>(
 				mainTable, "devTypeDrop"+id, req) {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -201,7 +281,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 		});
 		List<DeviceHandlerProviderDP<?>> all = controller.dpService.getDeviceHandlerProviders();
 		devTypeDrop.setDefaultItems(all);
-		devTypeDrop.setDefaultAddEmptyOption(true, "Any");
+		devTypeDrop.setDefaultAddEmptyOption(true, "Any");*/
 		row.addCell(WidgetHelper.getValidWidgetId("Device Type"), devTypeDrop);
 		
 		vh.stringEdit("Comment", id, object.comment(), row, alert);
@@ -221,10 +301,10 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 						public OnGETData getData(OgemaHttpRequest req) {
 							List<PreknownUsage> sinfo = ips.getUsageStatus(object);
 							if(sinfo.isEmpty())
-								return new OnGETData("--", 1);
+								return new OnGETData("--", 0);
 							final PreknownUsage stat = sinfo.get(0);
 							String text = stat.iad.deviceId().getValue();
-							return new OnGETData(text, 0);
+							return new OnGETData(text, 1);
 						}
 					};
 					Label cculb = vh.stringLabel("CCU", id, formatter, row);
@@ -554,6 +634,24 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 				.setContent(0, 3, typeFilterDrop);
 		page.append(topTable);*/
 		
+		final DeviceTypeDropdown csvDevTypeDrop = new DeviceTypeDropdown(page, "csvDevTypeDrop") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				setItems();
+				super.onGET(req);
+			}
+			
+			@Override
+			protected String getDeviceHandlerId(OgemaHttpRequest req) {
+				return csvDevHandId;
+			}
+
+			@Override
+			protected void setDeviceHandlerId(String devHandId, OgemaHttpRequest req) {
+				csvDevHandId = devHandId;				
+			}
+		};
+		
 		CSVUploadListener listener = new CSVUploadListener() {
 			
 			@Override
@@ -570,20 +668,29 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 				readLine(addEl.deviceIdNumber(), record, "ID");
 				readLine(addEl.installationLocation(), record, "Location (if known)");
 				readLine(addEl.comment(), record, "comment");
+				if(addEl.room().isReference(false))
+					addEl.room().delete();
+				if(csvDevHandId == null)
+					addEl.deviceHandlerId().setValue("");
+				else {
+					ValueResourceHelper.setCreate(addEl.deviceHandlerId(), csvDevHandId);
+				}
 				addEntryLine(addEl);
 			}
 			
 			protected void readLine(StringResource dest, CSVRecord record, String col) {
 				try {
 					ValueResourceHelper.setCreate(dest, record.get(col));
-				} catch(IllegalArgumentException e) {}
+				} catch(IllegalArgumentException e) {
+					dest.setValue("");
+				}
 			}
 		};
 		CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
 				"Import Building as CSV", listener , appMan);
 		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
-				uploadCSV.csvButton, uploadCSV.uploader.getFileUpload());
+				uploadCSV.csvButton, uploadCSV.uploader.getFileUpload(), csvDevTypeDrop);
 		page.append(flexLineCSV);
 		page.append(Linebreak.LINEBREAK);
 
