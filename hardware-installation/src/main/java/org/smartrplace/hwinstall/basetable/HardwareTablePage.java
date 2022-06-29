@@ -317,15 +317,15 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
-if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
-	System.out.println("Searching all devices for "+devHand.label(null));
+//if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
+//	System.out.println("Searching all devices for "+devHand.label(null));
 		Collection<InstallAppDevice> all = getDevices(devHand);
 //System.out.println("For "+pe.label(null)+" before filter:"+all.size());
-if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
-	System.out.println("Filtering "+all.size()+" for "+devHand.label(null));
+//if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
+//	System.out.println("Filtering "+all.size()+" for "+devHand.label(null));
 		List<InstallAppDevice> result = finalFilter.getFiltered(all, req);
-if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
-	System.out.println("After Filtering has "+result.size()+" for "+devHand.label(null));
+//if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
+//	System.out.println("After Filtering has "+result.size()+" for "+devHand.label(null));
 		return result;
 	}
 	
