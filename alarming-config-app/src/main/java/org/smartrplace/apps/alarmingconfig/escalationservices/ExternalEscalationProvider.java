@@ -144,7 +144,7 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 			if(!issueLocs.contains(loc2))
 				knownIssuesProcessed.remove(loc2);
 		}
-		if(maxFault > 0) {
+		if(countDevice > 0) {
 			//ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "New Fault Message for "+name,
 			//		appIDs, persistData, appManPlus);
 			String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
