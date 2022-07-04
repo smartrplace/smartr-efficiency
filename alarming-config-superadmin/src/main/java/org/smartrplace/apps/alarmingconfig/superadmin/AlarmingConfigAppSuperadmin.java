@@ -16,6 +16,7 @@ import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceTypePageExpert;
 import org.smartrplace.apps.alarmingconfig.expert.gui.MainPageExpert;
 import org.smartrplace.apps.alarmingconfig.gui.AlarmGroupPage;
+import org.smartrplace.apps.hw.install.gui.alarm.ExternalEscalationConfigPage;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -97,6 +98,16 @@ public class AlarmingConfigAppSuperadmin implements Application, AlarmingExtensi
 			}
 			menu.addEntry("7. Thermostat Plus Evaluation Page", pageRes12);
 			configMenuConfig(pageRes12.getMenuConfiguration());
+			
+			WidgetPage<?> pageRes8 = widgetApp.createWidgetPage("devicescalation.html");
+			synchronized (controller.accessAdminApp) {
+				ExternalEscalationConfigPage knownFaultsPage = new ExternalEscalationConfigPage(pageRes8, controller);
+				synchronized(controller.mainPageExts) {
+					controller.mainPageExts.add(knownFaultsPage);
+				}
+			}			
+			menu.addEntry("8. External Escalation Configuration per Device", pageRes8);
+			configMenuConfig(pageRes8.getMenuConfiguration());
 			
 			new CountDownDelayedExecutionTimer(appMan, 10000) {
 				

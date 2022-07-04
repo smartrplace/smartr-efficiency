@@ -174,8 +174,9 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 		String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
 		String title = gwId+"::"+countDevice+" "+deviceTypeTypePluralString+" still with open issues("+maxFault+")!";
 		String message = countDevice + " unassigned "+deviceTypeTypePluralString+", max active alarms: "+maxFault;
+		String firebaseDebugInfoMessage = "Sending Unassigned "+deviceTypeTypePluralString+" warning message:";
 		sendEscalationMessage(title, emailMessage, message,
-				"Sending Unassigned "+deviceTypeTypePluralString+" warning message:",
+				firebaseDebugInfoMessage,
 				appIDs, persistData, appManPlus);
 		return message;
 	}

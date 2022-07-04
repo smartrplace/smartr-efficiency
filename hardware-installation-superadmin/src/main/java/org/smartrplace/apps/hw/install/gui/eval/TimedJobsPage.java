@@ -104,34 +104,6 @@ public class TimedJobsPage extends ObjectGUITablePageNamed<TimedJobMemoryData, T
 		vh.stringLabel("Type", id, type, row);
 		
 		Button startButton = TimedJobMemoryDataImpl.getTimedJobStatusButton(object, mainTable, id, req, alert, timerActive);
-		/*if((!timerActive) && (!object.canTimerBeActivated())) {
-			startButton = new Button(mainTable, "startBut"+id, "Itv short", req);
-			startButton.disable(req);
-		} else {
-			startButton = new Button(mainTable, "startBut"+id, timerActive?"Stop Timer":"Start timer", req) {
-				@Override
-				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					if(timerActive) {
-						ValueResourceHelper.setCreate(object.res().disable(), true);
-						object.stopTimerIfRunning();
-						alert.showAlert("Stopped timer for service "+object.prov().label(req.getLocale()), true, req);
-					}
-					else {
-						object.res().disable().setValue(false);
-						int result = object.startTimerIfNotStarted();
-						if(result == 0)
-							alert.showAlert("Started timer for service "+object.prov().label(req.getLocale()), true, req);
-						else
-							alert.showAlert("Could not start timer for service "+object.prov().label(req.getLocale())+" ("+result+")", true, req);
-					}
-				}
-			};
-			if(timerActive)
-				startButton.addStyle(ButtonData.BOOTSTRAP_GREEN, req);
-			else
-				startButton.addStyle(ButtonData.BOOTSTRAP_RED, req);
-		}
-		startButton.registerDependentWidget(alert);*/
 		row.addCell("Start", startButton);
 				
 		if(object.isRunning()) {

@@ -14,6 +14,7 @@ import org.smartrplace.alarming.escalation.model.AlarmingEscalationSettings;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.alarming.escalation.util.EscalationProvider;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
+import org.smartrplace.apps.alarmingconfig.escalationservices.ExternalEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.NotAssignedEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.OnOffSwitchEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.ThermostatResetService;
@@ -30,6 +31,7 @@ public class EscalationManager {
 	protected final AlarmingEscalationSettings escData;
 	
 	public final Map<String, EscalationProvider> knownEscProvs = new HashMap<>();
+	public final Map<Integer, ExternalEscalationProvider> extEscProvs = new HashMap<>();
 	
 	public EscalationManager(AlarmingConfigAppController controller) {
 		this.controller = controller;
@@ -131,5 +133,31 @@ public class EscalationManager {
 
 		OnOffSwitchEscalationProvider onOff = new OnOffSwitchEscalationProvider(controller.appManPlus);
 		knownEscProvs.put(onOff.id(), onOff);
+
+		ExternalEscalationProvider allFault = new ExternalEscalationProvider(controller.appManPlus, 
+				"All Fault Signals", 0);
+		knownEscProvs.put(allFault.id(), allFault);
+		extEscProvs.put(allFault.index, allFault);
+		
+		ExternalEscalationProvider fireFault = new ExternalEscalationProvider(controller.appManPlus, 
+				"Fire Fault Signals", 1);
+		knownEscProvs.put(fireFault.id(), fireFault);
+		extEscProvs.put(fireFault.index, fireFault);
+
+		ExternalEscalationProvider heatingFault = new ExternalEscalationProvider(controller.appManPlus, 
+				"Heating Fault Signals", 2);
+		knownEscProvs.put(heatingFault.id(), heatingFault);
+		extEscProvs.put(heatingFault.index, heatingFault);
+
+		ExternalEscalationProvider waterFault = new ExternalEscalationProvider(controller.appManPlus, 
+				"Water Fault Signals", 3);
+		knownEscProvs.put(waterFault.id(), waterFault);
+		extEscProvs.put(waterFault.index, waterFault);
+		
+		ExternalEscalationProvider ventilationFault = new ExternalEscalationProvider(controller.appManPlus, 
+				"Ventilation/Cooling Fault Signals", 4);
+		knownEscProvs.put(ventilationFault.id(), ventilationFault);
+		extEscProvs.put(ventilationFault.index, ventilationFault);
+
 	}
 }
