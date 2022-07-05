@@ -67,8 +67,11 @@ public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMes
 			public void onGET(OgemaHttpRequest req) {
 				if(isRegistered(object.lastNameRegistered())) {
 					setText("Update", req);
-				} else
+					setConfirmMsg("Update from "+object.lastNameRegistered().getValue()+" to "+object.name().getValue()+" ?", req);
+				} else {
 					setText("Register initially", req);
+					setConfirmMsg("Register messaging app "+object.name().getValue()+" ?", req);
+				}
 			}
 			
 			@Override
@@ -76,13 +79,11 @@ public class MessagingAppConfigPage extends PerMultiselectConfigPage<AlarmingMes
 				if(isRegistered(object.lastNameRegistered())) {
 					controller.unregisterMessagingApp(object.lastNameRegistered().getValue(), object.name().getValue());
 					controller.registerMessagingApp(object.name().getValue(), object.getName());
-					setConfirmMsg("Update from "+object.lastNameRegistered().getValue()+" to "+object.name().getValue()+" ?", req);
 				} else {
 					//Use resource name as suffix, which is not shown in the RemoteConfig
 					controller.registerMessagingApp(object.name().getValue(), object.getName());
 					//for now we do not put this into a special receiver page, so this should not be necessary
 					//controller.setupMessageReceiverConfiguration(mr, appList, pageRes3, showSuperAdmin);					
-					setConfirmMsg("Register messaging app "+object.name().getValue()+" ?", req);
 				}
 				ValueResourceHelper.setCreate(object.lastNameRegistered(), object.name().getValue());
 			}
