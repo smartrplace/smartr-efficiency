@@ -85,8 +85,12 @@ public class ExternalEscalationConfigPage extends DeviceAlarmingPage {
 				if(newIndex >= 0) {
 					if(newIndex >= vals.length) {
 						long[] newVals = new long[newIndex+1];
-						for(int i=0; i<vals.length; i++) {
+						int i=0;
+						for(; i<vals.length; i++) {
 							newVals[i] = vals[i];
+						}
+						for(; i<newIndex; i++) {
+							newVals[i] = -1;
 						}
 						vals = newVals;
 					}

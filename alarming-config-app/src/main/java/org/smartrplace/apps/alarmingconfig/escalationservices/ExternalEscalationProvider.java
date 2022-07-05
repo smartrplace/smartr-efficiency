@@ -114,8 +114,7 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 			if(issue.knownIssue.assigned().getValue() > 0)
 				continue;
 			Long escTime = getEscalationTime(issue.device, now);
-			if(escTime == null) {
-				//Should not occur
+			if(escTime == null || (escTime < 0)) { //null should not occur
 				continue;
 			}
 			if(escTime > 0) {
