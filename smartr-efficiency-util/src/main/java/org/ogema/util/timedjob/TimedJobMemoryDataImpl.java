@@ -359,7 +359,7 @@ if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from
 		if(alignLoc > 0)
 			return true;
 		float intervalLoc = res.interval().getValue();
-		if(intervalLoc >= MINIMUM_MINUTES_FOR_TIMER_START)
+		if((intervalLoc >= MINIMUM_MINUTES_FOR_TIMER_START) || prov.id().contains("ExternalEscalationProvider"))
 			return true;
 		return false;
 	}

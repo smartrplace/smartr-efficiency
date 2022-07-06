@@ -1,6 +1,10 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
@@ -29,9 +33,11 @@ import de.iwes.widgets.template.DisplayTemplate;
 
 @SuppressWarnings("serial")
 public class ExternalEscalationConfigPage extends DeviceAlarmingPage {
+	private static List<Long> ESC_TIMES = Arrays.asList(new Long[]{0l, 1000l, 24*TimeProcUtil.HOUR_MILLIS});
 
 	public ExternalEscalationConfigPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller);
+		cleanup();
 	}
 
 	@Override
@@ -139,18 +145,43 @@ public class ExternalEscalationConfigPage extends DeviceAlarmingPage {
 				}
 				
 				TemplateDropdown<ExternalEscalationProvider> escProvDrop =
-						new EscSelectDropdown(object, 0, mainTable, "escProvDrop_"+id, req);
+						new EscSelectDropdown(object, ESC_TIMES.get(0), mainTable, "escProvDrop_"+id, req);
 				row.addCell(WidgetHelper.getValidWidgetId("Immediately1"), escProvDrop);
 
 				TemplateDropdown<ExternalEscalationProvider> escProvDrop2 =
-						new EscSelectDropdown(object, 1000, mainTable, "escProvDrop2_"+id, req);
+						new EscSelectDropdown(object, ESC_TIMES.get(1), mainTable, "escProvDrop2_"+id, req);
 				row.addCell(WidgetHelper.getValidWidgetId("Immediately2"), escProvDrop2);
 				
 				TemplateDropdown<ExternalEscalationProvider> escProvDrop3 =
-						new EscSelectDropdown(object, 24*TimeProcUtil.HOUR_MILLIS, mainTable, "escProvDrop3_"+id, req);
+						new EscSelectDropdown(object, ESC_TIMES.get(2), mainTable, "escProvDrop3_"+id, req);
 				row.addCell(WidgetHelper.getValidWidgetId("Secondary"), escProvDrop3);
 			}			
 		};
 		
+	}
+	
+	void cleanup() {
+		List<InstallAppDevice> iads = controller.hwTableData.appConfigData.knownDevices().getAllElements();
+		for(InstallAppDevice iad: iads) {
+			if(!iad.externalEscalationProviderIds().exists())
+				continue;
+			
+			long[] vals = iad.externalEscalationProviderIds().getValues();
+			Set<Long> known = new HashSet<>();
+			boolean changed = false;
+			for(int idx=0; idx<vals.length; idx++) {
+				long val = vals[idx];
+				if(known.contains(val)) {
+					vals[idx] = -1;
+					changed = true;
+				} else if(!ESC_TIMES.contains(val)) {
+					vals[idx] = -1;
+					changed = true;
+				} else
+					known.add(val);
+			}
+			if(changed)
+				iad.externalEscalationProviderIds().setValues(vals);
+		}
 	}
 }

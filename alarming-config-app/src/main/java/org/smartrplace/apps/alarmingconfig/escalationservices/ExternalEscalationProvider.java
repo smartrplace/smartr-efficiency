@@ -80,7 +80,10 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 	@Override
 	public void initConfig(AlarmingEscalationLevel levelRes) {
 		//ValueResourceHelper.setCreate(levelRes.timedJobData().alignedInterval(), AbsoluteTiming.DAY);
-		ValueResourceHelper.setCreate(levelRes.timedJobData().interval(), TimedJobMemoryDataImpl.MINIMUM_MINUTES_FOR_TIMER_START+1);
+		if(System.getProperty("org.ogema.util.timedjob.shortintervalallowed").equals("ExternalEscalationProvider"))
+			ValueResourceHelper.setCreate(levelRes.timedJobData().interval(), 0.5f);
+		else
+			ValueResourceHelper.setCreate(levelRes.timedJobData().interval(), TimedJobMemoryDataImpl.MINIMUM_MINUTES_FOR_TIMER_START+0.1f);
 		Long delay = shallReceiveMessageEscalated(null);
 		if(delay == null)
 			ValueResourceHelper.setCreate(levelRes.standardDelay(), -1);
