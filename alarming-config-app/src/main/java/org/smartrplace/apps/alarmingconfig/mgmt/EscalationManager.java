@@ -60,7 +60,7 @@ public class EscalationManager {
 					List<AlarmingEscalationLevel> lvs = config.getReferencingResources(AlarmingEscalationLevel.class);
 					
 					final AlarmingEscalationLevel levelRes;
-					if(lvs.isEmpty()) {
+					if(lvs.isEmpty() || (!((config.interval().getValue() > 0) && (config.alignedInterval().getValue() > 0)))) {
 						levelRes = ResourceListHelper.getOrCreateNamedElement(prov.id(), escData.levelData());
 						//ValueResourceHelper.setIfNew(levelRes.isProviderActive(), false);
 						levelRes.timedJobData().setAsReference(config);
