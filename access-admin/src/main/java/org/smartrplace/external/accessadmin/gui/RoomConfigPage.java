@@ -1,7 +1,6 @@
 package org.smartrplace.external.accessadmin.gui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -12,8 +11,6 @@ import java.util.Map.Entry;
 import org.ogema.accessadmin.api.NamedIntegerType;
 import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomerType;
-import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.UserPermissionUtil;
 import org.ogema.accessadmin.api.util.RoomEditHelper;
 import org.ogema.apps.roomlink.NewRoomPopupBuilder.RoomCreationListern;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
@@ -23,8 +20,6 @@ import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.external.accessadmin.AccessAdminController;
-import org.smartrplace.external.accessadmin.config.AccessConfigBase;
-import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.gui.filtering.util.RoomFilteringWithGroups;
@@ -48,7 +43,6 @@ import de.iwes.widgets.template.DefaultDisplayTemplate;
 @SuppressWarnings("serial")
 public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPropertyUnit, Room> {
 	public final static Map<String, String> valuesToSetDefault = new HashMap<>();
-	public static final String ALL_ROOMS_GROUP_NAME = "All Rooms";
 	static {
 		int[] ks = RoomHelper.getRoomTypeKeys();
 		for(int type: ks) {
@@ -242,14 +236,20 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 
 	@Override
 	protected void setGroups(Room object, List<BuildingPropertyUnit> groups, OgemaHttpRequest req) {
-		setGroups(object, groups);
+		setGroups(object, groups, getAllGroups(null, null));
 	}
 
-	protected void setGroups(Room object, List<BuildingPropertyUnit> groups) {
+	/** Make sure a room is part of exactly a certain set of groups
+	 * 
+	 * @param object
+	 * @param groups
+	 * @param allGroups check all room groups whether room is referenced. If not in groups then reference is removed.
+	 */
+	protected static void setGroups(Room object, List<BuildingPropertyUnit> groups, List<BuildingPropertyUnit> allGroups) {
 		for(BuildingPropertyUnit bu: groups) {
 			ResourceListHelper.addReferenceUnique(bu.rooms(), object);
 		}
-		for(BuildingPropertyUnit bu: getAllGroups(null, null)) {
+		for(BuildingPropertyUnit bu: allGroups) { //getAllGroups(null, null)
 			if(ResourceHelper.containsLocation(groups, bu))
 				continue;
 			ResourceListHelper.removeReferenceOrObject(bu.rooms(), object);
@@ -257,32 +257,6 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	}
 	
 	protected void initRoom(Room object) {
-		BuildingPropertyUnit allRoomsGroup = null;
-		for(BuildingPropertyUnit g: controller.roomGroups.getAllElements()) {
-			if(ResourceUtils.getHumanReadableShortName(g).equals(ALL_ROOMS_GROUP_NAME)) {
-				allRoomsGroup = g;
-				break;
-			}
-		}
-		if(allRoomsGroup == null) {
-			//create
-			allRoomsGroup = ResourceListHelper.createNewNamedElement(
-					controller.roomGroups,
-					ALL_ROOMS_GROUP_NAME, false);
-			allRoomsGroup.activate(true);
-			for(AccessConfigUser userPerm: controller.appConfigData.userPermissions().getAllElements()) {
-				if(userPerm.isGroup().getValue() != 2)
-					continue;
-				switch(userPerm.name().getValue()) {
-				case "User Standard":
-				case "Secretary":
-				case "Facility Manager":
-				case "Master Administrator":
-					AccessConfigBase configRes = userPerm.roompermissionData();
-					UserPermissionUtil.addPermission(allRoomsGroup.getLocation(), UserPermissionService.USER_ROOM_PERM, configRes);
-				}
-			}
-		}
-		setGroups(object, Arrays.asList(new BuildingPropertyUnit[] {allRoomsGroup}));
+		SubcustomerUtil.initRoom(object, controller.roomGroups, controller.appConfigData);
 	}
 }
