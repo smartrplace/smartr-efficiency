@@ -159,5 +159,14 @@ public class EscalationManager {
 		knownEscProvs.put(ventilationFault.id(), ventilationFault);
 		extEscProvs.put(ventilationFault.index, ventilationFault);
 
+		ExternalEscalationProvider centralControlFault = new ExternalEscalationProvider(controller.appManPlus, 
+				"Central Control Fault Signals", 5);
+		knownEscProvs.put(centralControlFault.id(), centralControlFault);
+		extEscProvs.put(centralControlFault.index, centralControlFault);
+
+		ExternalEscalationProvider otherFault = new ExternalEscalationProvider(controller.appManPlus, 
+				"Backup Other Fault Signals", 6);
+		knownEscProvs.put(otherFault.id(), otherFault);
+		extEscProvs.put(otherFault.index, otherFault);
 	}
 }
