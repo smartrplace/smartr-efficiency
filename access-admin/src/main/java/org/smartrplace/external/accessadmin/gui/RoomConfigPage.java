@@ -141,9 +141,9 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 			}
 		}
 		
-		if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering")) {
-			vh.stringLabel("Location", id, object.getLocation(), row);
-		}
+		//if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering")) {
+		//	vh.stringLabel("Location", id, object.getLocation(), row);
+		//}
 	}
 	
 	@Override
