@@ -44,6 +44,7 @@ import org.smartrplace.driverhandler.devices.FlowScopeDevHandler;
 import org.smartrplace.driverhandler.devices.GasEnergyCam_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HMGas_MeterDeviceHandler;
 import org.smartrplace.driverhandler.devices.HMIEC_ElConnDeviceHandler;
+import org.smartrplace.driverhandler.devices.HeatCostAllocatorHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter2_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatMeter_DeviceHandler;
 import org.smartrplace.driverhandler.devices.HeatingLabFlowSens_DeviceHandler;
@@ -59,6 +60,7 @@ import org.smartrplace.driverhandler.devices.MultiSwitchHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
 import org.smartrplace.driverhandler.devices.ThermalStorage_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
+import org.smartrplace.driverhandler.devices.WiredMBusMasterHandler;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_Aircond;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_ElecConnBox;
 import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_SingleSwBox;
@@ -232,6 +234,13 @@ public class MonitoringServiceBaseApp implements Application {
 	@SuppressWarnings("rawtypes")
 	protected ServiceRegistration<DeviceHandlerProvider> srSensDevGeneric = null;
 	private DeviceHandlerWMBus_SensorDevice devHandSensDevGeneric;
+	
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srHCA = null;
+	private HeatCostAllocatorHandler devHandHCA;
+	@SuppressWarnings("rawtypes")
+	protected ServiceRegistration<DeviceHandlerProvider> srMBUSM = null;
+	private WiredMBusMasterHandler devHandMBUSM;
 
 	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
 	private DriverHandlerJMBus jmbusConfig;
@@ -352,6 +361,11 @@ public class MonitoringServiceBaseApp implements Application {
 	   devHandSensDevGeneric = new DeviceHandlerWMBus_SensorDevice(controller.appManPlus);
 	   srSensDevGeneric = bc.registerService(DeviceHandlerProvider.class, devHandSensDevGeneric, null);
 
+	   devHandHCA = new HeatCostAllocatorHandler(controller.appManPlus);
+	   srHCA = bc.registerService(DeviceHandlerProvider.class, devHandHCA, null);
+	   devHandMBUSM = new WiredMBusMasterHandler(controller.appManPlus);
+	   srMBUSM = bc.registerService(DeviceHandlerProvider.class, devHandMBUSM, null);
+
 	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
 	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
 	   mqttBrokerConfig = new DriverHandlerMQTTBroker(controller.appManPlus, configAdmin);
@@ -413,6 +427,9 @@ public class MonitoringServiceBaseApp implements Application {
     	if (srHumSensSingle!= null) srHumSensSingle.unregister();
      	if (srThValve!= null) srThValve.unregister();
      	if (srHeatlabGeneral!= null) srHeatlabGeneral.unregister();
+
+    	if (srHCA!= null) srHCA.unregister();
+    	if (srMBUSM!= null) srMBUSM.unregister();
 
     	if (jmbusDriver != null) jmbusDriver.unregister();
     	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();

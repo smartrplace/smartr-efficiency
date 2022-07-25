@@ -11,6 +11,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.sensors.FlowSensor;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.model.sensors.VolumeAccumulatedSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -38,6 +39,7 @@ public class WaterMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> 
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		addDatapoint(device.getSubResource("VOLUME_FLOW_0_0", FlowSensor.class).reading(), result);
 		return result;
 	}
 
