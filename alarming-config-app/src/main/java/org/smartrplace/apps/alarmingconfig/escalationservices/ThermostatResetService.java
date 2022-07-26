@@ -21,6 +21,7 @@ import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmValueListenerBasic;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.message.FirebaseUtil;
@@ -33,12 +34,14 @@ import de.iwes.widgets.api.messaging.MessagePriority;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class ThermostatResetService extends EscalationProviderSimple<EscalationKnownIssue> {
-	protected final ApplicationManagerPlus appManPlus;
-	protected final String baseUrl;
+	private final ApplicationManagerPlus appManPlus;
+	private final String baseUrl;
+	private final HardwareInstallConfig hwInstall;
 	
-	public ThermostatResetService(ApplicationManagerPlus appManPlus) {
+	public ThermostatResetService(ApplicationManagerPlus appManPlus, HardwareInstallConfig hwInstall) {
 		this.appManPlus = appManPlus;
 		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
+		this.hwInstall = hwInstall;
 	}
 
 	@Override
@@ -97,7 +100,7 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 			} else
 				emailMessage += "\r\n\r\n"+issue.knownIssue.lastMessage().getValue();
 		}
-		if(maxFault > 0) {
+		if(maxFault > 0 && hwInstall.alarmingReductionLevel().getValue() >= 0) {
 			sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "thermostats/roomcontrols (morning)",
 					appIDs, persistData, appManPlus);
 			/*MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(persistData.alarmLevel().getValue());

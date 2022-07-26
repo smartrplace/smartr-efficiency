@@ -125,10 +125,10 @@ public class EscalationManager {
 	
 	/** TODO: In the future these services shall be collected e.g. via OSGi services or DatapointService*/
 	protected void initProviders() {
-		ThermostatResetService thermReset = new ThermostatResetService(controller.appManPlus);
+		ThermostatResetService thermReset = new ThermostatResetService(controller.appManPlus, controller.getHardwareConfig());
 		knownEscProvs.put(thermReset.id(), thermReset);
 		
-		NotAssignedEscalationProvider notAssigned = new NotAssignedEscalationProvider(controller.appManPlus);
+		NotAssignedEscalationProvider notAssigned = new NotAssignedEscalationProvider(controller.appManPlus, controller.getHardwareConfig());
 		knownEscProvs.put(notAssigned.id(), notAssigned);
 
 		OnOffSwitchEscalationProvider onOff = new OnOffSwitchEscalationProvider(controller.appManPlus);

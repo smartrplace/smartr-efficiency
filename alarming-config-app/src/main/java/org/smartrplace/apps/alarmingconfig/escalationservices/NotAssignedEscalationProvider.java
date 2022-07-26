@@ -17,6 +17,7 @@ import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmValueListenerBasic;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.deviceeval.BatteryEval;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
@@ -29,12 +30,14 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class NotAssignedEscalationProvider extends EscalationProviderSimple<EscalationKnownIssue> {
 
-	protected final ApplicationManagerPlus appManPlus;
-	protected final String baseUrl;
+	private final ApplicationManagerPlus appManPlus;
+	private final String baseUrl;
+	private final HardwareInstallConfig hwInstall;
 	
-	public NotAssignedEscalationProvider(ApplicationManagerPlus appManPlus) {
+	public NotAssignedEscalationProvider(ApplicationManagerPlus appManPlus, HardwareInstallConfig hwInstall) {
 		this.appManPlus = appManPlus;
 		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
+		this.hwInstall = hwInstall;
 	}
 
 	@Override
@@ -62,11 +65,17 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 		String maxMessage = null;
 		int count = 0;
 		List<EscalationKnownIssue> issuesToReport = new ArrayList<>();
+		long maxDelayWithoutMessage;
+		if(hwInstall.alarmingReductionLevel().getValue() >= 0)
+			maxDelayWithoutMessage = persistData.standardDelay().getValue();
+		else
+			maxDelayWithoutMessage = (long) (1.67*persistData.standardDelay().getValue());
 		for(EscalationKnownIssue issue: issues) {
 			if(issue.knownIssue.assigned().getValue() > 0)
 				continue;
 			long duration = now - issue.knownIssue.ongoingAlarmStartTime().getValue();
-			if(duration < persistData.standardDelay().getValue())
+			
+			if(duration < maxDelayWithoutMessage)
 				continue;
 			if(duration > maxUnassigned) {
 				maxUnassigned = duration;
@@ -82,7 +91,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 			MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(persistData.alarmLevel().getValue());
 			String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
 			String title = gwId+"::"+count+" devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h !";
-			result.blockedUntil = now + persistData.standardDelay().getValue();
+			result.blockedUntil = now + maxDelayWithoutMessage;
 			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.summaryallowed")) {
 				String titleAfterNum = " devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h ";
 				ThermostatResetService.sendMessageForKnownIssues(issuesToReport, baseUrl,

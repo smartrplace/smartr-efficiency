@@ -1,9 +1,11 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.util.timedjob.TimedJobMemoryDataImpl;
@@ -18,11 +20,13 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Header;
+import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 
 public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalationLevel, AlarmingMessagingApp, AlarmingEscalationLevel> {
 	protected final AlarmingConfigAppController controller;
@@ -72,6 +76,15 @@ public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalati
 	public void addWidgetsAboveTable() {
 		Header header = new Header(page, "header", "7. Alarming Escalation Levels");
 		page.append(header);
+		
+		ValueResourceDropdown<IntegerResource> reductionModeDrop = new ValueResourceDropdown<IntegerResource>(page, "reductionModeDrop",
+				controller.hwTableData.appConfigData.alarmingReductionLevel(),
+				Arrays.asList(new String[] {"Off-season", "Standard"}));
+		reductionModeDrop.setDefaultIntegerValuesToUse(Arrays.asList(new Integer[] {-1, 0}));
+		
+		StaticTable topTable = new StaticTable(1, 4);
+		topTable.setContent(0, 0, "Alarming Escalation Message mode:").setContent(0, 1, reductionModeDrop);
+		page.append(topTable);
 	}
 
 	@Override
