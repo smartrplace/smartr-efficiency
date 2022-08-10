@@ -201,6 +201,8 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			//ServletSubDataProvider<TimeSeriesDataImpl> timeseries = new ServletSubDataProvider<TimeSeriesDataImpl>(timeSeriesProvider,
 			//	tsi, true, ReturnStructure.TOPARRAY_DICTIONARY, parameters);
 			ServletTimeseriesProvider timeseries = new ServletTimeseriesProvider(null, ts, controller.appMan, null, parameters);
+			if(object.getAlternativeTimeSeries() != null)
+				timeseries.replacementTimeseries = object.getAlternativeTimeSeries();
 			timeseries.addUTCOffset = true;
 			result.put("timeseries", timeseries);
 		}
