@@ -42,6 +42,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
@@ -221,6 +222,8 @@ public class ThermostatPage extends MainPage {
 						if(req == null) {
 							vh.registerHeaderEntry("VErr");
 							vh.registerHeaderEntry("Last VErr");
+							if(type == ThermostatPageType.AUTO_MODE)
+								vh.registerHeaderEntry("Start Adapt");
 						} else {
 							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
 							Label valveErrL = vh.stringLabel("VErr", id, new LabelFormatter() {
@@ -241,6 +244,19 @@ public class ThermostatPage extends MainPage {
 							Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+							
+							final BooleanResource ada = device.valve().getSubResource("startAdaption", BooleanResource.class);
+							if(type == ThermostatPageType.AUTO_MODE && (ada.exists())) {
+								Button startAdapt = new Button(mainTable, "startAdapt"+id, req) {
+									@Override
+									public void onPOSTComplete(String data, OgemaHttpRequest req) {
+										ada.setValue(true);
+									}
+								};
+								startAdapt.setDefaultText("Start ADA");
+								row.addCell(WidgetHelper.getValidWidgetId("Start Adapt"), startAdapt);
+							}
+
 						}
 					}
 				}
@@ -414,7 +430,8 @@ public class ThermostatPage extends MainPage {
 					row.addCell("Plot", logResult.plotButton);
 
 					String text = getHomematicCCUId(object.device().getLocation());
-					vh.stringLabel("RT", id, text, row);
+					if(type != ThermostatPageType.AUTO_MODE)
+						vh.stringLabel("RT", id, text, row);
 					InstallAppDevice ccuIad = HmSetpCtrlManager.getCCU(device, controller.dpService);
 					if(ccuIad != null)
 						vh.stringLabel("CCU", id, ccuIad.deviceId().getValue(), row);
@@ -427,7 +444,8 @@ public class ThermostatPage extends MainPage {
 						vh.registerHeaderEntry("SendMan");						
 					}
 					vh.registerHeaderEntry("Plot");
-					vh.registerHeaderEntry("RT");
+					if(type != ThermostatPageType.AUTO_MODE)
+						vh.registerHeaderEntry("RT");
 					vh.registerHeaderEntry("CCU");
 				}
 				
