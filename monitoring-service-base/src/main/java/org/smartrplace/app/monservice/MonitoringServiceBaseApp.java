@@ -69,6 +69,9 @@ import org.smartrplace.mqtt.devicetable.DeviceHandlerMQTT_SmartDimmer;
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
+import java.util.Collection;
+import java.util.concurrent.ConcurrentHashMap;
+import org.smartrplace.driverhandler.devices.HeatPumpDevHandler;
 
 @References({
 	@Reference(
@@ -163,122 +166,8 @@ public class MonitoringServiceBaseApp implements Application {
 	private BundleContext bc;
 	protected ServiceRegistration<DatapointService> srDpservice = null;
 	DatapointServiceImpl dpService;
+	Collection<ServiceRegistration<?>> deviceHandlerRegistrations = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srAircond = null;
-	private DeviceHandlerMQTT_Aircond devHandAircond;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srElecConn = null;
-	private DeviceHandlerMQTT_ElecConnBox devHandElecConn;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srSwBox = null;
-	private DeviceHandlerMQTT_SingleSwBox devHandSwBox;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srSmartDim = null;
-	private DeviceHandlerMQTT_SmartDimmer devHandSmartDim;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srLight = null;
-	private LightWLANDevHandler devHandLight;
-
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srPv = null;
-	private DeviceHandler_PVPlant devHandPv;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srEnServ = null;
-	private ESE_ElConnBoxDeviceHandler devHandEnServ;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srCharge = null;
-	private ChargingPointDevHandler devHandCharge;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srBat = null;
-	private BatteryDevHandler devHandBat;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srSmartProtect = null;
-	private SmartProtect_DeviceHandler devHandSmartProtect;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srWater = null;
-	private WaterMeter_DeviceHandler devHandWater;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srHeat = null;
-	private HeatMeter_DeviceHandler devHandHeat;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srHeat2 = null;
-	private HeatMeter2_DeviceHandler devHandHeat2;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGas = null;
-	private GasEnergyCam_DeviceHandler devHandGas;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srIota = null;
-	private Iotawatt_DeviceHandler devHandIota;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srIotaSimple = null;
-	private IotawattSimple_DeviceHandler devHandIotaSimple;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srFlowProbe = null;
-	private FlowScopeDevHandler devHandFlowProbe;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srFlowSensSingle = null;
-	private HeatingLabFlowSens_DeviceHandler devHandFlowSensSingle;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srHumSensSingle = null;
-	private HeatingLabHumiditySens_DeviceHandler devHandHumSensSingle;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srTempSensSingle = null;
-	private HeatingLabTempSens_DeviceHandler devHandTempSensSingle;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srThValve = null;
-	private HeatingLabThermalValve_DeviceHandler devHandThValve;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srHeatlabGeneral = null;
-	private HeatingLabGeneralData_DeviceHandler devHandHeatlabGeneral;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srSensDevGeneric = null;
-	private DeviceHandlerWMBus_SensorDevice devHandSensDevGeneric;
-	
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srHCA = null;
-	private HeatCostAllocatorHandler devHandHCA;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srMBUSM = null;
-	private WiredMBusMasterHandler devHandMBUSM;
-
-	protected ServiceRegistration<DriverHandlerProvider> jmbusDriver = null;
-	private DriverHandlerJMBus jmbusConfig;
-	protected ServiceRegistration<DriverHandlerProvider> mqttBrokerDriver = null;
-	private DriverHandlerMQTTBroker mqttBrokerConfig;
-	protected ServiceRegistration<DriverHandlerProvider> knxDriver = null;
-	private DriverHandlerKNX_IP knxConfig;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srBeacon = null;
-	private BluetoothBeaconHandler devHandBeacon;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srMSwitch = null;
-	private MultiSwitchHandler devHandMSwitch;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srIECMeter = null;
-	private HMIEC_ElConnDeviceHandler devHandIECMeter;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srGasMeter = null;
-	private HMGas_MeterDeviceHandler devHandGasMeter;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srFaultDev = null;
-	private FaultMessageDeviceHandler devHandFaultDev;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srFaultSingleDev = null;
-	private FaultSingleDeviceHandler devHandFaultSingleDev;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srFaultSingleIntDev = null;
-	private FaultSingleDeviceIntegerHandler devHandFaultSingleIntDev;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srThermStor = null;
-	private ThermalStorage_DeviceHandler devHandThermStor;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srFan = null;
-	private MechanicalFan_DeviceHandler devHandFan;
-	@SuppressWarnings("rawtypes")
-	protected ServiceRegistration<DeviceHandlerProvider> srEventBut = null;
-	private EventPushButtonHandler devHandEventBut;
-	
 	@Activate
 	   void activate(BundleContext bc) {
 	    this.bc = bc;
@@ -301,99 +190,61 @@ public class MonitoringServiceBaseApp implements Application {
 			protected Map<String, DeviceHandlerProvider<?>> getTableProviders() {
 				return MonitoringServiceBaseApp.this.getTableProviders();
 			}
-			
+
 			@Override
 			public Map<String, OGEMADriverPropertyService<?>> driverpropertyServices() {
 				return MonitoringServiceBaseApp.this.getDPropertyProviders();
 			}
-		   
-	   };
-	   controller = new MonitoringServiceBaseController(appMan, this);
-	   
-	   srDpservice = bc.registerService(DatapointService.class, dpService, null);
-	   
-	   devHandAircond = new DeviceHandlerMQTT_Aircond(controller.appManPlus);
-	   srAircond = bc.registerService(DeviceHandlerProvider.class, devHandAircond, null);
-	   devHandElecConn = new DeviceHandlerMQTT_ElecConnBox(controller.appManPlus);
-	   srElecConn = bc.registerService(DeviceHandlerProvider.class, devHandElecConn, null);
-	   devHandSwBox = new DeviceHandlerMQTT_SingleSwBox(controller.appManPlus);
-	   srSwBox = bc.registerService(DeviceHandlerProvider.class, devHandSwBox, null);
-	   devHandSmartDim = new DeviceHandlerMQTT_SmartDimmer(controller.appManPlus);
-	   srSmartDim = bc.registerService(DeviceHandlerProvider.class, devHandSmartDim, null);
-	   devHandLight = new LightWLANDevHandler(controller.appManPlus);
-	   srLight = bc.registerService(DeviceHandlerProvider.class, devHandLight, null);
-	   
-	   devHandPv = new DeviceHandler_PVPlant(controller.appManPlus);
-	   srPv = bc.registerService(DeviceHandlerProvider.class, devHandPv, null);
-	   devHandEnServ = new ESE_ElConnBoxDeviceHandler(controller.appManPlus);
-	   srEnServ = bc.registerService(DeviceHandlerProvider.class, devHandEnServ, null);
-	   devHandCharge = new ChargingPointDevHandler(controller.appManPlus);
-	   srCharge = bc.registerService(DeviceHandlerProvider.class, devHandCharge, null);
-	   devHandBat = new BatteryDevHandler(controller.appManPlus);
-	   srBat = bc.registerService(DeviceHandlerProvider.class, devHandBat, null);
-	   devHandSmartProtect = new SmartProtect_DeviceHandler(controller.appManPlus);
-	   srSmartProtect = bc.registerService(DeviceHandlerProvider.class, devHandSmartProtect, null);
-	   devHandWater = new WaterMeter_DeviceHandler(controller.appManPlus);
-	   srWater = bc.registerService(DeviceHandlerProvider.class, devHandWater, null);
-	   devHandHeat = new HeatMeter_DeviceHandler(controller.appManPlus);
-	   srHeat = bc.registerService(DeviceHandlerProvider.class, devHandHeat, null);
-	   devHandHeat2 = new HeatMeter2_DeviceHandler(controller.appManPlus);
-	   srHeat2 = bc.registerService(DeviceHandlerProvider.class, devHandHeat2, null);
-	   devHandGas = new GasEnergyCam_DeviceHandler(controller.appManPlus);
-	   srGas = bc.registerService(DeviceHandlerProvider.class, devHandGas, null);
-	   devHandIota = new Iotawatt_DeviceHandler(controller.appManPlus);
-	   srIota = bc.registerService(DeviceHandlerProvider.class, devHandIota, null);
-	   devHandIotaSimple = new IotawattSimple_DeviceHandler(controller.appManPlus);
-	   srIotaSimple = bc.registerService(DeviceHandlerProvider.class, devHandIotaSimple, null);
-	   devHandFlowProbe = new FlowScopeDevHandler(controller.appManPlus);
-	   srFlowProbe = bc.registerService(DeviceHandlerProvider.class, devHandFlowProbe, null);
-	   
-	   devHandFlowSensSingle = new HeatingLabFlowSens_DeviceHandler(controller.appManPlus);
-	   srFlowSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandFlowSensSingle, null);
-	   devHandHumSensSingle = new HeatingLabHumiditySens_DeviceHandler(controller.appManPlus);
-	   srHumSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandHumSensSingle, null);
-	   devHandTempSensSingle = new HeatingLabTempSens_DeviceHandler(controller.appManPlus);
-	   srTempSensSingle = bc.registerService(DeviceHandlerProvider.class, devHandTempSensSingle, null);
-	   devHandThValve = new HeatingLabThermalValve_DeviceHandler(controller.appManPlus);
-	   srThValve = bc.registerService(DeviceHandlerProvider.class, devHandThValve, null);
-	   devHandHeatlabGeneral = new HeatingLabGeneralData_DeviceHandler(controller.appManPlus);
-	   srHeatlabGeneral = bc.registerService(DeviceHandlerProvider.class, devHandHeatlabGeneral, null);
-	   devHandSensDevGeneric = new DeviceHandlerWMBus_SensorDevice(controller.appManPlus);
-	   srSensDevGeneric = bc.registerService(DeviceHandlerProvider.class, devHandSensDevGeneric, null);
 
-	   devHandHCA = new HeatCostAllocatorHandler(controller.appManPlus);
-	   srHCA = bc.registerService(DeviceHandlerProvider.class, devHandHCA, null);
-	   devHandMBUSM = new WiredMBusMasterHandler(controller.appManPlus);
-	   srMBUSM = bc.registerService(DeviceHandlerProvider.class, devHandMBUSM, null);
+		};
+		controller = new MonitoringServiceBaseController(appMan, this);
 
-	   jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
-	   jmbusDriver = bc.registerService(DriverHandlerProvider.class, jmbusConfig, null);
-	   mqttBrokerConfig = new DriverHandlerMQTTBroker(controller.appManPlus, configAdmin);
-	   mqttBrokerDriver = bc.registerService(DriverHandlerProvider.class, mqttBrokerConfig, null);
-	   knxConfig = new DriverHandlerKNX_IP(controller.appManPlus, configAdmin);
-	   knxDriver = bc.registerService(DriverHandlerProvider.class, knxConfig, null);
-	   devHandBeacon = new BluetoothBeaconHandler(controller.appManPlus);
-	   srBeacon = bc.registerService(DeviceHandlerProvider.class, devHandBeacon, null);
-	   devHandMSwitch = new MultiSwitchHandler(controller.appManPlus);
-	   srMSwitch = bc.registerService(DeviceHandlerProvider.class, devHandMSwitch, null);
-	   devHandIECMeter = new HMIEC_ElConnDeviceHandler(controller.appManPlus);
-	   srIECMeter = bc.registerService(DeviceHandlerProvider.class, devHandIECMeter, null);
-	   devHandGasMeter = new HMGas_MeterDeviceHandler(controller.appManPlus);
-	   srGasMeter = bc.registerService(DeviceHandlerProvider.class, devHandGasMeter, null);
+		srDpservice = bc.registerService(DatapointService.class, dpService, null);
 
-	   devHandFaultDev = new FaultMessageDeviceHandler(controller.appManPlus);
-	   srFaultDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultDev, null);
-	   devHandFaultSingleDev = new FaultSingleDeviceHandler(controller.appManPlus);
-	   srFaultSingleDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultSingleDev, null);
-	   devHandThermStor = new ThermalStorage_DeviceHandler(controller.appManPlus);
-	   devHandFaultSingleIntDev = new FaultSingleDeviceIntegerHandler(controller.appManPlus);
-	   srFaultSingleIntDev = bc.registerService(DeviceHandlerProvider.class, devHandFaultSingleIntDev, null);
-	   srThermStor = bc.registerService(DeviceHandlerProvider.class, devHandThermStor, null);
-	   devHandFan = new MechanicalFan_DeviceHandler(controller.appManPlus);
-	   srFan = bc.registerService(DeviceHandlerProvider.class, devHandFan, null);
-	   devHandEventBut = new EventPushButtonHandler(controller.appManPlus);
-	   srEventBut = bc.registerService(DeviceHandlerProvider.class, devHandEventBut, null);
- 	}
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandlerMQTT_Aircond(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandlerMQTT_ElecConnBox(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandlerMQTT_SingleSwBox(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandlerMQTT_SmartDimmer(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new LightWLANDevHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandler_PVPlant(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ESE_ElConnBoxDeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ChargingPointDevHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new BatteryDevHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new SmartProtect_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new WaterMeter_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatMeter_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatMeter2_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatPumpDevHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new GasEnergyCam_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new Iotawatt_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new IotawattSimple_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new FlowScopeDevHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatingLabFlowSens_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatingLabHumiditySens_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatingLabTempSens_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatingLabThermalValve_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatingLabGeneralData_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandlerWMBus_SensorDevice(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatCostAllocatorHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new WiredMBusMasterHandler(controller.appManPlus), null));
+
+		DriverHandlerJMBus jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
+		deviceHandlerRegistrations.add(bc.registerService(DriverHandlerProvider.class, jmbusConfig, null));
+		deviceHandlerRegistrations.add(bc.registerService(DriverHandlerProvider.class, new DriverHandlerMQTTBroker(controller.appManPlus, configAdmin), null));
+		deviceHandlerRegistrations.add(bc.registerService(DriverHandlerProvider.class, new DriverHandlerKNX_IP(controller.appManPlus, configAdmin), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new BluetoothBeaconHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new MultiSwitchHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HMIEC_ElConnDeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HMGas_MeterDeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new FaultMessageDeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new FaultSingleDeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ThermalStorage_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new FaultSingleDeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new FaultSingleDeviceIntegerHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new MechanicalFan_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new EventPushButtonHandler(controller.appManPlus), null));
+
+	}
  	
      /*
      * Callback called when the application is going to be stopped.
@@ -404,46 +255,9 @@ public class MonitoringServiceBaseApp implements Application {
 
     	if (srDpservice != null) srDpservice.unregister();
     	
-       	if (srAircond != null) srAircond.unregister();
-    	if (srElecConn != null) srElecConn.unregister();
-    	if (srSwBox != null) srSwBox.unregister();
-    	if (srSmartDim != null) srSmartDim.unregister();
-    	if (srLight != null) srLight.unregister();    	
-    	
-    	if (srPv != null) srPv.unregister();
-    	if (srEnServ != null) srEnServ.unregister();
-    	if (srCharge != null) srCharge.unregister();
-    	if (srBat != null) srBat.unregister();
-       	if (srSmartProtect != null) srSmartProtect.unregister();
-       	if (srWater!= null) srWater.unregister();
-       	if (srHeat != null) srHeat.unregister();
-       	if (srHeat2 != null) srHeat2.unregister();
-       	if (srGas != null) srGas.unregister();
-      	if (srIota != null) srIota.unregister();
-      	if (srIotaSimple!= null) srIotaSimple.unregister();
-     	if (srFlowProbe!= null) srFlowProbe.unregister();
-     	if (srFlowSensSingle!= null) srFlowSensSingle.unregister();
-     	if (srTempSensSingle!= null) srTempSensSingle.unregister();
-    	if (srHumSensSingle!= null) srHumSensSingle.unregister();
-     	if (srThValve!= null) srThValve.unregister();
-     	if (srHeatlabGeneral!= null) srHeatlabGeneral.unregister();
-
-    	if (srHCA!= null) srHCA.unregister();
-    	if (srMBUSM!= null) srMBUSM.unregister();
-
-    	if (jmbusDriver != null) jmbusDriver.unregister();
-    	if (mqttBrokerDriver != null) mqttBrokerDriver.unregister();
-    	if (knxDriver != null) knxDriver.unregister();
-       	if (srBeacon != null) srBeacon.unregister();
-       	if (srMSwitch != null) srMSwitch.unregister();
-      	if (srIECMeter != null) srIECMeter.unregister();
-     	if (srGasMeter != null) srGasMeter.unregister();
-     	if (srFaultDev != null) srFaultDev.unregister();
-     	if (srFaultSingleDev != null) srFaultSingleDev.unregister();
-     	if (srFaultSingleIntDev != null) srFaultSingleIntDev.unregister();
-    	if (srThermStor != null) srThermStor.unregister();
-       	if (srFan != null) srFan.unregister();
-       	if (srEventBut != null) srEventBut.unregister();
+		deviceHandlerRegistrations.forEach(sr -> {
+			sr.unregister();
+		});
 
        	if (controller != null)
     		controller.close();
