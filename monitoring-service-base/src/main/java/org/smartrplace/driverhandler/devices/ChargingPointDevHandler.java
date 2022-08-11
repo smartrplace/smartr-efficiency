@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
@@ -29,6 +31,9 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 
 	@Override
 	public SingleValueResource getMainSensorValue(ChargingPoint device, InstallAppDevice deviceConfiguration) {
+		if (device.electricityConnection().powerSensor().reading().isActive()) {
+			return device.electricityConnection().powerSensor().reading();
+		}
 		return device.setting().stateFeedback();
 	}
 
@@ -38,6 +43,18 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 		addDatapoint(device.setting().stateControl(), result);
 		addDatapoint(device.setting().stateFeedback(), result);
 		addDatapoint(device.battery().chargeSensor().reading(), result);
+		
+		addDatapoint(device.electricityConnection().powerSensor().reading(), "Actual Power", result);
+		addDatapoint(device.electricityConnection().energySensor().reading(), "Total Energy", result);
+		Resource isPlugged = device.getSubResource("isPlugged");
+		if (isPlugged != null && isPlugged instanceof IntegerResource) {
+			addDatapoint((IntegerResource) isPlugged, "Plugged", result);
+		}
+		Resource isCharging = device.getSubResource("isCharging");
+		if (isCharging != null && isCharging instanceof IntegerResource) {
+			addDatapoint((IntegerResource) isCharging, "Charging", result);
+		}
+		
 		return result;
 	}
 
@@ -55,4 +72,5 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 	public ComType getComType() {
 		return ComType.IP;
 	}
+	
 }
