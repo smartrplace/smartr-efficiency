@@ -6,22 +6,33 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.units.VoltageResource;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.model.actors.MultiSwitch;
+import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
+import org.smartrplace.util.virtualdevice.ChartsUtil;
+import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
 
 public class BatteryPage extends MainPage {
@@ -68,9 +79,59 @@ public class BatteryPage extends MainPage {
 					vh.registerHeaderEntry("Last Status");
 				else if(statusLab != null)
 					lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
-				Room deviceRoom = device2.location().room();
-				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
-			 	addSubLocation(object, vh, id, req, row);
+				if(req == null) {
+					vh.registerHeaderEntry("Room-Loc");
+					vh.registerHeaderEntry("EmptyPos");
+					vh.registerHeaderEntry("Last EP");
+					vh.registerHeaderEntry("Resend EmptyPos");
+					vh.registerHeaderEntry("Plot");
+				} else {
+					Room deviceRoom = device2.location().room();
+					//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+					String roomSubLoc = ResourceUtils.getHumanReadableShortName(deviceRoom);
+					if(object.installationLocation().exists() && !object.installationLocation().getValue().isEmpty()) {
+						roomSubLoc += "-"+object.installationLocation().getValue();
+					}
+					vh.stringLabel("Room-Loc", id, roomSubLoc, row);
+					
+					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
+					final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
+							ScheduleViewerConfigProvBattery.getInstance(), null);
+					row.addCell("Plot", logResult.plotButton);
+
+					if(object.device() instanceof Thermostat) {
+						Thermostat device = (Thermostat)object.device();
+						final FloatResource errorRun = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateControl();
+						final FloatResource errorRunFb = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateFeedback();
+						if(errorRun.exists()) {
+							Label valveErrL = vh.stringLabel("EmptyPos", id, new LabelFormatter() {
+								
+								@Override
+								public OnGETData getData(OgemaHttpRequest req) {
+									float val = errorRun.getValue();
+									float valFb = errorRunFb.getValue();
+									int state = ValueResourceHelper.isAlmostEqual(val, valFb)?1:0;
+									return new OnGETData(String.format("%.0f / %.0f", val*100, valFb*100), state);
+								}
+							}, row);
+							Label lastContactValveErr = addLastContact("Last EP", vh, id, req, row, errorRunFb);
+							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
+							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+							
+							@SuppressWarnings("serial")
+							Button resend = new Button(mainTable, "resendBut"+id, req) {
+								@Override
+								public void onPOSTComplete(String data, OgemaHttpRequest req) {
+									errorRun.setValue(errorRun.getValue());
+								}
+							};
+							resend.setDefaultText("Resend");
+							row.addCell(WidgetHelper.getValidWidgetId("Resend EmptyPos"), resend);
+						}
+					}
+				}
+				
+				//addSubLocation(object, vh, id, req, row);
 				if(req != null) {
 					String text = getHomematicCCUId(object.device().getLocation());
 					vh.stringLabel("RT", id, text, row);
