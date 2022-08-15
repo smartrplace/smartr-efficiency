@@ -13,7 +13,6 @@ import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.metering.GasMeter;
-import org.ogema.model.sensors.VolumeAccumulatedSensor;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
