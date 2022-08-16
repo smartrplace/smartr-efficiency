@@ -383,7 +383,7 @@ public class AlarmingUtiH {
 					2.3f, 3.5f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES, DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES, overwriteExisting);
 			else
 				AlarmingUtiH.setTemplateValues(appDevice, batteryVoltage,
-						batteryNum*0.7f, batteryNum*1.8f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES, DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES, overwriteExisting);
+						batteryNum*1.1f, batteryNum*1.8f, 10, DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES, DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES, overwriteExisting);
 		}
 		BooleanResource batteryStatus = ResourceHelper.getSubResourceOfSibbling(dev,
 				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "batteryLow", BooleanResource.class);
