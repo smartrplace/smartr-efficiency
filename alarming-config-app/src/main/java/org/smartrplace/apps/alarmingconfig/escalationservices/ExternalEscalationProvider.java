@@ -1,5 +1,6 @@
 package org.smartrplace.apps.alarmingconfig.escalationservices;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,9 +10,11 @@ import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
+import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.util.timedjob.TimedJobMemoryDataImpl;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
+import org.smartrplace.alarming.escalation.model.AlarmingEscalationSettings;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -27,7 +30,8 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 	private static final long MAX_ESCTIME_UPDATERATE = 10000;
 	protected final ApplicationManagerPlus appManPlus;
 	protected final String baseUrl;
-	protected final Set<String> knownIssuesProcessed = new HashSet<>();
+	private final Set<String> knownIssuesProcessed = new HashSet<>();
+	private StringArrayResource knownIssuesProcessedRes;
 	
 	protected final String name;
 		
@@ -65,8 +69,19 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
 		this.name = name;
 		this.index = index;
+		
 	}
 
+	@Override
+	public Boolean initProvider(AlarmingEscalationLevel persistData, AlarmingEscalationSettings settings,
+			List<InstallAppDevice> knownIssueDevices) {
+		Boolean result = super.initProvider(persistData, settings, knownIssueDevices);
+		knownIssuesProcessedRes = persistData.getSubResource("knownIssuesProcessed", StringArrayResource.class);
+		if(knownIssuesProcessedRes.isActive())
+			knownIssuesProcessed.addAll(Arrays.asList(knownIssuesProcessedRes.getValues()));
+		return result;
+	}
+	
 	@Override
 	public String id() {
 		return this.getClass().getSimpleName()+WidgetHelper.getValidWidgetId(name);
@@ -110,6 +125,7 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 		int countDevice = 0;
 		Set<String> issueLocs = new HashSet<>();
+		boolean changedKnownIssuesProcessed = false;
 		for(EscalationKnownIssue issue: issues) {
 			String loc = issue.knownIssue.getLocation();
 			issueLocs.add(loc);
@@ -142,10 +158,16 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 			} else
 				emailMessage += "\r\n\r\n"+issue.knownIssue.lastMessage().getValue();
 			knownIssuesProcessed.add(loc);
+			changedKnownIssuesProcessed = true;
 		}
 		for(String loc2: knownIssuesProcessed) {
-			if(!issueLocs.contains(loc2))
+			if(!issueLocs.contains(loc2)) {
+				changedKnownIssuesProcessed = true;
 				knownIssuesProcessed.remove(loc2);
+			}
+		}
+		if(changedKnownIssuesProcessed) {
+			ValueResourceHelper.setCreate(knownIssuesProcessedRes, knownIssuesProcessed.toArray(new String[0]));
 		}
 		if(countDevice > 0) {
 			//ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "New Fault Message for "+name,
