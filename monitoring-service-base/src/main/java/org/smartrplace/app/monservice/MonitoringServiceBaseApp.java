@@ -57,7 +57,9 @@ import org.smartrplace.driverhandler.devices.Iotawatt_DeviceHandler;
 import org.smartrplace.driverhandler.devices.LightWLANDevHandler;
 import org.smartrplace.driverhandler.devices.MechanicalFan_DeviceHandler;
 import org.smartrplace.driverhandler.devices.MultiSwitchHandler;
+import org.smartrplace.driverhandler.devices.Pump_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
+import org.smartrplace.driverhandler.devices.ThermalMixingCirc_DeviceHandler;
 import org.smartrplace.driverhandler.devices.ThermalStorage_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WiredMBusMasterHandler;
@@ -214,6 +216,9 @@ public class MonitoringServiceBaseApp implements Application {
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new WaterMeter_DeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatMeter_DeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatMeter2_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ThermalMixingCirc_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new Pump_DeviceHandler(controller.appManPlus), null));
+
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatPumpDevHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new GasEnergyCam_DeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new Iotawatt_DeviceHandler(controller.appManPlus), null));

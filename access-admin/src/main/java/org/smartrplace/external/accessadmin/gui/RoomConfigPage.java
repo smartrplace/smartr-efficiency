@@ -15,6 +15,7 @@ import org.ogema.accessadmin.api.util.RoomEditHelper;
 import org.ogema.apps.roomlink.NewRoomPopupBuilder.RoomCreationListern;
 import org.ogema.apps.roomlink.localisation.mainpage.RoomLinkDictionary;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
@@ -152,6 +153,13 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, row, vh, req);
 		if(showLocations) {
 			vh.stringLabel("Location", id, object.getLocation(), row);
+			if(req == null)
+				vh.registerHeaderEntry("CMS ID");
+			else {
+				IntegerResource cmsIdRes = object.getSubResource("cmsId", IntegerResource.class);
+				if(cmsIdRes != null && cmsIdRes.isActive())
+					vh.intLabel("CMS ID", id, cmsIdRes.getValue(), row, 0);
+			}
 		}
 	}
 	
