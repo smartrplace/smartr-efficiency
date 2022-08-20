@@ -12,6 +12,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
 import org.ogema.core.model.array.StringArrayResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.util.timedjob.TimedJobMemoryDataImpl;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationSettings;
@@ -30,6 +31,7 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 	private static final long MAX_ESCTIME_UPDATERATE = 10000;
 	protected final ApplicationManagerPlus appManPlus;
 	protected final String baseUrl;
+	private final LocalGatewayInformation gwRes;
 	private final Set<String> knownIssuesProcessed = new HashSet<>();
 	private StringArrayResource knownIssuesProcessedRes;
 	
@@ -66,7 +68,8 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 	
 	public ExternalEscalationProvider(ApplicationManagerPlus appManPlus, String name, int index) {
 		this.appManPlus = appManPlus;
-		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
+		this.gwRes = ResourceHelper.getLocalGwInfo(appManPlus.appMan());
+		this.baseUrl = gwRes.gatewayBaseUrl().getValue();
 		this.name = name;
 		this.index = index;
 		
@@ -118,11 +121,11 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 	@Override
 	protected EscalationCheckResult checkEscalation(Collection<EscalationKnownIssue> issues, List<AppID> appIDs, long now) {
 		int maxFault = 0;
-		String emailMessage;
-		if(baseUrl == null)
-			emailMessage = null;
-		else
-			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+		String emailMessage = ThermostatResetService.getMessageHeaderLinks(baseUrl, gwRes);
+		//if(baseUrl == null)
+		//	emailMessage = null;
+		//else
+		//	emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 		int countDevice = 0;
 		Set<String> issueLocs = new HashSet<>();
 		boolean changedKnownIssuesProcessed = false;

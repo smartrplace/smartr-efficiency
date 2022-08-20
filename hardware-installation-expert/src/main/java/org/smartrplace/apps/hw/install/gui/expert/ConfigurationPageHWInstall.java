@@ -202,15 +202,21 @@ public class ConfigurationPageHWInstall {
 
 		final StaticTable configTable;
 		if(baseVersion)
-			configTable = new StaticTable(9, 2);			
+			configTable = new StaticTable(11, 2);			
 		else
-			configTable = new StaticTable(29, 2);
+			configTable = new StaticTable(31, 2);
 		int i = 0;
 
 		if(gwInfo != null) {
 			StringResource baseUrlRes = gwInfo.gatewayBaseUrl();
 			ResourceTextField<StringResource> baseUrl = new ValueResourceTextField<StringResource>(page,
 					"baseUrlEdit", baseUrlRes);
+			StringResource databaseUrlRes = gwInfo.gatewayOperationDatabaseUrl();
+			ResourceTextField<StringResource> databaseUrl = new ValueResourceTextField<StringResource>(page,
+					"databaseUrlEdit", databaseUrlRes);
+			StringResource linkOverviewUrlRes = gwInfo.gatewayLinkOverviewUrl();
+			ResourceTextField<StringResource> linkOverviewUrl = new ValueResourceTextField<StringResource>(page,
+					"linkOverviewUrlEdit", linkOverviewUrlRes);
 						
 			Label gwIdLabel = new Label(page, "gwIdLabel") {
 				@Override
@@ -222,6 +228,12 @@ public class ConfigurationPageHWInstall {
 
 			configTable.setContent(i, 0, "Base URL for access via internet, e.g. https://customer.manufacturer.de:2000").
 			setContent(i, 1, baseUrl);
+			i++;
+			configTable.setContent(i, 0, "Operation Documenation URL for access via internet:").
+			setContent(i, 1, databaseUrl);
+			i++;
+			configTable.setContent(i, 0, "Additional overview on gateway documentation data in the database and elsewhere:").
+			setContent(i, 1, linkOverviewUrl);
 			i++;
 			configTable.setContent(i, 0, "GatewayId:").
 			setContent(i, 1, gwIdLabel);

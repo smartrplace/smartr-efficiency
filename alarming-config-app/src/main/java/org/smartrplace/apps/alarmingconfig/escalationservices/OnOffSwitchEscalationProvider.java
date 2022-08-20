@@ -7,6 +7,7 @@ import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.actors.OnOffSwitch;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
@@ -19,12 +20,14 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<EscalationKnownIssue> {
 
-	protected final ApplicationManagerPlus appManPlus;
-	protected final String baseUrl;
+	private final ApplicationManagerPlus appManPlus;
+	private final String baseUrl;
+	private final LocalGatewayInformation gwRes;
 	
 	public OnOffSwitchEscalationProvider(ApplicationManagerPlus appManPlus) {
 		this.appManPlus = appManPlus;
-		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
+		this.gwRes = ResourceHelper.getLocalGwInfo(appManPlus.appMan());
+		this.baseUrl = gwRes.gatewayBaseUrl().getValue();
 	}
 
 	@Override
@@ -49,11 +52,11 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 	@Override
 	protected EscalationCheckResult checkEscalation(Collection<EscalationKnownIssue> issues, List<AppID> appIDs, long now) {
 		int maxFault = 0;
-		String emailMessage;
-		if(baseUrl == null)
-			emailMessage = null;
-		else
-			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+		String emailMessage = ThermostatResetService.getMessageHeaderLinks(baseUrl, gwRes);
+		//if(baseUrl == null)
+		//	emailMessage = null;
+		//else
+		//	emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 		int countDevice = 0;
 		for(EscalationKnownIssue issue: issues) {
 			if(issue.knownIssue.assigned().getValue() > 0)

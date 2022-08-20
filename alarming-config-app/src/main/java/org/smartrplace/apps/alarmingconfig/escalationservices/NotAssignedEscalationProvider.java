@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -33,10 +34,12 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 	private final ApplicationManagerPlus appManPlus;
 	private final String baseUrl;
 	private final HardwareInstallConfig hwInstall;
+	private final LocalGatewayInformation gwRes;
 	
 	public NotAssignedEscalationProvider(ApplicationManagerPlus appManPlus, HardwareInstallConfig hwInstall) {
 		this.appManPlus = appManPlus;
-		this.baseUrl = ResourceHelper.getLocalGwInfo(appManPlus.appMan()).gatewayBaseUrl().getValue();
+		this.gwRes = ResourceHelper.getLocalGwInfo(appManPlus.appMan());
+		this.baseUrl = gwRes.gatewayBaseUrl().getValue();
 		this.hwInstall = hwInstall;
 	}
 
@@ -94,7 +97,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 			result.blockedUntil = now + maxDelayWithoutMessage;
 			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.summaryallowed")) {
 				String titleAfterNum = " devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h ";
-				ThermostatResetService.sendMessageForKnownIssues(issuesToReport, baseUrl,
+				ThermostatResetService.sendMessageForKnownIssues(issuesToReport, baseUrl, gwRes,
 						titleAfterNum, appIDs, persistData, appManPlus);
 				return result;
 			}
