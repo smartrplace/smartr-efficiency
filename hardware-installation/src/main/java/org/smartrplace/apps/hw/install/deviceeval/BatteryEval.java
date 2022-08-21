@@ -206,7 +206,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 			mes += getValueLineHTML(batProv, status.iad.deviceId().getValue(),
 					getRoomName(status.iad),
 					""+status.status,
-					status.expectedEmptyDate!=null?StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate):"???",
+					status.expectedEmptyDate!=null?(StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate)+"("+status.expectedEmptyDate+")"):"???",
 					String.format("%.1f", status.currentVoltage));
 System.out.println("ExpectedEmptyData: "+(status.expectedEmptyDate!=null?status.expectedEmptyDate:"(null)")+"  for battery "+status.iad.deviceId().getValue()); 
 		}
