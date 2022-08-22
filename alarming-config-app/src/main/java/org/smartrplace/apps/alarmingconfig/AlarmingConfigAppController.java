@@ -240,6 +240,19 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		tsProcAl = new TimeseriesProcAlarming(appMan, dpService);
 		
 		hwTableData = new HardwareTableData(appMan);
+		try {
+			hwTableData.appConfigData.getLocation();
+		} catch(NullPointerException e) {
+			while(hwTableData.appConfigData == null) {
+				try {
+					Thread.sleep(20000);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+				hwTableData.appConfigData = appMan.getResourceAccess().getResource("hardwareInstallConfig");
+			}
+			e.printStackTrace();
+		}
 		cleanupAlarming();
 		//initAlarmingResources();
 		alarmingActiveListener = new ResourceValueListener<BooleanResource>() {
@@ -249,12 +262,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				updateAlarming();
 			}
 		};
-		try {
-			updateAlarming();
-		} catch(NullPointerException e) {
-			System.out.println(" !! SHOULD never occur !!");
-			e.printStackTrace();
-		}
+		updateAlarming();
 		hwTableData.appConfigData.isAlarmingActive().create().activate(false);
 		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.init.alarmtesting.forcestartalarming")) {
 			//we set this true later on
