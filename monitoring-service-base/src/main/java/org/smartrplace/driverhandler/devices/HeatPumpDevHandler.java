@@ -26,7 +26,7 @@ public class HeatPumpDevHandler extends DeviceHandlerSimple<HeatPump> {
 	}
 	
 	public HeatPumpDevHandler(ApplicationManagerPlus appMan) {
-		super(appMan, false);
+		super(appMan, true);
 	}
 	
 	@Override

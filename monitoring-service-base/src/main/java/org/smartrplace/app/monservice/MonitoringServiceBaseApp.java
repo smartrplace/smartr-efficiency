@@ -29,6 +29,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.smartrplace.driverhandler.devices.BatteryDevHandler;
 import org.smartrplace.driverhandler.devices.BluetoothBeaconHandler;
+import org.smartrplace.driverhandler.devices.Burner_DeviceHandler;
 import org.smartrplace.driverhandler.devices.ChargingPointDevHandler;
 import org.smartrplace.driverhandler.devices.DeviceHandlerWMBus_SensorDevice;
 import org.smartrplace.driverhandler.devices.DeviceHandler_PVPlant;
@@ -218,6 +219,7 @@ public class MonitoringServiceBaseApp implements Application {
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatMeter2_DeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ThermalMixingCirc_DeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new Pump_DeviceHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new Burner_DeviceHandler(controller.appManPlus), null));
 
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatPumpDevHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new GasEnergyCam_DeviceHandler(controller.appManPlus), null));
