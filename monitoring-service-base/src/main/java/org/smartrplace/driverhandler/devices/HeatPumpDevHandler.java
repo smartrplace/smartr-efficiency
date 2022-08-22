@@ -9,9 +9,9 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
-import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.generators.HeatPump;
+import org.ogema.model.sensors.GenericBinarySensor;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
@@ -53,6 +53,15 @@ public class HeatPumpDevHandler extends DeviceHandlerSimple<HeatPump> {
 		if (cop != null && cop instanceof GenericFloatSensor) {
 			addDatapoint(((GenericFloatSensor) cop).reading(), "CoP", result);
 		}
+		
+		//Refridgerator and Recooler datapoints
+		addDatapoint(device.onOffSwitch().stateControl(), result);
+		addDatapoint(device.onOffSwitch().stateFeedback(), result);
+		addDatapoint(device.setting().stateControl(), result);
+		addDatapoint(device.setting().stateFeedback(), result);
+		addDatapoint(device.getSubResource("malfunction", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.getSubResource("malfunctionGas", GenericBinarySensor.class).reading(), result);
+		addDatapoint(device.getSubResource("operating", GenericBinarySensor.class).reading(), result);
 		
 		return result;
 	}
