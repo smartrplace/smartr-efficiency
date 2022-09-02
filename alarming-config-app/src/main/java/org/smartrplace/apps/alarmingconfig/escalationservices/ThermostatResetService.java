@@ -69,6 +69,8 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 			return new EscalationKnownIssue();
 		if(iad.device() instanceof ElectricLight)
 			return new EscalationKnownIssue();
+		if(iad.devHandlerInfo().getValue().endsWith("TemperatureOrHumiditySensorDeviceHandler"))
+			return new EscalationKnownIssue();			
 		return null;
 	}
 	
