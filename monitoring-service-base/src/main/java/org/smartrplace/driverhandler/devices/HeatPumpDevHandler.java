@@ -68,7 +68,7 @@ public class HeatPumpDevHandler extends DeviceHandlerSimple<HeatPump> {
 
 	@Override
 	public String getTableTitle() {
-		return "Heat Pumps";
+		return "Heat Pumps, Recoolers and Water Chillers/Refridgerators";
 	}
 
 	@Override
