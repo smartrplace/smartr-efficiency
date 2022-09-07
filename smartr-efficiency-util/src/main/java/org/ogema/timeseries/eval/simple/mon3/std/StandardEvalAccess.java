@@ -92,6 +92,8 @@ public class StandardEvalAccess {
 		SETP_REACT,
 		
 		BATTERY_VOLTAGE_MINIMAL,
+		
+		/** Expected remaining battery lifetime in days*/
 		BATTERY_REMAINING
 	}
 	
