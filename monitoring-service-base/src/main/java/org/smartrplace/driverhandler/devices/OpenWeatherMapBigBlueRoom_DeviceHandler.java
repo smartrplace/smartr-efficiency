@@ -15,6 +15,7 @@ import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.devices.sensoractordevices.WindSensor;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.HumiditySensor;
 import org.ogema.model.sensors.SolarIrradiationSensor;
 import org.ogema.model.sensors.TemperatureSensor;
@@ -63,6 +64,8 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).direction().reading().forecast(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).speed().reading(), result);
 				addDatapoint(openWroom .getSubResource("windSensor", WindSensor.class).speed().reading().forecast(), result);
+				addDatapoint(openWroom .getSubResource("cloudCoverage", GenericFloatSensor.class).reading(), result);
+				addDatapoint(openWroom .getSubResource("cloudCoverage", GenericFloatSensor.class).reading().forecast(), result);
 				
 				if(Boolean.getBoolean("org.smartrplace.driverhandler.devices.weather_average")) {
 					//Datapoint daily = null;

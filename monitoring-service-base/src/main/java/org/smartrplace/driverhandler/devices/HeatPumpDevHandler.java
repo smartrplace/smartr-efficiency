@@ -13,6 +13,7 @@ import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.generators.HeatPump;
 import org.ogema.model.sensors.GenericBinarySensor;
 import org.ogema.model.sensors.GenericFloatSensor;
+import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 
@@ -45,7 +46,7 @@ public class HeatPumpDevHandler extends DeviceHandlerSimple<HeatPump> {
 		addDatapoint(device.thermalConnection().inputTemperature().reading(), result);
 		addDatapoint(device.thermalConnection().outputTemperature().reading(), result);
 		addDatapoint(device.thermalConnection().energySensor().reading(), "Thermal Energy", result);
-		addDatapoint(device.electricityConnection().energySensor().reading(), "Electric Energy", result);
+		Datapoint energyDp = addDatapoint(device.electricityConnection().energySensor().reading(), "Electric Energy", result);
 		
 		addDatapoint(device.electricityConnection().powerSensor().reading(), "Electric Power Consumption", result);
 		addDatapoint(device.thermalConnection().powerSensor().reading(), "Thermal Power Output", result);
@@ -63,6 +64,9 @@ public class HeatPumpDevHandler extends DeviceHandlerSimple<HeatPump> {
 		addDatapoint(device.getSubResource("malfunctionGas", GenericBinarySensor.class).reading(), result);
 		addDatapoint(device.getSubResource("operating", GenericBinarySensor.class).reading(), result);
 		
+		if(energyDp != null) {
+			MeteringEvalUtil.addDailyMeteringEval(energyDp, null, device.electricityConnection(), result, appMan);			
+		}	
 		return result;
 	}
 

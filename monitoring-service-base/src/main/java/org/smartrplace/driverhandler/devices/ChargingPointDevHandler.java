@@ -10,9 +10,9 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
-import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.storage.ChargingPoint;
+import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 
@@ -45,7 +45,7 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 		addDatapoint(device.battery().chargeSensor().reading(), result);
 		
 		addDatapoint(device.electricityConnection().powerSensor().reading(), "Actual Power", result);
-		addDatapoint(device.electricityConnection().energySensor().reading(), "Total Energy", result);
+		Datapoint energyDp = addDatapoint(device.electricityConnection().energySensor().reading(), "Total Energy", result);
 		Resource isPlugged = device.getSubResource("isPlugged");
 		if (isPlugged != null && isPlugged instanceof IntegerResource) {
 			addDatapoint((IntegerResource) isPlugged, "Plugged", result);
@@ -55,6 +55,10 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 			addDatapoint((IntegerResource) isCharging, "Charging", result);
 		}
 		
+		if(energyDp != null) {
+			MeteringEvalUtil.addDailyMeteringEval(energyDp, null, device.electricityConnection(), result, appMan);			
+		}
+
 		return result;
 	}
 
