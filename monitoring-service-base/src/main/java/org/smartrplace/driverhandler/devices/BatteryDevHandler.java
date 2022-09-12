@@ -55,12 +55,14 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 	protected void addMoreValueWidgets(InstallAppDevice object, ElectricityStorage device,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
 			ApplicationManager appMan, Alert alert) {
-		PowerResource reactSens = device.electricityConnection().reactivePowerSensor().reading();
-		Label valueLabel = vh.floatLabel("Q", id, reactSens, row, "%.1f");
-		Label lastContact = addLastContact("Last Q", vh, id, req, row, reactSens);
-		if(req != null) {
-			valueLabel.setPollingInterval(DEFAULT_POLL_RATE, req);
-			lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.stationarybattery.suppressQ")) {
+			PowerResource reactSens = device.electricityConnection().reactivePowerSensor().reading();
+			Label valueLabel = vh.floatLabel("Q", id, reactSens, row, "%.1f");
+			Label lastContact = addLastContact("Last Q", vh, id, req, row, reactSens);
+			if(req != null) {
+				valueLabel.setPollingInterval(DEFAULT_POLL_RATE, req);
+				lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+			}
 		}
 	}
 	
