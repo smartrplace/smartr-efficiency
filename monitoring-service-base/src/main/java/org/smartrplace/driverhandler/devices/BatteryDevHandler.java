@@ -24,6 +24,7 @@ import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
+import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -69,7 +70,7 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 	@Override
 	protected Collection<Datapoint> getDatapoints(ElectricityStorage device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = ESE_ElConnBoxDeviceHandler.getDatapointsStatic(device.electricityConnection(), dpService);
-		addDatapoint(device.electricityConnection().powerSensor().settings().setpoint(), result);
+		Datapoint powerDp = addDatapoint(device.electricityConnection().powerSensor().settings().setpoint(), result);
 		addDatapoint(device.electricityConnection().reactivePowerSensor().settings().setpoint(), result);
 		addDatapoint(device.electricityConnection().currentSensor().reading(), result);
 		addDatapoint(device.electricityConnection().voltageSensor().reading(), result);
@@ -91,6 +92,8 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 			addDatapoint(parent.getSubResource("bdiExtDcCurrent", ElectricCurrentSensor.class).reading(), result, "bdiExtDcCurrent", dpService);
 		}
 		
+		MeteringEvalUtil.addDailyMeteringEval(null, powerDp, device.electricityConnection(), result, appMan);
+
 		return result;
 	}
 
