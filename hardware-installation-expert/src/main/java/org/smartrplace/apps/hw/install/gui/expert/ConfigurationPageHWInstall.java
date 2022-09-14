@@ -202,9 +202,9 @@ public class ConfigurationPageHWInstall {
 
 		final StaticTable configTable;
 		if(baseVersion)
-			configTable = new StaticTable(11, 2);			
+			configTable = new StaticTable(12, 2);			
 		else
-			configTable = new StaticTable(31, 2);
+			configTable = new StaticTable(32, 2);
 		int i = 0;
 
 		if(gwInfo != null) {
@@ -546,6 +546,13 @@ public class ConfigurationPageHWInstall {
 				controller.cleanupOnStart();
 			}
 		};
+		ButtonConfirm cleanUpIADsButExtended = new ButtonConfirm(page, "cleanUpIADsExt", "Clean up device data Extended") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				controller.cleanupOnStart(true);
+			}
+		};
+		cleanUpIADsButExtended.setDefaultConfirmMsg("Really clean up all entries for missing device handlers? Note: This should only be done when system startup is fully finished!");
 		
 		IntegerMultiButton allowAllInTablePages = new IntegerResourceMultiButton(page, "allowAllInTablePages",
 				controller.appConfigData.allowAllDevicesInTablePagesMode()) {
@@ -569,6 +576,8 @@ public class ConfigurationPageHWInstall {
 				controller.appConfigData.techInModeDuration(), DEFAULT_TEACHIN_DURATION);
 		
 		configTable.setContent(i, 0, "Cleanup device data:").setContent(i, 1, cleanUpIADsBut);
+		i++;
+		configTable.setContent(i, 0, "Cleanup device data Extended (!Be careful!):").setContent(i, 1, cleanUpIADsButExtended);
 		i++;
 		configTable.setContent(i, 0, "TeachInMode Duration (minutes):").setContent(i, 1, techInModeDuration);
 		i++;

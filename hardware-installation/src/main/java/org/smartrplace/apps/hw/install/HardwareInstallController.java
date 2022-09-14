@@ -591,14 +591,33 @@ public class HardwareInstallController {
 	}
 	
 	public void cleanupOnStart() {
+		cleanupOnStart(false);
+	}
+	/** !!! Only call this with deleteIfDevHandMissing=true when all device handlers have been started up !!!
+	 * 
+	 * @param deleteIfDevHandMissing
+	 */
+	public void cleanupOnStart(boolean deleteIfDevHandMissing) {
 		List<String> knownDevLocs = new ArrayList<>();
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
-			if(!install.device().exists())
+			if(!install.device().exists()) {
 				install.delete();
-			else if(knownDevLocs.contains(install.device().getLocation()))
+				continue;
+			} else if(knownDevLocs.contains(install.device().getLocation())) {
 				install.delete();
-			else
-				knownDevLocs.add(install.device().getLocation());
+				continue;
+			} else if((!install.devHandlerInfo().exists()) || install.devHandlerInfo().getValue().isEmpty()) {
+				install.delete();
+				continue;
+			}
+			if(deleteIfDevHandMissing) {
+				DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(install);
+				if(devHand == null) {
+					install.delete();
+					continue;
+				}
+			}
+			knownDevLocs.add(install.device().getLocation());
 			if(install.isTrash().getValue()) {
 				DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(install);
 				if(devHand == null) {
