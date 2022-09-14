@@ -603,8 +603,12 @@ public class HardwareInstallController {
 				DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(install);
 				if(devHand == null) {
 					install.device().getLocationResource().deactivate(true);										
-				} else for(Resource dev: devHand.devicesControlled(install)) {
-					dev.getLocationResource().deactivate(true);					
+				} else try {
+					for(Resource dev: devHand.devicesControlled(install)) {
+						dev.getLocationResource().deactivate(true);					
+					}
+				} catch(ClassCastException e) {
+					install.delete();
 				}
 			}
 		}
