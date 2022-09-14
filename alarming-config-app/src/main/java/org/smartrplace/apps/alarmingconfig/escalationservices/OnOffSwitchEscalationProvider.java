@@ -79,6 +79,9 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 				emailMessage = "\r\n"+issue.knownIssue.lastMessage().getValue();
 			} else
 				emailMessage += "\r\n\r\n"+issue.knownIssue.lastMessage().getValue();
+			if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.debugsource")) {
+				emailMessage += "\r\n SOURCE DEBUG: "+issue.knownIssue.getLocation();
+			}
 			//}
 		}
 		if(maxFault > 0) {
