@@ -37,7 +37,7 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 			return false;
 		if(DeviceTableRaw.isTempHumSens(model.getLocation()))
 			return false;
-		if(DeviceTableRaw.isFAL230(model.getLocation()))
+		if(DeviceTableRaw.isFALorFALMOT(model.getLocation()))
 			return false;
 		if(DeviceTableRaw.isDimmerSensorDevice(model.getLocation()))
 			return false;
