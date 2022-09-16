@@ -33,6 +33,8 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 	public boolean accept() {
 		if(DeviceTableRaw.isWeatherStation(model.getLocation()))
 			return false;
+		if(DeviceTableRaw.isOpenWeatherMapSensorDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
+			return false;
 		if(DeviceTableRaw.isTempHumSens(model.getLocation()))
 			return false;
 		if(DeviceTableRaw.isFAL230(model.getLocation()))
