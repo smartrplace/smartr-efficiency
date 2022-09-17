@@ -1,17 +1,22 @@
 package org.smartrplace.apps.kni.quality.eval;
 
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
+import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.gateway.device.KnownIssueDataGw;
+import org.smartrplace.tissue.util.resource.GatewayUtil;
 
+import de.iwes.util.resource.OGEMAResourceCopyHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
@@ -27,6 +32,7 @@ public class QualityEvalUtil {
 
 	public Timer kniEvalTimer;
 	public KnownIssueDataGw kniData;
+	public KnownIssueDataGw kniDataSync;
 	public Timer qualityEvalTimer;
 	final public TimeseriesProcUtilKni util;
 	final public Datapoint virtualRootDp;
@@ -52,12 +58,15 @@ public class QualityEvalUtil {
 		registerDailyValues(c);
 		
 		kniData = ResourceHelper.getEvalCollection(c.appMan).getSubResource("knownIssueDataGw", KnownIssueDataGw.class);
-		ViaHeartbeatUtil.updateEvalResources(kniData, c.appMan);				
+		kniDataSync = getSuperiorSyncData(c.appMan);
+		ViaHeartbeatUtil.updateEvalResources(kniData, c.appMan);
+		OGEMAResourceCopyHelper.copySubResourceIntoDestination(kniDataSync, kniData, c.appMan, true);
 		kniEvalTimer = c.appMan.createTimer(KNI_EVAL_TIMER_INTERVAL, new TimerListener() {
 			
 			@Override
 			public void timerElapsed(Timer timer) {
 				ViaHeartbeatUtil.updateEvalResources(kniData, c.appMan);				
+				OGEMAResourceCopyHelper.copySubResourceIntoDestination(kniDataSync, kniData, c.appMan, true);
 			}
 		});
 		updateQualityResources(c);
@@ -66,6 +75,7 @@ public class QualityEvalUtil {
 			@Override
 			public void timerElapsed(Timer timer) {
 				updateQualityResources(c);
+				OGEMAResourceCopyHelper.copySubResourceIntoDestination(kniDataSync, kniData, c.appMan, true);
 			}
 		});
 		kniData.referenceForDeviceHandler().create();
@@ -90,5 +100,25 @@ public class QualityEvalUtil {
 			qualityEvalTimer.destroy();
 			qualityEvalTimer = null;
 		}
+	}
+	
+	public static ResourceList<KnownIssueDataGw> getSuperiorSyncList(ApplicationManager appMan) {
+		@SuppressWarnings("unchecked")
+		ResourceList<KnownIssueDataGw> result = ResourceHelper.getOrCreateTopLevelResource("gatewaySuperiorData", ResourceList.class, appMan);
+		if(result.exists()) {
+			result.create();
+			result.setElementType(KnownIssueDataGw.class);
+			result.activate(true);
+		}
+		return result;
+	}
+	public static String gwIdResourceName = null;
+	public static KnownIssueDataGw getSuperiorSyncData(ApplicationManager appMan) {
+		ResourceList<KnownIssueDataGw> list = getSuperiorSyncList(appMan);
+		if(gwIdResourceName == null) {
+			gwIdResourceName = ResourceUtils.getValidResourceName("gw"+ViaHeartbeatUtil.getBaseGwId(GatewayUtil.getGatewayId(appMan.getResourceAccess())));
+		}
+		KnownIssueDataGw result = list.getSubResource(gwIdResourceName, KnownIssueDataGw.class);
+		return result;
 	}
 }
