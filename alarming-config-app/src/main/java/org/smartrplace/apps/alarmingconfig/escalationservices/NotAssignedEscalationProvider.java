@@ -15,6 +15,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
+import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmValueListenerBasic;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
@@ -98,7 +99,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 			if(!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.summaryallowed")) {
 				String titleAfterNum = " devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h ";
 				ThermostatResetService.sendMessageForKnownIssues(issuesToReport, baseUrl, gwRes,
-						titleAfterNum, appIDs, persistData, appManPlus);
+						titleAfterNum, appIDs, persistData, appManPlus, AlarmMessageUtil.addAlarmDocLink);
 				return result;
 			}
 			for(AppID appId: appIDs) {

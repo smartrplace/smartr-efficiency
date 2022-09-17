@@ -19,6 +19,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
+import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmValueListenerBasic;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
@@ -148,32 +149,27 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 			List<AppID> appIDs, 
 			AlarmingEscalationLevel persistData,
 			ApplicationManagerPlus appManPlus) {
+		return sendMessageForKnownIssues(issues, baseUrl, gwRes, title_afterDeviceNum, appIDs, persistData, appManPlus, false);
+	}
+	public static String sendMessageForKnownIssues(List<EscalationKnownIssue> issues, String baseUrl, LocalGatewayInformation gwRes,
+			String title_afterDeviceNum,
+			List<AppID> appIDs, 
+			AlarmingEscalationLevel persistData,
+			ApplicationManagerPlus appManPlus,
+			boolean addAlarmDocumentationLink) {
 		String emailMessage = getMessageHeaderLinks(baseUrl, gwRes);
-		/*if(baseUrl == null)
-			emailMessage = null;
-		else
-			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
-		if(gwRes != null) {
-			if(gwRes.gatewayOperationDatabaseUrl().isActive() && gwRes.gatewayOperationDatabaseUrl().getValue().length() > 5) {
-				if(emailMessage == null)
-					emailMessage = "Operation data collection: "+gwRes.gatewayOperationDatabaseUrl().getValue();
-				else {
-					emailMessage += "\r\nOperation data collection: "+gwRes.gatewayOperationDatabaseUrl().getValue();
-				}
-			}
-			if(gwRes.gatewayLinkOverviewUrl().isActive() && gwRes.gatewayLinkOverviewUrl().getValue().length() > 5) {
-				if(emailMessage == null)
-					emailMessage = "Gateway Documentation Links/Wiki: "+gwRes.gatewayLinkOverviewUrl().getValue();
-				else
-					emailMessage += "\r\nGateway Documentation Links/Wiki: "+gwRes.gatewayLinkOverviewUrl().getValue();
-			}
-		}*/
 		for(EscalationKnownIssue issue: issues) {
+			String message = issue.knownIssue.lastMessage().getValue();
 			if(emailMessage == null) {
 				//We put a return upfront as initial line will be filled with "Notification :" by EmailService, which disturbs when reading through the messages
-				emailMessage = "\r\n"+issue.knownIssue.lastMessage().getValue();
+				emailMessage = "\r\n"+message;
 			} else
-				emailMessage += "\r\n\r\n"+issue.knownIssue.lastMessage().getValue();
+				emailMessage += "\r\n\r\n"+message;
+			if(addAlarmDocumentationLink) {
+				String link = AlarmMessageUtil.getAlarmGuideLink(message);
+				if(link != null)
+					emailMessage += "\r\n"+"Further information: "+link;
+			}
 		}
 		int countDevice = issues.size();
 		

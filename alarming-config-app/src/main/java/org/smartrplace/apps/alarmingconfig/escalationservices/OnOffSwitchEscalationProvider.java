@@ -10,6 +10,7 @@ import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
+import org.smartrplace.apps.alarmconfig.util.AlarmType;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -44,6 +45,8 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 
 	@Override
 	protected EscalationKnownIssue isEscalationRelevant(InstallAppDevice iad) {
+		if(iad.devHandlerInfo().getValue().endsWith("FaultSingleDeviceHandler"))
+			return null;
 		if(iad.device() instanceof OnOffSwitch)
 			return new EscalationKnownIssue();
 		return null;
@@ -82,6 +85,8 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 			if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.debugsource")) {
 				emailMessage += "\r\n SOURCE DEBUG: "+issue.knownIssue.getLocation();
 			}
+			String link = AlarmType.getFullLink("ac150");
+			emailMessage = "\r\n"+"Further information: "+link;
 			//}
 		}
 		if(maxFault > 0) {
