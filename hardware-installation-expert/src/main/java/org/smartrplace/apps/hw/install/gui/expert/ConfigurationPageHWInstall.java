@@ -37,7 +37,6 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.util.extended.eval.widget.IntegerMultiButton;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
-import org.smartrplace.apps.hw.install.LocalDeviceId;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.expert.plottest.ScheduleViewerTest;
 import org.smartrplace.apps.hw.install.gui.ScheduleViewerConfigProvHW;
@@ -170,11 +169,11 @@ public class ConfigurationPageHWInstall {
 			public void onGET(OgemaHttpRequest req) {
 				boolean status = app.appConfigData.blockAutoResetOfDeviceIds().getValue();
 				if(status) {
-					setText("Auto-reset blocked", req);
+					setText("Auto-reset thermostats blocked", req);
 					disable(req);
 					return;
 				} else {
-					setText("Auto-reset", req);
+					setText("Auto-reset thermostats", req);
 				}
 				long manUntil = app.appConfigData.deviceIdManipulationUntil().getValue();
 				if(manUntil == 0)
@@ -195,11 +194,17 @@ public class ConfigurationPageHWInstall {
 						(app.appConfigData.deviceIdManipulationUntil().getValue()==0);
 				if(status)
 					return;
-				LocalDeviceId.resetDeviceIds(app.appConfigData.knownDevices().getAllElements(), app.dpService);
+				for(InstallAppDevice iad: app.appConfigData.knownDevices().getAllElements()) {
+					if(iad.devHandlerInfo().getValue().endsWith("DeviceHandlerThermostat")) {
+						iad.delete();
+					}
+				}
+				//LocalDeviceId.resetDeviceIds(app.appConfigData.knownDevices().getAllElements(), app.dpService);
 				ValueResourceHelper.setCreate(app.appConfigData.blockAutoResetOfDeviceIds(), true);
 			}
 		};
-
+		autoResetDeviceIds.setDefaultConfirmMsg("Really delete all thermostat knownDevice entries? Please stop and start Search Devices afterwards.");
+		
 		final StaticTable configTable;
 		if(baseVersion)
 			configTable = new StaticTable(12, 2);			

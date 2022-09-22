@@ -149,8 +149,8 @@ public abstract class LocalDeviceId {
 	}
 	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
 			String devHandId, boolean mustFitDeviceHandler, DatapointService dpService) {
-		String hmId = LogHelper.getDeviceId(device);
-		String name;
+		String hmName; // = LogHelper.getDeviceId(device);
+		//String name;
 		if(device instanceof HmInterfaceInfo) {
 			HmInterfaceInfo hinfo = null;
 			boolean isCC = DeviceTableBase.getHomematicType(device.getLocation()) == 2;
@@ -163,18 +163,17 @@ public abstract class LocalDeviceId {
 			String addr = hinfo.address().getValue();
 			if(addr == null || addr.isEmpty())
 				return null;
-			hmId = addr;
-			name = null;
+			hmName = addr;
+			//name = null;
 		} else {
 			HmDevice hmDevice = (HmDevice) ResourceHelper.getFirstParentOfType(device, "HmDevice");
 			if(hmDevice == null)
 				return null;
-			name = hmDevice.getName();
+			hmName = hmDevice.getName();
 		}
 		for(PreKnownDeviceData pre : cfg.preKnownDevices().getAllElements()) {
-			if(LogHelper.doesDeviceFitPreKnownData(name, pre, devHandId,
-					mustFitDeviceHandler?MustFitLevel.MUST_FIT:MustFitLevel.ANY_TYPE_ALLOWED,
-					hmId))
+			if(LogHelper.doesDeviceFitPreKnownData(hmName, pre, devHandId,
+					mustFitDeviceHandler?MustFitLevel.MUST_FIT:MustFitLevel.ANY_TYPE_ALLOWED))
 				return pre;
 			/*if(mustFitDeviceHandler && 
 					((!pre.deviceHandlerId().isActive()) || (pre.deviceHandlerId().getValue().isEmpty())))
