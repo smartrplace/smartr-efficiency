@@ -123,6 +123,8 @@ public class AlarmType {
 	public static final AlarmType SystemRestart = new AlarmType("NRI-GD1-SystemRestartsLast2h");
 	public static final AlarmType BatteryLow = new AlarmType("BatteryLow", "ac130", "Battery Voltage");
 	public static final AlarmType ValveErrorState = new AlarmType("ValveErrorState");
+	public static final AlarmType DeviceMorningAlarm = new AlarmType("thermostats/roomcontrols (morning) still with open issues");
+	public static final AlarmType CO2Concentration = new AlarmType("CO2Concentration");
 	
 	public static final AlarmType FaultDevice = new AlarmType("FaultDevice", "ac152", "NRI-FAUT");
 

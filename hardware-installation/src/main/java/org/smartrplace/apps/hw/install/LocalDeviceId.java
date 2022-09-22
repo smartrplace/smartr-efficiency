@@ -1,5 +1,6 @@
 package org.smartrplace.apps.hw.install;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -12,7 +13,10 @@ import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmInterfaceInfo;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmLogicInterface;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -52,9 +56,18 @@ public abstract class LocalDeviceId {
 			typeId = "*" + dev.device().getClass().getSimpleName().replaceAll("[^A-Z]", "");
 		}
 
-		PreKnownDeviceData pre = getPreDeviceData(dev.device(), cfg, tableProvider.id());
+		int offset = 0;
+		int maxSearch = Integer.MAX_VALUE;
+		if(dev.device() instanceof HmInterfaceInfo) {
+			Resource parent = dev.device().getLocationResource().getParent();
+			if(parent != null && parent.getLocation().endsWith("_cc"))
+				offset = 100;
+			else
+				maxSearch = 99;
+		}
+		PreKnownDeviceData pre = getPreDeviceData(dev.device(), cfg, tableProvider.id(), dpService);
 		if(pre != null) {
-			String deviceId = getAndPrepareConflictFreeDeviceId(dev.device(), pre, typeId, cfg);
+			String deviceId = getAndPrepareConflictFreeDeviceId(dev.device(), pre, typeId, cfg, offset);
 			if(pre.room().isReference(false) && (!dev.device().location().room().exists()))
 				dev.device().location().room().setAsReference(pre.room().getLocationResource());
 			if(pre.installationLocation().exists() && (!pre.installationLocation().getValue().isEmpty()) &&
@@ -63,7 +76,7 @@ public abstract class LocalDeviceId {
 			return String.format("%s-%s", typeId, deviceId);
 		}
 		
-        int maxSerial = 0;
+        int maxSerial = offset;
         for(InstallAppDevice d : cfg.knownDevices().getAllElements()) {
             if(d.deviceId().getValue().startsWith(typeId+"-")) {
         	//if (d.device().getClass() == dev.device().getClass()) {
@@ -74,6 +87,10 @@ public abstract class LocalDeviceId {
                 int serial = getDeviceIdNumericalPart(d);
                 if(serial < 0)
                 	continue;
+                if(dev.device() instanceof HmInterfaceInfo) {
+                	if(serial > maxSearch)
+                		continue;
+                }
                 if (maxSerial < serial)
                     maxSerial = serial;
             }
@@ -124,20 +141,38 @@ public abstract class LocalDeviceId {
     }
 
 	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
-			String devHandId) {
-		PreKnownDeviceData forDevHand = getPreDeviceData(device, cfg, devHandId, true);
+			String devHandId, DatapointService dpService) {
+		PreKnownDeviceData forDevHand = getPreDeviceData(device, cfg, devHandId, true, dpService);
 		if(forDevHand != null)
 			return forDevHand;
-		return getPreDeviceData(device, cfg, devHandId, false);
+		return getPreDeviceData(device, cfg, devHandId, false, dpService);
 	}
 	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
-			String devHandId, boolean mustFitDeviceHandler) {
+			String devHandId, boolean mustFitDeviceHandler, DatapointService dpService) {
 		String hmId = LogHelper.getDeviceId(device);
-		HmDevice hmDevice = (HmDevice) ResourceHelper.getFirstParentOfType(device, "HmDevice");
-		if(hmDevice == null)
-			return null;
+		String name;
+		if(device instanceof HmInterfaceInfo) {
+			HmInterfaceInfo hinfo = null;
+			boolean isCC = DeviceTableBase.getHomematicType(device.getLocation()) == 2;
+			if(isCC && dpService != null) {
+				InstallAppDevice iad = getOtherCCU((HmLogicInterface) device.getLocationResource().getParent(), true, dpService);
+				if(iad != null)
+					hinfo = (HmInterfaceInfo) iad.device();
+			} else
+				hinfo = (HmInterfaceInfo)device;
+			String addr = hinfo.address().getValue();
+			if(addr == null || addr.isEmpty())
+				return null;
+			hmId = addr;
+			name = null;
+		} else {
+			HmDevice hmDevice = (HmDevice) ResourceHelper.getFirstParentOfType(device, "HmDevice");
+			if(hmDevice == null)
+				return null;
+			name = hmDevice.getName();
+		}
 		for(PreKnownDeviceData pre : cfg.preKnownDevices().getAllElements()) {
-			if(LogHelper.doesDeviceFitPreKnownData(hmDevice, pre, devHandId,
+			if(LogHelper.doesDeviceFitPreKnownData(name, pre, devHandId,
 					mustFitDeviceHandler?MustFitLevel.MUST_FIT:MustFitLevel.ANY_TYPE_ALLOWED,
 					hmId))
 				return pre;
@@ -161,9 +196,34 @@ public abstract class LocalDeviceId {
 		return null;
 	}
 
+	/** From InstallationServiceHM */
+	public static InstallAppDevice getOtherCCU(HmLogicInterface ccu, boolean isThisCCUCC, DatapointService dpService) {
+		if(ccu == null)
+			return null;
+		String otherName = ccu.getName().substring(0, ccu.getName().length()-2)+(isThisCCUCC?"ip":"cc");
+		Collection<InstallAppDevice> all = dpService.managedDeviceResoures("HomematicCCUHandler", true);
+		for(InstallAppDevice iad: all) {
+			Resource parent = iad.device().getLocationResource().getParent();
+			if(parent != null && parent.getName().equals(otherName)) {
+				return iad;
+			}
+		}
+		return null;
+	}
+	
 	public static String getAndPrepareConflictFreeDeviceId(PhysicalElement device, PreKnownDeviceData pre, String typeIdIn,
 			HardwareInstallConfig cfg) {
+		return getAndPrepareConflictFreeDeviceId(device, pre, typeIdIn, cfg, 0);
+	}
+	public static String getAndPrepareConflictFreeDeviceId(PhysicalElement device, PreKnownDeviceData pre, String typeIdIn,
+			HardwareInstallConfig cfg, int offset) {
         String preDevId = pre.deviceIdNumber().getValue();
+		if(offset != 0) {
+			try {
+				int devIdInt = Integer.parseInt(preDevId);
+		        preDevId = String.format("%04d", devIdInt+offset); // String.format("%s-%04d", typeId, devIdInt + offset);
+			} catch(NumberFormatException e) {}
+		}
 		Set<String> usedSuffixes = new HashSet<>();
         boolean hasConflict = false;
         String typeId = typeIdIn+"-";

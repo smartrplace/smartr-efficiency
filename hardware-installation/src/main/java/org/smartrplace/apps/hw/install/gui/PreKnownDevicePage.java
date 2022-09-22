@@ -412,6 +412,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 		PreKnownDeviceData newEl = ResourceListHelper.getOrCreateNamedElementFlex(serialNumber, preResList, true, false);
 		OGEMAResourceCopyHelper.copySubResourceIntoDestination(newEl, object,
 				controller.appMan, true);
+		newEl.activate(true);
 		
 		object.deviceEndCode().setValue("");
 		if(devNum == null)
