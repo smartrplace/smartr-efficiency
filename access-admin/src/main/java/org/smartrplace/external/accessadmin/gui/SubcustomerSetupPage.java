@@ -14,7 +14,6 @@ import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomerType;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.ogema.util.extended.eval.widget.IntegerMultiButton;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
@@ -22,6 +21,7 @@ import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.directresourcegui.GUIHelperExtension;
+import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
@@ -36,9 +36,12 @@ import de.iwes.widgets.html.form.button.ButtonData;
 public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, SubCustomerData> {
 	protected final AccessAdminController controller;
 	
-	public SubcustomerSetupPage(WidgetPage<?> page, AccessAdminController controller) {
+	private final boolean isExtended;
+	
+	public SubcustomerSetupPage(WidgetPage<?> page, AccessAdminController controller, boolean isExtended) {
 		super(page, controller.appMan, null);
 		this.controller = controller;
+		this.isExtended = isExtended;
 		triggerPageBuild();
 	}
 
@@ -121,12 +124,21 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 			vh.registerHeaderEntry("User#");
 			vh.registerHeaderEntry("Agg");
 			vh.registerHeaderEntry("Delete");
+			if(isExtended) {
+				vh.registerHeaderEntry("Location");
+				if(System.getProperty("org.smartrplace.external.accessadmin.gui.tenant.testuser") != null)
+					vh.registerHeaderEntry("Add Testuser");
+			}
 			return;
 		}
 		addNameLabel(object, vh, id, row, req);
 		Map<String, String> valuesToSet = new HashMap<>();
 		Integer standardType = null;
 		for(Entry<Integer, SubCustomerType> type: SubcustomerUtil.subCustomerTypes.entrySet()) {
+			if(type.getKey() == null || type.getValue().labelReq(req) == null) {
+				new NullPointerException("type:"+type.getKey()+" has null label!").printStackTrace();
+				continue;
+			}
 			valuesToSet.put(""+type.getKey(), type.getValue().labelReq(req));
 			if(standardType == null)
 				standardType = type.getKey();
@@ -153,6 +165,20 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 		
 		GUIHelperExtension.addDeleteButton(null, object.res, mainTable, id, alert, "Delete", row,
 				vh, req);
+		
+		if(isExtended) {
+			vh.stringLabel("Location", id, object.res.getLocation(), row);
+			if(System.getProperty("org.smartrplace.external.accessadmin.gui.tenant.testuser") != null) {
+				String testuser = System.getProperty("org.smartrplace.external.accessadmin.gui.tenant.testuser");
+				Button testButton = new Button(page, "testButton"+id, "Add "+testuser) {
+					@Override
+					public void onPrePOST(String data, OgemaHttpRequest req) {
+						SubcustomerUtil.addUserToSubcustomer(testuser, object.res, controller.appManPlus);
+					}
+				};
+				row.addCell(WidgetHelper.getValidWidgetId("Add Testuser"), testButton);
+			}
+		}
 	}
 	
 	@Override

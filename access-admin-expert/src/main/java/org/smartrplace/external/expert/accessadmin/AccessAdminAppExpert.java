@@ -96,9 +96,14 @@ public class AccessAdminAppExpert implements Application, AccessAdminExtensionPr
 			configMenuConfig(pageRes2.getMenuConfiguration());
 
 			WidgetPage<?> pageRes5 = widgetApp.createWidgetPage("subcustomerexpert.html");
-			new SubcustomerSetupPage(pageRes5, controller);
+			new SubcustomerSetupPage(pageRes5, controller, false);
 			menu.addEntry("5. Subcustomer Setup", pageRes5);
 			configMenuConfig(pageRes5.getMenuConfiguration());
+
+			WidgetPage<?> pageRes5b = widgetApp.createWidgetPage("subcustomermaster.html");
+			new SubcustomerSetupPage(pageRes5b, controller, true);
+			menu.addEntry("5b. Subcustomer Setup Extended", pageRes5b);
+			configMenuConfig(pageRes5b.getMenuConfiguration());
 
 			WidgetPage<?> pageRes8 = widgetApp.createWidgetPage("userconfigpermissions.html");
 			new UserConfigPermissionPage(pageRes8, controller);
