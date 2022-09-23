@@ -15,7 +15,6 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
-import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
@@ -253,6 +252,10 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 
 	@Override
 	protected Collection<Datapoint> getDatapoints(AirConditioner dev, InstallAppDevice deviceConfiguration) {
+		//FIXME
+		if(Boolean.getBoolean("FIX_AIRCON"))
+			dev.activate(true);
+		
 		//AirConditioner dev = (AirConditioner) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		result.add(dpService.getDataPointStandard(dev.temperatureSensor().settings().setpoint()));
