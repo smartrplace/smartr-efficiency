@@ -134,6 +134,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		String baseUrl = ResourceHelper.getLocalGwInfo(appMan.appMan()).gatewayBaseUrl().getValue();
 		String mes = buildMessageHTML(emptyNum, warnNum, changeNum, unknownNum, dnRNum, sigstrengthNum,
 				unassignedNum, evalResults, dNRResults, sigStrengthResults, baseUrl, now);
+		String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 		String gwName = GatewayUtil.getGatewayNameFromURL(appMan.appMan()); //baseUrl;
 		/*if(gwName.startsWith("https://"))
 			gwName = gwName.substring("https://".length());
@@ -142,7 +143,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 			gwName = gwName.substring(0, idx);
 		gwname = GatewayUtil.getGatewayNameFromURL(appMan.appMan());*/
 		
-		reallySendMessage(titleWithoutGw+gwName, mes, prio, appMan, appId);
+		reallySendMessage(gwId+": "+titleWithoutGw+gwName, mes, prio, appMan, appId);
 	}
 	
 	protected static String buildMessageHTML(int emptyNum, int warnNum, int changeNum, int unknownNum,
