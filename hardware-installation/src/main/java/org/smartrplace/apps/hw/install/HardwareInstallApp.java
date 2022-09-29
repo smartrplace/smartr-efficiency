@@ -161,7 +161,9 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     protected void addTableProvider(DeviceHandlerProvider<?> provider) {
     	synchronized (this) {
     		tableProviders.put(provider.id(), provider);
-    		if((!leadDeviceHandlerFound) && provider.id().equals("org.smartrplace.homematic.devicetable.CO2SensorHmHandler"))
+    		if(Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior"))
+    			leadDeviceHandlerFound = true;
+    		else if((!leadDeviceHandlerFound) && provider.id().equals("org.smartrplace.homematic.devicetable.CO2SensorHmHandler"))
     			leadDeviceHandlerFound = true;
 	    	if(controller != null && controller.demandsActivated) {
 	    		provider.addPatternDemand(controller.mainPage);
