@@ -456,7 +456,7 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 		if(publicVersion)
 			return "https://en.wikipedia.org/wiki/MQTT";
 		else
-			return "https://gitlab.com/smartrplace/smartrplace-main/-/wikis/WiFi-Socket-MQTT-Protocol-(Tasmota-firmware)";
+			return "https://gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/WiFi-Socket-MQTT-Protocol-(Tasmota-firmware)";
 	}
 
 }

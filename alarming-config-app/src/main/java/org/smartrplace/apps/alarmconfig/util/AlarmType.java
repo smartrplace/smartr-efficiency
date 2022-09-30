@@ -15,7 +15,7 @@ import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class AlarmType {
-	public static final String baseLink = "https://gitlab.com/smartrplace/smartrplace-main/-/wikis/Operation/Alarms-for-Supervision#";
+	public static final String baseLink = "https://gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/Operation/Alarms-for-Supervision#";
 	private static final Map<String, AlarmType> knownTypes = new HashMap<>();
 	
 	private final String label;

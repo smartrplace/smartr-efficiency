@@ -503,7 +503,7 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 		if(publicVersion)
 			return "https://www.openmuc.org/m-bus/";
 		else
-			return "https://gitlab.com/smartrplace/smartrplace-main/-/wikis/Hardware/wMBus";
+			return "https://gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/Hardware/wMBus";
 	}
 
 }
