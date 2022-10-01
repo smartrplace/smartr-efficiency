@@ -121,7 +121,7 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 	@Override
 	protected EscalationCheckResult checkEscalation(Collection<EscalationKnownIssue> issues, List<AppID> appIDs, long now) {
 		int maxFault = 0;
-		String emailMessage = ThermostatResetService.getMessageHeaderLinks(baseUrl, gwRes);
+		String emailMessage = ""; // = ThermostatResetService.getMessageHeaderLinks(baseUrl, gwRes);
 		//if(baseUrl == null)
 		//	emailMessage = null;
 		//else

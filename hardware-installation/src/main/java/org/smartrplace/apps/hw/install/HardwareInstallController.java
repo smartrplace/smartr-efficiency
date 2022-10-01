@@ -629,6 +629,11 @@ public class HardwareInstallController {
 				} catch(ClassCastException e) {
 					install.delete();
 				}
+			} else if(Boolean.getBoolean("org.smartrplace.apps.hw.install.removeA") && install.deviceId().getValue().endsWith("_A")) {
+				String oldDeviceId = install.deviceId().getValue();
+				String newDeviceId = oldDeviceId.substring(0, oldDeviceId.length()-2);
+				if(!LocalDeviceId.isDeviceIdUsed(newDeviceId, appConfigData))
+					install.deviceId().setValue(newDeviceId);
 			}
 		}
 		

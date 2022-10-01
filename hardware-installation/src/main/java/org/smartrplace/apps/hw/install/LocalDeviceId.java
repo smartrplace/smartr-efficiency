@@ -276,4 +276,12 @@ public abstract class LocalDeviceId {
 		usedSuffixes.add(result);
 		return result;
 	}
+	
+	public static boolean isDeviceIdUsed(String deviceId, HardwareInstallConfig cfg) {
+		for(InstallAppDevice d : cfg.knownDevices().getAllElements()) {
+        	if(deviceId.equals(d.deviceId().getValue()))
+            	return true;
+        }
+		return false;
+	}
 }
