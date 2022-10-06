@@ -261,8 +261,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		}
 		String message = "Current value: "+value+"\r\n"+"  Lower limit: "+lower+
 				"\r\n"+"  Upper limit: "+upper+"\r\n"+"  Retard min: "+String.format("%,1f", retard/60000f);
-		if(baseUrl != null)
-			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
+		//if(baseUrl != null)
+		//	message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		int status = ac.alarmLevel().getValue();
 		if(alarmStatus != null) {
 			alarmStatus.setValue(status);

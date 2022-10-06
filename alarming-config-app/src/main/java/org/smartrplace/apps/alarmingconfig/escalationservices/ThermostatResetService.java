@@ -122,7 +122,8 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 		if(baseUrl == null)
 			emailMessage = null;
 		else
-			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html" +
+					"\r\nDevices: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		if(gwRes != null) {
 			if(gwRes.gatewayOperationDatabaseUrl().isActive() && gwRes.gatewayOperationDatabaseUrl().getValue().length() > 5) {
 				if(emailMessage == null)

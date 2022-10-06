@@ -616,8 +616,8 @@ public class AlarmingManager implements AlarmingStartedService {
 		String title = "No more values received:"+tsName+" (Alarming)";
 		String message = "Last value received at: "+TimeUtils.getDateAndTimeString(lastTime)+"\r\nValue: "+value+"\r\n"
 				+"\r\nMaximum interval: "+(maxInterval/MINUTE_MILLIS)+"min";
-		if(baseUrl != null)
-			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
+		//if(baseUrl != null)
+		//	message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
 		controller.escMan.knownIssueNotification(knownDeviceFault, title, message);
 		if(prio != null)
@@ -764,6 +764,7 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 				title = alarmID+": More "+sd.numBulkMessage+" alarms occured...";
 				String infoMessage = "Number of alarms aggregated by now: "+(sd.numBulkMessage);
 				infoMessage +="\r\nDevice Issue Status: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+				infoMessage +="\r\nDevices: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 				reallySendMessage(title, infoMessage , prio, appToUse);
 				System.out.println("         SENT BULKINFOMESSAGE "+title+":\r\n"+infoMessage);						
 			}
@@ -778,6 +779,7 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 			if(sd.numSingleMessage >= (maxMessageBeforeBulk))
 				message += "\r\n (More messages may be aggregated, will be sent after "+(bulkMessageInterval/TimeProcUtil.MINUTE_MILLIS)+" minutes!)";
 			message +="\r\nDevice Issue Status: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+			message +="\r\nDevices: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 			reallySendMessage(alarmID+": "+title, message, prio, appToUse);
 			System.out.println("         SENT MESSAGE "+alarmID+": "+title+":\r\n"+message);		
 		}
@@ -804,6 +806,7 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 		sd.firstBulkMessage = -1;
 		String title = alarmID+": "+sd.numBulkMessage+" Aggregated alarms: ";
 		sd.bulkMessage ="Device Issue Status: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html\r\n" +
+				"Devices: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html\r\n" +
 				sd.bulkMessage;
 		appManPlus.guiService().getMessagingService().sendMessage(appManPlus.appMan().getAppID(),
 				new MessageImpl(title, sd.bulkMessage, prio));
