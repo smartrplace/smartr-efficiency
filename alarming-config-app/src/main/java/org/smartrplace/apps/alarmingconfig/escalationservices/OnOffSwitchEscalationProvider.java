@@ -86,7 +86,7 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 				emailMessage += "\r\n SOURCE DEBUG: "+issue.knownIssue.getLocation();
 			}
 			String link = AlarmType.getFullLink("ac150");
-			emailMessage = "\r\n"+"Further information: "+link;
+			emailMessage += "\r\n"+"Further information: "+link;
 			//}
 		}
 		if(maxFault > 0) {
