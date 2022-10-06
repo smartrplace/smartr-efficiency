@@ -62,6 +62,7 @@ import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
+import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.autoconfig.api.InitialConfig;
@@ -205,6 +206,13 @@ public class HardwareInstallController {
 			pageExpert2.getMenuConfiguration().setCustomNavigation(menu);
 		}
 		
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
+			WidgetPage<?> pageValveLink =  hardwareInstallApp.widgetApp.createWidgetPage("deviceValveLink2.html");
+			new ValveLinkPage(pageValveLink, appManPlus);
+			//menu.addEntry("Link FAL230 valves to wall thermostats", pageValveLink);
+			//pageValveLink.getMenuConfiguration().setCustomNavigation(menu);
+		}
+
 		initConfigResourceForOperation();
         initDemands();
 		util = new TimeseriesSimpleProcUtil3(appMan, appManPlus.dpService(), 4, 3*TimeProcUtil.MINUTE_MILLIS);

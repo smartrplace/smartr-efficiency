@@ -1,4 +1,4 @@
-package org.smartrplace.apps.hw.install.gui.expert;
+package org.smartrplace.apps.hw.install.gui;
 
 import java.util.ArrayList;
 import java.util.Collection;

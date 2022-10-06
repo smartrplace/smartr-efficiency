@@ -24,17 +24,16 @@ import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
-import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
-import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
 import org.smartrplace.apps.hw.install.gui.PreKnownDevicePage;
+import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
@@ -43,7 +42,6 @@ import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
-import org.smartrplace.apps.hw.install.gui.expert.ValveLinkPage;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.expert.WindowStatusPage;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
@@ -207,12 +205,12 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			menu.addEntry("Evaluation Jobs Details", timedJobPageEval);
 			timedJobPageEval.getMenuConfiguration().setCustomNavigation(menu);
 
-			if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
+			//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
 				WidgetPage<?> pageValveLink = widgetApp.createWidgetPage("deviceValveLink.html");
 				new ValveLinkPage(pageValveLink, controller.appManPlus);
 				menu.addEntry("Link FAL230 valves to wall thermostats", pageValveLink);
 				pageValveLink.getMenuConfiguration().setCustomNavigation(menu);
-			}
+			//}
 
 			WidgetPage<?> pagePre = widgetApp.createWidgetPage("devicePreData.html");
 			new PreKnownDevicePage(pagePre, controller, false);

@@ -1,4 +1,4 @@
-package org.smartrplace.apps.hw.install.gui.expert;
+package org.smartrplace.apps.hw.install.gui;
 
 import org.ogema.model.devices.connectiondevices.ThermalValve;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
