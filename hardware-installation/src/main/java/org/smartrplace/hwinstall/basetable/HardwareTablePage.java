@@ -340,37 +340,6 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	public <T extends Resource> Collection<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand,
 			boolean includeTrash) {
 		return appManPlus.dpService().managedDeviceResoures(devHand==null?null:devHand.id(), false, includeTrash);
-		/*synchronized (devPerHandler) {
-			long now = appMan.getFrameworkTime();
-			if(now - lastMapUpd < 10000) {
-				List<InstallAppDevice> result = devPerHandler.get(devHand.id());
-				if(result != null)
-					return result;
-			}
-		
-			lastMapUpd = now;
-			devPerHandler.clear();
-			
-			List<InstallAppDevice> result = new ArrayList<>();
-			for(InstallAppDevice install: resData.appConfigData.knownDevices().getAllElements()) {
-				if((!includeTrash) && install.isTrash().getValue())
-					continue;
-				if(devHand == null) {
-					result.add(install);
-					continue;
-				}
-				if(devHand.id().equals(install.devHandlerInfo().getValue()))	{
-					result.add(install);
-				}
-				String provLoc = install.devHandlerInfo().getValue();
-				List<InstallAppDevice> listLoc = devPerHandler.get(provLoc);
-				if(listLoc == null) {
-					listLoc = new ArrayList<>();
-					devPerHandler.put(provLoc, listLoc);
-				}
-				listLoc.add(install);
-			}
-			return result;*/
 	}
 
 	

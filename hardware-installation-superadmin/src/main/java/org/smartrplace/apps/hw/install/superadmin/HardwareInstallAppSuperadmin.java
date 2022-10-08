@@ -39,6 +39,7 @@ import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
+import org.smartrplace.apps.hw.install.gui.expert.DeviceHandlerPage;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
@@ -158,6 +159,11 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			menu.addEntry("Trash Devices", trashPage);
 			trashPage.getMenuConfiguration().setCustomNavigation(menu);
 			
+			WidgetPage<?> devHandPage = widgetApp.createWidgetPage("devHands.hmtl");
+			DeviceHandlerPage dhpage = new DeviceHandlerPage(devHandPage, controller.appManPlus);
+			menu.addEntry(dhpage.getHeader(null), devHandPage);
+			devHandPage.getMenuConfiguration().setCustomNavigation(menu);
+
 			WidgetPage<?> dpropPage = widgetApp.createWidgetPage("driverPropServices.hmtl");
 			new DriverPropertyPageAll(dpropPage, controller);
 			menu.addEntry("DriverProperty Services Overivew", dpropPage);
