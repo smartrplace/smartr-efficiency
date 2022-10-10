@@ -194,8 +194,9 @@ public class HardwareInstallController {
 		cleanUpOnStartDone = true;
 		
 		mainPage = getMainPage(page);
+		final NavigationMenu menu = new NavigationMenu(" Select page");
 		if(Boolean.getBoolean("org.smartrplace.app.srcmon.ieehq")) {
-			final NavigationMenu menu = new NavigationMenu(" Browse pages");
+			//menu = new NavigationMenu(" Browse pages");
 			menu.addEntry(mainPage.getHeader(), page);
 			page.getMenuConfiguration().setCustomNavigation(menu);
 			
@@ -207,10 +208,12 @@ public class HardwareInstallController {
 		}
 		
 		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
+			menu.addEntry(mainPage.getHeader(), page);
+			page.getMenuConfiguration().setCustomNavigation(menu);
 			WidgetPage<?> pageValveLink =  hardwareInstallApp.widgetApp.createWidgetPage("deviceValveLink2.html");
 			new ValveLinkPage(pageValveLink, appManPlus);
-			//menu.addEntry("Link FAL230 valves to wall thermostats", pageValveLink);
-			//pageValveLink.getMenuConfiguration().setCustomNavigation(menu);
+			menu.addEntry("Link FAL230 valves to wall thermostats", pageValveLink);
+			pageValveLink.getMenuConfiguration().setCustomNavigation(menu);
 		}
 
 		initConfigResourceForOperation();
