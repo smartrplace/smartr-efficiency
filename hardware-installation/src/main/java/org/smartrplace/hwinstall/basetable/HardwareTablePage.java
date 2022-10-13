@@ -38,6 +38,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
@@ -125,6 +126,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		//this.controller = controller;
 		//init all widgets
 		this.alert = new Alert(page, WidgetHelper.getValidWidgetId("alert"+pid()), "");
+		//page.append(alert).linebreak(); //?
 		
 		//this.instAppsSelector = this;
 
@@ -301,6 +303,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 				
 			});
 			tableLoc.triggerPageBuild();
+			tableLoc.getMainTable().postponeLoading(); // these potentially heavy-weight tables can block the loading of the page otherwise
 			typeFilterDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.getFirstDropdown().registerDependentWidget(tableLoc.getMainTable());
