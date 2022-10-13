@@ -49,6 +49,8 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 			return false;
 		if(DeviceTableRaw.isHeatCostAllocatorDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
+		if(DeviceTableRaw.isSmokeDetectorDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
+			return false;
 		if(DeviceTableRaw.isWiredMBusMasterDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
 			return false;
 		if(DeviceTableRaw.isHAPDevice(model.getLocation(), DeviceTableRaw.getSubResInfo(model)))
