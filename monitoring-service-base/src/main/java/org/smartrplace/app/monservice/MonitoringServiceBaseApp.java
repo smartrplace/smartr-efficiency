@@ -60,6 +60,7 @@ import org.smartrplace.driverhandler.devices.MechanicalFan_DeviceHandler;
 import org.smartrplace.driverhandler.devices.MultiSwitchHandler;
 import org.smartrplace.driverhandler.devices.Pump_DeviceHandler;
 import org.smartrplace.driverhandler.devices.SmartProtect_DeviceHandler;
+import org.smartrplace.driverhandler.devices.SmokeDetectorMBusHandler;
 import org.smartrplace.driverhandler.devices.ThermalMixingCirc_DeviceHandler;
 import org.smartrplace.driverhandler.devices.ThermalStorage_DeviceHandler;
 import org.smartrplace.driverhandler.devices.WaterMeter_DeviceHandler;
@@ -233,6 +234,7 @@ public class MonitoringServiceBaseApp implements Application {
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatingLabGeneralData_DeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandlerWMBus_SensorDevice(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new HeatCostAllocatorHandler(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new SmokeDetectorMBusHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new WiredMBusMasterHandler(controller.appManPlus), null));
 
 		DriverHandlerJMBus jmbusConfig = new DriverHandlerJMBus(controller.appManPlus, configAdmin);
