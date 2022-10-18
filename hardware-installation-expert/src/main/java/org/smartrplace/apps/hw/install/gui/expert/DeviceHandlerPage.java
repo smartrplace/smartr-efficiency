@@ -29,7 +29,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 
 	@Override
 	public String getHeader(OgemaLocale locale) {
-		return "Device Type Hander Overview";
+		return "Device Type Handler Overview";
 	}
 	
 	@Override

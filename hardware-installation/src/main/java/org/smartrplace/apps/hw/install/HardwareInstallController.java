@@ -554,7 +554,7 @@ public class HardwareInstallController {
 			boolean onylDefaultLoggingDps, boolean disable) {
 		Collection<Datapoint> allDps = devHand.getDatapoints(appDevice, dpService);
 		for(Datapoint dp: allDps) {
-			if((!devHand.relevantForDefaultLogging(dp)) && onylDefaultLoggingDps)
+			if((!devHand.relevantForDefaultLogging(dp, appDevice)) && onylDefaultLoggingDps)
 				continue;
 			ReadOnlyTimeSeries ts = dp.getTimeSeries();
 			if(ts == null || (!(ts instanceof RecordedData)))

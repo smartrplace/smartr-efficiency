@@ -25,6 +25,7 @@ import org.smartrplace.app.monbase.servlet.SensorServlet;
 import org.smartrplace.app.monbase.servlet.TimeseriesBaseServlet;
 import org.smartrplace.app.monbase.servlet.UserServletTestMon;
 import org.smartrplace.app.monbase.servlet.UserServletTestMonAPI;
+import org.smartrplace.app.monbase.servlet.WriteableDatapointServlet;
 import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.os.util.DirUtils;
@@ -189,6 +190,8 @@ public class InitUtil {
 		userServlet.addPage("timeseries", timeSeriesServlet);
 		DatapointServlet dpServlet = new DatapointServlet(controller);
 		userServlet.addPage("datapoints", dpServlet);
+		WriteableDatapointServlet wdpServlet = new WriteableDatapointServlet(controller);
+		userServlet.addPage("writeabledatapoints", wdpServlet);
 		DevicesServlet devServlet = new DevicesServlet(controller);
 		userServlet.addPage("devices", devServlet);
 		if(includeSpecialTimeseriesServlet) {
