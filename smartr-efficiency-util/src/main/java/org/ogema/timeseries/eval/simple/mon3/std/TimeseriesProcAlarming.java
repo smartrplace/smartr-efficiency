@@ -161,7 +161,7 @@ try  {
 			}
 			
 			@Override
-			protected Map<String, Datapoint> addDependetTimeseries(Datapoint input) {
+			protected Map<String, Datapoint> addDependentTimeseries(Datapoint input) {
 				Datapoint goldTs = new TimeseriesSetProcSingleToSingle3Dependent("_batVoltageMin", TimeseriesProcAlarming.this).
 						getResultSeriesSingle(input, false, dpService);
 				Map<String, Datapoint> result = new HashMap<>();

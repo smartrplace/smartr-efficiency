@@ -56,7 +56,7 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 	 * @return map ID -> datapoint containing dependent time series. The ID can be used to obtain
 	 * the dependent timeseries via {@link ProcessedReadOnlyTimeSeries3#getDependentTimeseries(String)}
 	 * for usage of the timeseries and to provide to the calculation algorithm.*/
-	protected Map<String, Datapoint> addDependetTimeseries(Datapoint input) {return null;}
+	protected Map<String, Datapoint> addDependentTimeseries(Datapoint input) {return null;}
 	/** Overwrite this if no input timeseries is provided*/
 	protected Long getFirstTimestampInSource() {return null;}
 		
@@ -93,7 +93,7 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 
 	public Datapoint getResultSeriesSingle(Datapoint tsdi, boolean registersTimedJob, DatapointService dpService) {
 		String location = ProcessedReadOnlyTimeSeries2.getDpLocation(tsdi, labelPostfix);
-		Map<String, Datapoint> deps = addDependetTimeseries(tsdi);
+		Map<String, Datapoint> deps = addDependentTimeseries(tsdi);
 		List<Datapoint> input = Arrays.asList(new Datapoint[] {tsdi});
 		final Datapoint newtsdi;
 		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3(tsdi, deps, absoluteTiming) {

@@ -49,7 +49,7 @@ public abstract class TimeseriesSetProcSingleToSingleArg3<T> extends TimeseriesS
 	public Datapoint getResultSeriesSingle(Datapoint tsdi, boolean registersTimedJob, DatapointService dpService,
 			T params) {
 		String location = ProcessedReadOnlyTimeSeries2.getDpLocation(tsdi, labelPostfix);
-		Map<String, Datapoint> deps = addDependetTimeseries(tsdi);
+		Map<String, Datapoint> deps = addDependentTimeseries(tsdi);
 		List<Datapoint> input = Arrays.asList(new Datapoint[] {tsdi});
 		final Datapoint newtsdi;
 		ProcessedReadOnlyTimeSeries3 resultTs = new ProcessedReadOnlyTimeSeries3(tsdi, deps, absoluteTiming) {
