@@ -163,9 +163,13 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 							setText("is Template", req);
 							disable(req);
 						} else {
-							if(DeviceTableRaw.isTemplate(object, null))
-								setText("Select as Template (**)", req);
-							else
+							if(DeviceTableRaw.isTemplate(object, null)) {
+								if(Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.alarm.cleanup.brokentemplate")) {
+									object.isTemplate().delete();
+									setText("Select as Template (**--)", req);
+								} else
+									setText("Select as Template (**)", req);
+							} else
 								setText("Select as Template", req);
 							enable(req);							
 						}

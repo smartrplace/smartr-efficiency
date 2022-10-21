@@ -40,11 +40,13 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 		
 		if(req == null) {
 			vh.registerHeaderEntry("Title");
+			vh.registerHeaderEntry("HandlerID");
 			vh.registerHeaderEntry("# Devices");
 			vh.registerHeaderEntry("# Trash");
 			return;
 		}
 		vh.stringLabel("Title", id, object.getTableTitle(), row);
+		vh.stringLabel("HandlerID", id, object.id(), row);
 		int devNum = 0;
 		int trashNum = 0;
 		Collection<InstallAppDevice> devices = dpService.managedDeviceResoures(object.id(), false, true);
