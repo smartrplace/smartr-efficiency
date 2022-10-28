@@ -11,6 +11,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
+import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.FlowSensor;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.model.sensors.VolumeAccumulatedSensor;
@@ -40,6 +41,7 @@ public class WaterMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> 
 		List<Datapoint> result = new ArrayList<>();
 		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
 		addDatapoint(device.getSubResource("VOLUME_FLOW_0_0", FlowSensor.class).reading(), result);
+		addDatapoint(device.getSubResource("VOLTAGE_0_0", ElectricVoltageSensor.class).reading(), result);
 		return result;
 	}
 

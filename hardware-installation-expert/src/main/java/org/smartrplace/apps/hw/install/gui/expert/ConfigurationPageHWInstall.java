@@ -243,6 +243,16 @@ public class ConfigurationPageHWInstall {
 			configTable.setContent(i, 0, "GatewayId:").
 			setContent(i, 1, gwIdLabel);
 			i++;
+			
+			//update config
+			if(linkOverviewUrlRes.exists()) {
+				String curLink = linkOverviewUrlRes.getValue();
+				if(curLink.contains("gitlab.com/smartrplace/smartrplace-main/-/wikis/")) {
+					String newLink = curLink.replace("gitlab.com/smartrplace/smartrplace-main/-/wikis/",
+							"gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/");
+					linkOverviewUrlRes.setValue(newLink);
+				}
+			}
 		}
 		configTable.setContent(i, 0, "System default language").
 		setContent(i, 1, languageDrop);

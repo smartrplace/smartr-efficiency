@@ -7,10 +7,8 @@ import org.ogema.core.model.units.EnergyResource;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
-import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.sensors.ElectricEnergySensor;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
-import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.slf4j.Logger;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
@@ -35,7 +33,7 @@ public class VirtualSensorKPIMgmtMeter2Interval extends VirtualSensorKPIMgmt {
 	@Override
 	public SingleValueResource getAndConfigureValueResourceSingle(Datapoint dpSource, VirtualSensorKPIDataBase mapData,
 			String newSubResName, Resource device) {
-		ElectricityConnection conn = (ElectricityConnection) device;
+		Resource conn = device;
 		EnergyResource energyDailyRealAgg = conn.getSubResource(newSubResName, ElectricEnergySensor.class).reading();
 		energyDailyRealAgg.getSubResource("unit", StringResource.class).<StringResource>create().setValue("kWh");
 		energyDailyRealAgg.getParent().activate(true);

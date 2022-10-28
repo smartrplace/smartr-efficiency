@@ -112,7 +112,7 @@ public class DeviceHandlerWMBus_SensorDevice extends DeviceHandlerSimple<SensorD
 		//SensorDevice dev = (SensorDevice) appDevice.device();
 		List<Datapoint> result = new ArrayList<>();
 		boolean addElementName = dev.sensors().size() > 1;
-		boolean isJmbus = dev.getLocation().toLowerCase().contains("jmbus");
+		boolean isJmbus = dev.getLocation().toLowerCase().contains("jmbus") || dev.getLocation().toLowerCase().contains("JMBUS_BASE");
 		String sensorDevName = null;
 		if(!isJmbus)
 			sensorDevName = dev.getLocationResource().getName();
