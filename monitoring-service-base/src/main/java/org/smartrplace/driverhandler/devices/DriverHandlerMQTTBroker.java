@@ -219,13 +219,13 @@ public class DriverHandlerMQTTBroker implements DriverHandlerProvider {
 		};*/
 	}
 
-	private static void initDeviceData(DriverConfigMQTT config, ConfigurationAdmin configAdmin) {
+	/*private static void initDeviceData(DriverConfigMQTT config, ConfigurationAdmin configAdmin) {
 		if(config.brokerData == null || config.brokerData.isEmpty()) {
 			DriverConfigMQTTBroker bd = newDeviceData();
 			config.brokerData.put(bd.brokerConfigId, bd);
 			bd.writeConfigDeviceData(configAdmin);
 		}		
-	}
+	}*/
 	private static DriverConfigMQTTBroker newDeviceData() {
 		DriverConfigMQTTBroker bd = new DriverConfigMQTTBroker();
 		maxIdx++;

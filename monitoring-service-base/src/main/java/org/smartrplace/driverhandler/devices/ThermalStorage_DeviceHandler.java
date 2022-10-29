@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
@@ -16,9 +15,7 @@ import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.connections.ThermalConnection;
 import org.ogema.model.devices.storage.ThermalStorage;
 import org.ogema.model.sensors.GenericFloatSensor;
-import org.ogema.model.sensors.StateOfChargeSensor;
 import org.ogema.model.sensors.TemperatureSensor;
-import org.ogema.model.sensors.VolumeAccumulatedSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 

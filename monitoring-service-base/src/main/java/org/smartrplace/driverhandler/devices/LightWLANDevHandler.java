@@ -9,7 +9,6 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
-import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.buildingtechnology.ElectricLight;
@@ -46,7 +45,6 @@ public class LightWLANDevHandler extends DeviceHandlerSimple<ElectricLight> {
 		addDatapoint(device.dimmer().onOffSwitch().stateControl(), result, dpService);
 		addDatapoint(device.dimmer().setting().stateControl(), result, dpService);
 		addDatapoint(device.dimmer().setting().stateFeedback(), result, dpService);
-
 		return result;
 	}
 

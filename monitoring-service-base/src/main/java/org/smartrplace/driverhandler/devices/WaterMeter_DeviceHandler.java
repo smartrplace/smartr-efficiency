@@ -13,7 +13,6 @@ import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.FlowSensor;
-import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.model.sensors.VolumeAccumulatedSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 

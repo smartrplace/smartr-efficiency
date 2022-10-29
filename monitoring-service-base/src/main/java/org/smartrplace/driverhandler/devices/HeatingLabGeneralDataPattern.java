@@ -17,7 +17,6 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.model.devices.connectiondevices.ThermalValve;
 
 import de.fhg.iee.ogema.labdata.HeatingLabData;
 

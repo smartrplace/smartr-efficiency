@@ -9,7 +9,6 @@ import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
-import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.DestType;

@@ -18,8 +18,6 @@ package org.smartrplace.driverhandler.devices;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.devices.buildingtechnology.ElectricLight;
-import org.ogema.model.sensors.LightSensor;
-import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 
 public class LightWLANPattern extends ResourcePattern<ElectricLight> {
 

@@ -17,8 +17,6 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.metering.HeatMeter;
 
 public class HeatMeter2_Pattern extends ResourcePattern<HeatMeter> {

@@ -20,7 +20,6 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.model.connections.ThermalConnection;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.HumiditySensor;
-import org.ogema.model.sensors.TemperatureSensor;
 
 import de.iwes.util.resource.ResourceHelper;
 

@@ -12,8 +12,6 @@ import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
-import de.fhg.iee.ogema.labdata.HeatingLabData;
-
 public class HeatingLabTempSens_DeviceHandler extends DeviceHandlerSimple<TemperatureSensor> {
 
 	public HeatingLabTempSens_DeviceHandler(ApplicationManagerPlus appMan) {

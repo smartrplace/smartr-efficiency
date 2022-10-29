@@ -17,10 +17,8 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.model.connections.ThermalConnection;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.FlowSensor;
-import org.ogema.model.sensors.TemperatureSensor;
 
 import de.iwes.util.resource.ResourceHelper;
 

@@ -14,8 +14,6 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.EventPushButton;
-import org.ogema.model.actors.OnOffSwitch;
-import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -74,6 +72,7 @@ public class EventPushButtonHandler extends DeviceHandlerSimple<EventPushButton>
 		addDatapoint(device.battery().chargeSensor().reading(), result);
 		addDatapoint(device.online(), "online", result);
 		addDatapoint(device.getSubResource("disableLedStatus", BooleanResource.class), "disableLedStatus", result);
+		
 		return result;
 	}
 
