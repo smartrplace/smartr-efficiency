@@ -16,6 +16,7 @@ import org.ogema.model.connections.ThermalConnection;
 import org.ogema.model.devices.storage.ThermalStorage;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.model.sensors.TemperatureSensor;
+import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 
@@ -64,9 +65,21 @@ public class ThermalStorage_DeviceHandler extends DeviceHandlerSimple<ThermalSto
 		addDatapointWithResOrSensorName(device.getSubResource("fillLevel", GenericFloatSensor.class).reading(), result);
 		addDatapoint(device.heatConnections().getSubResource("heatExchangerExtraction", ThermalConnection.class).inputTemperature().reading(), result);
 		addDatapoint(device.heatConnections().getSubResource("heatExchangerExtraction", ThermalConnection.class).outputTemperature().reading(), result);
+		
+		addEnergyHeatMeter(device, "heatExchangerExtraction", result);
+		addEnergyHeatMeter(device, "absorber", result);
+		addEnergyHeatMeter(device, "regeneration", result);
 		return result;
 	}
 
+	private void addEnergyHeatMeter(ThermalStorage device, String connName, List<Datapoint> result) {
+		ThermalConnection thermalConn = device.heatConnections().getSubResource(connName, ThermalConnection.class);
+		if(!thermalConn.exists())
+			return;
+		Datapoint energy = addDatapoint(thermalConn.energySensor().reading(), result);
+		MeteringEvalUtil.addDailyMeteringEval(energy, null, thermalConn, result, appMan);		
+	}
+	
 	@Override
 	public String getTableTitle() {
 		return "Thermal Storages";
