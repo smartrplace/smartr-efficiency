@@ -76,8 +76,19 @@ public class ThermalStorage_DeviceHandler extends DeviceHandlerSimple<ThermalSto
 		ThermalConnection thermalConn = device.heatConnections().getSubResource(connName, ThermalConnection.class);
 		if(!thermalConn.exists())
 			return;
-		Datapoint energy = addDatapoint(thermalConn.energySensor().reading(), result);
-		MeteringEvalUtil.addDailyMeteringEval(energy, null, thermalConn, result, appMan);		
+		Datapoint energy = addDatapoint(thermalConn.energySensor().reading(), connName, result);
+		Datapoint daily = MeteringEvalUtil.addDailyMeteringEval(energy, null, thermalConn, result, appMan);
+		if(daily != null) {
+			daily.addToSubRoomLocationAtomic(null, null, connName, false);
+			try {
+				Datapoint daily2 = result.get(result.size()-2);
+				daily2.addToSubRoomLocationAtomic(null, null, connName, false);
+				Datapoint monthly2 = result.get(result.size()-1);
+				monthly2.addToSubRoomLocationAtomic(null, null, connName, false);
+			} catch(IndexOutOfBoundsException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	@Override

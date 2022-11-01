@@ -65,7 +65,7 @@ public class MeteringEvalUtil {
 	 * @param energyDp at least energyDp or powerDp should be non-zero
 	 * @param powerDp
 	 */
-	public static void addDailyMeteringEval(Datapoint energyDp, Datapoint powerDp, Resource destinationResParent,
+	public static Datapoint addDailyMeteringEval(Datapoint energyDp, Datapoint powerDp, Resource destinationResParent,
 			List<Datapoint> result , ApplicationManagerPlus appMan) {
 		if(!Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyDaily.suppressdaily")) {
 			DatapointService dpService = appMan.dpService();
@@ -86,7 +86,9 @@ public class MeteringEvalUtil {
 				if(Boolean.getBoolean("org.smartrplace.mqtt.devicetable.PM2xenergyYearly"))
 					provideIntervalFromMeterDatapoint("energyYearly", monthly, result, destinationResParent, dpService, utilAggYearly(appMan), createResource);				
 			}
-		}		
+			return daily;
+		}
+		return null;
 	}
 	
 	protected static Datapoint provideIntervalFromMeterDatapoint(String newSubResName,
