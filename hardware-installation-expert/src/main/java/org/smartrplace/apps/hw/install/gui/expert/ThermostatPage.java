@@ -5,12 +5,15 @@ import java.util.List;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
@@ -57,6 +60,7 @@ public class ThermostatPage extends MainPage {
 	public enum ThermostatPageType {
 		STANDARD,
 		AUTO_MODE,
+		BATTERY_WINDOW,
 		STANDARD_VIEW_ONLY
 	}
 	protected final ThermostatPageType type;
@@ -67,7 +71,9 @@ public class ThermostatPage extends MainPage {
 		case STANDARD:
 			return "Thermostat Special Selection";
 		case AUTO_MODE:
-			return "Thermostat Auto-Mode Management";
+			return "Thermostat Auto-Mode and Valve Adapt Management";
+		case BATTERY_WINDOW:
+			return "Thermostat Battery and Window Management";
 		case STANDARD_VIEW_ONLY:
 			return "Thermostat Page";
 		}
@@ -94,6 +100,25 @@ public class ThermostatPage extends MainPage {
 	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
+			private Label addControlFeedbackLabel(String widgetId, SingleValueResource control, SingleValueResource feedback,
+					String lastContactWidgetId,
+					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+					String id, OgemaHttpRequest req, Row row) {
+				if(!(control.exists() && feedback.exists()))
+					return null;
+				ControlFeedbackFormatter formatter;
+				if(control instanceof FloatResource) {
+					formatter = new ControlFeedbackFormatter((FloatResource)control, (FloatResource)feedback, controller.dpService);
+				} else
+					formatter = new ControlFeedbackFormatter((IntegerResource)control, (IntegerResource)feedback, controller.dpService);
+				Label winMode = vh.stringLabel(widgetId, id, formatter, row);
+				winMode.setPollingInterval(DeviceTableRaw.DEFAULT_POLL_RATE, req);
+				if(lastContactWidgetId != null) {
+					Label lastWinMode = addLastContact(lastContactWidgetId, vh, id, req, row, feedback);
+					lastWinMode.setPollingInterval(DeviceTableRaw.DEFAULT_POLL_RATE, req);
+				}
+				return winMode;
+			}
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
@@ -164,14 +189,17 @@ public class ThermostatPage extends MainPage {
 					} else
 						vh.registerHeaderEntry("SetpointSet");
 				}
-				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
-				Label lastContact = null;
-				if(req != null) {
-					lastContact = new LastContactLabel(device.temperatureSensor().reading(), appMan, mainTable, "lastContact"+id, req);
-					row.addCell(WidgetHelper.getValidWidgetId("Last Measurment"), lastContact);
-				} else
-					vh.registerHeaderEntry("Last Measurment");
-
+				if((type != ThermostatPageType.BATTERY_WINDOW)) {
+					Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
+					Label lastContact = null;
+					if(req != null) {
+						lastContact = new LastContactLabel(device.temperatureSensor().reading(), appMan, mainTable, "lastContact"+id, req);
+						row.addCell(WidgetHelper.getValidWidgetId("Last Measurment"), lastContact);
+						tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
+						lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
+					} else
+						vh.registerHeaderEntry("Last Measurment");
+				}
 				if(type == ThermostatPageType.STANDARD || type == ThermostatPageType.STANDARD_VIEW_ONLY) {
 					if(req == null) {
 						vh.registerHeaderEntry("Valve");
@@ -214,6 +242,52 @@ public class ThermostatPage extends MainPage {
 							Label lastContactValveErr = addLastContact("Last EP", vh, id, req, row, errorRunFb);
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+						}
+					}					
+				} else if(type == ThermostatPageType.BATTERY_WINDOW) {
+					if(req == null) {
+						vh.registerHeaderEntry("Battery");
+						vh.registerHeaderEntry("Last Voltage");
+						vh.registerHeaderEntry("Bat.Low");
+						vh.registerHeaderEntry("Last Status");
+						vh.registerHeaderEntry("WinMode");
+						vh.registerHeaderEntry("LastMode");
+						vh.registerHeaderEntry("TempFallDelta");
+						vh.registerHeaderEntry("LastDelta");
+						vh.registerHeaderEntry("TempFallTemp");
+						vh.registerHeaderEntry("WinDuration");
+					} else {
+						AddBatteryVoltageResult voltageLab = addBatteryVoltage(vh, id, req, row, device);
+						Label lastContactVoltage = null;
+						Label lastContactStatus = null;
+						if(voltageLab != null)
+							lastContactVoltage = addLastContact("Last Voltage", vh, "LV"+id, req, row, voltageLab.reading);
+						AddBatteryVoltageResult statusLab = addBatteryStatus(vh, id, req, row, device);
+						if(statusLab != null)
+							lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
+						if(voltageLab != null)
+							voltageLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
+						if(statusLab != null)
+							statusLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
+						if(lastContactVoltage != null)
+							lastContactVoltage.setPollingInterval(DEFAULT_POLL_RATE, req);
+						if(lastContactStatus != null)
+							lastContactStatus.setPollingInterval(DEFAULT_POLL_RATE, req);
+
+						ResourceList<?> master = device.getSubResource("HmParametersMaster", ResourceList.class);
+						if(master.exists()) {
+							addControlFeedbackLabel("WinMode", master.getSubResource("TEMPERATUREFALL_MODUS", IntegerResource.class),
+									master.getSubResource("TEMPERATUREFALL_MODUS_FEEDBACK", IntegerResource.class), "LastMode",
+									vh, id, req, row);
+							addControlFeedbackLabel("TempFallDelta", master.getSubResource("TEMPERATUREFALL_VALUE", FloatResource.class),
+									master.getSubResource("TEMPERATUREFALL_VALUE_FEEDBACK", FloatResource.class), "LastDelta",
+									vh, id, req, row);
+							addControlFeedbackLabel("TempFallTemp", master.getSubResource("TEMPERATURE_WINDOW_OPEN", FloatResource.class),
+									master.getSubResource("TEMPERATURE_WINDOW_OPEN_FEEDBACK", FloatResource.class), null,
+									vh, id, req, row);
+							addControlFeedbackLabel("WinDuration", master.getSubResource("TEMPERATUREFALL_WINDOW_OPEN_TIME_PERIOD", IntegerResource.class),
+									master.getSubResource("TEMPERATUREFALL_WINDOW_OPEN_TIME_PERIOD_FEEDBACK", IntegerResource.class), null,
+									vh, id, req, row);
 						}
 					}					
 				} else {
@@ -260,97 +334,98 @@ public class ThermostatPage extends MainPage {
 						}
 					}
 				}
-				if(req == null) {
-					vh.registerHeaderEntry("Com/Err");
-					vh.registerHeaderEntry("Last Err");
-					vh.registerHeaderEntry("ManuMode");
-				} else {
-					final IntegerResource errorCode = ResourceHelper.getSubResourceOfSibbling(device,
-							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "errorCode", IntegerResource.class);
-					final BooleanResource configPending = ResourceHelper.getSubResourceOfSibbling(device,
-							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "configPending", BooleanResource.class);
-					final IntegerResource controlMode = device.getSubResource("controlMode", IntegerResource.class);
-					final IntegerResource controlModeFeedback = device.getSubResource("controlModeFeedback", IntegerResource.class);
-					Label errLabel = new Label(mainTable, "errLabel"+id, req) {
-						boolean hasStyle = false;
-
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							String text = "";
-							int error = 0;
-							BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(device,
-									"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
-							if(comDisturbed != null && comDisturbed.exists() && comDisturbed.getValue()) {
-								text += "CD";
-								error = 2;
-							}
-							if(configPending != null && configPending.exists()) {
-								if(configPending.getValue()) {
-									text += " CfP";
+				if(type != ThermostatPageType.BATTERY_WINDOW) {
+					if(req == null) {
+						vh.registerHeaderEntry("Com/Err");
+						vh.registerHeaderEntry("Last Err");
+						vh.registerHeaderEntry("ManuMode");
+					} else {
+						final IntegerResource errorCode = ResourceHelper.getSubResourceOfSibbling(device,
+								"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "errorCode", IntegerResource.class);
+						final BooleanResource configPending = ResourceHelper.getSubResourceOfSibbling(device,
+								"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "configPending", BooleanResource.class);
+						final IntegerResource controlMode = device.getSubResource("controlMode", IntegerResource.class);
+						final IntegerResource controlModeFeedback = device.getSubResource("controlModeFeedback", IntegerResource.class);
+						Label errLabel = new Label(mainTable, "errLabel"+id, req) {
+							boolean hasStyle = false;
+	
+							@Override
+							public void onGET(OgemaHttpRequest req) {
+								String text = "";
+								int error = 0;
+								BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(device,
+										"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
+								if(comDisturbed != null && comDisturbed.exists() && comDisturbed.getValue()) {
+									text += "CD";
 									error = 2;
 								}
-							} else {
-								text += " NCfP";
-								if(error == 0) error = 1;
-							}
-							if(errorCode != null && errorCode.exists()) {
-								if(errorCode.getValue() > 0) {
-									text += " EC"+errorCode.getValue();
-									error = 2;
+								if(configPending != null && configPending.exists()) {
+									if(configPending.getValue()) {
+										text += " CfP";
+										error = 2;
+									}
+								} else {
+									text += " NCfP";
+									if(error == 0) error = 1;
 								}
+								if(errorCode != null && errorCode.exists()) {
+									if(errorCode.getValue() > 0) {
+										text += " EC"+errorCode.getValue();
+										error = 2;
+									}
+								}
+								if(error == 1) {
+									addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+									hasStyle = true;
+								} else if(error == 2) {
+									addStyle(LabelData.BOOTSTRAP_RED, req);
+									hasStyle = true;
+								} else {
+									text = "OK";
+									if(hasStyle) {
+										removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+										removeStyle(LabelData.BOOTSTRAP_RED, req);
+										addStyle(LabelData.BOOTSTRAP_GREEN, req);
+									}
+								}
+								setText(text, req);
 							}
-							if(error == 1) {
-								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
-								hasStyle = true;
-							} else if(error == 2) {
-								addStyle(LabelData.BOOTSTRAP_RED, req);
-								hasStyle = true;
-							} else {
-								text = "OK";
-								if(hasStyle) {
+						};
+						row.addCell(WidgetHelper.getValidWidgetId("Com/Err"), errLabel);
+						errLabel.setPollingInterval(DEFAULT_POLL_RATE, req);
+						
+						if(errorCode != null && errorCode.exists()) {
+							Label lastContactErrcode = addLastContact("Last Err", vh, id, req, row, errorCode);
+							lastContactErrcode.setPollingInterval(DEFAULT_POLL_RATE, req);
+						}
+	
+						Label ctrlModeLb = new Label(mainTable, "ctrlModeLb"+id, req) {
+							@Override
+							public void onGET(OgemaHttpRequest req) {
+								String text;
+								if(controlMode != null && controlMode.exists())
+									text = ""+controlMode.getValue()+" / ";
+								else
+									text = "- / ";
+								if(controlModeFeedback != null && controlModeFeedback.exists())
+									text += controlModeFeedback.getValue();
+								else
+									text += "-";
+								boolean isFaulty = (!controlMode.exists()) || (!controlModeFeedback.exists()) ||
+										(controlMode.getValue() != controlModeFeedback.getValue());
+								setText(text, req);
+								if(isFaulty) {
+									addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+								} else {
 									removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
-									removeStyle(LabelData.BOOTSTRAP_RED, req);
-									addStyle(LabelData.BOOTSTRAP_GREEN, req);
 								}
 							}
-							setText(text, req);
-						}
-					};
-					row.addCell(WidgetHelper.getValidWidgetId("Com/Err"), errLabel);
-					errLabel.setPollingInterval(DEFAULT_POLL_RATE, req);
+						};
+						row.addCell(WidgetHelper.getValidWidgetId("ManuMode"), ctrlModeLb);
+						ctrlModeLb.setPollingInterval(DEFAULT_POLL_RATE, req);
 					
-					if(errorCode != null && errorCode.exists()) {
-						Label lastContactErrcode = addLastContact("Last Err", vh, id, req, row, errorCode);
-						lastContactErrcode.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
-
-					Label ctrlModeLb = new Label(mainTable, "ctrlModeLb"+id, req) {
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							String text;
-							if(controlMode != null && controlMode.exists())
-								text = ""+controlMode.getValue()+" / ";
-							else
-								text = "- / ";
-							if(controlModeFeedback != null && controlModeFeedback.exists())
-								text += controlModeFeedback.getValue();
-							else
-								text += "-";
-							boolean isFaulty = (!controlMode.exists()) || (!controlModeFeedback.exists()) ||
-									(controlMode.getValue() != controlModeFeedback.getValue());
-							setText(text, req);
-							if(isFaulty) {
-								addStyle(LabelData.BOOTSTRAP_ORANGE, req);
-							} else {
-								removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
-							}
-						}
-					};
-					row.addCell(WidgetHelper.getValidWidgetId("ManuMode"), ctrlModeLb);
-					ctrlModeLb.setPollingInterval(DEFAULT_POLL_RATE, req);
-				
 				}
-
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device.location().room();
 				//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
@@ -430,7 +505,7 @@ public class ThermostatPage extends MainPage {
 					row.addCell("Plot", logResult.plotButton);
 
 					String text = getHomematicCCUId(object.device().getLocation());
-					if(type != ThermostatPageType.AUTO_MODE)
+					if((type != ThermostatPageType.AUTO_MODE) && (type != ThermostatPageType.BATTERY_WINDOW))
 						vh.stringLabel("RT", id, text, row);
 					InstallAppDevice ccuIad = HmSetpCtrlManager.getCCU(device, controller.dpService);
 					if(ccuIad != null)
@@ -444,18 +519,14 @@ public class ThermostatPage extends MainPage {
 						vh.registerHeaderEntry("SendMan");						
 					}
 					vh.registerHeaderEntry("Plot");
-					if(type != ThermostatPageType.AUTO_MODE)
+					if((type != ThermostatPageType.AUTO_MODE) && (type != ThermostatPageType.BATTERY_WINDOW))
 						vh.registerHeaderEntry("RT");
 					vh.registerHeaderEntry("CCU");
 				}
 				
-				
-				
 				if(req != null) {
-					tempmes.setPollingInterval(DEFAULT_POLL_RATE, req);
 					setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 					lastContactFB.setPollingInterval(DEFAULT_POLL_RATE, req);
-					lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 				}
 			}
 			

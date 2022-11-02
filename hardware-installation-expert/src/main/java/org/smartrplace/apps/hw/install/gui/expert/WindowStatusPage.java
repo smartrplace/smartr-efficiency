@@ -12,11 +12,9 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
-import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -28,6 +26,7 @@ import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
 
 @SuppressWarnings("serial")
+@Deprecated
 public class WindowStatusPage extends BatteryPage {
 	public static final long DEFAULT_POLL_RATE = 5000;
 
