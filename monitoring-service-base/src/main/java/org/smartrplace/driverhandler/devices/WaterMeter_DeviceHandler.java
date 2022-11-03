@@ -14,6 +14,7 @@ import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.FlowSensor;
 import org.ogema.model.sensors.VolumeAccumulatedSensor;
+import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 
@@ -38,7 +39,9 @@ public class WaterMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> 
 	@Override
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
-		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		Datapoint volumeDp = addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		MeteringEvalUtil.addDailyMeteringEval(volumeDp, null, device, result, appMan);
+		
 		addDatapoint(device.getSubResource("VOLUME_FLOW_0_0", FlowSensor.class).reading(), result);
 		addDatapoint(device.getSubResource("VOLTAGE_0_0", ElectricVoltageSensor.class).reading(), result);
 		return result;
