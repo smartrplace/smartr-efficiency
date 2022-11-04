@@ -56,8 +56,10 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 		TimeSeriesDataImpl obj = UserServlet.knownTS.get(objectId);
 		if(obj != null) return obj;
 		Object objRaw = OGEMAConfigurations.getObject(UserServlet.TimeSeriesServletImplClassName, objectId);
-		if(objRaw == null)
+		if(objRaw == null) {
+			controller.log.error("objRaw not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
 			return null;
+		}
 		if(objRaw instanceof TimeSeriesDataImpl) {
 			obj = (TimeSeriesDataImpl) objRaw;
 			UserServlet.knownTS.put(objectId, obj);
