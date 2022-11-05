@@ -43,7 +43,9 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
@@ -99,6 +101,42 @@ public class ThermostatPage extends MainPage {
 
 	@Override
 	protected void finishConstructor() {
+		if(type == ThermostatPageType.BATTERY_WINDOW) {
+			page.append(alert).linebreak();
+			StaticTable secondTopTable = new StaticTable(1, 5);
+			ButtonConfirm updateAll = new ButtonConfirm(page, "updateallFbFaulty", "Resend WinMode") {
+				@Override
+				public void onPrePOST(String data, OgemaHttpRequest req) {
+					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
+					int count = 0;
+					for(InstallAppDevice dev: all) {
+						if(dev.device() instanceof Thermostat) {
+							Thermostat device = (Thermostat) dev.device().getLocationResource();
+							ResourceList<?> master = device.getSubResource("HmParametersMaster", ResourceList.class);
+							if(master.exists()) {
+								IntegerResource control = master.getSubResource("TEMPERATUREFALL_MODUS", IntegerResource.class);
+								IntegerResource feedback = master.getSubResource("TEMPERATUREFALL_MODUS_FEEDBACK", IntegerResource.class);
+								if(!(control.isActive() && feedback.exists()))
+									continue;
+								int ctVal = control.getValue();
+								int fbVal = feedback.getValue();
+								if(ctVal == fbVal)
+									continue;
+								control.setValue(ctVal);
+								count++;
+							}
+						}
+					}
+					alert.showAlert("Sent winMode update to "+count+" thermostats", count>0, req);
+				}
+			};
+			//updateAll.triggerOnPOST(alert);
+			updateAll.registerDependentWidget(alert);
+			updateAll.setDefaultConfirmMsg("Really re-send winMode value to all selected thermostats with pending feedback?");
+			secondTopTable.setContent(0, 0, updateAll);
+			page.append(secondTopTable);
+		}
+		
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
 			private Label addControlFeedbackLabel(String widgetId, SingleValueResource control, SingleValueResource feedback,
 					String lastContactWidgetId,

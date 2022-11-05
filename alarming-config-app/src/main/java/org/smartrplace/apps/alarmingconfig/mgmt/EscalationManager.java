@@ -15,6 +15,7 @@ import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.alarming.escalation.util.EscalationProvider;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.escalationservices.ExternalEscalationProvider;
+import org.smartrplace.apps.alarmingconfig.escalationservices.GatewayEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.NotAssignedEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.OnOffSwitchEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.ThermostatResetService;
@@ -133,6 +134,9 @@ public class EscalationManager {
 
 		OnOffSwitchEscalationProvider onOff = new OnOffSwitchEscalationProvider(controller.appManPlus);
 		knownEscProvs.put(onOff.id(), onOff);
+
+		GatewayEscalationProvider gateway = new GatewayEscalationProvider(controller.appManPlus);
+		knownEscProvs.put(gateway.id(), gateway);
 
 		ExternalEscalationProvider allFault = new ExternalEscalationProvider(controller.appManPlus, 
 				"All Fault Signals", 0);
