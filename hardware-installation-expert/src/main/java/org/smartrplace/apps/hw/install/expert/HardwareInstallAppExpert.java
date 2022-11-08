@@ -114,6 +114,11 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			menu.addEntry("Thermostat Page", thermPage2);
 			thermPage2.getMenuConfiguration().setCustomNavigation(menu);
 
+			WidgetPage<?> thermPageAuto = widgetApp.createWidgetPage("thermostatAuto.hmtl");
+			new ThermostatPage(thermPageAuto, controller, ThermostatPageType.AUTO_MODE);
+			menu.addEntry("Thermostat Auto-Mode and Valve Adapt Management", thermPageAuto);
+			thermPageAuto.getMenuConfiguration().setCustomNavigation(menu);
+
 			WidgetPage<?> ccuPage = widgetApp.createWidgetPage("ccutDetails.hmtl");
 			new CCUPage(ccuPage, controller);
 			menu.addEntry("CCU Details", ccuPage);

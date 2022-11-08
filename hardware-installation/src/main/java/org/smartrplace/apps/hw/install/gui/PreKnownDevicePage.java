@@ -76,6 +76,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 	
 	TemplateDropdown<InstallAppDevice> ccuSelectDrop;
 	SingleFilteringDirect<PreKnownDeviceData> entryFilter;
+	ButtonConfirm deleteAll;
 	
 	private abstract class DeviceTypeDropdown extends TemplateDropdown<DeviceHandlerProviderDP<?>> {
 		
@@ -164,6 +165,7 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			vh.registerHeaderEntry("Device Type");
 			vh.registerHeaderEntry("Comment");
 			vh.registerHeaderEntry("Add/delete");
+			
 			return;
 		}
 		//vh.stringEdit(SERIAL_NUMBER_HEAD, id, object.deviceEndCode(), row, alert);
@@ -690,11 +692,23 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 		CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
 				"Import Building as CSV", listener , appMan);
 		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
-		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
-				uploadCSV.csvButton, uploadCSV.uploader.getFileUpload(), csvDevTypeDrop);
-		page.append(flexLineCSV);
-		page.append(Linebreak.LINEBREAK);
+		deleteAll = new ButtonConfirm(page, "deleteAll", "Delete all existing entries") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				ResourceListHelper.clear(controller.appConfigData.preKnownDevices());
+			}
+		};
+		deleteAll.registerDependentWidget(mainTable);
+		deleteAll.setDefaultConfirmMsg("REALLY DELETE ALL existing Pre-Known Data in the table below? ONLY CONFIRM IF YOU KNOW WHAT YOU DO!");
 
+		Label distanceAndInfo = new Label(page, "distanceAndInfo", "____Note: All data from CSV file will be loaded into the table below. ____");
+		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
+				uploadCSV.csvButton, uploadCSV.uploader.getFileUpload(), csvDevTypeDrop, distanceAndInfo, deleteAll);
+		//StaticTable cleanUpTable = new StaticTable(1, 3);
+		//cleanUpTable.setContent(0, 0, flexLineCSV).setContent(0, 2, deleteAll);
+		page.append(flexLineCSV);
+		//page.append(cleanUpTable);
+		page.append(Linebreak.LINEBREAK);
 	}	
 
 	@Override
