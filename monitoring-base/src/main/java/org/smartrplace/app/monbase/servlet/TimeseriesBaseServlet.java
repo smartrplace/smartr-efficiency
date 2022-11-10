@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.widgets.configuration.service.OGEMAConfigurations;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
@@ -53,12 +54,28 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 
 	@Override
 	public TimeSeriesDataImpl getObject(String objectId, String user) {
+		TimeSeriesDataImpl result = getObjectV1(objectId, user);
+		if(result != null)
+			return result;
+		return null;
+	}
+	public TimeSeriesDataImpl getObjectV1(String objectId, String user) {
 		TimeSeriesDataImpl obj = UserServlet.knownTS.get(objectId);
 		if(obj != null) return obj;
 		Object objRaw = OGEMAConfigurations.getObject(UserServlet.TimeSeriesServletImplClassName, objectId);
 		if(objRaw == null) {
 			controller.log.error("objRaw not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
-			return null;
+			Datapoint dp = controller.dpService.getDataPointStandard(objectId);
+			if(dp == null) {
+				controller.log.error("Datapoint not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
+				return null;
+			}
+			TimeSeriesDataImpl ts = dp.getTimeSeriesDataImpl(null);
+			if(ts == null) {
+				controller.log.error("Timeseries of Datapoint not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
+				return null;				
+			}
+			objRaw = ts;
 		}
 		if(objRaw instanceof TimeSeriesDataImpl) {
 			obj = (TimeSeriesDataImpl) objRaw;

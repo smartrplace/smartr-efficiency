@@ -1,4 +1,4 @@
-package org.ogema.accessadmin.api.util;
+package org.smartrplace.external.accessadmin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,6 @@ import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.app.createuser.UserAdminBaseUtil;
-import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
 import org.smartrplace.widget.extensions.GUIUtilHelper;

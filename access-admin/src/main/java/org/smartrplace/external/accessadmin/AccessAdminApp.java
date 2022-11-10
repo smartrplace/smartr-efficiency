@@ -8,7 +8,6 @@ import org.apache.felix.scr.annotations.ReferencePolicy;
 import org.apache.felix.scr.annotations.References;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
 import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;

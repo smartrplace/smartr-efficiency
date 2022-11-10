@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.SubcustomerUtil;
-import org.ogema.accessadmin.api.UserPermissionService;
-import org.ogema.accessadmin.api.util.UserPermissionServiceImpl;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
@@ -25,10 +23,9 @@ import org.smartrplace.external.accessadmin.gui.UserRoomGroupPermissionPage2;
 import org.smartrplace.external.accessadmin.gui.UserRoomPermissionPage;
 import org.smartrplace.external.accessadmin.gui.UserSetupPage;
 import org.smartrplace.external.accessadmin.gui.UserStatusPermissionPage;
-import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
+import org.smartrplace.gui.filtering.util.UserFiltering2Steps;
 
 import de.iwes.util.logconfig.LogHelper;
-import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -188,16 +185,7 @@ public class AccessAdminController {
 	}
 	
 	public AccessConfigUser getUserConfig(String userName) {
-		return getUserConfig(userName, appConfigData);
-	}
-	public static AccessConfigUser getUserConfig(String userName, AccessAdminConfig appConfigData) {
-		AccessConfigUser result = ResourceListHelper.getOrCreateNamedElement(userName, appConfigData.userPermissions());
-		return result;
-		/*for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
-			if(user.name().getValue().equals(userName))
-				return user;
-		}
-		return null;*/
+		return UserFiltering2Steps.getUserConfig(userName, appConfigData);
 	}
 	
 	public List<BuildingPropertyUnit> getGroups(Room object) {
@@ -210,30 +198,7 @@ public class AccessAdminController {
 	}
 	
 	public List<AccessConfigUser> getAllGroupsForUser(AccessConfigUser naturalUser) {
-		return getAllGroupsForUser(naturalUser, appConfigData, userPermService);
-	}
-	public static List<AccessConfigUser> getAllGroupsForUser(AccessConfigUser naturalUser,
-			AccessAdminConfig appConfigData, UserPermissionService userPermService) {
-		List<AccessConfigUser> result = getLevel2GroupsForUser(naturalUser, appConfigData, userPermService);
-		result.addAll(naturalUser.superGroups().getAllElements());
-		return result;
-	}
-	public static List<AccessConfigUser> getLevel2GroupsForUser(AccessConfigUser naturalUser,
-			AccessAdminConfig appConfigData, UserPermissionService userPermService) {
-		List<AccessConfigUser> result = new ArrayList<>();
-		if(naturalUser.isGroup().getValue() > 0)
-			return result;
-		String userName = naturalUser.name().getValue();
-		for(AccessConfigUser grp: appConfigData.userPermissions().getAllElements()) {
-			if(grp.isGroup().getValue() < 2)
-				continue;
-			GenericFilterFixedGroup<String, AccessConfigUser> filter = userPermService.getUserGroupFiler(grp.name().getValue());
-			if(filter == null)
-				continue;
-			if(filter.isInSelection(userName, grp))
-				result.add(grp);
-		}
-		return result ;
+		return UserFiltering2Steps.getAllGroupsForUser(naturalUser, appConfigData, userPermService);
 	}
 	
 	public List<UserAccount> getAllNaturalUsers(OgemaHttpRequest req) {

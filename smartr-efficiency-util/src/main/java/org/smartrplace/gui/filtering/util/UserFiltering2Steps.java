@@ -2,22 +2,25 @@ package org.smartrplace.gui.filtering.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.SubcustomerUtil;
+import org.ogema.accessadmin.api.UserPermissionService;
 import org.ogema.core.administration.UserAccount;
 import org.ogema.internationalization.util.LocaleHelper;
 import org.ogema.tools.app.createuser.UserAdminBaseUtil;
-import org.smartrplace.external.accessadmin.AccessAdminController;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
 import org.smartrplace.gui.filtering.DualFiltering2Steps;
 import org.smartrplace.gui.filtering.GenericFilterFixedGroup;
+import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.GenericFilterOption;
-import org.smartrplace.gui.filtering.util.UserFilteringBase.SingleUserOption;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String, AccessConfigUser, T> {
@@ -25,6 +28,12 @@ public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String,
 	//protected final AccessAdminController controller;
 	protected final ApplicationManagerPlus appManPlus;
 	protected final AccessAdminConfig appConfigData;
+
+	public static class SingleUserOption extends GenericFilterFixedSingle<String> {
+		public SingleUserOption(String myUserName, Map<OgemaLocale, String> optionLab) {
+			super(myUserName, optionLab);
+		}
+	}
 
 	public UserFiltering2Steps(WidgetPage<?> page, String id, OptionSavingMode saveOptionMode, long optionSetUpdateRate,
 			AccessAdminConfig appConfigData, ApplicationManagerPlus appManPlus) {
@@ -70,7 +79,7 @@ public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String,
 
 			@Override
 			public boolean isInSelection(String object, AccessConfigUser group) {
-				AccessConfigUser userConfig = AccessAdminController.getUserConfig(object, appConfigData);
+				AccessConfigUser userConfig = getUserConfig(object, appConfigData);
 				return ResourceHelper.containsLocation(userConfig.superGroups().getAllElements(), grp);
 			}
 		};
@@ -105,9 +114,9 @@ public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String,
 
 	@Override
 	protected List<AccessConfigUser> getGroups(String object) {
-		AccessConfigUser userConfig = AccessAdminController.getUserConfig(object, appConfigData);
+		AccessConfigUser userConfig = getUserConfig(object, appConfigData);
 		List<AccessConfigUser> result = new ArrayList<>();
-		result.addAll(AccessAdminController.getAllGroupsForUser(userConfig, appConfigData, appManPlus.userPermService())); //.superGroups().getAllElements());
+		result.addAll(getAllGroupsForUser(userConfig, appConfigData, appManPlus.userPermService())); //.superGroups().getAllElements());
 		return result ;
 	}
 	
@@ -136,5 +145,39 @@ public abstract class UserFiltering2Steps<T> extends DualFiltering2Steps<String,
 	@Override
 	protected boolean isGroupEqual(AccessConfigUser group1, AccessConfigUser group2) {
 		return group1.equalsLocation(group2);
+	}
+	
+	public static AccessConfigUser getUserConfig(String userName, AccessAdminConfig appConfigData) {
+		AccessConfigUser result = ResourceListHelper.getOrCreateNamedElement(userName, appConfigData.userPermissions());
+		return result;
+		/*for(AccessConfigUser user: appConfigData.userPermissions().getAllElements()) {
+			if(user.name().getValue().equals(userName))
+				return user;
+		}
+		return null;*/
+	}
+
+	public static List<AccessConfigUser> getAllGroupsForUser(AccessConfigUser naturalUser,
+			AccessAdminConfig appConfigData, UserPermissionService userPermService) {
+		List<AccessConfigUser> result = getLevel2GroupsForUser(naturalUser, appConfigData, userPermService);
+		result.addAll(naturalUser.superGroups().getAllElements());
+		return result;
+	}
+	public static List<AccessConfigUser> getLevel2GroupsForUser(AccessConfigUser naturalUser,
+			AccessAdminConfig appConfigData, UserPermissionService userPermService) {
+		List<AccessConfigUser> result = new ArrayList<>();
+		if(naturalUser.isGroup().getValue() > 0)
+			return result;
+		String userName = naturalUser.name().getValue();
+		for(AccessConfigUser grp: appConfigData.userPermissions().getAllElements()) {
+			if(grp.isGroup().getValue() < 2)
+				continue;
+			GenericFilterFixedGroup<String, AccessConfigUser> filter = userPermService.getUserGroupFiler(grp.name().getValue());
+			if(filter == null)
+				continue;
+			if(filter.isInSelection(userName, grp))
+				result.add(grp);
+		}
+		return result ;
 	}
 }
