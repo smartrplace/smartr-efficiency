@@ -36,6 +36,7 @@ import org.smartrplace.apps.hw.install.gui.PreKnownDevicePage;
 import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
+import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage.TimedJobPageType;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
@@ -153,10 +154,10 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			menu.addEntry("Battery Overview", batteryPage);
 			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
 
-			/*WidgetPage<?> thermWindowPage = widgetApp.createWidgetPage("thermostatWindows.hmtl");
+			WidgetPage<?> thermWindowPage = widgetApp.createWidgetPage("thermostatWindows.hmtl");
 			WindowStatusPage twpage = new WindowStatusPage(thermWindowPage, controller);
 			menu.addEntry(twpage.getHeader(), thermWindowPage);
-			thermWindowPage.getMenuConfiguration().setCustomNavigation(menu);*/
+			thermWindowPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> trashPage = widgetApp.createWidgetPage("trashDevices.hmtl");
 			synchronized(controller.mainPageExts) {
@@ -213,9 +214,14 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			timedJobPage2.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> timedJobPageEval = widgetApp.createWidgetPage("timedjobseval.hmtl");
-			new TimedEvalJobsPage(timedJobPageEval, controller.appManPlus);
+			new TimedEvalJobsPage(timedJobPageEval, controller.appManPlus, TimedJobPageType.STANDARD);
 			menu.addEntry("Evaluation Jobs Details", timedJobPageEval);
 			timedJobPageEval.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> timedJobPageEval2 = widgetApp.createWidgetPage("timedjobseva2.hmtl");
+			new TimedEvalJobsPage(timedJobPageEval2, controller.appManPlus, TimedJobPageType.SPECIAL);
+			menu.addEntry("Evaluation Jobs Details Special Version", timedJobPageEval2);
+			timedJobPageEval2.getMenuConfiguration().setCustomNavigation(menu);
 
 			//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
 				WidgetPage<?> pageValveLink = widgetApp.createWidgetPage("deviceValveLink.html");

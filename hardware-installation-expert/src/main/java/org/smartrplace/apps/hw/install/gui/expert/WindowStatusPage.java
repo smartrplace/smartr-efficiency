@@ -24,16 +24,16 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.form.label.LabelData;
 
 @SuppressWarnings("serial")
-@Deprecated
 public class WindowStatusPage extends BatteryPage {
 	public static final long DEFAULT_POLL_RATE = 5000;
 
 	DeviceTableBase devTable;
 	
 	@Override
-	public String getHeader() {return "Thermostat Window Overview";}
+	public String getHeader() {return "Thermostat Window and ValveMax Overview";}
 
 	public WindowStatusPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller);
@@ -56,11 +56,17 @@ public class WindowStatusPage extends BatteryPage {
 			return null;
 		}
 		final SingleValueResource sres = PropType.getHmParam(device, type, true);
+		final SingleValueResource sresCt = PropType.getHmParam(device, type, false);
 		Label result = new Label(vh.getParent(), WidgetHelper.getValidWidgetId("paramLabel"+type.toString()+id), req) {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String text = ValueResourceUtils.getValue(sres);
 				setText(text, req);
+				String textCt = ValueResourceUtils.getValue(sresCt);
+				if(!text.equals(textCt))
+					addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+				else
+					removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
 			}
 		};
 		result.setPollingInterval(DEFAULT_POLL_RATE, req);
