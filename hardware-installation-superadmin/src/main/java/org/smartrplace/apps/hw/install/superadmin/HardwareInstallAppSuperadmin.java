@@ -36,7 +36,7 @@ import org.smartrplace.apps.hw.install.gui.PreKnownDevicePage;
 import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
-import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage.TimedJobPageType;
+//import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage.TimedJobPageType;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
