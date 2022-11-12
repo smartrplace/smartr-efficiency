@@ -214,14 +214,14 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			timedJobPage2.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> timedJobPageEval = widgetApp.createWidgetPage("timedjobseval.hmtl");
-			new TimedEvalJobsPage(timedJobPageEval, controller.appManPlus, TimedJobPageType.STANDARD);
+			new TimedEvalJobsPage(timedJobPageEval, controller.appManPlus); //, TimedJobPageType.STANDARD);
 			menu.addEntry("Evaluation Jobs Details", timedJobPageEval);
 			timedJobPageEval.getMenuConfiguration().setCustomNavigation(menu);
 
-			WidgetPage<?> timedJobPageEval2 = widgetApp.createWidgetPage("timedjobseva2.hmtl");
+			/*WidgetPage<?> timedJobPageEval2 = widgetApp.createWidgetPage("timedjobseva2.hmtl");
 			new TimedEvalJobsPage(timedJobPageEval2, controller.appManPlus, TimedJobPageType.SPECIAL);
 			menu.addEntry("Evaluation Jobs Details Special Version", timedJobPageEval2);
-			timedJobPageEval2.getMenuConfiguration().setCustomNavigation(menu);
+			timedJobPageEval2.getMenuConfiguration().setCustomNavigation(menu);*/
 
 			//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
 				WidgetPage<?> pageValveLink = widgetApp.createWidgetPage("deviceValveLink.html");
