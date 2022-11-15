@@ -29,15 +29,15 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.PreKnownDevicePage;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.DeviceHandlerPage;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
-import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage;
-import org.smartrplace.apps.hw.install.gui.expert.ThermostatPage.ThermostatPageType;
 import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.util.logconfig.LogHelper;

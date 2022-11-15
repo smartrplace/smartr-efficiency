@@ -1,4 +1,4 @@
-package org.smartrplace.apps.hw.install.gui.expert;
+package org.smartrplace.apps.hw.install.gui;
 
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;

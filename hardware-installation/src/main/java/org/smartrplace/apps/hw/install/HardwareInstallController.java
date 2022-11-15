@@ -62,6 +62,8 @@ import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
 import org.smartrplace.apps.hw.install.gui.RoomSelectorDropdown;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
 import org.smartrplace.apps.hw.install.prop.DriverPropertyUtils;
 import org.smartrplace.autoconfig.api.DeviceTypeProvider;
@@ -207,6 +209,17 @@ public class HardwareInstallController {
 			pageExpert2.getMenuConfiguration().setCustomNavigation(menu);
 		}
 		
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.showthermostatpage")) {
+			//menu = new NavigationMenu(" Browse pages");
+			menu.addEntry(mainPage.getHeader(), page);
+			page.getMenuConfiguration().setCustomNavigation(menu);
+			
+			final WidgetPage<?> thermPage2 = hardwareInstallApp.widgetApp.createWidgetPage("thermostatpage.html");
+			new ThermostatPage(thermPage2, this, ThermostatPageType.STANDARD_VIEW_ONLY);
+			menu.addEntry("Thermostat Page", thermPage2);
+			thermPage2.getMenuConfiguration().setCustomNavigation(menu);
+		}
+
 		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.expert.fal230support")) {
 			menu.addEntry(mainPage.getHeader(), page);
 			page.getMenuConfiguration().setCustomNavigation(menu);
