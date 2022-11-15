@@ -20,7 +20,6 @@ import org.ogema.devicefinder.util.DPUtil;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.jsonresult.JsonOGEMAFileData;
-import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcMultiToSingle;
@@ -79,6 +78,7 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	}
 
 	
+	@SuppressWarnings("deprecation")
 	public TimeseriesSimpleProcUtilBase3(ApplicationManager appMan, DatapointService dpService) {
 		//super(appMan, dpService);
 		this.appMan = appMan;
@@ -214,7 +214,7 @@ public abstract class TimeseriesSimpleProcUtilBase3 implements TimeseriesSimpleP
 	 * a timeseries will also not store any values persistently.*/
 	public static Datapoint getMemoryTimeseriesDatapointWithoutTimedJobSingle(Datapoint inputForNameAndAggregationMode,
 			String labelPostfix, DatapointService dpService) {
-		String location = ProcessedReadOnlyTimeSeries2.getDpLocation(inputForNameAndAggregationMode, labelPostfix);
+		String location = ProcessedReadOnlyTimeSeries3.getDpLocation(inputForNameAndAggregationMode, labelPostfix);
 		ProcessedReadOnlyTimeSeries3 ts = new ProcessedReadOnlyTimeSeries3(inputForNameAndAggregationMode) {
 			
 			@Override

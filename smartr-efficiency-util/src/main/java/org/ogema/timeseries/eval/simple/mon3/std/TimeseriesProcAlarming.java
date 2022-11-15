@@ -168,6 +168,11 @@ try  {
 				result.put(BAT_VOLT_MIN_ID, goldTs);
 				return result ;
 			}
+			
+			@Override
+			public int getDependentTimeseriesNum(Datapoint input) {
+				return 1;
+			}
 		};
 		knownProcessors3.put(BATTERY_EVAL, batteryProc);
 	}

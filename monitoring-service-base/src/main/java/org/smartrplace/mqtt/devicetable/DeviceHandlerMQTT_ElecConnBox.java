@@ -378,7 +378,12 @@ if(mapData1 == null) {
 	}
 
 	public String getTableTitle() {
-		return "Electricity Meters";
+		return "MQTT Electricity Meters";
+	}
+	
+	@Override
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "MQEM";
 	}
 	
 	@Override

@@ -49,4 +49,14 @@ public class TimedJobExecutionApp implements Application, TimedJobMgmtService {
 		return tserv.getProvider(id);
 	}
 
+	@Override
+	public Collection<TimedJobMemoryData> getAllProviders(String type) {
+		return tserv.getAllProviders(type);
+	}
+
+	@Override
+	public Collection<String> getAllTypes() {
+		return tserv.getAllTypes();
+	}
+
 }

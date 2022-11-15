@@ -11,7 +11,6 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DpUpdateAPI.DpUpdated;
-import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
@@ -57,6 +56,7 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 	 * the dependent timeseries via {@link ProcessedReadOnlyTimeSeries3#getDependentTimeseries(String)}
 	 * for usage of the timeseries and to provide to the calculation algorithm.*/
 	protected Map<String, Datapoint> addDependentTimeseries(Datapoint input) {return null;}
+	public int getDependentTimeseriesNum(Datapoint input) {return -1;}
 	/** Overwrite this if no input timeseries is provided*/
 	protected Long getFirstTimestampInSource() {return null;}
 		
@@ -92,7 +92,7 @@ public abstract class TimeseriesSetProcSingleToSingle3 implements TimeseriesSetP
 	}
 
 	public Datapoint getResultSeriesSingle(Datapoint tsdi, boolean registersTimedJob, DatapointService dpService) {
-		String location = ProcessedReadOnlyTimeSeries2.getDpLocation(tsdi, labelPostfix);
+		String location = ProcessedReadOnlyTimeSeries3.getDpLocation(tsdi, labelPostfix);
 		Map<String, Datapoint> deps = addDependentTimeseries(tsdi);
 		List<Datapoint> input = Arrays.asList(new Datapoint[] {tsdi});
 		final Datapoint newtsdi;
@@ -105,7 +105,7 @@ if(Boolean.getBoolean("evaldebug")) System.out.println("Calculate in "+dpLabel()
 				return calculateValues(timeSeries, start, end, mode, this);						
 			}
 			@Override
-			protected String getLabelPostfix() {
+			public String getLabelPostfix() {
 				return labelPostfix;
 			}
 			

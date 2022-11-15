@@ -80,6 +80,11 @@ public class TimeseriesProcUtilKni extends TimeseriesSimpleProcUtil3 {
 			}
 			
 			@Override
+			public int getDependentTimeseriesNum(Datapoint input) {
+				return 1;
+			}
+			
+			@Override
 			protected Long getFirstTimestampInSource() {
 				long now = dpService.getFrameworkTime();
 				return now - DAILY_EVAL_INTERVAL;

@@ -177,6 +177,12 @@ public class DriverHandlerJMBus implements DriverHandlerProvider {
 		return id();
 	}
 
+	public void close() {
+		if(deviceHandlerSensDev != null) {
+			//TODO
+		}
+	}
+	
 	@Override
 	public List<DriverDeviceConfig> getDeviceConfigs() {
 		DriverConfigJMBus config = new DriverConfigJMBus(configAdmin);

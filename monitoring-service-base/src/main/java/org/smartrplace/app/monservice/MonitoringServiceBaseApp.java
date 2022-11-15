@@ -37,6 +37,7 @@ import org.smartrplace.driverhandler.devices.DriverHandlerJMBus;
 import org.smartrplace.driverhandler.devices.DriverHandlerKNX_IP;
 import org.smartrplace.driverhandler.devices.DriverHandlerMQTTBroker;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
+import org.smartrplace.driverhandler.devices.ElConnBoxDeviceHandler;
 import org.smartrplace.driverhandler.devices.EventPushButtonHandler;
 import org.smartrplace.driverhandler.devices.FaultMessageDeviceHandler;
 import org.smartrplace.driverhandler.devices.FaultSingleDeviceHandler;
@@ -211,6 +212,7 @@ public class MonitoringServiceBaseApp implements Application {
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandlerMQTT_SmartDimmer(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new LightWLANDevHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new DeviceHandler_PVPlant(controller.appManPlus), null));
+		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ElConnBoxDeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ESE_ElConnBoxDeviceHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new ChargingPointDevHandler(controller.appManPlus), null));
 		deviceHandlerRegistrations.add(bc.registerService(DeviceHandlerProvider.class, new BatteryDevHandler(controller.appManPlus), null));

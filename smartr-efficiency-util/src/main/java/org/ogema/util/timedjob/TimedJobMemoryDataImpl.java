@@ -28,7 +28,6 @@ import de.iwes.widgets.html.form.button.ButtonData;
 /** Data for a TimedJob that is not stored persistently*/
 public class TimedJobMemoryDataImpl implements TimedJobMemoryData {
 	public static final float MINIMUM_MINUTES_FOR_TIMER_START = 2.5f;
-	public static final long LOAD_REPORT_INTERVAL = 5*TimeProcUtil.MINUTE_MILLIS;
 	public static final long MIN_FREE_MEMORY_MB = Long.getLong("org.ogema.devicefinder.util.minfreemb", 200);
 	
 	protected static volatile int countSinceLastGC = 1;
@@ -79,9 +78,9 @@ public class TimedJobMemoryDataImpl implements TimedJobMemoryData {
 	protected volatile long maxRunDuration = -1;
 	protected volatile long nextScheduledStart = 0;
 	
-	protected volatile long executionTimeCounter = 0;
-	protected volatile long freeTimeCounter = 0;
-	protected volatile long lastLoadReport = -1;
+	//protected volatile long executionTimeCounter = 0;
+	//protected volatile long freeTimeCounter = 0;
+	//protected volatile long lastLoadReport = -1;
 	
 	protected volatile boolean isRunning;
 	
@@ -102,7 +101,7 @@ public class TimedJobMemoryDataImpl implements TimedJobMemoryData {
 		this.jobData = jobData;
 		long now = appMan.getFrameworkTime();
 		lastRunEnd = now;
-		lastLoadReport = now;
+		//lastLoadReport = now;
 	}
 
 	boolean isAligned;
@@ -119,13 +118,15 @@ public class TimedJobMemoryDataImpl implements TimedJobMemoryData {
 		if(skipKJobForTesting())
 			return false;
 		lastRunStart = appMan.getFrameworkTime();
-		long lastFreeTime = lastRunStart - lastRunEnd;
-		freeTimeCounter += lastFreeTime;
+		timedJobMgmtServiceImpl.reportEvaluationStart(prov.id(), true);
+		//long lastFreeTime = lastRunStart - lastRunEnd;
+		//freeTimeCounter += lastFreeTime;
 		isRunning = true;
 Runtime rt = Runtime.getRuntime();
 if(Boolean.getBoolean("jobdebug")) {
 	System.out.println("Starting job of provider:"+prov.id()+" Free:"+rt.freeMemory()/(1024*1024));
 }
+		timedJobMgmtServiceImpl.reportEvaluationStart(prov.id(), false);
 		try {
 			prov.execute(lastRunStart, this);
 		} catch(Exception e) {
@@ -133,35 +134,41 @@ if(Boolean.getBoolean("jobdebug")) {
 			e.printStackTrace();
 		}
 		isRunning = false;
-		ValueResourceHelper.setCreate(jobData.logResource.jobIdxStarted(), res.persistentIndex().getValue());
 		lastRunEnd = appMan.getFrameworkTime();
+		timedJobMgmtServiceImpl.reportEvaluationEnd(prov.id(), false);
+		ValueResourceHelper.setCreate(jobData.logResource.jobIdxStarted(), res.persistentIndex().getValue());
 		lastRunDuration = lastRunEnd - lastRunStart;
 		if(lastRunDuration > maxRunDuration)
 			maxRunDuration = lastRunDuration;
-		executionTimeCounter += lastRunDuration;
+		//executionTimeCounter += lastRunDuration;
 		ValueResourceHelper.setCreate(jobData.logResource.jobDuration(), lastRunDuration);
-		if(lastRunEnd - lastLoadReport > LOAD_REPORT_INTERVAL) {
+		/*if(lastRunEnd - lastLoadReport > LOAD_REPORT_INTERVAL) {
 			float load = (float) (((double)executionTimeCounter)/(executionTimeCounter+freeTimeCounter));
 			ValueResourceHelper.setCreate(jobData.logResource.jobLoad(), load);
 			lastLoadReport = lastRunEnd;
-		}
-		if(prov.evalJobType() == 0)
+		}*/
+		if(prov.evalJobType() == 0) {
+			timedJobMgmtServiceImpl.reportEvaluationEnd(prov.id(), true);
 			return true;
+		}
 		long free = rt.freeMemory()/(1024*1024);
 if(Boolean.getBoolean("jobdebug")) System.out.println("Finished after "+lastRunDuration+" msec job of provider:"+prov.id()+" Free:"+free+" not saved:"+countSinceLastGC);
-		if(!Boolean.getBoolean("org.ogema.util.timedjob.intermediatesaving"))
+		if(!Boolean.getBoolean("org.ogema.util.timedjob.intermediatesaving")) {
+			timedJobMgmtServiceImpl.reportEvaluationEnd(prov.id(), true);
 			return true;
+		}
 		if(free < MIN_FREE_MEMORY_MB) {
 			//rt.gc();
 			if((countSinceLastGC > 10) &&
 					(TsProcPersistUtil.lastSaved < TsProcPersistUtil.getTsNumToSaveTotal())) {
-				//TimeseriesSimpleProcUtil;
-if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from evaluation...");
-				TimedJobMemoryData saveJob = timedJobMgmtServiceImpl.getProvider("SaveVDP2Disk");
-				if(saveJob != null) {
-					saveJob.executeBlockingOnceOnYourOwnRisk();
+				if(timedJobMgmtServiceImpl.triggerSavetoDisk())
 					countSinceLastGC = 0;
-				}
+				//if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from evaluation...");
+				//TimedJobMemoryData saveJob = timedJobMgmtServiceImpl.getProvider("SaveVDP2Disk");
+				//if(saveJob != null) {
+				//	saveJob.executeBlockingOnceOnYourOwnRisk();
+				//	countSinceLastGC = 0;
+				//}
 			}
 			//long freeAfter = rt.freeMemory()/(1024*1024);
 			//System.out.println(" Free after GC:"+freeAfter+" not saved:"+countSinceLastGC);
@@ -177,6 +184,7 @@ if(Boolean.getBoolean("jobdebug")) System.out.println("Triggering Save2Disk from
 			}*/
 		}
 		countSinceLastGC++;
+		timedJobMgmtServiceImpl.reportEvaluationEnd(prov.id(), true);
 		return true;
 	}
 	

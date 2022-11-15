@@ -14,15 +14,11 @@ import org.ogema.core.model.units.EnergyResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
-import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
-import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
-import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.DestType;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.locations.Room;
@@ -30,7 +26,6 @@ import org.ogema.model.sensors.ElectricEnergySensor;
 import org.ogema.recordeddata.RecordedDataStorage;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon.TimeseriesSimpleProcUtil;
-import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
@@ -45,9 +40,7 @@ import de.iwes.widgets.html.form.label.Label;
 
 //@Component(specVersion = "1.2", immediate = true)
 //@Service(DeviceHandlerProvider.class)
-public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityConnectionBox> {
-	private final ApplicationManagerPlus appMan;
-	//private final TimeseriesSimpleProcUtil util;
+public class ESE_ElConnBoxDeviceHandler extends ElConnBoxDeviceHandler {
 	private final VirtualSensorKPIMgmt utilAggFull;
 	
 	//TODO: We have to close the listeners when the calling bundle closes
@@ -62,7 +55,7 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	}
 	
 	public ESE_ElConnBoxDeviceHandler(ApplicationManagerPlus appMan) {
-		this.appMan = appMan;
+		super(appMan);
 		utilAggFull = new VirtualSensorKPIMgmt(
 				new TimeseriesSimpleProcUtil(appMan.appMan(), appMan.dpService()), appMan.getLogger(), appMan.dpService()) {
 			@Override
@@ -96,11 +89,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		};
 	}
 	
-	@Override
-	public Class<ElectricityConnectionBox> getResourceType() {
-		return ElectricityConnectionBox.class;
-	}
-
 	@Override
 	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
 			InstalledAppsSelector appSelector) {
@@ -161,11 +149,6 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 	@Override
 	protected Class<? extends ResourcePattern<ElectricityConnectionBox>> getPatternClass() {
 		return ESE_ElConnBoxPattern.class;
-	}
-
-	@Override
-	protected ResourcePatternAccess advAcc() {
-		return appMan.getResourcePatternAccess();
 	}
 
 	@Override
@@ -243,44 +226,13 @@ public class ESE_ElConnBoxDeviceHandler extends DeviceHandlerBase<ElectricityCon
 		}
 	}
 	
-	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
-			String ph, DatapointService dpService) {
-		addDatapoint(conn.powerSensor().reading(), result, ph, dpService);
-		addDatapoint(conn.energySensor().reading(), result, ph, dpService);
-		addDatapoint(conn.currentSensor().reading(), result, ph, dpService);
-		addDatapoint(conn.voltageSensor().reading(), result, ph, dpService);
-		addDatapoint(conn.frequencySensor().reading(), result, ph, dpService);		
-		addDatapoint(conn.reactivePowerSensor().reading(), result, ph, dpService);
-		addDatapoint(conn.reactiveAngleSensor().reading(), result, ph, dpService);			
-	}
-	
-	@Override
-	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
-		appDevice.alarms().create();
-		ElectricityConnectionBox device = (ElectricityConnectionBox) appDevice.device();
-		AlarmingUtiH.setTemplateValues(appDevice, device.connection().powerSensor().reading(),
-				0.0f, 9999999.0f, 30, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES, 2880, DestType.CUSTOMER_SP_SAME, 2);
-		//AlarmingUtiH.addAlarmingMQTT(device, appDevice);
-	}
-
-	@Override
-	public String getInitVersion() {
-		return "C";
-	}
-	
 	@Override
 	public String getTableTitle() {
 		return "Energy Server Electricity Meters";
 	}
 	
 	@Override
-	public ComType getComType() {
-		return ComType.IP;
-	}
-
-	@Override
-	public SingleValueResource getMainSensorValue(ElectricityConnectionBox device,
-			InstallAppDevice deviceConfiguration) {
-		return device.connection().powerSensor().reading();
+	public String getDeviceTypeShortId(DatapointService dpService) {
+		return "ESE";
 	}
 }

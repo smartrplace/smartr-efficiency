@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.smartrplace.mqtt.devicetable;
+package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 
-public class ElectricityConnectionBoxPattern extends ResourcePattern<ElectricityConnectionBox> {
+public class ElConnBoxPattern extends ResourcePattern<ElectricityConnectionBox> {
 
 	/**
 	 * Constructor for the access pattern. This constructor is invoked by the framework. Must be public.
 	 */
-	public ElectricityConnectionBoxPattern(Resource device) {
+	public ElConnBoxPattern(Resource device) {
 		super(device);
 	}
 
 	@Override
 	public boolean accept() {
-		if(!model.getLocation().toLowerCase().contains("mqtt"))
+		if(model.getLocation().toLowerCase().contains("mqtt"))
 			return false;
 		if(DeviceTableRaw.isEnergyServerDevice(model.getLocation()))
 			return false;
-		if(DeviceTableRaw.isHMIECDevice(model.getLocation()))
-			return false;
-		return true;
+		return !DeviceTableRaw.isHMIECDevice(model.getLocation());
+		//if(DeviceTableRaw.isEnergyServerDevice(model.getLocation()))
+		//	return true;
+		//return false;
 	}
 }

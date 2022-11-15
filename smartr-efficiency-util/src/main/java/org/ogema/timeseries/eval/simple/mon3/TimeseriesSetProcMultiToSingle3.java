@@ -19,11 +19,9 @@ import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval.TimeSeriesNameProvider;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries;
-import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries2;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.api.TimeseriesSetProcessor3;
-import org.ogema.timeseries.eval.simple.mon.TimeseriesSetProcSingleToSingle;
 import org.ogema.util.timedjob.TimedJobMemoryDataImpl;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.tissue.util.logconfig.PerformanceLog;
@@ -133,7 +131,7 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 		this.util3 = util3;
 	}
 
-	protected ProcessedReadOnlyTimeSeries2 resultSeriesStore = null;
+	//protected ProcessedReadOnlyTimeSeries2 resultSeriesStore = null;
 	@Override
 	public List<Datapoint> getResultSeries(List<Datapoint> input, boolean registersTimedJob, DatapointService dpService) {
 		List<Datapoint> result = new ArrayList<>();
@@ -151,7 +149,7 @@ public abstract class TimeseriesSetProcMultiToSingle3 implements TimeseriesSetPr
 			}
 			
 			@Override
-			protected String getLabelPostfix() {
+			public String getLabelPostfix() {
 				return ""; //labelPostfix;
 			}
 			
@@ -269,7 +267,8 @@ if(tsSingleLog != null) tsSingleLog.logEvent((endOfCalc-startOfCalc), "Calculati
 	}
 
 	protected String dpLabel() {
-		return "Multi_"+((resultSeriesStore!=null)?resultSeriesStore.dpLabel():"?");
+		return "Multi_"+"?";
+		//return "Multi_"+((resultSeriesStore!=null)?resultSeriesStore.dpLabel():"?");
 	}
 
 	public static final List<String> registerOnlyEvalJobRegProp;
@@ -353,6 +352,24 @@ if((tsFilter != null) && (
 			@Override
 			public int evalJobType() {
 				return 1;
+			}
+			
+			@Override
+			public String getType() {
+				String result = ts.getLabelPostfix();
+				if(result == null || result.isEmpty()) {
+					if(ts.proc != null && (ts.proc instanceof TimeseriesSetProcSingleToSingle3))
+						result = ((TimeseriesSetProcSingleToSingle3)ts.proc).labelPostfix; //.getLabelPostfix();					
+				}
+				if(result == null || result.isEmpty()) {
+					result = "EVAL_DEFAULT2";
+				}
+				return result;
+			}
+			
+			@Override
+			public ProcessedReadOnlyTimeSeries3 getEvaluationContext() {
+				return ts;
 			}
 		});
 		return result;

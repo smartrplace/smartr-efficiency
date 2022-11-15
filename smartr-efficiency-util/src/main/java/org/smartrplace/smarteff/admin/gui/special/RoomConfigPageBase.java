@@ -92,7 +92,8 @@ public class RoomConfigPageBase extends ObjectGUITablePageNamed<Room, Room> {
 		String roomId = ServletPageProvider.getNumericalIdString(object.getLocation(), true);
 		if(isExpert) {
 			if(req == null) {
-				vh.registerHeaderEntry("Subcustomer");
+				if(Boolean.getBoolean("org.smartrplace.smarteff.admin.gui.special.subcustomer.configongatewayoption"))
+					vh.registerHeaderEntry("Subcustomer");
 				vh.registerHeaderEntry("Room Type");
 				vh.registerHeaderEntry("ID");
 			} else {
@@ -106,28 +107,30 @@ public class RoomConfigPageBase extends ObjectGUITablePageNamed<Room, Room> {
 				SubCustomerData subcustomerRef = SubcustomerUtil.getDataForRoom(object, appMan, false);
 				final SubCustomerData subcustomerRefFin = subcustomerRef;
 
-				TemplateDropdown<SubCustomerData> subCustDrop = new TemplateDropdown<SubCustomerData>(mainTable, "subCustDrop"+id, req) {
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						update(subcs, req);
-						selectItem(subcustomerRefFin, req);
-					}
-					
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						SubCustomerData selected = getSelectedItem(req);
-						for(SubCustomerData subc: subcs) {
-							if(subc.aggregationType().getValue() > 0)
-								continue;
-							ResourceListHelper.removeReferenceOrObject(subc.roomGroup().rooms(), object);
+				if(Boolean.getBoolean("org.smartrplace.smarteff.admin.gui.special.subcustomer.configongatewayoption")) {
+					TemplateDropdown<SubCustomerData> subCustDrop = new TemplateDropdown<SubCustomerData>(mainTable, "subCustDrop"+id, req) {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							update(subcs, req);
+							selectItem(subcustomerRefFin, req);
 						}
-						SubcustomerUtil.addRoomToGroup(object, selected.roomGroup());
-					}
-					
-				};
-				subCustDrop.setTemplate(new DefaultDisplayTemplate<SubCustomerData>());
-				subCustDrop.setAddEmptyOption(true, "not set", req);
-				row.addCell("Subcustomer", subCustDrop);
+						
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							SubCustomerData selected = getSelectedItem(req);
+							for(SubCustomerData subc: subcs) {
+								if(subc.aggregationType().getValue() > 0)
+									continue;
+								ResourceListHelper.removeReferenceOrObject(subc.roomGroup().rooms(), object);
+							}
+							SubcustomerUtil.addRoomToGroup(object, selected.roomGroup());
+						}
+						
+					};
+					subCustDrop.setTemplate(new DefaultDisplayTemplate<SubCustomerData>());
+					subCustDrop.setAddEmptyOption(true, "not set", req);
+					row.addCell("Subcustomer", subCustDrop);
+				}
 				
 				if(subcustomerRef == null)
 					subcustomerRef = SubcustomerUtil.getDataForRoom(object, appMan, true);

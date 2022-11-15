@@ -86,7 +86,9 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 
 		if(!UserServletUtil.isPOST(parameters)) {
 			//perform filtering
-			String roomFilter = UserServlet.getParameter("room", parameters);
+			String roomFilter = UserServlet.getParameter("roomId", parameters);
+			if(roomFilter == null)
+				UserServlet.getParameter("room", parameters);
 			if(roomFilter != null) {
 				if(dpRoom == null)
 					return null;
@@ -100,7 +102,9 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 					return null;
 			}
 			
-			String dpTypeFilter = UserServlet.getParameter("type", parameters);
+			String dpTypeFilter = UserServlet.getParameter("typeId", parameters);
+			if(dpTypeFilter == null)
+				dpTypeFilter = UserServlet.getParameter("type", parameters);
 			if(dpTypeFilter != null) {
 				if(Boolean.getBoolean("org.smartrplace.app.monbase.servlet.replaceCurrentByForecast") && dpTypeFilter.equals("OutsideTemperatureExt"))
 					dpTypeFilter = "OutsideTemperaturePerForcecast";
@@ -113,7 +117,9 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 					return null;
 			}
 			
-			String deviceFilter = UserServlet.getParameter("device", parameters);
+			String deviceFilter = UserServlet.getParameter("deviceId", parameters);
+			if(deviceFilter == null)
+				deviceFilter = UserServlet.getParameter("device", parameters);
 			if(deviceFilter != null) {
 				if(iad == null)
 					return null;

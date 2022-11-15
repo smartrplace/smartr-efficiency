@@ -18,7 +18,6 @@ package org.smartrplace.driverhandler.devices;
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.util.DeviceTableRaw;
-import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.metering.GasMeter;
 
 public class HMGas_MeterPattern extends ResourcePattern<GasMeter> {
