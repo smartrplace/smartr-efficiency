@@ -144,5 +144,10 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	@Override
 	public ComType getComType() {
 		return ComType.IP;
-	}	
+	}
+	
+	@Override
+	protected boolean addDeviceOrResourceListToSync() {
+		return false;
+	}
 }
