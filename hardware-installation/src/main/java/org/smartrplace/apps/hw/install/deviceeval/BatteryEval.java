@@ -6,11 +6,13 @@ import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.TimedJobMemoryData;
 import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.locations.Room;
+import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.timeseries.eval.simple.mon3.std.BatteryEvalBase3;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.TimeUtils;
@@ -77,6 +79,13 @@ public class BatteryEval extends BatteryEvalBase3 {
 		AppID appId = appMan.appMan().getAppID();
 		sendWeeklyEmail(appMan, appId, "Weekly Battery Evaluation Report ", MessagePriority.MEDIUM);
 	}
+	private static class DeviceEvalData {
+		long nextEmptyDate = Long.MAX_VALUE;
+		int emptyNum = 0;
+		int warnNum = 0;
+		int changeNum = 0;
+		int unknownNum = 0;
+	}
 	public static void sendWeeklyEmail(ApplicationManagerPlus appMan, AppID appId,
 			String titleWithoutGw, MessagePriority prio) {
 		long now = appMan.getFrameworkTime();
@@ -85,33 +94,39 @@ public class BatteryEval extends BatteryEvalBase3 {
 		List<BatteryStatusResult> evalResults = new ArrayList<>();
 		List<InstallAppDevice> dNRResults = new ArrayList<>();
 		List<InstallAppDevice> sigStrengthResults = new ArrayList<>();
-		long nextEmptyDate = Long.MAX_VALUE;
-		int emptyNum = 0;
-		int warnNum = 0;
-		int changeNum = 0;
-		int unknownNum = 0;
+		DeviceEvalData ded = new DeviceEvalData();
+		//long nextEmptyDate = Long.MAX_VALUE;
+		//int emptyNum = 0;
+		//int warnNum = 0;
+		//int changeNum = 0;
+		//int unknownNum = 0;
 		int dnRNum = 0;
 		int sigstrengthNum = 0;
 		int unassignedNum = 0;
 		
-		for(InstallAppDevice iad: thermostats) {
+		addResultsForDeviceType(thermostats, now, evalResults, ded, appMan.dpService());
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.deviceeval.usewindowsensors")) {
+			Collection<InstallAppDevice> windowsens = appMan.dpService().managedDeviceResoures(DoorWindowSensor.class);
+			addResultsForDeviceType(windowsens, now, evalResults, ded, appMan.dpService());			
+		}
+		/*for(InstallAppDevice iad: thermostats) {
 			if(iad.isTrash().getValue())
 				continue;
 			BatteryStatusResult status = getFullBatteryStatus(iad, now, appMan.dpService());
 			if(status.status == BatteryStatus.NO_BATTERY)
 				continue;
 			evalResults.add(status);
-			if(status.expectedEmptyDate != null && status.expectedEmptyDate < nextEmptyDate)
-				nextEmptyDate = status.expectedEmptyDate;
+			if(status.expectedEmptyDate != null && status.expectedEmptyDate < ded.nextEmptyDate)
+				ded.nextEmptyDate = status.expectedEmptyDate;
 			if(status.status == BatteryStatus.EMPTY)
-				emptyNum++;
+				ded.emptyNum++;
 			else if(status.status == BatteryStatus.URGENT || status.status == BatteryStatus.WARNING)
-				warnNum++;
+				ded.warnNum++;
 			else if(status.status == BatteryStatus.CHANGE_RECOMMENDED)
-				changeNum++;
+				ded.changeNum++;
 			else if(!(status.status == BatteryStatus.OK))
-				unknownNum++;
-		}
+				ded.unknownNum++;
+		}*/
 		
 		Collection<InstallAppDevice> allDev = appMan.dpService().managedDeviceResoures(null);
 		for(InstallAppDevice iad: allDev) {
@@ -132,7 +147,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		}
 		
 		String baseUrl = ResourceHelper.getLocalGwInfo(appMan.appMan()).gatewayBaseUrl().getValue();
-		String mes = buildMessageHTML(emptyNum, warnNum, changeNum, unknownNum, dnRNum, sigstrengthNum,
+		String mes = buildMessageHTML(ded.emptyNum, ded.warnNum, ded.changeNum, ded.unknownNum, dnRNum, sigstrengthNum,
 				unassignedNum, evalResults, dNRResults, sigStrengthResults, baseUrl, now);
 		String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 		String gwName = GatewayUtil.getGatewayNameFromURL(appMan.appMan()); //baseUrl;
@@ -144,6 +159,29 @@ public class BatteryEval extends BatteryEvalBase3 {
 		gwname = GatewayUtil.getGatewayNameFromURL(appMan.appMan());*/
 		
 		reallySendMessage(gwId+": "+titleWithoutGw+gwName, mes, prio, appMan, appId);
+	}
+	
+	private static void addResultsForDeviceType(Collection<InstallAppDevice> thermostats, long now,
+			List<BatteryStatusResult> evalResults,
+			DeviceEvalData ded, DatapointService dpService) {
+		for(InstallAppDevice iad: thermostats) {
+			if(iad.isTrash().getValue())
+				continue;
+			BatteryStatusResult status = getFullBatteryStatus(iad, now, dpService);
+			if(status.status == BatteryStatus.NO_BATTERY)
+				continue;
+			evalResults.add(status);
+			if(status.expectedEmptyDate != null && status.expectedEmptyDate < ded.nextEmptyDate)
+				ded.nextEmptyDate = status.expectedEmptyDate;
+			if(status.status == BatteryStatus.EMPTY)
+				ded.emptyNum++;
+			else if(status.status == BatteryStatus.URGENT || status.status == BatteryStatus.WARNING)
+				ded.warnNum++;
+			else if(status.status == BatteryStatus.CHANGE_RECOMMENDED)
+				ded.changeNum++;
+			else if(!(status.status == BatteryStatus.OK))
+				ded.unknownNum++;
+		}		
 	}
 	
 	protected static String buildMessageHTML(int emptyNum, int warnNum, int changeNum, int unknownNum,

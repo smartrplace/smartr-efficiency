@@ -18,6 +18,8 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.drivers.homematic.xmlrpc.hl.types.HmInterfaceInfo;
+import org.ogema.model.locations.Room;
+import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.PreKnownDeviceData;
@@ -665,14 +667,22 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 			@Override
 			public void newLineAvailable(String filePath, CSVRecord record, OgemaHttpRequest req) {
 				PreKnownDeviceData addEl = ResourceHelper.getSampleResource(PreKnownDeviceData.class);
-				readLine(addEl.deviceEndCode(), record, "Last 4 digits of serial number");
-				readLine(addEl.deviceEndCode(), record, "Preknown");
-				readLine(addEl.deviceIdNumber(), record, "DeviceId number");
-				readLine(addEl.deviceIdNumber(), record, "ID");
+				if(!readLine(addEl.deviceEndCode(), record, "Last 4 digits of serial number"))
+					readLine(addEl.deviceEndCode(), record, "Preknown");
+				if(!readLine(addEl.deviceIdNumber(), record, "DeviceId number"))
+					readLine(addEl.deviceIdNumber(), record, "ID");
 				readLine(addEl.installationLocation(), record, "Location (if known)");
 				readLine(addEl.comment(), record, "comment");
 				if(addEl.room().isReference(false))
 					addEl.room().delete();
+				try {
+					String roomName = record.get("Room");
+					Room room = KPIResourceAccess.getRealRoomAlsoByLocation(roomName, appMan.getResourceAccess());
+					if(room != null)
+						addEl.room().setAsReference(room);
+				} catch(IllegalArgumentException e) {
+					//no room
+				}
 				if(csvDevHandId == null)
 					addEl.deviceHandlerId().setValue("");
 				else {
@@ -681,11 +691,13 @@ public class PreKnownDevicePage extends ObjectGUITablePage<PreKnownDeviceData, P
 				addEntryLine(addEl);
 			}
 			
-			protected void readLine(StringResource dest, CSVRecord record, String col) {
+			protected boolean readLine(StringResource dest, CSVRecord record, String col) {
 				try {
 					ValueResourceHelper.setCreate(dest, record.get(col));
+					return true;
 				} catch(IllegalArgumentException e) {
 					dest.setValue("");
+					return false;
 				}
 			}
 		};

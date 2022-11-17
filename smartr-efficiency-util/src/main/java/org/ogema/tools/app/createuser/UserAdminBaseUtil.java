@@ -516,6 +516,14 @@ System.out.println("Finished removing app: "+bundleSymbolicName);
 	}
 	
 	public static void initAcc(AccessAdminConfig appConfigData) {
+		//Change role names also in database
+		for(AccessConfigUser userPerm: appConfigData.userPermissions().getAllElements()) {
+			if(userPerm.name().getValue().equals("Master Administrator"))
+				userPerm.name().setValue("Organisation Administrator");
+			else if(userPerm.name().getValue().equals("Facility Manager"))
+				userPerm.name().setValue("Manager");
+		}
+		
 		for(UserStatus status: UserStatus.values()) {
 			AccessConfigUser userGrp = ResourceListHelper.getOrCreateNamedElement(UserStatus.getLabel(status, null),
 					appConfigData.userPermissions());
