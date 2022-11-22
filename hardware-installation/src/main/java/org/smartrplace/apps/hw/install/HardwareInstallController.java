@@ -490,8 +490,13 @@ public class HardwareInstallController {
 			for(RoomInsideSimulationBase sim: sims)
 				sim.close();
 		}
+		try {
 		sims = tableProvider.startSupportingLogicForDevice(appDevice, (T) device.getLocationResource(),
 				mainPage.getRoomSimulation(device), dpService);
+		} catch(ClassCastException e) {
+			(new IllegalStateException("Wrong device type: "+appDevice.getName(), e)).printStackTrace();
+			return;
+		}
 		
 		if(Boolean.getBoolean("org.ogema.devicefinder.api.simulateRemoteGateway")) {
 			List<RoomInsideSimulationBase> newSims = tableProvider.startSimulationForDevice(appDevice, (T) device.getLocationResource(),

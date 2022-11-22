@@ -41,6 +41,7 @@ import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage.TimedJobPageType;
 import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
+import org.smartrplace.apps.hw.install.gui.expert.CascadingOverviewPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.DeviceHandlerPage;
 import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertProps;
@@ -170,6 +171,11 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			DeviceHandlerPage dhpage = new DeviceHandlerPage(devHandPage, controller.appManPlus);
 			menu.addEntry(dhpage.getHeader(null), devHandPage);
 			devHandPage.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> cascadingPage = widgetApp.createWidgetPage("cascading.hmtl");
+			CascadingOverviewPage caspage = new CascadingOverviewPage(cascadingPage, controller.appManPlus);
+			menu.addEntry(caspage.getHeader(null), cascadingPage);
+			cascadingPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> dpropPage = widgetApp.createWidgetPage("driverPropServices.hmtl");
 			new DriverPropertyPageAll(dpropPage, controller);

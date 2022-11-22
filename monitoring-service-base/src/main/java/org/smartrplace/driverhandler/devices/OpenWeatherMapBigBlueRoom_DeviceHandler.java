@@ -147,7 +147,7 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	}
 	
 	@Override
-	protected boolean addDeviceOrResourceListToSync() {
+	public boolean addDeviceOrResourceListToSync() {
 		return false;
 	}
 }

@@ -117,6 +117,9 @@ public class AlarmType {
 	public static final AlarmType SystemRestartsLast2H = new AlarmType("NRI-GD1-SystemRestartsLast2h");
 	public static final AlarmType DutyCylce = new AlarmType("DutyCycle", "ac125", "-DutyCycle");
 	public static final AlarmType SystemUpdateStatus = new AlarmType("NRI-GD1-SystemUpdateStatus");
+	public static final AlarmType LogFileCheckNotification = new AlarmType("LogFileCheckNotification", "ac103", "logFileCheckNotification");
+	public static final AlarmType JobLoadEval = new AlarmType("JobLoadEval", "ac104", true,
+			"jobLoadIncludingOverhead", "jobLoadWithoutOverhead");
 	public static final AlarmType MultiDeviceHighPrio = new AlarmType("NRI-MTPST2-hmDevicesLostHighPrio",
 			"ac101",
 			"NRI-MTPST2-hmDevicesLostHighPrio");
