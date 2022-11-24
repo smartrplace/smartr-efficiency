@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
@@ -12,10 +13,16 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.metering.GasMeter;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess.StandardDeviceEval;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
 
 //@Component(specVersion = "1.2", immediate = true)
@@ -84,4 +91,13 @@ public class HMGas_MeterDeviceHandler extends DeviceHandlerSimple<GasMeter> {
 		return "GAS";
 	}
 
+	@Override
+	protected void addMoreValueWidgets(InstallAppDevice object, GasMeter device,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
+			ApplicationManager appMan, Alert alert) {
+
+		DeviceTableRaw.addTenantWidgetStatic(vh, id, req, row, appMan, device);
+		
+		vh.stringLabel("InternalName", id, device.getName(), row);
+	}
 }

@@ -20,6 +20,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.sensors.ElectricEnergySensor;
@@ -42,6 +43,7 @@ import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
@@ -401,5 +403,13 @@ System.out.println("   *** IOTAwatt virtual datapoints took "+(end-start)+" msec
 	@Override
 	public ComType getComType() {
 		return ComType.IP;
+	}
+	
+	@Override
+	protected void addMoreValueWidgets(InstallAppDevice object, IotaWattElectricityConnection device,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,
+			ApplicationManager appMan, Alert alert) {
+
+		DeviceTableRaw.addTenantWidgetStatic(vh, id, req, row, appMan, device);
 	}
 }

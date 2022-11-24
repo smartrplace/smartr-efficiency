@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -15,6 +16,7 @@ import org.ogema.core.model.units.PhysicalUnit;
 import org.ogema.core.model.units.PhysicalUnitResource;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.DPRoom;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
@@ -64,6 +66,41 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 			throw new IllegalStateException("Datapoint Service required for WriteableDatapoint Servlet!");
 	}
 
+	/** Create WriteableDatapoint. Note that usually such datapoints are created via API calls, but also OGEMA apps
+	 * can do this via this method.
+	 * 
+	 * @param loc datapoint location to be created
+	 * @param sres if not null this resource will be used to store values, otherwise a FloatResource is created
+	 * @param dpService
+	 * @param appMan
+	 * @return
+	 */
+	public static Datapoint createWriteableDatapoint(String loc,
+			SingleValueResource sres,
+			DatapointService dpService, ApplicationManager appMan) {
+		WriteableDatapoints apidataLoc = ResourceHelper.getOrCreateTopLevelResource(WriteableDatapoints.class, appMan);
+		WriteableDatapoint writeDp = apidataLoc.datapoints().add();
+		return createWriteableDatapoint(loc, writeDp, sres, apidataLoc, dpService);
+	}
+	public static Datapoint createWriteableDatapoint(String loc, WriteableDatapoint writeDp,
+			SingleValueResource sres,
+			WriteableDatapoints apidata, DatapointService dpService) {
+		WriteDPData existing = getExistingWDPData(loc, apidata, dpService); //getObject(loc, null);
+		if(existing != null)
+			throw new IllegalStateException("Writeable datapoint with id "+loc+" already exists:"+existing.writeDp.getLocation());
+		ValueResourceHelper.setCreate(writeDp.datapointLocation(), loc);
+
+		if(sres == null)
+			writeDp.addDecorator("resource", FloatResource.class); //.add.resource().create();
+		else
+			writeDp.resource().setAsReference(sres);
+		
+		//timeseries is done by DeviceHandler, but make sure logging is activated right away
+		Datapoint result = dpService.getDataPointStandard(loc);
+		setLogging(writeDp);
+		return result;
+	}
+	
 	@Override
 	public Map<String, ServletValueProvider> getProviders(WriteDPData obj, String user, Map<String, String[]> parameters) {
 		Map<String, ServletValueProvider> result = new HashMap<>();
@@ -73,7 +110,9 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 			if(obj.writeDp.resource().exists())
 				throw new IllegalStateException("If dp null resource cannot exist:"+obj.writeDp.getLocation());
 			String loc = UserServlet.getParameter("location", parameters);
-			WriteDPData existing = getObject(loc, null);
+			obj.dp = createWriteableDatapoint(loc, obj.writeDp, null, apidata, dpService);
+			
+			/*WriteDPData existing = getObject(loc, null);
 			if(existing != null)
 				throw new IllegalStateException("Writeable datapoint with id "+loc+" already exists:"+existing.writeDp.getLocation());
 			ValueResourceHelper.setCreate(obj.writeDp.datapointLocation(), loc);
@@ -82,6 +121,7 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 			//	sres.create();
 			//}
 			//obj.writeDp.resource().setAsReference(sres);
+			//We have to create as FloatResource although model only specifies SingleValueResource
 			obj.writeDp.addDecorator("resource", FloatResource.class); //.add.resource().create();
 			
 			//timeseries is done by DeviceHandler, but make sure logging is activated right away
@@ -89,7 +129,7 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 			setLogging(obj.writeDp);
 			//RecordedData recData = ValueResourceHelper.getRecordedData(obj.writeDp.resource());
 			//if(recData != null)
-			//	obj.dp.setTimeSeries(recData);
+			//	obj.dp.setTimeSeries(recData);*/
 			isNew = true;
 		} else
 			isNew = false;
@@ -300,9 +340,14 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 			el.dp = null;
 			return el;
 		}
+		return getExistingWDPData(objectId, apidata, dpService);
+	}
+	
+	public static WriteDPData getExistingWDPData(String dpLocation,
+			WriteableDatapoints apidata, DatapointService dpService) {
 		List<WriteableDatapoint> ress = apidata.datapoints().getAllElements();
 		for(WriteableDatapoint res: ress) {
-			if(res.datapointLocation().getValue().equals(objectId)) {
+			if(res.datapointLocation().getValue().equals(dpLocation)) {
 				WriteDPData el = new WriteDPData();
 				el.writeDp = res;
 				el.dp = dpService.getDataPointStandard(res.datapointLocation().getValue());

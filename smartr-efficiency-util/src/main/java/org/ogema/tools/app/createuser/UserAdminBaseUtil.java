@@ -617,4 +617,11 @@ System.out.println("Finished removing app: "+bundleSymbolicName);
     	appManPlus.setUserPermService(userPermService);
     	return setUserRole(userAccount, destStatus, ownConfigData, appManPlus, cpa);
     }
+
+	public static AccessConfigUser initUser(String userName, ApplicationManager appMan) {
+		AccessAdminConfig accessAdminConfigRes = appMan.getResourceAccess().getResource("accessAdminConfig");
+		AccessConfigUser userEntry = ResourceListHelper.getOrCreateNamedElementFlex(userName,
+				accessAdminConfigRes.userPermissions());
+		return userEntry;
+	}
 }
