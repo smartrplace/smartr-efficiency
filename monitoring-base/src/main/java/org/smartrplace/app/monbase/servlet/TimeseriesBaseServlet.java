@@ -84,6 +84,13 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 			obj = new TimeSeriesDataImpl((ReadOnlyTimeSeries)objRaw, objectId, objectId, InterpolationMode.NONE);
 			UserServlet.knownTS.put(objectId, obj);			
 		}
+		//TODO: Check if this is really a good idea
+		if(obj.label(null) != objectId) {
+			System.out.println("WARNING: objectId:"+objectId+" ,label:"+obj.label(null));
+			TimeSeriesDataImpl newObj = new TimeSeriesDataImpl(obj, objectId, objectId);
+			UserServlet.knownTS.put(objectId, newObj);	
+			return newObj;
+		}
 		return obj;
 	}
 	
