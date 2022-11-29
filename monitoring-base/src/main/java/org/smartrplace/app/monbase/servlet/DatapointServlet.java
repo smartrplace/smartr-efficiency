@@ -88,7 +88,7 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			//perform filtering
 			String roomFilter = UserServlet.getParameter("roomId", parameters);
 			if(roomFilter == null)
-				UserServlet.getParameter("room", parameters);
+				roomFilter = UserServlet.getParameter("room", parameters);
 			if(roomFilter != null) {
 				if(dpRoom == null)
 					return null;
