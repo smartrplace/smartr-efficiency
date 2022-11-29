@@ -52,9 +52,11 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		Map<String, ServletValueProvider> result = new HashMap<>();
 		
 		DPRoom dpRoom = object.getRoom();
+		int roomIdInt1 = -3;
 		int roomIdInt = -3;
 		if(dpRoom != null) {
-			roomIdInt = dpRoom.getLocation().hashCode();
+			roomIdInt1 = dpRoom.getLocation().hashCode();
+			roomIdInt = ServletPageProvider.getNumericalId(dpRoom.getLocation(), true);
 		}
 
 		GaRoDataType garo = object.getGaroDataType();
@@ -98,7 +100,7 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 				} catch(NumberFormatException e) {
 					roomFilterId = roomFilter.hashCode();
 				}
-				if(roomIdInt != roomFilterId)
+				if((roomIdInt != roomFilterId) && (roomIdInt1 != roomFilterId))
 					return null;
 			}
 			
