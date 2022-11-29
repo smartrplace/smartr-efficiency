@@ -2,9 +2,12 @@ package org.smartrplace.mqtt.devicetable;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.accessadmin.api.util.DeviceUtil;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
@@ -46,6 +49,12 @@ import de.iwes.widgets.html.form.textfield.TextField;
 @SuppressWarnings("serial")
 public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditioner> {
 	//private final ApplicationManagerPlus appMan;
+	public static final Map<String, String> valuesToSet = new HashMap<>();
+	static {
+		for(int i=0; i<=3; i++) {
+			valuesToSet.put(""+i, DeviceUtil.getAirconAvModeName(i));
+		}
+	}
 	
 	public DeviceHandlerMQTT_Aircond(ApplicationManagerPlus appMan) {
 		super(appMan, true);
@@ -133,11 +142,14 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 						};
 						row.addCell("OpMode", opModeF);
 					}
+					
+					vh.dropdown("Supported", id, device.operationModesSupported(), row, valuesToSet);
 				} else {
 					vh.registerHeaderEntry("Set");
 					vh.registerHeaderEntry("OnOff");
 					vh.registerHeaderEntry("Fan speed");
 					vh.registerHeaderEntry("OpMode");
+					vh.registerHeaderEntry("Supported");
 				}
 				Label tempmes = vh.floatLabel("Measurement", id, device.temperatureSensor().reading(), row, "%.1f#min:-200");
 				Room deviceRoom = device.location().room();

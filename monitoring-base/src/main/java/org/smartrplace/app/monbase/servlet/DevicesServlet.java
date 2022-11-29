@@ -45,9 +45,11 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 		
 		PhysicalElement dev = object.device().getLocationResource();
 		Room room = ResourceUtils.getDeviceRoom(dev);
+		int roomIdInt1 = -3;
 		int roomIdInt = -3;
 		if(room != null) {
-			roomIdInt = room.getLocation().hashCode();
+			roomIdInt1 = room.getLocation().hashCode();
+			roomIdInt = ServletPageProvider.getNumericalId(room.getLocation(), true);
 		}
 		
 		DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(object);
@@ -69,7 +71,7 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 				} catch(NumberFormatException e) {
 					roomFilterId = roomFilter.hashCode();
 				}
-				if(roomIdInt != roomFilterId)
+				if((roomIdInt != roomFilterId) && (roomIdInt1 != roomFilterId))
 					return null;
 			}
 			

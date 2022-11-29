@@ -134,9 +134,11 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 		} else
 			isNew = false;
 		DPRoom dpRoom = obj.dp.getRoom();
+		int roomIdInt1 = -3;
 		int roomIdInt = -3;
 		if(dpRoom != null) {
-			roomIdInt = dpRoom.getLocation().hashCode();
+			roomIdInt1 = dpRoom.getLocation().hashCode();
+			roomIdInt = ServletPageProvider.getNumericalId(dpRoom.getLocation(), true);
 		}
 
 		GaRoDataType garo = obj.dp.getGaroDataType();
@@ -168,7 +170,7 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 				} catch(NumberFormatException e) {
 					roomFilterId = roomFilter.hashCode();
 				}
-				if(roomIdInt != roomFilterId)
+				if((roomIdInt != roomFilterId) && (roomIdInt1 != roomFilterId))
 					return null;
 			}
 			
