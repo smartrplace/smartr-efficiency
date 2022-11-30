@@ -30,6 +30,7 @@ import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.monbase.alarming.AlarmingManagement;
 import org.smartrplace.os.util.DirUtils;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
+import org.smartrplace.timeseries.manual.servlet.ManualTimeseriesServlet;
 import org.smartrplace.util.frontend.servlet.UserServlet;
 import org.smartrplace.util.frontend.servlet.UserServletTest;
 import org.sp.smarteff.monitoring.alarming.AlarmingEditPage;
@@ -192,6 +193,8 @@ public class InitUtil {
 		userServlet.addPage("datapoints", dpServlet);
 		WriteableDatapointServlet wdpServlet = new WriteableDatapointServlet(controller);
 		userServlet.addPage("writeabledatapoints", wdpServlet);
+		ManualTimeseriesServlet manServlet = new ManualTimeseriesServlet(controller.appManPlusMon);
+		userServlet.addPage("manualdatapoints", manServlet);
 		DevicesServlet devServlet = new DevicesServlet(controller);
 		userServlet.addPage("devices", devServlet);
 		if(includeSpecialTimeseriesServlet) {

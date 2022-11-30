@@ -75,4 +75,29 @@ public class HeatCostAllocatorHandler extends DeviceHandlerSimple<SensorDevice> 
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "HCA";
 	}
+	
+	@Override
+	protected boolean setColumnTitlesToUse(ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh) {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.setColumnTitlesToUse(vh);
+		vh.registerHeaderEntry("InternalName");
+		vh.registerHeaderEntry("ID");
+		vh.registerHeaderEntry(getValueTitle());
+		vh.registerHeaderEntry("Factor");
+		vh.registerHeaderEntry("Room");
+		vh.registerHeaderEntry("Last Contact");
+		vh.registerHeaderEntry("Location");
+		vh.registerHeaderEntry("Status");
+		vh.registerHeaderEntry("Comment");
+		vh.registerHeaderEntry("Plot");
+		return true;
+	}
+	
+	@Override
+	protected String getValueTitle() {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.getValueTitle();
+		return "Counter";
+	}
+
 }

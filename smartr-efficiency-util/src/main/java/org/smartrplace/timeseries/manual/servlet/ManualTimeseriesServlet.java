@@ -2,7 +2,7 @@ package org.smartrplace.timeseries.manual.servlet;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +23,15 @@ public class ManualTimeseriesServlet implements ServletPageProvider<ManualEntryD
 	
 	final ApplicationManager appMan;
 	final ApplicationManagerPlus appManPlus;
-	final ManualEntryData configResource;
+	private final static Map<String, ManualEntryData> configResources = new HashMap<>();
 	
-	public ManualTimeseriesServlet(ManualEntryData configResource, final ApplicationManagerPlus appManPlus) {
+	public static void registerManualEntryData(ManualEntryData data) {
+		configResources.put(data.getLocation(), data);
+	}
+	
+	public ManualTimeseriesServlet(final ApplicationManagerPlus appManPlus) {
 		this.appMan = appManPlus.appMan();
 		this.appManPlus = appManPlus;
-		this.configResource = configResource;
 	}
 	
 	@Override
@@ -46,7 +49,7 @@ public class ManualTimeseriesServlet implements ServletPageProvider<ManualEntryD
 		ZoneOffset utcOffset = ZoneOffset.systemDefault().getRules().getOffset(Instant.now());
 		result.put("UTCoffset", new ServletNumProvider(utcOffset.getTotalSeconds()*1000));
 
-		ServletPageProvider<ManualEntryData> provider = new ManualTimeseriesServletList(configResource, appManPlus);
+		ServletPageProvider<ManualEntryData> provider = new ManualTimeseriesServletList(data, appManPlus);
 		ServletSubDataProvider<ManualEntryData> tsList = new ServletSubDataProvider<ManualEntryData>(provider , data, true, paramMap);
 		result.put("timeseriesList", tsList);
 			
@@ -55,12 +58,12 @@ public class ManualTimeseriesServlet implements ServletPageProvider<ManualEntryD
 	
 	@Override
 	public List<ManualEntryData> getAllObjects(String user) {
-		return Arrays.asList(new ManualEntryData[] {configResource});
+		return new ArrayList<>(configResources.values()); //Arrays.asList(new ManualEntryData[] {configResource});
 	}
 
 	@Override
 	public ManualEntryData getObject(String objectId, String user) {
-		return configResource;
+		return configResources.get(objectId);
 	}
 	
 	@Override
@@ -68,4 +71,8 @@ public class ManualTimeseriesServlet implements ServletPageProvider<ManualEntryD
 		return obj.getLocation();
 	}
 
+	@Override
+	public String getObjectName() {
+		return "manualentryset";
+	}
 }

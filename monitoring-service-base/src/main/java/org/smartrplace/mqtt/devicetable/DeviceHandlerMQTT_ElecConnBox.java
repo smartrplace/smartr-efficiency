@@ -9,6 +9,7 @@ import java.util.Set;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.PowerResource;
@@ -35,13 +36,19 @@ import org.ogema.model.sensors.Sensor;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
 import org.ogema.timeseries.eval.simple.mon3.VirtualSensorKPIMgmtMeter2Interval;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.autoconfig.api.DeviceTypeProvider;
 import org.smartrplace.driverhandler.devices.ESE_ElConnBoxDeviceHandler;
+import org.smartrplace.timeseries.manual.model.ManualEntryData;
+import org.smartrplace.timeseries.manual.servlet.ManualTimeseriesServlet;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIDataBase;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -403,5 +410,104 @@ if(mapData1 == null) {
 			}
 		}
 		return null;
+	}
+	
+	protected class ManualMeterDeviceType implements DeviceTypeProvider<ElectricityConnectionBox> {
+		public ManualMeterDeviceType(ApplicationManager appMan) {
+			this.appMan = appMan;
+		}
+
+		private final ApplicationManager appMan;
+		
+		@Override
+		public String id() {
+			return "manualMeter";
+		}
+
+		@Override
+		public String label(OgemaLocale arg0) {
+			return "Energy Meter for manual input";
+		}
+
+		@Override
+		public Class<ElectricityConnectionBox> getDeviceType() {
+			return ElectricityConnectionBox.class;
+		}
+
+		@Override
+		public String description(OgemaLocale locale) {
+			return "address shall provide meter ID, no password and configuration required";
+		}
+
+		@Override
+		public CreateAndConfigureResult<ElectricityConnectionBox> addAndConfigureDevice(
+				DeviceTypeConfigData<ElectricityConnectionBox> configData) {
+			
+			CreateAndConfigureResult<ElectricityConnectionBox> result = new CreateAndConfigureResult<ElectricityConnectionBox>();
+
+			if(configData.address.isEmpty()) {
+				result.resultMessage = "Empty address cannot be processed!";
+				return result;
+			}
+			if(configData.governingResource == null) {
+				ResourceList<?> manualMeters = appMan.getResourceManagement().createResource("manualMeters", ResourceList.class);
+				configData.governingResource = manualMeters.addDecorator(ResourceUtils.getValidResourceName(
+						"manualMeter_"+configData.address),
+						ElectricityConnectionBox.class);
+			}
+			
+			ManualEntryData manData = configData.governingResource.addDecorator("manualEntryData", ManualEntryData.class);
+			ValueResourceHelper.setCreate(manData.lowerLimit(), 0);
+			ValueResourceHelper.setCreate(manData.upperLimit(), Float.MAX_VALUE);
+			manData.manualEntryDataHolder().create();
+			//TODO: Really init with zero?
+			ValueResourceHelper.setCreate(configData.governingResource.connection().energySensor().reading(), 0);
+			manData.manualEntryDataHolder().addDecorator("energySensor", configData.governingResource.connection().energySensor().reading());
+			configData.governingResource.activate(true);
+			ManualTimeseriesServlet.registerManualEntryData(manData);
+			
+			result.resultConfig = configData;
+			result.resultMessage = "Created manual meter device on "+configData.governingResource.getLocation();
+			return result ;
+		}
+
+		@Override
+		public Collection<DeviceTypeConfigData<ElectricityConnectionBox>> getKnownConfigs() {
+			List<DeviceTypeConfigData<ElectricityConnectionBox>> result = new ArrayList<>();
+			List<ElectricityConnectionBox> allRes = appMan.getResourceAccess().getResources(ElectricityConnectionBox.class);
+			for(ElectricityConnectionBox con: allRes) {
+				String address;
+				String resName = con.getName();
+				if(resName.length() <= ("manualMeter_".length()+1))
+					address = resName;
+				else
+					address = resName.substring("manualMeter_".length());
+				DeviceTypeConfigData<ElectricityConnectionBox> config = new DeviceTypeConfigData<ElectricityConnectionBox>(address,
+						null, "");
+				config.governingResource = con;
+				config.dtbProvider = this;
+				result.add(config);
+			}
+			return result;
+		}
+
+		@Override
+		public boolean deleteConfig(DeviceTypeConfigData<ElectricityConnectionBox> configData) {
+			configData.governingResource.delete();
+			return true;
+		}
+
+		@Override
+		public DeviceTypeConfigDataBase getPlaceHolderData() {
+			return new DeviceTypeConfigDataBase("0000:0000", null, "");
+		}		
+	}
+	
+	@Override
+	public Collection<DeviceTypeProvider<?>> getDeviceTypeProviders() {
+		List<DeviceTypeProvider<?>> result = new ArrayList<>();
+		DeviceTypeProvider<ElectricityConnectionBox> prov = new ManualMeterDeviceType(appMan.appMan());
+		result.add(prov);
+		return result;
 	}
 }

@@ -17,9 +17,11 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DpGroupUtil;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.ServletTimeseriesProvider;
@@ -197,6 +199,16 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			ServletStringProvider unitProv = new ServletStringProvider(unit.toString());
 			result.put("unit", unitProv);
 		}
+		try {
+			SubCustomerData subc = iad.device().location().getSubResource("tenant", SubCustomerData.class);
+			if(subc != null && subc.exists()) {
+				ServletStringProvider tenantName = new ServletStringProvider(ResourceUtils.getHumanReadableName(subc));
+				result.put("tenantName", tenantName);				
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
+		
 		
 		if(!UserServletUtil.isDepthTimeSeries(parameters))
 			return result;

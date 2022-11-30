@@ -89,11 +89,36 @@ public class HeatMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 		vh.stringLabel("InternalName", id, device.getName(), row);
 
 		if(req == null) {
-			vh.registerHeaderEntry("Counter");
+			vh.registerHeaderEntry("Reading");
 			return;
 		}
 		EnergyResource counterRes = device.getSubResource("ENERGY_0_0", EnergyAccumulatedSensor.class).reading();
 		if(counterRes.exists())
-			vh.floatLabel("Counter", id, counterRes, row, "%.1f");
+			vh.floatLabel(Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1")?"Reading (kWh)":"Reading",
+					id, counterRes, row, "%.1f");
+	}
+	
+	@Override
+	protected boolean setColumnTitlesToUse(ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh) {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.setColumnTitlesToUse(vh);
+		vh.registerHeaderEntry("InternalName");
+		vh.registerHeaderEntry("ID");
+		vh.registerHeaderEntry("Reading (kWh)");
+		vh.registerHeaderEntry("Tenant");
+		vh.registerHeaderEntry("Type");
+		vh.registerHeaderEntry("Last Contact");
+		vh.registerHeaderEntry("Location");
+		vh.registerHeaderEntry("Status");
+		vh.registerHeaderEntry("Comment");
+		vh.registerHeaderEntry("Plot");
+		return true;
+	}
+	
+	@Override
+	protected String getValueTitle() {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.getValueTitle();
+		return "Power";
 	}
 }

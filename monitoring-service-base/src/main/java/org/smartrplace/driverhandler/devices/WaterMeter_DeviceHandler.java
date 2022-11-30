@@ -2,10 +2,13 @@ package org.smartrplace.driverhandler.devices;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
@@ -77,13 +80,38 @@ public class WaterMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> 
 		DeviceTableRaw.addTenantWidgetStatic(vh, id, req, row, appMan, device);
 		
 		vh.stringLabel("InternalName", id, device.getName(), row);
-
-		/*if(req == null) {
-			vh.registerHeaderEntry("Counter");
+		
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
 			return;
-		}
-		SingleValueResource counterRes = getMainSensorValue(device, object);
-		if(counterRes.exists())
-			vh.stringLabel("Counter", id, ValueResourceUtils.getValue(counterRes), row);*/
+		IntegerResource hotColdType = device.getSubResource("waterMeterType", IntegerResource.class);
+		Map<String, String> valuesToSet = new HashMap<>();
+		valuesToSet.put("0", "Undefined");
+		valuesToSet.put("1", "Cold Water");
+		valuesToSet.put("2", "Hot Water");
+		vh.dropdown("Type", id, hotColdType, row, valuesToSet);
+	}
+	
+	@Override
+	protected boolean setColumnTitlesToUse(ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh) {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.setColumnTitlesToUse(vh);
+		vh.registerHeaderEntry("InternalName");
+		vh.registerHeaderEntry("ID");
+		vh.registerHeaderEntry(getValueTitle());
+		vh.registerHeaderEntry("Tenant");
+		vh.registerHeaderEntry("Type");
+		vh.registerHeaderEntry("Last Contact");
+		vh.registerHeaderEntry("Location");
+		vh.registerHeaderEntry("Status");
+		vh.registerHeaderEntry("Comment");
+		vh.registerHeaderEntry("Plot");
+		return true;
+	}
+	
+	@Override
+	protected String getValueTitle() {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.getValueTitle();
+		return "Counter (m3)";
 	}
 }

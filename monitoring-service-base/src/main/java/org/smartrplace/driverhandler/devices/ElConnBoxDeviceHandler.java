@@ -2,10 +2,13 @@ package org.smartrplace.driverhandler.devices;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.EnergyResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
@@ -174,11 +177,45 @@ public class ElConnBoxDeviceHandler extends DeviceHandlerSimple<ElectricityConne
 		vh.stringLabel("InternalName", id, device.getName(), row);
 
 		if(req == null) {
-			vh.registerHeaderEntry("Counter");
+			vh.registerHeaderEntry("Reading (kWh)");
 			return;
 		}
 		EnergyResource counterRes = device.connection().energySensor().reading();
 		if(counterRes.exists())
-			vh.floatLabel("Counter", id, counterRes, row, "%.1f");
+			vh.floatLabel("Reading (kWh)", id, counterRes, row, "%.1f");
+		
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return;
+		IntegerResource type = device.getSubResource("meterHierarchyType", IntegerResource.class);
+		Map<String, String> valuesToSet = new HashMap<>();
+		valuesToSet.put("0", "Undefined");
+		valuesToSet.put("1", "Main Mater");
+		valuesToSet.put("2", "Submeter");
+		vh.dropdown("Type", id, type, row, valuesToSet);
+	}
+	
+	@Override
+	protected boolean setColumnTitlesToUse(ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh) {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.setColumnTitlesToUse(vh);
+		vh.registerHeaderEntry("InternalName");
+		vh.registerHeaderEntry("ID");
+		vh.registerHeaderEntry("Reading (kWh)");
+		vh.registerHeaderEntry(getValueTitle());
+		vh.registerHeaderEntry("Tenant");
+		vh.registerHeaderEntry("Type");
+		vh.registerHeaderEntry("Last Contact");
+		vh.registerHeaderEntry("Location");
+		vh.registerHeaderEntry("Status");
+		vh.registerHeaderEntry("Comment");
+		vh.registerHeaderEntry("Plot");
+		return true;
+	}
+	
+	@Override
+	protected String getValueTitle() {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.getValueTitle();
+		return "Power (W)";
 	}
 }
