@@ -14,6 +14,7 @@ import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet;
@@ -126,6 +127,15 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 		if(subloc != null) {
 			ServletStringProvider subLocation = new ServletStringProvider(subloc);
 			result.put("subLocation", subLocation);
+		}
+		try {
+			SubCustomerData subc = dev.location().getSubResource("tenant", SubCustomerData.class);
+			if(subc != null && subc.exists()) {
+				ServletStringProvider tenantName = new ServletStringProvider(ResourceUtils.getHumanReadableName(subc));
+				result.put("tenantName", tenantName);				
+			}
+		} catch(Exception e) {
+			e.printStackTrace();
 		}
 		ServletNumProvider isActive = new ServletNumProvider(!object.isTrash().getValue());
 		result.put("isActive", isActive);
