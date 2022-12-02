@@ -21,7 +21,6 @@ import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.TemperatureSensor;
 import org.ogema.model.sensors.VolumeAccumulatedSensor;
 import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
-import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -45,13 +44,16 @@ public class HeatMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 
 	@Override
 	public SingleValueResource getMainSensorValue(SensorDevice device, InstallAppDevice deviceConfiguration) {
+		if(Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return device.getSubResource("ENERGY_0_0", EnergyAccumulatedSensor.class).reading();
 		return device.getSubResource("POWER_0_0", PowerSensor.class).reading();
 	}
 
 	@Override
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
-		addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		//addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
+		addDatapoint(device.getSubResource("POWER_0_0", PowerSensor.class).reading(), result);
 		Datapoint energyDp = addDatapoint(device.getSubResource("ENERGY_0_0", EnergyAccumulatedSensor.class).reading(), result);
 		addDatapoint(device.getSubResource("FLOW_TEMPERATURE_0_0",TemperatureSensor.class).reading(), result);
 		addDatapoint(device.getSubResource("RETURN_TEMPERATURE_0_0", TemperatureSensor.class).reading(), result);
@@ -106,7 +108,6 @@ public class HeatMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 		vh.registerHeaderEntry("ID");
 		vh.registerHeaderEntry("Reading (kWh)");
 		vh.registerHeaderEntry("Tenant");
-		vh.registerHeaderEntry("Type");
 		vh.registerHeaderEntry("Last Contact");
 		vh.registerHeaderEntry("Location");
 		vh.registerHeaderEntry("Status");
@@ -117,8 +118,9 @@ public class HeatMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> {
 	
 	@Override
 	protected String getValueTitle() {
-		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
-			return super.getValueTitle();
-		return "Power";
+		return super.getValueTitle();
+		//if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+		//	return super.getValueTitle();
+		//return "Power";
 	}
 }
