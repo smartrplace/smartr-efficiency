@@ -1,4 +1,4 @@
-package org.smartrplace.apps.hw.install.gui.expert;
+package org.smartrplace.apps.hw.install.gui;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,12 +38,14 @@ import de.iwes.widgets.html.form.label.Label;
 public class BatteryPage extends MainPage {
 
 	DeviceTableBase devTable;
+	private final boolean fullVersion;
 	
 	@Override
-	public String getHeader() {return "Battery Overview";}
+	public String getHeader() {return "Battery Status Overview";}
 
-	public BatteryPage(WidgetPage<?> page, HardwareInstallController controller) {
+	public BatteryPage(WidgetPage<?> page, HardwareInstallController controller, boolean fullVersion) {
 		super(page, controller, false);
+		this.fullVersion = fullVersion;
 		finishConstructor();
 		
 		/*StaticTable configTable = new StaticTable(3, 2);
@@ -75,12 +77,27 @@ public class BatteryPage extends MainPage {
 				else if(voltageLab != null)
 					lastContactVoltage = addLastContact("Last Voltage", vh, "LV"+id, req, row, voltageLab.reading);
 				AddBatteryVoltageResult statusLab = addBatteryStatus(vh, id, req, row, device2);
-				if(req == null)
-					vh.registerHeaderEntry("Last Status");
-				else if(statusLab != null)
-					lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
+				
+				if(fullVersion) {
+					if(req == null)
+						vh.registerHeaderEntry("Last Status");
+					else if(statusLab != null)
+						lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
+				}
+				
+				if(voltageLab != null)
+					voltageLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
+				if(statusLab != null)
+					statusLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
+				if(lastContactVoltage != null)
+					lastContactVoltage.setPollingInterval(DEFAULT_POLL_RATE, req);
+				if(lastContactStatus != null)
+					lastContactStatus.setPollingInterval(DEFAULT_POLL_RATE, req);
+
 				if(req == null) {
 					vh.registerHeaderEntry("Room-Loc");
+					if(!fullVersion)
+						return;
 					vh.registerHeaderEntry("EmptyPos");
 					vh.registerHeaderEntry("Last EP");
 					vh.registerHeaderEntry("Resend EmptyPos");
@@ -94,6 +111,8 @@ public class BatteryPage extends MainPage {
 					}
 					vh.stringLabel("Room-Loc", id, roomSubLoc, row);
 					
+					if(!fullVersion)
+						return;
 					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
 					final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 							ScheduleViewerConfigProvBattery.getInstance(), null);
@@ -137,15 +156,6 @@ public class BatteryPage extends MainPage {
 					vh.stringLabel("RT", id, text, row);
 				} else
 					vh.registerHeaderEntry("RT");	
-				
-				if(voltageLab != null)
-					voltageLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
-				if(statusLab != null)
-					statusLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
-				if(lastContactVoltage != null)
-					lastContactVoltage.setPollingInterval(DEFAULT_POLL_RATE, req);
-				if(lastContactStatus != null)
-					lastContactStatus.setPollingInterval(DEFAULT_POLL_RATE, req);
 			}
 			
 			@Override
@@ -161,7 +171,7 @@ public class BatteryPage extends MainPage {
 			
 			@Override
 			public String getTableTitleRaw() {
-				return "Battery State Overview";
+				return "";
 			}
 			
 			@Override

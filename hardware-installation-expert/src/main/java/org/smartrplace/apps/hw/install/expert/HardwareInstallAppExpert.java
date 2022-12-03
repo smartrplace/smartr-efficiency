@@ -27,13 +27,13 @@ import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
-import org.smartrplace.apps.hw.install.gui.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.PreKnownDevicePage;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
-import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
 import org.smartrplace.apps.hw.install.gui.expert.DeviceHandlerPage;
@@ -125,7 +125,7 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			ccuPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> batteryPage = widgetApp.createWidgetPage("batteryStates.hmtl");
-			new BatteryPage(batteryPage, controller);
+			new BatteryPage(batteryPage, controller, true);
 			menu.addEntry("Battery Overview", batteryPage);
 			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
 

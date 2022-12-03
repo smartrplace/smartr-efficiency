@@ -58,6 +58,7 @@ import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.deviceeval.BatteryEval;
+import org.smartrplace.apps.hw.install.gui.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
@@ -227,6 +228,15 @@ public class HardwareInstallController {
 			new ValveLinkPage(pageValveLink, appManPlus);
 			menu.addEntry("Link FAL230 valves to wall thermostats", pageValveLink);
 			pageValveLink.getMenuConfiguration().setCustomNavigation(menu);
+		}
+
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.customerbatteryexchange")) {
+			menu.addEntry(mainPage.getHeader(), page);
+			page.getMenuConfiguration().setCustomNavigation(menu);
+			WidgetPage<?> pageBatteryBase =  hardwareInstallApp.widgetApp.createWidgetPage("batteriescust.html");
+			new BatteryPage(pageBatteryBase, this, false);
+			menu.addEntry("Battery Status Overview", pageBatteryBase);
+			pageBatteryBase.getMenuConfiguration().setCustomNavigation(menu);
 		}
 
 		initConfigResourceForOperation();

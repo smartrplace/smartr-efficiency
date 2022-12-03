@@ -73,11 +73,59 @@ public class BatteryEval extends BatteryEvalBase3 {
 		
 	}
 
+	public static TimedJobMemoryData initMonthlyBatteryEmail(final ApplicationManagerPlus  appManPlus) {
+		AppID appId= appManPlus.appMan().getAppID();
+		//appManPlus.getMessagingService().registerMessagingApp(appId, "MonthlyBatteryEmail");
+		
+		TimedJobProvider tprov = new TimedJobProvider() {
+			
+			@Override
+			public String label(OgemaLocale locale) {
+				return "Send Monthly Battery Status Email";
+			}
+			
+			@Override
+			public String id() {
+				return "MonthlyBatteryEmail";
+			}
+			
+			@Override
+			public boolean initConfigResource(TimedJobConfig config) {
+				ValueResourceHelper.setCreate(config.alignedInterval(), AbsoluteTiming.MONTH);
+				ValueResourceHelper.setCreate(config.interval(), 600);
+				ValueResourceHelper.setCreate(config.disable(), false);
+				ValueResourceHelper.setCreate(config.performOperationOnStartUpWithDelay(), -1);
+				return true;
+			}
+			
+			@Override
+			public String getInitVersion() {
+				return "A";
+			}
+			
+			@Override
+			public void execute(long now, TimedJobMemoryData data) {
+				sendBatteryEmail(appManPlus);							
+			}
+			
+			@Override
+			public int evalJobType() {
+				return 0;
+			}
+		};
+		return appManPlus.dpService().timedJobService().registerTimedJobProvider(tprov);
+		
+	}
+
 	public static final int COLUMN_WIDTH_1 = 30;
 	public static final int COLUMN_WIDTH = 10;
 	public static void sendWeeklyEmail(ApplicationManagerPlus appMan) {
 		AppID appId = appMan.appMan().getAppID();
-		sendWeeklyEmail(appMan, appId, "Weekly Battery Evaluation Report ", MessagePriority.MEDIUM);
+		sendWeeklyEmail(appMan, appId, "Weekly Battery Evaluation Report ", MessagePriority.MEDIUM, false);
+	}
+	public static void sendBatteryEmail(ApplicationManagerPlus appMan) {
+		AppID appId = appMan.appMan().getAppID();
+		sendWeeklyEmail(appMan, appId, "Batteriestatus - monatlicher Status ", MessagePriority.MEDIUM, true);
 	}
 	private static class DeviceEvalData {
 		long nextEmptyDate = Long.MAX_VALUE;
@@ -87,7 +135,8 @@ public class BatteryEval extends BatteryEvalBase3 {
 		int unknownNum = 0;
 	}
 	public static void sendWeeklyEmail(ApplicationManagerPlus appMan, AppID appId,
-			String titleWithoutGw, MessagePriority prio) {
+			String titleWithoutGw, MessagePriority prio,
+			boolean sendBatteryBaseReport) {
 		long now = appMan.getFrameworkTime();
 		
 		Collection<InstallAppDevice> thermostats = appMan.dpService().managedDeviceResoures(Thermostat.class);
@@ -95,11 +144,6 @@ public class BatteryEval extends BatteryEvalBase3 {
 		List<InstallAppDevice> dNRResults = new ArrayList<>();
 		List<InstallAppDevice> sigStrengthResults = new ArrayList<>();
 		DeviceEvalData ded = new DeviceEvalData();
-		//long nextEmptyDate = Long.MAX_VALUE;
-		//int emptyNum = 0;
-		//int warnNum = 0;
-		//int changeNum = 0;
-		//int unknownNum = 0;
 		int dnRNum = 0;
 		int sigstrengthNum = 0;
 		int unassignedNum = 0;
@@ -109,24 +153,6 @@ public class BatteryEval extends BatteryEvalBase3 {
 			Collection<InstallAppDevice> windowsens = appMan.dpService().managedDeviceResoures(DoorWindowSensor.class);
 			addResultsForDeviceType(windowsens, now, evalResults, ded, appMan.dpService());			
 		}
-		/*for(InstallAppDevice iad: thermostats) {
-			if(iad.isTrash().getValue())
-				continue;
-			BatteryStatusResult status = getFullBatteryStatus(iad, now, appMan.dpService());
-			if(status.status == BatteryStatus.NO_BATTERY)
-				continue;
-			evalResults.add(status);
-			if(status.expectedEmptyDate != null && status.expectedEmptyDate < ded.nextEmptyDate)
-				ded.nextEmptyDate = status.expectedEmptyDate;
-			if(status.status == BatteryStatus.EMPTY)
-				ded.emptyNum++;
-			else if(status.status == BatteryStatus.URGENT || status.status == BatteryStatus.WARNING)
-				ded.warnNum++;
-			else if(status.status == BatteryStatus.CHANGE_RECOMMENDED)
-				ded.changeNum++;
-			else if(!(status.status == BatteryStatus.OK))
-				ded.unknownNum++;
-		}*/
 		
 		Collection<InstallAppDevice> allDev = appMan.dpService().managedDeviceResoures(null);
 		for(InstallAppDevice iad: allDev) {
@@ -148,17 +174,15 @@ public class BatteryEval extends BatteryEvalBase3 {
 		
 		String baseUrl = ResourceHelper.getLocalGwInfo(appMan.appMan()).gatewayBaseUrl().getValue();
 		String mes = buildMessageHTML(ded.emptyNum, ded.warnNum, ded.changeNum, ded.unknownNum, dnRNum, sigstrengthNum,
-				unassignedNum, evalResults, dNRResults, sigStrengthResults, baseUrl, now);
+				unassignedNum, evalResults, dNRResults, sigStrengthResults, baseUrl, now,
+				!sendBatteryBaseReport);
 		String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 		String gwName = GatewayUtil.getGatewayNameFromURL(appMan.appMan()); //baseUrl;
-		/*if(gwName.startsWith("https://"))
-			gwName = gwName.substring("https://".length());
-		int idx = gwName.indexOf(".smartrplace.");
-		if(idx >= 0)
-			gwName = gwName.substring(0, idx);
-		gwname = GatewayUtil.getGatewayNameFromURL(appMan.appMan());*/
 		
-		reallySendMessage(gwId+": "+titleWithoutGw+gwName, mes, prio, appMan, appId);
+		if(sendBatteryBaseReport)
+			reallySendMessage(titleWithoutGw+gwName, mes, prio, appMan, appId);
+		else
+			reallySendMessage(gwId+": "+titleWithoutGw+gwName, mes, prio, appMan, appId);
 	}
 	
 	private static void addResultsForDeviceType(Collection<InstallAppDevice> thermostats, long now,
@@ -184,10 +208,29 @@ public class BatteryEval extends BatteryEvalBase3 {
 		}		
 	}
 	
+	/** Build customer format HTML message
+	 * 
+	 * @param emptyNum
+	 * @param warnNum
+	 * @param changeNum
+	 * @param unknownNum
+	 * @param dnRNum
+	 * @param sigstrengthNum
+	 * @param unassignedNum
+	 * @param evalResults
+	 * @param dNRResults
+	 * @param sigStrengthResults
+	 * @param baseUrl
+	 * @param now
+	 * @param fullVersion if true a version is generated suitable only for service personal. Otherwise just the battery exchange report
+	 * 		is generated.
+	 * @return
+	 */
 	protected static String buildMessageHTML(int emptyNum, int warnNum, int changeNum, int unknownNum,
 			int dnRNum, int sigstrengthNum, int unassignedNum,
 			List<BatteryStatusResult> evalResults, List<InstallAppDevice> dNRResults, List<InstallAppDevice> sigStrengthResults,
-			String baseUrl, long now) {
+			String baseUrl, long now,
+			boolean fullVersion) {
 		String mes = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\r\n";
 		mes += "<html xmlns=\"http://www.w3.org/1999/xhtml\">\r\n";
 		mes += "  <head>\r\n";
@@ -198,27 +241,39 @@ public class BatteryEval extends BatteryEvalBase3 {
 		mes += "   </head>\r\n";
 		mes += "   <body style=\"font-size: 1.2em; font-family: 'Roboto', sans-serif; color: black; margin: 0; padding: 0; background-color: white;\">\r\n";
 		mes += " <table style=\"padding: 10px; background-color: #9bc0b5; min-width: 100%; color: white;\">\r\n";
-		mes += " <tr style=\"vertical-align: top; font-size: 1.3em;\"><td>Weekly Gateway Status Report</td></tr>\r\n";
+		mes += " <tr style=\"vertical-align: top; font-size: 1.3em;\"><td>"+
+				(fullVersion?"Weekly Gateway Status Report":"Batteriestatus - Report")+
+				"</td></tr>\r\n";
 		mes += "  <tr style=\"font-size: 0.9em\"><td>"+TimeUtils.getDateAndTimeString(now)+"</td></tr>\r\n";
 		mes += " </table>\r\n";
 
 		mes += "<table style=\"margin-top: 10px; margin-bottom: 10px; padding: 5px\">\r\n";
 
-		mes += getOverviewTableLine("Number of empty batteries: "+emptyNum);
-		mes += getOverviewTableLine("Number of batteries that need to be changed soon or urgently: "+warnNum);
-		mes += getOverviewTableLine("Number of batteries that shall be changed with next visit: "+changeNum);
-		mes += getOverviewTableLine("Number of batteries without status: "+unknownNum);
-		mes += getOverviewTableLine("Number of devices without contact (physical check required): "+dnRNum);
-		mes += getOverviewTableLine("Number of devices that require repeater:"+sigstrengthNum);
-		mes += getOverviewTableLine("Number of devices UNASSIGNED: "+unassignedNum);
-		String link = baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
-		mes += getOverviewTableLine("Details: <a href=\""+link+"\">Device Setup and Configuration</a>");
-		link = baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
-		mes += getOverviewTableLine("Issues : <a href=\""+link+"\">Known Issues</a>");
-
+		if(fullVersion) {
+			mes += getOverviewTableLine("Number of empty batteries: "+emptyNum);
+			mes += getOverviewTableLine("Number of batteries that need to be changed soon or urgently: "+warnNum);
+			mes += getOverviewTableLine("Number of batteries that shall be changed with next visit: "+changeNum);
+			mes += getOverviewTableLine("Number of batteries without status: "+unknownNum);
+			mes += getOverviewTableLine("Number of devices without contact (physical check required): "+dnRNum);
+			mes += getOverviewTableLine("Number of devices that require repeater:"+sigstrengthNum);
+			mes += getOverviewTableLine("Number of devices UNASSIGNED: "+unassignedNum);
+			String link = baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
+			mes += getOverviewTableLine("Details: <a href=\""+link+"\">Device Setup and Configuration</a>");
+			link = baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+			mes += getOverviewTableLine("Issues : <a href=\""+link+"\">Known Issues</a>");
+		} else {
+			mes += getOverviewTableLine("Anzahl leerer Batterien: "+emptyNum);
+			mes += getOverviewTableLine("Anzahl Batterien die kurzfristig gewechselt werden sollten: "+warnNum);
+			mes += getOverviewTableLine("Anzahl der Batterien, für die zur Sicherheit bereits ein Wechsel empfohlen wird: "+changeNum);
+			mes += getOverviewTableLine("Anzahl der Batterien, für die zur Sicherheit bereits ein Wechsel empfohlen wird: "+changeNum);
+			mes += getOverviewTableLine(" ");
+			String link = baseUrl+"/org/smartrplace/hardwareinstall/batteriescust.html";
+			mes += getOverviewTableLine("Nach dem Wechsel können Sie die aktuelle Batteriespannung hier prüfen: <a href=\""+link+"\">Battery Status Overview</a>");			
+		}
 		mes += " </table>\r\n";
 		mes += " <table style=\"padding: 10px; background-color: #9bc0b5; min-width: 100%; color: white;\">\r\n";
-		mes += " <tr style=\"vertical-align: top; font-size: 1.3em;\"><td>Battery exchanges required:</td></tr>\r\n";
+		mes += " <tr style=\"vertical-align: top; font-size: 1.3em;\"><td>"+
+				(fullVersion?"Battery exchanges required:":"Erforderliche und empfohlene Batteriewechsel")+"</td></tr>\r\n";
 		mes += " </table>\r\n";
 		
 		mes += "<table style=\"margin-top: 10px; margin-bottom: 10px; padding: 5px\">\r\n";
@@ -231,7 +286,10 @@ public class BatteryEval extends BatteryEvalBase3 {
 			}
 		};
 		
-		mes +=getValueLineHTML(headerProv, "Device", "Room", "Status", "Exp.Empty", "Voltage");
+		if(fullVersion)
+			mes +=getValueLineHTML(headerProv, "Device", "Room", "Status", "Exp.Empty", "Voltage");
+		else
+			mes +=getValueLineHTML(headerProv, "Gerät", "Raum", "Status", "Schätzung Deadline", "Spannung (V)");
 		for(final BatteryStatusResult status: evalResults) {
 			if(status.status == BatteryStatus.OK)
 				continue;
@@ -247,10 +305,15 @@ public class BatteryEval extends BatteryEvalBase3 {
 					""+status.status,
 					status.expectedEmptyDate!=null?(StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate)):"???", //+"("+status.expectedEmptyDate+")"
 					String.format("%.1f", status.currentVoltage));
-System.out.println("ExpectedEmptyData: "+(status.expectedEmptyDate!=null?status.expectedEmptyDate:"(null)")+"  for battery "+status.iad.deviceId().getValue()); 
 		}
 
 		mes += " </table>\r\n";
+		
+		if(!fullVersion) {
+			mes += "</body>\r\n";
+			mes += "</html>\r\n";
+			return mes;
+		}
 		
 		mes += " <table style=\"padding: 10px; background-color: #9bc0b5; min-width: 100%; color: white;\">\r\n";
 		mes += " <tr style=\"vertical-align: top; font-size: 1.3em;\"><td>Physical checks required:</td></tr>\r\n";

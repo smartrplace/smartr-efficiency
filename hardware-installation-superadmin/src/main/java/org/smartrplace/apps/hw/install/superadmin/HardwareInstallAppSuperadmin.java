@@ -29,17 +29,17 @@ import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.gui.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
 import org.smartrplace.apps.hw.install.gui.MainPage.ShowModeHw;
-import org.smartrplace.apps.hw.install.gui.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.PreKnownDevicePage;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage.ThermostatPageType;
 import org.smartrplace.apps.hw.install.gui.ValveLinkPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedEvalJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage;
 import org.smartrplace.apps.hw.install.gui.eval.TimedJobsPage.TimedJobPageType;
-import org.smartrplace.apps.hw.install.gui.expert.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.expert.CCUPage;
 import org.smartrplace.apps.hw.install.gui.expert.CascadingOverviewPage;
 import org.smartrplace.apps.hw.install.gui.expert.ConfigurationPageHWInstall;
@@ -151,7 +151,7 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			ccuPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> batteryPage = widgetApp.createWidgetPage("batteryStates.hmtl");
-			new BatteryPage(batteryPage, controller);
+			new BatteryPage(batteryPage, controller, true);
 			menu.addEntry("Battery Overview", batteryPage);
 			batteryPage.getMenuConfiguration().setCustomNavigation(menu);
 

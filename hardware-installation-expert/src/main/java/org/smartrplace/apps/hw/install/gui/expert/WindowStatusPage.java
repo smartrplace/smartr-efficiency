@@ -15,6 +15,7 @@ import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.BatteryPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -36,7 +37,7 @@ public class WindowStatusPage extends BatteryPage {
 	public String getHeader() {return "Thermostat Window and ValveMax Overview";}
 
 	public WindowStatusPage(WidgetPage<?> page, HardwareInstallController controller) {
-		super(page, controller);
+		super(page, controller, true);
 		//finishConstructor();
 		
 		/*Button triggerUpdate = new Button(page, "triggerUpdateBut", "Update all") {

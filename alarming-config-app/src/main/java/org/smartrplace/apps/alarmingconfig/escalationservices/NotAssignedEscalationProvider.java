@@ -103,7 +103,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 				return result;
 			}
 			for(AppID appId: appIDs) {
-				BatteryEval.sendWeeklyEmail(appManPlus, appId, title, prio);
+				BatteryEval.sendWeeklyEmail(appManPlus, appId, title, prio, false);
 			}
 			String roomId = ResourceUtils.getValidResourceName(appManPlus.getResourceAccess().getResources(Room.class).get(0).getLocation());
 			Map<String, Object> additionalProperties = new HashMap<>();

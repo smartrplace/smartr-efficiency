@@ -59,7 +59,8 @@ public class BatteryEvalBase3 extends BatteryEvalBase {
 			if(sv != null) {
 				long lastHigherTime = sv.getTimestamp();
 				long duration = (long) (((double)sv.getValue().getFloatValue())*TimeProcUtil.DAY_MILLIS);
-				return lastHigherTime + duration;
+				if((now - lastHigherTime < 0.5*duration))
+					return lastHigherTime + duration;
 			}
 		}
 		return getExpectedEmptyDateSimple(batRes, now);

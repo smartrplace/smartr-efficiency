@@ -283,7 +283,7 @@ public class ThermostatPage extends MainPage {
 					}					
 				} else if(type == ThermostatPageType.BATTERY_WINDOW) {
 					if(req == null) {
-						vh.registerHeaderEntry("Battery");
+						vh.registerHeaderEntry(DeviceTableRaw.BATTERY_VOLTAGE_HEADER);
 						vh.registerHeaderEntry("Last Voltage");
 						vh.registerHeaderEntry("Bat.Low");
 						vh.registerHeaderEntry("Last Status");
