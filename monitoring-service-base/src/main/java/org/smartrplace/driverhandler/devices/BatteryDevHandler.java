@@ -13,6 +13,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
@@ -64,6 +65,15 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 				valueLabel.setPollingInterval(DEFAULT_POLL_RATE, req);
 				lastContact.setPollingInterval(DEFAULT_POLL_RATE, req);
 			}
+		}
+		
+		DeviceTableRaw.addTenantWidgetStatic(vh, id, req, row, appMan, device);
+		
+		vh.stringLabel("InternalName", id, device.getName(), row);
+
+		if(req == null) {
+			vh.registerHeaderEntry("Reading (kWh)");
+			return;
 		}
 	}
 	
@@ -191,5 +201,28 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 		Resource res = orgList.getSubResource(name);
 		if((res != null) && res.isReference(false))
 			res.delete();
+	}
+	
+	@Override
+	protected boolean setColumnTitlesToUse(ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh) {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.setColumnTitlesToUse(vh);
+		vh.registerHeaderEntry("InternalName");
+		vh.registerHeaderEntry("ID");
+		vh.registerHeaderEntry(getValueTitle());
+		vh.registerHeaderEntry("Tenant");
+		vh.registerHeaderEntry("Last Contact");
+		vh.registerHeaderEntry("Location");
+		vh.registerHeaderEntry("Status");
+		vh.registerHeaderEntry("Comment");
+		vh.registerHeaderEntry("Plot");
+		return true;
+	}
+	
+	@Override
+	protected String getValueTitle() {
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return super.getValueTitle();
+		return "Power (W)";
 	}
 }

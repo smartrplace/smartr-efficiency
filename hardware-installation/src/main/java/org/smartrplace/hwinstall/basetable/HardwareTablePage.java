@@ -38,7 +38,6 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
-import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
@@ -54,6 +53,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 
 	//Overwrite to reduce columns
 	protected boolean showOnlyBaseColsHWT() {return false;}
+	protected boolean hideDeviceHandler(DeviceHandlerProvider<?> devHand) {return false;}
 
 	//protected final HardwareInstallController controller;
 	protected final WidgetPage<?> page;
@@ -290,6 +290,8 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 			//if(isObjectsInTableEmpty(pe))
 			//	continue;
 			String id = pe.id();
+			if(hideDeviceHandler(pe))
+				continue;
 			if(tableProvidersDone.contains(id)) {
 				continue;
 			}

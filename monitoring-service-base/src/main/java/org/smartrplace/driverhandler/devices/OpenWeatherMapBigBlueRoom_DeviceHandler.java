@@ -29,7 +29,7 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 
 
 	public OpenWeatherMapBigBlueRoom_DeviceHandler(ApplicationManagerPlus appMan) {
-		super(appMan, true);
+		super(appMan, false);
 	}
 
 	@Override

@@ -247,7 +247,14 @@ public class HardwareInstallController {
 	}
 
 	protected MainPage getMainPage(WidgetPage<?> page) {
-		return new MainPage(page, this, true);
+		if(!Boolean.getBoolean("org.smartrplace.driverhandler.devices.residentialmetering1"))
+			return new MainPage(page, this, true);
+		return new MainPage(page, this, true) {
+			@Override
+			protected boolean hideDeviceHandler(DeviceHandlerProvider<?> devHand) {
+				return !devHand.relevantForUsers();
+			}
+		};
 	}
 	
     /*
