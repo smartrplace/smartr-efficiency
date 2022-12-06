@@ -61,7 +61,8 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 	}
 	public TimeSeriesDataImpl getObjectV1(String objectId, String user) {
 		TimeSeriesDataImpl obj = UserServlet.knownTS.get(objectId);
-		if(obj != null) return obj;
+		if(obj != null)
+			return correctTimeseriesID(obj, objectId); //TODO: Check if this is really a good idea
 		Object objRaw = OGEMAConfigurations.getObject(UserServlet.TimeSeriesServletImplClassName, objectId);
 		if(objRaw == null) {
 			controller.log.error("objRaw not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
@@ -85,13 +86,17 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 			UserServlet.knownTS.put(objectId, obj);			
 		}
 		//TODO: Check if this is really a good idea
+		return correctTimeseriesID(obj, objectId);
+	}
+	
+	private TimeSeriesDataImpl correctTimeseriesID(TimeSeriesDataImpl obj, String objectId) {
 		if(obj.label(null) != objectId) {
 			System.out.println("WARNING: objectId:"+objectId+" ,label:"+obj.label(null));
 			TimeSeriesDataImpl newObj = new TimeSeriesDataImpl(obj, objectId, objectId);
 			UserServlet.knownTS.put(objectId, newObj);	
 			return newObj;
 		}
-		return obj;
+		return obj;		
 	}
 	
 	@Override
