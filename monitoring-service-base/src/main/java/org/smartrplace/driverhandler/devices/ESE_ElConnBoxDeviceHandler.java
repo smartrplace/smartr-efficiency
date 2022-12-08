@@ -157,7 +157,7 @@ public class ESE_ElConnBoxDeviceHandler extends ElConnBoxDeviceHandler {
 		return getDatapointsStatic(dev.connection(), dpService, utilAggFull);
 	}
 	public static List<Datapoint> getDatapointsStatic(ElectricityConnection connection, DatapointService dpService) {
-		return getDatapointsStatic(connection, dpService, null);
+		return getDatapointsStatic(connection, dpService, (VirtualSensorKPIMgmt)null);
 	}
 	/** Search for datapoints in an {@link ElectricityConnection}
 	 * 

@@ -24,6 +24,7 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.sensors.ElectricEnergySensor;
 import org.ogema.recordeddata.RecordedDataStorage;
+import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -72,7 +73,7 @@ public class ElConnBoxDeviceHandler extends DeviceHandlerSimple<ElectricityConne
 	@Override
 	protected Collection<Datapoint> getDatapoints(ElectricityConnectionBox dev,
 			InstallAppDevice deviceConfiguration) {
-		return getDatapointsStatic(dev.connection(), dpService);
+		return getDatapointsStatic(dev.connection(), dpService, appMan);
 	}
 	/*@Override
 	public Collection<Datapoint> getDatapoints(InstallAppDevice installDeviceRes, DatapointService dpService) {
@@ -89,9 +90,10 @@ public class ElConnBoxDeviceHandler extends DeviceHandlerSimple<ElectricityConne
 	 * 		Not relevant if such a special decorator sub resource does not exist.
 	 * @return
 	 */
-	public static List<Datapoint> getDatapointsStatic(ElectricityConnection connection, DatapointService dpService) {
+	public static List<Datapoint> getDatapointsStatic(ElectricityConnection connection, DatapointService dpService,
+			ApplicationManagerPlus appMan) {
 		List<Datapoint> result = new ArrayList<>();
-		addConnDatapoints(result, connection, dpService);
+		addConnDatapoints(result, connection, dpService, appMan);
 		for(ElectricityConnection subConn: connection.subPhaseConnections().getAllElements()) {
 			addConnDatapoints(result, subConn, subConn.getName(), dpService);			
 		}
@@ -104,10 +106,11 @@ public class ElConnBoxDeviceHandler extends DeviceHandlerSimple<ElectricityConne
 		return result;
 	}
 	
-	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn, DatapointService dpService) {
+	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
+			DatapointService dpService, ApplicationManagerPlus appMan) {
 		//addDatapoint(conn.voltageSensor().reading(), result, dpService);
-		addDatapoint(conn.powerSensor().reading(), result, dpService);
-		addDatapoint(conn.energySensor().reading(), result, dpService);
+		Datapoint powerDp = addDatapoint(conn.powerSensor().reading(), result, dpService);
+		Datapoint energyDp = addDatapoint(conn.energySensor().reading(), result, dpService);
 		EnergyResource energyDaily = conn.getSubResource("energyDaily", ElectricEnergySensor.class).reading();
 		addDatapoint(energyDaily, result, dpService);
 		addDatapoint(conn.getSubResource("energyAccumulatedDaily", ElectricEnergySensor.class).reading(), result, dpService);
@@ -119,6 +122,8 @@ public class ElConnBoxDeviceHandler extends DeviceHandlerSimple<ElectricityConne
 		addDatapoint(conn.frequencySensor().reading(), result, dpService);		
 		addDatapoint(conn.reactivePowerSensor().reading(), result, dpService);
 		addDatapoint(conn.reactiveAngleSensor().reading(), result, dpService);
+		
+		MeteringEvalUtil.addDailyMeteringEval(energyDp, powerDp, conn, result, appMan);
 	}
 	
 	protected static void addConnDatapoints(List<Datapoint> result, ElectricityConnection conn,
