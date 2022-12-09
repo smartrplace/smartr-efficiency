@@ -139,6 +139,11 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			menu.addEntry("Thermostat Auto-Mode and Valve Adapt Management", thermPageAuto);
 			thermPageAuto.getMenuConfiguration().setCustomNavigation(menu);
 
+			WidgetPage<?> thermPageValve = widgetApp.createWidgetPage("thermostatValve.hmtl");
+			new ThermostatPage(thermPageValve, controller, ThermostatPageType.VALVE_ONLY);
+			menu.addEntry("Thermostat Valve Adapt Management Only", thermPageValve);
+			thermPageValve.getMenuConfiguration().setCustomNavigation(menu);
+
 			
 			WidgetPage<?> thermPageBatWindow = widgetApp.createWidgetPage("thermostatBatteryWindow.hmtl");
 			new ThermostatPage(thermPageBatWindow, controller, ThermostatPageType.BATTERY_WINDOW);

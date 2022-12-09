@@ -2,6 +2,7 @@ package org.smartrplace.apps.hw.install.gui;
 
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
@@ -16,6 +17,8 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 	private final FloatResource feedback;
 	private final IntegerResource controlInt;
 	private final IntegerResource feedbackInt;
+	private final StringResource controlStr;
+	private final StringResource feedbackStr;
 	private final DatapointService dpService;
 
 	public ControlFeedbackFormatter(FloatResource control, FloatResource feedback, DatapointService dpService) {
@@ -23,6 +26,8 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 		this.feedback = feedback;
 		this.controlInt = null;
 		this.feedbackInt = null;
+		this.controlStr = null;
+		this.feedbackStr = null;
 		this.dpService = dpService;
 	}
 	
@@ -31,6 +36,18 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 		this.feedback = null;
 		this.controlInt = control;
 		this.feedbackInt = feedback;
+		this.controlStr = null;
+		this.feedbackStr = null;
+		this.dpService = dpService;
+	}
+
+	public ControlFeedbackFormatter(StringResource control, StringResource feedback, DatapointService dpService) {
+		this.control = null;
+		this.feedback = null;
+		this.controlInt = null;
+		this.feedbackInt = null;
+		this.controlStr = control;
+		this.feedbackStr = feedback;
 		this.dpService = dpService;
 	}
 
@@ -54,6 +71,11 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 			if(isTemperature)
 				return new OnGETData(String.format("%.1f / %.1f", val-273.15f, valFb-273.15f), state);
 			return new OnGETData(String.format("%.1f / %.1f", val, valFb), state);
+		} else if(controlStr != null) {
+			String val = controlStr.getValue();
+			String valFb = feedbackStr.getValue();
+			int state = (val.equals(valFb))?1:0;
+			return new OnGETData(String.format("%s", valFb), state);			
 		}
 		int val = controlInt.getValue();
 		int valFb = feedbackInt.getValue();

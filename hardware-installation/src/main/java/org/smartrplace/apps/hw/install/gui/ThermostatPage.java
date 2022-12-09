@@ -10,6 +10,7 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
@@ -21,6 +22,7 @@ import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.buildingtechnology.ThermostatProgram;
 import org.ogema.model.locations.Room;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
@@ -38,8 +40,11 @@ import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 import org.smartrplace.util.virtualdevice.SensorData;
 import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTiming;
+import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
@@ -61,6 +66,7 @@ public class ThermostatPage extends MainPage {
 	public enum ThermostatPageType {
 		STANDARD,
 		AUTO_MODE,
+		VALVE_ONLY,
 		BATTERY_WINDOW,
 		STANDARD_VIEW_ONLY
 	}
@@ -73,6 +79,8 @@ public class ThermostatPage extends MainPage {
 			return "Thermostat Special Selection";
 		case AUTO_MODE:
 			return "Thermostat Auto-Mode and Valve Adapt Management";
+		case VALVE_ONLY:
+			return "Valve Adapt Management Only";
 		case BATTERY_WINDOW:
 			return "Thermostat Battery and Window Management";
 		case STANDARD_VIEW_ONLY:
@@ -146,6 +154,8 @@ public class ThermostatPage extends MainPage {
 				ControlFeedbackFormatter formatter;
 				if(control instanceof FloatResource) {
 					formatter = new ControlFeedbackFormatter((FloatResource)control, (FloatResource)feedback, controller.dpService);
+				} else if(control instanceof StringResource) {
+					formatter = new ControlFeedbackFormatter((StringResource)control, (StringResource)feedback, controller.dpService);
 				} else
 					formatter = new ControlFeedbackFormatter((IntegerResource)control, (IntegerResource)feedback, controller.dpService);
 				Label winMode = vh.stringLabel(widgetId, id, formatter, row);
@@ -159,7 +169,7 @@ public class ThermostatPage extends MainPage {
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
-					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
+					String id, OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
 				//if(!(object.device() instanceof Thermostat) && (req != null)) return null;
 				final Thermostat device;
 				if(req == null)
@@ -333,8 +343,14 @@ public class ThermostatPage extends MainPage {
 						if(req == null) {
 							vh.registerHeaderEntry("VErr");
 							vh.registerHeaderEntry("Last VErr");
-							if(type == ThermostatPageType.AUTO_MODE)
+							if(type == ThermostatPageType.AUTO_MODE || type == ThermostatPageType.VALVE_ONLY)
 								vh.registerHeaderEntry("Start Adapt");
+							if(type == ThermostatPageType.VALVE_ONLY) {
+								vh.registerHeaderEntry("Weekly Decalc");
+								vh.registerHeaderEntry("LastWeekly");
+								vh.registerHeaderEntry("Weekly Now");
+								vh.registerHeaderEntry("Weekly Postpone");
+							}
 						} else {
 							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
 							Label valveErrL = vh.stringLabel("VErr", id, new LabelFormatter() {
@@ -357,7 +373,8 @@ public class ThermostatPage extends MainPage {
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
 							
 							final BooleanResource ada = device.valve().getSubResource("startAdaption", BooleanResource.class);
-							if(type == ThermostatPageType.AUTO_MODE && (ada.exists())) {
+							if((type == ThermostatPageType.AUTO_MODE || type == ThermostatPageType.VALVE_ONLY)
+									&& (ada.exists())) {
 								Button startAdapt = new Button(mainTable, "startAdapt"+id, req) {
 									@Override
 									public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -367,7 +384,30 @@ public class ThermostatPage extends MainPage {
 								startAdapt.setDefaultText("Start ADA");
 								row.addCell(WidgetHelper.getValidWidgetId("Start Adapt"), startAdapt);
 							}
-
+							if(type == ThermostatPageType.VALVE_ONLY) {
+								addControlFeedbackLabel("Weekly Decalc", device.valve().getSubResource("DECALCIFICATION", StringResource.class),
+										device.valve().getSubResource("DECALCIFICATION_FEEDBACK", StringResource.class), "LastWeekly",
+										vh, id, req, row);
+								Button decalcNowBut = new Button(mainTable, "decalcNowBut"+id, req) {
+									@Override
+									public void onPOSTComplete(String data, OgemaHttpRequest req) {
+										long now = appMan.getFrameworkTime();
+										setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);										
+									}
+								};
+								decalcNowBut.setDefaultText("Decalc Now");
+								row.addCell(WidgetHelper.getValidWidgetId("Weekly Now"), decalcNowBut);
+								
+								Button decalcPostponeBut = new Button(mainTable, "decalcPostponeBut"+id, req) {
+									@Override
+									public void onPOSTComplete(String data, OgemaHttpRequest req) {
+										long now = appMan.getFrameworkTime();
+										setDecalcTime(device, now+6*TimeProcUtil.DAY_MILLIS);										
+									}
+								};
+								decalcPostponeBut.setDefaultText("Decalc Shift Max");
+								row.addCell(WidgetHelper.getValidWidgetId("Weekly Postpone"), decalcPostponeBut);
+							}
 						}
 					}
 				}
@@ -542,7 +582,8 @@ public class ThermostatPage extends MainPage {
 					row.addCell("Plot", logResult.plotButton);
 
 					String text = getHomematicCCUId(object.device().getLocation());
-					if((type != ThermostatPageType.AUTO_MODE) && (type != ThermostatPageType.BATTERY_WINDOW))
+					if((type != ThermostatPageType.AUTO_MODE) && (type != ThermostatPageType.BATTERY_WINDOW)
+							&& (type != ThermostatPageType.VALVE_ONLY))
 						vh.stringLabel("RT", id, text, row);
 					InstallAppDevice ccuIad = HmSetpCtrlManager.getCCU(device, controller.dpService);
 					if(ccuIad != null)
@@ -556,7 +597,8 @@ public class ThermostatPage extends MainPage {
 						vh.registerHeaderEntry("SendMan");						
 					}
 					vh.registerHeaderEntry("Plot");
-					if((type != ThermostatPageType.AUTO_MODE) && (type != ThermostatPageType.BATTERY_WINDOW))
+					if((type != ThermostatPageType.AUTO_MODE) && (type != ThermostatPageType.BATTERY_WINDOW)
+							&& (type != ThermostatPageType.VALVE_ONLY))
 						vh.registerHeaderEntry("RT");
 					vh.registerHeaderEntry("CCU");
 				}
@@ -598,5 +640,42 @@ public class ThermostatPage extends MainPage {
 		devTable.triggerPageBuild();
 		typeFilterDrop.registerDependentWidget(devTable.getMainTable());
 		
-	}	
+	}
+	
+	public static String setDecalcTime(Thermostat device, long destTime) {
+		StringResource res = device.valve().getSubResource("DECALCIFICATION", StringResource.class);
+		String val = getDecalcString(destTime);
+		if(val != null)
+			ValueResourceHelper.setCreate(res, val);
+		return val;
+	}
+	
+	public static String[] dayOfWeekStr = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
+	public static String getDecalcString(long destTime) {
+		long curWeekStart = AbsoluteTimeHelper.getIntervalStart(destTime, AbsoluteTiming.WEEK);
+		long timeInWeek = destTime - curWeekStart;
+		long dayOfWeekIdx = timeInWeek / TimeProcUtil.DAY_MILLIS;
+		if(dayOfWeekIdx > 6)
+			dayOfWeekIdx = 6;
+		String result = dayOfWeekStr[(int) dayOfWeekIdx];
+		
+		long inDayTime = timeInWeek % TimeProcUtil.DAY_MILLIS;
+		StringFormatHelper.getTimeOfDayInLocalTimeZone(destTime);
+		long hourOfDay = inDayTime / TimeProcUtil.HOUR_MILLIS;
+		if(hourOfDay > 23)
+			hourOfDay = 23;
+		long inHourTime = inDayTime - hourOfDay*TimeProcUtil.HOUR_MILLIS;
+		if(inHourTime == 0)
+			result += " "+hourOfDay+":00";
+		else if(inHourTime <= 30*TimeProcUtil.MINUTE_MILLIS)
+			result += " "+hourOfDay+":30";
+		else if(hourOfDay == 23) {
+			dayOfWeekIdx++;
+			if(dayOfWeekIdx > 6)
+				dayOfWeekIdx = 0;
+			result = dayOfWeekStr[(int) dayOfWeekIdx]+" "+hourOfDay+":30";
+		} else {
+			result += " "+(hourOfDay+1)+":00";
+		} return result;
+	}
 }
