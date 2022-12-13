@@ -11,7 +11,9 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
@@ -22,8 +24,10 @@ import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.buildingtechnology.ThermostatProgram;
 import org.ogema.model.locations.Room;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -43,8 +47,8 @@ import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
@@ -165,6 +169,46 @@ public class ThermostatPage extends MainPage {
 					lastWinMode.setPollingInterval(DeviceTableRaw.DEFAULT_POLL_RATE, req);
 				}
 				return winMode;
+			}
+			
+			private TextField addSetpEditField(String widgetId, final FloatResource control,
+					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+					String id, OgemaHttpRequest req, Row row) {
+				TextField setpointSet = null;
+				if(req != null) {
+					setpointSet = new TextField(mainTable, widgetId+id, req) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							if(control instanceof TemperatureResource)
+								setValue(String.format("%.1f", ((TemperatureResource)control).getCelsius()), req);
+							else
+								setValue(String.format("%.1f", control.getValue()), req);
+						}
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							String val = getValue(req);
+							val = val.replaceAll("[^\\d.]", "");
+							try {
+								float value  = Float.parseFloat(val);
+								if((Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints") && (value < -3f || value > 3f)) ||
+										((!Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints")) && (value < 4.5f || value> 30.5f))) {
+									alert.showAlert("Outside allowed range", false, req);
+								} else if(control instanceof TemperatureResource)
+									((TemperatureResource)control).setCelsius(value);
+								else
+									control.setValue(value);
+							} catch (NumberFormatException | NullPointerException e) {
+								if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
+								return;
+							}
+						}
+					};
+					row.addCell(WidgetHelper.getValidWidgetId(widgetId), setpointSet);
+					setpointSet.setPollingInterval(DEFAULT_POLL_RATE, req);
+				} else
+					vh.registerHeaderEntry(widgetId);
+				return setpointSet;
 			}
 			
 			@Override
@@ -415,7 +459,12 @@ public class ThermostatPage extends MainPage {
 					if(req == null) {
 						vh.registerHeaderEntry("Com/Err");
 						vh.registerHeaderEntry("Last Err");
-						vh.registerHeaderEntry("ManuMode");
+						if(type != ThermostatPageType.VALVE_ONLY)
+							vh.registerHeaderEntry("ManuMode");
+						else {
+							vh.registerHeaderEntry("VveMax");
+							vh.registerHeaderEntry("EditMax");
+						}
 					} else {
 						final IntegerResource errorCode = ResourceHelper.getSubResourceOfSibbling(device,
 								"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "errorCode", IntegerResource.class);
@@ -503,6 +552,14 @@ public class ThermostatPage extends MainPage {
 					
 					}
 				}
+				if(type == ThermostatPageType.VALVE_ONLY) {
+					addParamLabel(device, PropType.THERMOSTAT_VALVE_MAXPOSITION, "VveMax", vh, id, req, row);
+					//final FloatResource sres = (FloatResource) PropType.getHmParam(device, PropType.THERMOSTAT_VALVE_MAXPOSITION, true);
+					final FloatResource sresCt = (FloatResource) PropType.getHmParam(device, PropType.THERMOSTAT_VALVE_MAXPOSITION, false);
+					//addControlFeedbackLabel("VveMax", sresCt, sres, null, vh, id, req, row);
+					addSetpEditField("EditMax", sresCt, vh, id, req, row);
+				}
+				
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());
 				Room deviceRoom = device.location().room();
 				//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
@@ -616,7 +673,7 @@ public class ThermostatPage extends MainPage {
 			
 			@Override
 			public String getTableTitleRaw() {
-				return "Current Thermostat Measurements";
+				return "";
 			}
 			
 			@Override
@@ -677,5 +734,31 @@ public class ThermostatPage extends MainPage {
 		} else {
 			result += " "+(hourOfDay+1)+":00";
 		} return result;
+	}
+	
+	public static Label addParamLabel(PhysicalElement device, PropType type, String colName,
+			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+			String id, OgemaHttpRequest req, Row row) {
+		if(req == null) {
+			vh.registerHeaderEntry(colName);
+			return null;
+		}
+		final SingleValueResource sres = PropType.getHmParam(device, type, true);
+		final SingleValueResource sresCt = PropType.getHmParam(device, type, false);
+		Label result = new Label(vh.getParent(), WidgetHelper.getValidWidgetId("paramLabel"+type.toString()+id), req) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String text = ValueResourceUtils.getValue(sres);
+				setText(text, req);
+				String textCt = ValueResourceUtils.getValue(sresCt);
+				if(!text.equals(textCt))
+					addStyle(LabelData.BOOTSTRAP_ORANGE, req);
+				else
+					removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
+			}
+		};
+		result.setPollingInterval(DeviceTableRaw.DEFAULT_POLL_RATE, req);
+		row.addCell(WidgetHelper.getValidWidgetId(colName), result);
+		return result;
 	}
 }

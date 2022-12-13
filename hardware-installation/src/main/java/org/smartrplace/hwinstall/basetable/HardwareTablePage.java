@@ -85,6 +85,10 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		return true;
 	}
 	
+	protected boolean suppressSearchForNewDevices() {
+		return false;
+	}
+	
 	protected class SubTableData {
 		DeviceHandlerProvider<?> pe;
 		DeviceTableBase table;
@@ -138,8 +142,11 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		header.addDefaultStyle(HeaderData.TEXT_ALIGNMENT_LEFT);
 		page.append(header).linebreak();
 		
-		OgemaWidget installMode;
-		if(devHandAcc == null) {
+		final OgemaWidget installMode;
+		if(suppressSearchForNewDevices()) {
+			//leave out
+			installMode = null;
+		} else if(devHandAcc == null) {
 			installMode = new Label(page, "installModeLab", "Search for new devices: "+
 					(resData.appConfigData.isInstallationActive().getValue()?"active":"inactive"));
 		} else {
@@ -220,7 +227,11 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		//RedirectButton calendarConfigButton = new RedirectButton(page, "calendarConfigButton",
 		//		"Calendar Configuration", "/org/smartrplace/apps/smartrplaceheatcontrolv2/extensionpage.html");
 		
-		OgemaWidget commitBtn = getCommitButton();
+		final OgemaWidget commitBtn;
+		if(suppressSearchForNewDevices())
+			commitBtn = null;
+		else
+			commitBtn = getCommitButton();
 		/*Button commitBtn = new Button(page, "commitBtn", "Commit changes") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -234,10 +245,12 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		
 		topTable = new StaticTable(getTopTableLines(), 7, new int[] {2, 2, 1, 2, 1, 2, 2});
 		int installFilterCol=3;
-		topTable.setContent(0, 0, roomsDrop.getFirstDropdown())
-				.setContent(0, 1, roomsDrop)
-				.setContent(0, installFilterCol, typeFilterDrop)
-				.setContent(0, installFilterCol+2, installMode);//setContent(0, 2, roomLinkButton).
+		if(installMode != null) {
+			topTable.setContent(0, 0, roomsDrop.getFirstDropdown())
+					.setContent(0, 1, roomsDrop)
+					.setContent(0, installFilterCol, typeFilterDrop)
+					.setContent(0, installFilterCol+2, installMode);//setContent(0, 2, roomLinkButton).
+		}
 		if(commitBtn != null)
 			topTable.setContent(0, 2, commitBtn);
 

@@ -16,6 +16,7 @@ import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.BatteryPage;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -49,32 +50,6 @@ public class WindowStatusPage extends BatteryPage {
 		topTable.setContent(0, 4, triggerUpdate);*/
 	}
 
-	protected Label addParamLabel(PhysicalElement device, PropType type, String colName,
-			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
-			String id, OgemaHttpRequest req, Row row) {
-		if(req == null) {
-			vh.registerHeaderEntry(colName);
-			return null;
-		}
-		final SingleValueResource sres = PropType.getHmParam(device, type, true);
-		final SingleValueResource sresCt = PropType.getHmParam(device, type, false);
-		Label result = new Label(vh.getParent(), WidgetHelper.getValidWidgetId("paramLabel"+type.toString()+id), req) {
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				String text = ValueResourceUtils.getValue(sres);
-				setText(text, req);
-				String textCt = ValueResourceUtils.getValue(sresCt);
-				if(!text.equals(textCt))
-					addStyle(LabelData.BOOTSTRAP_ORANGE, req);
-				else
-					removeStyle(LabelData.BOOTSTRAP_ORANGE, req);
-			}
-		};
-		result.setPollingInterval(DEFAULT_POLL_RATE, req);
-		row.addCell(WidgetHelper.getValidWidgetId(colName), result);
-		return result;
-	}
-	
 	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
@@ -88,10 +63,10 @@ public class WindowStatusPage extends BatteryPage {
 					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				final PhysicalElement device2 = addNameWidget(object, vh, id, req, row, appMan).getLocationResource();
 				
-				addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_MODE, "Mode", vh, id, req, row);
-				addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_TEMPERATURE, "Setpoint", vh, id, req, row);
-				addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_MINUTES, "Minutes", vh, id, req, row);
-				addParamLabel(device2, PropType.THERMOSTAT_VALVE_MAXPOSITION, "ValveMax", vh, id, req, row);
+				ThermostatPage.addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_MODE, "Mode", vh, id, req, row);
+				ThermostatPage.addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_TEMPERATURE, "Setpoint", vh, id, req, row);
+				ThermostatPage.addParamLabel(device2, PropType.THERMOSTAT_WINDOWOPEN_MINUTES, "Minutes", vh, id, req, row);
+				ThermostatPage.addParamLabel(device2, PropType.THERMOSTAT_VALVE_MAXPOSITION, "ValveMax", vh, id, req, row);
 
 				if(req == null) {
 					vh.registerHeaderEntry("Last Status");

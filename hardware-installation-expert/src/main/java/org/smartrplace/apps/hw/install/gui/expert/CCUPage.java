@@ -96,6 +96,7 @@ public class CCUPage extends MainPage {
 					vh.registerHeaderEntry("yellow");
 					vh.registerHeaderEntry("red");
 					vh.registerHeaderEntry("TeachIn");
+					vh.registerHeaderEntry("clientUrl");
 					vh.registerHeaderEntry("Location");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Plot");
@@ -115,6 +116,8 @@ public class CCUPage extends MainPage {
 						row, alert, 0, 100.0f, "Only 0 to 100% allowed");
 				
 				HmCCUPageUtils.addTechInModeButton(object, device, vh, id, req, row, appMan, hwConfig);
+				
+				HmCCUPageUtils.addClientUrl(device, vh, id, row);
 				vh.stringLabel("Location", id, object.installationLocation(), row);
 				vh.stringLabel("Comment", id, object.installationComment(), row);
 
@@ -137,7 +140,7 @@ public class CCUPage extends MainPage {
 			
 			@Override
 			public String getTableTitleRaw() {
-				return "CCU Detail Data";
+				return ""; //CCU Detail Data";
 			}
 			
 			@Override

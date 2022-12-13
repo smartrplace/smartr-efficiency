@@ -58,6 +58,11 @@ public class BatteryPage extends MainPage {
 	}
 
 	@Override
+	protected boolean offerAddRoomButton() {
+		return false;
+	}
+	
+	@Override
 	protected void finishConstructor() {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
 			//@Override

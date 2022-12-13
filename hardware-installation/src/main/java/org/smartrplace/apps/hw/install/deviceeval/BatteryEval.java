@@ -264,8 +264,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 		} else {
 			mes += getOverviewTableLine("Anzahl leerer Batterien: "+emptyNum);
 			mes += getOverviewTableLine("Anzahl Batterien die kurzfristig gewechselt werden sollten: "+warnNum);
-			mes += getOverviewTableLine("Anzahl der Batterien, für die zur Sicherheit bereits ein Wechsel empfohlen wird: "+changeNum);
-			mes += getOverviewTableLine("Anzahl der Batterien, für die zur Sicherheit bereits ein Wechsel empfohlen wird: "+changeNum);
+			mes += getOverviewTableLine("Anzahl Geräte ohne Kontakt, die ggf. neue Batterie benötigen: "+unknownNum);
 			mes += getOverviewTableLine(" ");
 			String link = baseUrl+"/org/smartrplace/hardwareinstall/batteriescust.html";
 			mes += getOverviewTableLine("Nach dem Wechsel können Sie die aktuelle Batteriespannung hier prüfen: <a href=\""+link+"\">Battery Status Overview</a>");			
@@ -303,7 +302,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 			mes += getValueLineHTML(batProv, status.iad.deviceId().getValue(),
 					getRoomName(status.iad),
 					""+status.status,
-					status.expectedEmptyDate!=null?(StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate)):"???", //+"("+status.expectedEmptyDate+")"
+					status.expectedEmptyDate!=null?(StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate)):"---", //+"("+status.expectedEmptyDate+")"
 					String.format("%.1f", status.currentVoltage));
 		}
 

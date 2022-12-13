@@ -234,9 +234,16 @@ public class HardwareInstallController {
 			menu.addEntry(mainPage.getHeader(), page);
 			page.getMenuConfiguration().setCustomNavigation(menu);
 			WidgetPage<?> pageBatteryBase =  hardwareInstallApp.widgetApp.createWidgetPage("batteriescust.html");
-			new BatteryPage(pageBatteryBase, this, false);
+			new BatteryPage(pageBatteryBase, this, false) {
+				@Override
+				protected boolean suppressSearchForNewDevices() {
+					return true;
+				}
+			};
 			menu.addEntry("Battery Status Overview", pageBatteryBase);
-			pageBatteryBase.getMenuConfiguration().setCustomNavigation(menu);
+			//pageBatteryBase.getMenuConfiguration().setCustomNavigation(menu);
+			pageBatteryBase.getMenuConfiguration().setLanguageSelectionVisible(false);
+			pageBatteryBase.getMenuConfiguration().setShowMessages(false);
 		}
 
 		initConfigResourceForOperation();
