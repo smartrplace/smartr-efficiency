@@ -56,7 +56,11 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 		if(control != null) {
 			float val = control.getValue();
 			float valFb = feedback.getValue();
-			int state = ValueResourceHelper.isAlmostEqual(val, valFb)?1:0;
+			int state;
+			if(!feedback.exists())
+				state = 2;
+			else
+				state = ValueResourceHelper.isAlmostEqual(val, valFb)?1:0;
 			Boolean isTemperature = null;
 			if(dpService != null) {
 				Datapoint dp = dpService.getDataPointAsIs(control);
@@ -74,12 +78,24 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 		} else if(controlStr != null) {
 			String val = controlStr.getValue();
 			String valFb = feedbackStr.getValue();
-			int state = (val.equals(valFb))?1:0;
+			int state;
+			if(feedback == null || (!feedback.exists())) {
+				state = 2;
+				return new OnGETData(String.format("%s", val), state);			
+			} else
+				state = (val.equals(valFb))?1:0;
 			return new OnGETData(String.format("%s", valFb), state);			
+		} else if(controlInt != null) {
+			int val = controlInt.getValue();
+			int valFb = feedbackInt.getValue();
+			int state;
+			if(feedback == null || (!feedback.exists())) {
+				state = 2;
+				return new OnGETData(String.format("%d", val), state);
+			} else
+				state = (val==valFb)?1:0;
+			return new OnGETData(String.format("%d / %d", val, valFb), state);
 		}
-		int val = controlInt.getValue();
-		int valFb = feedbackInt.getValue();
-		int state = (val==valFb)?1:0;
-		return new OnGETData(String.format("%d / %d", val, valFb), state);
+		return new OnGETData("n/a", 2);
 	}
 }

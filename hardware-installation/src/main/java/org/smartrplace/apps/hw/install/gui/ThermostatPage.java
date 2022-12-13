@@ -153,7 +153,7 @@ public class ThermostatPage extends MainPage {
 					String lastContactWidgetId,
 					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row) {
-				if(!(control.exists() && feedback.exists()))
+				if(!(control.exists() || feedback.exists()))
 					return null;
 				ControlFeedbackFormatter formatter;
 				if(control instanceof FloatResource) {
