@@ -53,47 +53,62 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 	}
 
 	@Override
+	public boolean useOriginalObjectId() {
+		return true;
+	}
+	
+	@Override
 	public TimeSeriesDataImpl getObject(String objectId, String user) {
-		TimeSeriesDataImpl result = getObjectV1(objectId, user);
+		// Calculate objectId as in UserServlet#getObjects
+		String objectIdStandard;
+		try {
+			int numId = Integer.parseInt(objectId);
+			objectIdStandard = UserServlet.num2StringGet(numId);
+			if(objectIdStandard == null)
+				objectIdStandard = objectId;				
+		} catch(NumberFormatException e) {
+			objectIdStandard = objectId;
+		}
+		TimeSeriesDataImpl result = getObjectV1(objectIdStandard, objectId, user);
 		if(result != null)
 			return result;
 		return null;
 	}
-	public TimeSeriesDataImpl getObjectV1(String objectId, String user) {
-		TimeSeriesDataImpl obj = UserServlet.knownTS.get(objectId);
+	public TimeSeriesDataImpl getObjectV1(String objectIdStandard, String objectIdRequested, String user) {
+		TimeSeriesDataImpl obj = UserServlet.knownTS.get(objectIdStandard);
 		if(obj != null)
-			return correctTimeseriesID(obj, objectId); //TODO: Check if this is really a good idea
-		Object objRaw = OGEMAConfigurations.getObject(UserServlet.TimeSeriesServletImplClassName, objectId);
+			return correctTimeseriesID(obj, objectIdRequested); //TODO: Check if this is really a good idea
+		Object objRaw = OGEMAConfigurations.getObject(UserServlet.TimeSeriesServletImplClassName, objectIdStandard);
 		if(objRaw == null) {
-			controller.log.error("objRaw not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
-			Datapoint dp = controller.dpService.getDataPointStandard(objectId);
+			controller.log.error("objRaw not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectIdRequested+" / "+objectIdStandard);
+			Datapoint dp = controller.dpService.getDataPointStandard(objectIdStandard);
 			if(dp == null) {
-				controller.log.error("Datapoint not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
+				controller.log.error("Datapoint not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectIdRequested+" / "+objectIdStandard);
 				return null;
 			}
 			TimeSeriesDataImpl ts = dp.getTimeSeriesDataImpl(null);
 			if(ts == null) {
-				controller.log.error("Timeseries of Datapoint not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectId);
+				controller.log.error("Timeseries of Datapoint not found for "+UserServlet.TimeSeriesServletImplClassName+", "+objectIdRequested+" / "+objectIdStandard);
 				return null;				
 			}
 			objRaw = ts;
 		}
 		if(objRaw instanceof TimeSeriesDataImpl) {
 			obj = (TimeSeriesDataImpl) objRaw;
-			UserServlet.knownTS.put(objectId, obj);
+			UserServlet.knownTS.put(objectIdStandard, obj);
 		} else if(objRaw instanceof ReadOnlyTimeSeries) {
-			obj = new TimeSeriesDataImpl((ReadOnlyTimeSeries)objRaw, objectId, objectId, InterpolationMode.NONE);
-			UserServlet.knownTS.put(objectId, obj);			
+			obj = new TimeSeriesDataImpl((ReadOnlyTimeSeries)objRaw, objectIdRequested, objectIdRequested, InterpolationMode.NONE);
+			UserServlet.knownTS.put(objectIdStandard, obj);			
 		}
 		//TODO: Check if this is really a good idea
-		return correctTimeseriesID(obj, objectId);
+		return correctTimeseriesID(obj, objectIdRequested);
 	}
 	
-	private TimeSeriesDataImpl correctTimeseriesID(TimeSeriesDataImpl obj, String objectId) {
-		if(obj.label(null) != objectId) {
-			System.out.println("WARNING: objectId:"+objectId+" ,label:"+obj.label(null));
-			TimeSeriesDataImpl newObj = new TimeSeriesDataImpl(obj, objectId, objectId);
-			UserServlet.knownTS.put(objectId, newObj);	
+	private TimeSeriesDataImpl correctTimeseriesID(TimeSeriesDataImpl obj, String objectIdRequested) {
+		if(obj.label(null) != objectIdRequested) {
+			System.out.println("WARNING: objectId:"+objectIdRequested+" ,label:"+obj.label(null));
+			TimeSeriesDataImpl newObj = new TimeSeriesDataImpl(obj, objectIdRequested, objectIdRequested);
+			UserServlet.knownTS.put(objectIdRequested, newObj);	
 			return newObj;
 		}
 		return obj;		
