@@ -9,6 +9,7 @@ import org.ogema.core.administration.UserAccount;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.tools.app.createuser.UserAdminBaseUtil;
@@ -37,6 +38,7 @@ public class AccessAdminController {
     public ApplicationManager appMan;
     /** This will not be available in the constructor*/
     public UserPermissionServiceImpl userPermService;
+    public final DatapointService dpService;
     
 	public AccessAdminConfig appConfigData;
 	public final HardwareInstallConfig hwInstallConfig;
@@ -62,8 +64,10 @@ public class AccessAdminController {
 		this.appMan = appMan;
 		this.log = appMan.getLogger();
 		this.accessAdminApp = initApp;
+		this.dpService = initApp.dpService;
 		this.appManPlus = new ApplicationManagerPlus(appMan);
 		appManPlus.setPermMan(initApp.permMan);
+		appManPlus.setDpService(dpService);
 		//appManPlus.setUserPermService(userPermService);
 		
 		initConfigurationResource();
@@ -73,8 +77,6 @@ public class AccessAdminController {
 
 		UserAdminBaseUtil.initAcc(appConfigData);
 		
-		//mainPage = new MainPage(page, appMan);
-
 		boolean isGw = Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway");
 		if(isGw) {
 			//WidgetPage<?> pageRes1 = initApp.widgetApp.createWidgetPage("userroomperm.html");

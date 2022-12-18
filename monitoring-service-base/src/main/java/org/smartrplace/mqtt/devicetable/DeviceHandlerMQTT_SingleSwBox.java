@@ -10,6 +10,7 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
@@ -118,6 +119,28 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerSimple<SingleSwi
 			lastFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);
 
 		vh.booleanEdit("Control", id, device.onOffSwitch().stateControl(), row);
+		
+		if(req == null) {
+			vh.registerHeaderEntry("clientUrl");
+			return;
+		}
+
+		StringResource clientUrlEth = device.getSubResource("ipAddressEth", StringResource.class);
+		StringResource clientUrlWifi = device.getSubResource("ipAddressWifi", StringResource.class);
+		StringResource clientUrlRes;
+		boolean alsoWifi = false;
+		if(clientUrlEth.exists()) {
+			clientUrlRes = clientUrlEth;
+			if(clientUrlWifi.exists())
+				alsoWifi = true;
+		} else
+			clientUrlRes = clientUrlWifi;
+		if(clientUrlRes.exists()) {
+			String showVal = clientUrlRes.getValue();
+			if(alsoWifi)
+				showVal += "+Wifi";
+			vh.stringLabel("clientUrl", id, showVal, row);
+		}
 	}
 
 	@Override

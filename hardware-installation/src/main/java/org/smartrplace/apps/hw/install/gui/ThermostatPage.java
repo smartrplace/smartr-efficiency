@@ -3,6 +3,7 @@ package org.smartrplace.apps.hw.install.gui;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
@@ -12,6 +13,9 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.units.TemperatureResource;
+import org.ogema.core.model.units.VoltageResource;
+import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.PropType;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
@@ -19,6 +23,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.LastContactLabel;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
@@ -633,6 +638,10 @@ public class ThermostatPage extends MainPage {
 					MainPageExpert.addKniStatus(object, devHand, vh, id, req, row, appManPlus);
 				}
 				if(req != null) {
+					final GetPlotButtonResult logResultSpecial = ThermostatPage.getThermostatPlotButton(device, appManPlus, vh, id, row, req,
+							ScheduleViewerConfigProvThermDebug.getInstance());
+					row.addCell(WidgetHelper.getValidWidgetId("TH-Plot"), logResultSpecial.plotButton);
+
 					DeviceHandlerProviderDP<Resource> pe = controller.dpService.getDeviceHandlerProvider(object);
 					final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 							ScheduleViewerConfigProvThermDebug.getInstance(), null);
@@ -653,6 +662,7 @@ public class ThermostatPage extends MainPage {
 						vh.registerHeaderEntry("KniStatus");
 						vh.registerHeaderEntry("SendMan");						
 					}
+					vh.registerHeaderEntry("TH-Plot");
 					vh.registerHeaderEntry("Plot");
 					if((type != ThermostatPageType.AUTO_MODE) && (type != ThermostatPageType.BATTERY_WINDOW)
 							&& (type != ThermostatPageType.VALVE_ONLY))
@@ -760,5 +770,36 @@ public class ThermostatPage extends MainPage {
 		result.setPollingInterval(DeviceTableRaw.DEFAULT_POLL_RATE, req);
 		row.addCell(WidgetHelper.getValidWidgetId(colName), result);
 		return result;
+	}
+	
+	public static Datapoint addDpToChart(SingleValueResource sres, List<Datapoint> plotTHDps, DatapointService dpService) {
+		Datapoint dp = dpService.getDataPointAsIs(sres);
+		if(dp != null)
+			plotTHDps.add(dp);
+		return dp;
+	}
+	
+	public static GetPlotButtonResult getThermostatPlotButton(Thermostat dev, ApplicationManagerPlus appManPlus,
+			ObjectResourceGUIHelper<?, ?> vh, String lineId, Row row, OgemaHttpRequest req,
+			DefaultScheduleViewerConfigurationProviderExtended schedViewProv) {
+		DatapointService dpService = appManPlus.dpService();
+		List<Datapoint> plotTHDps = new ArrayList<>();
+		addDpToChart(dev.temperatureSensor().reading(), plotTHDps, dpService);
+		addDpToChart(dev.temperatureSensor().settings().setpoint(), plotTHDps, dpService);
+		addDpToChart(dev.temperatureSensor().deviceFeedback().setpoint(), plotTHDps, dpService);
+		addDpToChart(dev.valve().setting().stateFeedback(), plotTHDps, dpService);
+
+		VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(dev);
+		if(batteryVoltage != null)
+			addDpToChart(batteryVoltage, plotTHDps, dpService);
+		
+		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(dev,
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		if(rssiDevice != null && rssiDevice.exists())
+			addDpToChart(rssiDevice, plotTHDps, dpService);
+
+		final GetPlotButtonResult logResultSpecial = ChartsUtil.getPlotButton("_THSpec_"+lineId, null, appManPlus.dpService(), appManPlus.appMan(), false, vh, row, req, null,
+				schedViewProv, null, plotTHDps);
+		return logResultSpecial;
 	}
 }

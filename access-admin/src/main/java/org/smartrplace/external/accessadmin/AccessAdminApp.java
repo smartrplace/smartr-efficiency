@@ -12,6 +12,7 @@ import org.ogema.accesscontrol.PermissionManager;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -49,6 +50,9 @@ public class AccessAdminApp implements Application {
 
 	@Reference
 	public PermissionManager permMan;
+
+	@Reference
+	public DatapointService dpService;
 
 	private BundleContext bc;
 	protected ServiceRegistration<UserPermissionService> srUserAccService = null;

@@ -8,19 +8,28 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.units.VoltageResource;
+import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
+import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
+import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -28,6 +37,7 @@ import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -186,6 +196,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					//vh.registerHeaderEntry("MinInterval");
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Edit TT");
+					if(pe.id().toLowerCase().contains("thermostat"))
+						vh.registerHeaderEntry("TH-Plot");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("For");
 					vh.registerHeaderEntry("Release");
@@ -309,6 +321,29 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				}
 				row.addCell("Release", releaseBut);
 				
+				if(object.device() instanceof Thermostat) {
+					Thermostat dev = (Thermostat)object.device();
+					final GetPlotButtonResult logResultSpecial = ThermostatPage.getThermostatPlotButton(dev, appManPlus, vh, id, row, req, ScheduleViewerConfigProvAlarm.getInstance());
+					/*List<Datapoint> plotTHDps = new ArrayList<>();
+					addDpToChart(dev.temperatureSensor().reading(), plotTHDps, controller.dpService);
+					addDpToChart(dev.temperatureSensor().settings().setpoint(), plotTHDps, controller.dpService);
+					addDpToChart(dev.temperatureSensor().deviceFeedback().setpoint(), plotTHDps, controller.dpService);
+					addDpToChart(dev.valve().setting().stateFeedback(), plotTHDps, controller.dpService);
+
+					VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(dev);
+					if(batteryVoltage != null)
+						addDpToChart(batteryVoltage, plotTHDps, controller.dpService);
+					
+					IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(dev,
+							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+					if(rssiDevice != null && rssiDevice.exists())
+						addDpToChart(rssiDevice, plotTHDps, controller.dpService);
+
+					final GetPlotButtonResult logResultSpecial = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
+							ScheduleViewerConfigProvAlarm.getInstance(), null, plotTHDps);*/
+					row.addCell(WidgetHelper.getValidWidgetId("TH-Plot"), logResultSpecial.plotButton);
+				}
+				
 				final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 						ScheduleViewerConfigProvAlarm.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
@@ -351,5 +386,5 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		List<InstallAppDevice> all = getDevicesSelected(pe, req);
 		List<InstallAppDevice> result = getDevicesWithKnownFault(all);
 		return result.isEmpty();
-	}
+	}	
 }

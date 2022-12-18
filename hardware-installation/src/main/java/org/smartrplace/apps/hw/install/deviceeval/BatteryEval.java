@@ -270,12 +270,12 @@ public class BatteryEval extends BatteryEvalBase3 {
 			mes += getOverviewTableLine("Nach dem Wechsel können Sie die aktuelle Batteriespannung hier prüfen: <a href=\""+link+"\">Battery Status Overview</a>");			
 		}
 		mes += " </table>\r\n";
-		mes += " <table style=\"padding: 10px; background-color: #9bc0b5; min-width: 100%; color: white;\">\r\n";
+		mes += " <table style=\"padding: 10px\"; background-color: #9bc0b5; min-width: 100%; color: white;\">\r\n";
 		mes += " <tr style=\"vertical-align: top; font-size: 1.3em;\"><td>"+
 				(fullVersion?"Battery exchanges required:":"Erforderliche und empfohlene Batteriewechsel")+"</td></tr>\r\n";
 		mes += " </table>\r\n";
 		
-		mes += "<table style=\"margin-top: 10px; margin-bottom: 10px; padding: 5px\">\r\n";
+		mes += "<table style=\"margin-top: 10px; margin-bottom: 10px; padding: 30px\">\r\n";
 
 		BackgroundProvider headerProv = new BackgroundProvider() {
 			
@@ -299,11 +299,13 @@ public class BatteryEval extends BatteryEvalBase3 {
 					return getBatteryHTMLColor(status.status);
 				}
 			};
+			if(status.iad.deviceId().getValue().startsWith("DWS-"))
+				status.expectedEmptyDate = null;
 			mes += getValueLineHTML(batProv, status.iad.deviceId().getValue(),
 					getRoomName(status.iad),
 					""+status.status,
 					status.expectedEmptyDate!=null?(StringFormatHelper.getDateInLocalTimeZone(status.expectedEmptyDate)):"---", //+"("+status.expectedEmptyDate+")"
-					String.format("%.1f", status.currentVoltage));
+							Float.isNaN(status.currentVoltage)?"--":String.format("%.1f", status.currentVoltage));
 		}
 
 		mes += " </table>\r\n";
@@ -372,9 +374,9 @@ public class BatteryEval extends BatteryEvalBase3 {
 		for(String val: vals) {
 			String background = (prov != null)?prov.getBackground(val, index):null;
 			if(background != null)
-				result += "<td style=\"padding 5px; background-color: "+background+";\">"+val+"</td>";			
+				result += "<td style=\"padding 30px; background-color: "+background+";\">"+val+"</td>";			
 			else
-				result += "<td style=\"padding 5px;\">"+val+"</td>";
+				result += "<td style=\"padding 30px;\">"+val+"</td>";
 			index++;
 		}
 		result += "</tr>\r\n";
