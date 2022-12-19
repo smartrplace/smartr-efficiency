@@ -49,11 +49,8 @@ import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 import org.smartrplace.util.virtualdevice.SensorData;
 import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
-import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.util.timer.AbsoluteTimeHelper;
-import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
@@ -441,7 +438,7 @@ public class ThermostatPage extends MainPage {
 									@Override
 									public void onPOSTComplete(String data, OgemaHttpRequest req) {
 										long now = appMan.getFrameworkTime();
-										setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);										
+										DeviceTableRaw.setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);										
 									}
 								};
 								decalcNowBut.setDefaultText("Decalc Now");
@@ -451,7 +448,8 @@ public class ThermostatPage extends MainPage {
 									@Override
 									public void onPOSTComplete(String data, OgemaHttpRequest req) {
 										long now = appMan.getFrameworkTime();
-										setDecalcTime(device, now+6*TimeProcUtil.DAY_MILLIS);										
+										DeviceTableRaw.setDecalcTimeForwardMax(device, now);
+										//setDecalcTime(device, destTime);										
 									}
 								};
 								decalcPostponeBut.setDefaultText("Decalc Shift Max");
@@ -707,43 +705,6 @@ public class ThermostatPage extends MainPage {
 		devTable.triggerPageBuild();
 		typeFilterDrop.registerDependentWidget(devTable.getMainTable());
 		
-	}
-	
-	public static String setDecalcTime(Thermostat device, long destTime) {
-		StringResource res = device.valve().getSubResource("DECALCIFICATION", StringResource.class);
-		String val = getDecalcString(destTime);
-		if(val != null)
-			ValueResourceHelper.setCreate(res, val);
-		return val;
-	}
-	
-	public static String[] dayOfWeekStr = {"MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
-	public static String getDecalcString(long destTime) {
-		long curWeekStart = AbsoluteTimeHelper.getIntervalStart(destTime, AbsoluteTiming.WEEK);
-		long timeInWeek = destTime - curWeekStart;
-		long dayOfWeekIdx = timeInWeek / TimeProcUtil.DAY_MILLIS;
-		if(dayOfWeekIdx > 6)
-			dayOfWeekIdx = 6;
-		String result = dayOfWeekStr[(int) dayOfWeekIdx];
-		
-		long inDayTime = timeInWeek % TimeProcUtil.DAY_MILLIS;
-		StringFormatHelper.getTimeOfDayInLocalTimeZone(destTime);
-		long hourOfDay = inDayTime / TimeProcUtil.HOUR_MILLIS;
-		if(hourOfDay > 23)
-			hourOfDay = 23;
-		long inHourTime = inDayTime - hourOfDay*TimeProcUtil.HOUR_MILLIS;
-		if(inHourTime == 0)
-			result += " "+hourOfDay+":00";
-		else if(inHourTime <= 30*TimeProcUtil.MINUTE_MILLIS)
-			result += " "+hourOfDay+":30";
-		else if(hourOfDay == 23) {
-			dayOfWeekIdx++;
-			if(dayOfWeekIdx > 6)
-				dayOfWeekIdx = 0;
-			result = dayOfWeekStr[(int) dayOfWeekIdx]+" "+hourOfDay+":30";
-		} else {
-			result += " "+(hourOfDay+1)+":00";
-		} return result;
 	}
 	
 	public static Label addParamLabel(PhysicalElement device, PropType type, String colName,
