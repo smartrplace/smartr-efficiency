@@ -79,7 +79,7 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 			String val = controlStr.getValue();
 			String valFb = feedbackStr.getValue();
 			int state;
-			if(feedback == null || (!feedback.exists())) {
+			if(feedbackStr == null || (!feedbackStr.exists())) {
 				state = 2;
 				return new OnGETData(String.format("%s", val), state);			
 			} else
@@ -89,7 +89,7 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 			int val = controlInt.getValue();
 			int valFb = feedbackInt.getValue();
 			int state;
-			if(feedback == null || (!feedback.exists())) {
+			if(feedbackInt == null || (!feedbackInt.exists())) {
 				state = 2;
 				return new OnGETData(String.format("%d", val), state);
 			} else
