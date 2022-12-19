@@ -45,6 +45,7 @@ import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
+import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 @Component(specVersion = "1.2", immediate = true)
 @Service({Application.class, HWInstallExtensionProvider.class})
@@ -96,6 +97,9 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 				protected boolean showOnlyBaseColsHWT() {
 					return true;
 				}
+				protected boolean isAllOptionAllowedSuper(OgemaHttpRequest req) {
+					return true;
+				};
 			};
 			controller.mainPageExts.add(expertPage3);
 			menu.addEntry(expertPage3.getHeader(), pageExp3);

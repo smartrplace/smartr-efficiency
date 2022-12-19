@@ -94,6 +94,9 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 				protected boolean showOnlyBaseColsHWT() {
 					return true;
 				}
+				protected boolean isAllOptionAllowedSuper(OgemaHttpRequest req) {
+					return true;
+				};
 			};
 			controller.mainPageExts.add(expertPage3);
 			menu.addEntry(expertPage3.getHeader(), pageExp3);
