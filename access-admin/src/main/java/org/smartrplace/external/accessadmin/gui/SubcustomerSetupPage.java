@@ -13,6 +13,7 @@ import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomer;
 import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomerType;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.BooleanResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.external.accessadmin.AccessAdminController;
@@ -126,6 +127,7 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 			vh.registerHeaderEntry("Delete");
 			if(isExtended) {
 				vh.registerHeaderEntry("Location");
+				vh.registerHeaderEntry("CMS ID");
 				if(System.getProperty("org.smartrplace.external.accessadmin.gui.tenant.testuser") != null)
 					vh.registerHeaderEntry("Add Testuser");
 			}
@@ -168,6 +170,9 @@ public class SubcustomerSetupPage extends ObjectGUITablePageNamed<SubCustomer, S
 		
 		if(isExtended) {
 			vh.stringLabel("Location", id, object.res.getLocation(), row);
+			IntegerResource cmsId = object.res.getSubResource("cmsTenancyId", IntegerResource.class);
+			if(cmsId.exists())
+				vh.intLabel("CMS ID", id, cmsId.getValue(), row, 0);
 			if(System.getProperty("org.smartrplace.external.accessadmin.gui.tenant.testuser") != null) {
 				String testuser = System.getProperty("org.smartrplace.external.accessadmin.gui.tenant.testuser");
 				Button testButton = new Button(page, "testButton"+id, "Add "+testuser) {
