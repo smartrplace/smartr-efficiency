@@ -396,6 +396,7 @@ public class ThermostatPage extends MainPage {
 								vh.registerHeaderEntry("LastWeekly");
 								vh.registerHeaderEntry("Weekly Now");
 								vh.registerHeaderEntry("Weekly Postpone");
+								vh.registerHeaderEntry("Postpone Check");
 							}
 						} else {
 							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
@@ -454,6 +455,10 @@ public class ThermostatPage extends MainPage {
 								};
 								decalcPostponeBut.setDefaultText("Decalc Shift Max");
 								row.addCell(WidgetHelper.getValidWidgetId("Weekly Postpone"), decalcPostponeBut);
+								
+								Long nextCheck = DeviceTableRaw.nextDecalcShiftCheck.get(device.getLocation());
+								if(nextCheck != null)
+									vh.timeLabel("Postpone Check", id, nextCheck, row, 5);
 							}
 						}
 					}
