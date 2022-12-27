@@ -750,6 +750,7 @@ public class ThermostatPage extends MainPage {
 			DefaultScheduleViewerConfigurationProviderExtended schedViewProv) {
 		DatapointService dpService = appManPlus.dpService();
 		List<Datapoint> plotTHDps = new ArrayList<>();
+		dev = dev.getLocationResource();
 		addDpToChart(dev.temperatureSensor().reading(), plotTHDps, dpService);
 		addDpToChart(dev.temperatureSensor().settings().setpoint(), plotTHDps, dpService);
 		addDpToChart(dev.temperatureSensor().deviceFeedback().setpoint(), plotTHDps, dpService);
