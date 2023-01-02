@@ -49,6 +49,7 @@ import org.smartrplace.apps.hw.install.gui.expert.MainPageExpertTrash;
 import org.smartrplace.apps.hw.install.gui.expert.WindowStatusPage;
 import org.smartrplace.apps.hw.install.gui.prop.DriverPropertyPageAll;
 import org.smartrplace.apps.hw.install.gui.prop.PropertyPage;
+import org.smatrplace.apps.hw.install.gui.mainexpert.ActionHistoryPage;
 import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.util.logconfig.LogHelper;
@@ -253,6 +254,11 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			new PreKnownDevicePage(pageHmTeach, controller, true);
 			menu.addEntry("Homematic Teach-In Page", pageHmTeach);
 			pageHmTeach.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> pageHistory = widgetApp.createWidgetPage("history.html");
+			ActionHistoryPage histPage = new ActionHistoryPage(pageHistory, controller.appMan);
+			menu.addEntry(histPage.getHeader(null), pageHistory);
+			pageHistory.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> page3 = widgetApp.createWidgetPage("deviceTypeConfig.html");
 			new DeviceTypeConfigPage(page3, controller);
