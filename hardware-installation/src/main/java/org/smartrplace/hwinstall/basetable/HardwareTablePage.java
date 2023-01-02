@@ -206,6 +206,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 				return isAllOptionAllowedSuper(req);
 			}
 		};
+		roomsDrop.suppressEmptyOptionsInFirstDropdown = false;
 		//installFilterDrop = new InstallationStatusFilterDropdown(page, "installFilterDrop", controller);
 		//installFilterDrop = new InstallationStatusFilterDropdown2(page, "installFilterDrop",
 		//		OptionSavingMode.PER_USER, appMan,
