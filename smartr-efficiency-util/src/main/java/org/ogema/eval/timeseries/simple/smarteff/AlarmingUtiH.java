@@ -457,4 +457,17 @@ public class AlarmingUtiH {
 			return "UNKNOWN STATE:"+value;
 		}
 	}
+	
+	public static String getWeeklyPostponeModeShort(int value) {
+		switch(value) {
+		case 0:
+			return "Property:"+Boolean.getBoolean("org.smartrplace.homematic.devicetable.autostart.shiftdecalc");
+		case 1:
+			return "Off";
+		case 2:
+			return "On";
+		default:
+			return "UNKNOWN STATE:"+value;
+		}
+	}
 }

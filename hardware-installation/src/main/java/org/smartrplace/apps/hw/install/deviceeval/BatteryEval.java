@@ -275,7 +275,7 @@ public class BatteryEval extends BatteryEvalBase3 {
 				(fullVersion?"Battery exchanges required:":"Erforderliche und empfohlene Batteriewechsel")+"</td></tr>\r\n";
 		mes += " </table>\r\n";
 		
-		mes += "<table style=\"margin-top: 10px; margin-bottom: 10px; padding: 30px; width: auto; margin-right: 5px\">\r\n";
+		mes += "<table style=\"margin-top: 10px; margin-bottom: 10px; padding: 30px; width: 100%; margin-right: 5px\">\r\n";
 
 		BackgroundProvider headerProv = new BackgroundProvider() {
 			
