@@ -3,11 +3,15 @@ package org.smartrplace.csv.download.generic;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -42,6 +46,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			List<PhysicalElement> devices = RoomHelper.getAllDevicesInRoom(room, appMan.getResourceAccess());
 			if(!devices.isEmpty()) for(PhysicalElement dev: devices) {
 				InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
+				//done.add(dev.getLocation());
 				printRow(room, iad, dev, p);
 			}
 			return true;
@@ -66,6 +71,31 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		return true;
 	}
 
+	@Override
+	protected void printFinal(CSVPrinter p) throws IOException {
+		Set<String> done = new HashSet<>();
+		@SuppressWarnings("rawtypes")
+		Set<Class> typesDone = new HashSet<Class>();
+		for(DeviceHandlerProviderDP<?> devHand: appMan.dpService().getDeviceHandlerProviders()) {
+			if(!devHand.relevantForUsers())
+				continue;
+			@SuppressWarnings("unchecked")
+			Class<? extends PhysicalElement> type = (Class<? extends PhysicalElement>) devHand.getResourceType();
+			if(typesDone.contains(type))
+				continue;
+			typesDone.add(type);
+			List<? extends PhysicalElement> devs = appMan.getResourceAccess().getResources(type);
+			for(PhysicalElement dev: devs) {
+				if(dev.location().room().exists())
+					continue;
+				if(done.contains(dev.getLocation()))
+					continue;
+				done.add(dev.getLocation());
+				printRow(null, null, dev, p);
+			}
+		}
+	}
+	
 	protected void printRow(Room room, InstallAppDevice iad, PhysicalElement dev, CSVPrinter p) throws IOException {
 		
 		List<String> toPrint = new ArrayList<>();
@@ -90,7 +120,10 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("");
 			toPrint.add("");			
 		}
-		toPrint.add(ResourceUtils.getHumanReadableShortName(room));
+		if(room != null)
+			toPrint.add(ResourceUtils.getHumanReadableShortName(room));
+		else
+			toPrint.add("");
 		if(iad != null && iad.installationLocation().exists())
 			toPrint.add(iad.installationLocation().getValue());
 		else

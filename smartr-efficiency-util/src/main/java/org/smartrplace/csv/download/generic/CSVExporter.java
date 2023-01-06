@@ -27,6 +27,7 @@ public abstract class CSVExporter<T> {
 	/** See example in comment at the end of the class*/
 	protected abstract boolean printRow(T res, CSVPrinter p) throws IOException;
 	protected abstract void printMainHeaderRow(CSVPrinter p) throws IOException;
+	protected void printFinal(CSVPrinter p) throws IOException {};
 	
 	/**
 	 * CSV Format to use.
@@ -122,6 +123,7 @@ public abstract class CSVExporter<T> {
 		p.println();
 		
 		exportResources(p, resources);
+		printFinal(p);
 	}
 
 	/**
