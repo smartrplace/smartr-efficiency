@@ -336,15 +336,34 @@ public class HardwareInstallController {
 	public void close() {
 		closeDemands();
 	}
+
+	private String validateProposedDeviceId(String deviceId) {
+		if (deviceId == null)
+			return deviceId;
+		for(InstallAppDevice other: appConfigData.knownDevices().getAllElements()) {
+			if (other.deviceId().exists() && deviceId.equals(other.deviceId().getValue())) {
+				return null;
+			}
+		}
+		return deviceId;
+	}
+	
+	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T device, DeviceHandlerProvider<T> tableProvider) {
+		return addDeviceIfNew(device, tableProvider, null);
+	}
 		
 	/*
 	 * if the app needs to consider dependencies between different pattern types,
 	 * they can be processed here.
 	 */
-	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T device, DeviceHandlerProvider<T> tableProvider) {
+	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T device, DeviceHandlerProvider<T> tableProvider, String proposedDeviceId) {
 		for(InstallAppDevice install: appConfigData.knownDevices().getAllElements()) {
 			if(install.device().equalsLocation(device)) {
-				initializeDevice(install, device, tableProvider); // only initialize missing resources
+				if (proposedDeviceId != null && (!install.deviceId().exists() || install.deviceId().getValue().isEmpty())) {
+					// validate that the proposed id does not exist yet
+					proposedDeviceId = validateProposedDeviceId(proposedDeviceId);
+				}
+				initializeDevice(install, device, tableProvider, proposedDeviceId); // only initialize missing resources
 					//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.existing.configalarming")) {
 				//The init process is done only if the InitialConfig.isInitDone method is false for the device
 				initAlarmingForDevice(install, tableProvider);
@@ -353,7 +372,7 @@ public class HardwareInstallController {
 			}
 		}
 		InstallAppDevice install = appConfigData.knownDevices().add();
-		initializeDevice(install, device, tableProvider);
+		initializeDevice(install, device, tableProvider, validateProposedDeviceId(proposedDeviceId));
 		if(tableProvider != null)
 			startSimulation(tableProvider, install);
 		updateDatapoints(tableProvider, install);
@@ -427,15 +446,17 @@ public class HardwareInstallController {
 	}
 	
 	private <T extends PhysicalElement> void initializeDevice(InstallAppDevice install, T device,
-			DeviceHandlerProvider<T> tableProvider) {
+			DeviceHandlerProvider<T> tableProvider, String proposedDeviceId) {
 
 		if (!install.exists()) install.create();
 		if (device != null && !install.device().exists()) install.device().setAsReference(device);
 		if (!install.installationStatus().exists()) install.installationStatus().create();
 		if (!install.deviceId().exists()) install.deviceId().create();
-		if (install.deviceId().getValue().isEmpty())
-			install.deviceId().setValue(LocalDeviceId.generateDeviceId(install, appConfigData, tableProvider,
-					dpService));
+		if (install.deviceId().getValue().isEmpty()) {
+            final String deviceId = proposedDeviceId != null ? proposedDeviceId :
+                  LocalDeviceId.generateDeviceId(install, appConfigData, tableProvider, dpService);
+            install.deviceId().setValue(deviceId);
+		}
 		if(!install.devHandlerInfo().exists()) {
 			install.devHandlerInfo().create();
 			install.devHandlerInfo().setValue(tableProvider.id());

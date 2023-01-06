@@ -106,10 +106,10 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 			@SuppressWarnings({ "rawtypes", "unchecked" })
 			@Override
 			protected InstallAppDevice createInstallAppDevice(String serialEndCode, String typeId,
-					DeviceByEndcodeResult<? extends PhysicalElement> deviceRes) {
+					DeviceByEndcodeResult<? extends PhysicalElement> deviceRes, String proposedDeviceId) {
 				if(deviceRes == null)
 					return null;
-				return controller.addDeviceIfNew(deviceRes.device, (DeviceHandlerProvider)deviceRes.devHand);
+				return controller.addDeviceIfNew(deviceRes.device, (DeviceHandlerProvider)deviceRes.devHand, proposedDeviceId);
 			}
 		};
 		
