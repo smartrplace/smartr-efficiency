@@ -1,17 +1,14 @@
 package org.smartrplace.external.accessadmin.gui;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVRecord;
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.accessadmin.api.NamedIntegerType;
 import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.accessadmin.api.SubcustomerUtil.SubCustomerType;
@@ -24,9 +21,8 @@ import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.autoconfig.api.InitialConfig;
-import org.smartrplace.csv.download.generic.CSVExporter;
+import org.smartrplace.csv.download.generic.CSVRoomExporter;
+import org.smartrplace.csv.download.generic.CSVUploadListenerRoom;
 import org.smartrplace.csv.upload.generic.CSVUploadWidgets;
 import org.smartrplace.csv.upload.generic.CSVUploadWidgets.CSVUploadListener;
 import org.smartrplace.external.accessadmin.AccessAdminController;
@@ -41,7 +37,6 @@ import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 
 import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.util.resource.ResourceHelper;
-import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -74,7 +69,19 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	protected final boolean isExpert;
 	protected final boolean showLocations;
 
-	public final CSVExporter<Room> csvRoomExporter;
+	private class CSVRoomExporterFiltered extends CSVRoomExporter {
+		public CSVRoomExporterFiltered(boolean isFullExport, ApplicationManagerPlus appMan) {
+			super(isFullExport, appMan);
+		}
+
+		@Override
+		protected List<Room> getRooms(OgemaHttpRequest req) {
+			return getObjectsInTable(req);
+		}
+	}
+	
+	public final CSVRoomExporter csvRoomExporterBase;
+	public final CSVRoomExporter csvRoomExporterFull;
 	
 	public RoomConfigPage(WidgetPage<?> page, AccessAdminController controller) {
 		this(page, controller, false);
@@ -89,48 +96,8 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 		this.isExpert = isExpert;
 		this.showLocations = showLocations;
 		
-		csvRoomExporter = new CSVExporter<Room>(null, appMan) {
-			@Override
-			protected boolean printRow(Room room, CSVPrinter p) throws IOException {
-				List<String> toPrint = new ArrayList<>();
-				toPrint.add("");
-				toPrint.add("");
-				if(room != null && room.exists()) {
-					toPrint.add(ResourceUtils.getHumanReadableShortName(room));
-				} else {
-					toPrint.add("");
-				}
-				toPrint.add("");
-				toPrint.add("");
-				
-				p.printRecord(toPrint);
-				return true;
-			}
-		
-			@Override
-			protected void printMainHeaderRow(CSVPrinter p) throws IOException {
-				List<String> toPrint = new ArrayList<>();
-				toPrint.add("Type");
-				toPrint.add("ID");
-				toPrint.add("Room");
-				toPrint.add("Location (if known)");
-				toPrint.add("comment");
-				
-				p.printRecord(toPrint);
-			}
-
-			@Override
-			protected List<Room> getObjectsToExport(OgemaHttpRequest req) {
-				List<Room> result = getObjectsInTable(req);
-				result.sort(new Comparator<Room>() {
-					@Override
-					public int compare(Room o1, Room o2) {
-						return ResourceUtils.getHumanReadableShortName(o1).compareTo(ResourceUtils.getHumanReadableName(o2));
-					}
-				});
-				return result;
-			}
-		};
+		csvRoomExporterBase = new CSVRoomExporterFiltered(false, controller.appManPlus);
+		csvRoomExporterFull = new CSVRoomExporterFiltered(true, controller.appManPlus);
 		
 		triggerPageBuild();
 	}
@@ -254,21 +221,33 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	    download = new FileDownload(page, "downloadcsv", appMan.getWebAccessManager(), true);
 	    download.triggerAction(download, TriggeringAction.GET_REQUEST, FileDownloadData.STARTDOWNLOAD);
 	    page.append(download);
-		Button exportCSV = new Button(page, "exportCSV", "Export CSV") {
+		Button exportCSVBase = new Button(page, "exportCSVBase", "Export CSV (Rooms)") {
 			@Override
 	    	public void onPrePOST(String data, OgemaHttpRequest req) {
 	    		download.setDeleteFileAfterDownload(true, req);
-				String fileStr = csvRoomExporter.exportToFile(req);
+				String fileStr = csvRoomExporterBase.exportToFile(req);
 	    		File csvFile = new File(fileStr);
-				download.setFile(csvFile, "devices.csv", req);
+				download.setFile(csvFile, "rooms_devices.csv", req);
 	    	}
 		};
-		exportCSV.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
-		exportCSV.triggerOnPOST(alert);
+		exportCSVBase.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
+		exportCSVBase.triggerOnPOST(alert);
+
+		Button exportCSVFull = new Button(page, "exportCSVFull", "Export CSV (Rooms and Devices)") {
+			@Override
+	    	public void onPrePOST(String data, OgemaHttpRequest req) {
+	    		download.setDeleteFileAfterDownload(true, req);
+				String fileStr = csvRoomExporterFull.exportToFile(req);
+	    		File csvFile = new File(fileStr);
+				download.setFile(csvFile, "rooms_devices.csv", req);
+	    	}
+		};
+		exportCSVFull.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
+		exportCSVFull.triggerOnPOST(alert);
 
 		topTable.setContent(0, 1, "");
 		if(isExpert) {
-			topTable.setContent(0, 0, exportCSV);
+			topTable.setContent(0, 0, exportCSVBase).setContent(0, 1, exportCSVFull);
 			//topTable.setContent(0, 1, importRoomAssignmentsButton);
 		}
 		topTable.setContent(0,  2, roomFilter);
@@ -286,7 +265,7 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 			topTable.setContent(0, 4, calendarConfigButton);
 		}
 		
-		CSVUploadListener listener = new CSVUploadListener() {
+		CSVUploadListener listener = new CSVUploadListenerRoom(controller.hwInstallConfig, controller.appManPlus); /*new CSVUploadListener() {
 			//Probably not thread-safe (if more than one upload at the same time)
 			String previousType = null;
 			
@@ -310,8 +289,20 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 				if(deviceId == null)
 					return;
 				InstallAppDevice iad = InitialConfig.getDeviceByNumericalIdString(deviceId, typeId, controller.hwInstallConfig, 0);
-				if(iad == null)
-					return;
+				if(iad == null) {
+					//try to create IAD
+					String endCode = readLine(record, "serialEndCode");
+					if(endCode == null)
+						return;
+					
+					PhysicalElement device = DeviceHandlerBase.getDeviceByEndcode(endCode, typeId, controller.appManPlus);
+					if(device == null)
+						return;
+					DeviceHandlerProvider<T> tableProvider = null;
+					iad = HardwareInstallController.addDeviceIfNew(device, tableProvider);
+					if(iad == null)
+						return;
+				}
 				
 				String installationLocation = readLine(record, "Location (if known)");
 				if(installationLocation != null)
@@ -336,9 +327,9 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 					return null;
 				}
 			}
-		};
+		};*/
 		CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
-				"Import Device Data as CSV", listener , appMan);
+				"Import Device Room Data Base as CSV", listener , appMan);
 		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 
 		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),

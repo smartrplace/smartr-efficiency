@@ -141,7 +141,7 @@ public class HardwareInstallAppExpert implements Application, HWInstallExtension
 			trashPage.getMenuConfiguration().setCustomNavigation(menu);
 			
 			WidgetPage<?> devHandPage = widgetApp.createWidgetPage("devHands.hmtl");
-			DeviceHandlerPage dhpage = new DeviceHandlerPage(devHandPage, controller.appManPlus);
+			DeviceHandlerPage dhpage = new DeviceHandlerPage(devHandPage, controller);
 			menu.addEntry(dhpage.getHeader(null), devHandPage);
 			devHandPage.getMenuConfiguration().setCustomNavigation(menu);
 

@@ -1,6 +1,5 @@
 package org.smartrplace.apps.hw.install;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -13,10 +12,8 @@ import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
-import org.ogema.devicefinder.util.DeviceTableBase;
-import org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.drivers.homematic.xmlrpc.hl.types.HmInterfaceInfo;
-import org.ogema.drivers.homematic.xmlrpc.hl.types.HmLogicInterface;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -24,7 +21,6 @@ import org.smartrplace.apps.hw.install.config.PreKnownDeviceData;
 
 import de.iwes.util.logconfig.LogHelper;
 import de.iwes.util.logconfig.LogHelper.MustFitLevel;
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 
 public abstract class LocalDeviceId {
@@ -140,6 +136,7 @@ public abstract class LocalDeviceId {
 		}
     }
 
+	
 	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
 			String devHandId, DatapointService dpService) {
 		PreKnownDeviceData forDevHand = getPreDeviceData(device, cfg, devHandId, true, dpService);
@@ -149,7 +146,7 @@ public abstract class LocalDeviceId {
 	}
 	public static PreKnownDeviceData getPreDeviceData(PhysicalElement device, HardwareInstallConfig cfg,
 			String devHandId, boolean mustFitDeviceHandler, DatapointService dpService) {
-		String hmName; // = LogHelper.getDeviceId(device);
+		/*String hmName; // = LogHelper.getDeviceId(device);
 		//String name;
 		if(device instanceof HmInterfaceInfo) {
 			HmInterfaceInfo hinfo = null;
@@ -170,7 +167,8 @@ public abstract class LocalDeviceId {
 			if(hmDevice == null)
 				return null;
 			hmName = hmDevice.getName();
-		}
+		}*/
+		String hmName = DeviceHandlerBase.getDeviceSerialNr(device, dpService);
 		for(PreKnownDeviceData pre : cfg.preKnownDevices().getAllElements()) {
 			if(LogHelper.doesDeviceFitPreKnownData(hmName, pre, devHandId,
 					mustFitDeviceHandler?MustFitLevel.MUST_FIT:MustFitLevel.ANY_TYPE_ALLOWED))
@@ -195,21 +193,6 @@ public abstract class LocalDeviceId {
 		return null;
 	}
 
-	/** From InstallationServiceHM */
-	public static InstallAppDevice getOtherCCU(HmLogicInterface ccu, boolean isThisCCUCC, DatapointService dpService) {
-		if(ccu == null)
-			return null;
-		String otherName = ccu.getName().substring(0, ccu.getName().length()-2)+(isThisCCUCC?"ip":"cc");
-		Collection<InstallAppDevice> all = dpService.managedDeviceResoures("HomematicCCUHandler", true);
-		for(InstallAppDevice iad: all) {
-			Resource parent = iad.device().getLocationResource().getParent();
-			if(parent != null && parent.getName().equals(otherName)) {
-				return iad;
-			}
-		}
-		return null;
-	}
-	
 	public static String getAndPrepareConflictFreeDeviceId(PhysicalElement device, PreKnownDeviceData pre, String typeIdIn,
 			HardwareInstallConfig cfg) {
 		return getAndPrepareConflictFreeDeviceId(device, pre, typeIdIn, cfg, 0);

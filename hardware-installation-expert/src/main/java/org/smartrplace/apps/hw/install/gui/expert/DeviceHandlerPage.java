@@ -1,41 +1,112 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
+import java.io.File;
 import java.util.Collection;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceHandlerBase.DeviceByEndcodeResult;
+import org.ogema.model.prototypes.PhysicalElement;
+import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.csv.download.generic.CSVRoomExporter;
+import org.smartrplace.csv.download.generic.CSVUploadListenerRoom;
+import org.smartrplace.csv.upload.generic.CSVUploadWidgets;
+import org.smartrplace.csv.upload.generic.CSVUploadWidgets.CSVUploadListener;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
+import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.filedownload.FileDownload;
+import de.iwes.widgets.html.filedownload.FileDownloadData;
+import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.html5.Flexbox;
 
 @SuppressWarnings("serial")
 public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProviderDP<?>, Resource> {
-	//private final ApplicationManagerPlus appManPlus;
+	private final ApplicationManagerPlus appManPlus;
+	private final HardwareInstallController controller;
 	private final DatapointService dpService;
 	private final HardwareInstallConfig appConfigData;
 	
-	public DeviceHandlerPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) {
-		super(page, appManPlus.appMan(), null);
-		//this.appManPlus = appManPlus;
+	public final CSVRoomExporter csvRoomExporterFull;
+
+	public DeviceHandlerPage(WidgetPage<?> page, HardwareInstallController controller) {
+		super(page, controller.appMan, null);
+		this.controller = controller;
+		this.appManPlus = controller.appManPlus;
 		this.dpService = appManPlus.dpService();
 		this.appConfigData = appMan.getResourceAccess().getResource("hardwareInstallConfig");
+
+		csvRoomExporterFull = new CSVRoomExporter(true, appManPlus);
+
 		triggerPageBuild();
 	}
 
 	@Override
 	public String getHeader(OgemaLocale locale) {
 		return "Device Type Handler Overview";
+	}
+	
+	@Override
+	public void addWidgetsAboveTable() {
+		//StaticTable topTable = new StaticTable(1, 6);
+		final FileDownload download;
+	    download = new FileDownload(page, "downloadcsv", appMan.getWebAccessManager(), true);
+	    download.triggerAction(download, TriggeringAction.GET_REQUEST, FileDownloadData.STARTDOWNLOAD);
+	    page.append(download);
+
+	    Button exportCSVFull = new Button(page, "exportCSV", "Export CSV (Rooms and Devices)") {
+			@Override
+	    	public void onPrePOST(String data, OgemaHttpRequest req) {
+	    		download.setDeleteFileAfterDownload(true, req);
+				String fileStr = csvRoomExporterFull.exportToFile(req);
+	    		File csvFile = new File(fileStr);
+				download.setFile(csvFile, "rooms_devices.csv", req);
+	    	}
+		};
+		exportCSVFull.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
+		exportCSVFull.triggerOnPOST(alert);
+
+		CSVUploadListener listener = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
+			@Override
+			protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId) {
+				return DeviceHandlerBase.getDeviceByEndcode(serialEndCode, typeId, appManPlus);
+			}
+			
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			@Override
+			protected InstallAppDevice createInstallAppDevice(String serialEndCode, String typeId,
+					DeviceByEndcodeResult<? extends PhysicalElement> deviceRes) {
+				if(deviceRes == null)
+					return null;
+				return controller.addDeviceIfNew(deviceRes.device, (DeviceHandlerProvider)deviceRes.devHand);
+			}
+		};
+		
+		CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
+				"Import Device Data as CSV", listener , appMan);
+		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+
+		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
+				exportCSVFull, uploadCSV.csvButton, uploadCSV.uploader.getFileUpload());
+		page.append(flexLineCSV);
+
+		//page.append(topTable);
 	}
 	
 	@Override
