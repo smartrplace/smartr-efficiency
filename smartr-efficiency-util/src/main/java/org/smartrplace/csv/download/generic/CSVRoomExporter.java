@@ -91,7 +91,8 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 				if(done.contains(dev.getLocation()))
 					continue;
 				done.add(dev.getLocation());
-				printRow(null, null, dev, p);
+				InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
+				printRow(null, iad, dev, p);
 			}
 		}
 	}

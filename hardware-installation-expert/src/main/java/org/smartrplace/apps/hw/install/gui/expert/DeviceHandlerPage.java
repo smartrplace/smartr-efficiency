@@ -64,6 +64,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 	
 	@Override
 	public void addWidgetsAboveTable() {
+		super.addWidgetsAboveTable();
 		//StaticTable topTable = new StaticTable(1, 6);
 		final FileDownload download;
 	    download = new FileDownload(page, "downloadcsv", appMan.getWebAccessManager(), true);
