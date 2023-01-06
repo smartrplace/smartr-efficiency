@@ -21,8 +21,10 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 	private final HardwareInstallConfig hwInstallConfig;
 	
 	/** Overwrite to provide InstallAppDevice via serial end code
-	 * @param typeId */
-	protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId) {
+	 * @param typeId 
+	 * @param deviceLocation may be null if only serialEndCode and typeId is available*/
+	protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId,
+			String deviceLocation) {
 		return null;
 	};
 	protected InstallAppDevice createInstallAppDevice(String serialEndCode, String typeId,
@@ -59,8 +61,9 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		//Check device
 		DeviceByEndcodeResult<? extends PhysicalElement> device = null;
 		String endCode = readLine(record, "serialEndCode");
-		if(endCode != null) {
-			device = getDevice(endCode, typeId);
+		String dbLocation = readLine(record, "dbLocation");
+		if(!(endCode == null && dbLocation == null)) {
+			device = getDevice(endCode, typeId, dbLocation);
 			if(device != null) {
 				String action = readLine(record, "action");
 				if(action.equalsIgnoreCase("delete")) {

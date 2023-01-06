@@ -99,7 +99,12 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 
 		CSVUploadListener listener = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
 			@Override
-			protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId) {
+			protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId, String dbLocation) {
+				if(dbLocation != null) {
+					Resource device = appMan.getResourceAccess().getResource(dbLocation);
+					if((device != null) && (device instanceof PhysicalElement))
+						return DeviceHandlerBase.getDeviceHandler((PhysicalElement) device, appManPlus);
+				}
 				return DeviceHandlerBase.getDeviceByEndcode(serialEndCode, typeId, appManPlus);
 			}
 			
