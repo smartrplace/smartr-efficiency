@@ -56,7 +56,9 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 			deviceId = readLine(record, "ID");
 		if(deviceId == null)
 			return;
-		InstallAppDevice iad = InitialConfig.getDeviceByNumericalIdString(deviceId, typeId, hwInstallConfig, 0);
+		InstallAppDevice iad = null;
+		if(!(deviceId.isEmpty() || typeId.isEmpty()))
+			iad = InitialConfig.getDeviceByNumericalIdString(deviceId, typeId, hwInstallConfig, 0);
 
 		//Check device
 		DeviceByEndcodeResult<? extends PhysicalElement> device = null;
@@ -65,11 +67,14 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		if(!(endCode == null && dbLocation == null)) {
 			device = getDevice(endCode, typeId, dbLocation);
 			if(device != null) {
+				if(iad == null)
+					iad = appMan.dpService().getMangedDeviceResource(device.device);
 				String action = readLine(record, "action");
 				if(action.equalsIgnoreCase("delete")) {
 					device.device.delete();
 					if(iad != null)
 						iad.delete();
+					System.out.println("Delete() finished for "+device.device.getLocation());
 					return;
 				}
 			}
@@ -83,7 +88,8 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 					throw new NumberFormatException();
 				deviceId = String.format("%s-%04d", typeId, numericId); // cf. hardware-installation, LocalDeviceId#generateDeviceId()
 			} catch (Exception e) {
-				System.out.println("Unexpected deviceId " + deviceId + ", type " + typeId);
+				System.out.println("No deviceId from file:" + deviceId + ", type " + typeId);
+				deviceId = null;
 			}
 			//try to create IAD
 			iad = createInstallAppDevice(endCode, typeId, device, deviceId);

@@ -51,7 +51,7 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
 		Datapoint dp = addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
-		if(dp.getLocation().startsWith("OpenWeatherMapData")) {
+		if(dp != null && dp.getLocation().startsWith("OpenWeatherMapData")) {
 			Room openWroom = KPIResourceAccess.getOpenWeatherMapRoom(appMan.getResourceAccess());
 			if(openWroom != null) {
 				addDatapoint(openWroom.temperatureSensor().reading().forecast(), result);
@@ -129,7 +129,9 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 		SensorDevice device = (SensorDevice) appDevice.device();
 		TemperatureResource ownTemp = device.sensors().getSubResource("temperature", TemperatureSensor.class).reading();
 		if(!ownTemp.exists()) {
-			ownTemp = KPIResourceAccess.getOpenWeatherMapTemperature(appMan.getResourceAccess());
+			TemperatureResource ownTemp2 = KPIResourceAccess.getOpenWeatherMapTemperature(appMan.getResourceAccess());
+			if(ownTemp2 != null)
+				ownTemp = ownTemp2;
 		}
 	
 		AlarmingUtiH.setTemplateValues(appDevice, ownTemp,
