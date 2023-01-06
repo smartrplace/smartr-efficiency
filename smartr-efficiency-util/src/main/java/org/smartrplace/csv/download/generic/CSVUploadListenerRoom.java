@@ -28,7 +28,7 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		return null;
 	};
 	protected InstallAppDevice createInstallAppDevice(String serialEndCode, String typeId,
-			DeviceByEndcodeResult<? extends PhysicalElement> deviceRes) {
+			DeviceByEndcodeResult<? extends PhysicalElement> deviceRes, String proposedDeviceId) {
 		return null;
 	}
 	
@@ -77,13 +77,19 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		if (device == null)
 			return;
 		if(iad == null) {
+			try {
+				final int numericId = Integer.parseInt(deviceId);
+				if (numericId >= 10_000 || numericId < 0)
+					throw new NumberFormatException();
+				deviceId = String.format("%s-%04d", typeId, numericId); // cf. hardware-installation, LocalDeviceId#generateDeviceId()
+			} catch (Exception e) {
+				System.out.println("Unexpected deviceId " + deviceId + ", type " + typeId);
+			}
 			//try to create IAD
-			iad = createInstallAppDevice(endCode, typeId, device);
+			iad = createInstallAppDevice(endCode, typeId, device, deviceId);
 			if(iad == null)
 				return;
 		}
-		
-		
 		String installationLocation = readLine(record, "Location (if known)");
 		if(installationLocation != null)
 			ValueResourceHelper.setCreate(iad.installationLocation(), installationLocation);

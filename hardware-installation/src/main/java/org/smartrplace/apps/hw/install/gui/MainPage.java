@@ -75,6 +75,10 @@ public class MainPage extends HardwareTablePage { //extends DeviceTablePageFragm
 	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T model, DeviceHandlerProvider<T> tableProvider) {
 		return controller.addDeviceIfNew(model, tableProvider);
 	}
+	
+	public <T extends PhysicalElement> InstallAppDevice addDeviceIfNew(T model, DeviceHandlerProvider<T> tableProvider, String proposedDeviceId) {
+		return controller.addDeviceIfNew(model, tableProvider, proposedDeviceId);
+	}
 
 	@Override
 	public <T extends Resource> InstallAppDevice removeDevice(T model) {
