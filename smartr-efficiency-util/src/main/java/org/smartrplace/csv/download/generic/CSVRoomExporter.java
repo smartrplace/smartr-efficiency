@@ -9,22 +9,21 @@ import java.util.Set;
 
 import org.apache.commons.csv.CSVPrinter;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
-import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
+import org.ogema.devicefinder.util.DeviceHandlerBase.DeviceByEndcodeResult;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.csv.download.generic.CSVExporter;
 
 import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
 public class CSVRoomExporter extends CSVExporter<Room> {
 	private final boolean isFullExport;
+	private final boolean exportInactiveAndNoHandlerResources;
 	private final ApplicationManagerPlus appMan;
 	
 	/** Overwrite to implement filtering */
@@ -34,8 +33,13 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 	}
 	
 	public CSVRoomExporter(boolean isFullExport, ApplicationManagerPlus appMan) {
+		this(isFullExport, false, appMan);
+	}
+	public CSVRoomExporter(boolean isFullExport, boolean exportInactiveAndNoHandlerResources,
+			ApplicationManagerPlus appMan) {
 		super(null, appMan.appMan());
 		this.isFullExport = isFullExport;
+		this.exportInactiveAndNoHandlerResources = exportInactiveAndNoHandlerResources;
 		this.appMan = appMan;
 	}
 	
@@ -47,7 +51,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			if(!devices.isEmpty()) for(PhysicalElement dev: devices) {
 				InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
 				//done.add(dev.getLocation());
-				printRow(room, iad, dev, p);
+				printRow(room, iad, dev, null, p);
 			}
 			return true;
 		}
@@ -63,6 +67,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		toPrint.add("");
 		toPrint.add("");
 		if(isFullExport) {
+			toPrint.add("");
 			toPrint.add("");
 			toPrint.add("");
 			toPrint.add("");
@@ -90,14 +95,26 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 					continue;
 				if(done.contains(dev.getLocation()))
 					continue;
+				if(exportInactiveAndNoHandlerResources) {
+					InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
+					printRow(null, iad, dev, null, p);
+					continue;
+				}
+				DeviceByEndcodeResult<? extends PhysicalElement> devHandResult = DeviceHandlerBase.getDeviceHandler(dev, appMan);
+				if(devHandResult == null)
+					continue;
 				done.add(dev.getLocation());
 				InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
-				printRow(null, iad, dev, p);
+				if(iad == null)
+					printRow(null, null, dev, devHandResult.devHand.getDeviceTypeShortId(appMan.dpService()), p);
+				else
+					printRow(null, iad, dev, null, p);
 			}
 		}
 	}
 	
-	protected void printRow(Room room, InstallAppDevice iad, PhysicalElement dev, CSVPrinter p) throws IOException {
+	protected void printRow(Room room, InstallAppDevice iad, PhysicalElement dev,
+			String typeId, CSVPrinter p) throws IOException {
 		
 		List<String> toPrint = new ArrayList<>();
 		if(iad != null) {
@@ -118,7 +135,10 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add(type);
 			toPrint.add(id);
 		} else {
-			toPrint.add("");
+			if(typeId != null)
+				toPrint.add(typeId);
+			else
+				toPrint.add("");
 			toPrint.add("");			
 		}
 		if(room != null)
@@ -136,6 +156,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		String endCode = DeviceHandlerBase.getDeviceEndCode(dev, appMan.dpService());
 		toPrint.add(endCode);
 		toPrint.add("");
+		toPrint.add(""+dev.isActive());
 		toPrint.add(dev.getLocation());
 		
 		p.printRecord(toPrint);
@@ -152,6 +173,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		if(isFullExport) {
 			toPrint.add("serialEndCode");
 			toPrint.add("action");
+			toPrint.add("active");
 			toPrint.add("dbLocation");
 		}
 		

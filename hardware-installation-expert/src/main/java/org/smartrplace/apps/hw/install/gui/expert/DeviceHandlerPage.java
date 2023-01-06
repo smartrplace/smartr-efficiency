@@ -44,6 +44,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 	private final HardwareInstallConfig appConfigData;
 	
 	public final CSVRoomExporter csvRoomExporterFull;
+	public final CSVRoomExporter csvRoomExporterFullIncludeInactive;
 
 	public DeviceHandlerPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller.appMan, null);
@@ -53,6 +54,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 		this.appConfigData = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 
 		csvRoomExporterFull = new CSVRoomExporter(true, appManPlus);
+		csvRoomExporterFullIncludeInactive = new CSVRoomExporter(true, true, appManPlus);
 
 		triggerPageBuild();
 	}
@@ -83,6 +85,18 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 		exportCSVFull.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
 		exportCSVFull.triggerOnPOST(alert);
 
+	    Button exportCSVFullIncludeInactive = new Button(page, "exportCSVInclInactive", "Export CSV (incl. inactive/no-handler)") {
+			@Override
+	    	public void onPrePOST(String data, OgemaHttpRequest req) {
+	    		download.setDeleteFileAfterDownload(true, req);
+				String fileStr = csvRoomExporterFullIncludeInactive.exportToFile(req);
+	    		File csvFile = new File(fileStr);
+				download.setFile(csvFile, "rooms_devices_plus.csv", req);
+	    	}
+		};
+		exportCSVFullIncludeInactive.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
+		exportCSVFullIncludeInactive.triggerOnPOST(alert);
+
 		CSVUploadListener listener = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
 			@Override
 			protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId) {
@@ -104,7 +118,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 
 		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
-				exportCSVFull, uploadCSV.csvButton, uploadCSV.uploader.getFileUpload());
+				exportCSVFull, exportCSVFullIncludeInactive, uploadCSV.csvButton, uploadCSV.uploader.getFileUpload());
 		page.append(flexLineCSV);
 
 		//page.append(topTable);
