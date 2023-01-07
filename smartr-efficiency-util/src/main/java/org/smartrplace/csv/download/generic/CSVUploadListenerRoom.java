@@ -11,6 +11,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.csv.upload.generic.CSVUploadWidgets.CSVUploadListener;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
@@ -44,6 +45,7 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 	
 	@Override
 	public void newLineAvailable(String filePath, CSVRecord record, OgemaHttpRequest req) {
+		System.out.println("  CSV::Processing Line "+record.getRecordNumber()+":"+StringFormatHelper.getListToPrint(record.toMap().values()));
 		String typeId =  readLine(record, "Type");
 		if(typeId == null)
 			typeId = previousType;
@@ -63,6 +65,8 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		//Check device
 		DeviceByEndcodeResult<? extends PhysicalElement> device = null;
 		String endCode = readLine(record, "serialEndCode");
+		if(endCode.startsWith("'"))
+			endCode = endCode.substring(1);
 		String dbLocation = readLine(record, "dbLocation");
 		if(!(endCode == null && dbLocation == null)) {
 			device = getDevice(endCode, typeId, dbLocation);

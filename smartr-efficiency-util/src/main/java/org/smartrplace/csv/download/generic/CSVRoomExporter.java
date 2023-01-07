@@ -2,6 +2,7 @@ package org.smartrplace.csv.download.generic;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -44,16 +45,29 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 	}
 	
 	@Override
-	protected boolean printRow(Room room, CSVPrinter p) throws IOException {
+	protected Collection<String> printRow(Room room, CSVPrinter p) throws IOException {
 		
 		if(isFullExport && (room != null) && room.exists()) {
+			List<String> done = new ArrayList<String>();
 			List<PhysicalElement> devices = RoomHelper.getAllDevicesInRoom(room, appMan.getResourceAccess());
 			if(!devices.isEmpty()) for(PhysicalElement dev: devices) {
 				InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
-				//done.add(dev.getLocation());
+				done.add(dev.getLocation());
+				
+				if(!exportInactiveAndNoHandlerResources) {
+					//exclude devices not relevant for device handlers
+					DeviceByEndcodeResult<? extends PhysicalElement> devHandResult = DeviceHandlerBase.getDeviceHandler(dev, appMan);
+					if(devHandResult == null)
+						continue;
+					if(iad == null) {
+						printRow(room, null, dev, devHandResult.devHand.getDeviceTypeShortId(appMan.dpService()), p);
+						continue;
+					}
+				}
+
 				printRow(room, iad, dev, null, p);
 			}
-			return true;
+			return done;
 		}
 
 		List<String> toPrint = new ArrayList<>();
@@ -73,12 +87,11 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("");
 		}		
 		p.printRecord(toPrint);
-		return true;
+		return null;
 	}
 
 	@Override
-	protected void printFinal(CSVPrinter p) throws IOException {
-		Set<String> done = new HashSet<>();
+	protected void printFinal(CSVPrinter p, Set<String> done) throws IOException {
 		@SuppressWarnings("rawtypes")
 		Set<Class> typesDone = new HashSet<Class>();
 		for(DeviceHandlerProviderDP<?> devHand: appMan.dpService().getDeviceHandlerProviders()) {
@@ -95,6 +108,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 					continue;
 				if(done.contains(dev.getLocation()))
 					continue;
+				done.add(dev.getLocation());
 				if(exportInactiveAndNoHandlerResources) {
 					InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
 					printRow(null, iad, dev, null, p);
@@ -103,7 +117,6 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 				DeviceByEndcodeResult<? extends PhysicalElement> devHandResult = DeviceHandlerBase.getDeviceHandler(dev, appMan);
 				if(devHandResult == null)
 					continue;
-				done.add(dev.getLocation());
 				InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
 				if(iad == null)
 					printRow(null, null, dev, devHandResult.devHand.getDeviceTypeShortId(appMan.dpService()), p);
@@ -154,7 +167,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		else
 			toPrint.add("");
 		String endCode = DeviceHandlerBase.getDeviceEndCode(dev, appMan.dpService());
-		toPrint.add(endCode);
+		toPrint.add("'"+endCode); //		toPrint.add("\""+endCode+"\"");
 		toPrint.add("");
 		toPrint.add(""+dev.isActive());
 		toPrint.add(dev.getLocation());
