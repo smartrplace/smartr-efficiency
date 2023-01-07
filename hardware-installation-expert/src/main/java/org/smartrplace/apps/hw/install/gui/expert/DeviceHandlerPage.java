@@ -24,6 +24,7 @@ import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
@@ -34,6 +35,7 @@ import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.filedownload.FileDownload;
 import de.iwes.widgets.html.filedownload.FileDownloadData;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.html5.Flexbox;
 
 @SuppressWarnings("serial")
@@ -117,13 +119,42 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 				return controller.addDeviceIfNew(deviceRes.device, (DeviceHandlerProvider)deviceRes.devHand, proposedDeviceId);
 			}
 		};
+		CSVUploadListener listenerIadOnly = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
+			@Override
+			protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId, String dbLocation) {
+				if(dbLocation != null) {
+					Resource device = appMan.getResourceAccess().getResource(dbLocation);
+					if((device != null) && (device instanceof PhysicalElement))
+						return DeviceHandlerBase.getDeviceHandler((PhysicalElement) device, appManPlus);
+				}
+				return DeviceHandlerBase.getDeviceByEndcode(serialEndCode, typeId, appManPlus);
+			}
+			
+			@SuppressWarnings({ "rawtypes", "unchecked" })
+			@Override
+			protected InstallAppDevice createInstallAppDevice(String serialEndCode, String typeId,
+					DeviceByEndcodeResult<? extends PhysicalElement> deviceRes, String proposedDeviceId) {
+				if(deviceRes == null)
+					return null;
+				InstallAppDevice iad = controller.appConfigData.knownDevices().add();
+				controller.initializeDevice(iad, deviceRes.device, (DeviceHandlerProvider)deviceRes.devHand,
+						controller.validateProposedDeviceId(proposedDeviceId));
+				return iad;
+			}
+		};
 		
 		CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
-				"Import Device Data as CSV", listener , appMan);
+				"Import CSV", listener , appMan);
 		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 
+		CSVUploadWidgets uploadCSVIadOnly = new CSVUploadWidgets(page, alert, pid()+"iadOnly",
+				"Create IAD-Resource Only", listenerIadOnly , appMan);
+		uploadCSVIadOnly.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+
+		Label sepLabel = new Label(page, "sepLabel", "-----");
 		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
-				exportCSVFull, exportCSVFullIncludeInactive, uploadCSV.csvButton, uploadCSV.uploader.getFileUpload());
+				exportCSVFull, exportCSVFullIncludeInactive, uploadCSV.csvButton, uploadCSV.uploader.getFileUpload(),
+				sepLabel, uploadCSVIadOnly.csvButton, uploadCSVIadOnly.uploader.getFileUpload());
 		page.append(flexLineCSV);
 
 		//page.append(topTable);

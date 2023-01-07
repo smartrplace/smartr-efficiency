@@ -2,6 +2,9 @@ package org.smartrplace.csv.download.generic;
 
 import org.apache.commons.csv.CSVRecord;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.model.Resource;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceHandlerBase.DeviceByEndcodeResult;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -43,6 +46,7 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		return true;
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void newLineAvailable(String filePath, CSVRecord record, OgemaHttpRequest req) {
 		System.out.println("  CSV::Processing Line "+record.getRecordNumber()+":"+StringFormatHelper.getListToPrint(record.toMap().values()));
@@ -69,7 +73,17 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 			endCode = endCode.substring(1);
 		String dbLocation = readLine(record, "dbLocation");
 		if(!(endCode == null && dbLocation == null)) {
-			device = getDevice(endCode, typeId, dbLocation);
+			String devHandId = readLine(record, "devHandId");
+			if(devHandId != null && dbLocation != null) {
+				DeviceHandlerProviderDP<? extends PhysicalElement> devHand = appMan.dpService().getDeviceHandlerProvider(devHandId);
+				Resource deviceRes = appMan.getResourceAccess().getResource(dbLocation);
+				if(devHand != null && (devHand instanceof DeviceHandlerBase) &&
+						deviceRes != null && (deviceRes instanceof PhysicalElement)) {
+					device = new DeviceByEndcodeResult((PhysicalElement)deviceRes, (DeviceHandlerBase) devHand);
+				} else
+					device = getDevice(endCode, typeId, dbLocation);
+			} else
+				device = getDevice(endCode, typeId, dbLocation);
 			if(device != null) {
 				if(iad == null)
 					iad = appMan.dpService().getMangedDeviceResource(device.device);

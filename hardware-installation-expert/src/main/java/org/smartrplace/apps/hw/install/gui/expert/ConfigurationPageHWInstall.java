@@ -17,6 +17,7 @@ package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.BooleanResource;
@@ -26,6 +27,7 @@ import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointInfo.AggregationMode;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
@@ -33,6 +35,7 @@ import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.metering.ElectricityMeter;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.util.extended.eval.widget.IntegerMultiButton;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
@@ -209,7 +212,7 @@ public class ConfigurationPageHWInstall {
 		if(baseVersion)
 			configTable = new StaticTable(12, 2);			
 		else
-			configTable = new StaticTable(32, 2);
+			configTable = new StaticTable(33, 2);
 		int i = 0;
 
 		if(gwInfo != null) {
@@ -548,6 +551,35 @@ public class ConfigurationPageHWInstall {
 			
 			configTable.setContent(i, 0, "Test Button (result on console only):").setContent(i, 1, testDevHand);
 			i++;
+			
+			if(Boolean.getBoolean("org.smartrplace.apps.hw.install.blockinitdatapoints")) {
+				ButtonConfirm initDevHandsButton = new ButtonConfirm(page, "initDevHandsButton", "Start Init DeviceHandlers") {
+					boolean initDone = false;
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						if(initDone)
+							setText("Ongoing or done", req);
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						initDone = true;
+						List<InstallAppDevice> allDev = controller.appConfigData.knownDevices().getAllElements();
+						int count = 0;
+						for(InstallAppDevice iad: allDev) {
+							DeviceHandlerProviderDP<Resource> devHand = controller.dpService.getDeviceHandlerProvider(iad);
+							count++;
+							if(devHand == null || (!(devHand instanceof DeviceHandlerProvider)))
+								continue;
+							System.out.println("  Perform init "+count+"/"+allDev.size()+" of IAD:"+iad.getName()+"  with device:"+iad.device().getLocation());
+							startSim((DeviceHandlerProvider<?>) devHand, iad);
+						}
+					}
+				};
+				initDevHandsButton.setDefaultConfirmMsg("Really start init of device handlers?");
+				configTable.setContent(i, 0, "Perform retarded init of datapoints via DeviceHandlers:").setContent(i, 1, initDevHandsButton);
+				i++;				
+			}
 
 		} else {
 		}
@@ -603,7 +635,11 @@ public class ConfigurationPageHWInstall {
 
 		page.append(configTable);
 	}
-	
+
+	private <T extends PhysicalElement> void startSim(DeviceHandlerProvider<?> tableProvider, InstallAppDevice appDevice) {
+		controller.startSimulationForced(tableProvider, appDevice);						
+	}
+
 	public void setIotawattAsMainMeter(ElectricityConnection conn) {
 		VirtualSensorKPIMgmt.registerEnergySumDatapointOverSubPhases(conn, AggregationMode.Meter2Meter, controller.util, controller.dpService,
 				TimeProcUtil.SUM_PER_DAY_EVAL, true);
