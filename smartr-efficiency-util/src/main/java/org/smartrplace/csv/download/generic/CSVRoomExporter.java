@@ -85,6 +85,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("");
 			toPrint.add("");
 			toPrint.add("");
+			toPrint.add("");
 		}		
 		p.printRecord(toPrint);
 		return null;
@@ -171,6 +172,10 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		toPrint.add("");
 		toPrint.add(""+dev.isActive());
 		toPrint.add(dev.getLocation());
+		if(iad != null && iad.installationLocation().exists())
+			toPrint.add(iad.devHandlerInfo().getValue());
+		else
+			toPrint.add("");
 		
 		p.printRecord(toPrint);
 	}
@@ -188,6 +193,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("action");
 			toPrint.add("active");
 			toPrint.add("dbLocation");
+			toPrint.add("devHandId");
 		}
 		
 		p.printRecord(toPrint);
