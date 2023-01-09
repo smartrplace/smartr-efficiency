@@ -70,10 +70,11 @@ public class DeviceTypePage extends MainPage {
 					return null;
 				if(showOnlyPrototype && (!DeviceTableRaw.isTemplate(iad, null))) //(!iad.isTemplate().isActive()))
 					return null;
-				DatapointGroup devTypeGrp = getDeviceTypeGroup(iad);
+				return iad.devHandlerInfo().getValue();
+				/*DatapointGroup devTypeGrp = getDeviceTypeGroup(iad);
 				if(devTypeGrp != null)
 					return devTypeGrp.id();
-				return null;
+				return null;*/
 			}
 			
 			@Override
@@ -201,7 +202,7 @@ public class DeviceTypePage extends MainPage {
 		super.addWidgetsBeforeMultiSelect(sr, vh, id, req, row, appMan);
 	}
 	
-	public DatapointGroup getDeviceTypeGroup(InstallAppDevice iad) {
+	/*public DatapointGroup getDeviceTypeGroup(InstallAppDevice iad) {
 		String devLoc = iad.device().getLocation();
 		for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
 			if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE") && (dpGrp.getSubGroup(devLoc) != null)) {
@@ -209,6 +210,5 @@ public class DeviceTypePage extends MainPage {
 			}
 		}
 		return null;
-		
-	}
+	}*/
 }

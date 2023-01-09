@@ -10,9 +10,11 @@ import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.externalviewer.extensions.IntervalConfiguration;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButton;
@@ -267,10 +269,15 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 				
 				@Override
 				protected String getGroupLabel(String grp) {
-					final DatapointGroup dtGrp = dpService.getGroup(grp);
-					if(dtGrp == null)
+					DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(grp);
+					if(devHand == null)
 						throw new IllegalStateException("Unknown device type group id:"+grp);
-					return dtGrp.label(null);
+					return devHand.getTableTitle();
+										
+					//final DatapointGroup dtGrp = dpService.getGroup(grp);
+					//if(dtGrp == null)
+					//	throw new IllegalStateException("Unknown device type group id:"+grp);
+					//return dtGrp.label(null);
 				}
 				
 				@Override
@@ -280,13 +287,15 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 							return Collections.emptyList();
 						throw new IllegalStateException("Wrong type for "+object.getLocation());
 					}
-					DatapointGroup devTypeGrp = getDeviceTypeGroup((InstallAppDevice) object);
+					return Arrays.asList(new String[] {object.devHandlerInfo().getValue()});
+
+					/*DatapointGroup devTypeGrp = getDeviceTypeGroup((InstallAppDevice) object);
 					if(devTypeGrp == null) {
 						//should never occur
 						System.out.println("No DEVICE_TYPE group for "+object.getLocation());
 						return Collections.emptyList();
 					}
-					return Arrays.asList(new String[] {devTypeGrp.id()});
+					return Arrays.asList(new String[] {devTypeGrp.id()});*/
 				}
 	
 				@Override

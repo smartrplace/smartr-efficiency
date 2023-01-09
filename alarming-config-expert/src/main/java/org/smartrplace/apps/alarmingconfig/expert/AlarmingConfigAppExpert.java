@@ -85,12 +85,12 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			menu.addEntry("3. Device Issue Status", pageRes11);
 			configMenuConfig(pageRes11.getMenuConfiguration());
 
-			if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) { //&& (!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))) {
+			//if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) { //&& (!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))) {
 				WidgetPage<?> pageRes10 = widgetApp.createWidgetPage("ongoingbase.html");
 				new OngoingBaseAlarmsPage(pageRes10, controller.appManPlus); //, base);
 				menu.addEntry("4. Active Alarms", pageRes10);
 				configMenuConfig(pageRes10.getMenuConfiguration());
-			}
+			//}
 
 			WidgetPage<?> pageRes12 = widgetApp.createWidgetPage("devicedevsettings.html");
 			new DevelopmentTaskPage(pageRes12, controller);
