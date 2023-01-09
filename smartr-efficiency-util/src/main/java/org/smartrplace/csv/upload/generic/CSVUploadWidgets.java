@@ -71,7 +71,6 @@ public class CSVUploadWidgets {
 							e.printStackTrace();
 						}
 					}
-					return;
 				}
 				System.out.println("File uploaded to "+filePath);
 			}
@@ -81,7 +80,7 @@ public class CSVUploadWidgets {
 			private static final long serialVersionUID = 1L;
 			@Override
 			protected String getButtonText(OgemaHttpRequest req) {
-				return "Upload CSV";
+				return uploadButtonText!=null?uploadButtonText:"Upload CSV";
 			}
 		};
 		csvButton.setDefaultText(uploadButtonText);

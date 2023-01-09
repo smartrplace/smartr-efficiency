@@ -2,6 +2,9 @@ package org.smartrplace.csv.download.generic;
 
 import org.apache.commons.csv.CSVRecord;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.core.model.Resource;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceHandlerBase.DeviceByEndcodeResult;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -11,6 +14,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.csv.upload.generic.CSVUploadWidgets.CSVUploadListener;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 
@@ -42,8 +46,10 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		return true;
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public void newLineAvailable(String filePath, CSVRecord record, OgemaHttpRequest req) {
+		System.out.println("  CSV::Processing Line "+record.getRecordNumber()+":"+StringFormatHelper.getListToPrint(record.toMap().values()));
 		String typeId =  readLine(record, "Type");
 		if(typeId == null)
 			typeId = previousType;
@@ -63,9 +69,21 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		//Check device
 		DeviceByEndcodeResult<? extends PhysicalElement> device = null;
 		String endCode = readLine(record, "serialEndCode");
+		if(endCode.startsWith("'"))
+			endCode = endCode.substring(1);
 		String dbLocation = readLine(record, "dbLocation");
 		if(!(endCode == null && dbLocation == null)) {
-			device = getDevice(endCode, typeId, dbLocation);
+			String devHandId = readLine(record, "devHandId");
+			if(devHandId != null && dbLocation != null) {
+				DeviceHandlerProviderDP<? extends PhysicalElement> devHand = appMan.dpService().getDeviceHandlerProvider(devHandId);
+				Resource deviceRes = appMan.getResourceAccess().getResource(dbLocation);
+				if(devHand != null && (devHand instanceof DeviceHandlerBase) &&
+						deviceRes != null && (deviceRes instanceof PhysicalElement)) {
+					device = new DeviceByEndcodeResult((PhysicalElement)deviceRes, (DeviceHandlerBase) devHand);
+				} else
+					device = getDevice(endCode, typeId, dbLocation);
+			} else
+				device = getDevice(endCode, typeId, dbLocation);
 			if(device != null) {
 				if(iad == null)
 					iad = appMan.dpService().getMangedDeviceResource(device.device);

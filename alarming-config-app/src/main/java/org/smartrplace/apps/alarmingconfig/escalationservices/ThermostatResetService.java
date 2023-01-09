@@ -245,10 +245,15 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 					new MessageImpl(title, emailMessage, prio));		
 			//AlarmingManager.reallySendMessage(title, emailMessage , prio, appId);
 		}
-		String roomId = ResourceUtils.getValidResourceName(appManPlus.getResourceAccess().getResources(Room.class).get(0).getLocation());
 		Map<String, Object> additionalProperties = new HashMap<>();
 		if(firebaseMessage == null)
 			return;
+		List<Room> rooms = appManPlus.getResourceAccess().getResources(Room.class);
+		String roomId;
+		if(rooms.isEmpty())
+			roomId = "System";
+		else
+			roomId = ResourceUtils.getValidResourceName(rooms.get(0).getLocation());
 		for(AlarmingMessagingApp mapp: persistData.messagingApps().getAllElements()) {
 			FirebaseUtil.sendMessageToUsers(title,
 					firebaseMessage, title, firebaseMessage,

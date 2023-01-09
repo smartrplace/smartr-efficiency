@@ -3,9 +3,12 @@ package org.smartrplace.csv.download.generic;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -24,10 +27,11 @@ public abstract class CSVExporter<T> {
 	
 	protected abstract List<T> getObjectsToExport(OgemaHttpRequest req);
 	
-	/** See example in comment at the end of the class*/
-	protected abstract boolean printRow(T res, CSVPrinter p) throws IOException;
+	/** See example in comment at the end of the class
+	 * @return ids of elements done*/
+	protected abstract Collection<String> printRow(T res, CSVPrinter p) throws IOException;
 	protected abstract void printMainHeaderRow(CSVPrinter p) throws IOException;
-	protected void printFinal(CSVPrinter p) throws IOException {};
+	protected void printFinal(CSVPrinter p, Set<String> done) throws IOException {};
 	
 	/**
 	 * CSV Format to use.
@@ -122,25 +126,29 @@ public abstract class CSVExporter<T> {
 		printMainHeaderRow(p);
 		p.println();
 		
-		exportResources(p, resources);
-		printFinal(p);
+		Set<String> done = exportResources(p, resources);
+		printFinal(p, done);
 	}
 
 	/**
 	 * Export all resource of a type.
 	 */
-	private void exportResources(CSVPrinter p, List<T> resources) throws IOException {
+	private Set<String> exportResources(CSVPrinter p, List<T> resources) throws IOException {
 
 		resourceCount += resources.size();
 		if (resourceCount >= maxResourceCount) {
 			throw new RuntimeException("Export failed: Maximum number of resources reached or exceeded.");
 		}
 		
+		Set<String> done = new HashSet<>();
 		Iterator<T> iter = resources.iterator();
 		while (iter.hasNext()) {
 			T res = iter.next();
-			printRow(res, p);
+			Collection<String> newDone = printRow(res, p);
+			if(newDone != null)
+				done.addAll(newDone);
 		}
+		return done;
 	}
 
 

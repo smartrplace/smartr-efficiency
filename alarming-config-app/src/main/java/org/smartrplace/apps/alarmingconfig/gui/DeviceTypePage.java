@@ -70,10 +70,11 @@ public class DeviceTypePage extends MainPage {
 					return null;
 				if(showOnlyPrototype && (!DeviceTableRaw.isTemplate(iad, null))) //(!iad.isTemplate().isActive()))
 					return null;
-				DatapointGroup devTypeGrp = getDeviceTypeGroup(iad);
+				return iad.devHandlerInfo().getValue();
+				/*DatapointGroup devTypeGrp = getDeviceTypeGroup(iad);
 				if(devTypeGrp != null)
 					return devTypeGrp.id();
-				return null;
+				return null;*/
 			}
 			
 			@Override
@@ -209,6 +210,5 @@ public class DeviceTypePage extends MainPage {
 			}
 		}
 		return null;
-		
 	}
 }

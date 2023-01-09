@@ -337,7 +337,7 @@ public class HardwareInstallController {
 		closeDemands();
 	}
 
-	private String validateProposedDeviceId(String deviceId) {
+	public String validateProposedDeviceId(String deviceId) {
 		if (deviceId == null)
 			return deviceId;
 		for(InstallAppDevice other: appConfigData.knownDevices().getAllElements()) {
@@ -445,7 +445,7 @@ public class HardwareInstallController {
 		return null;
 	}
 	
-	private <T extends PhysicalElement> void initializeDevice(InstallAppDevice install, T device,
+	public <T extends PhysicalElement> void initializeDevice(InstallAppDevice install, T device,
 			DeviceHandlerProvider<T> tableProvider, String proposedDeviceId) {
 
 		if (!install.exists()) install.create();
@@ -507,17 +507,24 @@ public class HardwareInstallController {
 		}
 	}
 	protected Map<String, Set<String>> simulationsStarted = new HashMap<>();
-	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
+	public <T extends PhysicalElement> void startSimulationForced(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
 		@SuppressWarnings("unchecked")
 		T device = (T) appDevice.device();
 		startSimulation(tableProvider, appDevice, device);
 	}
 	
+	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice) {
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.blockinitdatapoints"))
+			return;
+		startSimulationForced(tableProvider, appDevice);
+	}
 	@SuppressWarnings("unchecked")
 	public <T extends PhysicalElement> void startSimulation(DeviceHandlerProvider<T> tableProvider, InstallAppDevice appDevice,
 			T device) {
 		//handlerByDevice.put(appDevice.getLocation(), tableProvider);
 		//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.autologging")) {
+		if(appConfigData.autoConfigureNewDevicesBasedOnTemplate().getValue())
+		
 		updateDatapoints(tableProvider, appDevice);
 		if(appConfigData.autoLoggingActivation().getValue() == 2) {
 			activateLogging(tableProvider, appDevice, true, false);
