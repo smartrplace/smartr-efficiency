@@ -202,7 +202,7 @@ public class DeviceTypePage extends MainPage {
 		super.addWidgetsBeforeMultiSelect(sr, vh, id, req, row, appMan);
 	}
 	
-	/*public DatapointGroup getDeviceTypeGroup(InstallAppDevice iad) {
+	public DatapointGroup getDeviceTypeGroup(InstallAppDevice iad) {
 		String devLoc = iad.device().getLocation();
 		for(DatapointGroup dpGrp: appManPlus.dpService().getAllGroups()) {
 			if(dpGrp.getType() != null && dpGrp.getType().equals("DEVICE_TYPE") && (dpGrp.getSubGroup(devLoc) != null)) {
@@ -210,5 +210,5 @@ public class DeviceTypePage extends MainPage {
 			}
 		}
 		return null;
-	}*/
+	}
 }
