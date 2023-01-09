@@ -601,7 +601,7 @@ public class HardwareInstallController {
 			Collection<Datapoint> allDps = tableProvider.getDatapoints(appDevice, dpService);
 			for(Datapoint dp: allDps) {
 				dev.addDatapoint(dp);
-				dp.setDeviceResource(appDevice.device().getLocationResource());
+				dp.setDeviceResource((Resource) appDevice.device().getLocationResource());
 				dp.addToSubRoomLocationAtomic(null, null, dvNamPs.subLoc, true);
 				if(dvNamPs.room != null)
 					dp.setRoom(dvNamPs.room);

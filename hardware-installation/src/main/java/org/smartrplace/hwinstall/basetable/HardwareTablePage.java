@@ -130,7 +130,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		//this.controller = controller;
 		//init all widgets
 		this.alert = new Alert(page, WidgetHelper.getValidWidgetId("alert"+pid()), "");
-		//page.append(alert).linebreak(); //?
+		page.append(alert).linebreak();
 		
 		//this.instAppsSelector = this;
 
