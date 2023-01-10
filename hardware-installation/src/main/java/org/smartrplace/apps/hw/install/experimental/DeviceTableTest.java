@@ -25,6 +25,8 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.RowTemplate;
@@ -46,9 +48,7 @@ class DeviceTableTest {
 	DeviceTableTest(PageSnippet parent, DeviceHandlerProvider handler, TemplateMultiselect<Room> roomSelector,
 			Supplier<ResourceList<InstallAppDevice>> knownDevices, OgemaHttpRequest req) {
 		this.handlerId = handler.id();
-		// FIXME
-		System.out.println("   -- adding table for provider " + handlerId);
-		final String providerId = ResourceUtils.getValidResourceName(handler.id());
+		final String providerId = ResourceUtils.getValidResourceName(handler.id()).replaceAll("\\$", "_");
 		this.header = new Header(parent, providerId + "_header", req);
 		this.header.setText(handler.label(req.getLocale()), req); // handler.getTableTitle()?
 		this.table = new DynamicTable<ResourcePattern>(parent, providerId + "_table", req) {
@@ -67,6 +67,8 @@ class DeviceTableTest {
 			}
 			
 		};
+		parent.triggerAction(header, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req);
+		parent.triggerAction(table, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req); // TODO test
 		
 		this.table.setRowTemplate(new RowTemplate<ResourcePattern>() {
 
@@ -81,7 +83,7 @@ class DeviceTableTest {
 					return null;
 				final SingleValueResource value = handler.getMainSensorValue(pattern.model, config.get());
 				
-				final String idPrefix = providerId + "__" + ResourceUtils.getValidResourceName(pattern.model.getLocation());
+				final String idPrefix = providerId + "__" + ResourceUtils.getValidResourceName(pattern.model.getLocation()).replaceAll("\\$", "_"); //XXX 
 				final Row row = new Row();
 				final Label name = new Label(table, idPrefix + "_name", req);
 				name.setText(ResourceUtils.getHumanReadableName(pattern.model), req); // FIXME not the same as in the original app
@@ -199,12 +201,12 @@ class DeviceTableTest {
 
 			@Override
 			public String getLineId(ResourcePattern pattern) {
-				return providerId + "__" + pattern.model.getLocation().replaceAll("/", "_");
+				return providerId + "__" + providerId + "__" + ResourceUtils.getValidResourceName(pattern.model.getLocation()).replaceAll("$", "_");
 			}
 			
 			
 		});
-		parent.append(header, req).append(table, req).linebreak(req);
+		parent.append(header, req).append(table, req).linebreak(req); // FIXME can we remove the linebreak? later on?
 	}
 
 	List<OgemaWidget> getSubwidgets() {

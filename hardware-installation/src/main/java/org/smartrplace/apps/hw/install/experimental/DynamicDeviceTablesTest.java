@@ -52,6 +52,8 @@ public class DynamicDeviceTablesTest extends PageSnippet {
 		this.roomSelector = roomSelector;
 		//this.deviceHandlers = deviceHandlers;
 		this.knownDevices = knownDevices;
+		// required for careful handling of subwidgets; otherwise they could get destroyed arbitrarily in an update
+		super.setDefaultUpdateMode(1); 
 	}
 	
 	@Override
@@ -76,11 +78,11 @@ public class DynamicDeviceTablesTest extends PageSnippet {
 		//final List<String> forRemoval = oldIds.stream().filter(id -> !newIds.contains(id)).collect(Collectors.toList());
 		final List<DeviceTableTest> forRemoval = tables.stream().filter(table -> !newIds.contains(table.handlerId)).collect(Collectors.toList());
 		final List<OgemaWidget> subwidgets = forRemoval.stream().flatMap(table -> table.getSubwidgets().stream()).collect(Collectors.toList());
-		if (!forRemoval.isEmpty()) { // FIXME test that this works
+		if (!forRemoval.isEmpty()) {
 			tables.removeAll(forRemoval);
 			this.removeWidgets(subwidgets, req);
 		}
-		// this funny construction is necessary because there are sometimes multiple handlers with the same id
+		// this is necessary because there are sometimes multiple handlers with the same id
 		tables.addAll(new HashSet<>(newIds).stream()
 			.filter(id -> !oldIds.contains(id))
 			.map(id -> deviceHandlers.stream().filter(h -> h.id().equals(id)).findFirst().get())

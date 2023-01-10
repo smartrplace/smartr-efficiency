@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -30,8 +31,12 @@ import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.label.Header;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.html5.Flexbox;
+import de.iwes.widgets.html.html5.flexbox.AlignItems;
 import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 import de.iwes.widgets.resource.widget.dropdown.ResourceListDropdown;
 import de.iwes.widgets.template.DisplayTemplate;
@@ -112,6 +117,7 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 				return room.getLocation();
 			}
 		});
+		// TODO offer all options if no room is selected?
 		final TemplateMultiselect<DeviceHandlerProvider<?>> deviceTypes = new TemplateMultiselect<DeviceHandlerProvider<?>>(page, "deviceHandlers") {
 			
 			// filtered by selected room and availability of devices
@@ -144,11 +150,37 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 			}
 			
 		};
+		final Button searchForDevices = new Button(page, "searchForDevices", true) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final BooleanResource installActive = ra.getResource("hardwareInstallConfig/isInstallationActive");
+				final boolean active = installActive != null && installActive.isActive() && installActive.getValue();
+				setStyles(Collections.singleton(active ? ButtonData.BOOTSTRAP_GREEN : ButtonData.BOOTSTRAP_DEFAULT), req);
+			}
+			
+			@Override
+			public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+				final BooleanResource installActive = ra.getResource("hardwareInstallConfig/isInstallationActive");
+				if (installActive != null && (!installActive.getValue() || !installActive.isActive())) {
+					installActive.<BooleanResource>create().setValue(true);
+					installActive.activate(false);					
+				}
+			}
+		};
+		searchForDevices.setText("Search for devices", null);
 		final DynamicDeviceTablesTest tables = new DynamicDeviceTablesTest(page, "devicesTable", deviceTypes, rooms, () -> ra.getResource("hardwareInstallConfig/knownDevices"));
 				
 		final Flexbox selectorsRow = new Flexbox(page, "selectorsRow", true);
+		//selectorsRow.setAlignItems(AlignItems.BASELINE, null);
 		selectorsRow.setColumnGap("1em", null);
-		selectorsRow.addItem(buildings, null).addItem(rooms, null).addItem(deviceTypes, null);
+		selectorsRow
+			.addItem(new Label(page, "blab", "Building:", true), null)
+			.addItem(buildings, null)
+			.addItem(new Label(page, "rlab", " Room:", true), null)
+			.addItem(rooms, null)
+			.addItem(new Label(page, "devlab", " Device:", true), null)
+			.addItem(deviceTypes, null)
+			.addItem(searchForDevices, null);
 		
 		
 		page.append(header).append(selectorsRow).linebreak().append(tables); // TODO more
@@ -160,6 +192,8 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 		rooms.triggerAction(tables, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST); // FIXME this is not working...
 		rooms.triggerAction(tables, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST);
 		deviceTypes.triggerAction(tables, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		searchForDevices.triggerAction(searchForDevices, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		searchForDevices.triggerAction(rooms, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		
 	}
 	
