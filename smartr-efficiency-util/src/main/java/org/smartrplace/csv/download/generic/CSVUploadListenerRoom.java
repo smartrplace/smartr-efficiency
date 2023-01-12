@@ -75,9 +75,19 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		String dbLocation = readLine(record, "dbLocation");
 		if(!(endCode == null && dbLocation == null)) {
 			String devHandId = readLine(record, "devHandId");
+			String action = readLine(record, "action");
+			Resource deviceRes = appMan.getResourceAccess().getResource(dbLocation);
+			if(action.equalsIgnoreCase("delete") && (deviceRes != null)) {
+				if(iad == null && (deviceRes instanceof PhysicalElement))
+					iad = appMan.dpService().getMangedDeviceResource((PhysicalElement) deviceRes);
+				DeviceTableRaw.deleteDeviceBase(deviceRes);
+				if(iad != null)
+					iad.delete();
+				System.out.println("Delete(1) finished for "+deviceRes.getLocation());
+				return;
+			}
 			if(devHandId != null && dbLocation != null) {
 				DeviceHandlerProviderDP<? extends PhysicalElement> devHand = appMan.dpService().getDeviceHandlerProvider(devHandId);
-				Resource deviceRes = appMan.getResourceAccess().getResource(dbLocation);
 				if(devHand != null && (devHand instanceof DeviceHandlerBase) &&
 						deviceRes != null && (deviceRes instanceof PhysicalElement)) {
 					device = new DeviceByEndcodeResult((PhysicalElement)deviceRes, (DeviceHandlerBase) devHand);
@@ -88,13 +98,11 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 			if(device != null) {
 				if(iad == null)
 					iad = appMan.dpService().getMangedDeviceResource(device.device);
-				String action = readLine(record, "action");
 				if(action.equalsIgnoreCase("delete")) {
-					DeviceTableRaw.deleteDeviceBase(device.device);
-					//device.device.delete();
+					DeviceTableRaw.deleteDeviceBase(deviceRes);
 					if(iad != null)
 						iad.delete();
-					System.out.println("Delete() finished for "+device.device.getLocation());
+					System.out.println("Delete(2) finished for "+device.device.getLocation());
 					return;
 				}
 			}
