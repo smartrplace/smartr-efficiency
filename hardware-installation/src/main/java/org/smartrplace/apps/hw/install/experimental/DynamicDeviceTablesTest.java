@@ -1,4 +1,5 @@
 package org.smartrplace.apps.hw.install.experimental;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,7 +17,6 @@ import de.iwes.widgets.api.extended.html.bricks.PageSnippetData;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
-import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 
 public class DynamicDeviceTablesTest extends PageSnippet {
@@ -89,10 +89,5 @@ public class DynamicDeviceTablesTest extends PageSnippet {
 			.map(handler -> new DeviceTableTest(this, handler, roomSelector, knownDevices, req))
 			.collect(Collectors.toList()));
 	}
-	
-	
-
-	
-	
 	
 }

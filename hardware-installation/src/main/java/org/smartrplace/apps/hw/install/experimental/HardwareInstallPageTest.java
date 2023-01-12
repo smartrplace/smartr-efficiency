@@ -1,11 +1,10 @@
 package org.smartrplace.apps.hw.install.experimental;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,7 +35,6 @@ import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.html5.Flexbox;
-import de.iwes.widgets.html.html5.flexbox.AlignItems;
 import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 import de.iwes.widgets.resource.widget.dropdown.ResourceListDropdown;
 import de.iwes.widgets.template.DisplayTemplate;
@@ -44,7 +42,7 @@ import de.iwes.widgets.template.DisplayTemplate;
 @Component(
 		service=LazyWidgetPage.class,
 		property= {
-				LazyWidgetPage.BASE_URL + "=/org/smartrplace/config/hardwareinstall-test",
+				LazyWidgetPage.BASE_URL + "=/org/smartrplace/hardwareinstall-test",
 				LazyWidgetPage.RELATIVE_URL + "=index.html",
 				LazyWidgetPage.START_PAGE + "=true",
 				LazyWidgetPage.MENU_ENTRY + "=Hardware installation"
@@ -79,7 +77,7 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 
 		final Header header = new Header(page, "header", "Device setup and configuration (test)");
 		//header.addDefaultStyle(WidgetData.TEXT_ALIGNMENT_CENTERED);
-		header.setDefaultColor("blue");
+		header.setDefaultColor("darkblue");
 		
 		final ResourceListDropdown<BuildingPropertyUnit> buildings = new ResourceListDropdown<BuildingPropertyUnit>(page,  "buildingsSelector", false);
 		buildings.setDefaultList(ra.<ResourceList<BuildingPropertyUnit>>getResource("accessAdminConfig/roomGroups"));
@@ -170,17 +168,27 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 		searchForDevices.setText("Search for devices", null);
 		final DynamicDeviceTablesTest tables = new DynamicDeviceTablesTest(page, "devicesTable", deviceTypes, rooms, () -> ra.getResource("hardwareInstallConfig/knownDevices"));
 				
+		final Label buildingLabel =  new Label(page, "blab", "Building:", true);
+		final Label roomLabel =  new Label(page, "rlab", " Room:", true);
+		final Label deviceLabel = new Label(page, "devlab", " Device:", true);
+		Arrays.stream(new Label[] {buildingLabel, roomLabel, deviceLabel}).forEach(label -> {
+			label.setColor("darkblue", null);
+			label.addCssStyle("font-weight", "bold", null);
+		});
 		final Flexbox selectorsRow = new Flexbox(page, "selectorsRow", true);
 		//selectorsRow.setAlignItems(AlignItems.BASELINE, null);
 		selectorsRow.setColumnGap("1em", null);
+		selectorsRow.setBackgroundColor("lightgrey", null);
+		selectorsRow.addCssStyle("padding", "0.5em", null);
 		selectorsRow
-			.addItem(new Label(page, "blab", "Building:", true), null)
+			.addItem(buildingLabel, null)
 			.addItem(buildings, null)
-			.addItem(new Label(page, "rlab", " Room:", true), null)
+			.addItem(roomLabel, null)
 			.addItem(rooms, null)
-			.addItem(new Label(page, "devlab", " Device:", true), null)
+			.addItem(deviceLabel, null)
 			.addItem(deviceTypes, null)
 			.addItem(searchForDevices, null);
+		
 		
 		
 		page.append(header).append(selectorsRow).linebreak().append(tables); // TODO more

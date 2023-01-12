@@ -320,7 +320,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 			});
 			tableLoc.triggerPageBuild();
 			tableLoc.getMainTable().postponeLoading(); // these potentially heavy-weight tables can block the loading of the page otherwise
-			tableLoc.getMainTable().preloadSubwidgets(); // these tables contain a large number of subwidgets, which would otherwise trigger a lot of init requests
+			tableLoc.getMainTable().setComposite();
 			typeFilterDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.registerDependentWidget(tableLoc.getMainTable());
 			roomsDrop.getFirstDropdown().registerDependentWidget(tableLoc.getMainTable());

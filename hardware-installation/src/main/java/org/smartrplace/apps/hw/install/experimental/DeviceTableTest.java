@@ -2,7 +2,6 @@ package org.smartrplace.apps.hw.install.experimental;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,7 @@ class DeviceTableTest {
 		this.handlerId = handler.id();
 		final String providerId = ResourceUtils.getValidResourceName(handler.id()).replaceAll("\\$", "_");
 		this.header = new Header(parent, providerId + "_header", req);
+		header.setDefaultColor("darkblue");
 		this.header.setText(handler.label(req.getLocale()), req); // handler.getTableTitle()?
 		this.table = new DynamicTable<ResourcePattern>(parent, providerId + "_table", req) {
 			
@@ -67,6 +67,7 @@ class DeviceTableTest {
 			}
 			
 		};
+		table.setComposite();
 		parent.triggerAction(header, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req);
 		parent.triggerAction(table, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req); // TODO test
 		
