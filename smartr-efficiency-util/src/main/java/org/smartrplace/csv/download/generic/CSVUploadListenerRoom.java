@@ -6,6 +6,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceHandlerBase.DeviceByEndcodeResult;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.KPIResourceAccess;
@@ -89,7 +90,8 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 					iad = appMan.dpService().getMangedDeviceResource(device.device);
 				String action = readLine(record, "action");
 				if(action.equalsIgnoreCase("delete")) {
-					device.device.delete();
+					DeviceTableRaw.deleteDeviceBase(device.device);
+					//device.device.delete();
 					if(iad != null)
 						iad.delete();
 					System.out.println("Delete() finished for "+device.device.getLocation());
