@@ -24,7 +24,6 @@ import org.smartrplace.smarteff.defaultservice.TSManagementPage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
-import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
@@ -44,13 +43,15 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 	private final HardwareInstallController controller;
 	private final DatapointService dpService;
 	private final HardwareInstallConfig appConfigData;
+	private final boolean isSuperAdmin;
 	
 	public final CSVRoomExporter csvRoomExporterFull;
 	public final CSVRoomExporter csvRoomExporterFullIncludeInactive;
 
-	public DeviceHandlerPage(WidgetPage<?> page, HardwareInstallController controller) {
+	public DeviceHandlerPage(WidgetPage<?> page, boolean isSuperAdmin, HardwareInstallController controller) {
 		super(page, controller.appMan, null);
 		this.controller = controller;
+		this.isSuperAdmin = isSuperAdmin;
 		this.appManPlus = controller.appManPlus;
 		this.dpService = appManPlus.dpService();
 		this.appConfigData = appMan.getResourceAccess().getResource("hardwareInstallConfig");
@@ -87,39 +88,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 		exportCSVFull.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
 		exportCSVFull.triggerOnPOST(alert);
 
-	    Button exportCSVFullIncludeInactive = new Button(page, "exportCSVInclInactive", "Export CSV (incl. inactive/no-handler)") {
-			@Override
-	    	public void onPrePOST(String data, OgemaHttpRequest req) {
-	    		download.setDeleteFileAfterDownload(true, req);
-				String fileStr = csvRoomExporterFullIncludeInactive.exportToFile(req);
-	    		File csvFile = new File(fileStr);
-				download.setFile(csvFile, "rooms_devices_plus.csv", req);
-	    	}
-		};
-		exportCSVFullIncludeInactive.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
-		exportCSVFullIncludeInactive.triggerOnPOST(alert);
-
-		CSVUploadListener listener = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
-			@Override
-			protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId, String dbLocation) {
-				if(dbLocation != null) {
-					Resource device = appMan.getResourceAccess().getResource(dbLocation);
-					if((device != null) && (device instanceof PhysicalElement))
-						return DeviceHandlerBase.getDeviceHandler((PhysicalElement) device, appManPlus);
-				}
-				return DeviceHandlerBase.getDeviceByEndcode(serialEndCode, typeId, appManPlus);
-			}
-			
-			@SuppressWarnings({ "rawtypes", "unchecked" })
-			@Override
-			protected InstallAppDevice createInstallAppDevice(String serialEndCode, String typeId,
-					DeviceByEndcodeResult<? extends PhysicalElement> deviceRes, String proposedDeviceId) {
-				if(deviceRes == null)
-					return null;
-				return controller.addDeviceIfNew(deviceRes.device, (DeviceHandlerProvider)deviceRes.devHand, proposedDeviceId);
-			}
-		};
-		CSVUploadListener listenerIadOnly = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
+	    CSVUploadListener listenerIadOnly = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
 			@Override
 			protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId, String dbLocation) {
 				if(dbLocation != null) {
@@ -143,18 +112,61 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 			}
 		};
 		
-		CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
-				"Import CSV", listener , appMan);
-		uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 
 		CSVUploadWidgets uploadCSVIadOnly = new CSVUploadWidgets(page, alert, pid()+"iadOnly",
 				"Create IAD-Resource Only", listenerIadOnly , appMan);
 		uploadCSVIadOnly.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
 
-		Label sepLabel = new Label(page, "sepLabel", "-----");
-		Flexbox flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
-				exportCSVFull, exportCSVFullIncludeInactive, uploadCSV.csvButton, uploadCSV.uploader.getFileUpload(),
-				sepLabel, uploadCSVIadOnly.csvButton, uploadCSVIadOnly.uploader.getFileUpload());
+		Flexbox flexLineCSV;
+	    if(isSuperAdmin) {
+			Button exportCSVFullIncludeInactive = new Button(page, "exportCSVInclInactive", "Export CSV (incl. inactive/no-handler)") {
+				@Override
+		    	public void onPrePOST(String data, OgemaHttpRequest req) {
+		    		download.setDeleteFileAfterDownload(true, req);
+					String fileStr = csvRoomExporterFullIncludeInactive.exportToFile(req);
+		    		File csvFile = new File(fileStr);
+					download.setFile(csvFile, "rooms_devices_plus.csv", req);
+		    	}
+			};
+			exportCSVFullIncludeInactive.triggerAction(download, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);  // GET then triggers download start
+			exportCSVFullIncludeInactive.triggerOnPOST(alert);
+
+			CSVUploadListener listener = new CSVUploadListenerRoom(controller.appConfigData, appManPlus) {
+				@Override
+				protected DeviceByEndcodeResult<? extends PhysicalElement> getDevice(String serialEndCode, String typeId, String dbLocation) {
+					if(dbLocation != null) {
+						Resource device = appMan.getResourceAccess().getResource(dbLocation);
+						if((device != null) && (device instanceof PhysicalElement))
+							return DeviceHandlerBase.getDeviceHandler((PhysicalElement) device, appManPlus);
+					}
+					return DeviceHandlerBase.getDeviceByEndcode(serialEndCode, typeId, appManPlus);
+				}
+				
+				@SuppressWarnings({ "rawtypes", "unchecked" })
+				@Override
+				protected InstallAppDevice createInstallAppDevice(String serialEndCode, String typeId,
+						DeviceByEndcodeResult<? extends PhysicalElement> deviceRes, String proposedDeviceId) {
+					if(deviceRes == null)
+						return null;
+					return controller.addDeviceIfNew(deviceRes.device, (DeviceHandlerProvider)deviceRes.devHand, proposedDeviceId);
+				}
+			};
+
+			CSVUploadWidgets uploadCSV = new CSVUploadWidgets(page, alert, pid(),
+					"Import CSV", listener , appMan);
+			uploadCSV.uploader.getFileUpload().setDefaultPadding("1em", false, true, false, true);
+
+			Label sepLabel = new Label(page, "sepLabel", "-----");
+			flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
+					exportCSVFull, exportCSVFullIncludeInactive, uploadCSV.csvButton, uploadCSV.uploader.getFileUpload(),
+					sepLabel, uploadCSVIadOnly.csvButton, uploadCSVIadOnly.uploader.getFileUpload());
+	    } else {
+
+			Label sepLabel = new Label(page, "sepLabel", "-----------------------------------------------------------------------------------");
+			flexLineCSV = TSManagementPage.getHorizontalFlexBox(page, "csvFlex"+pid(),
+					exportCSVFull,
+					sepLabel, uploadCSVIadOnly.csvButton, uploadCSVIadOnly.uploader.getFileUpload());
+	    }
 		page.append(flexLineCSV);
 
 		//page.append(topTable);

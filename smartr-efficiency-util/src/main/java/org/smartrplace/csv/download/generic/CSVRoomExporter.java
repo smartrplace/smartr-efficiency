@@ -50,7 +50,8 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		if(isFullExport && (room != null) && room.exists()) {
 			List<String> done = new ArrayList<String>();
 			List<PhysicalElement> devices = RoomHelper.getAllDevicesInRoom(room, appMan.getResourceAccess());
-			if(!devices.isEmpty()) for(PhysicalElement dev: devices) {
+			boolean found = false;
+			for(PhysicalElement dev: devices) {
 				InstallAppDevice iad = appMan.dpService().getMangedDeviceResource(dev);
 				done.add(dev.getLocation());
 				
@@ -65,9 +66,11 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 					}
 				}
 
+				found = true;
 				printRow(room, iad, dev, null, p);
 			}
-			return done;
+			if(found)
+				return done;
 		}
 
 		List<String> toPrint = new ArrayList<>();
