@@ -177,7 +177,7 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			trashPage.getMenuConfiguration().setCustomNavigation(menu);
 			
 			WidgetPage<?> devHandPage = widgetApp.createWidgetPage("devHands.hmtl");
-			DeviceHandlerPage dhpage = new DeviceHandlerPage(devHandPage, controller);
+			DeviceHandlerPage dhpage = new DeviceHandlerPage(devHandPage, true, controller);
 			menu.addEntry(dhpage.getHeader(null), devHandPage);
 			devHandPage.getMenuConfiguration().setCustomNavigation(menu);
 
