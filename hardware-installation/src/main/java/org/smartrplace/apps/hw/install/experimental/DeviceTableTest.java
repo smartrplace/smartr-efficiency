@@ -67,7 +67,7 @@ class DeviceTableTest {
 			}
 			
 		};
-		table.setComposite();
+		table.setComposite(15_000);
 		parent.triggerAction(header, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req);
 		parent.triggerAction(table, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST, req); // TODO test
 		
@@ -95,6 +95,7 @@ class DeviceTableTest {
 				// TODO polling
 				final Label valueLabel = new Label(table, idPrefix + "_value", req);
 				valueLabel.setText(value != null ? ValueResourceUtils.getValue(value) : "", req);
+				valueLabel.setPollingInterval(15_000, req);
 				row.addCell("value", valueLabel);
 				
 				// TODO polling
@@ -112,6 +113,7 @@ class DeviceTableTest {
 					}
 					
 				};
+				lastContact.setPollingInterval(15_000, req);
 				row.addCell("lastContact", lastContact);
 				final TemplateDropdown<Room> room = new TemplateDropdown<Room>(table, idPrefix + "_room", req) {
 					public void onGET(OgemaHttpRequest req) {
