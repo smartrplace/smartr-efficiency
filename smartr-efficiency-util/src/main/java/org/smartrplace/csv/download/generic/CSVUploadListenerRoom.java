@@ -70,7 +70,7 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		//Check device
 		DeviceByEndcodeResult<? extends PhysicalElement> device = null;
 		String endCode = readLine(record, "serialEndCode");
-		if(endCode.startsWith("'"))
+		if(endCode != null && endCode.startsWith("'"))
 			endCode = endCode.substring(1);
 		String dbLocation = readLine(record, "dbLocation");
 		if(!(endCode == null && dbLocation == null)) {
@@ -107,8 +107,22 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 				}
 			}
 		}
-		if (device == null)
+		if (device == null) {
+			try {
+				String roomName = record.get("Room");
+				Room room = KPIResourceAccess.getRealRoomAlsoByLocation(roomName, appMan.getResourceAccess());
+				if(room != null) {
+					String roomTypeStr = record.get("RoomType");
+					if(roomTypeStr != null) {
+						int roomType = Integer.parseInt(roomTypeStr);
+						ValueResourceHelper.setCreate(room.type(), roomType);
+					}
+				}
+			} catch(IllegalArgumentException | NullPointerException e) {
+				//no room
+			}
 			return;
+		}
 		if(iad == null) {
 			try {
 				final int numericId = Integer.parseInt(deviceId);
@@ -133,9 +147,15 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		try {
 			String roomName = record.get("Room");
 			Room room = KPIResourceAccess.getRealRoomAlsoByLocation(roomName, appMan.getResourceAccess());
-			if(room != null)
+			if(room != null) {
 				iad.device().location().room().setAsReference(room);
-		} catch(IllegalArgumentException e) {
+				String roomTypeStr = record.get("RoomType");
+				if(roomTypeStr != null) {
+					int roomType = Integer.parseInt(roomTypeStr);
+					ValueResourceHelper.setCreate(room.type(), roomType);
+				}
+			}
+		} catch(IllegalArgumentException | NullPointerException e) {
 			//no room
 		}
 	}

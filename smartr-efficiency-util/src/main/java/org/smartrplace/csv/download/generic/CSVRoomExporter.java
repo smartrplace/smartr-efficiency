@@ -90,6 +90,12 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("");
 			toPrint.add("");
 		}		
+		if(room != null && room.exists()) {
+			toPrint.add(""+room.type().getValue());
+		} else {
+			toPrint.add("");
+		}
+
 		p.printRecord(toPrint);
 		return null;
 	}
@@ -180,6 +186,11 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		else
 			toPrint.add("");
 		
+		if(room != null)
+			toPrint.add(""+room.type().getValue());
+		else
+			toPrint.add("");
+
 		p.printRecord(toPrint);
 	}
 
@@ -198,6 +209,7 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("dbLocation");
 			toPrint.add("devHandId");
 		}
+		toPrint.add("RoomType");
 		
 		p.printRecord(toPrint);
 	}
