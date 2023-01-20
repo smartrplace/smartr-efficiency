@@ -400,6 +400,6 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 	}
 	
 	protected void initRoom(Room object) {
-		SubcustomerUtil.initRoom(object, controller.roomGroups, controller.appConfigData);
+		SubcustomerUtil.initRoom(object, controller.roomGroups, controller.appConfigData, controller.appMan);
 	}
 }
