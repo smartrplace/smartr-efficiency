@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -13,6 +14,7 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -28,6 +30,13 @@ public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncDa
 		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(GatewaySyncData.class));
 		this.dpService = appManPlus.dpService();
 		triggerPageBuild();
+		
+		if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
+			List<String> gws = ValueResourceHelper.getStringListFromProperty("org.ogema.devicefinder.util.subgatewaypreset");
+			if(gws != null) for(String gw: gws){
+				GatewaySyncUtil.getOrCreateGatewayResource(gw, appMan);
+			}
+		}
 	}
 
 	@Override
