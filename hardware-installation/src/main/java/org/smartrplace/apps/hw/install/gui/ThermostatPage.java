@@ -82,13 +82,13 @@ public class ThermostatPage extends MainPage {
 	public String getHeader() {
 		switch(type) {
 		case STANDARD:
-			return "Thermostat Special Selection";
+			return "Thermostat Setpoint Set and Special Selection";
 		case AUTO_MODE:
-			return "Thermostat Auto-Mode and Valve Adapt Management";
+			return "Thermostat Auto-Mode Management";
 		case VALVE_ONLY:
-			return "Valve Adapt Management Only";
+			return "Thermostat Valve Management";
 		case BATTERY_WINDOW:
-			return "Thermostat Battery and Window Management";
+			return "Thermostat Battery/EmptyPos and Window-TempFall Management";
 		case STANDARD_VIEW_ONLY:
 			return "Thermostat Page";
 		}
