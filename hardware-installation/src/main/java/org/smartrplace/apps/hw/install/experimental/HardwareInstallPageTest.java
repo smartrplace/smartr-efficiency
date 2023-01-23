@@ -39,20 +39,22 @@ import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 import de.iwes.widgets.resource.widget.dropdown.ResourceListDropdown;
 import de.iwes.widgets.template.DisplayTemplate;
 
+/*
 @Component(
 		service=LazyWidgetPage.class,
 		property= {
 				LazyWidgetPage.BASE_URL + "=/org/smartrplace/hardwareinstall-test",
 				LazyWidgetPage.RELATIVE_URL + "=index.html",
-				LazyWidgetPage.START_PAGE + "=true",
-				LazyWidgetPage.MENU_ENTRY + "=Hardware installation"
+				LazyWidgetPage.MENU_ENTRY + "=Hardware installation (test)"
 		}
 )
-public class HardwareInstallPageTest implements LazyWidgetPage {
+*/
+public class HardwareInstallPageTest /*implements LazyWidgetPage*/ {
 	
 	private final Collection<DeviceHandlerProvider<?>> deviceHandlers = /*new ConcurrentSkipListSet<DeviceHandlerProvider<?>>()*/
 			Collections.synchronizedCollection(new ArrayList<DeviceHandlerProvider<?>>());
 	
+	/*
 	@Reference(
 			//target="(" + DEVICE_MNGMT_PROP + "=*)",
 			cardinality=ReferenceCardinality.MULTIPLE,
@@ -62,17 +64,16 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 			bind="addDeviceHandler",
 			unbind="removeDeviceHandler"
 	)
-	protected void addDeviceHandler(DeviceHandlerProvider<?> handler) {
+	*/
+	public void addDeviceHandler(DeviceHandlerProvider<?> handler) {
 		deviceHandlers.add(handler);
 	}
 	
-	protected void removeDeviceHandler(DeviceHandlerProvider<?> handler) {
+	public void removeDeviceHandler(DeviceHandlerProvider<?> handler) {
 		deviceHandlers.remove(handler);
 	}
 	
-
-	@Override
-	public void init(ApplicationManager am, WidgetPage<?> page) {
+	public HardwareInstallPageTest(ApplicationManager am, WidgetPage<?> page) {
 		final ResourceAccess ra = am.getResourceAccess();
 
 		final Header header = new Header(page, "header", "Device setup and configuration (test)");
@@ -81,6 +82,9 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 		
 		final ResourceListDropdown<BuildingPropertyUnit> buildings = new ResourceListDropdown<BuildingPropertyUnit>(page,  "buildingsSelector", false);
 		buildings.setDefaultList(ra.<ResourceList<BuildingPropertyUnit>>getResource("accessAdminConfig/roomGroups"));
+		buildings.setDefaultSelectByUrlParam("roomgroup");
+		final String buildingsTooltip = "Select a building or group of rooms, as a filter for the rooms selection";
+		buildings.setDefaultToolTip(buildingsTooltip);
 		final TemplateMultiselect<Room> rooms = new TemplateMultiselect<Room>(page, "roomSelector") {
 			
 			@Override
@@ -115,7 +119,9 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 				return room.getLocation();
 			}
 		});
-		// TODO offer all options if no room is selected?
+		rooms.setDefaultSelectByUrlParam("room");
+		final String roomsTooltip = "Filter devices by room";
+		rooms.setDefaultToolTip(roomsTooltip);
 		final TemplateMultiselect<DeviceHandlerProvider<?>> deviceTypes = new TemplateMultiselect<DeviceHandlerProvider<?>>(page, "deviceHandlers") {
 			
 			// filtered by selected room and availability of devices
@@ -125,7 +131,7 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 					return;
 				final List<Room> room = rooms.getSelectedItems(req);
 				Stream<InstallAppDevice> handlerStream = knownDevices.getAllElements().stream();
-				if (room != null) {
+				if (room != null && !room.isEmpty()) {
 					handlerStream = handlerStream.filter(dev ->  {
 						final Room deviceRoom = dev.device().location().room();
 						if (deviceRoom == null)
@@ -148,6 +154,9 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 			}
 			
 		};
+		deviceTypes.setDefaultSelectByUrlParam("device");
+		final String devicesTooltip = "Filter device type";
+		deviceTypes.setDefaultToolTip(devicesTooltip);
 		final Button searchForDevices = new Button(page, "searchForDevices", true) {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -169,8 +178,11 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 		final DynamicDeviceTablesTest tables = new DynamicDeviceTablesTest(page, "devicesTable", deviceTypes, rooms, () -> ra.getResource("hardwareInstallConfig/knownDevices"));
 				
 		final Label buildingLabel =  new Label(page, "blab", "Building:", true);
+		buildingLabel.setDefaultToolTip(buildingsTooltip);
 		final Label roomLabel =  new Label(page, "rlab", " Room:", true);
+		roomLabel.setDefaultToolTip(roomsTooltip);
 		final Label deviceLabel = new Label(page, "devlab", " Device:", true);
+		deviceLabel.setDefaultToolTip(devicesTooltip);
 		Arrays.stream(new Label[] {buildingLabel, roomLabel, deviceLabel}).forEach(label -> {
 			label.setColor("darkblue", null);
 			label.addCssStyle("font-weight", "bold", null);
@@ -204,9 +216,6 @@ public class HardwareInstallPageTest implements LazyWidgetPage {
 		searchForDevices.triggerAction(rooms, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		
 	}
-	
-	
-	
 	
 
 }

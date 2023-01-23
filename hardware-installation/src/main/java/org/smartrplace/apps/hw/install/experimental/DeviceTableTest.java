@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
@@ -56,13 +57,16 @@ class DeviceTableTest {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				final List<Room> rooms = roomSelector.getSelectedItems(req);
-				//ResourceUtils.getDeviceLocationRoom(knownDevices)
-				final List<ResourcePattern> filteredPatterns = ((List<ResourcePattern>) handler.getAllPatterns()).stream().filter(pattern -> {
-					final Room room = ResourceUtils.getDeviceLocationRoom(pattern.model);
-					if (room == null)
-						return false;
-					return rooms.stream().filter(r -> r.equalsLocation(room)).findAny().isPresent();
-				}).collect(Collectors.toList());
+				final boolean roomSelected = rooms != null && !rooms.isEmpty();
+				List<ResourcePattern> filteredPatterns = handler.getAllPatterns();
+				if (roomSelected) {
+					filteredPatterns = filteredPatterns.stream().filter(pattern -> {
+						final Room room = ResourceUtils.getDeviceLocationRoom(pattern.model);
+						if (room == null)
+							return false;
+						return rooms.stream().filter(r -> r.equalsLocation(room)).findAny().isPresent();
+					}).collect(Collectors.toList());
+				}
 				updateRows(filteredPatterns, req);
 			}
 			
@@ -83,22 +87,27 @@ class DeviceTableTest {
 				if (!config.isPresent())
 					return null;
 				final SingleValueResource value = handler.getMainSensorValue(pattern.model, config.get());
-				
 				final String idPrefix = providerId + "__" + ResourceUtils.getValidResourceName(pattern.model.getLocation()).replaceAll("\\$", "_"); //XXX 
 				final Row row = new Row();
 				final Label name = new Label(table, idPrefix + "_name", req);
-				name.setText(ResourceUtils.getHumanReadableName(pattern.model), req); // FIXME not the same as in the original app
+				name.setText(DeviceTableTest.getDeviceName(config.get(), handler), req); // an approximation to the original app
 				row.addCell("name", name);
 				final Label id = new Label(table, idPrefix + "_id", req);
 				id.setText(config.isPresent() ? config.get().deviceId().getValue() : "unknown", req);
 				row.addCell("id", id);
-				// TODO polling
-				final Label valueLabel = new Label(table, idPrefix + "_value", req);
-				valueLabel.setText(value != null ? ValueResourceUtils.getValue(value) : "", req);
+				final Label valueLabel = new Label(table, idPrefix + "_value", req) {
+					
+					public void onGET(OgemaHttpRequest req) {
+						if (value == null) {
+							setText("", req);
+							return;
+						}
+						setText(value instanceof FloatResource ? ValueResourceUtils.getValue((FloatResource) value, 2) : ValueResourceUtils.getValue(value), req);
+					}
+					
+				};
 				valueLabel.setPollingInterval(15_000, req);
 				row.addCell("value", valueLabel);
-				
-				// TODO polling
 				final Label lastContact = new Label(table, idPrefix + "_lastContact", req) {
 					
 					public void onGET(OgemaHttpRequest req) {
@@ -214,6 +223,37 @@ class DeviceTableTest {
 
 	List<OgemaWidget> getSubwidgets() {
 		return Arrays.asList(this.header, this.table);
+	}
+	
+	private static String getDeviceName(InstallAppDevice config, DeviceHandlerProvider<?> handler) {
+		String deviceTypeShort;
+		try {
+			deviceTypeShort = handler.getDeviceTypeShortId(null);
+		} catch (NullPointerException e) {
+			String[] els = config.deviceId().getValue().split("-");
+			deviceTypeShort = els[0];
+		}
+		String subLoc;
+		if (config.installationLocation().isActive()) {
+			subLoc = deviceTypeShort + "-" + config.installationLocation().getValue();
+		} else {
+			String devName = config.deviceId().getValue();
+			if (devName.length() < 4)
+				devName = "9999";
+			try {
+				devName = String.valueOf(Integer.parseInt(devName.substring(devName.length()-4)));
+			} catch(NumberFormatException e) {
+				devName = "9998";
+			}
+			subLoc = deviceTypeShort + devName;
+		}
+		final Room room = config.device().location().room();
+		if (room.isActive()) {
+			final String readableRoom = ResourceUtils.getHumanReadableName(room);
+			return readableRoom + "-" + subLoc;
+		}
+		return subLoc;
+		
 	}
 	
 }

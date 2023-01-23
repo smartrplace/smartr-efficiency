@@ -34,6 +34,7 @@ import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
+import org.smartrplace.apps.hw.install.experimental.HardwareInstallPageTest;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 
@@ -114,6 +115,8 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 	@Reference
 	DatapointService dpService;
 	
+	volatile HardwareInstallPageTest testPageImpl; 
+	
     protected final GenericControllerProvider<HardwareInstallController> controllerProvider;
     public HardwareInstallApp() {
 		controllerProvider = new GenericControllerProvider<HardwareInstallController>(
@@ -132,7 +135,6 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
-		//menu = new NavigationMenu("Select Page");
 		final WidgetPage<?> page = widgetApp.createStartPage();
 
 		synchronized (this) {
@@ -145,6 +147,16 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 			}
 			controllerProvider.setController(controller);
 		}
+		final WidgetPage<?> testPage = widgetApp.createWidgetPage("index2.html");
+		this.testPageImpl = new HardwareInstallPageTest(appManager, testPage);
+		final NavigationMenu menu = new NavigationMenu(" Select Page");
+		menu.addEntry("Main page", page);
+		menu.addEntry("Test page", testPage);
+		page.getMenuConfiguration().setCustomNavigation(menu);
+		testPage.getMenuConfiguration().setCustomNavigation(menu);
+		synchronized (tableProviders) {
+			tableProviders.values().forEach(testPageImpl::addDeviceHandler);
+		}
      }
 
      /*
@@ -155,6 +167,7 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     	if (widgetApp != null) widgetApp.close();
 		if (controller != null)
     		controller.close();
+		this.testPageImpl = null;
         log.info("{} stopped", getClass().getName());
     }
     
@@ -179,11 +192,21 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 		    		}
 				}
 	    	}
+	    	final HardwareInstallPageTest testPage =this.testPageImpl;
+	    	if (testPage != null) {
+	    		testPage.addDeviceHandler(provider);
+	    	}
     	}
     }
     protected void removeTableProvider(DeviceHandlerProvider<?> provider) {
-    	tableProviders.remove(provider.id());
+    	synchronized (tableProviders) {
+	    	tableProviders.remove(provider.id());
+	    	final HardwareInstallPageTest testPage =this.testPageImpl;
+	    	if (testPage != null)
+	    		testPage.removeDeviceHandler(provider);
+    	}
     }
+    
     protected boolean leadDeviceHandlerFound = false;
     @Override
     public boolean leadHandlerFound() {
