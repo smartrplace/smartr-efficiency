@@ -134,9 +134,11 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 				deviceId = null;
 			}
 			//try to create IAD
-			iad = createInstallAppDevice(endCode, typeId, device, deviceId);
+			iad = createInstallAppDevice(endCode, typeId, device, typeId+"-"+deviceId);
 			if(iad == null)
 				return;
+		} else if((!typeId.isEmpty()) && (!deviceId.isEmpty())) {
+			ValueResourceHelper.setCreate(iad.deviceId(), typeId+"-"+deviceId);
 		}
 		String installationLocation = readLine(record, "Location (if known)");
 		if(installationLocation != null)
