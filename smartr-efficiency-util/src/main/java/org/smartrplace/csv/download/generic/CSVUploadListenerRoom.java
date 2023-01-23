@@ -96,8 +96,8 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 			} else
 				device = getDevice(endCode, typeId, dbLocation);
 			if(device != null) {
-				if(iad == null)
-					iad = appMan.dpService().getMangedDeviceResource(device.device);
+				iad = appMan.dpService().getMangedDeviceResource(device.device);
+					
 				if(action.equalsIgnoreCase("delete")) {
 					DeviceTableRaw.deleteDeviceBase(deviceRes);
 					if(iad != null)
