@@ -144,6 +144,9 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 		String comment = readLine(record, "comment");
 		if(comment != null)
 			ValueResourceHelper.setCreate(iad.installationComment(), comment);
+		String trash = readLine(record, "trash");
+		if(trash != null && Boolean.parseBoolean(trash))
+			ValueResourceHelper.setCreate(iad.isTrash(), true);
 		try {
 			String roomName = record.get("Room");
 			Room room = KPIResourceAccess.getRealRoomAlsoByLocation(roomName, appMan.getResourceAccess());
