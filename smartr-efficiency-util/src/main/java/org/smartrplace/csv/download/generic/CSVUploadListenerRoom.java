@@ -131,10 +131,10 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 				deviceId = String.format("%s-%04d", typeId, numericId); // cf. hardware-installation, LocalDeviceId#generateDeviceId()
 			} catch (Exception e) {
 				System.out.println("No deviceId from file:" + deviceId + ", type " + typeId);
-				deviceId = null;
+				deviceId = typeId+"-"+deviceId;
 			}
 			//try to create IAD
-			iad = createInstallAppDevice(endCode, typeId, device, typeId+"-"+deviceId);
+			iad = createInstallAppDevice(endCode, typeId, device, deviceId);
 			if(iad == null)
 				return;
 		} else if((!typeId.isEmpty()) && (!deviceId.isEmpty())) {
