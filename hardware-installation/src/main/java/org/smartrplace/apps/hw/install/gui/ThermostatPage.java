@@ -70,7 +70,7 @@ public class ThermostatPage extends MainPage {
 	DeviceTableBase devTable;
 	
 	public enum ThermostatPageType {
-		STANDARD,
+		SETPOINT_EMPTYPOS,
 		AUTO_MODE,
 		VALVE_ONLY,
 		BATTERY_WINDOW,
@@ -81,14 +81,14 @@ public class ThermostatPage extends MainPage {
 	@Override
 	public String getHeader() {
 		switch(type) {
-		case STANDARD:
-			return "Thermostat Setpoint Set and Special Selection";
+		case SETPOINT_EMPTYPOS:
+			return "Thermostat Setpoint Set and Battery/EmptyPos Management";
 		case AUTO_MODE:
 			return "Thermostat Auto-Mode Management";
 		case VALVE_ONLY:
 			return "Thermostat Valve Management";
 		case BATTERY_WINDOW:
-			return "Thermostat Battery/EmptyPos and Window-TempFall Management";
+			return "Thermostat Window-TempFall Management";
 		case STANDARD_VIEW_ONLY:
 			return "Thermostat Page";
 		}
@@ -148,8 +148,39 @@ public class ThermostatPage extends MainPage {
 			updateAll.setDefaultConfirmMsg("Really re-send winMode value to all selected thermostats with pending feedback?");
 			secondTopTable.setContent(0, 0, updateAll);
 			page.append(secondTopTable);
+		} else if(type == ThermostatPageType.SETPOINT_EMPTYPOS) {
+			page.append(alert).linebreak();
+			StaticTable secondTopTable = new StaticTable(1, 5);
+			ButtonConfirm updateAll = new ButtonConfirm(page, "updateallFbFaulty", "Resend EmptyPos") {
+				@Override
+				public void onPrePOST(String data, OgemaHttpRequest req) {
+					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
+					int count = 0;
+					for(InstallAppDevice dev: all) {
+						if(dev.device() instanceof Thermostat) {
+							Thermostat device = (Thermostat) dev.device().getLocationResource();
+							final FloatResource control = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateControl();
+							final FloatResource feedback = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateFeedback();
+							if(!(control.isActive() && feedback.exists()))
+								continue;
+							float ctVal = control.getValue();
+							float fbVal = feedback.getValue();
+							if(ValueResourceHelper.isAlmostEqual(ctVal, fbVal))
+								continue;
+							control.setValue(ctVal);
+							count++;
+						}
+					}
+					alert.showAlert("Sent emptyPos update to "+count+" thermostats", count>0, req);
+				}
+			};
+			//updateAll.triggerOnPOST(alert);
+			updateAll.registerDependentWidget(alert);
+			updateAll.setDefaultConfirmMsg("Really re-send emptyPos value to all selected thermostats with pending feedback?");
+			secondTopTable.setContent(0, 0, updateAll);
+			page.append(secondTopTable);
 		}
-		
+
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
 			private Label addControlFeedbackLabel(String widgetId, SingleValueResource control, SingleValueResource feedback,
 					String lastContactWidgetId,
@@ -231,7 +262,7 @@ public class ThermostatPage extends MainPage {
 				vh.stringLabel("Name", id, name, row);
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 				final Label setpointFB;
-				if(type == ThermostatPageType.STANDARD)
+				if(type == ThermostatPageType.SETPOINT_EMPTYPOS)
 					setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
 				else {
 					setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f",
@@ -251,7 +282,7 @@ public class ThermostatPage extends MainPage {
 					});
 				}
 				Label lastContactFB = addLastContact("Last FB", vh, "FB"+id, req, row,device.temperatureSensor().deviceFeedback().setpoint());
-				if(type == ThermostatPageType.STANDARD) {
+				if(type == ThermostatPageType.SETPOINT_EMPTYPOS) {
 					TextField setpointSet = null;
 					if(req != null) {
 						setpointSet = new TextField(mainTable, "setpointSet"+id, req) {
@@ -293,7 +324,7 @@ public class ThermostatPage extends MainPage {
 					} else
 						vh.registerHeaderEntry("Last Measurment");
 				}
-				if(type == ThermostatPageType.STANDARD || type == ThermostatPageType.STANDARD_VIEW_ONLY) {
+				if(type == ThermostatPageType.SETPOINT_EMPTYPOS || type == ThermostatPageType.STANDARD_VIEW_ONLY) {
 					if(req == null) {
 						vh.registerHeaderEntry("Valve");
 						vh.registerHeaderEntry("Last Valve");
@@ -313,7 +344,7 @@ public class ThermostatPage extends MainPage {
 						lastContactValve.setPollingInterval(DEFAULT_POLL_RATE, req);
 					}
 				}
-				if(type == ThermostatPageType.STANDARD) {
+				if(type == ThermostatPageType.SETPOINT_EMPTYPOS) {
 					final FloatResource errorRun = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateControl();
 					final FloatResource errorRunFb = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateFeedback();
 					if(errorRun.exists() || (req == null)) {
@@ -337,50 +368,55 @@ public class ThermostatPage extends MainPage {
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
 						}
 					}					
-				} else if(type == ThermostatPageType.BATTERY_WINDOW) {
+				} 
+				if((type == ThermostatPageType.BATTERY_WINDOW) || (type == ThermostatPageType.SETPOINT_EMPTYPOS)) {
 					if(req == null) {
 						vh.registerHeaderEntry(DeviceTableRaw.BATTERY_VOLTAGE_HEADER);
 						vh.registerHeaderEntry("Last Voltage");
 						vh.registerHeaderEntry("Bat.Low");
-						vh.registerHeaderEntry("Last Status");
-						vh.registerHeaderEntry("WinMode");
-						vh.registerHeaderEntry("LastMode");
-						vh.registerHeaderEntry("TempFallDelta");
-						vh.registerHeaderEntry("LastDelta");
-						vh.registerHeaderEntry("TempFallTemp");
-						vh.registerHeaderEntry("WinDuration");
+						if(type == ThermostatPageType.BATTERY_WINDOW) {
+							vh.registerHeaderEntry("Last Status");
+							vh.registerHeaderEntry("WinMode");
+							vh.registerHeaderEntry("LastMode");
+							vh.registerHeaderEntry("TempFallDelta");
+							vh.registerHeaderEntry("LastDelta");
+							vh.registerHeaderEntry("TempFallTemp");
+							vh.registerHeaderEntry("WinDuration");
+						}
 					} else {
 						AddBatteryVoltageResult voltageLab = addBatteryVoltage(vh, id, req, row, device);
 						Label lastContactVoltage = null;
-						Label lastContactStatus = null;
 						if(voltageLab != null)
 							lastContactVoltage = addLastContact("Last Voltage", vh, "LV"+id, req, row, voltageLab.reading);
-						AddBatteryVoltageResult statusLab = addBatteryStatus(vh, id, req, row, device);
-						if(statusLab != null)
-							lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
 						if(voltageLab != null)
 							voltageLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
-						if(statusLab != null)
-							statusLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
 						if(lastContactVoltage != null)
 							lastContactVoltage.setPollingInterval(DEFAULT_POLL_RATE, req);
-						if(lastContactStatus != null)
-							lastContactStatus.setPollingInterval(DEFAULT_POLL_RATE, req);
-
-						ResourceList<?> master = device.getSubResource("HmParametersMaster", ResourceList.class);
-						if(master.exists()) {
-							addControlFeedbackLabel("WinMode", master.getSubResource("TEMPERATUREFALL_MODUS", IntegerResource.class),
-									master.getSubResource("TEMPERATUREFALL_MODUS_FEEDBACK", IntegerResource.class), "LastMode",
-									vh, id, req, row);
-							addControlFeedbackLabel("TempFallDelta", master.getSubResource("TEMPERATUREFALL_VALUE", FloatResource.class),
-									master.getSubResource("TEMPERATUREFALL_VALUE_FEEDBACK", FloatResource.class), "LastDelta",
-									vh, id, req, row);
-							addControlFeedbackLabel("TempFallTemp", master.getSubResource("TEMPERATURE_WINDOW_OPEN", FloatResource.class),
-									master.getSubResource("TEMPERATURE_WINDOW_OPEN_FEEDBACK", FloatResource.class), null,
-									vh, id, req, row);
-							addControlFeedbackLabel("WinDuration", master.getSubResource("TEMPERATUREFALL_WINDOW_OPEN_TIME_PERIOD", IntegerResource.class),
-									master.getSubResource("TEMPERATUREFALL_WINDOW_OPEN_TIME_PERIOD_FEEDBACK", IntegerResource.class), null,
-									vh, id, req, row);
+						if(type == ThermostatPageType.BATTERY_WINDOW) {
+							Label lastContactStatus = null;
+							AddBatteryVoltageResult statusLab = addBatteryStatus(vh, id, req, row, device);
+							if(statusLab != null)
+								lastContactStatus = addLastContact("Last Status", vh, "LStat"+id, req, row, statusLab.reading);
+							if(statusLab != null)
+								statusLab.label.setPollingInterval(DEFAULT_POLL_RATE, req);
+							if(lastContactStatus != null)
+								lastContactStatus.setPollingInterval(DEFAULT_POLL_RATE, req);
+	
+							ResourceList<?> master = device.getSubResource("HmParametersMaster", ResourceList.class);
+							if(master.exists()) {
+								addControlFeedbackLabel("WinMode", master.getSubResource("TEMPERATUREFALL_MODUS", IntegerResource.class),
+										master.getSubResource("TEMPERATUREFALL_MODUS_FEEDBACK", IntegerResource.class), "LastMode",
+										vh, id, req, row);
+								addControlFeedbackLabel("TempFallDelta", master.getSubResource("TEMPERATUREFALL_VALUE", FloatResource.class),
+										master.getSubResource("TEMPERATUREFALL_VALUE_FEEDBACK", FloatResource.class), "LastDelta",
+										vh, id, req, row);
+								addControlFeedbackLabel("TempFallTemp", master.getSubResource("TEMPERATURE_WINDOW_OPEN", FloatResource.class),
+										master.getSubResource("TEMPERATURE_WINDOW_OPEN_FEEDBACK", FloatResource.class), null,
+										vh, id, req, row);
+								addControlFeedbackLabel("WinDuration", master.getSubResource("TEMPERATUREFALL_WINDOW_OPEN_TIME_PERIOD", IntegerResource.class),
+										master.getSubResource("TEMPERATUREFALL_WINDOW_OPEN_TIME_PERIOD_FEEDBACK", IntegerResource.class), null,
+										vh, id, req, row);
+							}
 						}
 					}					
 				} else {

@@ -134,7 +134,7 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			thermPage2.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> thermPage = widgetApp.createWidgetPage("thermostatDetails.hmtl");
-			ThermostatPage thsetpointsetPage = new ThermostatPage(thermPage, controller, ThermostatPageType.STANDARD);
+			ThermostatPage thsetpointsetPage = new ThermostatPage(thermPage, controller, ThermostatPageType.SETPOINT_EMPTYPOS);
 			menu.addEntry(thsetpointsetPage.getHeader(), thermPage);
 			thermPage.getMenuConfiguration().setCustomNavigation(menu);
 			
