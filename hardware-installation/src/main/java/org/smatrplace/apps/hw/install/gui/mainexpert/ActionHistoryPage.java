@@ -21,6 +21,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 
+@SuppressWarnings("serial")
 public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem, Resource> {
 	private final static Long cleanUpAgoHours = Long.getLong("org.smatrplace.apps.hw.install.gui.mainexpert.historyCleanupMaintenanceHours", 680);
 	private final HardwareInstallConfig hwConfig;
@@ -45,6 +46,7 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 	
 	@Override
 	public void addWidgetsAboveTable() {
+		super.addWidgetsAboveTable();
 		if(!isExpert)
 			return;
 		StaticTable topTable = new StaticTable(1, 6);
@@ -78,7 +80,8 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 	@Override
 	public void addWidgets(ActionHistoryItem object, ObjectResourceGUIHelper<ActionHistoryItem, Resource> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-		vh.stringLabel("ID", id, object.id, row);
+		addNameLabel(object, vh, id, row, req);
+		//vh.stringLabel("ID", id, ""+object.id, row);
 		vh.stringLabel("User", id, object.user, row);
 		vh.stringLabel("Time", id, object.time, row);
 		vh.stringLabel("Action", id, object.action, row);
@@ -96,7 +99,7 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 
 	@Override
 	protected String getLabel(ActionHistoryItem obj, OgemaHttpRequest req) {
-		return obj.id;
+		return String.format("%04d", obj.id);
 	}
 
 	@Override
@@ -108,7 +111,9 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 			List<String> vals = StringFormatHelper.getListFromString(val, "$,");
 			ActionHistoryItem item = new ActionHistoryItem();
 			try {
-				item.id = vals.get(0);
+				try {
+					item.id = Integer.parseInt(vals.get(0));
+				} catch(NumberFormatException e) {}
 				item.user = vals.get(1);
 				item.time = vals.get(2);
 				item.action = vals.get(3);
@@ -126,6 +131,6 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 
 	@Override
 	public String getLineId(ActionHistoryItem object) {
-		return object.id+super.getLineId(object);
+		return String.format("%06d", 999999-object.id)+super.getLineId(object);
 	}
 }
