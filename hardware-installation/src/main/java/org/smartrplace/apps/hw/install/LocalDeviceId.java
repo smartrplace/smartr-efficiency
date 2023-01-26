@@ -61,7 +61,7 @@ public abstract class LocalDeviceId {
 			else
 				maxSearch = 99;
 		}
-		PreKnownDeviceData pre = getPreDeviceData(dev.device(), cfg, tableProvider.id(), dpService);
+		PreKnownDeviceData pre = getPreDeviceData((PhysicalElement) dev.device().getLocationResource(), cfg, tableProvider.id(), dpService);
 		if(pre != null) {
 			String deviceId = getAndPrepareConflictFreeDeviceId(dev.device(), pre, typeId, cfg, offset);
 			if(pre.room().isReference(false) && (!dev.device().location().room().exists()))
