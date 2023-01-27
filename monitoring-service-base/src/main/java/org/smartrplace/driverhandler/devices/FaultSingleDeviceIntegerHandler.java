@@ -25,4 +25,9 @@ public class FaultSingleDeviceIntegerHandler extends FaultSingleDeviceHandler {
 	protected Class<? extends ResourcePattern<Actor>> getPatternClass() {
 		return FaultSingleDeviceIntegerPattern.class;
 	}
+	
+	@Override
+	public boolean addDeviceOrResourceListToSync() {
+		return false;
+	}
 }

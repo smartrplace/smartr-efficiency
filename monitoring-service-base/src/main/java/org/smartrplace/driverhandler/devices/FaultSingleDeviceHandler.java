@@ -86,4 +86,9 @@ public class FaultSingleDeviceHandler extends DeviceHandlerSimple<Actor> {
 	public String getDeviceTypeShortId(DatapointService dpService) {
 		return "FAUT";
 	}
+	
+	@Override
+	public boolean addDeviceOrResourceListToSync() {
+		return false;
+	}
 }
