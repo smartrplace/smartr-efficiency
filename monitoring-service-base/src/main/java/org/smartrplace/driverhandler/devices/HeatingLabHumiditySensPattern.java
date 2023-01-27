@@ -17,6 +17,7 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.connections.ThermalConnection;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.HumiditySensor;
@@ -34,9 +35,9 @@ public class HeatingLabHumiditySensPattern extends ResourcePattern<HumiditySenso
 	
 	@Override
 	public boolean accept() {
-		if(model.getLocation().startsWith("knx"))
+		if(DeviceTableBase.makeDeviceToplevel(model.getLocation()).startsWith("knx"))
 			return true;
-		if(model.getLocation().startsWith("HeatingLabData")) {
+		if(DeviceTableBase.makeDeviceToplevel(model.getLocation()).startsWith("HeatingLabData")) {
 			Resource parent = model.getParent();
 			if(parent == null || parent.getResourceType().equals(ThermalConnection.class))
 				return false;

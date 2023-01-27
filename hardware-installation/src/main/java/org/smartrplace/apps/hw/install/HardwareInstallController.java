@@ -691,6 +691,12 @@ public class HardwareInstallController {
 				install.delete();
 				continue;
 			}
+			String devHandToRemove = System.getProperty("org.smartrplace.apps.hw.install.devHandDataToReset");
+			if(devHandToRemove != null && devHandToRemove.equals(install.devHandlerInfo().getValue())) {
+				install.delete();
+				continue;					
+			}
+
 			if(deleteIfDevHandMissing) {
 				DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(install);
 				if(devHand == null) {

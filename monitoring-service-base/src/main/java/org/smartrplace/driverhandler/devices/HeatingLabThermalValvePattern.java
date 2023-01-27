@@ -17,6 +17,7 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.devices.connectiondevices.ThermalValve;
 
 public class HeatingLabThermalValvePattern extends ResourcePattern<ThermalValve> {
@@ -30,6 +31,6 @@ public class HeatingLabThermalValvePattern extends ResourcePattern<ThermalValve>
 	
 	@Override
 	public boolean accept() {
-		return model.getLocation().startsWith("HeatingLabData");
+		return DeviceTableBase.makeDeviceToplevel(model.getLocation()).startsWith("HeatingLabData");
 	}
 }

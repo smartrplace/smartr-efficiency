@@ -17,6 +17,7 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.actors.MultiSwitch;
 
 public class MultiSwitchPattern extends ResourcePattern<MultiSwitch> {
@@ -32,7 +33,7 @@ public class MultiSwitchPattern extends ResourcePattern<MultiSwitch> {
 	public boolean accept() {
 		if(Boolean.getBoolean("org.smartrplace.driverhandler.devices.suppress.multiswitch.knx"))
 			return false;
-		if(model.getLocation().startsWith("knx_"))
+		if(DeviceTableBase.makeDeviceToplevel(model.getLocation()).startsWith("knx_"))
 			return true;
 		return false;
 	}

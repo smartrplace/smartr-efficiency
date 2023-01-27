@@ -17,6 +17,7 @@ package org.smartrplace.driverhandler.devices;
 
 import org.ogema.core.model.Resource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.FlowSensor;
 
@@ -33,7 +34,7 @@ public class HeatingLabTempsFlowSensorPattern extends ResourcePattern<FlowSensor
 	
 	@Override
 	public boolean accept() {
-		if(model.getLocation().startsWith("HeatingLabData")) {
+		if(DeviceTableBase.makeDeviceToplevel(model.getLocation()).startsWith("HeatingLabData")) {
 			return true;
 		}
 		if(ResourceHelper.hasParentAboveType(model, PhysicalElement.class) < 0)
