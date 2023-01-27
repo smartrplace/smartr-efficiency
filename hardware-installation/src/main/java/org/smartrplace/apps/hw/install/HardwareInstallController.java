@@ -693,7 +693,9 @@ public class HardwareInstallController {
 			}
 			String devHandToRemove = System.getProperty("org.smartrplace.apps.hw.install.devHandDataToReset");
 			if(devHandToRemove != null && devHandToRemove.equals(install.devHandlerInfo().getValue())) {
+				System.out.println("Deleting "+install.getLocation()+ " for device "+install.device().getLocation()+" ...");
 				install.delete();
+				System.out.println("     DONE deletion: "+install.getLocation());
 				continue;					
 			}
 
