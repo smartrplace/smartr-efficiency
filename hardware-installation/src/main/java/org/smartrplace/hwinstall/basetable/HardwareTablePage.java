@@ -160,9 +160,11 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 						if(isObjectsInTableEmpty(tabData.pe, req)) {
 							tabData.table.getMainTable().setWidgetVisibility(false, req);
 							tabData.table.getHeaderWidget().setWidgetVisibility(false, req);
+							tabData.table.setEmpty(true);
 						} else {
 							tabData.table.getMainTable().setWidgetVisibility(true, req);						
 							tabData.table.getHeaderWidget().setWidgetVisibility(true, req);
+							tabData.table.setEmpty(false);
 						}
 					}
 				}
@@ -317,8 +319,10 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 					return HardwareTablePage.this.showOnlyBaseColsHWT();
 				}
 				
+				
 			});
 			tableLoc.triggerPageBuild();
+			// TODO if they are empty it might be better to load them directly!
 			tableLoc.getMainTable().postponeLoading(); // these potentially heavy-weight tables can block the loading of the page otherwise
 			tableLoc.getMainTable().setComposite(15_000 + (long) (Math.random() * 10_000));
 			typeFilterDrop.registerDependentWidget(tableLoc.getMainTable());
