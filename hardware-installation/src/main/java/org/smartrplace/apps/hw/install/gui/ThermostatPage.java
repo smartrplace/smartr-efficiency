@@ -204,9 +204,17 @@ public class ThermostatPage extends MainPage {
 				return winMode;
 			}
 			
-			private TextField addSetpEditField(String widgetId, final FloatResource control,
+			private TextField addSetpEditFieldTempsetpoint(String widgetId, final FloatResource control,
 					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row) {
+				if(Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints"))
+					return addSetpEditField(widgetId, control, vh, id, req, row, 1.0f, -3f, 3f);
+				return addSetpEditField(widgetId, control, vh, id, req, row, 1.0f, 4.5f, 30.5f);
+			}
+			private TextField addSetpEditField(String widgetId, final FloatResource control,
+					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+					String id, OgemaHttpRequest req, Row row,
+					final float factor, final float minAllowed, final float maxAllowed) {
 				TextField setpointSet = null;
 				if(req != null) {
 					setpointSet = new TextField(mainTable, widgetId+id, req) {
@@ -216,16 +224,15 @@ public class ThermostatPage extends MainPage {
 							if(control instanceof TemperatureResource)
 								setValue(String.format("%.1f", ((TemperatureResource)control).getCelsius()), req);
 							else
-								setValue(String.format("%.1f", control.getValue()), req);
+								setValue(String.format("%.1f", control.getValue()*factor), req);
 						}
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							String val = getValue(req);
 							val = val.replaceAll("[^\\d.]", "");
 							try {
-								float value  = Float.parseFloat(val);
-								if((Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints") && (value < -3f || value > 3f)) ||
-										((!Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints")) && (value < 4.5f || value> 30.5f))) {
+								float value  = Float.parseFloat(val) / factor;
+								if((value < minAllowed || value > maxAllowed)) {
 									alert.showAlert("Outside allowed range", false, req);
 								} else if(control instanceof TemperatureResource)
 									((TemperatureResource)control).setCelsius(value);
@@ -238,7 +245,6 @@ public class ThermostatPage extends MainPage {
 						}
 					};
 					row.addCell(WidgetHelper.getValidWidgetId(widgetId), setpointSet);
-					setpointSet.setPollingInterval(DEFAULT_POLL_RATE, req);
 				} else
 					vh.registerHeaderEntry(widgetId);
 				return setpointSet;
@@ -351,6 +357,7 @@ public class ThermostatPage extends MainPage {
 						if(req == null) {
 							vh.registerHeaderEntry("EmptyPos");
 							vh.registerHeaderEntry("Last EP");
+							vh.registerHeaderEntry("EditEP");
 						} else {
 							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
 							Label valveErrL = vh.stringLabel("EmptyPos", id, new LabelFormatter() {
@@ -366,6 +373,7 @@ public class ThermostatPage extends MainPage {
 							Label lastContactValveErr = addLastContact("Last EP", vh, id, req, row, errorRunFb);
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+							addSetpEditField("EditEP", errorRun, vh, id, req, row, 100, 0.0f, 1.0f);
 						}
 					}					
 				} 
@@ -601,7 +609,7 @@ public class ThermostatPage extends MainPage {
 					//final FloatResource sres = (FloatResource) PropType.getHmParam(device, PropType.THERMOSTAT_VALVE_MAXPOSITION, true);
 					final FloatResource sresCt = (FloatResource) PropType.getHmParam(device, PropType.THERMOSTAT_VALVE_MAXPOSITION, false);
 					//addControlFeedbackLabel("VveMax", sresCt, sres, null, vh, id, req, row);
-					addSetpEditField("EditMax", sresCt, vh, id, req, row);
+					addSetpEditFieldTempsetpoint("EditMax", sresCt, vh, id, req, row);
 				}
 				
 				// TODO addWidgetsCommon(object, vh, id, req, row, appMan, device.location().room());

@@ -21,6 +21,7 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 
 @SuppressWarnings("serial")
 public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncData, GatewaySyncData> {
@@ -76,6 +77,7 @@ public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncDa
 		vh.stringLabel("Location", id, object.getLocation(), row);
 		if(req == null) {
 			vh.registerHeaderEntry("GWRes Location");
+			vh.registerHeaderEntry("ToplevelResourcesToBeSynchronized");
 			vh.registerHeaderEntry("Read device rooms and set locally");
 			vh.registerHeaderEntry("Write device rooms");
 			return;
@@ -94,6 +96,19 @@ public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncDa
 		else
 			text = gatewayRes.getLocation();
 		vh.stringLabel("GWRes Location", id, text, row);
+		
+		Button printTopResBut = new Button(mainTable, "printTopResBut"+id, req) {
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				String[] all = object.toplevelResourcesToBeSynchronized().getValues();
+				int idx = 0;
+				if(all != null) for(String el: all) {
+					System.out.println("["+idx+"]: "+el);
+					idx++;
+				}
+			}
+		};
+		printTopResBut.setText("Print to console", req);
+		row.addCell("ToplevelResourcesToBeSynchronized", printTopResBut);
 		
 		ButtonConfirm roomSetLocationBut = new ButtonConfirm(mainTable, "roomSetLocationBut"+id, req) {
 			@Override
