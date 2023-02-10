@@ -121,6 +121,7 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 			final DeviceHandlerAccess devHandAcc, HardwareTableData resData, boolean triggerFinishConstructorAutomatically,
 			FilterMode filterMode) {
 		this.page = page;
+		page.showOverlay(true);
 		this.appMan = appManPlus.appMan();
 		this.appManPlus = appManPlus;
 		this.devHandAcc = devHandAcc;
