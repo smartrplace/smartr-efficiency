@@ -149,8 +149,11 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 		}
 		final WidgetPage<?> testPage = widgetApp.createWidgetPage("index2.html");
 		this.testPageImpl = new HardwareInstallPageTest(appManager, testPage);
-		final NavigationMenu menu = new NavigationMenu(" Select Page");
-		menu.addEntry("Main page", page);
+		NavigationMenu menu = page.getMenuConfiguration().getCustomNavigation();
+		if (menu == null) {
+			menu = new NavigationMenu(" Select Page");
+			menu.addEntry("Main page", page);
+		}
 		menu.addEntry("Test page", testPage);
 		page.getMenuConfiguration().setCustomNavigation(menu);
 		testPage.getMenuConfiguration().setCustomNavigation(menu);
