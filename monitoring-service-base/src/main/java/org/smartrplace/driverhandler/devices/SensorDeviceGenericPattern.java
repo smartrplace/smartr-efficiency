@@ -59,13 +59,5 @@ public class SensorDeviceGenericPattern extends ResourcePattern<SensorDevice> {
 			return false;
 		//If more special SensorDevices are supported in the future add check here
 		return true;
-		/*if(model.getLocation().startsWith("JMBUS_BASE"))
-			return true;
-		for(Sensor sens: model.getSubResources(Sensor.class, false)) {
-			if(sens instanceof TemperatureSensor || sens instanceof HumiditySensor)
-				continue;
-			return true;
-		}
-		return false;*/
 	}
 }

@@ -28,9 +28,4 @@ public class HeatingLabGeneralDataPattern extends ResourcePattern<HeatingLabData
 	public HeatingLabGeneralDataPattern(Resource device) {
 		super(device);
 	}
-	
-	/*@Override
-	public boolean accept() {
-		return model.getLocation().startsWith("HeatingLabData");
-	}*/
 }

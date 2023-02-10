@@ -89,7 +89,14 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("");
 			toPrint.add("");
 			toPrint.add("");
+			toPrint.add("");
 		}		
+		if(room != null && room.exists()) {
+			toPrint.add(""+room.type().getValue());
+		} else {
+			toPrint.add("");
+		}
+
 		p.printRecord(toPrint);
 		return null;
 	}
@@ -174,12 +181,21 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 		toPrint.add("'"+endCode); //		toPrint.add("\""+endCode+"\"");
 		toPrint.add("");
 		toPrint.add(""+dev.isActive());
+		if(iad != null)
+			toPrint.add(""+iad.isTrash().getValue());
+		else
+			toPrint.add("");
 		toPrint.add(dev.getLocation());
 		if(iad != null && iad.devHandlerInfo().exists())
 			toPrint.add(iad.devHandlerInfo().getValue());
 		else
 			toPrint.add("");
 		
+		if(room != null)
+			toPrint.add(""+room.type().getValue());
+		else
+			toPrint.add("");
+
 		p.printRecord(toPrint);
 	}
 
@@ -195,9 +211,11 @@ public class CSVRoomExporter extends CSVExporter<Room> {
 			toPrint.add("serialEndCode");
 			toPrint.add("action");
 			toPrint.add("active");
+			toPrint.add("trash");
 			toPrint.add("dbLocation");
 			toPrint.add("devHandId");
 		}
+		toPrint.add("RoomType");
 		
 		p.printRecord(toPrint);
 	}

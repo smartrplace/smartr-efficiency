@@ -19,6 +19,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.communication.CommunicationStatus;
 import org.ogema.model.devices.sensoractordevices.SingleSwitchBox;
@@ -50,58 +51,6 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerSimple<SingleSwi
 	public Class<SingleSwitchBox> getResourceType() {
 		return SingleSwitchBox.class;
 	}
-
-	/*@Override
-	public DeviceTableBase getDeviceTable(WidgetPage<?> page, Alert alert,
-			InstalledAppsSelector appSelector) {
-		return new DeviceTableBase(page, appMan, alert, appSelector, this) {
-			
-			@Override
-			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
-					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
-
-				final SingleSwitchBox box = (SingleSwitchBox) addNameWidget(object, vh, id, req, row, appMan);
-
-				Room deviceRoom = box.location().room();
-
-				//int nSwitchboxes = box.switchboxes().size();
-				//Label switchboxCount = vh.stringLabel("Switchbox Count", id, Integer.toString(nSwitchboxes), row);
-
-				Label stateFB = vh.booleanLabel("StateFB", id, box.onOffSwitch().stateFeedback(), row, 0);
-				Label lastFB = addLastContact("Last FB", vh, "LFB"+id, req, row, box.onOffSwitch().stateFeedback());
-				vh.booleanEdit("Control", id, box.onOffSwitch().stateControl(), row);
-				Label power = vh.floatLabel("Power", id, box.electricityConnection().powerSensor().reading(), row, "%.1f");
-				Label lastPower = addLastContact("Last Power", vh, "LPower"+id, req, row, box.electricityConnection().powerSensor().reading());
-				
-				addRoomWidget(vh, id, req, row, appMan, deviceRoom);
-				addSubLocation(object, vh, id, req, row);
-				addInstallationStatus(object, vh, id, req, row);
-				addComment(object, vh, id, req, row);
-
-				appSelector.addWidgetsExpert(DeviceHandlerMQTT_SingleSwBox.this, object, vh, id, req, row, appMan);
-				
-				if(stateFB != null)
-					stateFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);
-				if(power != null)
-					power.setDefaultPollingInterval(DEFAULT_POLL_RATE);
-
-				if(lastFB != null)
-					lastFB.setDefaultPollingInterval(DEFAULT_POLL_RATE);
-				if(lastPower != null)
-					lastPower.setDefaultPollingInterval(DEFAULT_POLL_RATE);
-			}
-			
-			@Override
-			protected Class<? extends Resource> getResourceType() {
-				return DeviceHandlerMQTT_SingleSwBox.this.getResourceType();
-			}
-			
-			@Override
-			protected String id() {
-				return DeviceHandlerMQTT_SingleSwBox.this.id();
-			}
-		};
-	}*/
 	
 	@Override
 	protected void addMoreValueWidgets(InstallAppDevice object, SingleSwitchBox device,
@@ -218,7 +167,7 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerSimple<SingleSwi
 			addDatapoint(comStat.getSubResource("RSSI", FloatResource.class), result, dpService);
 			addDatapoint(comStat.getSubResource("Signal", FloatResource.class), result, dpService);
 		}
-		if(dev.getLocation().startsWith("Tasmota")) {
+		if(DeviceTableBase.makeDeviceToplevel(dev.getLocation()).startsWith("Tasmota")) {
 			IntegerResource restartReason = dev.getSubResource("restartReason", IntegerResource.class);
 			if(!restartReason.exists())
 				restartReason.create().activate(false);
@@ -235,7 +184,7 @@ public class DeviceHandlerMQTT_SingleSwBox extends DeviceHandlerSimple<SingleSwi
 	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
 		appDevice.alarms().create();
 		SingleSwitchBox device = (SingleSwitchBox) appDevice.device();
-		boolean isShelly = device.getLocation().startsWith("shellies");
+		boolean isShelly = DeviceTableBase.makeDeviceToplevel(device.getLocation()).startsWith("shellies");
 		AlarmingUtiH.setTemplateValues(appDevice, device.onOffSwitch().stateFeedback(),
 			0.0f, 1.0f, 1, isShelly?-1:AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),

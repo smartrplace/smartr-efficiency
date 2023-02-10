@@ -272,6 +272,6 @@ public class RoomConfigPageBase extends ObjectGUITablePageNamed<Room, Room> {
 	}
 	
 	protected void initRoom(Room object) {
-		SubcustomerUtil.initRoom(object, roomGroups, appConfigData);
+		SubcustomerUtil.initRoom(object, roomGroups, appConfigData, appMan);
 	}
 }

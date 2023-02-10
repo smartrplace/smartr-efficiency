@@ -134,30 +134,25 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			thermPage2.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> thermPage = widgetApp.createWidgetPage("thermostatDetails.hmtl");
-			new ThermostatPage(thermPage, controller, ThermostatPageType.STANDARD);
-			menu.addEntry("Thermostat Special Selection", thermPage);
+			ThermostatPage thsetpointsetPage = new ThermostatPage(thermPage, controller, ThermostatPageType.SETPOINT_EMPTYPOS);
+			menu.addEntry(thsetpointsetPage.getHeader(), thermPage);
 			thermPage.getMenuConfiguration().setCustomNavigation(menu);
 			
 			WidgetPage<?> thermPageAuto = widgetApp.createWidgetPage("thermostatAuto.hmtl");
-			new ThermostatPage(thermPageAuto, controller, ThermostatPageType.AUTO_MODE);
-			menu.addEntry("Thermostat Auto-Mode and Valve Adapt Management", thermPageAuto);
+			ThermostatPage thAutoPage = new ThermostatPage(thermPageAuto, controller, ThermostatPageType.AUTO_MODE);
+			menu.addEntry(thAutoPage.getHeader(), thermPageAuto);
 			thermPageAuto.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> thermPageValve = widgetApp.createWidgetPage("thermostatValve.hmtl");
-			new ThermostatPage(thermPageValve, controller, ThermostatPageType.VALVE_ONLY);
-			menu.addEntry("Thermostat Valve Adapt Management Only", thermPageValve);
+			ThermostatPage thValvePage = new ThermostatPage(thermPageValve, controller, ThermostatPageType.VALVE_ONLY);
+			menu.addEntry(thValvePage.getHeader(), thermPageValve);
 			thermPageValve.getMenuConfiguration().setCustomNavigation(menu);
 
 			
 			WidgetPage<?> thermPageBatWindow = widgetApp.createWidgetPage("thermostatBatteryWindow.hmtl");
-			new ThermostatPage(thermPageBatWindow, controller, ThermostatPageType.BATTERY_WINDOW);
-			menu.addEntry("Thermostat Battery and Window Management", thermPageBatWindow);
+			ThermostatPage thbatPage = new ThermostatPage(thermPageBatWindow, controller, ThermostatPageType.BATTERY_WINDOW);
+			menu.addEntry(thbatPage.getHeader(), thermPageBatWindow);
 			thermPageBatWindow.getMenuConfiguration().setCustomNavigation(menu);
-
-			WidgetPage<?> ccuPage = widgetApp.createWidgetPage("ccutDetails.hmtl");
-			new CCUPage(ccuPage, controller);
-			menu.addEntry("CCU Details", ccuPage);
-			ccuPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> batteryPage = widgetApp.createWidgetPage("batteryStates.hmtl");
 			new BatteryPage(batteryPage, controller, true);
@@ -168,6 +163,11 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			WindowStatusPage twpage = new WindowStatusPage(thermWindowPage, controller);
 			menu.addEntry(twpage.getHeader(), thermWindowPage);
 			thermWindowPage.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> ccuPage = widgetApp.createWidgetPage("ccutDetails.hmtl");
+			new CCUPage(ccuPage, controller);
+			menu.addEntry("CCU Details", ccuPage);
+			ccuPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> trashPage = widgetApp.createWidgetPage("trashDevices.hmtl");
 			synchronized(controller.mainPageExts) {

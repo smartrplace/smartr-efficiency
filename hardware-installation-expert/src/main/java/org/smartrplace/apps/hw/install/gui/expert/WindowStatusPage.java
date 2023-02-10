@@ -35,7 +35,7 @@ public class WindowStatusPage extends BatteryPage {
 	DeviceTableBase devTable;
 	
 	@Override
-	public String getHeader() {return "Thermostat Window and ValveMax Overview";}
+	public String getHeader() {return "Thermostat Room Setting and Property Last Status";}
 
 	public WindowStatusPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller, true);

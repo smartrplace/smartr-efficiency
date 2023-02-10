@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -13,12 +14,14 @@ import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 
 @SuppressWarnings("serial")
 public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncData, GatewaySyncData> {
@@ -28,6 +31,13 @@ public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncDa
 		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(GatewaySyncData.class));
 		this.dpService = appManPlus.dpService();
 		triggerPageBuild();
+		
+		if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
+			List<String> gws = ValueResourceHelper.getStringListFromProperty("org.ogema.devicefinder.util.subgatewaypreset");
+			if(gws != null) for(String gw: gws){
+				GatewaySyncUtil.getOrCreateGatewayResource(gw, appMan);
+			}
+		}
 	}
 
 	@Override
@@ -67,6 +77,7 @@ public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncDa
 		vh.stringLabel("Location", id, object.getLocation(), row);
 		if(req == null) {
 			vh.registerHeaderEntry("GWRes Location");
+			vh.registerHeaderEntry("ToplevelResourcesToBeSynchronized");
 			vh.registerHeaderEntry("Read device rooms and set locally");
 			vh.registerHeaderEntry("Write device rooms");
 			return;
@@ -85,6 +96,19 @@ public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncDa
 		else
 			text = gatewayRes.getLocation();
 		vh.stringLabel("GWRes Location", id, text, row);
+		
+		Button printTopResBut = new Button(mainTable, "printTopResBut"+id, req) {
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				String[] all = object.toplevelResourcesToBeSynchronized().getValues();
+				int idx = 0;
+				if(all != null) for(String el: all) {
+					System.out.println("["+idx+"]: "+el);
+					idx++;
+				}
+			}
+		};
+		printTopResBut.setText("Print to console", req);
+		row.addCell("ToplevelResourcesToBeSynchronized", printTopResBut);
 		
 		ButtonConfirm roomSetLocationBut = new ButtonConfirm(mainTable, "roomSetLocationBut"+id, req) {
 			@Override

@@ -11,6 +11,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.devices.sensoractordevices.WindSensor;
@@ -51,7 +52,7 @@ public class OpenWeatherMapBigBlueRoom_DeviceHandler extends DeviceHandlerSimple
 	protected Collection<Datapoint> getDatapoints(SensorDevice device, InstallAppDevice deviceConfiguration) {
 		List<Datapoint> result = new ArrayList<>();
 		Datapoint dp = addDatapoint(getMainSensorValue(device, deviceConfiguration), result);
-		if(dp != null && dp.getLocation().startsWith("OpenWeatherMapData")) {
+		if(dp != null && DeviceTableBase.makeDeviceToplevel(dp.getLocation()).startsWith("OpenWeatherMapData")) {
 			Room openWroom = KPIResourceAccess.getOpenWeatherMapRoom(appMan.getResourceAccess());
 			if(openWroom != null) {
 				addDatapoint(openWroom.temperatureSensor().reading().forecast(), result);
