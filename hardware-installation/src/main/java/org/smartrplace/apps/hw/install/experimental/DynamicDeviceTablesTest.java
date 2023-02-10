@@ -16,6 +16,7 @@ import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippetData;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.html.HtmlItem;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 
@@ -78,9 +79,11 @@ public class DynamicDeviceTablesTest extends PageSnippet {
 		//final List<String> forRemoval = oldIds.stream().filter(id -> !newIds.contains(id)).collect(Collectors.toList());
 		final List<DeviceTableTest> forRemoval = tables.stream().filter(table -> !newIds.contains(table.handlerId)).collect(Collectors.toList());
 		final List<OgemaWidget> subwidgets = forRemoval.stream().flatMap(table -> table.getSubwidgets().stream()).collect(Collectors.toList());
+		final List<HtmlItem> subitems = forRemoval.stream().map(DeviceTableTest::getSubItem).collect(Collectors.toList());
 		if (!forRemoval.isEmpty()) {
 			tables.removeAll(forRemoval);
 			this.removeWidgets(subwidgets, req);
+			this.removeItems(subitems, req);
 		}
 		// this is necessary because there are sometimes multiple handlers with the same id
 		tables.addAll(new HashSet<>(newIds).stream()

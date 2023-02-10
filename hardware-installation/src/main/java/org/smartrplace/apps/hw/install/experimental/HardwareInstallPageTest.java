@@ -76,6 +76,7 @@ public class HardwareInstallPageTest /*implements LazyWidgetPage*/ {
 	public HardwareInstallPageTest(ApplicationManager am, WidgetPage<?> page) {
 		final ResourceAccess ra = am.getResourceAccess();
 
+		page.showOverlay(true);
 		final Header header = new Header(page, "header", "Device setup and configuration (test)");
 		//header.addDefaultStyle(WidgetData.TEXT_ALIGNMENT_CENTERED);
 		header.setDefaultColor("darkblue");

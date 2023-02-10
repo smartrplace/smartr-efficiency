@@ -27,6 +27,8 @@ import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
+import de.iwes.widgets.api.widgets.html.HtmlItem;
+import de.iwes.widgets.api.widgets.html.Linebreak;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.RowTemplate;
@@ -43,6 +45,7 @@ class DeviceTableTest {
 	
 	private final Header header;
 	private final DynamicTable<ResourcePattern> table;
+	private final HtmlItem linebreak;
 	final String handlerId;
 	
 	DeviceTableTest(PageSnippet parent, DeviceHandlerProvider handler, TemplateMultiselect<Room> roomSelector,
@@ -218,11 +221,16 @@ class DeviceTableTest {
 			
 			
 		});
-		parent.append(header, req).append(table, req).linebreak(req); // FIXME can we remove the linebreak? later on?
+		this.linebreak = new Linebreak();
+		parent.append(header, req).append(table, req).append(linebreak, req);
 	}
 
 	List<OgemaWidget> getSubwidgets() {
 		return Arrays.asList(this.header, this.table);
+	}
+	
+	HtmlItem getSubItem() {
+		return this.linebreak;
 	}
 	
 	private static String getDeviceName(InstallAppDevice config, DeviceHandlerProvider<?> handler) {
