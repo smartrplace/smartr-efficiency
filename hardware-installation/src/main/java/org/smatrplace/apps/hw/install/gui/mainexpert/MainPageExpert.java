@@ -63,11 +63,12 @@ public class MainPageExpert extends MainPage {
 	private static final String MAKE_TEMPLATE = "Make Template";
 	private static final String APPLY_TEMPLATE = "Apply Template To Devices";
 	private static final String APPLY_DEFAULT_ALARM = "Apply Default Alarm Settings";
-	private static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, TRASH2DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
+	public static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, TRASH2DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, TRASH2DELETE, RESET, TRASH, APPLY_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TRASH = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH_RESET, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final String GAPS_LABEL = "Qual4d_perTs_Qual28d";
 	private static final String SETPREACT_LABEL = "SetpReact_perTs";
+	public static String defaultActionAfterReload = LOG_ALL;
 
 	protected final boolean isTrashPage;
 	protected final ShowModeHw showMode;
@@ -255,7 +256,9 @@ public class MainPageExpert extends MainPage {
 				return;
 			
 			final boolean isTemplate = DeviceTableRaw.isTemplate(object, logResult.devHand);
+			final Button performButton;
 			final TemplateDropdown<String> actionDrop = new TemplateDropdown<String>(vh.getParent(), "actionDrop"+id, req) {
+
 				@Override
 				public void onGET(OgemaHttpRequest req) {
 					//etl().intermediateStep("ONGET ACD:"+object.getName());
@@ -263,110 +266,142 @@ public class MainPageExpert extends MainPage {
 						update(ACTIONS_TRASH, req);
 					else if(isTemplate) {
 						update(ACTIONS_TEMPLATE, req);
+						selectItem(defaultActionAfterReload, req);
 					} else {
 						update(ACTIONS, req);
+						selectItem(defaultActionAfterReload, req);
 					}
 				}
 			};
 			actionDrop.setDefaultItems(ACTIONS);
 			row.addCell("Action", actionDrop);
 			
-
-			ButtonConfirm performButton = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {
-				@Override
-				public void onGET(OgemaHttpRequest req) {
-					String sel = actionDrop.getSelectedItem(req);
-					switch(sel) {
-					case LOG_ALL:
-						setConfirmMsg("Really log all datapoints for "+object.device().getLocation()+" ?", req);
-						break;
-					case LOG_NONE:
-						setConfirmMsg("Really log no datapoints for "+object.device().getLocation()+" ?", req);
-						break;
-					case DELETE:
-						setConfirmMsg("Really delete "+object.device().getLocation()+" and remove from CCU if applicable ?", req);
-						break;
-					case TRASH2DELETE:
-						setConfirmMsg("Really set to trash and delete "+object.device().getLocation()+" when trash is cleared ?", req);
-						break;
-					case RESET:
-						setConfirmMsg("Really delete installation&setup configuration for "+object.device().getLocation()+
-								" ? Search for new devices to recreate clean configuration.", req);
-						break;
-					case TRASH:
-					case TRASH_RESET:
-						setConfirmMsg(getTrashConfirmation(object), req);
-						break;
-					case MAKE_TEMPLATE:
-						setConfirmMsg("Really move template status to "+object.device().getLocation()+" ?", req);
-						break;
-					case APPLY_TEMPLATE:
-						setConfirmMsg("Really apply settings of "+object.device().getLocation()+
-								" to all devices of the same type? Note that all settings will be overwritten without further confirmation!", req);
-						break;
-					case APPLY_DEFAULT_ALARM:
-						setConfirmMsg("Really overwrite settings of " + object.device().getLocation() +
-									"with default alarming settings?", req);
-						break;
-					}
-					setText(sel, req);
-				}
-				
-				@Override
-				public void onPOSTComplete(String data, OgemaHttpRequest req) {
-					String sel = getText(req);
-					switch(sel) {
-					case LOG_ALL:
-						controller.activateLogging(logResult.devHand, object, false, false);
-						break;
-					case LOG_NONE:
-						controller.activateLogging(logResult.devHand, object, false, true);
-						break;
-					case DELETE:
-						DeviceTableRaw.deleteDevice(object);
-						break;
-					case RESET:
-						object.delete();
-						break;
-					case TRASH2DELETE:
-						long dayEnd = AbsoluteTimeHelper.getNextStepTime(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
-						ValueResourceHelper.setCreate(controller.appConfigData.nextTimeToDeleteMarkedDevices(), dayEnd);
-						ValueResourceHelper.setCreate(object.trashStatus(), 1);
-					case TRASH_RESET:
-					case TRASH:
-						performTrashOperation(object, logResult.devHand);
-						break;
-					case MAKE_TEMPLATE:
-						InstallAppDevice currentTemplate = controller.getTemplateDevice(logResult.devHand);
-						if(currentTemplate != null)
-							DeviceTableRaw.setTemplateStatus(currentTemplate, null, false);
-							//currentTemplate.isTemplate().deactivate(false);
-						DeviceTableRaw.setTemplateStatus(object, logResult.devHand, true);
-						//ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
-						//if(!object.isTemplate().isActive())
-						//	object.isTemplate().activate(false);
-						break;
-					case APPLY_TEMPLATE:
-						for(InstallAppDevice dev: controller.getDevices(logResult.devHand)) {
-							if(dev.equalsLocation(object))
-								continue;
-							AlarmingConfigUtil.copySettings(object, dev, controller.appMan);
+			final boolean status = controller.appConfigData.disableConfirmationUntil().getValue()==0;
+			if(!status) {
+				performButton = new Button(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {
+					boolean init = false;
+					
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						if(!init) {
+							actionDrop.onGET(req);
+							init = true;
 						}
-						break;
-					case APPLY_DEFAULT_ALARM:
-						DeviceHandlerProviderDP<?> tableProvider = controller.getDeviceHandler(object);
-						if(tableProvider != null)
-							tableProvider.initAlarmingForDevice(object, controller.appConfigData);
-						break;
+						String sel = actionDrop.getSelectedItem(req);
+						setText(sel, req);
 					}
-				}
-			};
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						String sel = getText(req);
+						performAction(sel, object, logResult.devHand);
+					}
+				};
+			} else {
+				ButtonConfirm performButton2 = new ButtonConfirm(vh.getParent(), WidgetHelper.getValidWidgetId("delBut"+id), req) {
+					boolean init = false;
+
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						if(!init) {
+							actionDrop.onGET(req);
+							init = true;
+						}
+						String sel = actionDrop.getSelectedItem(req);
+						switch(sel) {
+						case LOG_ALL:
+							setConfirmMsg("Really log all datapoints for "+object.device().getLocation()+" ?", req);
+							break;
+						case LOG_NONE:
+							setConfirmMsg("Really log no datapoints for "+object.device().getLocation()+" ?", req);
+							break;
+						case DELETE:
+							setConfirmMsg("Really delete "+object.device().getLocation()+" and remove from CCU if applicable ?", req);
+							break;
+						case TRASH2DELETE:
+							setConfirmMsg("Really set to trash and delete "+object.device().getLocation()+" when trash is cleared ?", req);
+							break;
+						case RESET:
+							setConfirmMsg("Really delete installation&setup configuration for "+object.device().getLocation()+
+									" ? Search for new devices to recreate clean configuration.", req);
+							break;
+						case TRASH:
+						case TRASH_RESET:
+							setConfirmMsg(getTrashConfirmation(object), req);
+							break;
+						case MAKE_TEMPLATE:
+							setConfirmMsg("Really move template status to "+object.device().getLocation()+" ?", req);
+							break;
+						case APPLY_TEMPLATE:
+							setConfirmMsg("Really apply settings of "+object.device().getLocation()+
+									" to all devices of the same type? Note that all settings will be overwritten without further confirmation!", req);
+							break;
+						case APPLY_DEFAULT_ALARM:
+							setConfirmMsg("Really overwrite settings of " + object.device().getLocation() +
+										"with default alarming settings?", req);
+							break;
+						}
+						setText(sel, req);
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						String sel = getText(req);
+						performAction(sel, object, logResult.devHand);
+						/*switch(sel) {
+						case LOG_ALL:
+							controller.activateLogging(logResult.devHand, object, false, false);
+							break;
+						case LOG_NONE:
+							controller.activateLogging(logResult.devHand, object, false, true);
+							break;
+						case DELETE:
+							DeviceTableRaw.deleteDevice(object);
+							break;
+						case RESET:
+							object.delete();
+							break;
+						case TRASH2DELETE:
+							long dayEnd = AbsoluteTimeHelper.getNextStepTime(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
+							ValueResourceHelper.setCreate(controller.appConfigData.nextTimeToDeleteMarkedDevices(), dayEnd);
+							ValueResourceHelper.setCreate(object.trashStatus(), 1);
+						case TRASH_RESET:
+						case TRASH:
+							performTrashOperation(object, logResult.devHand);
+							break;
+						case MAKE_TEMPLATE:
+							InstallAppDevice currentTemplate = controller.getTemplateDevice(logResult.devHand);
+							if(currentTemplate != null)
+								DeviceTableRaw.setTemplateStatus(currentTemplate, null, false);
+								//currentTemplate.isTemplate().deactivate(false);
+							DeviceTableRaw.setTemplateStatus(object, logResult.devHand, true);
+							//ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
+							//if(!object.isTemplate().isActive())
+							//	object.isTemplate().activate(false);
+							break;
+						case APPLY_TEMPLATE:
+							for(InstallAppDevice dev: controller.getDevices(logResult.devHand)) {
+								if(dev.equalsLocation(object))
+									continue;
+								AlarmingConfigUtil.copySettings(object, dev, controller.appMan);
+							}
+							break;
+						case APPLY_DEFAULT_ALARM:
+							DeviceHandlerProviderDP<?> tableProvider = controller.getDeviceHandler(object);
+							if(tableProvider != null)
+								tableProvider.initAlarmingForDevice(object, controller.appConfigData);
+							break;
+						}*/
+					}
+				};
+				performButton = performButton2;
+			}
+
 			row.addCell("Perform", performButton);
 			actionDrop.registerDependentWidget(performButton, req);
 			
 			//etl().intermediateStep("End addWidgetsExp(2F):"+object.getName());
-		}
-		
+		} //if(logResult.devHand != null)
 	}
 	
 	protected String getTrashConfirmation(InstallAppDevice object) {
@@ -494,4 +529,51 @@ public class MainPageExpert extends MainPage {
 		etl.logAlwaysToConsole = true; //Boolean.getBoolean("org.smatrplace.apps.hw.install.gui.mainexpert.extensivelogging");
 		return etl;
 	}*/
+	
+	private void performAction(String sel, InstallAppDevice object, DeviceHandlerProviderDP<?> devHand) {
+		switch(sel) {
+		case LOG_ALL:
+			controller.activateLogging(devHand, object, false, false);
+			break;
+		case LOG_NONE:
+			controller.activateLogging(devHand, object, false, true);
+			break;
+		case DELETE:
+			DeviceTableRaw.deleteDevice(object);
+			break;
+		case RESET:
+			object.delete();
+			break;
+		case TRASH2DELETE:
+			long dayEnd = AbsoluteTimeHelper.getNextStepTime(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
+			ValueResourceHelper.setCreate(controller.appConfigData.nextTimeToDeleteMarkedDevices(), dayEnd);
+			ValueResourceHelper.setCreate(object.trashStatus(), 1);
+		case TRASH_RESET:
+		case TRASH:
+			performTrashOperation(object, devHand);
+			break;
+		case MAKE_TEMPLATE:
+			InstallAppDevice currentTemplate = controller.getTemplateDevice(devHand);
+			if(currentTemplate != null)
+				DeviceTableRaw.setTemplateStatus(currentTemplate, null, false);
+				//currentTemplate.isTemplate().deactivate(false);
+			DeviceTableRaw.setTemplateStatus(object, devHand, true);
+			//ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
+			//if(!object.isTemplate().isActive())
+			//	object.isTemplate().activate(false);
+			break;
+		case APPLY_TEMPLATE:
+			for(InstallAppDevice dev: controller.getDevices(devHand)) {
+				if(dev.equalsLocation(object))
+					continue;
+				AlarmingConfigUtil.copySettings(object, dev, controller.appMan);
+			}
+			break;
+		case APPLY_DEFAULT_ALARM:
+			DeviceHandlerProviderDP<?> tableProvider = controller.getDeviceHandler(object);
+			if(tableProvider != null)
+				tableProvider.initAlarmingForDevice(object, controller.appConfigData);
+			break;
+		}		
+	}
 }

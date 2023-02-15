@@ -50,6 +50,7 @@ import org.smartrplace.iotawatt.ogema.resources.IotaWattElectricityConnection;
 import org.smartrplace.tissue.util.logconfig.VirtualSensorKPIMgmt;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManager;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
+import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
 import de.iwes.util.collectionother.IPNetworkHelper;
 import de.iwes.util.format.StringFormatHelper;
@@ -207,12 +208,50 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 		autoResetDeviceIds.setDefaultConfirmMsg("Really delete all thermostat knownDevice entries? Please stop and start Search Devices afterwards.");
+
+		Button disableActionConfirmationBut = new Button(page, "disableActionConfirmationBut") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				long status = app.appConfigData.disableConfirmationUntil().getValue();
+				if(status == 0)
+					setText("Enable perform action without confirmation for 1 hour, select default action below:", req);
+				else {
+					long now = app.appMan.getFrameworkTime();
+					if(status < now) {
+						app.appConfigData.disableConfirmationUntil().setValue(0);
+						setText("Enable perform action without confirmation for 1 hour, select default action below:", req);
+					} else
+						setText("Skip remaining "+StringFormatHelper.getFormattedFutureValue(app.appMan, status), req);
+				}
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				long status = app.appConfigData.disableConfirmationUntil().getValue();
+				if(status == 0)
+					ValueResourceHelper.setCreate(app.appConfigData.disableConfirmationUntil(),
+							app.appMan.getFrameworkTime()+TimeProcUtil.HOUR_MILLIS);
+				else
+					app.appConfigData.disableConfirmationUntil().setValue(0);
+			}
+		};
+		final TemplateDropdown<String> actionDefaultDrop = new TemplateDropdown<String>(page, "actionDrop") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				update(MainPageExpert.ACTIONS, req);
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				String action = getSelectedItem(req);
+				MainPageExpert.defaultActionAfterReload = action;
+			}
+		};
+		actionDefaultDrop.setDefaultItems(MainPageExpert.ACTIONS);
 		
 		final StaticTable configTable;
 		if(baseVersion)
-			configTable = new StaticTable(12, 2);			
+			configTable = new StaticTable(13, 2);			
 		else
-			configTable = new StaticTable(33, 2);
+			configTable = new StaticTable(34, 2);
 		int i = 0;
 
 		if(gwInfo != null) {
@@ -631,6 +670,9 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Allow All Devices in Table Pages:").setContent(i, 1, allowAllInTablePages);
 		i++;
 		configTable.setContent(i, 0, "Enable manual editing of deviceIds:").setContent(i, 1, manualDeviceIdBut).setContent(i, 1, autoResetDeviceIds);
+		i++;
+		configTable.setContent(i, 0, "Select action for all devices and disable confirmation:").
+			setContent(i, 1, disableActionConfirmationBut).setContent(i, 1, actionDefaultDrop);
 		i++;
 
 		page.append(configTable);
