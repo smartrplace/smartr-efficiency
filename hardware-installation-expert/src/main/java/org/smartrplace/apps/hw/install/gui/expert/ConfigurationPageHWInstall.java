@@ -246,12 +246,24 @@ public class ConfigurationPageHWInstall {
 			}
 		};
 		actionDefaultDrop.setDefaultItems(MainPageExpert.ACTIONS);
+		final TemplateDropdown<String> actionTrashDefaultDrop = new TemplateDropdown<String>(page, "actionTrashDrop") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				update(MainPageExpert.ACTIONS_TRASH, req);
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				String action = getSelectedItem(req);
+				MainPageExpert.defaultTrashActionAfterReload = action;
+			}
+		};
+		actionTrashDefaultDrop.setDefaultItems(MainPageExpert.ACTIONS_TRASH);
 		
 		final StaticTable configTable;
 		if(baseVersion)
-			configTable = new StaticTable(13, 2);			
+			configTable = new StaticTable(14, 2);			
 		else
-			configTable = new StaticTable(34, 2);
+			configTable = new StaticTable(35, 2);
 		int i = 0;
 
 		if(gwInfo != null) {
@@ -674,6 +686,9 @@ public class ConfigurationPageHWInstall {
 		configTable.setContent(i, 0, "Select action for all devices and disable confirmation:").
 			setContent(i, 1, disableActionConfirmationBut).setContent(i, 1, actionDefaultDrop);
 		i++;
+		configTable.setContent(i, 0, "Select default action for trash device page:").
+		setContent(i, 1, actionTrashDefaultDrop);
+	i++;
 
 		page.append(configTable);
 	}

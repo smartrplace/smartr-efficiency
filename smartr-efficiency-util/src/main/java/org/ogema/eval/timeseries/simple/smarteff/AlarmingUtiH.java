@@ -463,9 +463,11 @@ public class AlarmingUtiH {
 		case 0:
 			return "Property:"+Boolean.getBoolean("org.smartrplace.homematic.devicetable.autostart.shiftdecalc");
 		case 1:
-			return "Off";
+			return "No Postpone/Daily";
 		case 2:
-			return "On";
+			return "Postpone";
+		case 3:
+			return "Decalc Daily";
 		default:
 			return "UNKNOWN STATE:"+value;
 		}

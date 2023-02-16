@@ -65,10 +65,11 @@ public class MainPageExpert extends MainPage {
 	private static final String APPLY_DEFAULT_ALARM = "Apply Default Alarm Settings";
 	public static final List<String> ACTIONS = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, TRASH2DELETE, RESET, TRASH, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final List<String> ACTIONS_TEMPLATE = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, TRASH2DELETE, RESET, TRASH, APPLY_TEMPLATE, APPLY_DEFAULT_ALARM});
-	private static final List<String> ACTIONS_TRASH = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH_RESET, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
+	public static final List<String> ACTIONS_TRASH = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH_RESET, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final String GAPS_LABEL = "Qual4d_perTs_Qual28d";
 	private static final String SETPREACT_LABEL = "SetpReact_perTs";
 	public static String defaultActionAfterReload = LOG_ALL;
+	public static String defaultTrashActionAfterReload = LOG_ALL;
 
 	protected final boolean isTrashPage;
 	protected final ShowModeHw showMode;
@@ -262,9 +263,10 @@ public class MainPageExpert extends MainPage {
 				@Override
 				public void onGET(OgemaHttpRequest req) {
 					//etl().intermediateStep("ONGET ACD:"+object.getName());
-					if(isTrashPage)
+					if(isTrashPage) {
 						update(ACTIONS_TRASH, req);
-					else if(isTemplate) {
+						selectItem(defaultTrashActionAfterReload, req);
+					} else if(isTemplate) {
 						update(ACTIONS_TEMPLATE, req);
 						selectItem(defaultActionAfterReload, req);
 					} else {
