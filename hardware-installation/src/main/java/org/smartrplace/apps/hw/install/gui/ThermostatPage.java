@@ -49,6 +49,7 @@ import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 import org.smartrplace.util.virtualdevice.SensorData;
 import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -511,9 +512,10 @@ public class ThermostatPage extends MainPage {
 					if(req == null) {
 						vh.registerHeaderEntry("Com/Err");
 						vh.registerHeaderEntry("Last Err");
-						if(type != ThermostatPageType.VALVE_ONLY)
+						if(type != ThermostatPageType.VALVE_ONLY) {
 							vh.registerHeaderEntry("ManuMode");
-						else {
+							vh.registerHeaderEntry("Curv Resnd");
+						} else {
 							vh.registerHeaderEntry("VveMax");
 							vh.registerHeaderEntry("EditMax");
 						}
@@ -602,6 +604,23 @@ public class ThermostatPage extends MainPage {
 						row.addCell(WidgetHelper.getValidWidgetId("ManuMode"), ctrlModeLb);
 						ctrlModeLb.setPollingInterval(DEFAULT_POLL_RATE, req);
 					
+						final IntegerResource update = device.getSubResource("program", ThermostatProgram.class).update();
+						if(update.isActive()) {
+							Button curveResendBut = new Button(mainTable, "curveResendBut"+id, req) {
+								@Override
+								public void onGET(OgemaHttpRequest req) {
+									long ts = update.getLastUpdateTime();
+									String text = ""+update.getValue()+"/"+StringFormatHelper.getFormattedAgoValue(appMan, ts);
+									setText(text, req);
+								};
+								@Override
+								public void onPOSTComplete(String data, OgemaHttpRequest req) {
+									update.setValue((update.getValue()== 127)?255:127);
+								};
+							};
+							row.addCell(WidgetHelper.getValidWidgetId("Curv Resnd"), curveResendBut);
+							curveResendBut.setPollingInterval(DEFAULT_POLL_RATE, req);
+						}
 					}
 				}
 				if(type == ThermostatPageType.VALVE_ONLY) {
