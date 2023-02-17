@@ -320,10 +320,13 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 					return HardwareTablePage.this.showOnlyBaseColsHWT();
 				}
 				
+				@Override
+				public boolean emptyStateControlledExternally() {
+					return true;
+				}
 				
 			});
 			tableLoc.triggerPageBuild();
-			// TODO if they are empty it might be better to load them directly!
 			tableLoc.getMainTable().postponeLoading(); // these potentially heavy-weight tables can block the loading of the page otherwise
 			tableLoc.getMainTable().setComposite(15_000 + (long) (Math.random() * 10_000));
 			typeFilterDrop.registerDependentWidget(tableLoc.getMainTable());
