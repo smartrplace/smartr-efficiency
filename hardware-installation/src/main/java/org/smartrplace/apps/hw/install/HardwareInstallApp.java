@@ -136,7 +136,7 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
 		final WidgetPage<?> page = widgetApp.createStartPage();
-
+		page.showOverlay(true);
 		synchronized (this) {
 			controller = new HardwareInstallController(appMan, page, this, dpService);
 			for(DeviceHandlerProvider<?> tableP: tableProviders.values()) {
