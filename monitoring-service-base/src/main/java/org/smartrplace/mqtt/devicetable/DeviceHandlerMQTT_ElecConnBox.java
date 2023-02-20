@@ -12,6 +12,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.units.EnergyResource;
 import org.ogema.core.model.units.PowerResource;
 import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
@@ -59,9 +60,28 @@ import de.iwes.widgets.html.form.label.Label;
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<ElectricityConnectionBox> {
 	private final ApplicationManagerPlus appMan;
+	private final ResourceList<ElectricityConnectionBox> manualMeters;
 	
 	public DeviceHandlerMQTT_ElecConnBox(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
+		manualMeters = appMan.getResourceAccess().getResource("manualMeters");
+		if(manualMeters != null) {
+			if(manualMeters.getElementType() == null)
+				manualMeters.setElementType(ElectricityConnectionBox.class);
+			for(ElectricityConnectionBox meter: manualMeters.getAllElements()) {
+				ManualEntryData manData = meter.addDecorator("manualEntryData", ManualEntryData.class);
+				if(!manData.isActive())
+					continue;
+				EnergyResource energy = manData.manualEntryDataHolder().getSubResource("energySensor", EnergyResource.class);
+				if(!energy.exists())
+					continue;
+				energy.program().create().activate(true);
+				Datapoint dpEnergy = appMan.dpService().getDataPointStandard(energy);
+				if(dpEnergy != null)
+					dpEnergy.setTimeSeries(energy.program());
+				ManualTimeseriesServlet.registerManualEntryData(manData);
+			}
+		}
 	}
 	
 	@Override
@@ -304,11 +324,13 @@ if(mapData1 == null) {
 	}
 	
 	protected class ManualMeterDeviceType implements DeviceTypeProvider<ElectricityConnectionBox> {
-		public ManualMeterDeviceType(ApplicationManager appMan) {
-			this.appMan = appMan;
+		public ManualMeterDeviceType(ApplicationManagerPlus appManPlus) {
+			this.appMan = appManPlus.appMan();
+			this.appManPlus = appManPlus;
 		}
 
 		private final ApplicationManager appMan;
+		private final ApplicationManagerPlus appManPlus;
 		
 		@Override
 		public String id() {
@@ -341,7 +363,10 @@ if(mapData1 == null) {
 				return result;
 			}
 			if(configData.governingResource == null) {
-				ResourceList<?> manualMeters = appMan.getResourceManagement().createResource("manualMeters", ResourceList.class);
+				if(manualMeters == null) {
+					ResourceList<?> manualMeters = appMan.getResourceManagement().createResource("manualMeters", ResourceList.class);
+					manualMeters.setElementType(ElectricityConnectionBox.class);
+				}
 				configData.governingResource = manualMeters.addDecorator(ResourceUtils.getValidResourceName(
 						"manualMeter_"+configData.address),
 						ElectricityConnectionBox.class);
@@ -353,7 +378,11 @@ if(mapData1 == null) {
 			manData.manualEntryDataHolder().create();
 			//TODO: Really init with zero?
 			ValueResourceHelper.setCreate(configData.governingResource.connection().energySensor().reading(), 0);
-			manData.manualEntryDataHolder().addDecorator("energySensor", configData.governingResource.connection().energySensor().reading());
+			EnergyResource energy = manData.manualEntryDataHolder().addDecorator("energySensor", configData.governingResource.connection().energySensor().reading());
+			energy.program().create().activate(true);
+			Datapoint dpEnergy = appManPlus.dpService().getDataPointStandard(energy);
+			if(dpEnergy != null)
+				dpEnergy.setTimeSeries(energy.program());
 			configData.governingResource.activate(true);
 			ManualTimeseriesServlet.registerManualEntryData(manData);
 			
@@ -397,7 +426,7 @@ if(mapData1 == null) {
 	@Override
 	public Collection<DeviceTypeProvider<?>> getDeviceTypeProviders() {
 		List<DeviceTypeProvider<?>> result = new ArrayList<>();
-		DeviceTypeProvider<ElectricityConnectionBox> prov = new ManualMeterDeviceType(appMan.appMan());
+		DeviceTypeProvider<ElectricityConnectionBox> prov = new ManualMeterDeviceType(appMan);
 		result.add(prov);
 		return result;
 	}

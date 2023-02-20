@@ -13,6 +13,7 @@ import org.smartrplace.timeseries.manual.model.ManualEntryData;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.ServletSubDataProvider;
+import org.smartrplace.util.frontend.servlet.UserServlet.ReturnStructure;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 
@@ -50,7 +51,8 @@ public class ManualTimeseriesServlet implements ServletPageProvider<ManualEntryD
 		result.put("UTCoffset", new ServletNumProvider(utcOffset.getTotalSeconds()*1000));
 
 		ServletPageProvider<ManualEntryData> provider = new ManualTimeseriesServletList(data, appManPlus);
-		ServletSubDataProvider<ManualEntryData> tsList = new ServletSubDataProvider<ManualEntryData>(provider , data, true, paramMap);
+		ServletSubDataProvider<ManualEntryData> tsList = new ServletSubDataProvider<ManualEntryData>(provider , data, true,
+				ReturnStructure.DICTIONARY, paramMap, true);
 		result.put("timeseriesList", tsList);
 			
 		return result;
