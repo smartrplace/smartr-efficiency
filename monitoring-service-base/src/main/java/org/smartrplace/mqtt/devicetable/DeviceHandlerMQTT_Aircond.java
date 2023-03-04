@@ -21,11 +21,13 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.buildingtechnology.AirConditioner;
 import org.ogema.model.devices.buildingtechnology.MechanicalFan;
 import org.ogema.model.locations.Room;
+import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
@@ -279,6 +281,19 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 		addDatapoint(dev.onOffSwitch().stateFeedback(), result);
 		addDatapoint(dev.getSubResource("operationMode", MultiSwitch.class).stateControl(), result);
 		addDatapoint(dev.getSubResource("operationMode", MultiSwitch.class).stateFeedback(), result);
+		
+		Resource parent = dev.getParent();
+		if(DeviceTableRaw.isRelativeSetpointSystem() && (parent != null) && (parent instanceof PhysicalElement)) {
+			//make sure locations are set only for relevant thermostats
+			Room room = ((PhysicalElement)parent).location().room().getLocationResource();
+			if(room.exists()) {
+				if(DeviceTableRaw.isMainThermostatInRelativeSetpointSystem(dev))
+					dev.location().room().setAsReference(room);
+				else if(dev.location().room().isReference(false))
+					dev.location().room().delete();
+			}
+		}
+
 		return result;
 	}
 	

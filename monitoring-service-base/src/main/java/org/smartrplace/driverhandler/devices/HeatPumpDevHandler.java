@@ -12,6 +12,7 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.model.devices.buildingtechnology.AirConditioner;
 import org.ogema.model.devices.generators.HeatPump;
 import org.ogema.model.sensors.GenericBinarySensor;
 import org.ogema.model.sensors.GenericFloatSensor;
@@ -30,6 +31,13 @@ public class HeatPumpDevHandler extends DeviceHandlerSimple<HeatPump> {
 		
 		public HeatPumpPattern(Resource model) {
 			super(model);
+		}
+		
+		@Override
+		public boolean accept() {
+			if(model instanceof AirConditioner)
+				return false;
+			return true;
 		}
 	}
 	

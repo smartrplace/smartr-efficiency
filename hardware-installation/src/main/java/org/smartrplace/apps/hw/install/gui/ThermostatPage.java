@@ -208,7 +208,7 @@ public class ThermostatPage extends MainPage {
 			private TextField addSetpEditFieldTempsetpoint(String widgetId, final FloatResource control,
 					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row) {
-				if(Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints"))
+				if(DeviceTableRaw.hasThermostatRelativeSetpoint(control)) //Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints"))
 					return addSetpEditField(widgetId, control, vh, id, req, row, 1.0f, -3f, 3f);
 				return addSetpEditField(widgetId, control, vh, id, req, row, 1.0f, 4.5f, 30.5f);
 			}
@@ -304,8 +304,10 @@ public class ThermostatPage extends MainPage {
 								val = val.replaceAll("[^\\d.]", "");
 								try {
 									float value  = Float.parseFloat(val);
-									if((Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints") && (value < -3f || value > 3f)) ||
-											((!Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints")) && (value < 4.5f || value> 30.5f))) {
+									//if((Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints") && (value < -3f || value > 3f)) ||
+									// 		((!Boolean.getBoolean("org.smartrplace.apps.heatcontrol.relativesetpoints")) && (value < 4.5f || value> 30.5f))) {
+									if((DeviceTableRaw.hasThermostatRelativeSetpoint(device) && (value < -3f || value > 3f)) ||
+											((!DeviceTableRaw.hasThermostatRelativeSetpoint(device)) && (value < 4.5f || value> 30.5f))) {
 										alert.showAlert("Outside allowed range", false, req);
 									} else
 										device.temperatureSensor().settings().setpoint().setCelsius(value);
