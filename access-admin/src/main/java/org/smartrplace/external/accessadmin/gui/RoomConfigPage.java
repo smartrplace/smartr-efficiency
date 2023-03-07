@@ -142,6 +142,8 @@ public class RoomConfigPage extends PerMultiselectConfigPage<Room, BuildingPrope
 								continue;
 							ResourceListHelper.removeReferenceOrObject(subc.roomGroup().rooms(), object);
 						}
+						if(selected == null)
+							return;
 						SubcustomerUtil.addRoomToGroup(object, selected.roomGroup());
 					}
 					
