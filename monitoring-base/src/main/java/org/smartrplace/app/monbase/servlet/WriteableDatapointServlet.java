@@ -101,6 +101,14 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 		return result;
 	}
 	
+	public static void deleteWriteableDatapoint(WriteableDatapoint writeDp, DatapointService dpService) {
+
+		//String loc = writeDp.datapointLocation().getValue();
+		writeDp.delete();
+
+		//dpService.removeDatapoint(loc);
+	}
+
 	@Override
 	public Map<String, ServletValueProvider> getProviders(WriteDPData obj, String user, Map<String, String[]> parameters) {
 		Map<String, ServletValueProvider> result = new HashMap<>();
@@ -276,6 +284,16 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 		};
 		result.put("disableLogging", disableLogging);
 		
+		ServletNumProvider deleteItem = new ServletNumProvider(false) {
+			@Override
+			public void setValue(String user, String key, String value) {
+				if(Boolean.parseBoolean(value)) {
+					deleteWriteableDatapoint(obj.writeDp, dpService);
+				}
+			}
+		};
+		result.put("delete", deleteItem);
+
 		if(iad != null) {
 			AlarmConfiguration alarm = AlarmingUtiH.getAlarmingConfiguration(iad, obj.writeDp.resource());
 			ServletFloatResourceProvider lowerLimit = new ServletFloatResourceProvider(alarm.lowerLimit());
