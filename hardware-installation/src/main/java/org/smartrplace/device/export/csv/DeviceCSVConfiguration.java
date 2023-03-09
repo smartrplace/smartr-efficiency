@@ -72,7 +72,7 @@ public class DeviceCSVConfiguration {
 	public void initDefaults(ResourceList<InstallAppDevice> parent) {
 		this.parent = parent;
 		
-		maxResourceCount = 1000;
+		maxResourceCount = 30000;
 	}
 
 }
