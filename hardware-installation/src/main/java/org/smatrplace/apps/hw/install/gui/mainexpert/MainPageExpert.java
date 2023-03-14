@@ -1,6 +1,7 @@
 package org.smatrplace.apps.hw.install.gui.mainexpert;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -170,6 +171,13 @@ public class MainPageExpert extends MainPage {
 			@Override
 	    	public void onPrePOST(String data, OgemaHttpRequest req) {
 	    		download.setDeleteFileAfterDownload(true, req);
+	    		List<InstallAppDevice> shown = new ArrayList<>();
+	    		
+	     		List<DeviceHandlerProviderDP<?>> types = controller.dpService.getDeviceHandlerProviders();
+	    		for(DeviceHandlerProviderDP<?> type: types) {
+		     		shown.addAll(MainPage.getDevicesSelectedDefault((DeviceHandlerProvider<?>) type, controller, roomsDrop, typeFilterDrop, req));	    			
+	    		}
+	    		controller.csvExport.setResources(shown);
 				String fileStr = controller.csvExport.exportToFile();
 	    		File csvFile = new File(fileStr);
 				download.setFile(csvFile, "devices.csv", req);

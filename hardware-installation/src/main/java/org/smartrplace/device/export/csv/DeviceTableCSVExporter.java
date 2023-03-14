@@ -29,7 +29,9 @@ public class DeviceTableCSVExporter {
 	
 	protected int resourceCount = 0;
 
-	protected final DeviceCSVConfiguration conf;
+	public final DeviceCSVConfiguration conf;
+	protected List<InstallAppDevice> shown = null;
+	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	private final ApplicationManager appManExt;
 	
@@ -90,11 +92,13 @@ public class DeviceTableCSVExporter {
 	
 	
 	protected <T extends Resource> void getAndExport(CSVPrinter p) throws IOException {
-		List<InstallAppDevice> resources = conf.parent.getAllElements();
+		List<InstallAppDevice> resources;
+		if(shown == null)
+			resources = conf.parent.getAllElements();
+		else
+			resources = shown;
 		printMainHeaderRow(p);
 		p.println();
-		//printConfig(p);
-		//p.println();
 		
 		resources.sort(new Comparator<InstallAppDevice>() {
 
@@ -170,5 +174,10 @@ public class DeviceTableCSVExporter {
 		toPrint.add("isTrash");
 		
 		p.printRecord(toPrint);
+	}
+
+	public void setResources(List<InstallAppDevice> shown) {
+		this.shown = shown;
+		
 	}
 }
