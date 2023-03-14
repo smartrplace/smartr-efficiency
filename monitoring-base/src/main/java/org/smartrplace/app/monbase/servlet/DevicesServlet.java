@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DatapointImpl;
@@ -15,6 +17,8 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
+import org.smartrplace.util.frontend.servlet.ServletFloatResourceProvider;
+import org.smartrplace.util.frontend.servlet.ServletIntegerResourceProvider;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet;
@@ -22,6 +26,7 @@ import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
+import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
@@ -122,6 +127,17 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 			result.put("roomName", roomName);
 			ServletNumProvider roomId = new ServletNumProvider(roomIdInt);
 			result.put("roomId", roomId);
+		} else if(Boolean.getBoolean("org.smartrplace.app.monbase.servlet.allowroomset")) {
+			ServletNumProvider roomId = new ServletNumProvider(-1) {
+				@Override
+				public void setValue(String user, String key, String value) {
+					Room roomNew = UserServletUtil.getRoomById(value, controller.appMan.getResourceAccess());
+					if(roomNew != null) {
+						dev.location().room().setAsReference(roomNew);
+					}
+				}
+			};
+			result.put("roomId", roomId);			
 		}
 		String subloc = object.installationLocation().getValue();
 		if(subloc != null) {
@@ -139,6 +155,18 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 		}
 		ServletNumProvider isActive = new ServletNumProvider(!object.isTrash().getValue());
 		result.put("isActive", isActive);
+		
+		FloatResource xposRes = object.getSubResource("xpos", FloatResource.class);
+		ServletFloatResourceProvider xpos = new ServletFloatResourceProvider(xposRes);
+		result.put("xpos", xpos);
+		FloatResource yposRes = object.getSubResource("ypos", FloatResource.class);
+		ServletFloatResourceProvider ypos = new ServletFloatResourceProvider(yposRes);
+		result.put("ypos", ypos);
+		IntegerResource installationElements = object.getSubResource("installFlags", IntegerResource.class);
+		ServletIntegerResourceProvider installFlags = new ServletIntegerResourceProvider(installationElements);
+		result.put("installFlags", installFlags);
+		
+		
 		
 		return result;
 	}
