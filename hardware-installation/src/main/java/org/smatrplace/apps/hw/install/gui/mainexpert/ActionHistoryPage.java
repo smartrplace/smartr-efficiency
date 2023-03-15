@@ -8,12 +8,15 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.format.StringFormatHelper;
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
@@ -90,6 +93,8 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 		vh.stringLabel("Room Type", id, object.roomType, row);
 		vh.stringLabel("Single Room", id, object.singleRoom
 				, row);
+		vh.stringLabel("Room Location", id, object.singleRoomLocation
+				, row);
 	}
 
 	@Override
@@ -120,7 +125,12 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 				item.newValue = vals.get(4);
 				item.tentant = vals.get(5);
 				item.roomType = vals.get(6);
-				item.singleRoom = vals.get(7);
+				item.singleRoomLocation = vals.get(7);
+				if(item.singleRoomLocation != null) {
+					Room room = ResourceHelper.getResource(item.singleRoomLocation, Room.class, appMan.getResourceAccess());
+					if(room != null)
+						item.singleRoom = ResourceUtils.getHumanReadableShortName(room);
+				}
 				result.add(item);
 			} catch(IndexOutOfBoundsException e) {
 				appMan.getLogger().error("History element too short:"+sres.getLocation()+"  :  "+val);
