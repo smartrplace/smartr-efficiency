@@ -104,6 +104,9 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 		ServletNumProvider id = new ServletNumProvider(ServletPageProvider.getNumericalId(object.getLocation()));
 		result.put("id", id);
 
+		ServletStringProvider deviceId = new ServletStringProvider(object.deviceId().getValue());
+		result.put("deviceShortId", deviceId);
+
 		String label = DatapointImpl.getDeviceLabel(object, null, dpService, devHand);
 		ServletStringProvider labelStd = new ServletStringProvider(label);
 		result.put("labelStd", labelStd);

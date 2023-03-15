@@ -193,6 +193,9 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		if(iad != null) {
 			ServletNumProvider deviceId = new ServletNumProvider(iad.getLocation().hashCode());
 			result.put("deviceId", deviceId);
+			
+			ServletStringProvider deviceShortId = new ServletStringProvider(iad.deviceId().getValue());
+			result.put("deviceShortId", deviceShortId);			
 		}
 		if(object.getResource() != null && (object.getResource() instanceof PhysicalUnitResource)) {
 			PhysicalUnit unit = ((PhysicalUnitResource)object.getResource()).getUnit();
