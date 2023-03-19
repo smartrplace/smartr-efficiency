@@ -12,11 +12,14 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.buildingtechnology.AirConditioner;
 import org.ogema.model.devices.generators.HeatPump;
+import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.GenericBinarySensor;
 import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -85,6 +88,20 @@ public class HeatPumpDevHandler extends DeviceHandlerSimple<HeatPump> {
 		return result;
 	}
 
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		HeatPump device = (HeatPump) appDevice.device();
+		
+		AlarmingUtiH.setTemplateValues(appDevice, getMainSensorValue(device, appDevice),
+				5f, 70f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+	}
+
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
+	
 	@Override
 	public String getTableTitle() {
 		return "Heat Pumps, Recoolers and Water Chillers/Refridgerators";

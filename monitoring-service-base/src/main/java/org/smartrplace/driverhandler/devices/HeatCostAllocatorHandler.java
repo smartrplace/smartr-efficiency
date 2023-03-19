@@ -12,8 +12,11 @@ import org.ogema.core.resourcemanager.pattern.ResourcePattern;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
+import org.ogema.model.devices.buildingtechnology.ElectricLight;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.EnergyAccumulatedSensor;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -55,6 +58,20 @@ public class HeatCostAllocatorHandler extends DeviceHandlerSimple<SensorDevice> 
 		return result;
 	}
 
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		SensorDevice device = (SensorDevice) appDevice.device();
+		
+		AlarmingUtiH.setTemplateValues(appDevice, device.getSubResource("hcaEnergy", EnergyAccumulatedSensor.class).reading(),
+				0f, 9999999f, 1, 2880);
+	}
+
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
+	
 	@Override
 	protected void addMoreValueWidgets(InstallAppDevice object, SensorDevice device,
 			ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req, Row row,

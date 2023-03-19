@@ -15,12 +15,15 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
 import org.ogema.model.sensors.ElectricVoltageSensor;
 import org.ogema.model.sensors.FlowSensor;
 import org.ogema.model.sensors.VolumeAccumulatedSensor;
 import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.smaapis.SmaEnergyBalanceMeasurements;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -57,6 +60,20 @@ public class WaterMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> 
 		return result;
 	}
 
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		SensorDevice device = (SensorDevice) appDevice.device();
+		
+		AlarmingUtiH.setTemplateValues(appDevice, getMainSensorValue(device, appDevice),
+				0f, 9999999f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+	}
+
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
+	
 	@Override
 	public String getTableTitle() {
 		return "Water Meters";

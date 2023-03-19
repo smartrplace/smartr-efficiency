@@ -14,6 +14,7 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableRaw;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.connections.ElectricityConnection;
 import org.ogema.model.devices.connectiondevices.ElectricityConnectionBox;
 import org.ogema.model.devices.sensoractordevices.SensorDevice;
@@ -21,11 +22,13 @@ import org.ogema.model.devices.storage.ElectricityStorage;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.sensors.ElectricCurrentSensor;
+import org.ogema.model.sensors.EnergyAccumulatedSensor;
 import org.ogema.model.sensors.PowerSensor;
 import org.ogema.model.sensors.Sensor;
 import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.simulation.shared.api.SingleRoomSimulationBase;
 import org.ogema.timeseries.eval.simple.mon3.MeteringEvalUtil;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -107,6 +110,20 @@ public class BatteryDevHandler extends DeviceHandlerSimple<ElectricityStorage> {
 		return result;
 	}
 
+	@Override
+	public void initAlarmingForDevice(InstallAppDevice appDevice, HardwareInstallConfig appConfigData) {
+		appDevice.alarms().create();
+		ElectricityStorage device = (ElectricityStorage) appDevice.device();
+		
+		AlarmingUtiH.setTemplateValues(appDevice, device.electricityConnection().powerSensor().reading(),
+				0f, 20000f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+	}
+
+	@Override
+	public String getInitVersion() {
+		return "A";
+	}
+	
 	@Override
 	public List<RoomInsideSimulationBase> startSupportingLogicForDevice(InstallAppDevice device,
 			ElectricityStorage deviceResource, SingleRoomSimulationBase roomSimulation, DatapointService dpService) {
