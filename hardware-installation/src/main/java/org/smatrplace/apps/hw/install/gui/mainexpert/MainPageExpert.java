@@ -24,6 +24,7 @@ import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
@@ -50,10 +51,11 @@ import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
+import de.iwes.widgets.html.form.textfield.TextField;
 
 @SuppressWarnings("serial")
 public class MainPageExpert extends MainPage {
-
+	
 	private static final String LOG_ALL = "Log All";
 	private static final String LOG_NONE = "Log None";
 	private static final String DELETE = "Delete";
@@ -110,6 +112,84 @@ public class MainPageExpert extends MainPage {
 						link);
 				topTable.setContent(0, 4, wikiPage);
 			}
+			
+			TextField startIdEdit = new TextField(page, "startIdEdit") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					setValue(idRangeStart==null?"":""+idRangeStart, req);
+				}
+				
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					HardwareTablePage.idRangeLastEdit = appMan.getFrameworkTime();
+					if(data.isEmpty()) {
+						HardwareTablePage.idRangeStart = null;
+						return;
+					}
+					try {
+						String sval = getValue(req);
+						int val = Integer.parseInt(sval);
+						HardwareTablePage.idRangeStart = val;
+					} catch(NumberFormatException e) {
+						HardwareTablePage.idRangeStart = null;
+					}
+				}
+			};
+			startIdEdit.registerDependentWidget(startIdEdit);
+			
+			TextField endIdEdit = new TextField(page, "endIdEdit") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					setValue(idRangeEnd==null?"":""+idRangeEnd, req);
+				}
+				
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					HardwareTablePage.idRangeLastEdit = appMan.getFrameworkTime();
+					if(data.isEmpty()) {
+						HardwareTablePage.idRangeEnd = null;
+						return;
+					}
+					try {
+						String sval = getValue(req);
+						int val = Integer.parseInt(sval);
+						HardwareTablePage.idRangeEnd = val;
+					} catch(NumberFormatException e) {
+						HardwareTablePage.idRangeEnd = null;
+					}
+				}
+			};
+			endIdEdit.registerDependentWidget(endIdEdit);
+
+			TextField maxNoChangeEdit = new TextField(page, "maxNoChangeEdit") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					setValue(idRangeMaxNoLimit==null?"":""+idRangeMaxNoLimit, req);
+				}
+				
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					HardwareTablePage.idRangeLastEdit = appMan.getFrameworkTime();
+					if(data.isEmpty()) {
+						HardwareTablePage.idRangeMaxNoLimit = null;
+						return;
+					}
+					try {
+						String sval = getValue(req);
+						int val = Integer.parseInt(sval);
+						HardwareTablePage.idRangeMaxNoLimit = val;
+					} catch(NumberFormatException e) {
+						HardwareTablePage.idRangeMaxNoLimit = null;
+					}
+				}
+			};
+			maxNoChangeEdit.registerDependentWidget(maxNoChangeEdit);
+
+			topTable.setContent(0, 0, "Range of DeviceIds to be shown:");
+			topTable.setContent(0, 1, startIdEdit);
+			topTable.setContent(0, 2, endIdEdit);
+			topTable.setContent(0, 3, "Maximum number devices NOT limted:");
+			topTable.setContent(0, 5, maxNoChangeEdit);
 		} else if(!isTrashPage) {
 			Button updateDatapoints = new Button(page, "updateDatapoints", "Update Datapoints") {
 				public void onPOSTComplete(String data, OgemaHttpRequest req) {

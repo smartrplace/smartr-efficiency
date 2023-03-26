@@ -120,7 +120,7 @@ public class CascadingOverviewPage extends ObjectGUITablePageNamed<GatewaySyncDa
 			roomSetLocationBut.setDefaultConfirmMsg("Really update and overwrite device room data from data provided by superior?");
 		else
 			roomSetLocationBut.setDefaultConfirmMsg("Really update and overwrite device room data from data provided by sub gateways?");
-		roomSetLocationBut.setDefaultText("Read device rooms and set locally");
+		roomSetLocationBut.setDefaultText("Experimental: Read device rooms and set locally");
 		row.addCell(WidgetHelper.getValidWidgetId("Read device rooms and set locally"), roomSetLocationBut);
 		
 			

@@ -23,7 +23,9 @@ import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Location;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.util.extended.eval.widget.BooleanResourceButton;
+import org.smartrplace.apps.hw.install.LocalDeviceId;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeFilterDropdown;
 import org.smartrplace.gui.filtering.DualFiltering;
@@ -38,6 +40,7 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
@@ -48,8 +51,16 @@ import de.iwes.widgets.html.form.label.Label;
 @SuppressWarnings("serial")
 /** Note that only the method getDevicesSelected is really implemented here*/
 public class HardwareTablePage implements InstalledAppsSelector { //extends DeviceTablePageFragment
-
+	public static final int IDRANGE_MAX_NOLIMIT_DEFAULT = 30;
 	public static final int MAX_DEVICE_PER_ALL = Integer.getInteger("org.smartrplace.hwinstall.basetable.maxdeviceforall", 400);
+	private static final long IDRANGE_RESET_INTERVAL = Long.getLong("org.smartrplace.hwinstall.basetable.idrange.resetinterval", 2*TimeProcUtil.HOUR_MILLIS);
+
+	/** Option: Definition of a range of IDs to which view shall be limited*/
+	public static Integer idRangeStart = null;
+	public static Integer idRangeEnd = null;
+	/** Maximum number of devices in category so that no filtering by idRange is performed*/
+	public static Integer idRangeMaxNoLimit = IDRANGE_MAX_NOLIMIT_DEFAULT;
+	public static long idRangeLastEdit = -1;
 
 	//Overwrite to reduce columns
 	protected boolean showOnlyBaseColsHWT() {return false;}
@@ -129,7 +140,27 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		
 		//this.controller = controller;
 		//init all widgets
-		this.alert = new Alert(page, WidgetHelper.getValidWidgetId("alert"+pid()), "");
+		this.alert = new Alert(page, WidgetHelper.getValidWidgetId("alert"+pid()), "") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				if(idRangeStart != null) {
+					checkIdRangeReset();
+				}
+				if(idRangeStart != null) {
+					autoDismiss(TimeProcUtil.DAY_MILLIS, req);
+					setWidgetVisibility(true, req);
+					String text;
+					if(idRangeEnd != null)
+						text = "Limited to ID range: "+idRangeStart+" to "+idRangeEnd;
+					else
+						text = "Limited to ID: "+idRangeStart;
+					if(idRangeMaxNoLimit != null)
+						text += " (from "+idRangeMaxNoLimit+" devices per type)";
+					alert.setText(text, req);
+					alert.setStyle(AlertData.BOOTSTRAP_DANGER, req);
+				}			
+			}
+		};
 		page.append(alert).linebreak();
 		
 		//this.instAppsSelector = this;
@@ -233,8 +264,9 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		final OgemaWidget commitBtn;
 		if(suppressSearchForNewDevices())
 			commitBtn = null;
-		else
+		else {
 			commitBtn = getCommitButton();
+		}
 		/*Button commitBtn = new Button(page, "commitBtn", "Commit changes") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -254,9 +286,9 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 					.setContent(0, installFilterCol, typeFilterDrop)
 					.setContent(0, installFilterCol+2, installMode);//setContent(0, 2, roomLinkButton).
 		}
-		if(commitBtn != null)
+		if(commitBtn != null) {
 			topTable.setContent(0, 2, commitBtn);
-
+		}
 		if(offerAddRoomButton()) {
 			RedirectButton addRoomLink = new RedirectButton(page, "addRoomLink", "Add room", "/org/smartrplace/external/accessadmin/roomconfig.html");
 			topTable.setContent(0, installFilterCol+3, addRoomLink);
@@ -272,6 +304,12 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 	
 	protected OgemaWidget getCommitButton() {
 		Button commitBtn = new Button(page, "commitBtn", "Commit changes") {
+			/*@Override
+			public void onGET(OgemaHttpRequest req) {
+				if(idRangeStart != null) {
+					addStyle(ButtonData.BOOTSTRAP_RED, req);
+				}
+			}*/
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				EvalCollection ec = ResourceHelper.getEvalCollection(appMan);
@@ -342,6 +380,15 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		return all.isEmpty();
 	}
 
+	private void checkIdRangeReset() {
+		long now = appMan.getFrameworkTime();
+		if(now - idRangeLastEdit > IDRANGE_RESET_INTERVAL) {
+			idRangeStart = null;
+			idRangeEnd = null;
+			idRangeMaxNoLimit = IDRANGE_MAX_NOLIMIT_DEFAULT;
+		}		
+	}
+	
 	@Override
 	public List<InstallAppDevice> getDevicesSelected(DeviceHandlerProvider<?> devHand, OgemaHttpRequest req) {
 //if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
@@ -351,6 +398,29 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 //if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 //	System.out.println("Filtering "+all.size()+" for "+devHand.label(null));
 		List<InstallAppDevice> result = finalFilter.getFiltered(all, req);
+		if(idRangeStart != null) {
+			checkIdRangeReset();
+		}
+		if(idRangeStart != null &&
+				(idRangeMaxNoLimit == null || all.size() > idRangeMaxNoLimit)) {
+			List<InstallAppDevice> resultIdRange = new ArrayList<>();
+			for(InstallAppDevice iad: result) {
+				int numId = LocalDeviceId.getDeviceIdNumericalPart(iad);
+				if(numId < 0) {
+					resultIdRange.add(iad);
+					continue;
+				}
+				if(numId < idRangeStart)
+					continue;
+				if(numId == idRangeStart) {
+					resultIdRange.add(iad);
+					continue;
+				}
+				if(idRangeEnd != null && numId <=idRangeEnd)
+					resultIdRange.add(iad);
+			}
+			return resultIdRange;
+		}
 //if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 //	System.out.println("After Filtering has "+result.size()+" for "+devHand.label(null));
 		return result;
