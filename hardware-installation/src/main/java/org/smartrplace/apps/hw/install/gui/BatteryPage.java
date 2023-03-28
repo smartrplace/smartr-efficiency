@@ -199,7 +199,8 @@ public class BatteryPage extends MainPage {
 							&& (!device2.getLocation().contains("HM_HmIP_FSM")))
 						result.add(dev);
 				}
-				return result;
+				return filterByIdRange(all, result);
+				//return result;
 			}
 		};
 		devTable.triggerPageBuild();

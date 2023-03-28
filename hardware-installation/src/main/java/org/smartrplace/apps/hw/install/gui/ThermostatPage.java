@@ -773,7 +773,8 @@ public class ThermostatPage extends MainPage {
 						result.add(dev);
 					}
 				}
-				return result;
+				return filterByIdRange(all, result);
+				//return result;
 			}
 		};
 		devTable.triggerPageBuild();

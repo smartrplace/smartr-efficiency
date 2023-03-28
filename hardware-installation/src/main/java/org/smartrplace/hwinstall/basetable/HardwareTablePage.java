@@ -401,7 +401,8 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		if(idRangeStart != null) {
 			checkIdRangeReset();
 		}
-		if(idRangeStart != null &&
+		return filterByIdRange(all, result);
+		/*if(idRangeStart != null &&
 				(idRangeMaxNoLimit == null || all.size() > idRangeMaxNoLimit)) {
 			List<InstallAppDevice> resultIdRange = new ArrayList<>();
 			for(InstallAppDevice iad: result) {
@@ -423,7 +424,34 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 		}
 //if(Boolean.getBoolean("org.smartrplace.hwinstall.basetable.debugfiltering"))
 //	System.out.println("After Filtering has "+result.size()+" for "+devHand.label(null));
-		return result;
+		return result;*/
+	}
+	
+	public List<InstallAppDevice> filterByIdRange(Collection<InstallAppDevice> all, List<InstallAppDevice> filteredResult) {
+		if(idRangeStart != null) {
+			checkIdRangeReset();
+		}
+		if(idRangeStart != null &&
+				(idRangeMaxNoLimit == null || all.size() > idRangeMaxNoLimit)) {
+			List<InstallAppDevice> resultIdRange = new ArrayList<>();
+			for(InstallAppDevice iad: filteredResult) {
+				int numId = LocalDeviceId.getDeviceIdNumericalPart(iad);
+				if(numId < 0) {
+					resultIdRange.add(iad);
+					continue;
+				}
+				if(numId < idRangeStart)
+					continue;
+				if(numId == idRangeStart) {
+					resultIdRange.add(iad);
+					continue;
+				}
+				if(idRangeEnd != null && numId <=idRangeEnd)
+					resultIdRange.add(iad);
+			}
+			return resultIdRange;
+		}
+		return filteredResult;
 	}
 	
 	public <T extends Resource> Collection<InstallAppDevice> getDevices(DeviceHandlerProviderDP<?> devHand) {

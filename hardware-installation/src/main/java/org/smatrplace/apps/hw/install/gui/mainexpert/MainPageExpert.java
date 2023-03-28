@@ -549,7 +549,7 @@ public class MainPageExpert extends MainPage {
 		case AlarmingConfigUtil.ASSIGNMENT_DEVELOPMENT:
 			return new KniStatus(null, "Development");
 		case AlarmingConfigUtil.ASSIGNMENT_DEVELOPMENT_EXTERNAL:
-			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Dev (Ext)");
+			return new KniStatus(LabelData.BOOTSTRAP_GREY, "ValveErr");
 		case AlarmingConfigUtil.ASSIGNMENT_SPECIALSETS:
 			return new KniStatus(LabelData.BOOTSTRAP_GREY, "Special");
 		case AlarmingConfigUtil.ASSIGNMENT_OTHER:
