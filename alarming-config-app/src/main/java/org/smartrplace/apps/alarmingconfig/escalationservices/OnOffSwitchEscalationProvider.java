@@ -14,6 +14,7 @@ import org.smartrplace.apps.alarmconfig.util.AlarmType;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.gateway.device.GatewayDevice;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -45,6 +46,9 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 
 	@Override
 	protected EscalationKnownIssue isEscalationRelevant(InstallAppDevice iad) {
+		if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.escalationservices.gatewayquickalarm") &&
+				(iad.device() instanceof GatewayDevice))
+			return new EscalationKnownIssue();
 		if(iad.devHandlerInfo().getValue().endsWith("FaultSingleDeviceHandler"))
 			return null;
 		if(iad.device() instanceof OnOffSwitch)
@@ -61,6 +65,8 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 		//else
 		//	emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 		int countDevice = 0;
+		boolean hasGateway = true;
+		boolean hasOnOff = true;
 		for(EscalationKnownIssue issue: issues) {
 			if(issue.knownIssue.assigned().getValue() > 0)
 				continue;
@@ -87,10 +93,19 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 			}
 			String link = AlarmType.getFullLink("ac150");
 			emailMessage += "\r\n"+"Further information: "+link;
+			
+			if(issue.device.device() instanceof GatewayDevice)
+				hasGateway = true;
+			else
+				hasOnOff = true;
 			//}
 		}
 		if(maxFault > 0) {
-			ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "OnOffSwitches (Pump)",
+			if(!hasOnOff) {
+				ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "Gateway",
+						appIDs, persistData, appManPlus);				
+			} else
+				ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "OnOffSwitches (Pump)",
 					appIDs, persistData, appManPlus);
 		}
 		return new EscalationCheckResult();
