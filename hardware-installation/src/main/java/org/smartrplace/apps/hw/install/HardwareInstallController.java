@@ -579,31 +579,7 @@ public class HardwareInstallController {
 		devType.setType("DEVICE_TYPE");
 		if(devType.getSubGroup(deviceLocation) == null)
 			devType.addSubGroup(dev);
-		/*String devTypeShort = tableProvider.getDeviceTypeShortId(appDevice, dpService);
-		
-		Room roomRes = appDevice.device().location().room();
-		final DPRoom room;
-		if(roomRes.exists()) {
-			room = dpService.getRoom(roomRes.getLocation());
-			room.setResource(roomRes);
-		} else 
-			room = null;
-		
-		if(devTypeShort != null && (devTypeShort.equals("UNK")))
-			devTypeShort = null;
-		
-		String subLoc = null;
-		if(appDevice.installationLocation().isActive()) {
-			if(devTypeShort != null)
-				subLoc = devTypeShort+"-"+appDevice.installationLocation().getValue();
-			else
-				subLoc = appDevice.installationLocation().getValue();
-		} else if(devTypeShort != null) {
-			subLoc = devTypeShort;
-		}
-		
-		String devName2 = DatapointImpl.getDeviceLabel(null,
-				room!=null?room.label(null):Datapoint.UNKNOWN_ROOM_NAME, subLoc, null);*/
+
 		try {
 			Collection<Datapoint> allDps = tableProvider.getDatapoints(appDevice, dpService);
 			for(Datapoint dp: allDps) {

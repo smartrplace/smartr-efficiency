@@ -65,8 +65,8 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 		//else
 		//	emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 		int countDevice = 0;
-		boolean hasGateway = true;
-		boolean hasOnOff = true;
+		boolean hasGateway = false;
+		boolean hasOnOff = false;
 		for(EscalationKnownIssue issue: issues) {
 			if(issue.knownIssue.assigned().getValue() > 0)
 				continue;
@@ -101,9 +101,12 @@ public class OnOffSwitchEscalationProvider extends EscalationProviderSimple<Esca
 			//}
 		}
 		if(maxFault > 0) {
-			if(!hasOnOff) {
+			if((!hasOnOff) && hasGateway) {
 				ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "Gateway",
 						appIDs, persistData, appManPlus);				
+			} else if(hasGateway) {
+				ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "OnOffSwitches (Pump) and Gateway",
+						appIDs, persistData, appManPlus);
 			} else
 				ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "OnOffSwitches (Pump)",
 					appIDs, persistData, appManPlus);
