@@ -33,6 +33,7 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DriverHandlerProvider;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
+import org.ogema.tools.driver.api.CCUAccessI;
 import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.smartrplace.apps.hw.install.experimental.HardwareInstallPageTest;
 import org.smartrplace.apps.hw.install.gui.MainPage;
@@ -75,7 +76,14 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addDriverPropertyProvider",
-		unbind="removeDriverPropertyProvider")
+		unbind="removeDriverPropertyProvider"),
+	@Reference(
+		name="cmsConnector",
+		referenceInterface=CCUAccessI.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addCCUAccess",
+		unbind="removeCCUAccess")
 })
 
 @Component(specVersion = "1.2", immediate = true)
@@ -117,7 +125,9 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 	
 	volatile HardwareInstallPageTest testPageImpl; 
 	
-    protected final GenericControllerProvider<HardwareInstallController> controllerProvider;
+	public volatile CCUAccessI ccuAccess = null;
+
+	protected final GenericControllerProvider<HardwareInstallController> controllerProvider;
     public HardwareInstallApp() {
 		controllerProvider = new GenericControllerProvider<HardwareInstallController>(
 				"org.smartrplace.apps.hw.install.expert.HardwareInstallAppExpert",
@@ -255,4 +265,13 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     	dPropertyProviders.remove(provider.id());
     }
 
+    protected void addCCUAccess(CCUAccessI provider) {
+    	if(ccuAccess == null) {
+    		ccuAccess = provider;
+    	}
+    }
+    protected void removeCCUAccess(CCUAccessI provider) {
+       	if(ccuAccess != null && ccuAccess.equals(provider))
+    		ccuAccess = null;
+    }
  }

@@ -1,5 +1,6 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import org.ogema.core.model.units.PercentageResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.drivers.homematic.xmlrpc.hl.types.HmInterfaceInfo;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmLogicInterface;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -144,28 +146,39 @@ public class CCUPage extends MainPage {
 						ScheduleViewerConfigProvCCUDebug.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
 				
-				final ButtonConfirm restartCcu = new ButtonConfirm(mainTable, "restartCCu"+id, req) {
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						if(hmDriverRestartTimer.isCounting()) {
-							long remain = hmDriverRestartTimer.getRemainingTime();
-							setText("HM-Restart in "+(remain/1000)+" sec", req);
-						} else
-							setText("Reboot", req);
-					}
-					
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						//TODO
-						hmDriverRestartTimer.newEvent();
-					}
-				};
-				if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
-					String gwId = GatewaySyncUtil.getGatewayBaseIdStartingGw(device);
-					restartCcu.setDefaultConfirmMsg("Currenlty you have to perform this task directly on gateway "+gwId);
-				} else
-					restartCcu.setDefaultConfirmMsg("Really restart Ccu and Homematic driver?");
-				row.addCell("Restart", restartCcu);
+				//TODO: Provide method to check if CCU can be accessed via CCUAccess
+				if(controller.hwInstApp.ccuAccess != null) {
+					final ButtonConfirm restartCcu = new ButtonConfirm(mainTable, "restartCCu"+id, req) {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							if(hmDriverRestartTimer.isCounting()) {
+								long remain = hmDriverRestartTimer.getRemainingTime();
+								setText("HM-Restart in "+(remain/1000)+" sec", req);
+							} else
+								setText("Reboot", req);
+						}
+						
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							if(controller.hwInstApp.ccuAccess != null) {
+								Resource parent = device.getParent();
+								if(parent != null && (parent instanceof HmLogicInterface)) try {
+									controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
+								} catch (IOException e) {
+									e.printStackTrace();
+									throw new IllegalStateException(e);
+								}
+							}
+							hmDriverRestartTimer.newEvent();
+						}
+					};
+					if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
+						String gwId = GatewaySyncUtil.getGatewayBaseIdStartingGw(device);
+						restartCcu.setDefaultConfirmMsg("Currenlty you have to perform this task directly on gateway "+gwId);
+					} else
+						restartCcu.setDefaultConfirmMsg("Really restart Ccu and Homematic driver?");
+					row.addCell("Restart", restartCcu);
+				}
 				
 				String text = getHomematicCCUId(object.device().getLocation());
 				vh.stringLabel("RT", id, text, row);
