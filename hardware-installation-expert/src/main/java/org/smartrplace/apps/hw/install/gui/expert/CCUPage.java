@@ -11,29 +11,35 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.drivers.homematic.xmlrpc.hl.types.HmInterfaceInfo;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.eval.hardware.HmCCUPageUtils;
+import org.smartrplace.os.util.BundleRestartButton;
+import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 
+import de.iwes.util.logconfig.CountdownTimerMulti2Single;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.label.Label;
 
-//@SuppressWarnings("serial")
+@SuppressWarnings("serial")
 public class CCUPage extends MainPage {
 
 	private static final int CCU_MAX_FOR_ALL = 50;
 	DeviceTableBase devTable;
 	HardwareInstallConfig hwConfig;
+	private final CountdownTimerMulti2Single hmDriverRestartTimer;
 	
 	@Override
 	public String getHeader() {return "CCU Page";}
@@ -51,6 +57,13 @@ public class CCUPage extends MainPage {
 	public CCUPage(WidgetPage<?> page, HardwareInstallController controller) {
 		super(page, controller, false);
 		hwConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
+		hmDriverRestartTimer = new CountdownTimerMulti2Single(controller.appMan, 7*TimeProcUtil.MINUTE_MILLIS) {
+			
+			@Override
+			public void delayedExecution() {
+				BundleRestartButton.hmRestart.executeNonBlockingOnce();				
+			}
+		};
 		finishConstructor();
 	}
 
@@ -60,7 +73,7 @@ public class CCUPage extends MainPage {
 			
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
-					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
+					String id, OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
 				final HmInterfaceInfo device;
 				if(req == null)
 					device = ResourceHelper.getSampleResource(HmInterfaceInfo.class);
@@ -100,6 +113,7 @@ public class CCUPage extends MainPage {
 					vh.registerHeaderEntry("Location");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Plot");
+					vh.registerHeaderEntry("Restart");
 					vh.registerHeaderEntry("RT");
 					return;
 				}
@@ -129,6 +143,30 @@ public class CCUPage extends MainPage {
 				final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 						ScheduleViewerConfigProvCCUDebug.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
+				
+				final ButtonConfirm restartCcu = new ButtonConfirm(mainTable, "restartCCu"+id, req) {
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						if(hmDriverRestartTimer.isCounting()) {
+							long remain = hmDriverRestartTimer.getRemainingTime();
+							setText("HM-Restart in "+(remain/1000)+" sec", req);
+						} else
+							setText("Reboot", req);
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						//TODO
+						hmDriverRestartTimer.newEvent();
+					}
+				};
+				if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
+					String gwId = GatewaySyncUtil.getGatewayBaseIdStartingGw(device);
+					restartCcu.setDefaultConfirmMsg("Currenlty you have to perform this task directly on gateway "+gwId);
+				} else
+					restartCcu.setDefaultConfirmMsg("Really restart Ccu and Homematic driver?");
+				row.addCell("Restart", restartCcu);
+				
 				String text = getHomematicCCUId(object.device().getLocation());
 				vh.stringLabel("RT", id, text, row);
 			}

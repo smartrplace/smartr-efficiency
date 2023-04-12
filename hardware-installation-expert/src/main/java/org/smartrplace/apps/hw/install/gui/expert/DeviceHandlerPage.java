@@ -181,7 +181,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 		if(req == null) {
 			vh.registerHeaderEntry("Title");
 			vh.registerHeaderEntry("HandlerID");
-			vh.registerHeaderEntry("# Devices");
+			vh.registerHeaderEntry("# Devices Active");
 			vh.registerHeaderEntry("# Trash");
 			vh.registerHeaderEntry("Reset Devices");
 			return;
@@ -197,7 +197,7 @@ public class DeviceHandlerPage extends ObjectGUITablePageNamed<DeviceHandlerProv
 			else
 				devNum++;
 		}
-		vh.stringLabel("# Devices", id, ""+devNum, row);
+		vh.stringLabel("# Devices Active", id, ""+devNum, row);
 		vh.stringLabel("# Trash", id, ""+trashNum, row);
 		
 		final boolean status = appConfigData.blockAutoResetOfDeviceIds().getValue() ||

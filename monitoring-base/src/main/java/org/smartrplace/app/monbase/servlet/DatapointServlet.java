@@ -1,7 +1,9 @@
 package org.smartrplace.app.monbase.servlet;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.simple.BooleanResource;
@@ -35,7 +37,7 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
 public class DatapointServlet implements ServletPageProvider<Datapoint> {
-	//List<Room> knownRooms = null;
+	public static final List<String> knownApplications = Arrays.asList(new String[] {"Grid", "Battery", "Solar", "Water", "Heating", "Elevator", "Tenant"});
 	
 	/** Hash location or other ID -> Timeseries*/
 	//final Map<String, TimeSeriesDataImpl> knownTimeseries = UserServlet.knownTS;
@@ -196,11 +198,32 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			
 			ServletStringProvider deviceShortId = new ServletStringProvider(iad.deviceId().getValue());
 			result.put("deviceShortId", deviceShortId);			
+
+			String devInstallLocation = iad.installationLocation().getValue();
+			if(knownApplications.contains(devInstallLocation)) {
+				ServletStringProvider application = new ServletStringProvider(devInstallLocation);
+				result.put("application", application);
+			}
 		}
 		if(object.getResource() != null && (object.getResource() instanceof PhysicalUnitResource)) {
 			PhysicalUnit unit = ((PhysicalUnitResource)object.getResource()).getUnit();
 			ServletStringProvider unitProv = new ServletStringProvider(unit.toString());
 			result.put("unit", unitProv);
+		} else {
+			String locLow = object.getLocation().toLowerCase();
+			String unit = null;
+			if(locLow.contains("energy") || (typeId != null && typeId.toLowerCase().contains("energy")))
+				unit = "kWh";
+			else if(locLow.contains("power") || (typeId != null && typeId.toLowerCase().contains("power")))
+				unit = "W";
+			else if(locLow.contains("water") || (typeId != null && typeId.toLowerCase().contains("water")))
+				unit = "m3";
+			else if(locLow.contains("volume") || (typeId != null && typeId.toLowerCase().contains("volume")))
+				unit = "m3";
+			if(unit != null) {
+				ServletStringProvider unitProv = new ServletStringProvider(unit);
+				result.put("unit", unitProv);				
+			}
 		}
 		try {
 			SubCustomerData subc = iad.device().location().getSubResource("tenant", SubCustomerData.class);
