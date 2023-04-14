@@ -516,8 +516,10 @@ public class ThermostatPage extends MainPage {
 						vh.registerHeaderEntry("Last Err");
 						if(type != ThermostatPageType.VALVE_ONLY) {
 							vh.registerHeaderEntry("ManuMode");
-							if(type == ThermostatPageType.AUTO_MODE)
+							if(type == ThermostatPageType.AUTO_MODE) {
+								vh.registerHeaderEntry("Resend");
 								vh.registerHeaderEntry("Curv Resnd");
+							}
 						} else {
 							vh.registerHeaderEntry("VveMax");
 							vh.registerHeaderEntry("EditMax");
@@ -608,7 +610,23 @@ public class ThermostatPage extends MainPage {
 						ctrlModeLb.setPollingInterval(DEFAULT_POLL_RATE, req);
 					
 						if(type == ThermostatPageType.AUTO_MODE) {
-
+							if(controlModeFeedback != null && controlModeFeedback.exists()) {
+								Button resendManu = new Button(mainTable, "resendManu"+id, req) {
+									@Override
+									public void onGET(OgemaHttpRequest req) {
+										long ts = controlModeFeedback.getLastUpdateTime();
+										String text = "Man:"+StringFormatHelper.getFormattedAgoValue(appMan, ts);
+										setText(text, req);
+									};
+									@Override
+									public void onPOSTComplete(String data, OgemaHttpRequest req) {
+										controlMode.setValue(controlMode.getValue());
+									};
+									
+								};
+								row.addCell("Resend", resendManu);
+							}
+							
 							final IntegerResource update = device.getSubResource("program", ThermostatProgram.class).update();
 							if(update.isActive()) {
 								Button curveResendBut = new Button(mainTable, "curveResendBut"+id, req) {
