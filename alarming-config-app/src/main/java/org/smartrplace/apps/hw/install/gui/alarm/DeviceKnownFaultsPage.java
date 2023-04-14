@@ -40,8 +40,12 @@ import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
+import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.LabelData;
+import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
+import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
@@ -187,7 +191,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			pageTitle = "Devices of type "+ grp.label(null);
 		else
 			pageTitle = "Devices of type "+ pe.label(null);
-		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe) {
+		final boolean showAlarmCtrl = pageType == KnownFaultsPageType.SUPERVISION_STANDARD;
+		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe, showAlarmCtrl) {
 			protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
@@ -196,12 +201,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Assigned");
 					vh.registerHeaderEntry("Task Tracking");
+					vh.registerHeaderEntry("Priority");
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.registerHeaderEntry("Edit TT");
 					if(pe.id().toLowerCase().contains("thermostat"))
 						vh.registerHeaderEntry("TH-Plot");
 					vh.registerHeaderEntry("Plot");
-					vh.registerHeaderEntry("For");
+					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
+						vh.registerHeaderEntry("For");
 					vh.registerHeaderEntry("Release");
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.registerHeaderEntry("Special Set(Dev)");
@@ -221,11 +228,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				if(res.exists()) {
-					vh.stringEdit("Comment",  id, res.comment(), row, alert);
+					vh.stringEdit("Comment",  id, res.comment(), row, alert, res.comment());
 					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
 							"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
 						public void onGET(OgemaHttpRequest req) {
 							myDrop.selectItem(res.assigned(), req);
+							final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(String.valueOf(res.assigned().getValue()));
+							if (role != null)
+								myDrop.setToolTip(role, req);
 						}
 						@Override
 						public void onPrePOST(String data, OgemaHttpRequest req) {
@@ -254,26 +264,34 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 								res.linkToTaskTracking().getValue(), req);
 						row.addCell(WidgetHelper.getValidWidgetId("Task Tracking"), taskLink);
 					}
+					final ValueResourceTextField<IntegerResource> prioField 
+						= new ValueResourceTextField<IntegerResource>(mainTable, "prio" + id, res.getSubResource("priority", IntegerResource.class), req);
+					prioField.setDefaultToolTip("Alarm priority, with 0 = lowest priority, 10 = very high priority.");
+					prioField.setDefaultWidth("4em");
+					row.addCell("Priority", prioField);
+					
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 				}
-				SimpleCheckbox forRelease = new SimpleCheckbox(mainTable, "forRelease"+id, "", req) {
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						int status = res.forRelease().getValue();
-						setValue(status>0, req);
-						if(status > 1)
-							setStyle(LabelData.BOOTSTRAP_ORANGE, req);
-						else
-							setStyles(Collections.emptyList(), req);
-					}
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						boolean status = getValue(req);
-						ValueResourceHelper.setCreate(res.forRelease(), status?1:0);
-					}
-				};
-				row.addCell("For", forRelease);
+				if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD) {
+					SimpleCheckbox forRelease = new SimpleCheckbox(mainTable, "forRelease"+id, "", req) {
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							int status = res.forRelease().getValue();
+							setValue(status>0, req);
+							if(status > 1)
+								setStyle(LabelData.BOOTSTRAP_ORANGE, req);
+							else
+								setStyles(Collections.emptyList(), req);
+						}
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							boolean status = getValue(req);
+							ValueResourceHelper.setCreate(res.forRelease(), status?1:0);
+						}
+					};
+					row.addCell("For", forRelease);
+				}
 				
 				Button releaseBut;
 				if(res.assigned().isActive() &&

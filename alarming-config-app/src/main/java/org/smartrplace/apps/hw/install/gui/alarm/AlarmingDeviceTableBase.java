@@ -32,6 +32,7 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 	protected final String pageTitle;
 	protected final HardwareTableData resData;
 	protected final Button commitButton;
+	protected final boolean showAlarmCtrl;
 	
 	protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan,
@@ -40,11 +41,19 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 	public AlarmingDeviceTableBase(WidgetPage<?> page, ApplicationManagerPlus appMan, Alert alert,
 			final String pageTitle,	final HardwareTableData resData, Button commitButton,
 			InstalledAppsSelector appSelector, DeviceHandlerProvider<?> devHand) {
+		this(page, appMan, alert, pageTitle, resData, commitButton, appSelector, devHand, true);
+	}
+	
+	public AlarmingDeviceTableBase(WidgetPage<?> page, ApplicationManagerPlus appMan, Alert alert,
+			final String pageTitle,	final HardwareTableData resData, Button commitButton,
+			InstalledAppsSelector appSelector, DeviceHandlerProvider<?> devHand, boolean showAlarmCtrl) {
 		super(page, appMan, alert, appSelector, devHand);
 		this.pageTitle = pageTitle;
 		this.resData = resData;
 		this.commitButton = commitButton;
+		this.showAlarmCtrl = showAlarmCtrl;
 	}
+	
 	@Override
 	protected String pid() {
 		return WidgetHelper.getValidWidgetId(devHand.id());
@@ -85,7 +94,8 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 		final InstallAppDevice template;
 		if(req == null) {
 			vh.registerHeaderEntry("Active Alarms");
-			vh.registerHeaderEntry("Alarm Control");
+			if (this.showAlarmCtrl)
+				vh.registerHeaderEntry("Alarm Control");
 			template = null;
 		} else {
 			int[] alNum = AlarmingConfigUtil.getActiveAlarms(object);
@@ -97,7 +107,7 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 				addAdditionalWidgets(object, vh, id, req, row, appMan, deviceRoom, template);
 				return device;
 			}
-			if(template != null) {
+			if(template != null && this.showAlarmCtrl) {
 				Boolean templateStatus = AlarmingConfigUtil.getAlarmingStatus(template, template);
 				if(templateStatus == null)
 					throw new IllegalStateException("Template status cannot be null!");

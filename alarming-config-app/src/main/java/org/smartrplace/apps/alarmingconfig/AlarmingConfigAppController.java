@@ -359,8 +359,13 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 
 		initDemands();
-		
-		qualityEval = new QualityEvalUtil(this);
+		QualityEvalUtil q = null;
+		try {
+			q = new QualityEvalUtil(this);	
+		} catch (Exception e) {
+			appMan.getLogger().warn("Failed to instantiate quality eval util", e);
+		}
+		qualityEval = q;
 	}
 
 	public void setupMessageReceiverConfiguration(MessageReader mr, final ResourceList<MessagingApp> appList,
