@@ -9,6 +9,7 @@ import java.util.Map;
 import org.ogema.core.timeseries.InterpolationMode;
 import org.ogema.core.timeseries.ReadOnlyTimeSeries;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.timeseries.eval.simple.api.TimeProcPrint;
 import org.ogema.widgets.configuration.service.OGEMAConfigurations;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
@@ -40,10 +41,14 @@ public class TimeseriesBaseServlet implements ServletPageProvider<TimeSeriesData
 		result.put("timeseriesID", tsID);
 		ZoneOffset utcOffset = ZoneOffset.systemDefault().getRules().getOffset(Instant.now());
 		result.put("UTCoffset", new ServletNumProvider(utcOffset.getTotalSeconds()*1000));
+		ReadOnlyTimeSeries ts = object.getTimeSeries();
 		ServletTimeseriesProvider recData = new ServletTimeseriesProvider(object.label(null),
-				object.getTimeSeries(), controller.appMan, null, parameters);
+				ts, controller.appMan, null, parameters);
 		result.put("data", recData);
 
+		ServletStringProvider pathProv = new ServletStringProvider(TimeProcPrint.getTimeseriesName(ts, true));
+		result.put("timeseriesName", pathProv);
+		
 		return result;
 	}
 
