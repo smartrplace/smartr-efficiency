@@ -3,6 +3,7 @@ package org.smartrplace.apps.hw.install.gui.alarm;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
@@ -27,6 +28,8 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.resource.widget.label.ValueResourceLabel;
 
 public class AlarmingDeviceTableBase extends DeviceTableBase {
 	protected final String pageTitle;
@@ -194,7 +197,12 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 		else
 			vh.stringLabel("Room", id, ResourceUtils.getHumanReadableShortName(deviceRoom), row);
 		//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
-		addSubLocation(object, vh, id, req, row);
+		
+		//addSubLocation(object, vh, id, req, row);
+		vh.registerHeaderEntry("Location");
+		final ValueResourceLabel<StringResource> locationLabel = new ValueResourceLabel<StringResource>(page, "location" + id);
+		locationLabel.selectDefaultItem(object.installationLocation());
+		row.addCell("Location", locationLabel);
 		
 		addAdditionalWidgets(object, vh, id, req, row, appMan, deviceRoom, template);
 		
