@@ -1,10 +1,13 @@
 package org.smartrplace.apps.alarmingconfig.gui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -39,14 +42,22 @@ public class OngoingBaseAlarmsPage extends MainPage {
 	}
 	
 	@Override
-	public Collection<AlarmConfiguration> getObjectsInTable(OgemaHttpRequest arg0) {
-		Collection<AlarmConfiguration> all = getObjectsInTableUnfiltered(arg0);
-		return typeDrop.getFiltered(all, arg0);
+	public Collection<AlarmConfiguration> getObjectsInTable(OgemaHttpRequest req) {
+		Collection<AlarmConfiguration> all = getObjectsInTableUnfiltered(req);
+		return typeDrop.getFiltered(all, req);
 	}
 	public Collection<AlarmConfiguration> getObjectsInTableUnfiltered(OgemaHttpRequest arg0) {
+		final Map<String, String[]> params = getPage().getPageParameters(arg0);
+		final List<String> deviceIds = params == null || !params.containsKey("device") ? null 
+				: Arrays.stream(params.get("device")).map(dev -> dev.trim().toLowerCase()).collect(Collectors.toList());
 		Collection<AlarmConfiguration> all = super.getObjectsInTable(arg0);
 		List<AlarmConfiguration> result = new ArrayList<>();
 		for(AlarmConfiguration ac: all) {
+			if (deviceIds != null) {
+				final InstallAppDevice iad = ResourceHelper.getFirstParentOfType(ac, InstallAppDevice.class);
+				if (iad == null || !deviceIds.contains(iad.deviceId().getValue().toLowerCase()))
+					continue;
+			}
 			IntegerResource status = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal().getLocationResource());
 			if(status == null)
 				continue;

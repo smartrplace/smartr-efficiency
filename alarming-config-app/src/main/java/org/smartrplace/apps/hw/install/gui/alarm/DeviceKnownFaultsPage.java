@@ -224,6 +224,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				if(req == null) {
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Message");
+					vh.registerHeaderEntry("Details");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Assigned");
 					vh.registerHeaderEntry("Task Tracking");
@@ -267,6 +268,12 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("Message", showMsg);
+				
+				final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Details", 
+						"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + object.deviceId().getValue(), req);
+				detailsRedirect.setToolTip("View alarm details in new tab", req);
+				row.addCell("Details", detailsRedirect);
+				
 				if(res.exists()) {
 					vh.stringEdit("Comment",  id, res.comment(), row, alert, res.comment());
 					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
