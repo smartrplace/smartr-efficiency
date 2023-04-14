@@ -85,8 +85,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	
 	public DeviceKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller,
 			KnownFaultsPageType pageType) {
-		super(page, controller);
+		super(page, controller, false);
 		this.pageType = pageType;
+		finishConstructor();
 		
 		Button switchAllDeviceBut = new Button(page, "switchAllDeviceBut") {
 			@Override
