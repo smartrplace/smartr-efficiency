@@ -212,14 +212,14 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		} else {
 			String locLow = object.getLocation().toLowerCase();
 			String unit = null;
-			if(locLow.contains("energy") || (typeId != null && typeId.toLowerCase().contains("energy")))
-				unit = "kWh";
-			else if(locLow.contains("power") || (typeId != null && typeId.toLowerCase().contains("power")))
-				unit = "W";
-			else if(locLow.contains("water") || (typeId != null && typeId.toLowerCase().contains("water")))
+			if(locLow.contains("water") || (typeId != null && typeId.toLowerCase().contains("water")))
 				unit = "m3";
 			else if(locLow.contains("volume") || (typeId != null && typeId.toLowerCase().contains("volume")))
 				unit = "m3";
+			else if(locLow.contains("energy") || (typeId != null && typeId.toLowerCase().contains("energy")))
+				unit = "kWh";
+			else if(locLow.contains("power") || (typeId != null && typeId.toLowerCase().contains("power")))
+				unit = "W";
 			if(unit != null) {
 				ServletStringProvider unitProv = new ServletStringProvider(unit);
 				result.put("unit", unitProv);				
@@ -228,8 +228,17 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		try {
 			SubCustomerData subc = iad.device().location().getSubResource("tenant", SubCustomerData.class);
 			if(subc != null && subc.exists()) {
-				ServletStringProvider tenantName = new ServletStringProvider(ResourceUtils.getHumanReadableName(subc));
-				result.put("tenantName", tenantName);				
+				String tname = ResourceUtils.getHumanReadableName(subc);
+				if(!tname.contains("GesamtGebäude(C)")) {
+					ServletStringProvider tenantName = new ServletStringProvider(tname);
+					result.put("tenantName", tenantName);
+					
+					IntegerResource cmsIdRes = subc.getSubResource("cmsTenancyId", IntegerResource.class);
+					if(cmsIdRes != null && cmsIdRes.exists()) {
+						ServletNumProvider tenId = new ServletNumProvider(cmsIdRes.getValue());
+						result.put("tenancyCmsId", tenId);
+					}
+				}
 			}
 		} catch(Exception e) {
 			e.printStackTrace();
