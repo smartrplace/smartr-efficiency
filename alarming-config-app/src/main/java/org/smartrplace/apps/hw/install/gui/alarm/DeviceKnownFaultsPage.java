@@ -31,7 +31,11 @@ import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
@@ -40,11 +44,11 @@ import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
-import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
-import de.iwes.widgets.html.form.textfield.TextField;
-import de.iwes.widgets.resource.widget.textfield.ResourceTextField;
+import de.iwes.widgets.html.popup.Popup;
+import de.iwes.widgets.html.popup.PopupData;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")
@@ -56,6 +60,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		SUPERVISION_STANDARD
 	}
 	final KnownFaultsPageType pageType;
+	private final Popup lastMessagePopup;
+	private final Label lastMessageDevice;
+	private final Label lastMessage;
 	
 	public static final Map<String, String> dignosisVals = new HashMap<>();
 	static {
@@ -91,6 +98,23 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			KnownFaultsPageType pageType) {
 		super(page, controller, false);
 		this.pageType = pageType;
+		// popup for message display
+		this.lastMessagePopup = new Popup(page, "lastMessagePopup", true);
+		lastMessagePopup.setDefaultTitle("Last alarm message");
+		this.lastMessageDevice = new Label(page, "lastMessagePopupDevice");
+		this.lastMessage = new Label(page, "lastMessage");
+		
+		final StaticTable tab = new StaticTable(2, 2, new int[]{3, 9});
+		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
+			.setContent(1, 0, "Message").setContent(1,1, lastMessage);
+		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
+		snip.append(tab, null);
+		lastMessagePopup.setBody(snip, null);
+		final Button closeLastMessage = new Button(page, "lastMessageClose", "Close");
+		closeLastMessage.triggerAction(lastMessagePopup, TriggeringAction.ON_CLICK, TriggeredAction.HIDE_WIDGET);
+		lastMessagePopup.setFooter(closeLastMessage, null);
+		page.append(lastMessagePopup);
+		//
 		finishConstructor();
 		
 		Button switchAllDeviceBut = new Button(page, "switchAllDeviceBut") {
@@ -155,6 +179,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		topTable.setContent(1, 4, thermostatPage);
 	}
 
+
 	@Override
 	public void updateTables() {
 		synchronized(tableProvidersDone) {
@@ -198,6 +223,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					PhysicalElement device, final InstallAppDevice template) {
 				if(req == null) {
 					vh.registerHeaderEntry("Started");
+					vh.registerHeaderEntry("Message");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Assigned");
 					vh.registerHeaderEntry("Task Tracking");
@@ -227,6 +253,20 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				}
 				//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
+				final Button showMsg = new Button(mainTable, "msg" + id, req) {
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						lastMessage.setText(res.lastMessage().getValue(), req);
+						lastMessageDevice.setText(object.deviceId().getValue(), req);
+					}
+					
+				};
+				showMsg.setDefaultText("Last message");
+				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
+				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				row.addCell("Message", showMsg);
 				if(res.exists()) {
 					vh.stringEdit("Comment",  id, res.comment(), row, alert, res.comment());
 					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
@@ -268,8 +308,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						= new ValueResourceTextField<IntegerResource>(mainTable, "prio" + id, res.getSubResource("priority", IntegerResource.class), req);
 					prioField.setDefaultToolTip("Alarm priority, with 0 = lowest priority, 10 = very high priority.");
 					prioField.setDefaultWidth("4em");
+					prioField.triggerAction(prioField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 					row.addCell("Priority", prioField);
-					
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 				}
