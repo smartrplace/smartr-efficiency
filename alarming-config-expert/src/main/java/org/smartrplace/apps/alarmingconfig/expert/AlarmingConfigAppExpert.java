@@ -14,6 +14,7 @@ import org.smartrplace.apps.hw.install.gui.alarm.AlarmingLevelPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage.KnownFaultsPageType;
 import org.smartrplace.apps.hw.install.gui.alarm.MessagingAppConfigPage;
 
 import de.iwes.util.logconfig.LogHelper;
@@ -75,9 +76,10 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			menu.addEntry("2. Alarming Details Per Device", pageRes5);
 			configMenuConfig(pageRes5.getMenuConfiguration());
 
-			WidgetPage<?> pageRes11 = widgetApp.createWidgetPage("deviceknownfaults.html", true);
+			WidgetPage<?> pageRes11 = widgetApp.createWidgetPage("deviceknownfaultsoperation.html", true);
 			synchronized (controller.accessAdminApp) {
-				DeviceKnownFaultsPage knownFaultsPage = new DeviceKnownFaultsPage(pageRes11, controller);
+				DeviceKnownFaultsPage knownFaultsPage = new DeviceKnownFaultsPage(pageRes11, controller,
+						KnownFaultsPageType.OPERATION_STANDARD);
 				synchronized(controller.mainPageExts) {
 					controller.mainPageExts.add(knownFaultsPage);
 				}
@@ -106,6 +108,17 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			new AlarmingLevelPage(pageRes7, controller);
 			menu.addEntry("7. Alarming Escalation Levels", pageRes7);
 			configMenuConfig(pageRes7.getMenuConfiguration());
+
+			WidgetPage<?> pageRes14 = widgetApp.createWidgetPage("deviceknownfaults.html");
+			synchronized (controller.accessAdminApp) {
+				DeviceKnownFaultsPage knownFaultsPage = new DeviceKnownFaultsPage(pageRes14, controller,
+						KnownFaultsPageType.SUPERVISION_STANDARD);
+				synchronized(controller.mainPageExts) {
+					controller.mainPageExts.add(knownFaultsPage);
+				}
+			}
+			menu.addEntry("8. Device Issue Status Supervision", pageRes14);
+			configMenuConfig(pageRes14.getMenuConfiguration());
 
 			LogHelper.logStartup(4, appMan);
 		}

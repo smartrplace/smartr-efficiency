@@ -8,21 +8,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.IntegerResource;
-import org.ogema.core.model.simple.SingleValueResource;
-import org.ogema.core.model.units.VoltageResource;
-import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
-import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
-import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
@@ -37,7 +30,6 @@ import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -54,6 +46,13 @@ import de.iwes.widgets.html.form.label.LabelData;
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	//@Deprecated //Currently not used, but still available in the details section
+	
+	public static enum KnownFaultsPageType {
+		OPERATION_STANDARD,
+		SUPERVISION_STANDARD
+	}
+	final KnownFaultsPageType pageType;
+	
 	public static final Map<String, String> dignosisVals = new HashMap<>();
 	static {
 		dignosisVals.put("0", "not set");
@@ -74,6 +73,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	
 	@Override
 	protected String getHeader() {
+		if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
+			return "8. Device Issue Status Supervision";
 		return "3. Device Issue Status";
 	}
 	
@@ -82,8 +83,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		return true;
 	}
 	
-	public DeviceKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
+	public DeviceKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller,
+			KnownFaultsPageType pageType) {
 		super(page, controller);
+		this.pageType = pageType;
 		
 		Button switchAllDeviceBut = new Button(page, "switchAllDeviceBut") {
 			@Override
@@ -188,23 +191,19 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
 				if(req == null) {
-					//vh.registerHeaderEntry("Finished");
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Assigned");
-					//vh.registerHeaderEntry("Block");
-					//vh.registerHeaderEntry("MinInterval");
 					vh.registerHeaderEntry("Task Tracking");
-					vh.registerHeaderEntry("Edit TT");
+					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
+						vh.registerHeaderEntry("Edit TT");
 					if(pe.id().toLowerCase().contains("thermostat"))
 						vh.registerHeaderEntry("TH-Plot");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("For");
 					vh.registerHeaderEntry("Release");
-					vh.registerHeaderEntry("Special Set(Dev)");
-					//vh.registerHeaderEntry("Details");
-					//vh.inDetailSection(true);
-					//vh.registerHeaderEntry("Diagnosis");
+					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
+						vh.registerHeaderEntry("Special Set(Dev)");
 					return;
 				}
 				AlarmGroupData res = object.knownFault();
@@ -254,7 +253,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 								res.linkToTaskTracking().getValue(), req);
 						row.addCell(WidgetHelper.getValidWidgetId("Task Tracking"), taskLink);
 					}
-					vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);					
+					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
+						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 				}
 				SimpleCheckbox forRelease = new SimpleCheckbox(mainTable, "forRelease"+id, "", req) {
 					@Override
@@ -324,23 +324,6 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				if(object.device() instanceof Thermostat) {
 					Thermostat dev = (Thermostat)object.device();
 					final GetPlotButtonResult logResultSpecial = ThermostatPage.getThermostatPlotButton(dev, appManPlus, vh, id, row, req, ScheduleViewerConfigProvAlarm.getInstance());
-					/*List<Datapoint> plotTHDps = new ArrayList<>();
-					addDpToChart(dev.temperatureSensor().reading(), plotTHDps, controller.dpService);
-					addDpToChart(dev.temperatureSensor().settings().setpoint(), plotTHDps, controller.dpService);
-					addDpToChart(dev.temperatureSensor().deviceFeedback().setpoint(), plotTHDps, controller.dpService);
-					addDpToChart(dev.valve().setting().stateFeedback(), plotTHDps, controller.dpService);
-
-					VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(dev);
-					if(batteryVoltage != null)
-						addDpToChart(batteryVoltage, plotTHDps, controller.dpService);
-					
-					IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(dev,
-							"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
-					if(rssiDevice != null && rssiDevice.exists())
-						addDpToChart(rssiDevice, plotTHDps, controller.dpService);
-
-					final GetPlotButtonResult logResultSpecial = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
-							ScheduleViewerConfigProvAlarm.getInstance(), null, plotTHDps);*/
 					row.addCell(WidgetHelper.getValidWidgetId("TH-Plot"), logResultSpecial.plotButton);
 				}
 				
@@ -348,14 +331,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						ScheduleViewerConfigProvAlarm.getInstance(), null);
 				row.addCell("Plot", logResult.plotButton);
 				
-				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
-						vh.getParent(), "devTaskDrop"+id, req);
-				row.addCell(WidgetHelper.getValidWidgetId("Special Set(Dev)"), devTaskDrop);
-
-				//ObjectDetailPopupButton<InstallAppDevice, InstallAppDevice> detailBut = new ObjectDetailPopupButton<InstallAppDevice, InstallAppDevice>(mainTable, "detailBut"+id, "Details", req, popMore1,
-				//		object, appMan, pid(), knownWidgets, this);
-				//row.addCell("Details", detailBut);
-				//vh.dropdown("Diagnosis",  id, res.diagnosis(), row, dignosisVals);				
+				if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD) {
+					TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
+							vh.getParent(), "devTaskDrop"+id, req);
+					row.addCell(WidgetHelper.getValidWidgetId("Special Set(Dev)"), devTaskDrop);
+				}
 			}
 			
 			@Override
