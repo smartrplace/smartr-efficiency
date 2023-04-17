@@ -1,6 +1,7 @@
 package org.smartrplace.apps.hw.install.gui;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
@@ -18,6 +19,8 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.PropType;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
+import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
@@ -34,6 +37,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
+import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.LabelFormatter;
@@ -52,9 +56,11 @@ import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -110,7 +116,7 @@ public class ThermostatPage extends MainPage {
 			ThermostatPageType type) {
 		super(page, controller, false);
 		this.type = type;
-		finishConstructor();
+		finishConstructor();		
 	}
 
 	@Override
@@ -156,7 +162,8 @@ public class ThermostatPage extends MainPage {
 				@Override
 				public void onPrePOST(String data, OgemaHttpRequest req) {
 					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
-					int count = 0;
+					int count = resendOpenEmptPos(all, null);
+					/*int count = 0;
 					for(InstallAppDevice dev: all) {
 						if(dev.device() instanceof Thermostat) {
 							Thermostat device = (Thermostat) dev.device().getLocationResource();
@@ -171,7 +178,7 @@ public class ThermostatPage extends MainPage {
 							control.setValue(ctVal);
 							count++;
 						}
-					}
+					}*/
 					alert.showAlert("Sent emptyPos update to "+count+" thermostats", count>0, req);
 				}
 			};
@@ -856,5 +863,27 @@ public class ThermostatPage extends MainPage {
 		final GetPlotButtonResult logResultSpecial = ChartsUtil.getPlotButton("_THSpec_"+lineId, null, appManPlus.dpService(), appManPlus.appMan(), false, vh, row, req, null,
 				schedViewProv, null, plotTHDps);
 		return logResultSpecial;
+	}
+	
+	public static int resendOpenEmptPos(Collection<InstallAppDevice> all, DatapointService dpService) {
+		if(all == null)
+			all = dpService.managedDeviceResoures(Thermostat.class);
+		int count = 0;
+		for(InstallAppDevice dev: all) {
+			if(dev.device() instanceof Thermostat) {
+				Thermostat device = (Thermostat) dev.device().getLocationResource();
+				final FloatResource control = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateControl();
+				final FloatResource feedback = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateFeedback();
+				if(!(control.isActive() && feedback.exists()))
+					continue;
+				float ctVal = control.getValue();
+				float fbVal = feedback.getValue();
+				if(ValueResourceHelper.isAlmostEqual(ctVal, fbVal))
+					continue;
+				control.setValue(ctVal);
+				count++;
+			}
+		}
+		return count;
 	}
 }

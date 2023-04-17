@@ -40,6 +40,8 @@ import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.OGEMADriverPropertyService;
+import org.ogema.devicefinder.api.TimedJobMemoryData;
+import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DatapointImpl.DeviceLabelPlus;
@@ -54,6 +56,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.ogema.tools.resource.util.LoggingUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
@@ -79,8 +82,10 @@ import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 import de.iwes.util.logconfig.LogHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.extended.util.UserLocaleUtil;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 
 // here the controller logic is implemented
@@ -249,6 +254,55 @@ public class HardwareInstallController {
 		initConfigResourceForOperation();
         initDemands();
 		util = new TimeseriesSimpleProcUtil3(appMan, appManPlus.dpService(), 4, 3*TimeProcUtil.MINUTE_MILLIS);
+		
+		TimedJobProvider tprov = new TimedJobProvider() {
+			
+			@Override
+			public String label(OgemaLocale locale) {
+				return "ResendOpenEmptyPosDaily";
+			}
+			
+			@Override
+			public String id() {
+				return "ResendOpenEmptyPosDaily";
+			}
+			
+			@Override
+			public boolean initConfigResource(TimedJobConfig config) {
+				ValueResourceHelper.setCreate(config.alignedInterval(), AbsoluteTiming.DAY);
+				ValueResourceHelper.setCreate(config.interval(), 1300);
+				ValueResourceHelper.setCreate(config.disable(), false);
+				ValueResourceHelper.setCreate(config.performOperationOnStartUpWithDelay(), -1);
+				return false;
+			}
+			
+			@Override
+			public String getInitVersion() {
+				return "A";
+			}
+			
+			@Override
+			public void execute(long now, TimedJobMemoryData data) {
+				ThermostatPage.resendOpenEmptPos(null, dpService);
+			}
+			
+			@Override
+			public int evalJobType() {
+				return 0;
+			}
+		};
+		if(Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.resendEmptyPosDaily")) {
+			TimedJobMemoryData data = dpService.timedJobService().registerTimedJobProvider(tprov);
+			data.res().disable().setValue(false);
+			data.startTimerIfNotStarted();
+		} else {
+			TimedJobMemoryData data = dpService.timedJobService().getProvider("ResendOpenEmptyPosDaily");
+			if(data != null) {
+				ValueResourceHelper.setCreate(data.res().disable(), true);
+				data.stopTimerIfRunning();
+				
+			}
+		}
 		
 		BatteryEval.initWeeklyEmail(appManPlus);
 	}
