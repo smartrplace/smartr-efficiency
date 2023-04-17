@@ -48,7 +48,6 @@ import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.popup.Popup;
-import de.iwes.widgets.html.popup.PopupData;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")

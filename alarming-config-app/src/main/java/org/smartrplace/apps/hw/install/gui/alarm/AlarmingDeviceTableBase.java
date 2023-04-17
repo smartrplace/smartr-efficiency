@@ -199,10 +199,13 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 		//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
 		
 		//addSubLocation(object, vh, id, req, row);
-		vh.registerHeaderEntry("Location");
-		final ValueResourceLabel<StringResource> locationLabel = new ValueResourceLabel<StringResource>(page, "location" + id);
-		locationLabel.selectDefaultItem(object.installationLocation());
-		row.addCell("Location", locationLabel);
+		if(req == null)
+			vh.registerHeaderEntry("Location");
+		else {
+			final ValueResourceLabel<StringResource> locationLabel = new ValueResourceLabel<StringResource>(mainTable, "location" + id, req);
+			locationLabel.selectDefaultItem(object.installationLocation());
+			row.addCell("Location", locationLabel);
+		}
 		
 		addAdditionalWidgets(object, vh, id, req, row, appMan, deviceRoom, template);
 		
