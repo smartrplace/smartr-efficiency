@@ -64,6 +64,8 @@ public class ValveLinkPage extends ObjectGUITablePageNamed<ThermalValvePlus, The
 	@Override
 	protected String getLabel(ThermalValvePlus obj, OgemaHttpRequest req) {
 		String subName = DeviceTableRaw.getSubNameAfterSeparator(obj.res, '_');
+		if(subName.length() == 1)
+			subName = "0" + subName;
 		return obj.fal230Device.deviceId().getValue()+"_"+subName;
 	}
 
@@ -85,7 +87,8 @@ public class ValveLinkPage extends ObjectGUITablePageNamed<ThermalValvePlus, The
 
 	@Override
 	public String getLineId(ThermalValvePlus object) {
-		String subName = DeviceTableRaw.getSubNameAfterSeparator(object.res, '_');
-		return subName+super.getLineId(object);
+		//String subName = DeviceTableRaw.getSubNameAfterSeparator(object.res, '-');
+		String label = getLabel(object, null);
+		return label+super.getLineId(object);
 	}
 }
