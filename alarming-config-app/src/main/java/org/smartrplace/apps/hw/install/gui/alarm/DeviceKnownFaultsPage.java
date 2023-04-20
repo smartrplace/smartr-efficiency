@@ -11,6 +11,7 @@ import java.util.Map;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.api.DatapointGroup;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
@@ -138,20 +139,54 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
 					for(DeviceHandlerProvider<?> pe: allProvs) {
 						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
-						for(InstallAppDevice iad: allforPe) {
+						releaseAllUnassigned(allforPe);
+						/*for(InstallAppDevice iad: allforPe) {
 							AlarmGroupData res = iad.knownFault();
 							if((!res.assigned().isActive()) || (res.assigned().getValue() <= 0)) {
 								res.delete();
 							}
-						}
+						}*/
 					}
 				}
 			}
 		};
-		releaseAllUnassigned.setDefaultText("Relase all Unassigned");
+		releaseAllUnassigned.setDefaultText("Release all Unassigned");
 		releaseAllUnassigned.setDefaultConfirmMsg("Really release all known issues that are not assigned?");
 		
 		topTable.setContent(1, 6, releaseAllUnassigned);
+		
+		ButtonConfirm setAllUnassignedDependent = new ButtonConfirm(page, "setAllUnassignedDependent") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				if(devHandAcc != null)  {
+					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
+					for(DeviceHandlerProvider<?> pe: allProvs) {
+						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
+						setAllUnassignedDependent(allforPe);
+					}
+				}
+			}
+		};
+		setAllUnassignedDependent.setDefaultText("Set all Unassigned Dependent");
+		setAllUnassignedDependent.setDefaultConfirmMsg("Really set all unassigned DEPENDENT?");
+		topTable.setContent(1, 1,setAllUnassignedDependent);
+
+		ButtonConfirm releaseAllDependent = new ButtonConfirm(page, "releaseAllDependent") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				if(devHandAcc != null)  {
+					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
+					for(DeviceHandlerProvider<?> pe: allProvs) {
+						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
+						releaseAllDependent(allforPe);
+					}
+				}
+			}
+		};
+		releaseAllDependent.setDefaultText("Release all Dependent");
+		releaseAllDependent.setDefaultConfirmMsg("Really release all known issues that are set DEPENDENT?");
+		topTable.setContent(1, 2, releaseAllDependent);
+
 		
 		RedirectButton homeScreen = new RedirectButton(page, "homeScreen", "Other Apps", "/org/smartrplace/apps/apps-overview/index.html") {
 			@Override
@@ -432,5 +467,37 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		List<InstallAppDevice> all = getDevicesSelected(pe, req);
 		List<InstallAppDevice> result = getDevicesWithKnownFault(all);
 		return result.isEmpty();
-	}	
+	}
+	
+	public static void releaseAllUnassigned(DatapointService dpService) {
+		Collection<InstallAppDevice> all = dpService.managedDeviceResoures(null, false, false);
+		releaseAllUnassigned(all);
+	}
+	
+	public static void releaseAllUnassigned(Collection<InstallAppDevice> allforPe) {
+		for(InstallAppDevice iad: allforPe) {
+			AlarmGroupData res = iad.knownFault();
+			if((!res.assigned().isActive()) || (res.assigned().getValue() <= 0)) {
+				res.delete();
+			}
+		}		
+	}
+	
+	public static void setAllUnassignedDependent(Collection<InstallAppDevice> allforPe) {
+		for(InstallAppDevice iad: allforPe) {
+			AlarmGroupData res = iad.knownFault();
+			if(res.isActive() && (res.assigned().getValue() <= 0)) {
+				ValueResourceHelper.setCreate(res.assigned(), AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT);
+			}
+		}		
+	}
+
+	public static void releaseAllDependent(Collection<InstallAppDevice> allforPe) {
+		for(InstallAppDevice iad: allforPe) {
+			AlarmGroupData res = iad.knownFault();
+			if(res.assigned().getValue() == AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT) {
+				res.delete();
+			}
+		}		
+	}
 }

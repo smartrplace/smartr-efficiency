@@ -81,7 +81,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 			}
 		};
 		
-		topTable.setContent(1, 1, alarmingGeneralButton);
+		topTable.setContent(1, 0, alarmingGeneralButton);
 	}
 
 	@Override

@@ -23,11 +23,13 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 
+@SuppressWarnings("serial")
 public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalationLevel, AlarmingMessagingApp, AlarmingEscalationLevel> {
 	protected final AlarmingConfigAppController controller;
 	
@@ -82,8 +84,18 @@ public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalati
 				Arrays.asList(new String[] {"Off-season", "Standard"}));
 		reductionModeDrop.setDefaultIntegerValuesToUse(Arrays.asList(new Integer[] {-1, 0}));
 		
+		ButtonConfirm releaseAllUnassigned = new ButtonConfirm(page, "releaseAllUnBut") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				DeviceKnownFaultsPage.releaseAllUnassigned(controller.dpService);
+			}
+		};
+		releaseAllUnassigned.setDefaultText("Release all Unassigned");
+		releaseAllUnassigned.setDefaultConfirmMsg("Really release all known issues that are not assigned?");
+		
 		StaticTable topTable = new StaticTable(1, 4);
 		topTable.setContent(0, 0, "Alarming Escalation Message mode:").setContent(0, 1, reductionModeDrop);
+		topTable.setContent(0, 3, releaseAllUnassigned);
 		page.append(topTable);
 	}
 
