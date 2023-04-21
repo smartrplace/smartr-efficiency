@@ -1,26 +1,42 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
+import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
@@ -256,6 +272,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
 				if(req == null) {
+					//vh.registerHeaderEntry("Main value");
+					vh.getHeader().put("value", "Value/contact");
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Message");
 					vh.registerHeaderEntry("Details");
@@ -287,6 +305,44 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					return;
 				}
 				//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
+				final SingleValueResource mainValue = DeviceKnownFaultsPage.getMainSensorValue(object, appMan.getAppID().getBundle().getBundleContext());
+				if (mainValue != null) {
+					final Optional<AlarmConfiguration> alarmConfig = object.alarms().getAllElements().stream()
+						.filter(cfg -> mainValue.equalsLocation(cfg.sensorVal()))
+						.findAny();
+					boolean valueViolation = false;
+					boolean contactViolation = false;
+					if (alarmConfig.isPresent()) {
+						// check for violation
+						final AlarmConfiguration cfg = alarmConfig.get();
+						if (mainValue instanceof IntegerResource || mainValue instanceof FloatResource || mainValue instanceof TimeResource) {
+							final float value = ValueResourceUtils.getFloatValue(mainValue);
+							valueViolation = (cfg.lowerLimit().isActive() && value < cfg.lowerLimit().getValue()) ||
+									(cfg.upperLimit().isActive() && value > cfg.upperLimit().getValue());
+						}
+						final FloatResource maxInterval = alarmConfig.get().maxIntervalBetweenNewValues();
+						if (maxInterval.isActive() && maxInterval.getValue() > 0) {
+							final long interval = appMan.getFrameworkTime() - mainValue.getLastUpdateTime();
+							contactViolation = interval > maxInterval.getValue() * 60 * 1000;
+						}
+					}
+					final Label lab = new Label(mainTable, id, req);
+					String text = "";
+					if (valueViolation)
+						text = "Value: " + ValueResourceUtils.getValue(mainValue);
+					if (contactViolation) {
+						if (valueViolation)
+							text += " (";
+						final long lastContact = mainValue.getLastUpdateTime();
+						text += "Last contact: " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssZ", Locale.ENGLISH).format(
+								ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastContact), ZoneId.of("Z")));
+						if (valueViolation)
+							text += ")";
+					}
+					lab.setText(text, req);
+					row.addCell("value", lab);
+					lab.setToolTip("Main value resource: " + mainValue.getLocationResource(), req);
+				}
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				final Button showMsg = new Button(mainTable, "msg" + id, req) {
 					
@@ -500,4 +556,60 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			}
 		}		
 	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static SingleValueResource getMainSensorValue(InstallAppDevice config, BundleContext ctx) {
+		final ServiceReference<DatapointService> dpServiceRef = ctx.getServiceReference(DatapointService.class);
+		if (dpServiceRef != null) {
+			try {
+				final DatapointService dpService = ctx.getService(dpServiceRef);
+				final DeviceHandlerProviderDP provider = dpService.getDeviceHandlerProvider(config);
+				final SingleValueResource res = provider.getMainSensorValue(config);
+				if (res != null)
+					return res;
+			} catch (Exception ignore) {
+			} finally {
+				ctx.ungetService(dpServiceRef);
+			}
+		}
+		final PhysicalElement device = config.device();
+		final Collection<ServiceReference<DeviceHandlerProviderDP>> references;
+		try {
+			references = ctx.getServiceReferences(DeviceHandlerProviderDP.class, null);
+		} catch (InvalidSyntaxException e) {
+			throw new RuntimeException(e);
+		}
+		List<SingleValueResource> candidates = null;
+		for (ServiceReference<DeviceHandlerProviderDP> ref: references) {
+			try {
+				final DeviceHandlerProviderDP service = ctx.getService(ref);
+				try {
+					if (!service.getResourceType().isAssignableFrom(device.getResourceType()))
+						continue;
+					final SingleValueResource res = service.getMainSensorValue(device, config);
+					if (res != null) {
+						final Resource alarmStatus = res.getSubResource("alarmStatus");
+						if (alarmStatus != null && alarmStatus instanceof IntegerResource && ((IntegerResource) alarmStatus).getValue() > 0)
+							return res;
+						if (candidates == null)
+							candidates = new ArrayList<>(4);
+						candidates.add(res);
+					}
+				} finally {
+					ctx.ungetService(ref);
+				}
+			} catch (Exception ignore) {}
+			
+		}
+		if (candidates != null)
+			return candidates.get(0);
+		final String typeName = device.getResourceType().getSimpleName();
+		switch (typeName) {
+		case "GatewayDevice":  
+			return device.getSubResource("systemRestart");  // ?
+		}
+		return null;
+	}
+	
+	
 }
