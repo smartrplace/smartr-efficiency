@@ -35,11 +35,11 @@ public class AlarmingUtiH {
 	public static final String ACTIVESTATUS_RES_NAME = "activeStatus";
 	public static final int DEFAULT_ALARM_REPETITION_MINUTES = 48*60;
 	public static final int DEFAULT_ALARM_LOWPRIO_REPETITION_MINUTES = 7*24*60;
-	public static final int DEFAULT_NOVALUE_MINUTES = 120;
+	public static final int DEFAULT_NOVALUE_MINUTES = 300; //120
 	public static final int DEFAULT_NOVALUE_120MINUTES = 120;
 	public static final int DEFAULT_NOVALUE_IP_MINUTES = DEFAULT_NOVALUE_MINUTES;
 	public static final int DEFAULT_NOVALUE_FORHOURLY_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 180);
-	public static final int DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 600);
+	public static final int DEFAULT_NOVALUE_FOROCCASIONAL_MINUTES = Math.max(DEFAULT_NOVALUE_MINUTES, 1440); //600
 
 	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
 	public static final String CUSTOMER_FIRST = "Customer First";
