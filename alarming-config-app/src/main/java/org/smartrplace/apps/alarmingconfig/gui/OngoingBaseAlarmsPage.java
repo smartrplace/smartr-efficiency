@@ -3,9 +3,11 @@ package org.smartrplace.apps.alarmingconfig.gui;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,14 +25,22 @@ import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.dropdown.DropdownOption;
+import de.iwes.widgets.html.multiselect.Multiselect;
 
 @SuppressWarnings("serial")
 public class OngoingBaseAlarmsPage extends MainPage {
+	
 	private SingleFiltering<String, AlarmConfiguration> typeDrop;
+	private Multiselect deviceSelector;
 	
 	public OngoingBaseAlarmsPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) {
 		super(page, appManPlus);
@@ -44,20 +54,23 @@ public class OngoingBaseAlarmsPage extends MainPage {
 	@Override
 	public Collection<AlarmConfiguration> getObjectsInTable(OgemaHttpRequest req) {
 		Collection<AlarmConfiguration> all = getObjectsInTableUnfiltered(req);
+		if (deviceSelector != null) {
+			final Collection<String> ids = deviceSelector.getSelectedValues(req);
+			if (ids != null && !ids.isEmpty()) {
+				all = all.stream()
+					.filter(ac -> {
+						final InstallAppDevice iad = ResourceHelper.getFirstParentOfType(ac, InstallAppDevice.class);
+						return iad != null && ids.contains(iad.deviceId().getValue().toLowerCase());
+					})
+					.collect(Collectors.toList());
+			}
+		}
 		return typeDrop.getFiltered(all, req);
 	}
 	public Collection<AlarmConfiguration> getObjectsInTableUnfiltered(OgemaHttpRequest arg0) {
-		final Map<String, String[]> params = getPage().getPageParameters(arg0);
-		final List<String> deviceIds = params == null || !params.containsKey("device") ? null 
-				: Arrays.stream(params.get("device")).map(dev -> dev.trim().toLowerCase()).collect(Collectors.toList());
 		Collection<AlarmConfiguration> all = super.getObjectsInTable(arg0);
 		List<AlarmConfiguration> result = new ArrayList<>();
 		for(AlarmConfiguration ac: all) {
-			if (deviceIds != null) {
-				final InstallAppDevice iad = ResourceHelper.getFirstParentOfType(ac, InstallAppDevice.class);
-				if (iad == null || !deviceIds.contains(iad.deviceId().getValue().toLowerCase()))
-					continue;
-			}
 			IntegerResource status = AlarmingConfigUtil.getAlarmStatus(ac.sensorVal().getLocationResource());
 			if(status == null)
 				continue;
@@ -112,6 +125,44 @@ public class OngoingBaseAlarmsPage extends MainPage {
 		};
 		typeDrop.registerDependentWidget(mainTable);
 		topTable.setContent(0, 1, typeDrop);
+		
+		deviceSelector = new Multiselect(page, "deviceIdSelector") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final Set<DropdownOption> options = OngoingBaseAlarmsPage.super.getObjectsInTable(req).stream()
+						.filter(alarm -> {
+							final IntegerResource status = AlarmingConfigUtil.getAlarmStatus(alarm.sensorVal().getLocationResource());
+							return status != null && status.getValue() > 0;
+						})
+						.map(ac -> ResourceHelper.getFirstParentOfType(ac, InstallAppDevice.class))
+						.filter(Objects::nonNull)
+						.map(iad -> iad.deviceId().getValue().trim())
+						.map(id -> new DropdownOption(id.toLowerCase(), id, false))
+						.collect(Collectors.toSet());
+				final List<DropdownOption> options2 = new ArrayList<>(options);
+				Collections.sort(options2, (o1, o2) ->  o1.id().compareTo(o2.id()));
+				setOptions( options2, req);
+				
+				final Map<String, String[]> params = getPage().getPageParameters(req);
+				final List<String> deviceIds = params == null || !params.containsKey("device") ? null 
+						: Arrays.stream(params.get("device")).map(dev -> dev.trim().toLowerCase()).filter(dev -> !dev.isEmpty()).collect(Collectors.toList());
+				if (deviceIds != null && !deviceIds.isEmpty())
+					selectMultipleOptions(deviceIds, req);
+			}
+			
+		};
+		deviceSelector.setDefaultSelectByUrlParam("device");
+		deviceSelector.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		
+		final PageSnippet snip = new PageSnippet(page, "deviceIdSnippet", true);
+		final StaticTable devTable = new StaticTable(1, 2);
+		devTable.setContent(0, 0, "Devices:").setContent(0, 1, deviceSelector);
+		snip.append(devTable, null);
+		topTable.setContent(0, 3, snip);
+		
+		
+		
 	}
 	
 	@Override
