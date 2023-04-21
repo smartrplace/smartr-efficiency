@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -61,6 +64,8 @@ import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
+import de.iwes.widgets.html.form.dropdown.Dropdown;
+import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
@@ -289,8 +294,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.registerHeaderEntry("For");
 					vh.registerHeaderEntry("Release");
-					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
+					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD) {
 						vh.registerHeaderEntry("Special Set(Dev)");
+						vh.registerHeaderEntry("Alarming delay");
+					}
 					return;
 				}
 				AlarmGroupData res = object.knownFault();
@@ -492,6 +499,33 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
 							vh.getParent(), "devTaskDrop"+id, req);
 					row.addCell(WidgetHelper.getValidWidgetId("Special Set(Dev)"), devTaskDrop);
+					final Dropdown alarmingDelayDrop = new Dropdown(mainTable, "alarmingDelayDrop", req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final int delayHours = /* TODO read from appropriate resource */ 0;
+							selectSingleOption(String.valueOf(delayHours), req); // find closest option matching the delay?
+						}
+						
+						@Override
+						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+							final String selected = getSelectedValue(req);
+							try {
+								final int delay = Integer.parseInt(selected);
+								if (delay == 0) {
+									// TODO remove alarming delay resource
+								} else {
+									// TODO set alarming delay resource
+								}
+							} catch (NumberFormatException ignore) {}
+						}
+						
+					};
+					alarmingDelayDrop.setDefaultOptions(IntStream.builder().add(0).add(6).add(12).add(24).add(48).add(72).add(168).build()
+						.mapToObj(i -> new DropdownOption(i > 0 ? String.valueOf(i) : "", i > 0 ? i + "h" : "", i == 0))
+						.collect(Collectors.toList()));
+					row.addCell(WidgetHelper.getValidWidgetId("Alarming delay"), alarmingDelayDrop);
+					
 				}
 			}
 			
