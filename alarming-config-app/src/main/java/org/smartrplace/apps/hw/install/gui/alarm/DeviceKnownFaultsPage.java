@@ -538,9 +538,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		String explanation = null;
 		for (Map.Entry<SingleValueResource, String> prioEntry: priorityResources.entrySet()) {
 			final SingleValueResource prio = prioEntry.getKey();
-			status = DeviceKnownFaultsPage.findAlarmForSensorValue(prio, knownDevice, appMan);
-			if (status == null || (!status.valueViolation && !status.contactViolation))
+			final AlarmStatus status0 = DeviceKnownFaultsPage.findAlarmForSensorValue(prio, knownDevice, appMan);
+			if (status0 == null || (!status0.valueViolation && !status0.contactViolation))
 				continue;
+			status = status0;
 			responsibleResource = prio;
 			explanation = prioEntry.getValue();
 			break;
