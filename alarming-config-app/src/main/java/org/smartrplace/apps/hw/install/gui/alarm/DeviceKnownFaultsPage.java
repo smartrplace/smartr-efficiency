@@ -543,21 +543,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				continue;
 			responsibleResource = prio;
 			explanation = prioEntry.getValue();
-			if (status.valueViolation)
-				valueFieldText = "Value: " + ValueResourceUtils.getValue(prio) + " (" + prioEntry.getValue() + ")";
-			if (status.contactViolation) {
-				if (status.valueViolation)
-					valueFieldText += " (";
-				final long lastContact = prio.getLastUpdateTime();
-				valueFieldText += "Last contact: " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssZ", Locale.ENGLISH).format(
-						ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastContact), ZoneId.of("Z")));
-				if (status.valueViolation)
-					valueFieldText += ")";
-			}
 			break;
 		}
 		if (responsibleResource == null) {
-			// find any alarm
+			// find any alarm in alarm state
 			final Optional<AlarmStatus> statusOpt = knownDevice.alarms().getAllElements().stream()
 				.map(alarm -> statusForAlarm(alarm, appMan))
 				.filter(alarm -> alarm.valueViolation || alarm.contactViolation)
