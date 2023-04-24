@@ -129,48 +129,50 @@ public class ExternalEscalationProvider extends EscalationProviderSimple<Escalat
 		int countDevice = 0;
 		Set<String> issueLocs = new HashSet<>();
 		boolean changedKnownIssuesProcessed = false;
-		for(EscalationKnownIssue issue: issues) {
-			String loc = issue.knownIssue.getLocation();
-			issueLocs.add(loc);
-			if(knownIssuesProcessed.contains(loc))
-				continue;
-			if(issue.knownIssue.assigned().getValue() > 0)
-				continue;
-			Long escTime = getEscalationTime(issue.device, now);
-			if(escTime == null || (escTime < 0)) { //null should not occur
-				continue;
-			}
-			if(escTime > 0) {
-				long duration = now - issue.knownIssue.ongoingAlarmStartTime().getValue();
-				if(duration < escTime)
-					continue;				
-			}
-			int[] alarms = AlarmingConfigUtil.getActiveAlarms(issue.device);
-			//For now we do not release, but we shall check what's going on
-			//if(alarms[0] == 0) {
-				//Release
-			//	issue.knownIssue.delete();
-			//} else {
-			if(alarms[0] > maxFault) {
-				maxFault = alarms[0];
-			}
-			countDevice++;
-			if(emailMessage == null) {
-				//We put a return upfront as initial line will be filled with "Notification :" by EmailService, which disturbs when reading through the messages
-				emailMessage = "\r\n"+issue.knownIssue.lastMessage().getValue();
-			} else
-				emailMessage += "\r\n\r\n"+issue.knownIssue.lastMessage().getValue();
-			knownIssuesProcessed.add(loc);
-			changedKnownIssuesProcessed = true;
-		}
-		for(String loc2: knownIssuesProcessed) {
-			if(!issueLocs.contains(loc2)) {
+		synchronized(knownIssuesProcessed) {
+			for(EscalationKnownIssue issue: issues) {
+				String loc = issue.knownIssue.getLocation();
+				issueLocs.add(loc);
+				if(knownIssuesProcessed.contains(loc))
+					continue;
+				if(issue.knownIssue.assigned().getValue() > 0)
+					continue;
+				Long escTime = getEscalationTime(issue.device, now);
+				if(escTime == null || (escTime < 0)) { //null should not occur
+					continue;
+				}
+				if(escTime > 0) {
+					long duration = now - issue.knownIssue.ongoingAlarmStartTime().getValue();
+					if(duration < escTime)
+						continue;				
+				}
+				int[] alarms = AlarmingConfigUtil.getActiveAlarms(issue.device);
+				//For now we do not release, but we shall check what's going on
+				//if(alarms[0] == 0) {
+					//Release
+				//	issue.knownIssue.delete();
+				//} else {
+				if(alarms[0] > maxFault) {
+					maxFault = alarms[0];
+				}
+				countDevice++;
+				if(emailMessage == null) {
+					//We put a return upfront as initial line will be filled with "Notification :" by EmailService, which disturbs when reading through the messages
+					emailMessage = "\r\n"+issue.knownIssue.lastMessage().getValue();
+				} else
+					emailMessage += "\r\n\r\n"+issue.knownIssue.lastMessage().getValue();
+				knownIssuesProcessed.add(loc);
 				changedKnownIssuesProcessed = true;
-				knownIssuesProcessed.remove(loc2);
 			}
-		}
-		if(changedKnownIssuesProcessed) {
-			ValueResourceHelper.setCreate(knownIssuesProcessedRes, knownIssuesProcessed.toArray(new String[0]));
+			for(String loc2: knownIssuesProcessed) {
+				if(!issueLocs.contains(loc2)) {
+					changedKnownIssuesProcessed = true;
+					knownIssuesProcessed.remove(loc2);
+				}
+			}
+			if(changedKnownIssuesProcessed) {
+				ValueResourceHelper.setCreate(knownIssuesProcessedRes, knownIssuesProcessed.toArray(new String[0]));
+			}
 		}
 		if(countDevice > 0) {
 			//ThermostatResetService.sendDeviceSpecificMessage(emailMessage, countDevice, maxFault, "New Fault Message for "+name,
