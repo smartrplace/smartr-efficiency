@@ -472,7 +472,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
 							vh.getParent(), "devTaskDrop"+id, req);
 					row.addCell(WidgetHelper.getValidWidgetId("Special Set(Dev)"), devTaskDrop);
-					final Dropdown alarmingDelayDrop = new Dropdown(mainTable, "alarmingDelayDrop", req) {
+					final Dropdown alarmingDelayDrop = new Dropdown(mainTable, "alarmingDelayDrop"+id, req) {
 						
 						@Override
 						public void onGET(OgemaHttpRequest req) {
