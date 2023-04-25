@@ -137,6 +137,8 @@ public class AlarmingManager implements AlarmingStartedService {
 		long now = appManPlus.appMan().getFrameworkTime();
 
 		for(InstallAppDevice iad: iads) {
+			if(iad.isTrash().getValue())
+				continue;
 			addConfigsForDevice(iad, activeAlarms, now);
 		}
 		
