@@ -80,7 +80,7 @@ public class ChargingPointDevHandler extends DeviceHandlerSimple<ChargingPoint> 
 		ChargingPoint device = (ChargingPoint) appDevice.device();
 		
 		AlarmingUtiH.setTemplateValues(appDevice, getMainSensorValue(device, appDevice),
-				0f, 70000f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+				-10f, 70000f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
 	}
 
 	@Override

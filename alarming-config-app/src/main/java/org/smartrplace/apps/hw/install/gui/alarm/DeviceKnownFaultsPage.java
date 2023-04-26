@@ -5,7 +5,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -476,7 +475,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						
 						@Override
 						public void onGET(OgemaHttpRequest req) {
-							final int delayHours = /* TODO read from appropriate resource */ 0;
+							final int delayHours = (int)(object.minimumIntervalBetweenNewValues().getValue()/60);
 							selectSingleOption(String.valueOf(delayHours), req); // find closest option matching the delay?
 						}
 						
@@ -486,16 +485,16 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							try {
 								final int delay = Integer.parseInt(selected);
 								if (delay == 0) {
-									// TODO remove alarming delay resource
+									object.minimumIntervalBetweenNewValues().setValue(-1);
 								} else {
-									// TODO set alarming delay resource
+									ValueResourceHelper.setCreate(object.minimumIntervalBetweenNewValues(), delay*60);
 								}
 							} catch (NumberFormatException ignore) {}
 						}
 						
 					};
 					alarmingDelayDrop.setDefaultOptions(IntStream.builder().add(0).add(6).add(12).add(24).add(48).add(72).add(168).build()
-						.mapToObj(i -> new DropdownOption(i > 0 ? String.valueOf(i) : "", i > 0 ? i + "h" : "", i == 0))
+						.mapToObj(i -> new DropdownOption(i > 0 ? String.valueOf(i) : "", i > 0 ? i + "h" : "--", i == 0))
 						.collect(Collectors.toList()));
 					row.addCell(WidgetHelper.getValidWidgetId("Alarming delay"), alarmingDelayDrop);
 					

@@ -184,6 +184,12 @@ public class AlarmingManager implements AlarmingStartedService {
 			data = AlarmingConfigUtil.getTemplateAlarmSettings(devT, iad);
 		} else
 			devT = null;
+		final Float minNoValue;
+		if(iad.minimumIntervalBetweenNewValues().isActive() &&
+				(iad.minimumIntervalBetweenNewValues().getValue() > 0)) {
+			minNoValue = iad.minimumIntervalBetweenNewValues().getValue();
+		} else
+			minNoValue = null;
 		for(AlarmConfiguration ac: configs) {
 			if(!ac.sensorVal().exists())
 				continue; //we perform cleanup somewhere else
@@ -231,7 +237,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp, devTac, controller);
+				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp, devTac, minNoValue, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -245,7 +251,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp, devTac, controller);
+				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp, devTac, minNoValue, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -259,7 +265,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				sres = res;
 				vl = new ValueListenerData(res);
 				vl.lastTimeOfNewData = now;
-				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp, devTac, controller);
+				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp, devTac, minNoValue, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
 				res.addValueListener(mylistener, true);
@@ -417,9 +423,9 @@ public class AlarmingManager implements AlarmingStartedService {
 	}
 	protected class AlarmValueListener extends AlarmValueListenerBasic<FloatResource> {
 		public AlarmValueListener(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
-				AlarmConfiguration devTac, AlarmingConfigAppController controller) {
+				AlarmConfiguration devTac, Float minNoValue, AlarmingConfigAppController controller) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl, devTac, controller);
+					dp, AlarmingManager.this.baseUrl, devTac, minNoValue, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
@@ -452,9 +458,9 @@ public class AlarmingManager implements AlarmingStartedService {
 	}
 	protected class AlarmValueListenerBoolean extends AlarmValueListenerBasic<BooleanResource> {
 		public AlarmValueListenerBoolean(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
-				AlarmConfiguration devTac, AlarmingConfigAppController controller) {
+				AlarmConfiguration devTac, Float minNoValue, AlarmingConfigAppController controller) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl, devTac, controller);
+					dp, AlarmingManager.this.baseUrl, devTac, minNoValue, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerBoolean used for OnOffSwitch supervision
@@ -523,9 +529,9 @@ public class AlarmingManager implements AlarmingStartedService {
 	
 	protected class AlarmValueListenerInteger extends AlarmValueListenerBasic<IntegerResource> {
 		public AlarmValueListenerInteger(AlarmConfiguration ac, ValueListenerData vl, ApplicationManagerPlus appManPlus, Datapoint dp,
-				AlarmConfiguration devTac, AlarmingConfigAppController controller) {
+				AlarmConfiguration devTac, Float minNoValue, AlarmingConfigAppController controller) {
 			super(ac, vl, AlarmingManager.this.alarmID, appManPlus,
-					dp, AlarmingManager.this.baseUrl, devTac, controller);
+					dp, AlarmingManager.this.baseUrl, devTac, minNoValue, controller);
 		}
 		
 		// This constructor is used by the inherited class AlarmListenerInteger used for OnOffSwitch supervision

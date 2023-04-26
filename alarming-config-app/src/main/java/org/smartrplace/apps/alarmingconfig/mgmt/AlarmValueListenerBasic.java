@@ -56,7 +56,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	/** This constructor is used for FloatResources in Sensors and for SmartEffTimeseries, e.g. manual time seroes*/
 	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
 			String alarmID, ApplicationManagerPlus appManPlus, Datapoint dp, String baseUrl,
-			AlarmConfiguration devTac,
+			AlarmConfiguration devTac, Float minNoValue,
 			final AlarmingConfigAppController controller) {
 		this.appManPlus = appManPlus;
 		this.controller = controller;
@@ -83,6 +83,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			vl.maxIntervalBetweenNewValues = (long) (devTac.maxIntervalBetweenNewValues().getValue()*60000l);
 		else
 			vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
+		if((minNoValue != null) && (vl.maxIntervalBetweenNewValues < minNoValue))
+			vl.maxIntervalBetweenNewValues = (long) (minNoValue*60000l);
 		String[] exts = ac.alarmingExtensions().getValues();
 		if(ac.sensorVal().exists() ) {
 			//Should always be the case here
