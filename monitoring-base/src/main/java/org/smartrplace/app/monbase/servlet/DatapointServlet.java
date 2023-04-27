@@ -10,6 +10,7 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.PhysicalUnit;
 import org.ogema.core.model.units.PhysicalUnitResource;
@@ -130,12 +131,17 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 				if(iad == null)
 					return null;
 				int deviceFilterId;
+				boolean found = false;
 				try {
 					deviceFilterId = Integer.parseInt(deviceFilter);
 				} catch(NumberFormatException e) {
 					deviceFilterId = deviceFilter.hashCode();
 				}
-				if(deviceIdInt != deviceFilterId)
+				if(deviceIdInt == deviceFilterId)
+					found = true;
+				else if(deviceFilter.equals(iad.deviceId().getValue()))
+					found = true;
+				if(!found)
 					return null;
 			}
 		}
@@ -186,6 +192,12 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		if(dpRoom != null) {
 			ServletNumProvider roomId = new ServletNumProvider(roomIdInt);
 			result.put("roomId", roomId);
+			
+			IntegerResource cmsId = dpRoom.getResource().getSubResource("cmsId", IntegerResource.class);
+			if(cmsId != null && cmsId.exists()) {
+				ServletNumProvider cmsIdP = new ServletNumProvider(cmsId.getValue());
+				result.put("roomCmsId", cmsIdP);				
+			}
 		}
 		String subloc = object.getSubRoomLocation(null, null);
 		if(subloc != null) {
@@ -199,13 +211,30 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			ServletStringProvider deviceShortId = new ServletStringProvider(iad.deviceId().getValue());
 			result.put("deviceShortId", deviceShortId);			
 
-			String devInstallLocation = iad.installationLocation().getValue();
-			if(knownApplications.contains(devInstallLocation)) {
+			String devInstallLocation = null;
+			StringResource devAppRes = iad.getSubResource("apiApplication", StringResource.class);
+			if(devAppRes != null && devAppRes.exists())
+				devInstallLocation = devAppRes.getValue();
+			else {
+				devInstallLocation = iad.installationLocation().getValue();
+				if(!knownApplications.contains(devInstallLocation))
+					devInstallLocation = null;
+			}
+			if(devInstallLocation != null) {
 				ServletStringProvider application = new ServletStringProvider(devInstallLocation);
 				result.put("application", application);
 			}
+			StringResource utilityRes = iad.getSubResource("deviceUtility", StringResource.class);
+			if(utilityRes != null && utilityRes.exists()) {
+				String utily = utilityRes.getValue();
+				ServletStringProvider utility = new ServletStringProvider(utily);
+				result.put("utility", utility);
+			}
+
 		}
-		if(object.getResource() != null && (object.getResource() instanceof PhysicalUnitResource)) {
+		if(type != null && typeName.contains("HeatCostAllocator")) {
+			//no unit
+		} else if(object.getResource() != null && (object.getResource() instanceof PhysicalUnitResource)) {
 			PhysicalUnit unit = ((PhysicalUnitResource)object.getResource()).getUnit();
 			ServletStringProvider unitProv = new ServletStringProvider(unit.toString());
 			result.put("unit", unitProv);

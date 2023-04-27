@@ -4,12 +4,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
@@ -52,6 +55,7 @@ import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.resource.widget.dropdown.ValueResourceDropdown;
 
 @SuppressWarnings("serial")
 public class MainPageExpert extends MainPage {
@@ -71,9 +75,20 @@ public class MainPageExpert extends MainPage {
 	public static final List<String> ACTIONS_TRASH = Arrays.asList(new String[] {LOG_ALL, LOG_NONE, DELETE, RESET, TRASH_RESET, MAKE_TEMPLATE, APPLY_DEFAULT_ALARM});
 	private static final String GAPS_LABEL = "Qual4d_perTs_Qual28d";
 	private static final String SETPREACT_LABEL = "SetpReact_perTs";
+	private static final Map<String, String> utilityOptions = new HashMap<>();
 	public static String defaultActionAfterReload = LOG_ALL;
 	public static String defaultTrashActionAfterReload = LOG_ALL;
 
+	static {
+		utilityOptions.put("", "--");
+		utilityOptions.put("electricity", "Electricity");
+		utilityOptions.put("gas", "Gas");
+		utilityOptions.put("oil", "Oil");
+		utilityOptions.put("heatEnergy", "Heat Energy");
+		utilityOptions.put("waterCold", "Cold Water (or temperature unknown)");
+		utilityOptions.put("waterWarm", "Warm water");
+	}
+	
 	protected final boolean isTrashPage;
 	protected final ShowModeHw showMode;
 	
@@ -88,6 +103,8 @@ public class MainPageExpert extends MainPage {
 	
 	@Override
 	public String getHeader() {
+		if(showMode == ShowModeHw.API_DATA)
+			return "Device Setup and Configuration Expert (API-Data)";
 		if(showMode==ShowModeHw.NETWORK)
 			return "Device Setup and Configuration Expert (Network)";
 		return "Device Setup and Configuration Expert "+((showMode==ShowModeHw.STANDARD)?"(Locations)":"(Known Issues/Gaps)");
@@ -302,6 +319,10 @@ public class MainPageExpert extends MainPage {
 		if(showMode == ShowModeHw.STANDARD) {
 			vh.stringLabel("IAD", id, object.getName(), row);
 			vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
+		} else if(showMode == ShowModeHw.API_DATA) {
+			ValueResourceDropdown<StringResource> drop = vh.dropdown("Utility_for_API_Selection", id, object.getSubResource("deviceUtility", StringResource.class), row,
+					utilityOptions, 3);
+			vh.stringEdit("Application", id, object.getSubResource("apiApplication", StringResource.class), row, alert);
 		} else if(showMode == ShowModeHw.NETWORK) {
 			//vh.stringLabel("IAD", id, object.getName(), row);
 			//vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
@@ -321,7 +342,7 @@ public class MainPageExpert extends MainPage {
 			addKniStatus(object, tableProvider, vh, id, req, row, appManPlus);
 		}
 		if(req == null) {
-			if(showMode == ShowModeHw.NETWORK) {
+			if(showMode == ShowModeHw.NETWORK || showMode == ShowModeHw.API_DATA) {
 				vh.registerHeaderEntry("Plot");
 			} else {
 				vh.registerHeaderEntry(ChartsUtil.DATAPOINT_INFO_HEADER);
@@ -341,7 +362,7 @@ public class MainPageExpert extends MainPage {
 		//etl().intermediateStep("End addWidgetsExp(2.2):"+object.getName());
 		if(logResult.devHand != null) {
 			row.addCell("Plot", logResult.plotButton);
-			if(showMode == ShowModeHw.NETWORK)
+			if(showMode == ShowModeHw.NETWORK || showMode == ShowModeHw.API_DATA)
 				return;
 			
 			final boolean isTemplate = DeviceTableRaw.isTemplate(object, logResult.devHand);

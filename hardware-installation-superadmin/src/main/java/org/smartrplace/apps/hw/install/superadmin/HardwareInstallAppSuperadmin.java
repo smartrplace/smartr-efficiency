@@ -245,6 +245,12 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 				pageValveLink.getMenuConfiguration().setCustomNavigation(menu);
 			//}
 
+			final WidgetPage<?> pageExp10 = widgetApp.createWidgetPage("mainExpertApi.html");
+			MainPageExpert expertPage10 = new MainPageExpert(pageExp10, controller, ShowModeHw.API_DATA);
+			controller.mainPageExts.add(expertPage10);
+			menu.addEntry(expertPage10.getHeader(), pageExp10);
+			pageExp10.getMenuConfiguration().setCustomNavigation(menu);
+
 			WidgetPage<?> pagePre = widgetApp.createWidgetPage("devicePreData.html");
 			new PreKnownDevicePage(pagePre, controller, false);
 			menu.addEntry("Preknown Devices", pagePre);
