@@ -23,10 +23,12 @@ import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationPro
 import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.gui.MainPage;
+import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -322,7 +324,15 @@ public class MainPageExpert extends MainPage {
 		} else if(showMode == ShowModeHw.API_DATA) {
 			ValueResourceDropdown<StringResource> drop = vh.dropdown("Utility_for_API_Selection", id, object.getSubResource("deviceUtility", StringResource.class), row,
 					utilityOptions, 3);
-			vh.stringEdit("Application", id, object.getSubResource("apiApplication", StringResource.class), row, alert);
+			vh.stringEdit("Application_for_API_Freetext", id, object.getSubResource("apiApplication", StringResource.class), row, alert);
+			
+			SubCustomerData subc = object.device().location().getSubResource("tenant", SubCustomerData.class);
+			if(subc != null) {
+				String tenantName = ResourceUtils.getHumanReadableShortName(subc);
+				vh.stringLabel("Tenant", id, tenantName, row);
+			}
+			if(req != null)
+				vh.stringLabel("InternalName", id, object.device().getLocationResource().getName(), row);
 		} else if(showMode == ShowModeHw.NETWORK) {
 			//vh.stringLabel("IAD", id, object.getName(), row);
 			//vh.stringLabel("ResLoc", id, object.device().getLocation(), row);
