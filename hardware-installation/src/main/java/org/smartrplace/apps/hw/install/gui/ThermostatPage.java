@@ -19,8 +19,6 @@ import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.PropType;
-import org.ogema.devicefinder.api.TimedJobMemoryData;
-import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
@@ -37,7 +35,6 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
-import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.util.directobjectgui.LabelFormatter;
@@ -56,11 +53,9 @@ import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
-import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
@@ -81,6 +76,7 @@ public class ThermostatPage extends MainPage {
 		AUTO_MODE,
 		VALVE_ONLY,
 		BATTERY_WINDOW,
+		UPDATE_INTERVAL_CONFIG,
 		STANDARD_VIEW_ONLY
 	}
 	protected final ThermostatPageType type;
@@ -96,6 +92,8 @@ public class ThermostatPage extends MainPage {
 			return "Thermostat Valve Management";
 		case BATTERY_WINDOW:
 			return "Thermostat Window-TempFall Management";
+		case UPDATE_INTERVAL_CONFIG:
+			return "Thermostat HM Update Intervals";
 		case STANDARD_VIEW_ONLY:
 			return "Thermostat Page";
 		}
@@ -163,28 +161,28 @@ public class ThermostatPage extends MainPage {
 				public void onPrePOST(String data, OgemaHttpRequest req) {
 					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
 					int count = resendOpenEmptPos(all, null);
-					/*int count = 0;
-					for(InstallAppDevice dev: all) {
-						if(dev.device() instanceof Thermostat) {
-							Thermostat device = (Thermostat) dev.device().getLocationResource();
-							final FloatResource control = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateControl();
-							final FloatResource feedback = device.valve().getSubResource("errorRunPosition", MultiSwitch.class).stateFeedback();
-							if(!(control.isActive() && feedback.exists()))
-								continue;
-							float ctVal = control.getValue();
-							float fbVal = feedback.getValue();
-							if(ValueResourceHelper.isAlmostEqual(ctVal, fbVal))
-								continue;
-							control.setValue(ctVal);
-							count++;
-						}
-					}*/
 					alert.showAlert("Sent emptyPos update to "+count+" thermostats", count>0, req);
 				}
 			};
 			//updateAll.triggerOnPOST(alert);
 			updateAll.registerDependentWidget(alert);
 			updateAll.setDefaultConfirmMsg("Really re-send emptyPos value to all selected thermostats with pending feedback?");
+			secondTopTable.setContent(0, 0, updateAll);
+			page.append(secondTopTable);
+		} else if(type == ThermostatPageType.UPDATE_INTERVAL_CONFIG) {
+			page.append(alert).linebreak();
+			StaticTable secondTopTable = new StaticTable(1, 5);
+			ButtonConfirm updateAll = new ButtonConfirm(page, "updateallFbFaultyUpdate", "Resend Update Rates") {
+				@Override
+				public void onPrePOST(String data, OgemaHttpRequest req) {
+					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
+					int count = resendOpenUpdateRate(all, null);
+					alert.showAlert("Sent update rate update to "+count+" thermostats", count>0, req);
+				}
+			};
+			//updateAll.triggerOnPOST(alert);
+			updateAll.registerDependentWidget(alert);
+			updateAll.setDefaultConfirmMsg("Really re-send update date value to all selected thermostats with pending feedback?");
 			secondTopTable.setContent(0, 0, updateAll);
 			page.append(secondTopTable);
 		}
@@ -258,6 +256,40 @@ public class ThermostatPage extends MainPage {
 				return setpointSet;
 			}
 			
+			private TextField addSetpEditField(String widgetId, final IntegerResource control,
+					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+					String id, OgemaHttpRequest req, Row row,
+					final int minAllowed, final int maxAllowed) {
+				TextField setpointSet = null;
+				if(req != null) {
+					setpointSet = new TextField(mainTable, widgetId+id, req) {
+						private static final long serialVersionUID = 1L;
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							setValue(String.format("%d", control.getValue()), req);
+						}
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							String val = getValue(req);
+							val = val.replaceAll("[^\\d.]", "");
+							try {
+								int value  = Integer.parseInt(val);
+								if((value < minAllowed || value > maxAllowed)) {
+									alert.showAlert("Outside allowed range", false, req);
+								} else
+									control.setValue(value);
+							} catch (NumberFormatException | NullPointerException e) {
+								if(alert != null) alert.showAlert("Entry "+val+" could not be processed!", false, req);
+								return;
+							}
+						}
+					};
+					row.addCell(WidgetHelper.getValidWidgetId(widgetId), setpointSet);
+				} else
+					vh.registerHeaderEntry(widgetId);
+				return setpointSet;
+			}
+
 			@Override
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
@@ -384,6 +416,58 @@ public class ThermostatPage extends MainPage {
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
 							addSetpEditField("EditEP", errorRun, vh, id, req, row, 100, 0.0f, 1.0f);
+						}
+					}					
+				} 
+				else if(type == ThermostatPageType.UPDATE_INTERVAL_CONFIG) {
+					final IntegerResource cyclicMsgChanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, false);
+					final IntegerResource cyclicMsgChangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, true);
+					final IntegerResource cyclicMsgUnchanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, false);
+					final IntegerResource cyclicMsgUnchangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, true);
+					if((req == null) || (cyclicMsgChanged != null && cyclicMsgChanged.exists())) {
+						if(req == null) {
+							vh.registerHeaderEntry("Changed_2,5min");
+							vh.registerHeaderEntry("Last_Ch");
+							vh.registerHeaderEntry("EditChanged");
+						} else {
+							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
+							Label valveErrL = vh.stringLabel("Changed_2,5min", id, new LabelFormatter() {
+								
+								@Override
+								public OnGETData getData(OgemaHttpRequest req) {
+									int val = cyclicMsgChanged.getValue();
+									int valFb = cyclicMsgChangedFb.getValue();
+									int state = ValueResourceHelper.isAlmostEqual(val, valFb)?1:0;
+									return new OnGETData(String.format("%d / %d", val, valFb), state);
+								}
+							}, row);
+							Label lastContactValveErr = addLastContact("Last_Ch", vh, id, req, row, cyclicMsgChangedFb);
+							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
+							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+							addSetpEditField("EditChanged", cyclicMsgChanged, vh, id, req, row, 0, 255);
+						}
+					}					
+					if((req == null) || (cyclicMsgUnchanged != null && cyclicMsgUnchanged.exists())) {
+						if(req == null) {
+							vh.registerHeaderEntry("Unchanged_2,5min");
+							vh.registerHeaderEntry("Last_Un");
+							vh.registerHeaderEntry("EditUnchanged");
+						} else {
+							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
+							Label valveErrL = vh.stringLabel("Unchanged_2,5min", id, new LabelFormatter() {
+								
+								@Override
+								public OnGETData getData(OgemaHttpRequest req) {
+									int val = cyclicMsgUnchanged.getValue();
+									int valFb = cyclicMsgUnchangedFb.getValue();
+									int state = ValueResourceHelper.isAlmostEqual(val, valFb)?1:0;
+									return new OnGETData(String.format("%d / %d", val, valFb), state);
+								}
+							}, row);
+							Label lastContactValveErr = addLastContact("Last_Un", vh, id, req, row, cyclicMsgUnchangedFb);
+							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
+							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+							addSetpEditField("EditUnchanged", cyclicMsgUnchanged, vh, id, req, row, 0, 255);
 						}
 					}					
 				} 
@@ -886,4 +970,37 @@ public class ThermostatPage extends MainPage {
 		}
 		return count;
 	}
+	
+	public static int resendOpenUpdateRate(Collection<InstallAppDevice> all, DatapointService dpService) {
+		if(all == null)
+			all = dpService.managedDeviceResoures(Thermostat.class);
+		int count = 0;
+		for(InstallAppDevice dev: all) {
+			if(dev.device() instanceof Thermostat) {
+				Thermostat device = (Thermostat) dev.device().getLocationResource();
+				final IntegerResource cyclicMsgChanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, false);
+				final IntegerResource cyclicMsgChangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, true);
+				final IntegerResource cyclicMsgUnchanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, false);
+				final IntegerResource cyclicMsgUnchangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, true);
+				if(cyclicMsgChanged.isActive() && cyclicMsgChangedFb.exists()) {
+					int ctVal = cyclicMsgChanged.getValue();
+					int fbVal = cyclicMsgChangedFb.getValue();
+					if(ctVal != fbVal) {
+						cyclicMsgChanged.setValue(ctVal);
+						count++;
+					}
+				}
+				if(cyclicMsgUnchanged.isActive() && cyclicMsgUnchangedFb.exists()) {
+					int ctVal = cyclicMsgUnchanged.getValue();
+					int fbVal = cyclicMsgUnchangedFb.getValue();
+					if(ctVal != fbVal) {
+						cyclicMsgUnchanged.setValue(ctVal);
+						count++;
+					}
+				}
+			}
+		}
+		return count;
+	}
+
 }

@@ -148,6 +148,11 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			menu.addEntry(thValvePage.getHeader(), thermPageValve);
 			thermPageValve.getMenuConfiguration().setCustomNavigation(menu);
 
+			WidgetPage<?> thermPageUpdateRate = widgetApp.createWidgetPage("thermostatUpdateRate.hmtl");
+			ThermostatPage thUpdPage = new ThermostatPage(thermPageUpdateRate, controller, ThermostatPageType.UPDATE_INTERVAL_CONFIG);
+			menu.addEntry(thUpdPage.getHeader(), thermPageUpdateRate);
+			thermPageUpdateRate.getMenuConfiguration().setCustomNavigation(menu);
+
 			
 			WidgetPage<?> thermPageBatWindow = widgetApp.createWidgetPage("thermostatBatteryWindow.hmtl");
 			ThermostatPage thbatPage = new ThermostatPage(thermPageBatWindow, controller, ThermostatPageType.BATTERY_WINDOW);
