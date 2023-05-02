@@ -982,7 +982,7 @@ public class ThermostatPage extends MainPage {
 				final IntegerResource cyclicMsgChangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, true);
 				final IntegerResource cyclicMsgUnchanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, false);
 				final IntegerResource cyclicMsgUnchangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, true);
-				if(cyclicMsgChanged.isActive() && cyclicMsgChangedFb.exists()) {
+				if(cyclicMsgChanged != null && cyclicMsgChangedFb != null && cyclicMsgChanged.isActive() && cyclicMsgChangedFb.exists()) {
 					int ctVal = cyclicMsgChanged.getValue();
 					int fbVal = cyclicMsgChangedFb.getValue();
 					if(ctVal != fbVal) {
@@ -990,7 +990,7 @@ public class ThermostatPage extends MainPage {
 						count++;
 					}
 				}
-				if(cyclicMsgUnchanged.isActive() && cyclicMsgUnchangedFb.exists()) {
+				if(cyclicMsgUnchanged != null && cyclicMsgUnchangedFb != null && cyclicMsgUnchanged.isActive() && cyclicMsgUnchangedFb.exists()) {
 					int ctVal = cyclicMsgUnchanged.getValue();
 					int fbVal = cyclicMsgUnchangedFb.getValue();
 					if(ctVal != fbVal) {
