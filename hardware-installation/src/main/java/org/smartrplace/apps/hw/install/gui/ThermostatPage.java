@@ -577,7 +577,8 @@ public class ThermostatPage extends MainPage {
 									@Override
 									public void onPOSTComplete(String data, OgemaHttpRequest req) {
 										long now = appMan.getFrameworkTime();
-										DeviceTableRaw.setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);										
+										DeviceTableRaw.setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);	
+										DeviceHandlerBase.blockShiftingUntil = now + 1*TimeProcUtil.MINUTE_MILLIS;
 									}
 								};
 								decalcNowBut.setDefaultText("Decalc Now");
