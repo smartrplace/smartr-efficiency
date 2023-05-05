@@ -15,12 +15,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.VoltageResource;
 import org.ogema.devicefinder.api.DatapointGroup;
@@ -42,6 +44,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
@@ -60,6 +63,8 @@ import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.autocomplete.Autocomplete;
+import de.iwes.widgets.html.autocomplete.AutocompleteData;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
@@ -69,8 +74,12 @@ import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
+import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
+import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.html.html5.Flexbox;
+import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
@@ -83,6 +92,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		SUPERVISION_STANDARD
 	}
 	final KnownFaultsPageType pageType;
+	private final Button createIssueSubmit;
 	private final Popup lastMessagePopup;
 	private final Label lastMessageDevice;
 	private final Label lastMessage;
@@ -154,7 +164,188 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			}
 		};
 		switchAllDeviceBut.registerDependentWidget(switchAllDeviceBut);
-		topTable.setContent(1, 5, switchAllDeviceBut);
+		
+		final Button createKnownIssue = new Button(page, "createKnownIssue");
+		createKnownIssue.setDefaultText("Create issue");
+		createKnownIssue.setDefaultToolTip("Manually create a new device issue that is not captured by the automated alarming system");
+			
+		final PageSnippet cellSnippet0 = new PageSnippet(page, "cellSnippet0", true);
+		cellSnippet0.append(switchAllDeviceBut, null);
+		cellSnippet0.append(createKnownIssue, null);
+		cellSnippet0.addCssItem("#bodyDiv", Map.of("display", "flex", "column-gap", "1em"), null);
+		topTable.setContent(1, 5, cellSnippet0);
+		
+		final Popup createIssuePopup = new Popup(page, "createIssuePopup", true);
+		//final Header createHeader = new Header(page, "createIssueHeader", "Create known issue");
+		//createHeader.setDefaultHeaderType(2);
+		//createIssuePopup.setHeader(createHeader, null);
+		createIssuePopup.setTitle("Create known issue", null);
+		
+		final StaticTable createPopupTable = new StaticTable(4, 2, new int[] {4, 8});
+		final Label createIssueDeviceLab = new Label(page, "createIssueDeviceLab", "Select device");
+		final Autocomplete deviceSelector = new Autocomplete(page, "createIssueDeviceSelector") {
+			
+			@Override
+			public DeviceSelectorData getData(OgemaHttpRequest req) {
+				return (DeviceSelectorData) super.getData(req);
+			}
+			
+			@Override
+			public AutocompleteData createNewSession() {
+				return new DeviceSelectorData(this);
+			}
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final List<InstallAppDevice> devices = appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
+					.flatMap(hwi -> hwi.knownDevices().getAllElements().stream())
+					.filter(dev -> dev.deviceId().isActive())
+					.collect(Collectors.toList());
+				getData(req).setItems(devices);
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				final InstallAppDevice device = getData(req).getSelectedItem();
+				final boolean active = device != null;
+				if (active)
+					createIssueSubmit.enable(req);
+				else
+					createIssueSubmit.disable(req);
+			}
+			
+		};
+		// expensive
+		deviceSelector.postponeLoading();
+		
+		final Label deviceFaultActiveLab = new Label(page, "createIssueFaultActiveLab", "Fault active?");
+		deviceFaultActiveLab.setDefaultToolTip("Is the currently selected device in an alarm state?");
+		final Label deviceFaultActive = new Label(page, "createIssueFaultActive") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null) {
+					setText("", req);
+				} else {
+					final boolean active = device.knownFault().isActive();
+					setText(active + "", req);
+				}
+			}
+			
+		};
+		deviceFaultActive.setDefaultToolTip("Is the currently selected device in an alarm state?");
+		final Label createIssueCommentLab = new Label(page, "createIssueCommentLab", "Comment");
+		final TextField createIssueComment = new TextField(page, "createIssueComment") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null || !device.knownFault().comment().isActive()) {
+					setValue("", req);
+				} else {
+					setValue(device.knownFault().comment().getValue(), req);
+				}
+			}
+		};
+		
+		final Label createIssueAssignedLab = new Label(page, "createIssueAssignedLab", "Assigned");
+		final Dropdown createIssueAssigned = new Dropdown(page, "createIssueAssigned") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null || !device.knownFault().assigned().isActive()) {
+					selectSingleOption("0", req);
+				} else {
+					final int val = device.knownFault().assigned().getValue();
+					selectSingleOption(val + "", req);
+				}
+			}
+			
+		};
+		final Collection<DropdownOption> assignmentOpts = AlarmingConfigUtil.ASSIGNEMENT_ROLES.entrySet().stream()
+			.map(entry -> new DropdownOption(entry.getKey(), entry.getValue(), "0".equals(entry.getKey())))
+			.collect(Collectors.toList());
+		createIssueAssigned.setDefaultOptions(assignmentOpts);
+		
+		createPopupTable.setContent(0, 0, createIssueDeviceLab).setContent(0, 1, deviceSelector);
+		createPopupTable.setContent(1, 0, deviceFaultActiveLab).setContent(1, 1, deviceFaultActive);
+		createPopupTable.setContent(2, 0, createIssueCommentLab).setContent(2, 1, createIssueComment);
+		createPopupTable.setContent(3, 0, createIssueAssignedLab).setContent(3, 1, createIssueAssigned);
+		
+		
+		final PageSnippet bodySnippet = new PageSnippet(page, "createIssueBodySnip", true);
+		bodySnippet.append(createPopupTable, null);
+		createIssuePopup.setBody(bodySnippet, null);
+		
+		final Button cancel = new Button(page, "createIssueCancel", "Cancel");
+		cancel.setDefaultToolTip("Cancel alarm generation and close this popup");
+		final Button submit = new Button(page, "createIssueSubmit", "Submit") {
+			
+			@Override
+			protected void setDefaultValues(ButtonData opt) {
+				super.setDefaultValues(opt);
+				opt.disable();
+			}
+			
+			@Override
+			public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null) {
+					if (alert != null)
+						alert.showAlert("Device " + device + " not found", false, req);
+					return;
+				}
+				try {
+					final AlarmGroupData alarm = device.knownFault();
+					final String comment = createIssueComment.getValue(req).trim();
+					if (comment.isEmpty())
+						alarm.comment().delete();
+					else
+						alarm.comment().<StringResource> create().setValue(comment);
+					final int assignment = Integer.parseInt(createIssueAssigned.getSelectedValue(req));
+					if (assignment == 0)
+						alarm.assigned().delete();
+					else
+						alarm.assigned().<IntegerResource> create().setValue(assignment);
+					final boolean isBlocking = assignment < 7000 || assignment >= 8000;
+					alarm.minimumTimeBetweenAlarms().<FloatResource> create().setValue(isBlocking ? -1 : 0);
+					if (!alarm.isActive())
+						alarm.ongoingAlarmStartTime().<TimeResource> create().setValue(appMan.getFrameworkTime());
+					alarm.activate(true);
+				} catch (Exception e) {
+					if (alert != null)
+						alert.showAlert("Alarm generation failed: " + e, false, req);
+					else
+						appMan.getLogger().error("Alarm generation failed", e);
+				}
+				// TODO reload page?
+			}
+			
+		};
+		submit.setDefaultToolTip("Create alarm");
+		submit.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
+		this.createIssueSubmit = submit;
+		
+		final Flexbox popupFooter = new Flexbox(page, "createIssueFooter", true);
+		popupFooter.setJustifyContent(JustifyContent.FLEX_RIGHT, null);
+		popupFooter.addCssItem(">div", Collections.singletonMap("column-gap", "0.5em"), null);
+		popupFooter.addItem(cancel, null).addItem(submit, null);
+		createIssuePopup.setFooter(popupFooter, null);
+		
+		
+		page.append(createIssuePopup);
+		deviceSelector.triggerAction(deviceFaultActive, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(createIssueComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(createIssueAssigned, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(submit, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		createKnownIssue.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);
+		cancel.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
+		submit.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
+		if (alert != null)
+			submit.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		
 		ButtonConfirm releaseAllUnassigned = new ButtonConfirm(page, "releaseAllUnassigned") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -739,6 +930,38 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		
 	}
 	
-	
+	private static class DeviceSelectorData extends AutocompleteData {
+		
+		private Collection<InstallAppDevice> options = Collections.emptySet();
+		private InstallAppDevice selectedDevice;
+
+		public DeviceSelectorData(Autocomplete autocomplete) {
+			super(autocomplete);
+			setMinLength(0);
+		}
+		
+		public void setItems(Collection<InstallAppDevice> devices) {
+			this.options = devices;
+			if (this.selectedDevice != null && !devices.contains(this.selectedDevice))
+				this.selectedDevice = null;
+			final List<String> ids =
+					Stream.concat(Stream.of(""), devices.stream().map(dev -> dev.deviceId().getValue())).collect(Collectors.toList());
+			setOptions(ids);
+		}
+		
+		public InstallAppDevice getSelectedItem() {
+			return this.selectedDevice;
+		}
+		
+		@Override
+		public void setValue(String value) {
+			final Optional<InstallAppDevice> device = 
+					value != null ? this.options.stream().filter(app -> app.deviceId().isActive() && value.equals(app.deviceId().getValue())).findAny() : Optional.empty();
+			this.selectedDevice = device.orElse(null);
+			super.setValue(device.isPresent() ? value : null);
+		}
+		
+		
+	}
 	
 }
