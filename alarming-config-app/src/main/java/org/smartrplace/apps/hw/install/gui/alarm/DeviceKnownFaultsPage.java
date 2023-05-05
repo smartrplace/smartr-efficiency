@@ -314,6 +314,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					if (!alarm.isActive())
 						alarm.ongoingAlarmStartTime().<TimeResource> create().setValue(appMan.getFrameworkTime());
 					alarm.activate(true);
+					if (alert != null)
+						alert.showAlert("Alarm generation succeeded for device " + device.deviceId().getValue() + " (" + device.getLocation() + ")", true, req);
 				} catch (Exception e) {
 					if (alert != null)
 						alert.showAlert("Alarm generation failed: " + e, false, req);

@@ -192,7 +192,7 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 			}
 		}					
 		Room deviceRoom = device.location().room();
-		if(device == null || (!device.exists()))
+		if(deviceRoom == null || (!deviceRoom.exists()))
 			vh.stringLabel("Room", id, "--", row);
 		else
 			vh.stringLabel("Room", id, ResourceUtils.getHumanReadableShortName(deviceRoom), row);
