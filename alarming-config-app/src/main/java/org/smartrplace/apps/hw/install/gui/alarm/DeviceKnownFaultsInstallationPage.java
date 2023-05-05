@@ -22,6 +22,7 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import com.google.common.base.Objects;
@@ -88,6 +89,8 @@ public class DeviceKnownFaultsInstallationPage {
 				final Row row = new Row();
 				final String id = ResourceUtils.getValidResourceName(getLineId(device));
 				final Label name = new Label(table, id + "_name", req);
+				name.addDefaultCssItem("", Collections.singletonMap("word-wrap", "break-word"));
+				name.addDefaultCssItem("", Collections.singletonMap("max-width", "10em"));
 				final PhysicalElement actualDevice = device.device().getLocationResource();
 				name.setDefaultText(actualDevice.isActive() ? ResourceUtils.getHumanReadableShortName(actualDevice) : "");
 				row.addCell("name", name);
@@ -218,7 +221,7 @@ public class DeviceKnownFaultsInstallationPage {
 					}
 					
 				};
-				showMsg.setDefaultText("Nachricht anzeigen");
+				showMsg.setDefaultText("Anzeigen");
 				showMsg.setDefaultToolTip("Letzte Alarm-Benachrichtigung für dieses Gerät anzeigen.");
 				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
 				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
@@ -259,6 +262,11 @@ public class DeviceKnownFaultsInstallationPage {
 				doneBtn.addDefaultStyle(ButtonConfirmData.CANCEL_ORANGE);
 				doneBtn.triggerAction(doneBtn, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("resolve", doneBtn);
+				
+				final Label valueField = new Label(table, id + "_valueField", req);
+				AlarmMessageUtil.configureAlarmValueLabel(device, appMan, valueField, req, Locale.GERMAN);
+				row.addCell("value", valueField);
+				
 				return row;
 			}
 
@@ -270,6 +278,7 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("room", "Raum");
 				header.put("location", "Ort");
 				header.put("prio", "Reihenfolge");
+				header.put("value", "Wert/Letzter Kontakt");
 				header.put("activesince", "Aktiv seit");
 				header.put("comment", "Kommentar");
 				header.put("details", "Details");
