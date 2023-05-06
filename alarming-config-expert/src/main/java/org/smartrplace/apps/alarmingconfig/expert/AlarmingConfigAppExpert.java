@@ -13,6 +13,7 @@ import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.AlarmingLevelPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsInstallationPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage.KnownFaultsPageType;
 import org.smartrplace.apps.hw.install.gui.alarm.MessagingAppConfigPage;
@@ -119,6 +120,19 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			}
 			menu.addEntry("8. Device Issue Status Supervision", pageRes14);
 			configMenuConfig(pageRes14.getMenuConfiguration());
+			
+			WidgetPage<?> pageRes15 = widgetApp.createWidgetPage("deviceknownfaultsinstall.html");
+			synchronized (controller.accessAdminApp) {
+				DeviceKnownFaultsInstallationPage knownFaultsPage = new DeviceKnownFaultsInstallationPage(pageRes15, appMan);
+				/*
+				synchronized(controller.mainPageExts) {
+					controller.mainPageExts.add(knownFaultsPage);
+				}
+				*/
+			}
+			menu.addEntry("9. Device Issue Status Installation", pageRes15);
+			configMenuConfig(pageRes15.getMenuConfiguration());
+			
 
 			LogHelper.logStartup(4, appMan);
 		}

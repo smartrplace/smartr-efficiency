@@ -1,9 +1,5 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,33 +11,27 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
-import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
-import org.ogema.core.model.units.VoltageResource;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
-import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
-import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
-import org.ogema.model.extended.alarming.AlarmConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
-import org.ogema.tools.resource.util.ValueResourceUtils;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
+import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
@@ -51,7 +41,6 @@ import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
-import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -60,6 +49,8 @@ import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
+import de.iwes.widgets.html.autocomplete.Autocomplete;
+import de.iwes.widgets.html.autocomplete.AutocompleteData;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
@@ -71,6 +62,9 @@ import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
+import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.html.html5.Flexbox;
+import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
@@ -83,6 +77,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		SUPERVISION_STANDARD
 	}
 	final KnownFaultsPageType pageType;
+	private final Button createIssueSubmit;
 	private final Popup lastMessagePopup;
 	private final Label lastMessageDevice;
 	private final Label lastMessage;
@@ -154,7 +149,190 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			}
 		};
 		switchAllDeviceBut.registerDependentWidget(switchAllDeviceBut);
-		topTable.setContent(1, 5, switchAllDeviceBut);
+		
+		final Button createKnownIssue = new Button(page, "createKnownIssue");
+		createKnownIssue.setDefaultText("Create issue");
+		createKnownIssue.setDefaultToolTip("Manually create a new device issue that is not captured by the automated alarming system");
+			
+		final PageSnippet cellSnippet0 = new PageSnippet(page, "cellSnippet0", true);
+		cellSnippet0.append(switchAllDeviceBut, null);
+		cellSnippet0.append(createKnownIssue, null);
+		cellSnippet0.addCssItem("#bodyDiv", Map.of("display", "flex", "column-gap", "1em"), null);
+		topTable.setContent(1, 5, cellSnippet0);
+		
+		final Popup createIssuePopup = new Popup(page, "createIssuePopup", true);
+		//final Header createHeader = new Header(page, "createIssueHeader", "Create known issue");
+		//createHeader.setDefaultHeaderType(2);
+		//createIssuePopup.setHeader(createHeader, null);
+		createIssuePopup.setTitle("Create known issue", null);
+		
+		final StaticTable createPopupTable = new StaticTable(4, 2, new int[] {4, 8});
+		final Label createIssueDeviceLab = new Label(page, "createIssueDeviceLab", "Select device");
+		final Autocomplete deviceSelector = new Autocomplete(page, "createIssueDeviceSelector") {
+			
+			@Override
+			public DeviceSelectorData getData(OgemaHttpRequest req) {
+				return (DeviceSelectorData) super.getData(req);
+			}
+			
+			@Override
+			public AutocompleteData createNewSession() {
+				return new DeviceSelectorData(this);
+			}
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final List<InstallAppDevice> devices = appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
+					.flatMap(hwi -> hwi.knownDevices().getAllElements().stream())
+					.filter(dev -> dev.deviceId().isActive())
+					.collect(Collectors.toList());
+				getData(req).setItems(devices);
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				final InstallAppDevice device = getData(req).getSelectedItem();
+				final boolean active = device != null;
+				if (active)
+					createIssueSubmit.enable(req);
+				else
+					createIssueSubmit.disable(req);
+			}
+			
+		};
+		// expensive
+		deviceSelector.postponeLoading();
+		
+		final Label deviceFaultActiveLab = new Label(page, "createIssueFaultActiveLab", "Fault active?");
+		deviceFaultActiveLab.setDefaultToolTip("Is the currently selected device in an alarm state?");
+		final Label deviceFaultActive = new Label(page, "createIssueFaultActive") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null) {
+					setText("", req);
+				} else {
+					final boolean active = device.knownFault().isActive();
+					setText(active + "", req);
+				}
+			}
+			
+		};
+		deviceFaultActive.setDefaultToolTip("Is the currently selected device in an alarm state?");
+		final Label createIssueCommentLab = new Label(page, "createIssueCommentLab", "Comment");
+		final TextField createIssueComment = new TextField(page, "createIssueComment") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null || !device.knownFault().comment().isActive()) {
+					setValue("", req);
+				} else {
+					setValue(device.knownFault().comment().getValue(), req);
+				}
+			}
+		};
+		
+		final Label createIssueAssignedLab = new Label(page, "createIssueAssignedLab", "Assigned");
+		final Dropdown createIssueAssigned = new Dropdown(page, "createIssueAssigned") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null || !device.knownFault().assigned().isActive()) {
+					selectSingleOption("0", req);
+				} else {
+					final int val = device.knownFault().assigned().getValue();
+					selectSingleOption(val + "", req);
+				}
+			}
+			
+		};
+		final Collection<DropdownOption> assignmentOpts = AlarmingConfigUtil.ASSIGNEMENT_ROLES.entrySet().stream()
+			.map(entry -> new DropdownOption(entry.getKey(), entry.getValue(), "0".equals(entry.getKey())))
+			.collect(Collectors.toList());
+		createIssueAssigned.setDefaultOptions(assignmentOpts);
+		
+		createPopupTable.setContent(0, 0, createIssueDeviceLab).setContent(0, 1, deviceSelector);
+		createPopupTable.setContent(1, 0, deviceFaultActiveLab).setContent(1, 1, deviceFaultActive);
+		createPopupTable.setContent(2, 0, createIssueCommentLab).setContent(2, 1, createIssueComment);
+		createPopupTable.setContent(3, 0, createIssueAssignedLab).setContent(3, 1, createIssueAssigned);
+		
+		
+		final PageSnippet bodySnippet = new PageSnippet(page, "createIssueBodySnip", true);
+		bodySnippet.append(createPopupTable, null);
+		createIssuePopup.setBody(bodySnippet, null);
+		
+		final Button cancel = new Button(page, "createIssueCancel", "Cancel");
+		cancel.setDefaultToolTip("Cancel alarm generation and close this popup");
+		final Button submit = new Button(page, "createIssueSubmit", "Submit") {
+			
+			@Override
+			protected void setDefaultValues(ButtonData opt) {
+				super.setDefaultValues(opt);
+				opt.disable();
+			}
+			
+			@Override
+			public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null) {
+					if (alert != null)
+						alert.showAlert("Device " + device + " not found", false, req);
+					return;
+				}
+				try {
+					final AlarmGroupData alarm = device.knownFault();
+					final String comment = createIssueComment.getValue(req).trim();
+					if (comment.isEmpty())
+						alarm.comment().delete();
+					else
+						alarm.comment().<StringResource> create().setValue(comment);
+					final int assignment = Integer.parseInt(createIssueAssigned.getSelectedValue(req));
+					if (assignment == 0)
+						alarm.assigned().delete();
+					else
+						alarm.assigned().<IntegerResource> create().setValue(assignment);
+					final boolean isBlocking = assignment < 7000 || assignment >= 8000;
+					alarm.minimumTimeBetweenAlarms().<FloatResource> create().setValue(isBlocking ? -1 : 0);
+					if (!alarm.isActive())
+						alarm.ongoingAlarmStartTime().<TimeResource> create().setValue(appMan.getFrameworkTime());
+					alarm.activate(true);
+					if (alert != null)
+						alert.showAlert("Alarm generation succeeded for device " + device.deviceId().getValue() + " (" + device.getLocation() + ")", true, req);
+				} catch (Exception e) {
+					if (alert != null)
+						alert.showAlert("Alarm generation failed: " + e, false, req);
+					else
+						appMan.getLogger().error("Alarm generation failed", e);
+				}
+				// TODO reload page?
+			}
+			
+		};
+		submit.setDefaultToolTip("Create alarm");
+		submit.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
+		this.createIssueSubmit = submit;
+		
+		final Flexbox popupFooter = new Flexbox(page, "createIssueFooter", true);
+		popupFooter.setJustifyContent(JustifyContent.FLEX_RIGHT, null);
+		popupFooter.addCssItem(">div", Collections.singletonMap("column-gap", "0.5em"), null);
+		popupFooter.addItem(cancel, null).addItem(submit, null);
+		createIssuePopup.setFooter(popupFooter, null);
+		
+		
+		page.append(createIssuePopup);
+		deviceSelector.triggerAction(deviceFaultActive, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(createIssueComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(createIssueAssigned, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(submit, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		createKnownIssue.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);
+		cancel.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
+		submit.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
+		if (alert != null)
+			submit.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		
 		ButtonConfirm releaseAllUnassigned = new ButtonConfirm(page, "releaseAllUnassigned") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -315,12 +493,13 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				}
 				//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 				// some special sensor values... priority for display: battery voltage; mainSensorValue, rssi, eq3state
-				final ValueData valueData = getValueData(object, appMan);
+				//final ValueData valueData = getValueData(object, appMan);
 				final Label valueField = new Label(mainTable, "valueField" + id, req);
-				valueField.setText(valueData.message, req);
+				AlarmMessageUtil.configureAlarmValueLabel(object, appMan, valueField, req, Locale.ENGLISH);
+				//valueField.setText(valueData.message, req);
 				row.addCell("value", valueField);
-				if (valueData.responsibleResource != null)
-					valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
+				//if (valueData.responsibleResource != null)
+				//	valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
 				
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				final Button showMsg = new Button(mainTable, "msg" + id, req) {
@@ -381,9 +560,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 								res.linkToTaskTracking().getValue(), req);
 						row.addCell(WidgetHelper.getValidWidgetId("Task Tracking"), taskLink);
 					}
-					final ValueResourceTextField<IntegerResource> prioField 
-						= new ValueResourceTextField<IntegerResource>(mainTable, "prio" + id, res.getSubResource("priority", IntegerResource.class), req);
-					prioField.setDefaultToolTip("Alarm priority, with 0 = lowest priority, 10 = very high priority.");
+					final ValueResourceTextField<FloatResource> prioField 
+						= new ValueResourceTextField<FloatResource>(mainTable, "prio" + id, res.getSubResource("processingOrder", FloatResource.class), req);
+					prioField.setDefaultToolTip("Alarm priority, e.g. 10, 20, 30, ...");
 					prioField.setDefaultWidth("4em");
 					prioField.triggerAction(prioField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 					row.addCell("Priority", prioField);
@@ -510,103 +689,6 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		return result;
 	}
 	
-	/**
-	 * Generate a message to be shown in the value column. This entails selecting the most relevant
-	 * sensor value in alarm state, according to some predefined prioritization.
-	 * @param knownDevice
-	 * @param appMan
-	 * @return
-	 */
-	private static ValueData getValueData(InstallAppDevice knownDevice, ApplicationManager appMan) {
-		final SingleValueResource mainValue = DeviceKnownFaultsPage.getMainSensorValue(knownDevice, appMan.getAppID().getBundle().getBundleContext());
-		final VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(knownDevice.device());
-		final IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(knownDevice.device(),
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
-		final FloatResource valveState = knownDevice.device() instanceof Thermostat ? 
-				((Thermostat) knownDevice.device()).valve().getSubResource("eq3state") : null;
-		final Map<SingleValueResource, String> priorityResources = new LinkedHashMap<>();
-		// if we find an alarm for any of the below resources, its value or last update is shown in the value field;
-		// otherwise we select an arbitrary alarm from the list
-		priorityResources.put(batteryVoltage, "low battery voltage");
-		priorityResources.put(mainValue, "sensor value range violation");
-		priorityResources.put(rssiDevice, "rssi value low");
-		priorityResources.put(valveState, "thermostat valve state problematic");
-		String valueFieldText = "";
-		SingleValueResource responsibleResource = null;
-		AlarmStatus status = null;
-		String explanation = null;
-		for (Map.Entry<SingleValueResource, String> prioEntry: priorityResources.entrySet()) {
-			final SingleValueResource prio = prioEntry.getKey();
-			final AlarmStatus status0 = DeviceKnownFaultsPage.findAlarmForSensorValue(prio, knownDevice, appMan);
-			if (status0 == null || (!status0.valueViolation && !status0.contactViolation))
-				continue;
-			status = status0;
-			responsibleResource = prio;
-			explanation = prioEntry.getValue();
-			break;
-		}
-		if (responsibleResource == null) {
-			// find any alarm in alarm state
-			final Optional<AlarmStatus> statusOpt = knownDevice.alarms().getAllElements().stream()
-				.map(alarm -> statusForAlarm(alarm, appMan))
-				.filter(alarm -> alarm.valueViolation || alarm.contactViolation)
-				.findAny();
-			if (statusOpt.isPresent()) {
-				status = statusOpt.get();
-				responsibleResource = status.config.sensorVal();
-			}
-		}
-		if (responsibleResource == null)  {
-			responsibleResource = mainValue;
-			explanation = "no problem detected";
-		}
-		if (responsibleResource != null) {
-			if (status == null || status.valueViolation) {
-				valueFieldText = "Value: " + ValueResourceUtils.getValue(responsibleResource);
-				if (explanation != null)
-					valueFieldText += " (" + explanation + ")";
-			}
-			if (status != null && status.contactViolation) {
-				if (status.valueViolation)
-					valueFieldText += " (";
-				final long lastContact = responsibleResource.getLastUpdateTime();
-				valueFieldText += "Last contact: " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssZ", Locale.ENGLISH).format(
-						ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastContact), ZoneId.of("Z")));
-				if (status.valueViolation)
-					valueFieldText += ")";
-			}
-		}
-		return new ValueData(responsibleResource, valueFieldText);
-	}
-	
-	private static AlarmStatus statusForAlarm(AlarmConfiguration cfg, ApplicationManager appMan) {
-		final SingleValueResource prio = cfg.sensorVal();
-		boolean valueViolation = false;
-		boolean contactViolation = false;
-		if (prio instanceof IntegerResource || prio instanceof FloatResource || prio instanceof TimeResource) {
-			final float value = ValueResourceUtils.getFloatValue(prio);
-			valueViolation = (cfg.lowerLimit().isActive() && value < cfg.lowerLimit().getValue()) ||
-					(cfg.upperLimit().isActive() && value > cfg.upperLimit().getValue());
-		}
-		final FloatResource maxInterval = cfg.maxIntervalBetweenNewValues();
-		if (maxInterval.isActive() && maxInterval.getValue() > 0) {
-			final long interval = appMan.getFrameworkTime() - prio.getLastUpdateTime();
-			contactViolation = interval > maxInterval.getValue() * 60 * 1000;
-		}
-		return new AlarmStatus(cfg, valueViolation, contactViolation);
-	}
-	
-	private static AlarmStatus findAlarmForSensorValue(SingleValueResource prio, InstallAppDevice object, ApplicationManager appMan) {
-		if (prio == null || !prio.isActive())
-			return null;
-		final Optional<AlarmConfiguration> alarmConfigOpt = object.alarms().getAllElements().stream()
-				.filter(cfg -> prio.equalsLocation(cfg.sensorVal()))
-				.findAny();
-		if (!alarmConfigOpt.isPresent())
-			return null;
-		return statusForAlarm(alarmConfigOpt.get(), appMan);
-	}
-	
 	protected List<InstallAppDevice> getDevicesWithKnownFault(List<InstallAppDevice> all) {
 		if(showAllDevices)
 			return all;
@@ -660,85 +742,38 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		}		
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static SingleValueResource getMainSensorValue(InstallAppDevice config, BundleContext ctx) {
-		final ServiceReference<DatapointService> dpServiceRef = ctx.getServiceReference(DatapointService.class);
-		if (dpServiceRef != null) {
-			try {
-				final DatapointService dpService = ctx.getService(dpServiceRef);
-				final DeviceHandlerProviderDP provider = dpService.getDeviceHandlerProvider(config);
-				final SingleValueResource res = provider.getMainSensorValue(config);
-				if (res != null)
-					return res;
-			} catch (Exception ignore) {
-			} finally {
-				ctx.ungetService(dpServiceRef);
-			}
-		}
-		final PhysicalElement device = config.device();
-		final Collection<ServiceReference<DeviceHandlerProviderDP>> references;
-		try {
-			references = ctx.getServiceReferences(DeviceHandlerProviderDP.class, null);
-		} catch (InvalidSyntaxException e) {
-			throw new RuntimeException(e);
-		}
-		List<SingleValueResource> candidates = null;
-		for (ServiceReference<DeviceHandlerProviderDP> ref: references) {
-			try {
-				final DeviceHandlerProviderDP service = ctx.getService(ref);
-				try {
-					if (!service.getResourceType().isAssignableFrom(device.getResourceType()))
-						continue;
-					final SingleValueResource res = service.getMainSensorValue(device, config);
-					if (res != null) {
-						final Resource alarmStatus = res.getSubResource("alarmStatus");
-						if (alarmStatus != null && alarmStatus instanceof IntegerResource && ((IntegerResource) alarmStatus).getValue() > 0)
-							return res;
-						if (candidates == null)
-							candidates = new ArrayList<>(4);
-						candidates.add(res);
-					}
-				} finally {
-					ctx.ungetService(ref);
-				}
-			} catch (Exception ignore) {}
-			
-		}
-		if (candidates != null)
-			return candidates.get(0);
-		final String typeName = device.getResourceType().getSimpleName();
-		switch (typeName) {
-		case "GatewayDevice":  
-			return device.getSubResource("systemRestart");  // ?
-		}
-		return null;
-	}
-	
-	private static class AlarmStatus {
+	private static class DeviceSelectorData extends AutocompleteData {
 		
-		AlarmStatus(AlarmConfiguration config, boolean valueViolation, boolean contactViolation) {
-			this.config = config;
-			this.valueViolation = valueViolation;
-			this.contactViolation = contactViolation;
+		private Collection<InstallAppDevice> options = Collections.emptySet();
+		private InstallAppDevice selectedDevice;
+
+		public DeviceSelectorData(Autocomplete autocomplete) {
+			super(autocomplete);
+			setMinLength(0);
 		}
 		
-		final AlarmConfiguration config;
-		final boolean valueViolation;
-		final boolean contactViolation;
+		public void setItems(Collection<InstallAppDevice> devices) {
+			this.options = devices;
+			if (this.selectedDevice != null && !devices.contains(this.selectedDevice))
+				this.selectedDevice = null;
+			final List<String> ids =
+					Stream.concat(Stream.of(""), devices.stream().map(dev -> dev.deviceId().getValue())).collect(Collectors.toList());
+			setOptions(ids);
+		}
+		
+		public InstallAppDevice getSelectedItem() {
+			return this.selectedDevice;
+		}
+		
+		@Override
+		public void setValue(String value) {
+			final Optional<InstallAppDevice> device = 
+					value != null ? this.options.stream().filter(app -> app.deviceId().isActive() && value.equals(app.deviceId().getValue())).findAny() : Optional.empty();
+			this.selectedDevice = device.orElse(null);
+			super.setValue(device.isPresent() ? value : null);
+		}
+		
 		
 	}
-	
-	private static class ValueData {
-		
-		public ValueData(SingleValueResource responsibleResource, String message) {
-			this.responsibleResource = responsibleResource;
-			this.message = message;
-		}
-		final SingleValueResource responsibleResource; // may be null
-		final String message;
-		
-	}
-	
-	
 	
 }
