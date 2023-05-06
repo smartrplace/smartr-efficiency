@@ -123,7 +123,7 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			
 			WidgetPage<?> pageRes15 = widgetApp.createWidgetPage("deviceknownfaultsinstall.html");
 			synchronized (controller.accessAdminApp) {
-				DeviceKnownFaultsInstallationPage knownFaultsPage = new DeviceKnownFaultsInstallationPage(pageRes15, appMan);
+				DeviceKnownFaultsInstallationPage knownFaultsPage = new DeviceKnownFaultsInstallationPage(pageRes15, appMan, controller.accessAdminApp);
 				/*
 				synchronized(controller.mainPageExts) {
 					controller.mainPageExts.add(knownFaultsPage);
