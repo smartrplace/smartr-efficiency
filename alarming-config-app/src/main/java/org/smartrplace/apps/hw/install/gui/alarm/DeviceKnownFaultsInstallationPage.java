@@ -4,21 +4,26 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -26,12 +31,14 @@ import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import com.google.common.base.Objects;
+import com.google.common.base.Supplier;
 
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirmData;
@@ -44,10 +51,15 @@ import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.html5.Flexbox;
+import de.iwes.widgets.html.html5.flexbox.AlignItems;
+import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 import de.iwes.widgets.html.popup.Popup;
+import de.iwes.widgets.resource.widget.dropdown.ResourceListDropdown;
 import de.iwes.widgets.resource.widget.label.TimeResourceLabel;
 import de.iwes.widgets.resource.widget.label.ValueResourceLabel;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
+import de.iwes.widgets.template.DisplayTemplate;
 
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsInstallationPage {
@@ -66,22 +78,126 @@ public class DeviceKnownFaultsInstallationPage {
 	
 	private final void buildPage() {
 		
-		final DynamicTable<InstallAppDevice> table = new DynamicTable<InstallAppDevice>(page, "devicesTable") {
+		final Map<String, String> subFlexCss = new HashMap<>(4, 4);
+		subFlexCss.put("column-gap", "1em");
+		subFlexCss.put("flex-wrap", "nowrap");
+		final Map<String, String> filterFlexCss = new HashMap<>(4, 4);
+		filterFlexCss.put("column-gap", "3em");
+		filterFlexCss.put("row-gap", "1em");
+		filterFlexCss.put("flex-wrap", "wrap");
+		filterFlexCss.put("padding", "0.5em");
+		filterFlexCss.put("background-color", "lightgray");
+		
+		
+		final Flexbox filterFlex = new Flexbox(page, "filterflex", true);
+		filterFlex.addCssItem(">div", filterFlexCss, null);
+		filterFlex.setAlignItems(AlignItems.CENTER, null);
+		final Dropdown statusFilter = new Dropdown(page, "statusFilter");
+		statusFilter.setDefaultOptions(Arrays.asList(
+				new DropdownOption("all", "Alle Alarme", false),
+				new DropdownOption("unresolved", "Offene Alarme", true)
+		));
+		statusFilter.setDefaultToolTip("Als erledigt markierte Alarme anzeigen oder ausblenden?");
+		
+		// filter stuff copied from  HardwareInstall test page
+		final ResourceListDropdown<BuildingPropertyUnit> buildings = new ResourceListDropdown<BuildingPropertyUnit>(page,  "buildingsSelector", false) {
 			
-			// TODO filter for issues not marked as done, depending on selection
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				final List<InstallAppDevice> devices=  appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
+				// TODO add: unassigned & all
+				setList(appMan.getResourceAccess().<ResourceList<BuildingPropertyUnit>>getResource("accessAdminConfig/roomGroups"), req);
+				final Map<String, String[]> params = page.getPageParameters(req);
+				final boolean hasBuildingParam = params != null && params.containsKey("roomgroup");
+				if (!hasBuildingParam) {
+					getList(req).getAllElements().stream()
+						.filter(b -> b.name().isActive() && "all rooms".equalsIgnoreCase(b.name().getValue()))
+						.findAny().ifPresent(b -> selectItem(b, req));
+				}
+			}
+			
+		};
+		buildings.setDefaultSelectByUrlParam("roomgroup");
+		final String buildingsTooltip = "Gebäude/Gruppe von Räumen auswählen";
+		buildings.setDefaultToolTip(buildingsTooltip);
+		
+		final TemplateMultiselect<Room> rooms = new TemplateMultiselect<Room>(page, "roomSelector") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				Collection<Room> rooms = appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
+					.flatMap(cfg -> cfg.knownDevices().getAllElements().stream())
+					.filter(dev -> dev.device().location().room().exists())
+					.map(dev -> dev.device().location().room().<Room>getLocationResource())
+					.collect(Collectors.toSet());
+				final BuildingPropertyUnit building = buildings.getSelectedItem(req);
+				if (building != null && building.rooms().exists()) {
+					final List<Room> filteredRooms = building.rooms().getAllElements();
+					rooms = rooms.stream()
+							.filter(room -> filteredRooms.stream().filter(room2 -> room2.equalsLocation(room)).findAny().isPresent()).collect(Collectors.toList());
+				}
+				update(rooms, req);
+			}
+			
+		};
+		rooms.setTemplate(new DisplayTemplate<Room>() {
+			
+			@Override
+			public String getLabel(Room room, OgemaLocale arg1) {
+				return room.name().isActive() ? room.name().getValue() : room.getLocation();
+			}
+			
+			@Override
+			public String getId(Room room) {
+				return room.getLocation();
+			}
+		});
+		rooms.setDefaultSelectByUrlParam("room");
+		final String roomsTooltip = "Ergebnisse filtern nach dem Raum";
+		rooms.setDefaultToolTip(roomsTooltip);
+
+		final AtomicInteger subCnt = new AtomicInteger();
+		final Supplier<Flexbox> subFlexSupplier = () -> {
+			final Flexbox sub  = new Flexbox(page, "filterflex_sub" + subCnt.getAndIncrement(), true);
+			sub.addCssItem(">div", subFlexCss, null);
+			sub.setAlignItems(AlignItems.CENTER, null);
+			filterFlex.addItem(sub, null);
+			return sub;
+		};
+		subFlexSupplier.get().addItem(new Label(page, "filterDoneLab", "Erledigte anzeigen?"), null)
+			.addItem(statusFilter, null);
+		subFlexSupplier.get().addItem(new Label(page, "filterBuildingLab", "Gebäude:"), null)
+			.addItem(buildings, null);
+		subFlexSupplier.get().addItem(new Label(page, "filterRoomLab", "Räume:"), null)
+			.addItem(rooms, null);
+		subFlexSupplier.get().addItem(new Label(page, "filterDevTypeLab", "Gerätetypen:"), null)
+			.addItem(new Label(page, "filterDevType", "Platzhalter"), null);
+		
+		final Collection<Integer> doneStatuses = Stream.of(1, 11).collect(Collectors.toList());		
+		final DynamicTable<InstallAppDevice> table = new DynamicTable<InstallAppDevice>(page, "devicesTable") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final boolean filterForReleased = "unresolved".equals(statusFilter.getSelectedValue(req));
+				Stream<InstallAppDevice> deviceStream =  appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
 					.flatMap(cfg -> cfg.knownDevices().getAllElements().stream())
 					.filter(cfg -> !cfg.isTrash().isActive() || !cfg.isTrash().getValue())
-					.filter(cfg -> cfg.knownFault().isActive())
-					.collect(Collectors.toList());
+					.filter(cfg -> cfg.knownFault().isActive());
+				if (filterForReleased) {
+					deviceStream = deviceStream.filter(cfg -> !cfg.knownFault().forRelease().isActive() 
+							|| !doneStatuses.contains(cfg.knownFault().forRelease().getValue()));
+				}
+				final List<Room> selectedRooms = rooms.getSelectedItems(req);
+				if (!selectedRooms.isEmpty()) {
+					deviceStream = deviceStream.filter(cfg -> selectedRooms.stream().filter(r -> 
+							cfg.device().location().room().equalsLocation(r)).findAny().isPresent()
+					);
+				}
+				final List<InstallAppDevice> devices = deviceStream.collect(Collectors.toList());
 				updateRows(devices, req);
 			}
 			
 		};
 		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mmZ");
-		final Collection<Integer> doneStatuses = Stream.of(1, 11).collect(Collectors.toList());
 		table.setRowTemplate(new RowTemplate<InstallAppDevice>() {
 
 			@Override
@@ -325,7 +441,14 @@ public class DeviceKnownFaultsInstallationPage {
 		final Header header = new Header(page, "title", "9. Gerätefehler (Installationssicht)");
 		header.setDefaultHeaderType(1);
 		header.setDefaultColor("darkblue");
-		page.append(header).linebreak().append(table);
+		final Header filterHeader = new Header(page, "filterHeader", "Filter");
+		filterHeader.setDefaultHeaderType(3);
+		filterHeader.setDefaultColor("darkblue");
+		final Header alarmsHeader = new Header(page, "alarmsHeader", "Alarme");
+		alarmsHeader.setDefaultHeaderType(3);
+		alarmsHeader.setDefaultColor("darkblue");
+		page.append(header).append(filterHeader)
+			.append(filterFlex).append(alarmsHeader).append(table);
 		
 		// popup for message display // copied over from DeviceKnownFaultsPage
 		lastMessagePopup = new Popup(page, "lastMessagePopup", true);
@@ -345,7 +468,11 @@ public class DeviceKnownFaultsInstallationPage {
 		page.append(lastMessagePopup);
 		//
 		
-		
+		statusFilter.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		buildings.triggerAction(rooms, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		buildings.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		rooms.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		// TODO devices
 	}
 	
 	private static float prioForRowId(String rowId) {
