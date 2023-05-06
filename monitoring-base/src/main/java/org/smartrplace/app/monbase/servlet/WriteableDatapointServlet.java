@@ -11,6 +11,7 @@ import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.PhysicalUnit;
 import org.ogema.core.model.units.PhysicalUnitResource;
@@ -64,6 +65,14 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 
 		if(dpService == null)
 			throw new IllegalStateException("Datapoint Service required for WriteableDatapoint Servlet!");
+		
+		//clean up
+		if(apidata.datapoints().exists()) {
+			for(WriteableDatapoint wdp: apidata.datapoints().getAllElements()) {
+				if(!wdp.datapointLocation().exists())
+					wdp.delete();
+			}
+		}
 	}
 
 	/** Create WriteableDatapoint. Note that usually such datapoints are created via API calls, but also OGEMA apps
@@ -224,8 +233,10 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 			valueP = new ServletTimeResourceProvider((TimeResource)sres);
 		} else if(sres instanceof BooleanResource) {
 			valueP = new ServletBooleanResourceProvider((BooleanResource)sres);
-		} else
+		} else if(sres instanceof StringResource) {
 			valueP = new ServletNumProvider(ValueResourceUtils.getFloatValue(sres));
+		} else
+			valueP = new ServletNumProvider(-999999f);
 		result.put("currentValue", valueP);
 
 		ServletStringProvider location = new ServletStringProvider(locationStr);
