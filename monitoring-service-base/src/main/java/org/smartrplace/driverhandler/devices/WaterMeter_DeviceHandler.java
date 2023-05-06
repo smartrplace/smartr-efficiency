@@ -66,12 +66,12 @@ public class WaterMeter_DeviceHandler extends DeviceHandlerSimple<SensorDevice> 
 		SensorDevice device = (SensorDevice) appDevice.device();
 		
 		AlarmingUtiH.setTemplateValues(appDevice, getMainSensorValue(device, appDevice),
-				0f, 9999999f, 1, AlarmingUtiH.DEFAULT_NOVALUE_MINUTES);
+				0f, 9999999f, 1, AlarmingUtiH.DEFAULT_NOVALUE_NIGHTLY_MINUTES);
 	}
 
 	@Override
 	public String getInitVersion() {
-		return "A";
+		return "B";
 	}
 	
 	@Override
