@@ -87,7 +87,8 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 			WriteableDatapoints apidata, DatapointService dpService) {
 		WriteDPData existing = getExistingWDPData(loc, apidata, dpService); //getObject(loc, null);
 		if(existing != null)
-			throw new IllegalStateException("Writeable datapoint with id "+loc+" already exists:"+existing.writeDp.getLocation());
+			return existing.dp;
+			//throw new IllegalStateException("Writeable datapoint with id "+loc+" already exists:"+existing.writeDp.getLocation());
 		ValueResourceHelper.setCreate(writeDp.datapointLocation(), loc);
 
 		if(sres == null)
@@ -354,7 +355,7 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 
 	@Override
 	public WriteDPData getObject(String objectId, String user) {
-		if(objectId.equals("NEW_DATAPOINT")) {
+		if(objectId.equals("NEW_DATAPOINT") || objectId.equals("new") ) {
 			WriteDPData el = new WriteDPData();
 			el.writeDp = apidata.datapoints().add();
 			el.dp = null;
