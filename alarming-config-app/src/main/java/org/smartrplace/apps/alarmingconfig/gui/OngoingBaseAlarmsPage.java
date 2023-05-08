@@ -186,15 +186,19 @@ public class OngoingBaseAlarmsPage extends MainPage {
 	protected void addAdditionalWidgets(AlarmConfiguration sr,
 			ObjectResourceGUIHelper<AlarmConfiguration, AlarmConfiguration> vh, String id, OgemaHttpRequest req,
 			Row row, ApplicationManager appMan) {
-		if(req == null)
-			vh.registerHeaderEntry("Last Update");
-		else {
+		if(req == null) {
+			vh.registerHeaderEntry("Last Status");
+			vh.registerHeaderEntry("Last Val");
+		} else {
 			ValueResource res = sr.sensorVal().getLocationResource();
+			long lastUpdRes = res.getLastUpdateTime();
+			vh.timeLabel("Last Val", id, lastUpdRes, row, 2);
+
 			IntegerResource statusRes = AlarmingConfigUtil.getAlarmStatus(res);
 			if(statusRes == null)
 				return;
 			long lastUpd = statusRes.getLastUpdateTime();
-			vh.timeLabel("Last Update", id, lastUpd, row, 2);
+			vh.timeLabel("Last Status", id, lastUpd, row, 2);
 		}
 		
 	}
