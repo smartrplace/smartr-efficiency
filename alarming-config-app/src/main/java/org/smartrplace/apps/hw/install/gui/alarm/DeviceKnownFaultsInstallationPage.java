@@ -12,24 +12,28 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
-import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Supplier;
 
@@ -66,22 +70,27 @@ public class DeviceKnownFaultsInstallationPage {
 	
 	private final WidgetPage<?> page;
 	private final ApplicationManager appMan;
+	private final DeviceHandlerAccess deviceHandlers;
 	private Popup lastMessagePopup;
 	private Label lastMessageDevice;
 	private Label lastMessage;
 	
-	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan) {
+	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan, DeviceHandlerAccess deviceHandlers) {
 		this.page = page;
 		this.appMan = appMan;
+		this.deviceHandlers = deviceHandlers;
 		this.buildPage();
 	}
 	
 	private final void buildPage() {
 		
-		final Map<String, String> subFlexCss = new HashMap<>(4, 4);
+		final Map<String, String> subFlexCss = new HashMap<>(4);
 		subFlexCss.put("column-gap", "1em");
 		subFlexCss.put("flex-wrap", "nowrap");
-		final Map<String, String> filterFlexCss = new HashMap<>(4, 4);
+		final Map<String, String> subFlexFirstCss = new HashMap<>(4);
+		subFlexFirstCss.put("color", "darkblue");
+		subFlexFirstCss.put("font-weight", "bold");
+		final Map<String, String> filterFlexCss = new HashMap<>(8);
 		filterFlexCss.put("column-gap", "3em");
 		filterFlexCss.put("row-gap", "1em");
 		filterFlexCss.put("flex-wrap", "wrap");
@@ -117,15 +126,16 @@ public class DeviceKnownFaultsInstallationPage {
 			
 		};
 		buildings.setDefaultSelectByUrlParam("roomgroup");
-		final String buildingsTooltip = "Gebäude/Gruppe von Räumen auswählen";
+		final String buildingsTooltip = "Gebäude/Gruppe von Räumen auswählen um Räume zu filtern";
 		buildings.setDefaultToolTip(buildingsTooltip);
+		
+		final KnownDevicesWidget knownDevices = new KnownDevicesWidget(page, "knowndevices", appMan.getResourceAccess());
 		
 		final TemplateMultiselect<Room> rooms = new TemplateMultiselect<Room>(page, "roomSelector") {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				Collection<Room> rooms = appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
-					.flatMap(cfg -> cfg.knownDevices().getAllElements().stream())
+				Collection<Room> rooms = knownDevices.getKnownDevices(req).stream()
 					.filter(dev -> dev.device().location().room().exists())
 					.map(dev -> dev.device().location().room().<Room>getLocationResource())
 					.collect(Collectors.toSet());
@@ -152,13 +162,46 @@ public class DeviceKnownFaultsInstallationPage {
 			}
 		});
 		rooms.setDefaultSelectByUrlParam("room");
-		final String roomsTooltip = "Ergebnisse filtern nach dem Raum";
+		final String roomsTooltip = "Alarme nach Raum filtern";
 		rooms.setDefaultToolTip(roomsTooltip);
+		
+		final TemplateMultiselect<DeviceHandlerProvider<?>> deviceTypes = new TemplateMultiselect<DeviceHandlerProvider<?>>(page, "deviceHandlers") {
+			
+			// filtered by selected room and availability of devices
+			public void onGET(OgemaHttpRequest req) {
+				final List<InstallAppDevice> devices = knownDevices.getKnownDevices(req);
+				final List<Room> room = rooms.getSelectedItems(req);
+				Stream<InstallAppDevice> handlerStream = devices.stream();
+				if (room != null && !room.isEmpty()) {
+					handlerStream = handlerStream.filter(dev ->  {
+						final Room deviceRoom = dev.device().location().room();
+						if (deviceRoom == null)
+							return false;
+						return room.stream().filter(r -> r.equalsLocation(deviceRoom)).findAny().isPresent();
+					});
+				}
+				final Set<String> applicableHandlers = handlerStream
+					.map(dev -> dev.devHandlerInfo())
+					.filter(Resource::isActive)
+					.map(StringResource::getValue)
+					.collect(Collectors.toSet());
+				
+				final Collection<DeviceHandlerProvider<?>> handlers = deviceHandlers.getTableProviders().values().stream()
+					.filter(dev -> applicableHandlers.contains(dev.id()))
+					.collect(Collectors.toList());
+				update(handlers, req);
+			}
+			
+		};
+		deviceTypes.setDefaultSelectByUrlParam("device");
+		final String devicesTooltip = "Filter device type";
+		deviceTypes.setDefaultToolTip(devicesTooltip);
 
 		final AtomicInteger subCnt = new AtomicInteger();
 		final Supplier<Flexbox> subFlexSupplier = () -> {
 			final Flexbox sub  = new Flexbox(page, "filterflex_sub" + subCnt.getAndIncrement(), true);
 			sub.addCssItem(">div", subFlexCss, null);
+			sub.addCssItem(">div>div:first-child", subFlexFirstCss, null);
 			sub.setAlignItems(AlignItems.CENTER, null);
 			filterFlex.addItem(sub, null);
 			return sub;
@@ -170,7 +213,7 @@ public class DeviceKnownFaultsInstallationPage {
 		subFlexSupplier.get().addItem(new Label(page, "filterRoomLab", "Räume:"), null)
 			.addItem(rooms, null);
 		subFlexSupplier.get().addItem(new Label(page, "filterDevTypeLab", "Gerätetypen:"), null)
-			.addItem(new Label(page, "filterDevType", "Platzhalter"), null);
+			.addItem(deviceTypes, null);
 		
 		final Collection<Integer> doneStatuses = Stream.of(1, 11).collect(Collectors.toList());		
 		final DynamicTable<InstallAppDevice> table = new DynamicTable<InstallAppDevice>(page, "devicesTable") {
@@ -178,8 +221,7 @@ public class DeviceKnownFaultsInstallationPage {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				final boolean filterForReleased = "unresolved".equals(statusFilter.getSelectedValue(req));
-				Stream<InstallAppDevice> deviceStream =  appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
-					.flatMap(cfg -> cfg.knownDevices().getAllElements().stream())
+				Stream<InstallAppDevice> deviceStream =  knownDevices.getKnownDevices(req).stream()
 					.filter(cfg -> !cfg.isTrash().isActive() || !cfg.isTrash().getValue())
 					.filter(cfg -> cfg.knownFault().isActive());
 				if (filterForReleased) {
@@ -191,6 +233,11 @@ public class DeviceKnownFaultsInstallationPage {
 					deviceStream = deviceStream.filter(cfg -> selectedRooms.stream().filter(r -> 
 							cfg.device().location().room().equalsLocation(r)).findAny().isPresent()
 					);
+				}
+				final List<DeviceHandlerProvider<?>> handlers = deviceTypes.getSelectedItems(req);
+				if (!handlers.isEmpty()) {
+					final List<String> ids = handlers.stream().map(DeviceHandlerProvider::id).collect(Collectors.toList());
+					deviceStream = deviceStream.filter(cfg -> cfg.devHandlerInfo().isActive() && ids.contains(cfg.devHandlerInfo().getValue()));
 				}
 				final List<InstallAppDevice> devices = deviceStream.collect(Collectors.toList());
 				updateRows(devices, req);
@@ -469,10 +516,16 @@ public class DeviceKnownFaultsInstallationPage {
 		//
 		
 		statusFilter.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		
+		knownDevices.triggerAction(rooms, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST);
+		knownDevices.triggerAction(deviceTypes, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST);
+		
 		buildings.triggerAction(rooms, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		buildings.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
-		rooms.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		// TODO devices
+		buildings.triggerAction(deviceTypes, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		buildings.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 2);
+		rooms.triggerAction(deviceTypes, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		rooms.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		deviceTypes.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 	}
 	
 	private static float prioForRowId(String rowId) {
