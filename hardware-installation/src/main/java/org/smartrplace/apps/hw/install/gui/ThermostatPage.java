@@ -77,7 +77,8 @@ public class ThermostatPage extends MainPage {
 		VALVE_ONLY,
 		BATTERY_WINDOW,
 		UPDATE_INTERVAL_CONFIG,
-		STANDARD_VIEW_ONLY
+		STANDARD_VIEW_ONLY,
+		LOCKING,
 	}
 	protected final ThermostatPageType type;
 	
@@ -94,6 +95,8 @@ public class ThermostatPage extends MainPage {
 			return "Thermostat Window-TempFall Management";
 		case UPDATE_INTERVAL_CONFIG:
 			return "Thermostat HM Update Intervals";
+		case LOCKING:
+			return "Thermostat User Key Locking";
 		case STANDARD_VIEW_ONLY:
 			return "Thermostat Page";
 		}
@@ -606,12 +609,15 @@ public class ThermostatPage extends MainPage {
 					if(req == null) {
 						vh.registerHeaderEntry("Com/Err");
 						vh.registerHeaderEntry("Last Err");
-						if(type != ThermostatPageType.VALVE_ONLY) {
+						if(type != ThermostatPageType.VALVE_ONLY && type != ThermostatPageType.LOCKING) {
 							vh.registerHeaderEntry("ManuMode");
 							if(type == ThermostatPageType.AUTO_MODE) {
 								vh.registerHeaderEntry("Resend");
 								vh.registerHeaderEntry("Curv Resnd");
 							}
+						} else if(type == ThermostatPageType.LOCKING) {
+							vh.registerHeaderEntry("Lock");
+							vh.registerHeaderEntry("ResendLock");
 						} else {
 							vh.registerHeaderEntry("VveMax");
 							vh.registerHeaderEntry("EditMax");
@@ -701,7 +707,26 @@ public class ThermostatPage extends MainPage {
 						row.addCell(WidgetHelper.getValidWidgetId("ManuMode"), ctrlModeLb);
 						ctrlModeLb.setPollingInterval(DEFAULT_POLL_RATE, req);
 					
-						if(type == ThermostatPageType.AUTO_MODE) {
+						if(type == ThermostatPageType.LOCKING) {
+							final BooleanResource lock = (BooleanResource) PropType.getHmParam(device, PropType.BUTTON_LOCK, false);
+							if(lock != null && lock.exists()) {
+								vh.booleanEdit("Lock", id, lock, row);
+								Button resendManu = new Button(mainTable, "resendLock"+id, req) {
+									@Override
+									public void onGET(OgemaHttpRequest req) {
+										long ts = lock.getLastUpdateTime();
+										String text = "Lock:"+StringFormatHelper.getFormattedAgoValue(appMan, ts);
+										setText(text, req);
+									};
+									@Override
+									public void onPOSTComplete(String data, OgemaHttpRequest req) {
+										lock.setValue(lock.getValue());
+									};
+									
+								};
+								row.addCell("ResendLock", resendManu);
+							}
+						} else if(type == ThermostatPageType.AUTO_MODE) {
 							if(controlModeFeedback != null && controlModeFeedback.exists()) {
 								Button resendManu = new Button(mainTable, "resendManu"+id, req) {
 									@Override
