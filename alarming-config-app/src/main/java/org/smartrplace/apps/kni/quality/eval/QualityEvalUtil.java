@@ -14,6 +14,7 @@ import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.gateway.device.KnownIssueDataGw;
+import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 
 import de.iwes.util.resource.OGEMAResourceCopyHelper;
@@ -110,6 +111,8 @@ public class QualityEvalUtil {
 			result.setElementType(KnownIssueDataGw.class);
 			result.activate(true);
 		}
+		if(!Boolean.getBoolean("org.smartrplace.apps.subgateway"))
+			GatewaySyncUtil.registerToplevelDeviceForSyncAsClient(result, appMan);
 		return result;
 	}
 	public static String gwIdResourceName = null;
