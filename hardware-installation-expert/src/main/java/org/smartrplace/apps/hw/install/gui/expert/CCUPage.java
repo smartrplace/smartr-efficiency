@@ -7,6 +7,7 @@ import java.util.List;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.units.PercentageResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceTableBase;
@@ -29,10 +30,12 @@ import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 
 import de.iwes.util.logconfig.CountdownTimerMulti2Single;
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.label.Label;
 
 @SuppressWarnings("serial")
@@ -148,14 +151,28 @@ public class CCUPage extends MainPage {
 				
 				//TODO: Provide method to check if CCU can be accessed via CCUAccess
 				if(controller.hwInstApp.ccuAccess != null) {
+					final IntegerResource ccuAccRes = device.getSubResource("ccuAccessResult", IntegerResource.class);
 					final ButtonConfirm restartCcu = new ButtonConfirm(mainTable, "restartCCu"+id, req) {
 						@Override
 						public void onGET(OgemaHttpRequest req) {
+							String text;
 							if(hmDriverRestartTimer.isCounting()) {
 								long remain = hmDriverRestartTimer.getRemainingTime();
-								setText("HM-Restart in "+(remain/1000)+" sec", req);
+								text = "HM-Restart in "+(remain/1000)+" sec";
 							} else
-								setText("Reboot", req);
+								text = "Reboot";
+							
+							removeStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+							removeStyle(ButtonData.BOOTSTRAP_GREEN, req);
+							if(ccuAccRes.isActive()) {
+								if(ccuAccRes.getValue() > 0) {
+									addStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+									text += " (E:"+ccuAccRes.getValue()+")";
+								} else {
+									addStyle(ButtonData.BOOTSTRAP_GREEN, req);
+								}
+							}
+							setText(text, req);
 						}
 						
 						@Override
@@ -163,7 +180,11 @@ public class CCUPage extends MainPage {
 							if(controller.hwInstApp.ccuAccess != null) {
 								Resource parent = device.getParent();
 								if(parent != null && (parent instanceof HmLogicInterface)) try {
-									controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
+									int result = controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
+									if(result != 0) {
+										ValueResourceHelper.setCreate(ccuAccRes, result);
+									} else
+										ccuAccRes.setValue(0);
 								} catch (IOException e) {
 									e.printStackTrace();
 									throw new IllegalStateException(e);
