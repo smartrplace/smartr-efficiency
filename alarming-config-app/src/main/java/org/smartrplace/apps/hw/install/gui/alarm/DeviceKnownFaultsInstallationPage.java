@@ -440,13 +440,22 @@ public class DeviceKnownFaultsInstallationPage {
 					
 					@Override
 					public void onGET(OgemaHttpRequest req) {
-						final boolean done = device.knownFault().forRelease().isActive() && doneStatuses.contains(device.knownFault().forRelease().getValue());
+						// we do not distinguish between the different statuses
+						final boolean done = device.knownFault().forRelease().isActive(); // && doneStatuses.contains(device.knownFault().forRelease().getValue());
 						if (done) {
-							disable(req);
-							setText("erledigt", req);
-							setToolTip("Dieser Alarm wurde als erledigt markiert", req);
-							setConfirmMsg("Bereits erledigt", req);
-							setConfirmBtnMsg("??", req);
+							if (device.knownFault().forRelease().getValue() == 11) {
+								enable(req);
+								setText("erledigt\n(rückgängig)", req);
+								setToolTip("Dieser Alarm wurde als erledigt markiert. Hier klicken um rückgängig zu machen.", req);
+								setConfirmMsg("Alarm als nicht erledigt kennzeichnen", req);
+								setConfirmBtnMsg("Zurück setzen", req);
+							} else {
+								disable(req);
+								setText("erledigt", req);
+								setToolTip("Dieser Alarm wurde von extern als erledigt markiert.", req);
+								setConfirmMsg("??", req);
+								setConfirmBtnMsg("??", req);
+							}
 						} else {
 							enable(req);
 							setText("fertigstellen", req);
@@ -459,9 +468,14 @@ public class DeviceKnownFaultsInstallationPage {
 					
 					@Override
 					public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-						final IntegerResource release = device.knownFault().forRelease().create();
-						release.setValue(11);
-						release.activate(false);
+						final IntegerResource release = device.knownFault().forRelease();
+						if (release.isActive()) {
+							if (release.getValue() == 11) // we can only reset the status if it has been set via the installation page.
+								release.delete();
+						} else {
+							release.<IntegerResource> create().setValue(11);
+							release.activate(false);
+						}
 					}
 				};
 				doneBtn.setDefaultConfirmPopupTitle("Bestätigen");
