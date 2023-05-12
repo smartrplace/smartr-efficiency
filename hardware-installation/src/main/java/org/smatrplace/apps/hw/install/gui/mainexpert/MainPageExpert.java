@@ -11,6 +11,7 @@ import java.util.Map;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -30,6 +31,8 @@ import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
+import org.smartrplace.os.util.BundleRestartButton;
+import org.smartrplace.tissue.util.resource.GatewaySyncResourceService;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
@@ -541,12 +544,21 @@ public class MainPageExpert extends MainPage {
 			alarm.delete();
 		}
 		if(devHand == null) {
-			object.device().getLocationResource().deactivate(true);										
+			if(controller.hwInstApp.gwSync != null)
+				controller.hwInstApp.gwSync.deactivateResource(object.device().getLocationResource(), true);
+			else
+				object.device().getLocationResource().deactivate(true);										
 		} else 	for(Resource dev: devHand.devicesControlled(object)) {
-			dev.getLocationResource().deactivate(true);					
+			if(controller.hwInstApp.gwSync != null)
+				controller.hwInstApp.gwSync.deactivateResource(dev.getLocationResource(), true);
+			else
+				dev.getLocationResource().deactivate(true);					
 		}
 		//object.device().getLocationResource().deactivate(true);
-		ValueResourceHelper.setCreate(object.isTrash(), true);		
+		if(controller.hwInstApp.gwSync != null)
+			setCreate(object.isTrash(), true, controller.hwInstApp.gwSync);
+		else
+			ValueResourceHelper.setCreate(object.isTrash(), true);		
 	}
 	
 	public static class KniStatus {
@@ -696,5 +708,22 @@ public class MainPageExpert extends MainPage {
 				tableProvider.initAlarmingForDevice(object, controller.appConfigData);
 			break;
 		}		
+	}
+	
+	public static boolean setCreate(BooleanResource fres, boolean value, GatewaySyncResourceService gwSync) {
+		if(!fres.exists()) {
+			gwSync.create(fres);
+			gwSync.activateResource(fres, false);
+			BundleRestartButton.gwSyncRestart.executeBlockingOnceOnYourOwnRisk();
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			fres.setValue(value);
+			return true;
+		}
+		fres.setValue(value);
+		return false;
 	}
 }

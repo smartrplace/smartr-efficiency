@@ -38,6 +38,7 @@ import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.smartrplace.apps.hw.install.experimental.HardwareInstallPageTest;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
+import org.smartrplace.tissue.util.resource.GatewaySyncResourceService;
 
 import de.iwes.widgets.api.OgemaGuiService;
 import de.iwes.widgets.api.widgets.WidgetApp;
@@ -83,7 +84,14 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addCCUAccess",
-		unbind="removeCCUAccess")
+		unbind="removeCCUAccess"),
+	@Reference(
+		name="gwReplicationConnector",
+		referenceInterface=GatewaySyncResourceService.class,
+		cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+		policy=ReferencePolicy.DYNAMIC,
+		bind="addGwSyncAccess",
+		unbind="removeGwSyncAccess")
 })
 
 @Component(specVersion = "1.2", immediate = true)
@@ -126,6 +134,8 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 	volatile HardwareInstallPageTest testPageImpl; 
 	
 	public volatile CCUAccessI ccuAccess = null;
+	
+	public volatile GatewaySyncResourceService gwSync = null;
 
 	protected final GenericControllerProvider<HardwareInstallController> controllerProvider;
     public HardwareInstallApp() {
@@ -273,5 +283,15 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
     protected void removeCCUAccess(CCUAccessI provider) {
        	if(ccuAccess != null && ccuAccess.equals(provider))
     		ccuAccess = null;
+    }
+    
+    protected void addGwSyncAccess(GatewaySyncResourceService provider) {
+    	if(gwSync == null) {
+    		gwSync = provider;
+    	}
+    }
+    protected void removeGwSyncAccess(GatewaySyncResourceService provider) {
+       	if(gwSync != null && gwSync.equals(provider))
+       		gwSync = null;
     }
  }
