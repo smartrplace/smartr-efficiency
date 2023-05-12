@@ -71,9 +71,11 @@ public class DeviceKnownFaultsInstallationPage {
 	private final WidgetPage<?> page;
 	private final ApplicationManager appMan;
 	private final DeviceHandlerAccess deviceHandlers;
+	/*
 	private Popup lastMessagePopup;
 	private Label lastMessageDevice;
 	private Label lastMessage;
+	*/
 	
 	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan, DeviceHandlerAccess deviceHandlers) {
 		this.page = page;
@@ -108,6 +110,14 @@ public class DeviceKnownFaultsInstallationPage {
 		));
 		statusFilter.setDefaultToolTip("Als erledigt markierte Alarme anzeigen oder ausblenden?");
 		
+		final Dropdown prioFilter = new Dropdown(page, "prioFilter");
+		prioFilter.setDefaultOptions(Arrays.asList(
+				new DropdownOption("all", "Alle Alarme", false),
+				new DropdownOption("prio", "Nur priorisierte", true)
+		));
+		prioFilter.setDefaultToolTip("Nicht priorisierte Alarme anzeigen oder ausblenden?");
+		
+		
 		// filter stuff copied from  HardwareInstall test page
 		final ResourceListDropdown<BuildingPropertyUnit> buildings = new ResourceListDropdown<BuildingPropertyUnit>(page,  "buildingsSelector", false) {
 			
@@ -126,6 +136,7 @@ public class DeviceKnownFaultsInstallationPage {
 			
 		};
 		buildings.setDefaultSelectByUrlParam("roomgroup");
+		buildings.setDefaultMaxWidth("15em");
 		final String buildingsTooltip = "Gebäude/Gruppe von Räumen auswählen um Räume zu filtern";
 		buildings.setDefaultToolTip(buildingsTooltip);
 		
@@ -162,6 +173,7 @@ public class DeviceKnownFaultsInstallationPage {
 			}
 		});
 		rooms.setDefaultSelectByUrlParam("room");
+		rooms.setDefaultMaxWidth("15em");
 		final String roomsTooltip = "Alarme nach Raum filtern";
 		rooms.setDefaultToolTip(roomsTooltip);
 		
@@ -194,6 +206,7 @@ public class DeviceKnownFaultsInstallationPage {
 			
 		};
 		deviceTypes.setDefaultSelectByUrlParam("device");
+		deviceTypes.setDefaultMaxWidth("15em");
 		final String devicesTooltip = "Filter device type";
 		deviceTypes.setDefaultToolTip(devicesTooltip);
 
@@ -208,6 +221,8 @@ public class DeviceKnownFaultsInstallationPage {
 		};
 		subFlexSupplier.get().addItem(new Label(page, "filterDoneLab", "Erledigte anzeigen?"), null)
 			.addItem(statusFilter, null);
+		subFlexSupplier.get().addItem(new Label(page, "filterPrioLab", "Nicht priorisierte anzeigen?"), null)
+			.addItem(prioFilter, null);
 		subFlexSupplier.get().addItem(new Label(page, "filterBuildingLab", "Gebäude:"), null)
 			.addItem(buildings, null);
 		subFlexSupplier.get().addItem(new Label(page, "filterRoomLab", "Räume:"), null)
@@ -221,6 +236,7 @@ public class DeviceKnownFaultsInstallationPage {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				final boolean filterForReleased = "unresolved".equals(statusFilter.getSelectedValue(req));
+				final boolean filterForPrioritised = "prio".equals(prioFilter.getSelectedValue(req));
 				Stream<InstallAppDevice> deviceStream =  knownDevices.getKnownDevices(req).stream()
 					.filter(cfg -> !cfg.isTrash().isActive() || !cfg.isTrash().getValue())
 					.filter(cfg -> cfg.knownFault().isActive());
@@ -228,6 +244,10 @@ public class DeviceKnownFaultsInstallationPage {
 					deviceStream = deviceStream.filter(cfg -> !cfg.knownFault().forRelease().isActive() 
 							|| !doneStatuses.contains(cfg.knownFault().forRelease().getValue()));
 				}
+				if (filterForPrioritised) {
+					deviceStream = deviceStream.filter(cfg -> cfg.knownFault().getSubResource("processingOrder", FloatResource.class).isActive());
+				}
+				
 				final List<Room> selectedRooms = rooms.getSelectedItems(req);
 				if (!selectedRooms.isEmpty()) {
 					deviceStream = deviceStream.filter(cfg -> selectedRooms.stream().filter(r -> 
@@ -271,9 +291,12 @@ public class DeviceKnownFaultsInstallationPage {
 				final ValueResourceLabel<StringResource> loc =new ValueResourceLabel<>(table, id + "_loc", req);
 				loc.selectDefaultItem(device.installationLocation());
 				row.addCell("location", loc);
-				
+				/*
 				final ValueResourceTextField<StringResource> comment = new ValueResourceTextField<StringResource>(table, id + "_comment", 
 						device.knownFault().comment(), req);
+						*/
+				final ValueResourceLabel<StringResource> comment = new ValueResourceLabel<StringResource>(table, id + "_comment", req); 
+				comment.selectDefaultItem(device.knownFault().comment());
 				if (device.knownFault().comment().isActive())
 					comment.setDefaultToolTip(device.knownFault().comment().getValue());
 				row.addCell("comment", comment);
@@ -312,7 +335,8 @@ public class DeviceKnownFaultsInstallationPage {
 					
 				};
 				prioLabel.setDefaultToolTip("Priorität angeben. Empfohlene Werte sind 10, 20, 30, ...");
-				prioLabel.setDefaultPlaceholder("Priorität (10, 20, 30, ...)");
+				prioLabel.setDefaultPlaceholder("Priorität");
+				prioLabel.setDefaultMaxWidth("6em");
 				row.addCell("prio", prioLabel);
 				// changing the priority can change the order in the table
 				prioLabel.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
@@ -335,7 +359,7 @@ public class DeviceKnownFaultsInstallationPage {
 						"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + device.deviceId().getValue(), req);
 				detailsRedirect.setToolTip("Alarmdetails in neuem Tab anzeigen", req);
 				row.addCell("details", detailsRedirect);
-				
+				/*
 				final Dropdown assigned = new Dropdown(table, id + "_assigned", req) {
 					
 					@Override
@@ -373,8 +397,28 @@ public class DeviceKnownFaultsInstallationPage {
 				assigned.setDefaultOptions(assignmentOpts);
 				assigned.setDefaultToolTip("Verantortlichkeit festlegen");
 				assigned.triggerAction(assigned, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				*/
+				final Label assigned = new Label(table, id + "_assigned", req) {
+					
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						final int assigned = device.knownFault().assigned().isActive() ? device.knownFault().assigned().getValue() : 0;
+						final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.getOrDefault(assigned + "", "None");
+						setText(role, req);
+					}
+					
+				};
 				row.addCell("assigned", assigned);
+				final StringResource installationComment = device.knownFault().getSubResource("installationResult", StringResource.class);
+				final ValueResourceTextField<StringResource> installComment = new ValueResourceTextField<StringResource>(table, id + "_installation", 
+						installationComment, req);
+				if (installationComment.isActive())
+					installComment.setDefaultToolTip(installationComment.getValue());
+				else
+					installComment.setDefaultToolTip("Ergebnis der Vor-Ort-Fehlerbehandlung hier eintragen.");
+				row.addCell("installation", installComment);
 				
+				/*
 				final Button showMsg = new Button(table, id + "_msg", req) {
 					
 					@Override
@@ -390,18 +434,28 @@ public class DeviceKnownFaultsInstallationPage {
 				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("message", showMsg);
+				*/
 				
 				final ButtonConfirm doneBtn = new ButtonConfirm(table, id + "_done", req) {
 					
 					@Override
 					public void onGET(OgemaHttpRequest req) {
-						final boolean done = device.knownFault().forRelease().isActive() && doneStatuses.contains(device.knownFault().forRelease().getValue());
+						// we do not distinguish between the different statuses
+						final boolean done = device.knownFault().forRelease().isActive(); // && doneStatuses.contains(device.knownFault().forRelease().getValue());
 						if (done) {
-							disable(req);
-							setText("erledigt", req);
-							setToolTip("Dieser Alarm wurde als erledigt markiert", req);
-							setConfirmMsg("Bereits erledigt", req);
-							setConfirmBtnMsg("??", req);
+							if (device.knownFault().forRelease().getValue() == 11) {
+								enable(req);
+								setText("erledigt\n(rückgängig)", req);
+								setToolTip("Dieser Alarm wurde als erledigt markiert. Hier klicken um rückgängig zu machen.", req);
+								setConfirmMsg("Alarm als nicht erledigt kennzeichnen", req);
+								setConfirmBtnMsg("Zurück setzen", req);
+							} else {
+								disable(req);
+								setText("erledigt", req);
+								setToolTip("Dieser Alarm wurde von extern als erledigt markiert.", req);
+								setConfirmMsg("??", req);
+								setConfirmBtnMsg("??", req);
+							}
 						} else {
 							enable(req);
 							setText("fertigstellen", req);
@@ -414,9 +468,14 @@ public class DeviceKnownFaultsInstallationPage {
 					
 					@Override
 					public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-						final IntegerResource release = device.knownFault().forRelease().create();
-						release.setValue(11);
-						release.activate(false);
+						final IntegerResource release = device.knownFault().forRelease();
+						if (release.isActive()) {
+							if (release.getValue() == 11) // we can only reset the status if it has been set via the installation page.
+								release.delete();
+						} else {
+							release.<IntegerResource> create().setValue(11);
+							release.activate(false);
+						}
 					}
 				};
 				doneBtn.setDefaultConfirmPopupTitle("Bestätigen");
@@ -436,17 +495,18 @@ public class DeviceKnownFaultsInstallationPage {
 			@Override
 			public Map<String, Object> getHeader() {
 				final Map<String, Object> header = new LinkedHashMap<String, Object>();
+				header.put("prio", "Reihenfolge");
 				header.put("name", "Gerätename");
 				header.put("device", "Geräte-Id");
 				header.put("room", "Raum");
 				header.put("location", "Ort");
-				header.put("prio", "Reihenfolge");
 				header.put("value", "Wert/Letzter Kontakt");
-				header.put("activesince", "Aktiv seit");
-				header.put("comment", "Kommentar");
+				header.put("activesince", "Fehler seit");
+				header.put("comment", "Analyse");
 				header.put("details", "Details");
 				header.put("assigned", "Verantwortlich");
-				header.put("message", "Fehlerbericht");
+				header.put("installation", "Ergebnis Vor-Ort");
+				//header.put("message", "Fehlerbericht");
 				header.put("resolve", "Erledigt?");
 				return header;
 			}
@@ -498,6 +558,7 @@ public class DeviceKnownFaultsInstallationPage {
 			.append(filterFlex).append(alarmsHeader).append(table);
 		
 		// popup for message display // copied over from DeviceKnownFaultsPage
+		/*
 		lastMessagePopup = new Popup(page, "lastMessagePopup", true);
 		lastMessagePopup.setDefaultTitle("Letzter Alarm");
 		lastMessageDevice = new Label(page, "lastMessagePopupDevice");
@@ -513,9 +574,11 @@ public class DeviceKnownFaultsInstallationPage {
 		closeLastMessage.triggerAction(lastMessagePopup, TriggeringAction.ON_CLICK, TriggeredAction.HIDE_WIDGET);
 		lastMessagePopup.setFooter(closeLastMessage, null);
 		page.append(lastMessagePopup);
+		*/
 		//
 		
 		statusFilter.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		prioFilter.triggerAction(table, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		
 		knownDevices.triggerAction(rooms, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST);
 		knownDevices.triggerAction(deviceTypes, TriggeringAction.GET_REQUEST, TriggeredAction.GET_REQUEST);
