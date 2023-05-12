@@ -544,15 +544,21 @@ public class MainPageExpert extends MainPage {
 			alarm.delete();
 		}
 		if(devHand == null) {
-			if(controller.hwInstApp.gwSync != null)
+			if(controller.hwInstApp.gwSync != null) {
 				controller.hwInstApp.gwSync.deactivateResource(object.device().getLocationResource(), true);
-			else
-				object.device().getLocationResource().deactivate(true);										
+				System.out.println("Deactivate VIA SYNC: "+object.device().getLocation());
+			} else {
+				object.device().getLocationResource().deactivate(true);
+				System.out.println("Deactivate LOCAL ONLY: "+object.device().getLocation());
+			}
 		} else 	for(Resource dev: devHand.devicesControlled(object)) {
-			if(controller.hwInstApp.gwSync != null)
+			if(controller.hwInstApp.gwSync != null) {
 				controller.hwInstApp.gwSync.deactivateResource(dev.getLocationResource(), true);
-			else
+				System.out.println("Deactivate VIA SYNC: "+dev.getLocation());
+			} else {
 				dev.getLocationResource().deactivate(true);					
+				System.out.println("Deactivate LOCAL ONLY: "+dev.getLocation());
+			}
 		}
 		//object.device().getLocationResource().deactivate(true);
 		//if(controller.hwInstApp.gwSync != null)
