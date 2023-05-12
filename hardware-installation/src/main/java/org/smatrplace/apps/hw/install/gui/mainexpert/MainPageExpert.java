@@ -555,10 +555,10 @@ public class MainPageExpert extends MainPage {
 				dev.getLocationResource().deactivate(true);					
 		}
 		//object.device().getLocationResource().deactivate(true);
-		if(controller.hwInstApp.gwSync != null)
-			setCreate(object.isTrash(), true, controller.hwInstApp.gwSync);
-		else
-			ValueResourceHelper.setCreate(object.isTrash(), true);		
+		//if(controller.hwInstApp.gwSync != null)
+		//	setCreate(object.isTrash(), true, controller.hwInstApp.gwSync);
+		//else
+		ValueResourceHelper.setCreate(object.isTrash(), true);		
 	}
 	
 	public static class KniStatus {
