@@ -44,6 +44,8 @@ import org.ogema.model.sensors.GenericFloatSensor;
 import org.ogema.tools.app.useradmin.api.UserDataAccess;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.service.cm.ConfigurationAdmin;
+import org.smartrplace.alarming.escalation.util.EscalationManagerI;
+import org.smartrplace.alarming.escalation.util.EscalationProvider;
 import org.smartrplace.app.monservice.MonitoringServiceBaseApp;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.dpres.SensorDeviceDpRes;
@@ -744,5 +746,50 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	@Override
 	public InstallationProgressService installationService(String comSystemId) {
 		return installationServices.get(comSystemId);
+	}
+	
+	private volatile EscalationManagerI escService = null;
+	private List<EscalationProvider> openInitialEscServices = new ArrayList<>();
+	public void setEscService(EscalationManagerI escService) {
+		this.escService = escService;
+	}
+	@Override
+	public EscalationManagerI alarmingEscalationService() {
+		return escService;
+	}
+	
+	@Override
+	public boolean addService(Object service) {
+		if(service instanceof EscalationManagerI) {
+			if(escService == null) {
+				escService = (EscalationManagerI) service;
+				for(EscalationProvider prov: openInitialEscServices) {
+					escService.registerEscalationProvider(prov);
+				}
+				openInitialEscServices.clear();
+				return true;
+			}
+		}
+		return false;		
+	}
+	
+	@Override
+	public void registerEscalationProvider(EscalationProvider prov) {
+		if(escService == null) {
+			openInitialEscServices.add(prov);
+			return;
+		}
+		escService.registerEscalationProvider(prov);		
+	}
+	
+	@Override
+	public EscalationProvider unregisterEscalationProvider(EscalationProvider prov) {
+		if(escService == null) {
+			if(openInitialEscServices.remove(prov))
+				return prov;
+			else
+				return null;
+		}
+		return escService.unregisterEscalationProvider(prov);		
 	}
 }

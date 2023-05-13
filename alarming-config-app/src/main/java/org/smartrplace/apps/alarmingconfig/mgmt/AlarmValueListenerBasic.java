@@ -271,7 +271,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		}
 		if(noMessage)
 			return;
-		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
+		MessagePriority prio = AlarmingConfigUtil.getMessagePrio(ac.alarmLevel().getValue());
 		controller.escMan.knownIssueNotification(vl.knownDeviceFault, title, message);
 		if(prio != null)
 			sendMessage(title, status, message, prio, null);		
@@ -287,7 +287,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			alarmStatus.setValue(alarmValue);
 		}
 
-		MessagePriority prio = getMessagePrio(ac.alarmLevel().getValue());
+		MessagePriority prio = AlarmingConfigUtil.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(title, alarmValue, message, prio, extSource);
 	}
@@ -299,18 +299,4 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	public ResourceValueListener<?> getListener() {
 		return this;
 	}
-	
-	public static MessagePriority getMessagePrio(int resourceValue) {
-		switch(resourceValue) {
-		case 1:
-			return MessagePriority.LOW;
-		case 2:
-			return MessagePriority.MEDIUM;
-		case 3:
-			return MessagePriority.HIGH;
-		default:
-			return null;
-		}
-	}
-
 }

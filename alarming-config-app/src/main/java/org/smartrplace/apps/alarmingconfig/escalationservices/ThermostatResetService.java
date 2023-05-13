@@ -1,10 +1,7 @@
 package org.smartrplace.apps.alarmingconfig.escalationservices;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
@@ -12,27 +9,20 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.devices.buildingtechnology.ElectricLight;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.gateway.LocalGatewayInformation;
-import org.ogema.model.locations.Room;
 import org.ogema.model.sensors.CO2Sensor;
 import org.ogema.model.sensors.DoorWindowSensor;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
-import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
+import org.smartrplace.alarming.escalation.util.EscalationKnownIssue;
+import org.smartrplace.alarming.escalation.util.EscalationProviderSimple;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
-import org.smartrplace.apps.alarmingconfig.mgmt.AlarmValueListenerBasic;
-import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
-import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
-import org.smartrplace.util.message.FirebaseUtil;
-import org.smartrplace.util.message.MessageImpl;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTiming;
-import de.iwes.widgets.api.messaging.MessagePriority;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 public class ThermostatResetService extends EscalationProviderSimple<EscalationKnownIssue> {
@@ -117,31 +107,6 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 		return new EscalationCheckResult();
 	}
 	
-	public static String getMessageHeaderLinks(String baseUrl, LocalGatewayInformation gwRes) {
-		String emailMessage;
-		if(baseUrl == null)
-			emailMessage = null;
-		else
-			emailMessage = "Known issues: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html" +
-					"\r\nDevices: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
-		if(gwRes != null) {
-			if(gwRes.gatewayOperationDatabaseUrl().isActive() && gwRes.gatewayOperationDatabaseUrl().getValue().length() > 5) {
-				if(emailMessage == null)
-					emailMessage = "Operation data collection: "+gwRes.gatewayOperationDatabaseUrl().getValue();
-				else {
-					emailMessage += "\r\nOperation data collection: "+gwRes.gatewayOperationDatabaseUrl().getValue();
-				}
-			}
-			if(gwRes.gatewayLinkOverviewUrl().isActive() && gwRes.gatewayLinkOverviewUrl().getValue().length() > 5) {
-				if(emailMessage == null)
-					emailMessage = "Gateway Documentation Links/Wiki: "+gwRes.gatewayLinkOverviewUrl().getValue();
-				else
-					emailMessage += "\r\nGateway Documentation Links/Wiki: "+gwRes.gatewayLinkOverviewUrl().getValue();
-			}
-		}
-		return emailMessage;
-	}
-	
 	public static String getMessageForKnownIssues(List<EscalationKnownIssue> issues, String baseUrl,
 			String title_afterDeviceNum,
 			List<AppID> appIDs, 
@@ -187,79 +152,5 @@ public class ThermostatResetService extends EscalationProviderSimple<EscalationK
 				appIDs, persistData, appManPlus);
 		return emailMessage;
 		
-	}
-
-	/** Send messages to all configured. This is to report unassigned messages for certain device
-	 * types
-	 * 
-	 * @param title
-	 * @param emailMessage
-	 * @param firebaseMessage
-	 * @param countDevice
-	 * @param maxFault
-	 * @param prio
-	 * @param appIDs
-	 * @param persistData
-	 * @param appManPlus
-	 * @return firebase short message
-	 */
-	public static String sendDeviceSpecificMessage(String emailMessage,
-			int countDevice, int maxFault, String deviceTypeTypePluralString,
-			List<AppID> appIDs, 
-			AlarmingEscalationLevel persistData,
-			ApplicationManagerPlus appManPlus) {
-		String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
-		String title = gwId+"::"+countDevice+" "+deviceTypeTypePluralString+" still with open issues("+maxFault+")!";
-		String message = countDevice + " unassigned "+deviceTypeTypePluralString+", max active alarms: "+maxFault;
-		String firebaseDebugInfoMessage = "Sending Unassigned "+deviceTypeTypePluralString+" warning message:";
-		sendEscalationMessage(title, emailMessage, message,
-				firebaseDebugInfoMessage,
-				appIDs, persistData, appManPlus);
-		return message;
-	}
-	
-	/** Send messages to all configured. This is mainly relevant if the email message is NOT
-	 * sent in the WeeklyEmail format
-	 * 
-	 * @param title message email and firebase message title
-	 * @param emailMessage email message
-	 * @param firebaseMessage short message sent via firebase if relevant. If null no
-	 * 		firebase message is sent.
-	 * @param countDevice number of devices unassigned (only relevant for firebase)
-	 * @param maxFault
-	 * @param prio
-	 * @param appIDs
-	 * @param persistData
-	 * @param appManPlus
-	 * @return
-	 */
-	public static void sendEscalationMessage(String title, String emailMessage,
-			String firebaseMessage,
-			String firebaseDebugInfoMessage,
-			List<AppID> appIDs, 
-			AlarmingEscalationLevel persistData,
-			ApplicationManagerPlus appManPlus) {
-		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(persistData.alarmLevel().getValue());
-		for(AppID appId: appIDs) {
-			appManPlus.guiService().getMessagingService().sendMessage(appId,
-					new MessageImpl(title, emailMessage, prio));		
-			//AlarmingManager.reallySendMessage(title, emailMessage , prio, appId);
-		}
-		Map<String, Object> additionalProperties = new HashMap<>();
-		if(firebaseMessage == null)
-			return;
-		List<Room> rooms = appManPlus.getResourceAccess().getResources(Room.class);
-		String roomId;
-		if(rooms.isEmpty())
-			roomId = "System";
-		else
-			roomId = ResourceUtils.getValidResourceName(rooms.get(0).getLocation());
-		for(AlarmingMessagingApp mapp: persistData.messagingApps().getAllElements()) {
-			FirebaseUtil.sendMessageToUsers(title,
-					firebaseMessage, title, firebaseMessage,
-					additionalProperties, Arrays.asList(mapp.usersForPushMessage().getValues()),
-					roomId, appManPlus,
-					firebaseDebugInfoMessage);
-		}
 	}
 }

@@ -9,16 +9,16 @@ import java.util.Map;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.AppID;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.locations.Room;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
+import org.smartrplace.alarming.escalation.util.EscalationKnownIssue;
+import org.smartrplace.alarming.escalation.util.EscalationProviderSimple;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
-import org.smartrplace.apps.alarmingconfig.mgmt.AlarmValueListenerBasic;
-import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
-import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.deviceeval.BatteryEval;
@@ -92,7 +92,7 @@ public class NotAssignedEscalationProvider extends EscalationProviderSimple<Esca
 		
 		EscalationCheckResult result = new EscalationCheckResult();
 		if(foundTooLate) {
-			MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(persistData.alarmLevel().getValue());
+			MessagePriority prio = AlarmingConfigUtil.getMessagePrio(persistData.alarmLevel().getValue());
 			String gwId = GatewayUtil.getGatewayId(appManPlus.getResourceAccess());
 			String title = gwId+"::"+count+" devices unassigened for up to "+(maxUnassigned/TimeProcUtil.HOUR_MILLIS)+" h !";
 			result.blockedUntil = now + maxDelayWithoutMessage;
