@@ -47,14 +47,20 @@ public class AlarmMessageUtil {
 	}
 	
 	public static Label configureAlarmValueLabel(InstallAppDevice object, ApplicationManager appMan, Label valueField, OgemaHttpRequest req, Locale locale) {
-		final ValueData valueData = getValueData(object, appMan, locale);
+		return AlarmMessageUtil.configureAlarmValueLabel(object, appMan, valueField, req, locale, true, true);
+	}
+	
+	public static Label configureAlarmValueLabel(InstallAppDevice object, ApplicationManager appMan, Label valueField, OgemaHttpRequest req, Locale locale,
+			boolean includeValue, boolean includeContact) {
+		final ValueData valueData = getValueData(object, appMan, locale, includeValue, includeContact);
 		valueField.setText(valueData.message, req);
 		if (valueData.responsibleResource != null)
 			valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
 		return valueField;
 	}
 	
-	private static ValueData getValueData(InstallAppDevice knownDevice, ApplicationManager appMan, Locale locale) {
+	private static ValueData getValueData(InstallAppDevice knownDevice, ApplicationManager appMan, Locale locale,
+			boolean includeValue, boolean includeContact) {
 		final SingleValueResource mainValue = getMainSensorValue(knownDevice, appMan.getAppID().getBundle().getBundleContext());
 		final VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(knownDevice.device());
 		final IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(knownDevice.device(),
@@ -98,18 +104,23 @@ public class AlarmMessageUtil {
 			explanation = locale == Locale.GERMAN ? "Kein Problem ekannt" : "no problem detected";
 		}
 		if (responsibleResource != null) {
-			if (status == null || status.valueViolation) {
-				valueFieldText = (locale == Locale.GERMAN ? "Wert: " : "Value: ") + ValueResourceUtils.getValue(responsibleResource);
+			if (includeValue && (status == null || status.valueViolation)) {
+				if (includeContact)
+					valueFieldText = (locale == Locale.GERMAN ? "Wert: " : "Value: ");
+				valueFieldText = (responsibleResource instanceof FloatResource ? ValueResourceUtils.getValue((FloatResource) responsibleResource, 1) 
+									: ValueResourceUtils.getValue(responsibleResource));
 				if (explanation != null)
 					valueFieldText += " (" + explanation + ")";
 			}
-			if (status != null && status.contactViolation) {
-				if (status.valueViolation)
+			if (status != null && includeContact && status.contactViolation) {
+				final boolean hasValue = includeValue && status.valueViolation;
+				if (hasValue)
 					valueFieldText += " (";
 				final long lastContact = responsibleResource.getLastUpdateTime();
-				valueFieldText += (locale == Locale.GERMAN ? "Letzter Kontakt: " : "Last contact: ") + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssZ", Locale.ENGLISH).format(
-						ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastContact), ZoneId.of("Z")));
-				if (status.valueViolation)
+				if (includeValue)
+					valueFieldText += (locale == Locale.GERMAN ? "Letzter Kontakt: " : "Last contact: ");
+				valueFieldText += DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssZ", Locale.ENGLISH).format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastContact), ZoneId.of("Z")));
+				if (hasValue)
 					valueFieldText += ")";
 			}
 		}

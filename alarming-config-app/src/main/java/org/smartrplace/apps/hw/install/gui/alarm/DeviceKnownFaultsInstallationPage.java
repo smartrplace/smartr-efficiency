@@ -103,19 +103,55 @@ public class DeviceKnownFaultsInstallationPage {
 		final Flexbox filterFlex = new Flexbox(page, "filterflex", true);
 		filterFlex.addCssItem(">div", filterFlexCss, null);
 		filterFlex.setAlignItems(AlignItems.CENTER, null);
-		final Dropdown statusFilter = new Dropdown(page, "statusFilter");
+		final Dropdown statusFilter = new Dropdown(page, "statusFilter") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final List<DropdownOption> opts = getDropdownOptions(req); 
+				if (opts == null || opts.isEmpty()) {
+					final String[] initialStatus = getPage().getPageParameters(req).get("alarmstatus");
+					final boolean allSelected = initialStatus != null && initialStatus.length > 0 && initialStatus[0] == "all";
+					setOptions(Arrays.asList(
+						new DropdownOption("all", "Alle Alarme", allSelected),
+						new DropdownOption("unresolved", "Offene Alarme", !allSelected)
+				), req);
+				}
+			} 
+			
+		};
+		/*
 		statusFilter.setDefaultOptions(Arrays.asList(
 				new DropdownOption("all", "Alle Alarme", false),
 				new DropdownOption("unresolved", "Offene Alarme", true)
 		));
+		*/
 		statusFilter.setDefaultToolTip("Als erledigt markierte Alarme anzeigen oder ausblenden?");
+		statusFilter.setDefaultSelectByUrlParam("alarmstatus");
 		
-		final Dropdown prioFilter = new Dropdown(page, "prioFilter");
+		final Dropdown prioFilter = new Dropdown(page, "prioFilter") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final List<DropdownOption> opts = getDropdownOptions(req); 
+				if (opts == null || opts.isEmpty()) {
+					final String[] initialStatus = getPage().getPageParameters(req).get("alarmprio");
+					final boolean allSelected = initialStatus != null && initialStatus.length > 0 && initialStatus[0] == "all";
+					setOptions(Arrays.asList(
+						new DropdownOption("all", "Alle Alarme", allSelected),
+						new DropdownOption("prio", "Nur priorisierte", !allSelected)
+				), req);
+				}
+			} 
+			
+		};
+		/*
 		prioFilter.setDefaultOptions(Arrays.asList(
 				new DropdownOption("all", "Alle Alarme", false),
 				new DropdownOption("prio", "Nur priorisierte", true)
 		));
+		*/
 		prioFilter.setDefaultToolTip("Nicht priorisierte Alarme anzeigen oder ausblenden?");
+		prioFilter.setDefaultSelectByUrlParam("alarmprio");
 		
 		
 		// filter stuff copied from  HardwareInstall test page
@@ -485,9 +521,13 @@ public class DeviceKnownFaultsInstallationPage {
 				doneBtn.triggerAction(doneBtn, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("resolve", doneBtn);
 				
-				final Label valueField = new Label(table, id + "_valueField", req);
-				AlarmMessageUtil.configureAlarmValueLabel(device, appMan, valueField, req, Locale.GERMAN);
+				final Label valueField = new Label(table, id + "_value", req);
+				AlarmMessageUtil.configureAlarmValueLabel(device, appMan, valueField, req, Locale.GERMAN, true, false); 
 				row.addCell("value", valueField);
+				
+				final Label contactField = new Label(table, id + "_contact", req);
+				AlarmMessageUtil.configureAlarmValueLabel(device, appMan, contactField, req, Locale.GERMAN, false, true); 
+				row.addCell("contact", contactField);
 				
 				return row;
 			}
@@ -500,7 +540,8 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("device", "Geräte-Id");
 				header.put("room", "Raum");
 				header.put("location", "Ort");
-				header.put("value", "Wert/Letzter Kontakt");
+				header.put("value", "Wert");
+				header.put("contact", "Letzter Kontakt");
 				header.put("activesince", "Fehler seit");
 				header.put("comment", "Analyse");
 				header.put("details", "Details");
