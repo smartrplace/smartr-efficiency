@@ -46,6 +46,7 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationManager;
+import org.smartrplace.apps.alarmingconfig.writeabledps.WriteableDatapointManagement;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -94,6 +95,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
     public final ApplicationManagerPlus appManPlus;
 	
     public final EscalationManager escMan;
+    public final WriteableDatapointManagement writeDPMan;
     
 	public MainPage mainPage;
 	public DeviceTypePage devicePage;
@@ -284,6 +286,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			ValueResourceHelper.setCreate(app.lastNameRegistered(), app.name().getValue());
 		}
 		this.escMan = new EscalationManager(this);
+		this.writeDPMan = new WriteableDatapointManagement(appManPlus);
 
 		MainPage.alarmingUpdater = this;
 		HardwareInstallController.alarmingUpdater = this;
