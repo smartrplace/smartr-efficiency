@@ -626,7 +626,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				+"\r\nMaximum interval: "+(maxInterval/MINUTE_MILLIS)+"min";
 		//if(baseUrl != null)
 		//	message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
-		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
+		MessagePriority prio = AlarmingConfigUtil.getMessagePrio(ac.alarmLevel().getValue());
 		controller.escMan.knownIssueNotification(knownDeviceFault, title, message);
 		if(prio != null)
 			sendMessage(ac, status, title, message, prio, ac.alarmingAppId());
@@ -650,7 +650,7 @@ public class AlarmingManager implements AlarmingStartedService {
 			message +="\r\nSee also: "+baseUrl+"/org/smartrplace/hardwareinstall/expert/index.html";
 			message +="\r\nTo release: "+baseUrl+"/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 		}
-		MessagePriority prio = AlarmValueListenerBasic.getMessagePrio(ac.alarmLevel().getValue());
+		MessagePriority prio = AlarmingConfigUtil.getMessagePrio(ac.alarmLevel().getValue());
 		if(prio != null)
 			sendMessage(ac, 0, title, message, prio, ac.alarmingAppId());
 	}

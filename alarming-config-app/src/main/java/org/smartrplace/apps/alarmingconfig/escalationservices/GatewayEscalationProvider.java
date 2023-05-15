@@ -9,9 +9,10 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.alarming.escalation.model.AlarmingEscalationLevel;
+import org.smartrplace.alarming.escalation.util.EscalationKnownIssue;
+import org.smartrplace.alarming.escalation.util.EscalationProviderSimple;
+import org.smartrplace.alarming.escalation.util.EscalationProviderSimple.EscalationCheckResult;
 import org.smartrplace.apps.alarmconfig.util.AlarmType;
-import org.smartrplace.apps.alarmingconfig.mgmt.EscalationKnownIssue;
-import org.smartrplace.apps.alarmingconfig.mgmt.EscalationProviderSimple;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gateway.device.GatewayDevice;
 

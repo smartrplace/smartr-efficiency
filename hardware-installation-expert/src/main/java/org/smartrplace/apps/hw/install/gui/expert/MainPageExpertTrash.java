@@ -87,7 +87,10 @@ public class MainPageExpertTrash extends MainPageExpert {
 	@Override
 	public void performTrashOperation(InstallAppDevice object, final DeviceHandlerProviderDP<?> devHand) {
 		for(Resource dev: devHand.devicesControlled(object)) {
-			dev.getLocationResource().activate(true);					
+			if(controller.hwInstApp.gwSync != null)
+				controller.hwInstApp.gwSync.activateResource(dev.getLocationResource(), true);
+			else
+				dev.getLocationResource().activate(true);
 		}
 		//object.device().getLocationResource().activate(true);
 		object.isTrash().setValue(false);

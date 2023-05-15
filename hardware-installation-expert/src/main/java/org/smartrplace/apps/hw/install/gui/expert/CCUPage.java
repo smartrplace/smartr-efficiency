@@ -1,8 +1,13 @@
 package org.smartrplace.apps.hw.install.gui.expert;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -16,14 +21,20 @@ import org.ogema.drivers.homematic.xmlrpc.hl.types.HmLogicInterface;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.alarming.escalation.util.EscalationAutoActionByAlarmingProvider;
+import org.smartrplace.alarming.escalation.util.EscalationKnownIssue;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.LocalDeviceId;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.eval.hardware.HmCCUPageUtils;
 import org.smartrplace.os.util.BundleRestartButton;
+import org.smartrplace.router.model.GlitNetRouter;
 import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
+import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
@@ -31,12 +42,19 @@ import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHSetp;
 import de.iwes.util.logconfig.CountdownTimerMulti2Single;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTiming;
+import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
+import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.popup.Popup;
 
 @SuppressWarnings("serial")
 public class CCUPage extends MainPage {
@@ -46,6 +64,11 @@ public class CCUPage extends MainPage {
 	HardwareInstallConfig hwConfig;
 	private final CountdownTimerMulti2Single hmDriverRestartTimer;
 	
+	private final Popup lastMessagePopup;
+	private final Label lastMessageDevice;
+	private final Label consoleCommand;
+	private final Label ccuUrl;
+
 	@Override
 	public String getHeader() {return "CCU Page";}
 
@@ -70,6 +93,36 @@ public class CCUPage extends MainPage {
 			}
 		};
 		finishConstructor();
+		
+		// popup setup
+		this.lastMessagePopup = new Popup(page, "lastMessagePopup", true);
+		lastMessagePopup.setDefaultTitle("Last alarm message");
+		this.lastMessageDevice = new Label(page, "lastMessagePopupDevice");
+		this.consoleCommand = new Label(page, "consoleCommand");
+		this.ccuUrl = new Label(page, "ccuUrl");
+		
+		final StaticTable tab = new StaticTable(3, 2, new int[]{3, 9});
+		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
+			.setContent(1, 0, "Browser URL").setContent(1,1, consoleCommand)
+			.setContent(2, 0, "CCU UI URL").setContent(2,1, ccuUrl);
+		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
+		snip.append(tab, null);
+		lastMessagePopup.setBody(snip, null);
+		final Button closeLastMessage = new Button(page, "lastMessageClose", "Close");
+		closeLastMessage.triggerAction(lastMessagePopup, TriggeringAction.ON_CLICK, TriggeredAction.HIDE_WIDGET);
+		lastMessagePopup.setFooter(closeLastMessage, null);
+		page.append(lastMessagePopup);
+		//
+
+		EscalationAutoActionByAlarmingProvider<HmInterfaceInfo> ccuRestartOnAlarm = new EscalationAutoActionByAlarmingProvider<HmInterfaceInfo>(HmInterfaceInfo.class, AbsoluteTiming.DAY,
+				3*TimeProcUtil.HOUR_MILLIS, 45*TimeProcUtil.MINUTE_MILLIS, "CCURestartOnConnectionLost", appManPlus) {
+			@Override
+			protected String performAction(InstallAppDevice iad, HmInterfaceInfo device, EscalationKnownIssue issue) {
+				int result = restartCCU(device);
+				return "CCUAccess result:"+result;
+			}
+		};
+		controller.dpService.registerEscalationProvider(ccuRestartOnAlarm );
 	}
 
 	@Override
@@ -77,7 +130,7 @@ public class CCUPage extends MainPage {
 		devTable = new DeviceTableBase(page, controller.appManPlus, alert, this, null) {
 			
 			@Override
-			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
+			public void addWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
 				final HmInterfaceInfo device;
 				if(req == null)
@@ -119,6 +172,8 @@ public class CCUPage extends MainPage {
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("Restart");
+					vh.registerHeaderEntry("Conroller");
+					vh.registerHeaderEntry("UI Access");
 					vh.registerHeaderEntry("RT");
 					return;
 				}
@@ -136,7 +191,8 @@ public class CCUPage extends MainPage {
 				
 				HmCCUPageUtils.addTechInModeButton(object, device, vh, id, req, row, appMan, hwConfig);
 				
-				HmCCUPageUtils.addClientUrl(device, vh, id, row);
+			    //final String clientUrl = "http://192.168.0.101:2010";
+			    final String clientUrl = HmCCUPageUtils.addClientUrl(device, vh, id, row);
 				vh.stringLabel("Location", id, object.installationLocation(), row);
 				vh.stringLabel("Comment", id, object.installationComment(), row);
 
@@ -177,7 +233,8 @@ public class CCUPage extends MainPage {
 						
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							if(controller.hwInstApp.ccuAccess != null) {
+							restartCCU(device, ccuAccRes);
+							/*if(controller.hwInstApp.ccuAccess != null) {
 								Resource parent = device.getParent();
 								if(parent != null && (parent instanceof HmLogicInterface)) try {
 									int result = controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
@@ -190,7 +247,7 @@ public class CCUPage extends MainPage {
 									throw new IllegalStateException(e);
 								}
 							}
-							hmDriverRestartTimer.newEvent();
+							hmDriverRestartTimer.newEvent();*/
 						}
 					};
 					if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
@@ -201,6 +258,60 @@ public class CCUPage extends MainPage {
 					row.addCell("Restart", restartCcu);
 				}
 				
+				final GlitNetRouter router = device.getSubResource("ccuController", GlitNetRouter.class);
+				Map<GlitNetRouter, String> valuesToSet = new HashMap<>();
+				Collection<InstallAppDevice> all = controller.dpService.managedDeviceResoures(GlitNetRouter.class);
+				for(InstallAppDevice iad: all) {
+					valuesToSet.put((GlitNetRouter) iad.device(), iad.deviceId().getValue());
+				}
+				vh.referenceDropdownFixedChoice("Conroller", id, router, row, valuesToSet);
+				final Button showMsg = new Button(mainTable, "msg" + id, req) {
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						int ccuNum = LocalDeviceId.getDeviceIdNumericalPart(object);
+					    String gatewayId = GatewayUtil.getGatewayBaseId(appMan.getResourceAccess());
+				        final int ccuHttpPort;
+				        if(router.exists())
+				        	ccuHttpPort = 81;
+				        else
+				        	ccuHttpPort = 80;
+					        
+				        int gwNum = Integer.parseInt(gatewayId) % 1000;
+				        int gwSshPort = gwNum + 22000;
+				        final URI clientURI;
+				        int localForward = 30000 + gwNum * 10 + ccuNum;
+						try {
+							if(clientUrl != null)
+								clientURI = new URI(clientUrl);
+							else
+								clientURI = new URI("10.168.14.x");
+							String host = clientURI.getHost();
+							if(host == null)
+								host = clientUrl;
+							String sshCommand = String.format("ssh -J user@wan01.smartrplace.de -p %d -L %d:%s:%d ogema@localhost",
+					                gwSshPort, localForward, host, ccuHttpPort);
+							String url = "localhost:3"+(gwNum*10+ccuNum);
+							consoleCommand.setText(sshCommand, req);
+							lastMessageDevice.setText(object.deviceId().getValue(), req);
+							ccuUrl.setText(url, req);
+						} catch (URISyntaxException e) {
+							e.printStackTrace();
+							throw new IllegalStateException(e);
+						}
+					    //System.out.printf("ssh -J user@wan01.smartrplace.de -p %d -L %d:%s:%d ogema@localhost",
+					    //      gwSshPort, localForward, clientURI.getHost(), ccuHttpPort);
+					}
+					
+				};
+				showMsg.setDefaultText("CCU UI Access");
+				showMsg.setDefaultToolTip("Show console command to start connection to CCU");
+				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
+				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(consoleCommand,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(ccuUrl,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				row.addCell(WidgetHelper.getValidWidgetId("UI Access"), showMsg);
+
 				String text = getHomematicCCUId(object.device().getLocation());
 				vh.stringLabel("RT", id, text, row);
 			}
@@ -237,4 +348,29 @@ public class CCUPage extends MainPage {
 		
 	}
 	
+	private int restartCCU(final HmInterfaceInfo device) {
+		final IntegerResource ccuAccRes = device.getSubResource("ccuAccessResult", IntegerResource.class);
+		return restartCCU(device, ccuAccRes);
+	}
+	private int restartCCU(final HmInterfaceInfo device, IntegerResource ccuAccRes) {
+		final int result;
+		if(controller.hwInstApp.ccuAccess != null) {
+			Resource parent = device.getParent();
+			if(parent != null && (parent instanceof HmLogicInterface)) try {
+				result = controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
+				if(result != 0) {
+					ValueResourceHelper.setCreate(ccuAccRes, result);
+				} else {
+					ccuAccRes.setValue(0);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new IllegalStateException(e);
+			} else
+				result = -98;
+		} else
+			result = -99;
+		hmDriverRestartTimer.newEvent();		
+		return result;
+	}
 }
