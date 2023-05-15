@@ -47,20 +47,56 @@ public class AlarmMessageUtil {
 	}
 	
 	public static Label configureAlarmValueLabel(InstallAppDevice object, ApplicationManager appMan, Label valueField, OgemaHttpRequest req, Locale locale) {
-		return AlarmMessageUtil.configureAlarmValueLabel(object, appMan, valueField, req, locale, true, true);
-	}
-	
-	public static Label configureAlarmValueLabel(InstallAppDevice object, ApplicationManager appMan, Label valueField, OgemaHttpRequest req, Locale locale,
-			boolean includeValue, boolean includeContact) {
-		final ValueData valueData = getValueData(object, appMan, locale, includeValue, includeContact);
+		final ValueData valueData = getValueData(object, appMan, locale);
 		valueField.setText(valueData.message, req);
 		if (valueData.responsibleResource != null)
 			valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
 		return valueField;
 	}
 	
-	private static ValueData getValueData(InstallAppDevice knownDevice, ApplicationManager appMan, Locale locale,
-			boolean includeValue, boolean includeContact) {
+	public static SingleValueResource findResponsibleResource(InstallAppDevice knownDevice, ApplicationManager appMan, Locale locale) {
+		final SingleValueResource mainValue = getMainSensorValue(knownDevice, appMan.getAppID().getBundle().getBundleContext());
+		final VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(knownDevice.device());
+		final IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(knownDevice.device(),
+				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		final FloatResource valveState = knownDevice.device() instanceof Thermostat ? 
+				((Thermostat) knownDevice.device()).valve().getSubResource("eq3state") : null;
+		final Map<SingleValueResource, String> priorityResources = new LinkedHashMap<>();
+		// if we find an alarm for any of the below resources, its value or last update is shown in the value field;
+		// otherwise we select an arbitrary alarm from the list
+		priorityResources.put(batteryVoltage, locale == Locale.GERMAN ? "Batteriestand niedrig" : "low battery voltage");
+		priorityResources.put(mainValue, locale == Locale.GERMAN ? "Sensorwert außerhalb des erlaubten Bereichs" : "sensor value range violation");
+		priorityResources.put(rssiDevice, locale == Locale.GERMAN ? "RSSI niedrig" : "rssi value low");
+		priorityResources.put(valveState, locale == Locale.GERMAN ? "Thermostatventil lässt sich nicht steuern" : "thermostat valve state problematic");
+		SingleValueResource responsibleResource = null;
+		AlarmStatus status = null;
+		for (Map.Entry<SingleValueResource, String> prioEntry: priorityResources.entrySet()) {
+			final SingleValueResource prio = prioEntry.getKey();
+			final AlarmStatus status0 = findAlarmForSensorValue(prio, knownDevice, appMan);
+			if (status0 == null || (!status0.valueViolation && !status0.contactViolation))
+				continue;
+			status = status0;
+			responsibleResource = prio;
+			break;
+		}
+		if (responsibleResource == null) {
+			// find any alarm in alarm state
+			final Optional<AlarmStatus> statusOpt = knownDevice.alarms().getAllElements().stream()
+				.map(alarm -> statusForAlarm(alarm, appMan))
+				.filter(alarm -> alarm.valueViolation || alarm.contactViolation)
+				.findAny();
+			if (statusOpt.isPresent()) {
+				status = statusOpt.get();
+				responsibleResource = status.config.sensorVal();
+			}
+		}
+		if (responsibleResource == null)  {
+			responsibleResource = mainValue;
+		}
+		return responsibleResource;
+	}
+	
+	private static ValueData getValueData(InstallAppDevice knownDevice, ApplicationManager appMan, Locale locale) {
 		final SingleValueResource mainValue = getMainSensorValue(knownDevice, appMan.getAppID().getBundle().getBundleContext());
 		final VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(knownDevice.device());
 		final IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(knownDevice.device(),
@@ -104,22 +140,18 @@ public class AlarmMessageUtil {
 			explanation = locale == Locale.GERMAN ? "Kein Problem ekannt" : "no problem detected";
 		}
 		if (responsibleResource != null) {
-			if (includeValue && (status == null || status.valueViolation)) {
-				if (includeContact)
-					valueFieldText = (locale == Locale.GERMAN ? "Wert: " : "Value: ");
-				valueFieldText = (responsibleResource instanceof FloatResource ? ValueResourceUtils.getValue((FloatResource) responsibleResource, 1) 
+			if (status == null || status.valueViolation) {
+				valueFieldText = (locale == Locale.GERMAN ? "Wert: " : "Value: ") + (responsibleResource instanceof FloatResource ? ValueResourceUtils.getValue((FloatResource) responsibleResource, 1) 
 									: ValueResourceUtils.getValue(responsibleResource));
 				if (explanation != null)
 					valueFieldText += " (" + explanation + ")";
 			}
-			if (status != null && includeContact && status.contactViolation) {
-				final boolean hasValue = includeValue && status.valueViolation;
+			if (status != null && status.contactViolation) {
+				final boolean hasValue = status.valueViolation;
 				if (hasValue)
 					valueFieldText += " (";
 				final long lastContact = responsibleResource.getLastUpdateTime();
-				if (includeValue)
-					valueFieldText += (locale == Locale.GERMAN ? "Letzter Kontakt: " : "Last contact: ");
-				valueFieldText += DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssZ", Locale.ENGLISH).format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastContact), ZoneId.of("Z")));
+				valueFieldText += (locale == Locale.GERMAN ? "Letzter Kontakt: " : "Last contact: ")+ DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ssZ", Locale.ENGLISH).format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(lastContact), ZoneId.of("Z")));
 				if (hasValue)
 					valueFieldText += ")";
 			}

@@ -22,6 +22,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
+import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -30,6 +31,7 @@ import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
@@ -521,13 +523,37 @@ public class DeviceKnownFaultsInstallationPage {
 				doneBtn.triggerAction(doneBtn, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("resolve", doneBtn);
 				
-				final Label valueField = new Label(table, id + "_value", req);
-				AlarmMessageUtil.configureAlarmValueLabel(device, appMan, valueField, req, Locale.GERMAN, true, false); 
-				row.addCell("value", valueField);
-				
-				final Label contactField = new Label(table, id + "_contact", req);
-				AlarmMessageUtil.configureAlarmValueLabel(device, appMan, contactField, req, Locale.GERMAN, false, true); 
-				row.addCell("contact", contactField);
+				final SingleValueResource responsibleResource = AlarmMessageUtil.findResponsibleResource(device, appMan, Locale.GERMAN);
+				if (responsibleResource!= null) {
+					final Label valueField = new Label(table, id + "_value", req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final String value = (responsibleResource instanceof FloatResource ? ValueResourceUtils.getValue((FloatResource) responsibleResource, 1) 
+									: ValueResourceUtils.getValue(responsibleResource));
+							setText(value, req);
+						}
+						
+					};
+					valueField.setDefaultPollingInterval(15_000);
+					row.addCell("value", valueField);
+					
+					final Label contactField = new Label(table, id + "_contact", req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final long lastUpdate = responsibleResource.getLastUpdateTime();
+							final long now = appMan.getFrameworkTime();
+							final long diff = now - lastUpdate;
+							final String value = diff > 3_600_000 * 48 ? Math.round(diff / 24/3_600_000) + " d" :
+								diff > 2 * 3_600_000 ? Math.round(diff / 3_600_000) + " h" : Math.round(diff / 60_000) + " min";
+							setText(value, req);
+						}
+						
+					};
+					contactField.setDefaultPollingInterval(15_000);
+					row.addCell("contact", contactField);
+				}
 				
 				return row;
 			}
