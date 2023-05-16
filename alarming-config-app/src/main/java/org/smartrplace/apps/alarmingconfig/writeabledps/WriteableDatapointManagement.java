@@ -83,7 +83,7 @@ public class WriteableDatapointManagement implements PatternListener<WriteableDa
 
 	public void checkDatapoint(WriteableDatapoint wdp) {
 		//TODO: This criteria may be adapted in the future
-		if(wdp.name().isActive())
+		if(wdp.deviceAssigned().isReference(false))
 			return;
 		
 		String name = "Unknown"+wdp.datapointLocation().getValue();
@@ -94,7 +94,7 @@ public class WriteableDatapointManagement implements PatternListener<WriteableDa
 			return;
 		}
 		String id = wdp.datapointLocation().getValue().substring(0, i);
-		String alarmType = wdp.datapointLocation().getValue().substring(i);
+		String alarmType = wdp.datapointLocation().getValue().substring(i+1);
 		Room room = null;
 		PhysicalElement device = null;
 		if(roomAlarms.contains(alarmType)) {
