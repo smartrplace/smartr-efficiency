@@ -559,49 +559,50 @@ public class ThermostatPage extends MainPage {
 							Label lastContactValveErr = addLastContact("Last VErr", vh, id, req, row, valveError);
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+						}
+					}
+					if((type == ThermostatPageType.AUTO_MODE || type == ThermostatPageType.VALVE_ONLY) && (req != null)) {
+						final BooleanResource ada = device.valve().getSubResource("startAdaption", BooleanResource.class);
+						if((type == ThermostatPageType.AUTO_MODE || type == ThermostatPageType.VALVE_ONLY)
+								&& (ada.exists())) {
+							Button startAdapt = new Button(mainTable, "startAdapt"+id, req) {
+								@Override
+								public void onPOSTComplete(String data, OgemaHttpRequest req) {
+									ada.setValue(true);
+								}
+							};
+							startAdapt.setDefaultText("Start ADA");
+							row.addCell(WidgetHelper.getValidWidgetId("Start Adapt"), startAdapt);
+						}
+						if(type == ThermostatPageType.VALVE_ONLY) {
+							addControlFeedbackLabel("Weekly Decalc", device.valve().getSubResource("DECALCIFICATION", StringResource.class),
+									device.valve().getSubResource("DECALCIFICATION_FEEDBACK", StringResource.class), "LastWeekly",
+									vh, id, req, row);
+							Button decalcNowBut = new Button(mainTable, "decalcNowBut"+id, req) {
+								@Override
+								public void onPOSTComplete(String data, OgemaHttpRequest req) {
+									long now = appMan.getFrameworkTime();
+									DeviceTableRaw.setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);	
+									DeviceHandlerBase.blockShiftingUntil = now + 1*TimeProcUtil.MINUTE_MILLIS;
+								}
+							};
+							decalcNowBut.setDefaultText("Decalc Now");
+							row.addCell(WidgetHelper.getValidWidgetId("Weekly Now"), decalcNowBut);
 							
-							final BooleanResource ada = device.valve().getSubResource("startAdaption", BooleanResource.class);
-							if((type == ThermostatPageType.AUTO_MODE || type == ThermostatPageType.VALVE_ONLY)
-									&& (ada.exists())) {
-								Button startAdapt = new Button(mainTable, "startAdapt"+id, req) {
-									@Override
-									public void onPOSTComplete(String data, OgemaHttpRequest req) {
-										ada.setValue(true);
-									}
-								};
-								startAdapt.setDefaultText("Start ADA");
-								row.addCell(WidgetHelper.getValidWidgetId("Start Adapt"), startAdapt);
-							}
-							if(type == ThermostatPageType.VALVE_ONLY) {
-								addControlFeedbackLabel("Weekly Decalc", device.valve().getSubResource("DECALCIFICATION", StringResource.class),
-										device.valve().getSubResource("DECALCIFICATION_FEEDBACK", StringResource.class), "LastWeekly",
-										vh, id, req, row);
-								Button decalcNowBut = new Button(mainTable, "decalcNowBut"+id, req) {
-									@Override
-									public void onPOSTComplete(String data, OgemaHttpRequest req) {
-										long now = appMan.getFrameworkTime();
-										DeviceTableRaw.setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);	
-										DeviceHandlerBase.blockShiftingUntil = now + 1*TimeProcUtil.MINUTE_MILLIS;
-									}
-								};
-								decalcNowBut.setDefaultText("Decalc Now");
-								row.addCell(WidgetHelper.getValidWidgetId("Weekly Now"), decalcNowBut);
-								
-								Button decalcPostponeBut = new Button(mainTable, "decalcPostponeBut"+id, req) {
-									@Override
-									public void onPOSTComplete(String data, OgemaHttpRequest req) {
-										long now = appMan.getFrameworkTime();
-										DeviceTableRaw.setDecalcTimeForwardMax(device, now);
-										//setDecalcTime(device, destTime);										
-									}
-								};
-								decalcPostponeBut.setDefaultText("Decalc Shift Max");
-								row.addCell(WidgetHelper.getValidWidgetId("Weekly Postpone"), decalcPostponeBut);
-								
-								Long nextCheck = DeviceTableRaw.nextDecalcShiftCheck.get(device.getLocation());
-								if(nextCheck != null)
-									vh.timeLabel("Postpone Check", id, nextCheck, row, 5);
-							}
+							Button decalcPostponeBut = new Button(mainTable, "decalcPostponeBut"+id, req) {
+								@Override
+								public void onPOSTComplete(String data, OgemaHttpRequest req) {
+									long now = appMan.getFrameworkTime();
+									DeviceTableRaw.setDecalcTimeForwardMax(device, now);
+									//setDecalcTime(device, destTime);										
+								}
+							};
+							decalcPostponeBut.setDefaultText("Decalc Shift Max");
+							row.addCell(WidgetHelper.getValidWidgetId("Weekly Postpone"), decalcPostponeBut);
+							
+							Long nextCheck = DeviceTableRaw.nextDecalcShiftCheck.get(device.getLocation());
+							if(nextCheck != null)
+								vh.timeLabel("Postpone Check", id, nextCheck, row, 5);
 						}
 					}
 				}
