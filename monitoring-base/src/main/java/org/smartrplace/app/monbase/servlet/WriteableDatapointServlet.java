@@ -299,20 +299,22 @@ public class WriteableDatapointServlet implements ServletPageProvider<WriteDPDat
 		};
 		result.put("delete", deleteItem);
 
-		if(iad != null) {
-			AlarmConfiguration alarm = AlarmingUtiH.getAlarmingConfiguration(iad, obj.writeDp.resource());
-			ServletFloatResourceProvider lowerLimit = new ServletFloatResourceProvider(alarm.lowerLimit());
-			result.put("lowerLimit", lowerLimit);
-			ServletFloatResourceProvider upperLimit = new ServletFloatResourceProvider(alarm.upperLimit());
-			result.put("upperLimit", upperLimit);
-			ServletFloatResourceProvider maxViolationTimeWithoutAlarm = new ServletFloatResourceProvider(alarm.maxViolationTimeWithoutAlarm());
-			result.put("maxViolationTimeWithoutAlarm", maxViolationTimeWithoutAlarm);
-			ServletFloatResourceProvider maxIntervalBetweenNewValues = new ServletFloatResourceProvider(alarm.maxIntervalBetweenNewValues());
-			result.put("maxIntervalBetweenNewValues", maxIntervalBetweenNewValues);
-			
-			ServletBooleanResourceProvider sendAlarm = new ServletBooleanResourceProvider(alarm.sendAlarm());
-			result.put("sendAlarm", sendAlarm);
-		}
+		final AlarmConfiguration alarm;
+		if(iad != null)
+			alarm = AlarmingUtiH.getAlarmingConfiguration(iad, obj.writeDp.resource());
+		else
+			alarm = obj.writeDp.getSubResource("tempAlarmConfig", AlarmConfiguration.class);
+		ServletFloatResourceProvider lowerLimit = new ServletFloatResourceProvider(alarm.lowerLimit());
+		result.put("lowerLimit", lowerLimit);
+		ServletFloatResourceProvider upperLimit = new ServletFloatResourceProvider(alarm.upperLimit());
+		result.put("upperLimit", upperLimit);
+		ServletFloatResourceProvider maxViolationTimeWithoutAlarm = new ServletFloatResourceProvider(alarm.maxViolationTimeWithoutAlarm());
+		result.put("maxViolationTimeWithoutAlarm", maxViolationTimeWithoutAlarm);
+		ServletFloatResourceProvider maxIntervalBetweenNewValues = new ServletFloatResourceProvider(alarm.maxIntervalBetweenNewValues());
+		result.put("maxIntervalBetweenNewValues", maxIntervalBetweenNewValues);
+		
+		ServletBooleanResourceProvider sendAlarm = new ServletBooleanResourceProvider(alarm.sendAlarm());
+		result.put("sendAlarm", sendAlarm);
 
 		if(isNew)
 			obj.writeDp.activate(true);
