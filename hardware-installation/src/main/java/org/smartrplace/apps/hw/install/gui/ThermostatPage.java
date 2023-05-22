@@ -582,7 +582,7 @@ public class ThermostatPage extends MainPage {
 								@Override
 								public void onPOSTComplete(String data, OgemaHttpRequest req) {
 									long now = appMan.getFrameworkTime();
-									DeviceTableRaw.setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS);	
+									DeviceTableRaw.setDecalcTime(device, now+5*TimeProcUtil.MINUTE_MILLIS, controller.hwInstApp.gwSync);	
 									DeviceHandlerBase.blockShiftingUntil = now + 1*TimeProcUtil.MINUTE_MILLIS;
 								}
 							};
@@ -593,7 +593,7 @@ public class ThermostatPage extends MainPage {
 								@Override
 								public void onPOSTComplete(String data, OgemaHttpRequest req) {
 									long now = appMan.getFrameworkTime();
-									DeviceTableRaw.setDecalcTimeForwardMax(device, now);
+									DeviceTableRaw.setDecalcTimeForwardMax(device, now, controller.hwInstApp.gwSync);
 									//setDecalcTime(device, destTime);										
 								}
 							};

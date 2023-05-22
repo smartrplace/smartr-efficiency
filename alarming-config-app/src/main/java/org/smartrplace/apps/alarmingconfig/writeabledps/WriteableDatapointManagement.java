@@ -12,6 +12,7 @@ import org.ogema.core.resourcemanager.pattern.PatternListener;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.DatapointImpl;
+import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -23,9 +24,6 @@ import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 
 public class WriteableDatapointManagement implements PatternListener<WriteableDatapointPattern> {
-	static List<String> roomAlarms = StringFormatHelper.getListFromString(
-			"setpointHighForLong, setpointHighOften, roomAboveSetpointValvesOpen, roomTempHighValvesClosedOutsideCold, setpointLtOutsideAndOutsideWarm, roomAboveSetpointValvesClosed");
-	static List<String> deviceAlarms = StringFormatHelper.getListFromString("");
 	
 	private final ApplicationManagerPlus appMan;
 	private final DatapointService dpService;
@@ -97,7 +95,7 @@ public class WriteableDatapointManagement implements PatternListener<WriteableDa
 		String alarmType = wdp.datapointLocation().getValue().substring(i+1);
 		Room room = null;
 		PhysicalElement device = null;
-		if(roomAlarms.contains(alarmType)) {
+		if(AlarmingUtiH.roomAlarms.contains(alarmType)) {
 			room = UserServletUtil.getRoomById(id, appMan.getResourceAccess(), dpService);
 			if(room != null) {
 				name = ResourceUtils.getHumanReadableShortName(room)+"::"+alarmType;
@@ -107,7 +105,7 @@ public class WriteableDatapointManagement implements PatternListener<WriteableDa
 			} else {
 				name += "(Room)";
 			}
-		} else if(deviceAlarms.contains(id)) {
+		} else if(AlarmingUtiH.deviceAlarms.contains(id)) {
 			device = UserServletUtil.getDeviceById(id, appMan.getResourceAccess(), dpService);
 			if(device != null) {
 				InstallAppDevice iad = dpService.getMangedDeviceResource(device);

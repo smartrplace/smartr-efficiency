@@ -80,7 +80,7 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 			if(action.equalsIgnoreCase("delete") && (deviceRes != null)) {
 				if(iad == null && (deviceRes instanceof PhysicalElement))
 					iad = appMan.dpService().getMangedDeviceResource((PhysicalElement) deviceRes);
-				DeviceTableRaw.deleteDeviceBase(deviceRes);
+				DeviceTableRaw.deleteDeviceBase(deviceRes, null);
 				if(iad != null)
 					iad.delete();
 				System.out.println("Delete(1) finished for "+deviceRes.getLocation());
@@ -99,7 +99,7 @@ public class CSVUploadListenerRoom implements CSVUploadListener {
 				iad = appMan.dpService().getMangedDeviceResource(device.device);
 					
 				if(action.equalsIgnoreCase("delete")) {
-					DeviceTableRaw.deleteDeviceBase(deviceRes);
+					DeviceTableRaw.deleteDeviceBase(deviceRes, null);
 					if(iad != null)
 						iad.delete();
 					System.out.println("Delete(2) finished for "+device.device.getLocation());

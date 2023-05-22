@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -30,7 +31,10 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.eval.hardware.HmCCUPageUtils;
 import org.smartrplace.os.util.BundleRestartButton;
+import org.smartrplace.os.util.OSGiBundleUtil.BundleType;
 import org.smartrplace.router.model.GlitNetRouter;
+import org.smartrplace.tissue.util.logconfig.PerformanceLog.GwSubResProvider;
+import org.smartrplace.tissue.util.resource.GatewaySyncResourceService.RemoteStatus;
 import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -172,7 +176,7 @@ public class CCUPage extends MainPage {
 					vh.registerHeaderEntry("Comment");
 					vh.registerHeaderEntry("Plot");
 					vh.registerHeaderEntry("Restart");
-					vh.registerHeaderEntry("Conroller");
+					vh.registerHeaderEntry("Controller_Connecting");
 					vh.registerHeaderEntry("UI Access");
 					vh.registerHeaderEntry("RT");
 					return;
@@ -215,6 +219,14 @@ public class CCUPage extends MainPage {
 							if(hmDriverRestartTimer.isCounting()) {
 								long remain = hmDriverRestartTimer.getRemainingTime();
 								text = "HM-Restart in "+(remain/1000)+" sec";
+							} else if(controller.hwInstApp.gwSync != null) {
+								String remoteGatewayOfCcu = GatewaySyncUtil.getGatewayBaseIdIfRemoteDevice(device);
+								if(remoteGatewayOfCcu != null) {
+									text = "On Gateway "+remoteGatewayOfCcu;
+									disable(req);
+								}
+								else
+									text = "Reboot";
 							} else
 								text = "Reboot";
 							
@@ -234,20 +246,6 @@ public class CCUPage extends MainPage {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							restartCCU(device, ccuAccRes);
-							/*if(controller.hwInstApp.ccuAccess != null) {
-								Resource parent = device.getParent();
-								if(parent != null && (parent instanceof HmLogicInterface)) try {
-									int result = controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
-									if(result != 0) {
-										ValueResourceHelper.setCreate(ccuAccRes, result);
-									} else
-										ccuAccRes.setValue(0);
-								} catch (IOException e) {
-									e.printStackTrace();
-									throw new IllegalStateException(e);
-								}
-							}
-							hmDriverRestartTimer.newEvent();*/
 						}
 					};
 					if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
@@ -262,9 +260,9 @@ public class CCUPage extends MainPage {
 				Map<GlitNetRouter, String> valuesToSet = new HashMap<>();
 				Collection<InstallAppDevice> all = controller.dpService.managedDeviceResoures(GlitNetRouter.class);
 				for(InstallAppDevice iad: all) {
-					valuesToSet.put((GlitNetRouter) iad.device(), iad.deviceId().getValue());
+					valuesToSet.put((GlitNetRouter) iad.device().getLocationResource(), iad.deviceId().getValue());
 				}
-				vh.referenceDropdownFixedChoice("Conroller", id, router, row, valuesToSet);
+				vh.referenceDropdownFixedChoice("Controller_Connecting", id, router, row, valuesToSet);
 				final Button showMsg = new Button(mainTable, "msg" + id, req) {
 					
 					@Override
@@ -354,6 +352,26 @@ public class CCUPage extends MainPage {
 	}
 	private int restartCCU(final HmInterfaceInfo device, IntegerResource ccuAccRes) {
 		final int result;
+		final String remoteGatewayOfCcu;
+		if(controller.hwInstApp.gwSync != null) {
+			remoteGatewayOfCcu = GatewaySyncUtil.getGatewayBaseIdIfRemoteDevice(device);
+		} else
+			remoteGatewayOfCcu = null;
+		if(remoteGatewayOfCcu != null) {
+			return -9999;
+			/*Resource parent = device.getParent();
+			CompletionStage<RemoteStatus> cs = controller.hwInstApp.gwSync.rebootCCU((HmLogicInterface) parent, remoteGatewayOfCcu);
+			CountdownTimerMulti2Single hmDriverRestartTimerRemote = new CountdownTimerMulti2Single(controller.appMan, 7*TimeProcUtil.MINUTE_MILLIS) {
+				
+				@Override
+				public void delayedExecution() {
+					controller.hwInstApp.gwSync.restartBundle(BundleType.HomematicDriver, remoteGatewayOfCcu);
+					BundleRestartButton.hmRestart.executeNonBlockingOnce();				
+				}
+			};
+			result = 0; //TODO: Get result from cs
+			return result;*/
+		}
 		if(controller.hwInstApp.ccuAccess != null) {
 			Resource parent = device.getParent();
 			if(parent != null && (parent instanceof HmLogicInterface)) try {

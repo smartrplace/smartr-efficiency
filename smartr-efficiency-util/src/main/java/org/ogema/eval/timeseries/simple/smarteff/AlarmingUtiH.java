@@ -28,6 +28,7 @@ import org.smartrplace.extensionservice.SmartEffTimeSeries;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric;
 import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import extensionmodel.smarteff.api.common.BuildingUnit;
 
@@ -45,6 +46,15 @@ public class AlarmingUtiH {
 	public static final String SP_SUPPORT_FIRST = "Smartrplace Support First";
 	public static final String CUSTOMER_FIRST = "Customer First";
 	public static final String CUSTOMER_SP_SAME = "Both together";
+
+	public static List<String> roomAlarms = StringFormatHelper.getListFromString(
+			"setpointHighForLong, setpointHighOften, roomAboveSetpointValvesOpen, roomTempHighValvesClosedOutsideCold,"
+			+ "setpointLtOutsideAndOutsideWarm,"
+			+ "roomAboveSetpointValvesClosed");
+	public static List<String> deviceAlarms = StringFormatHelper.getListFromString("");
+	public static List<String> effectiveAlarms = StringFormatHelper.getListFromString(
+			"setpointHighForLong, setpointHighOften, roomAboveSetpointValvesOpen, roomTempHighValvesClosedOutsideCold, "
+			+ "setpointLtOutsideAndOutsideWarm");
 
 	public static enum DestType {
 		SP_SUPPORT_FIRST,

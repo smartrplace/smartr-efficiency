@@ -11,7 +11,6 @@ import java.util.Map;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
-import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -31,8 +30,6 @@ import org.smartrplace.apps.hw.install.config.InstallAppDeviceBase;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
-import org.smartrplace.os.util.BundleRestartButton;
-import org.smartrplace.tissue.util.resource.GatewaySyncResourceService;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
@@ -472,50 +469,6 @@ public class MainPageExpert extends MainPage {
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						String sel = getText(req);
 						performAction(sel, object, logResult.devHand);
-						/*switch(sel) {
-						case LOG_ALL:
-							controller.activateLogging(logResult.devHand, object, false, false);
-							break;
-						case LOG_NONE:
-							controller.activateLogging(logResult.devHand, object, false, true);
-							break;
-						case DELETE:
-							DeviceTableRaw.deleteDevice(object);
-							break;
-						case RESET:
-							object.delete();
-							break;
-						case TRASH2DELETE:
-							long dayEnd = AbsoluteTimeHelper.getNextStepTime(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
-							ValueResourceHelper.setCreate(controller.appConfigData.nextTimeToDeleteMarkedDevices(), dayEnd);
-							ValueResourceHelper.setCreate(object.trashStatus(), 1);
-						case TRASH_RESET:
-						case TRASH:
-							performTrashOperation(object, logResult.devHand);
-							break;
-						case MAKE_TEMPLATE:
-							InstallAppDevice currentTemplate = controller.getTemplateDevice(logResult.devHand);
-							if(currentTemplate != null)
-								DeviceTableRaw.setTemplateStatus(currentTemplate, null, false);
-								//currentTemplate.isTemplate().deactivate(false);
-							DeviceTableRaw.setTemplateStatus(object, logResult.devHand, true);
-							//ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
-							//if(!object.isTemplate().isActive())
-							//	object.isTemplate().activate(false);
-							break;
-						case APPLY_TEMPLATE:
-							for(InstallAppDevice dev: controller.getDevices(logResult.devHand)) {
-								if(dev.equalsLocation(object))
-									continue;
-								AlarmingConfigUtil.copySettings(object, dev, controller.appMan);
-							}
-							break;
-						case APPLY_DEFAULT_ALARM:
-							DeviceHandlerProviderDP<?> tableProvider = controller.getDeviceHandler(object);
-							if(tableProvider != null)
-								tableProvider.initAlarmingForDevice(object, controller.appConfigData);
-							break;
-						}*/
 					}
 				};
 				performButton = performButton2;
@@ -678,7 +631,7 @@ public class MainPageExpert extends MainPage {
 			controller.activateLogging(devHand, object, false, true);
 			break;
 		case DELETE:
-			DeviceTableRaw.deleteDevice(object);
+			DeviceTableRaw.deleteDevice(object, controller.hwInstApp.gwSync);
 			break;
 		case RESET:
 			object.delete();
@@ -714,22 +667,5 @@ public class MainPageExpert extends MainPage {
 				tableProvider.initAlarmingForDevice(object, controller.appConfigData);
 			break;
 		}		
-	}
-	
-	public static boolean setCreate(BooleanResource fres, boolean value, GatewaySyncResourceService gwSync) {
-		if(!fres.exists()) {
-			gwSync.create(fres);
-			gwSync.activateResource(fres, false);
-			BundleRestartButton.gwSyncRestart.executeBlockingOnceOnYourOwnRisk();
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			fres.setValue(value);
-			return true;
-		}
-		fres.setValue(value);
-		return false;
 	}
 }

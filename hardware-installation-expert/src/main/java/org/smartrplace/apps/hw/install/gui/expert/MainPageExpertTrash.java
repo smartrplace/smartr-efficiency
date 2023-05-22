@@ -38,7 +38,7 @@ public class MainPageExpertTrash extends MainPageExpert {
 				for(InstallAppDevice dev: all) {
 					if((!dev.isTrash().getValue()) || (dev.trashStatus().getValue() <= 0))
 						continue;
-					DeviceTableRaw.deleteDevice(dev);
+					DeviceTableRaw.deleteDevice(dev, controller.hwInstApp.gwSync);
 				}
 			}
 		};
