@@ -33,19 +33,23 @@ public class EscalationManager implements EscalationManagerI {
 	protected final AlarmingConfigAppController controller;
 	protected final AlarmingEscalationSettings escData;
 	
-	public final Map<String, EscalationProvider> knownEscProvs = new HashMap<>();
+	private final Map<String, EscalationProvider> knownEscProvs = new HashMap<>();
 	public final Map<Integer, ExternalEscalationProvider> extEscProvs = new HashMap<>();
 	
 	@Override
 	public void registerEscalationProvider(EscalationProvider prov) {
-		knownEscProvs.put(prov.id(), prov);
+		synchronized (knownEscProvs) {
+			knownEscProvs.put(prov.id(), prov);
+		}
 		initTimedJob(prov);
 	}
 
 	@Override
 	public EscalationProvider unregisterEscalationProvider(EscalationProvider prov) {
 		//TODO: TimedJob is not unregistered or stopped yet
-		return knownEscProvs.remove(prov.id());
+		synchronized (knownEscProvs) {
+			return knownEscProvs.remove(prov.id());
+		}
 	}
 
 	public EscalationManager(AlarmingConfigAppController controller) {
@@ -55,8 +59,10 @@ public class EscalationManager implements EscalationManagerI {
 		
 		initStandardProviders();
 		
-		for(EscalationProvider prov: knownEscProvs.values()) {
-			initTimedJob(prov);
+		synchronized (knownEscProvs) {
+			for(EscalationProvider prov: knownEscProvs.values()) {
+				initTimedJob(prov);
+			}
 		}
 	}
 	
