@@ -3,19 +3,19 @@ package org.smartrplace.apps.kni.quality.eval;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
+import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.gateway.device.KnownIssueDataGw;
 import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
-import org.smartrplace.tissue.util.resource.GatewayUtil;
 
 import de.iwes.util.resource.OGEMAResourceCopyHelper;
 import de.iwes.util.resource.ResourceHelper;
@@ -103,25 +103,37 @@ public class QualityEvalUtil {
 		}
 	}
 	
-	public static ResourceList<KnownIssueDataGw> getSuperiorSyncList(ApplicationManager appMan) {
-		@SuppressWarnings("unchecked")
+	//public static ResourceList<KnownIssueDataGw> getSuperiorSyncList(ApplicationManager appMan) {
+	public static GatewaySuperiorData getSuperiorSyncList(ApplicationManager appMan) {
+		Resource firstGeneration = appMan.getResourceAccess().getResource("gatewaySuperiorData");
+		if(firstGeneration != null && (firstGeneration instanceof ResourceList))
+			firstGeneration.delete();
+		
+		GatewaySuperiorData result = ResourceHelper.getOrCreateTopLevelResource("gatewaySuperiorDataRes", GatewaySuperiorData.class, appMan);
+		
+		/*@SuppressWarnings("unchecked")
 		ResourceList<KnownIssueDataGw> result = ResourceHelper.getOrCreateTopLevelResource("gatewaySuperiorData", ResourceList.class, appMan);
 		if(result.exists()) {
 			result.create();
 			result.setElementType(KnownIssueDataGw.class);
 			result.activate(true);
-		}
+		}*/
 		if(!Boolean.getBoolean("org.smartrplace.apps.subgateway"))
 			GatewaySyncUtil.registerToplevelDeviceForSyncAsClient(result, appMan);
 		return result;
 	}
 	public static String gwIdResourceName = null;
-	public static KnownIssueDataGw getSuperiorSyncData(ApplicationManager appMan) {
+	/*public static KnownIssueDataGw getSuperiorSyncData(ApplicationManager appMan) {
 		ResourceList<KnownIssueDataGw> list = getSuperiorSyncList(appMan);
 		if(gwIdResourceName == null) {
 			gwIdResourceName = ResourceUtils.getValidResourceName("gw"+ViaHeartbeatUtil.getBaseGwId(GatewayUtil.getGatewayId(appMan.getResourceAccess())));
 		}
 		KnownIssueDataGw result = list.getSubResource(gwIdResourceName, KnownIssueDataGw.class);
+		return result;
+	}*/
+	public static KnownIssueDataGw getSuperiorSyncData(ApplicationManager appMan) {
+		GatewaySuperiorData list = getSuperiorSyncList(appMan);
+		KnownIssueDataGw result = list.knownIssueStatistics();
 		return result;
 	}
 }
