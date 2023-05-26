@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
@@ -606,7 +607,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							return;
 						final Stream<DropdownOption> standardOpts = getDropdownOptions(req).stream()
 							.filter(opt -> !opt.id().startsWith("custom"));
-						final Stream<DropdownOption> customOpt = Stream.of(new DropdownOption(id, target + "", true));
+						final long diff = target - appMan.getFrameworkTime();
+						final ZonedDateTime targetZdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(target), ZoneId.systemDefault());
+						final boolean printTime = Math.abs(diff) < 36 * 3_600_000;
+						final String dateTime = printTime ? DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(targetZdt) : DateTimeFormatter.ISO_LOCAL_DATE.format(targetZdt);
+						final Stream<DropdownOption> customOpt = Stream.of(new DropdownOption(id, dateTime, true));
 						final List<DropdownOption> newOptions = Stream.concat(customOpt, standardOpts).collect(Collectors.toList());
 						setOptions(newOptions, req);
 						selectSingleOption(followup.isActive() ? id : "__EMPTY_OPT__", req);
@@ -632,11 +637,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						final long timestamp;
 						if (value.startsWith("custom"))
 							timestamp = Long.parseLong(value.substring("custom".length()));
-						else if (value.endsWith("d")) {
+						else if (value.endsWith("d") && value.length() < 5) {
 							final int days = Integer.parseInt(value.substring(0, value.length()-1));
 							timestamp = now.plusDays(days).toEpochSecond()*1000;
 						} else if (value.equals("nextmonthend"))
-							timestamp = now.plusMonths(1).with(TemporalAdjusters.firstDayOfNextMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
+							timestamp = now.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
 						else if (value.equals("3months"))
 							timestamp = now.plusMonths(3).toEpochSecond()*1000;
 						else if (value.equals("august")) {
@@ -670,7 +675,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					new DropdownOption("august", "End of August", false)
 				));
 				followupemail.setDefaultToolTip("Send a reminder email after the specified period");
-				followupemail.setDefaultMinWidth("6em");
+				followupemail.setDefaultMinWidth("8em");
 				followupemail.triggerAction(followupemail, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 				if (alert != null)
 					followupemail.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
