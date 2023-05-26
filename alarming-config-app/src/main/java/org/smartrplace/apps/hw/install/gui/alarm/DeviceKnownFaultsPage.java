@@ -592,7 +592,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							.filter(opt -> opt.startsWith("custom"))
 							.findAny();
 						final boolean customConfigured = custom.isPresent();
-						final boolean needsCustom = followup.exists();
+						final boolean needsCustom = followup.exists() && followup.getValue() >= appMan.getFrameworkTime();
 						if (!needsCustom) {
 							if (customConfigured) {
 								setOptions(getDropdownOptions(req).stream()
@@ -633,13 +633,16 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							}
 							return;
 						}
-						final ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(appMan.getFrameworkTime()), ZoneId.systemDefault());
+						final long now0 = appMan.getFrameworkTime();
+						final ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now0), ZoneId.systemDefault());
 						final long timestamp;
 						if (value.startsWith("custom"))
 							timestamp = Long.parseLong(value.substring("custom".length()));
 						else if (value.endsWith("d") && value.length() < 5) {
 							final int days = Integer.parseInt(value.substring(0, value.length()-1));
 							timestamp = now.plusDays(days).toEpochSecond()*1000;
+						} else if (value.equals("1min")) { // debug option
+							timestamp = now.plusMinutes(1).toEpochSecond()*1000;
 						} else if (value.equals("nextmonthend"))
 							timestamp = now.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
 						else if (value.equals("3months"))
@@ -654,10 +657,12 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							throw new IllegalArgumentException("unknown follow-up date " + value);
 						}
 						followup.<TimeResource> create().setValue(timestamp);
-						followup.activate(false);
-						if (alert != null && object.device().exists()) {
-							alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
-								+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
+						if (timestamp > now0) {
+							followup.activate(false);
+							if (alert != null && object.device().exists()) {
+								alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
+									+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
+							}
 						}
 					}
 					
@@ -674,6 +679,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					new DropdownOption("3months", "3 months", false),
 					new DropdownOption("august", "End of August", false)
 				));
+				// add a 1 minute option for debugging purposes
+				if (Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.devicealarmreminder.debug")) {
+					followupemail.setDefaultOptions(Stream.concat(Stream.of(new DropdownOption("1min", "1 minute", false)), followupemail.getDefaultOptions().stream())
+						.collect(Collectors.toList()));
+				}
 				followupemail.setDefaultToolTip("Send a reminder email after the specified period");
 				followupemail.setDefaultMinWidth("8em");
 				followupemail.triggerAction(followupemail, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
