@@ -112,7 +112,7 @@ public class DeviceKnownFaultsInstallationPage {
 				final List<DropdownOption> opts = getDropdownOptions(req); 
 				if (opts == null || opts.isEmpty()) {
 					final String[] initialStatus = getPage().getPageParameters(req).get("alarmstatus");
-					final boolean allSelected = initialStatus != null && initialStatus.length > 0 && initialStatus[0] == "all";
+					final boolean allSelected = initialStatus != null && initialStatus.length > 0 && initialStatus[0].equalsIgnoreCase("all");
 					setOptions(Arrays.asList(
 						new DropdownOption("all", "Alle Alarme", allSelected),
 						new DropdownOption("unresolved", "Offene Alarme", !allSelected)
@@ -137,10 +137,14 @@ public class DeviceKnownFaultsInstallationPage {
 				final List<DropdownOption> opts = getDropdownOptions(req); 
 				if (opts == null || opts.isEmpty()) {
 					final String[] initialStatus = getPage().getPageParameters(req).get("alarmprio");
-					final boolean allSelected = initialStatus != null && initialStatus.length > 0 && initialStatus[0] == "all";
+					final boolean allSelected = initialStatus != null && initialStatus.length > 0 && initialStatus[0].equalsIgnoreCase("all");
+					final boolean prioSelected = initialStatus != null && initialStatus.length > 0 && initialStatus[0].equalsIgnoreCase("prio");
+					final boolean opSelected = !allSelected&&!prioSelected;
 					setOptions(Arrays.asList(
-						new DropdownOption("all", "Alle Alarme", allSelected),
-						new DropdownOption("prio", "Nur priorisierte", !allSelected)
+						new DropdownOption("prio", "Nur priorisierte", prioSelected),
+						new DropdownOption("op", "Operations+priorisierte", opSelected),
+						new DropdownOption("all", "Alle Alarme", allSelected)
+						
 				), req);
 				}
 			} 
@@ -152,7 +156,7 @@ public class DeviceKnownFaultsInstallationPage {
 				new DropdownOption("prio", "Nur priorisierte", true)
 		));
 		*/
-		prioFilter.setDefaultToolTip("Nicht priorisierte Alarme anzeigen oder ausblenden?");
+		prioFilter.setDefaultToolTip("Alle Alarme, nur priorisierte Alarme, oder alle Operations zugewiesenen Alarme (inkl. alle priorisierten) anzeigen?");
 		prioFilter.setDefaultSelectByUrlParam("alarmprio");
 		
 		
@@ -262,7 +266,7 @@ public class DeviceKnownFaultsInstallationPage {
 		};
 		subFlexSupplier.get().addItem(new Label(page, "filterDoneLab", "Erledigte anzeigen?"), null)
 			.addItem(statusFilter, null);
-		subFlexSupplier.get().addItem(new Label(page, "filterPrioLab", "Nicht priorisierte anzeigen?"), null)
+		subFlexSupplier.get().addItem(new Label(page, "filterPrioLab", "Alarmfilter:"), null)
 			.addItem(prioFilter, null);
 		subFlexSupplier.get().addItem(new Label(page, "filterBuildingLab", "Gebäude:"), null)
 			.addItem(buildings, null);
@@ -278,6 +282,7 @@ public class DeviceKnownFaultsInstallationPage {
 			public void onGET(OgemaHttpRequest req) {
 				final boolean filterForReleased = "unresolved".equals(statusFilter.getSelectedValue(req));
 				final boolean filterForPrioritised = "prio".equals(prioFilter.getSelectedValue(req));
+				final boolean filterForOperation = "op".equals(prioFilter.getSelectedValue(req));
 				Stream<InstallAppDevice> deviceStream =  knownDevices.getKnownDevices(req).stream()
 					.filter(cfg -> !cfg.isTrash().isActive() || !cfg.isTrash().getValue())
 					.filter(cfg -> cfg.knownFault().isActive());
@@ -287,6 +292,15 @@ public class DeviceKnownFaultsInstallationPage {
 				}
 				if (filterForPrioritised) {
 					deviceStream = deviceStream.filter(cfg -> cfg.knownFault().getSubResource("processingOrder", FloatResource.class).isActive());
+				}
+				if (filterForOperation) {
+					deviceStream = deviceStream.filter(cfg -> {
+						// even if we filter for operation, we always include prioritized issues
+						if (cfg.knownFault().getSubResource("processingOrder", FloatResource.class).isActive()) 
+							return true;
+						final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(cfg.knownFault().assigned().getValue() + "");
+						return role != null && role.toLowerCase().startsWith("op");
+					});
 				}
 				
 				final BuildingPropertyUnit selectedBuilding = buildings.getSelectedItem(req);
