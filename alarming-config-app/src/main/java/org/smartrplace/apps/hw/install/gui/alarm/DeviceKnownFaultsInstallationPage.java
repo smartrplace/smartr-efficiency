@@ -161,8 +161,8 @@ public class DeviceKnownFaultsInstallationPage {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
-				// TODO add: unassigned & all
 				setList(appMan.getResourceAccess().<ResourceList<BuildingPropertyUnit>>getResource("accessAdminConfig/roomGroups"), req);
+				/*// default: empty selected
 				final Map<String, String[]> params = page.getPageParameters(req);
 				final boolean hasBuildingParam = params != null && params.containsKey("roomgroup");
 				if (!hasBuildingParam) {
@@ -170,11 +170,14 @@ public class DeviceKnownFaultsInstallationPage {
 						.filter(b -> b.name().isActive() && "all rooms".equalsIgnoreCase(b.name().getValue()))
 						.findAny().ifPresent(b -> selectItem(b, req));
 				}
+				*/
 			}
 			
 		};
 		buildings.setDefaultSelectByUrlParam("roomgroup");
 		buildings.setDefaultMaxWidth("15em");
+		buildings.setDefaultAddEmptyOption(true);
+		buildings.selectDefaultItem(null);
 		final String buildingsTooltip = "Gebäude/Gruppe von Räumen auswählen um Räume zu filtern";
 		buildings.setDefaultToolTip(buildingsTooltip);
 		
@@ -286,11 +289,23 @@ public class DeviceKnownFaultsInstallationPage {
 					deviceStream = deviceStream.filter(cfg -> cfg.knownFault().getSubResource("processingOrder", FloatResource.class).isActive());
 				}
 				
+				final BuildingPropertyUnit selectedBuilding = buildings.getSelectedItem(req);
+				if (selectedBuilding != null && selectedBuilding.rooms().exists()) {
+					final List<Room> filteredRooms = selectedBuilding.rooms().getAllElements();
+					deviceStream = deviceStream.filter(cfg -> {
+						final Room r = cfg.device().location().room();
+						if (!r.exists())
+							return false;
+						return filteredRooms.stream().filter(room -> r.equalsLocation(room)).findAny().isPresent();
+					});
+				}
 				final List<Room> selectedRooms = rooms.getSelectedItems(req);
 				if (!selectedRooms.isEmpty()) {
 					deviceStream = deviceStream.filter(cfg -> selectedRooms.stream().filter(r -> 
 							cfg.device().location().room().equalsLocation(r)).findAny().isPresent()
 					);
+					
+					
 				}
 				final List<DeviceHandlerProvider<?>> handlers = deviceTypes.getSelectedItems(req);
 				if (!handlers.isEmpty()) {
