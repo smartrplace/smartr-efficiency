@@ -1,6 +1,15 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.time.Instant;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
+import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +22,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.joda.time.Period;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -29,6 +39,7 @@ import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -466,6 +477,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Assigned");
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Priority");
+					vh.getHeader().put("followup", "Follow-up");
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.registerHeaderEntry("Edit TT");
 					if(pe.id().toLowerCase().contains("thermostat"))
@@ -569,6 +581,103 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 				}
+				final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
+					
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						final TimeResource followup = res.dueDateForResponsibility();
+						final Optional<String> custom = getDropdownOptions(req).stream()
+							.map(opt -> opt.id())
+							.filter(opt -> opt.startsWith("custom"))
+							.findAny();
+						final boolean customConfigured = custom.isPresent();
+						final boolean needsCustom = followup.exists();
+						if (!needsCustom) {
+							if (customConfigured) {
+								setOptions(getDropdownOptions(req).stream()
+										.filter(opt -> !opt.id().startsWith("custom"))
+										.collect(Collectors.toList()), req);
+							}
+							return;
+						}
+						final long target = followup.getValue();
+						final String id = "custom" + target;
+						if (customConfigured && custom.get().equals(id))
+							return;
+						final Stream<DropdownOption> standardOpts = getDropdownOptions(req).stream()
+							.filter(opt -> !opt.id().startsWith("custom"));
+						final Stream<DropdownOption> customOpt = Stream.of(new DropdownOption(id, target + "", true));
+						final List<DropdownOption> newOptions = Stream.concat(customOpt, standardOpts).collect(Collectors.toList());
+						setOptions(newOptions, req);
+						selectSingleOption(followup.isActive() ? id : "__EMPTY_OPT__", req);
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						final String value = getSelectedValue(req);
+						if (value == null || value.isEmpty()) // ?
+							return;
+						final TimeResource followup = res.dueDateForResponsibility();
+						if ("__EMPTY_OPT__".equalsIgnoreCase(value)) {
+							if (followup.isActive()) {
+								followup.deactivate(false);
+								if (alert != null && object.device().exists()) {
+									alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
+										+ " has been cancelled", true, req);
+								}
+							}
+							return;
+						}
+						final ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(appMan.getFrameworkTime()), ZoneId.systemDefault());
+						final long timestamp;
+						if (value.startsWith("custom"))
+							timestamp = Long.parseLong(value.substring("custom".length()));
+						else if (value.endsWith("d")) {
+							final int days = Integer.parseInt(value.substring(0, value.length()-1));
+							timestamp = now.plusDays(days).toEpochSecond()*1000;
+						} else if (value.equals("nextmonthend"))
+							timestamp = now.plusMonths(1).with(TemporalAdjusters.firstDayOfNextMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
+						else if (value.equals("3months"))
+							timestamp = now.plusMonths(3).toEpochSecond()*1000;
+						else if (value.equals("august")) {
+							final Month month = now.getMonth();
+							ZonedDateTime t0 = now;
+							if (month.compareTo(Month.AUGUST) > 0 || (month == Month.AUGUST && now.getDayOfMonth() == 31))
+								t0 = t0.plusYears(1);
+							timestamp = t0.with(Month.AUGUST).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
+						} else {
+							throw new IllegalArgumentException("unknown follow-up date " + value);
+						}
+						followup.<TimeResource> create().setValue(timestamp);
+						followup.activate(false);
+						if (alert != null && object.device().exists()) {
+							alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
+								+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
+						}
+					}
+					
+				};
+				followupemail.setComparator(null);
+				followupemail.setDefaultOptions(Arrays.asList(
+					new DropdownOption("__EMPTY_OPT__", "inactive", true),
+					new DropdownOption("1d", "1 day", false),
+					new DropdownOption("2d", "2 days", false),
+					new DropdownOption("3d", "3 days", false),
+					new DropdownOption("7d", "7 days", false),
+					new DropdownOption("30d", "30 days", false),
+					new DropdownOption("nextmonthend", "End of next month", false),
+					new DropdownOption("3months", "3 months", false),
+					new DropdownOption("august", "End of August", false)
+				));
+				followupemail.setDefaultToolTip("Send a reminder email after the specified period");
+				followupemail.setDefaultMinWidth("6em");
+				followupemail.triggerAction(followupemail, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+				if (alert != null)
+					followupemail.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+				row.addCell("followup", followupemail);
+				
+				
+				
 				if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD) {
 					SimpleCheckbox forRelease = new SimpleCheckbox(mainTable, "forRelease"+id, "", req) {
 						@Override
