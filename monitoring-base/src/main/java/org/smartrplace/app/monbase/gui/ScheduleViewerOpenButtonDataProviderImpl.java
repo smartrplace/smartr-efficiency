@@ -87,7 +87,8 @@ public abstract class ScheduleViewerOpenButtonDataProviderImpl implements Schedu
 			roomIDsForManual = roomIDs;
 		
 		List<String> done = new ArrayList<String>();
-		for(String baselabel: baselabels) {
+		for(String baselabelPlus: baselabels) {
+			String baselabel = OfflineControlGUI.baseLabelPure(baselabelPlus);
 			for(String locpart: guiConfig.getManualTimeseriesTypeLabels(baselabel)) {
 				if(locpart.startsWith("#")) {
 					for(String room: roomIDsForManual) {

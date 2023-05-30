@@ -114,7 +114,8 @@ public class OfflineControlGUI {
 			}
 			
 			Set<ComplexOptionDescription> inputsToUse = new HashSet<>(); //ArrayList<>();
-			for(String baselabel: baselabels) {
+			for(String baselabelPlus: baselabels) {
+				String baselabel = baseLabelPure(baselabelPlus);
 				List<ComplexOptionDescription> newInp = controller.getDatatypesBaseExtended().get(baselabel);
 				try {
 					inputsToUse.addAll(newInp);
@@ -398,5 +399,16 @@ public class OfflineControlGUI {
 		Header header = new Header(page, "header", headerText);
 		header.addDefaultStyle(WidgetData.TEXT_ALIGNMENT_LEFT);
 		page.append(header);
+	}
+	
+	public static String baseLabelPure(String baseLabelPlus) {
+		return baseLabelSplit(baseLabelPlus)[1];
+	}
+	
+	public static String[] baseLabelSplit(String baseLabelPlus) {
+		if(baseLabelPlus.startsWith("#:")) {
+			return baseLabelPlus.split(":#:", 2);
+		}
+		return new String[] {null, baseLabelPlus};
 	}
 }
