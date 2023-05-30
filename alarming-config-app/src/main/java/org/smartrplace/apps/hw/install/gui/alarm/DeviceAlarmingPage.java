@@ -181,8 +181,8 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						if(template != null)
-							DeviceTableRaw.setTemplateStatus(template, null, false);
-						DeviceTableRaw.setTemplateStatus(object, devHand, true);
+							DeviceTableRaw.setTemplateStatus(template, false);
+						DeviceTableRaw.setTemplateStatus(object, true);
 					}
 				};
 				selectTemplButton.setDefaultConfirmMsg("Really select as template "+object.device().getLocation()+" ?");

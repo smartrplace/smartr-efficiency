@@ -647,9 +647,9 @@ public class MainPageExpert extends MainPage {
 		case MAKE_TEMPLATE:
 			InstallAppDevice currentTemplate = controller.getTemplateDevice(devHand);
 			if(currentTemplate != null)
-				DeviceTableRaw.setTemplateStatus(currentTemplate, null, false);
+				DeviceTableRaw.setTemplateStatus(currentTemplate, false);
 				//currentTemplate.isTemplate().deactivate(false);
-			DeviceTableRaw.setTemplateStatus(object, devHand, true);
+			DeviceTableRaw.setTemplateStatus(object, true);
 			//ValueResourceHelper.setCreate(object.isTemplate(), logResult.devHand.id());
 			//if(!object.isTemplate().isActive())
 			//	object.isTemplate().activate(false);

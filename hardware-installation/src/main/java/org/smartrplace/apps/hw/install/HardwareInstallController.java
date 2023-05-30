@@ -482,6 +482,13 @@ public class HardwareInstallController {
 		}
 		if(DeviceTableRaw.getTemplateForType(getDevices(tableProvider), tableProvider) == null)
 			ValueResourceHelper.setCreate(install.isTemplate(), tableProvider.id());
+		else if(install.isTemplate().exists()) {
+			String val = install.isTemplate().getValue();
+			if(!val.isEmpty() && (!val.equals(install.devHandlerInfo().getValue()))) {
+				install.isTemplate().deactivate(false);
+				install.isTemplate().setValue("");
+			}
+		}
 	}
 	
 	public InstallAppDevice removeDevice(Resource device) {
