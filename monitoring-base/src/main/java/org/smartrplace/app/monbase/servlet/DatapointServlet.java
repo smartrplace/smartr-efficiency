@@ -2,6 +2,7 @@ package org.smartrplace.app.monbase.servlet;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -296,7 +297,19 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 
 	@Override
 	public Collection<Datapoint> getAllObjects(String user) {
-		return dpService.getAllDatapoints();
+		try {
+			return dpService.getAllDatapoints();
+		} catch(ConcurrentModificationException e) {
+			//Note: This could loop forever, so we print at least the stack trace
+			e.printStackTrace();
+			// This may occur during startup
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			return getAllObjects(user);
+		}
 	}
 
 	@Override
