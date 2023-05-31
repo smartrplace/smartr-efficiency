@@ -242,7 +242,7 @@ public class CCUPage extends MainPage {
 						
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							restartCCU(device, ccuAccRes);
+							int result = restartCCU(device, ccuAccRes);
 						}
 					};
 					if(Boolean.getBoolean("org.ogema.devicefinder.util.supportcascadedccu")) {
@@ -354,6 +354,7 @@ public class CCUPage extends MainPage {
 		} else
 			remoteGatewayOfCcu = null;
 		if(remoteGatewayOfCcu != null) {
+			ValueResourceHelper.setCreate(ccuAccRes, -9999);
 			return -9999;
 			/*Resource parent = device.getParent();
 			CompletionStage<RemoteStatus> cs = controller.hwInstApp.gwSync.rebootCCU((HmLogicInterface) parent, remoteGatewayOfCcu);
@@ -375,19 +376,16 @@ public class CCUPage extends MainPage {
 				if(router.exists())
 					ValueResourceHelper.setCreate(parent.getSubResource("ccuSshPort", IntegerResource.class), 82);
 				result = controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
-				if(result != 0) {
-					ValueResourceHelper.setCreate(ccuAccRes, result);
-				} else {
-					ccuAccRes.setValue(0);
-				}
 			} catch (IOException e) {
 				e.printStackTrace();
+				ValueResourceHelper.setCreate(ccuAccRes, -887);
 				throw new IllegalStateException(e);
 			} else
 				result = -98;
 		} else
 			result = -99;
 		hmDriverRestartTimer.newEvent();		
+		ValueResourceHelper.setCreate(ccuAccRes, result);
 		return result;
 	}
 }
