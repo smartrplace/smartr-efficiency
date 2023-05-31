@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletionStage;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
@@ -31,10 +30,7 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.MainPage;
 import org.smartrplace.eval.hardware.HmCCUPageUtils;
 import org.smartrplace.os.util.BundleRestartButton;
-import org.smartrplace.os.util.OSGiBundleUtil.BundleType;
 import org.smartrplace.router.model.GlitNetRouter;
-import org.smartrplace.tissue.util.logconfig.PerformanceLog.GwSubResProvider;
-import org.smartrplace.tissue.util.resource.GatewaySyncResourceService.RemoteStatus;
 import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -210,6 +206,7 @@ public class CCUPage extends MainPage {
 				row.addCell("Plot", logResult.plotButton);
 				
 				//TODO: Provide method to check if CCU can be accessed via CCUAccess
+				final GlitNetRouter router = device.getSubResource("ccuController", GlitNetRouter.class);
 				if(controller.hwInstApp.ccuAccess != null) {
 					final IntegerResource ccuAccRes = device.getSubResource("ccuAccessResult", IntegerResource.class);
 					final ButtonConfirm restartCcu = new ButtonConfirm(mainTable, "restartCCu"+id, req) {
@@ -256,7 +253,6 @@ public class CCUPage extends MainPage {
 					row.addCell("Restart", restartCcu);
 				}
 				
-				final GlitNetRouter router = device.getSubResource("ccuController", GlitNetRouter.class);
 				Map<GlitNetRouter, String> valuesToSet = new HashMap<>();
 				Collection<InstallAppDevice> all = controller.dpService.managedDeviceResoures(GlitNetRouter.class);
 				for(InstallAppDevice iad: all) {
@@ -375,6 +371,9 @@ public class CCUPage extends MainPage {
 		if(controller.hwInstApp.ccuAccess != null) {
 			Resource parent = device.getParent();
 			if(parent != null && (parent instanceof HmLogicInterface)) try {
+				final GlitNetRouter router = device.getSubResource("ccuController", GlitNetRouter.class);
+				if(router.exists())
+					ValueResourceHelper.setCreate(parent.getSubResource("ccuSshPort", IntegerResource.class), 82);
 				result = controller.hwInstApp.ccuAccess.reboot((HmLogicInterface) parent);
 				if(result != 0) {
 					ValueResourceHelper.setCreate(ccuAccRes, result);
