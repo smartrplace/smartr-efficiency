@@ -173,6 +173,24 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		
 		ServletStringProvider location = new ServletStringProvider(locationStr);
 		result.put("location", location);
+		if(locationStr.startsWith("manualMeters/")) {
+			int idx = locationStr.indexOf("/manualEntryData");
+			String base;
+			if(idx > 0) {
+				base = locationStr.substring(0, idx);
+			} else {
+				idx = locationStr.indexOf('/', "manualMeters/".length());
+				if(idx > 0)
+					base = locationStr.substring(0, idx);
+				else
+					base = null;
+			}
+			if(base != null) {
+				String manualEntryPath = base+"/manualEntryData";
+				ServletStringProvider manualEntryLocation = new ServletStringProvider(manualEntryPath);
+				result.put("manualentryset", manualEntryLocation);
+			}
+		}
 
 		ServletStringProvider labelStd = new ServletStringProvider(object.label(null));
 		result.put("labelStd", labelStd);
