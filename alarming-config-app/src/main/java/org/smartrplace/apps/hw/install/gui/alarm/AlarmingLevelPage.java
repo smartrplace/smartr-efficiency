@@ -87,7 +87,7 @@ public class AlarmingLevelPage extends PerMultiselectConfigPage<AlarmingEscalati
 		ButtonConfirm releaseAllUnassigned = new ButtonConfirm(page, "releaseAllUnBut") {
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				DeviceKnownFaultsPage.releaseAllUnassigned(controller.dpService);
+				DeviceKnownFaultsPage.releaseAllUnassigned(controller.dpService, appMan.getFrameworkTime());
 			}
 		};
 		releaseAllUnassigned.setDefaultText("Release all Unassigned");

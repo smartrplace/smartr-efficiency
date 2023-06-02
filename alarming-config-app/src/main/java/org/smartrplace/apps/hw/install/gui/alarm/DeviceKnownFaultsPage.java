@@ -41,6 +41,7 @@ import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -363,7 +364,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
 					for(DeviceHandlerProvider<?> pe: allProvs) {
 						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
-						releaseAllUnassigned(allforPe);
+						releaseAllUnassigned(allforPe, appMan.getFrameworkTime());
 						/*for(InstallAppDevice iad: allforPe) {
 							AlarmGroupData res = iad.knownFault();
 							if((!res.assigned().isActive()) || (res.assigned().getValue() <= 0)) {
@@ -402,7 +403,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
 					for(DeviceHandlerProvider<?> pe: allProvs) {
 						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
-						releaseAllDependent(allforPe);
+						releaseAllDependent(allforPe, appMan.getFrameworkTime());
 					}
 				}
 			}
@@ -808,7 +809,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							//TODO: In the future we may want to keep this information in a log of solved issues
-							res.delete();
+							AlarmResourceUtil.release(res, appMan.getFrameworkTime());
+							//res.delete();
 							//res.ongoingAlarmStartTime().setValue(-1);
 						}
 					};
@@ -829,7 +831,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							//TODO: In the future we may want to keep this information in a log of solved issues
-							res.delete();
+							AlarmResourceUtil.release(res, appMan.getFrameworkTime());
+							//res.delete();
 							//res.ongoingAlarmStartTime().setValue(-1);
 						}
 					};
@@ -929,16 +932,17 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		return appMan.getResourceAccess().getResources(GatewaySuperiorData.class).stream().findAny().orElse(null);
 	}
 	
-	public static void releaseAllUnassigned(DatapointService dpService) {
+	public static void releaseAllUnassigned(DatapointService dpService, long now) {
 		Collection<InstallAppDevice> all = dpService.managedDeviceResoures(null, false, false);
-		releaseAllUnassigned(all);
+		releaseAllUnassigned(all, now);
 	}
 	
-	public static void releaseAllUnassigned(Collection<InstallAppDevice> allforPe) {
+	public static void releaseAllUnassigned(Collection<InstallAppDevice> allforPe, long now) {
 		for(InstallAppDevice iad: allforPe) {
 			AlarmGroupData res = iad.knownFault();
 			if((!res.assigned().isActive()) || (res.assigned().getValue() <= 0)) {
-				res.delete();
+				AlarmResourceUtil.release(res, now);
+				//res.delete();
 			}
 		}		
 	}
@@ -952,11 +956,12 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		}		
 	}
 
-	public static void releaseAllDependent(Collection<InstallAppDevice> allforPe) {
+	public static void releaseAllDependent(Collection<InstallAppDevice> allforPe, long now) {
 		for(InstallAppDevice iad: allforPe) {
 			AlarmGroupData res = iad.knownFault();
 			if(res.assigned().getValue() == AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT) {
-				res.delete();
+				AlarmResourceUtil.release(res, now);
+				//res.delete();
 			}
 		}		
 	}

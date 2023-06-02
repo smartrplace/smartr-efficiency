@@ -1,6 +1,7 @@
 package org.smartrplace.apps.alarmconfig.util;
 
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -22,6 +23,28 @@ public class AlarmResourceUtil {
 		if (parent instanceof InstallAppDevice)
 			return (InstallAppDevice) parent;
 		return null;
+	}
+	
+	
+	/**
+	 * Deletes the issue, unless this is a major issue (type AlarmGroupDataMajor) synced to superior, 
+	 * in which case only the reference from the device is deleted (InstallAppDevice#knownFault()).
+	 * @param issue
+	 * @param now
+	 */
+	public static void release(AlarmGroupData issue, long now) {
+		if (issue instanceof AlarmGroupDataMajor) {
+			// these are major issues that are also synced to superior
+			// delete reference from InstallAppDevice to this one, but keep the main, synchronized resource
+			final AlarmGroupDataMajor major = issue.getLocationResource();
+			if (!major.releaseTime().isActive() || major.releaseTime().getValue() <= 0) {
+				major.releaseTime().<TimeResource> create().setValue(now);
+				major.releaseTime().activate(false);
+			}
+			major.getReferencingNodes(false).stream().filter(r -> r.getParent() instanceof InstallAppDevice).forEach(Resource::delete);
+		} else {
+			issue.delete();
+		}
 	}
 	
 }

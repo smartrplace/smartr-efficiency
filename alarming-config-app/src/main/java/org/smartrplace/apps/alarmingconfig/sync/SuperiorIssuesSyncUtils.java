@@ -5,6 +5,7 @@ import java.util.List;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.resourcemanager.ResourceOperationException;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.model.extended.alarming.AlarmGroupData;
@@ -60,6 +61,5 @@ public class SuperiorIssuesSyncUtils {
 		transaction.commit();
 		return major;
 	}
-	
 
 }
