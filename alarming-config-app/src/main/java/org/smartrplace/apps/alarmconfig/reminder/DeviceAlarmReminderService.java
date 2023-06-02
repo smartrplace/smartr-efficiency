@@ -22,7 +22,7 @@ import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 
 import de.iwes.util.resource.ResourceHelper;
@@ -112,7 +112,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 				.append("This is a reminder for the device alarm ");
 			String deviceName = alarm.getPath();
 			try {
-				deviceName = ResourceUtils.getHumanReadableName(((InstallAppDevice) alarm.getParent().getParent()).device());
+				deviceName = ResourceUtils.getHumanReadableName(AlarmResourceUtil.getDeviceForKnownFault(alarm).device());
 			} catch (Exception e) {}
 			sb.append(deviceName).append(" on gateway ").append(gwId);
 			sb.append('.');
