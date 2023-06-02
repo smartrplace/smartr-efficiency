@@ -18,14 +18,15 @@ import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.PatternListener;
 import org.ogema.messaging.api.MailSessionServiceI;
 import org.ogema.model.extended.alarming.AlarmGroupData;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
-import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.tissue.util.resource.GatewayUtil;
 
-/*
- * TODO Sending to be tested...
- */
+import de.iwes.util.resource.ResourceHelper;
+
 public class DeviceAlarmReminderService implements PatternListener<AlarmReminderPattern>, ResourceValueListener<TimeResource>, AutoCloseable {
 	
 	private static final long PAST_REMINDER_DURATION = 48*3_600_000; // 2 days
@@ -45,6 +46,8 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	
 	private void init(Timer timer) {
 		appMan.getLogger().info("{} starting", getClass().getName());
+		// initialize contacts in GatewaySuperiorData#responsibilityContacts... provisional
+		new ResponsibilityContactsInitializer(appMan).run();
 		this.appMan.getResourcePatternAccess().addPatternDemand(AlarmReminderPattern.class, this, AccessPriority.PRIO_LOWEST);
 		this.closeTimer();
 	}
@@ -104,14 +107,14 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 				cfg.config.responsible.getValue() : "alarming@smartrplace.com";
 		try {
 			final AlarmGroupData alarm = cfg.config.model;
+			final String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 			final StringBuilder sb = new StringBuilder()
 				.append("This is a reminder for the device alarm ");
+			String deviceName = alarm.getPath();
 			try {
-				final String deviceName = ResourceUtils.getHumanReadableName(((InstallAppDevice) alarm.getParent().getParent()).device());
-				sb.append(deviceName);
-			} catch (Exception e) {
-				sb.append(alarm);
-			}
+				deviceName = ResourceUtils.getHumanReadableName(AlarmResourceUtil.getDeviceForKnownFault(alarm).device());
+			} catch (Exception e) {}
+			sb.append(deviceName).append(" on gateway ").append(gwId);
 			sb.append('.');
 			if (alarm.comment().isActive()) {
 				sb.append(" Comment: ").append(alarm.comment().getValue());
@@ -121,11 +124,17 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 					.append(DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(alarm.ongoingAlarmStartTime().getValue()), ZoneId.systemDefault())))
 					.append('.');
 			}
+			final LocalGatewayInformation gwRes = ResourceHelper.getLocalGwInfo(appMan);
+			final String baseUrl = gwRes.gatewayBaseUrl().getValue();
+			final String subject = "Device issue reminder " + gwId + ": " + deviceName;
+			if (baseUrl != null && !baseUrl.isEmpty())
+				sb.append(" Link: ").append(baseUrl).append("/org/smartrplace/alarmingexpert/deviceknownfaults.html");
 			final String msg = sb.toString();
 			appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
 			emailService.newMessage()
 				.withSender("alarming@smartrplace.com") // ?
-				.addText(sb.toString())
+				.withSubject(subject)
+				.addText(msg)
 				.addTo(recipient)
 				.send();
 		} catch (IOException e) {

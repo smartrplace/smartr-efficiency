@@ -15,6 +15,7 @@ import org.smartrplace.alarming.escalation.model.AlarmingEscalationSettings;
 import org.smartrplace.alarming.escalation.model.AlarmingMessagingApp;
 import org.smartrplace.alarming.escalation.util.EscalationManagerI;
 import org.smartrplace.alarming.escalation.util.EscalationProvider;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.escalationservices.ExternalEscalationProvider;
 import org.smartrplace.apps.alarmingconfig.escalationservices.GatewayEscalationProvider;
@@ -140,7 +141,7 @@ public class EscalationManager implements EscalationManagerI {
 	}
 	
 	public void knownIssueNotification(AlarmGroupData knownDeviceFault, String title, String message) {
-		InstallAppDevice iad = knownDeviceFault.getParent();
+		InstallAppDevice iad = AlarmResourceUtil.getDeviceForKnownFault(knownDeviceFault);
 		String text = StringFormatHelper.getTimeDateInLocalTimeZone(controller.appMan.getFrameworkTime())+" : "+title+
 				"\r\n"+message;
 		ValueResourceHelper.setCreate(knownDeviceFault.lastMessage(), text); //title+" :: "+message);

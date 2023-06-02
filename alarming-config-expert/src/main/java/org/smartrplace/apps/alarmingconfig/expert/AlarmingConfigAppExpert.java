@@ -55,7 +55,7 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			//register a web page with dynamically generated HTML
 			widgetApp = guiService.createWidgetApp(urlPath, appMan);
 			//final WidgetPage<?> page = widgetApp.createStartPage();
-			menu = new NavigationMenu("Select Page");
+			menu = new NavigationMenu(" Select Page");
 			
 			/*WidgetPage<?> pageRes2 = widgetApp.createStartPage();
 			//WidgetPage<?> pageRes2 = widgetApp.createWidgetPage("userroompermexpert.html");

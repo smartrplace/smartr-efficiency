@@ -22,6 +22,7 @@ import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.apps.alarmconfig.reminder.DeviceAlarmReminderService;
+import org.smartrplace.apps.alarmingconfig.sync.SynchronizableIssueListener;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 
@@ -71,6 +72,7 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
 	//private BundleContext bc;
 	protected ServiceRegistration<UserPermissionService> srUserAccService = null;
 	private DeviceAlarmReminderService reminder;
+	private SynchronizableIssueListener syncListener;
 	
 	@Reference
 	public UserPermissionService userAccService;
@@ -99,13 +101,14 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
         
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
-		menu = new NavigationMenu("Select Page");
+		menu = new NavigationMenu(" Select Page");
 
         controller = new AlarmingConfigAppController(appMan, this);
         log.info("{} started", getClass().getName());
  
 		controllerProvider.setController(controller);
-		this.reminder = new DeviceAlarmReminderService(appMan);
+		this.reminder = new DeviceAlarmReminderService(appManager);
+		this.syncListener = new SynchronizableIssueListener(appManager);
  	}
 
      /*
@@ -118,9 +121,12 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
     		controller.close();
 		if (reminder != null)
 			reminder.close();
+		if (syncListener != null)
+			syncListener.close();
 		widgetApp =null;
 		controller = null;
 		reminder = null;
+		syncListener = null;
         log.info("{} stopped", getClass().getName());
     }
     

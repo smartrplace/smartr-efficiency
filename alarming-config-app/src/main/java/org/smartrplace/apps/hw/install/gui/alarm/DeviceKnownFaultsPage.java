@@ -6,9 +6,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
-import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,8 +21,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.joda.time.Period;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
@@ -40,18 +38,23 @@ import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
+import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
+
+import com.google.common.base.Objects;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
@@ -70,6 +73,7 @@ import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
+import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
@@ -78,6 +82,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
+import de.iwes.widgets.resource.widget.dropdown.ReferenceDropdown;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")
@@ -92,6 +97,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	private final Button createIssueSubmit;
 	private final Popup lastMessagePopup;
 	private final Label lastMessageDevice;
+	private final Label lastMessageRoom;
+	private final Label lastMessageLocation;
 	private final Label lastMessage;
 	
 	public static final Map<String, String> dignosisVals = new HashMap<>();
@@ -132,11 +139,16 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		this.lastMessagePopup = new Popup(page, "lastMessagePopup", true);
 		lastMessagePopup.setDefaultTitle("Last alarm message");
 		this.lastMessageDevice = new Label(page, "lastMessagePopupDevice");
+		this.lastMessageRoom = new Label(page, "lastMessagePopupRoom");
+		this.lastMessageLocation = new Label(page, "lastMessagePopupLocation");
 		this.lastMessage = new Label(page, "lastMessage");
 		
-		final StaticTable tab = new StaticTable(2, 2, new int[]{3, 9});
+		
+		final StaticTable tab = new StaticTable(4, 2, new int[]{3, 9});
 		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
-			.setContent(1, 0, "Message").setContent(1,1, lastMessage);
+			.setContent(1, 0, "Room").setContent(1, 1, lastMessageRoom)
+			.setContent(2, 0, "Location").setContent(2, 1, lastMessageLocation)
+			.setContent(3, 0, "Message").setContent(3,1, lastMessage);
 		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
 		snip.append(tab, null);
 		lastMessagePopup.setBody(snip, null);
@@ -352,7 +364,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
 					for(DeviceHandlerProvider<?> pe: allProvs) {
 						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
-						releaseAllUnassigned(allforPe);
+						releaseAllUnassigned(allforPe, appMan.getFrameworkTime());
 						/*for(InstallAppDevice iad: allforPe) {
 							AlarmGroupData res = iad.knownFault();
 							if((!res.assigned().isActive()) || (res.assigned().getValue() <= 0)) {
@@ -391,7 +403,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					Collection<DeviceHandlerProvider<?>> allProvs = devHandAcc.getTableProviders().values();
 					for(DeviceHandlerProvider<?> pe: allProvs) {
 						List<InstallAppDevice> allforPe = getDevicesSelected(pe, req);
-						releaseAllDependent(allforPe);
+						releaseAllDependent(allforPe, appMan.getFrameworkTime());
 					}
 				}
 			}
@@ -464,7 +476,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		else
 			pageTitle = "Devices of type "+ pe.label(null);
 		final boolean showAlarmCtrl = pageType == KnownFaultsPageType.SUPERVISION_STANDARD;
-		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe, showAlarmCtrl) {
+		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe, showAlarmCtrl, false) {
 			protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
@@ -478,6 +490,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Assigned");
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Priority");
+					vh.registerHeaderEntry("Responsible");
 					vh.getHeader().put("followup", "Follow-up");
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.registerHeaderEntry("Edit TT");
@@ -521,6 +534,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						lastMessage.setText(res.lastMessage().getValue(), req);
 						lastMessageDevice.setText(object.deviceId().getValue(), req);
+						final String room = device.location().room().isActive() ? ResourceUtils.getHumanReadableShortName(device.location().room()) : "--";
+						lastMessageRoom.setText(room, req);
+						final String location = object.installationLocation().isActive() ? object.installationLocation().getValue() : "--";
+						lastMessageLocation.setText(location, req);
 					}
 					
 				};
@@ -528,6 +545,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
 				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
 				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageRoom,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageLocation,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				
 				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("Message", showMsg);
 				
@@ -581,7 +601,76 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					row.addCell("Priority", prioField);
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
+					
+					// TODO do we need to display the email address as well?
+					final Dropdown responsibleDropdown = new Dropdown(mainTable, "responsible"+id, req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final GatewaySuperiorData supData = findSuperiorData();
+							if (supData == null || !supData.responsibilityContacts().isActive())
+								return;
+							final StringResource responsibility = object.knownFault().responsibility();
+							final String email = responsibility.isActive() ? responsibility.getValue() : "";
+							final NaturalPerson selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
+								.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
+								.findAny().orElse(null);
+							final List<DropdownOption> options = supData.responsibilityContacts().getAllElements().stream()
+								.map(contact -> new DropdownOption(
+										contact.getName(), contact.userRole().isActive() ? contact.userRole().getValue() :
+										contact.firstName().getValue() + " " + contact.lastName().getValue(), 
+										contact.equalsLocation(selected)
+								))
+								.collect(Collectors.toList());
+							setOptions(options, req);
+							if (selected != null) {
+								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
+								setToolTip(id + ": " + email, req);
+							} else {
+								setToolTip(email.isEmpty() ? "Select responsible" :  email, req);
+							}
+						}
+						
+						@Override
+						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+							final GatewaySuperiorData supData = findSuperiorData();
+							if (supData == null || !supData.responsibilityContacts().isActive())
+								return;
+							final String currentSelected = getSelectedValue(req);
+							final StringResource responsibility = object.knownFault().responsibility();
+							if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
+										|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
+								responsibility.delete();
+								return;
+							}
+							final NaturalPerson selected = supData.responsibilityContacts().getSubResource(currentSelected); 
+							final StringResource emailRes = selected.getSubResource("emailAddress");
+							final String email = emailRes.isActive() ? emailRes.getValue() : "";
+							if (email.isEmpty()) { // ?
+								return;
+							}
+							responsibility.<StringResource> create().setValue(email);
+							responsibility.activate(false);
+						}
+						
+						
+					};
+					responsibleDropdown.setDefaultAddEmptyOption(true);
+					responsibleDropdown.setDefaultMinWidth("8em");
+					responsibleDropdown.setComparator((o1, o2) ->  { // show default roles supervision and terminvereinbarung first
+						if (Objects.equal(o1, o2))
+							return 0;
+						final boolean comp1 = o1.id().indexOf('_') > 0;
+						final boolean comp2 = o2.id().indexOf('_') > 0;
+						if (comp1 == comp2)
+							return o1.id().compareTo(o2.id());
+						return comp1 ? 1 : -1;
+					});
+					responsibleDropdown.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					row.addCell("Responsible", responsibleDropdown);
+					
 				}
+				
 				final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 					
 					@Override
@@ -720,7 +809,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							//TODO: In the future we may want to keep this information in a log of solved issues
-							res.delete();
+							AlarmResourceUtil.release(res, appMan.getFrameworkTime());
+							//res.delete();
 							//res.ongoingAlarmStartTime().setValue(-1);
 						}
 					};
@@ -741,7 +831,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							//TODO: In the future we may want to keep this information in a log of solved issues
-							res.delete();
+							AlarmResourceUtil.release(res, appMan.getFrameworkTime());
+							//res.delete();
 							//res.ongoingAlarmStartTime().setValue(-1);
 						}
 					};
@@ -834,16 +925,24 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		return result.isEmpty();
 	}
 	
-	public static void releaseAllUnassigned(DatapointService dpService) {
-		Collection<InstallAppDevice> all = dpService.managedDeviceResoures(null, false, false);
-		releaseAllUnassigned(all);
+	private GatewaySuperiorData findSuperiorData() {
+		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
+		if (r instanceof GatewaySuperiorData)
+			return (GatewaySuperiorData) r;
+		return appMan.getResourceAccess().getResources(GatewaySuperiorData.class).stream().findAny().orElse(null);
 	}
 	
-	public static void releaseAllUnassigned(Collection<InstallAppDevice> allforPe) {
+	public static void releaseAllUnassigned(DatapointService dpService, long now) {
+		Collection<InstallAppDevice> all = dpService.managedDeviceResoures(null, false, false);
+		releaseAllUnassigned(all, now);
+	}
+	
+	public static void releaseAllUnassigned(Collection<InstallAppDevice> allforPe, long now) {
 		for(InstallAppDevice iad: allforPe) {
 			AlarmGroupData res = iad.knownFault();
 			if((!res.assigned().isActive()) || (res.assigned().getValue() <= 0)) {
-				res.delete();
+				AlarmResourceUtil.release(res, now);
+				//res.delete();
 			}
 		}		
 	}
@@ -857,11 +956,12 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		}		
 	}
 
-	public static void releaseAllDependent(Collection<InstallAppDevice> allforPe) {
+	public static void releaseAllDependent(Collection<InstallAppDevice> allforPe, long now) {
 		for(InstallAppDevice iad: allforPe) {
 			AlarmGroupData res = iad.knownFault();
 			if(res.assigned().getValue() == AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT) {
-				res.delete();
+				AlarmResourceUtil.release(res, now);
+				//res.delete();
 			}
 		}		
 	}
