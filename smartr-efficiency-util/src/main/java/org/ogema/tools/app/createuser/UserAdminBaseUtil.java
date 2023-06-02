@@ -29,8 +29,10 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
+import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
+import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.format.StringFormatHelper;
@@ -561,6 +563,16 @@ System.out.println("Finished removing app: "+bundleSymbolicName);
 		//String userLoggedIn = GUIUtilHelper.getUserLoggedIn(req);
 		List<UserAccount> result = new ArrayList<UserAccount>();
 		for(UserAccount ac: appMan.getAdministrationManager().getAllUsers()) {
+			if(permMan == null) {
+				String base = ViaHeartbeatUtil.getBaseGwId(ac.getName());
+				try {
+					Integer.parseInt(base);
+					result .add(ac);
+				} catch(NumberFormatException e) {
+					// do nothing
+				}
+				continue;
+			}
 			if(!permMan.getAccessManager().isNatural(ac.getName())) {
 				result .add(ac);
 			}
