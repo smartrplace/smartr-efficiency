@@ -6,9 +6,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjuster;
 import java.time.temporal.TemporalAdjusters;
-import java.time.temporal.TemporalAmount;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -23,7 +21,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.joda.time.Period;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
@@ -92,6 +89,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	private final Button createIssueSubmit;
 	private final Popup lastMessagePopup;
 	private final Label lastMessageDevice;
+	private final Label lastMessageRoom;
+	private final Label lastMessageLocation;
 	private final Label lastMessage;
 	
 	public static final Map<String, String> dignosisVals = new HashMap<>();
@@ -132,11 +131,16 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		this.lastMessagePopup = new Popup(page, "lastMessagePopup", true);
 		lastMessagePopup.setDefaultTitle("Last alarm message");
 		this.lastMessageDevice = new Label(page, "lastMessagePopupDevice");
+		this.lastMessageRoom = new Label(page, "lastMessagePopupRoom");
+		this.lastMessageLocation = new Label(page, "lastMessagePopupLocation");
 		this.lastMessage = new Label(page, "lastMessage");
 		
-		final StaticTable tab = new StaticTable(2, 2, new int[]{3, 9});
+		
+		final StaticTable tab = new StaticTable(4, 2, new int[]{3, 9});
 		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
-			.setContent(1, 0, "Message").setContent(1,1, lastMessage);
+			.setContent(1, 0, "Room").setContent(1, 1, lastMessageRoom)
+			.setContent(2, 0, "Location").setContent(2, 1, lastMessageLocation)
+			.setContent(3, 0, "Message").setContent(3,1, lastMessage);
 		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
 		snip.append(tab, null);
 		lastMessagePopup.setBody(snip, null);
@@ -464,7 +468,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		else
 			pageTitle = "Devices of type "+ pe.label(null);
 		final boolean showAlarmCtrl = pageType == KnownFaultsPageType.SUPERVISION_STANDARD;
-		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe, showAlarmCtrl) {
+		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe, showAlarmCtrl, false) {
 			protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
@@ -521,6 +525,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						lastMessage.setText(res.lastMessage().getValue(), req);
 						lastMessageDevice.setText(object.deviceId().getValue(), req);
+						final String room = device.location().room().isActive() ? ResourceUtils.getHumanReadableShortName(device.location().room()) : "--";
+						lastMessageRoom.setText(room, req);
+						final String location = object.installationLocation().isActive() ? object.installationLocation().getValue() : "--";
+						lastMessageLocation.setText(location, req);
 					}
 					
 				};
@@ -528,6 +536,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
 				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
 				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageRoom,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageLocation,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				
 				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("Message", showMsg);
 				

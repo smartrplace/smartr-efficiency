@@ -28,7 +28,6 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
-import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.label.ValueResourceLabel;
 
 public class AlarmingDeviceTableBase extends DeviceTableBase {
@@ -36,6 +35,7 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 	protected final HardwareTableData resData;
 	protected final Button commitButton;
 	protected final boolean showAlarmCtrl;
+	protected final boolean showRoomAndLocation;
 	
 	protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan,
@@ -44,17 +44,18 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 	public AlarmingDeviceTableBase(WidgetPage<?> page, ApplicationManagerPlus appMan, Alert alert,
 			final String pageTitle,	final HardwareTableData resData, Button commitButton,
 			InstalledAppsSelector appSelector, DeviceHandlerProvider<?> devHand) {
-		this(page, appMan, alert, pageTitle, resData, commitButton, appSelector, devHand, true);
+		this(page, appMan, alert, pageTitle, resData, commitButton, appSelector, devHand, true, true);
 	}
 	
 	public AlarmingDeviceTableBase(WidgetPage<?> page, ApplicationManagerPlus appMan, Alert alert,
 			final String pageTitle,	final HardwareTableData resData, Button commitButton,
-			InstalledAppsSelector appSelector, DeviceHandlerProvider<?> devHand, boolean showAlarmCtrl) {
+			InstalledAppsSelector appSelector, DeviceHandlerProvider<?> devHand, boolean showAlarmCtrl, boolean showRoomAndLocation) {
 		super(page, appMan, alert, appSelector, devHand);
 		this.pageTitle = pageTitle;
 		this.resData = resData;
 		this.commitButton = commitButton;
 		this.showAlarmCtrl = showAlarmCtrl;
+		this.showRoomAndLocation = showRoomAndLocation;
 	}
 	
 	@Override
@@ -190,24 +191,26 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 				perm.registerDependentWidget(perm);
 				perm.registerDependentWidget(commitButton);
 			}
-		}					
-		Room deviceRoom = device.location().room();
-		if(deviceRoom == null || (!deviceRoom.exists()))
-			vh.stringLabel("Room", id, "--", row);
-		else
-			vh.stringLabel("Room", id, ResourceUtils.getHumanReadableShortName(deviceRoom), row);
-		//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
-		
-		//addSubLocation(object, vh, id, req, row);
-		if(req == null)
-			vh.registerHeaderEntry("Location");
-		else {
-			final ValueResourceLabel<StringResource> locationLabel = new ValueResourceLabel<StringResource>(mainTable, "location" + id, req);
-			locationLabel.selectDefaultItem(object.installationLocation());
-			row.addCell("Location", locationLabel);
+		}	
+		if (showRoomAndLocation) {
+			Room deviceRoom = device.location().room();
+			if(deviceRoom == null || (!deviceRoom.exists()))
+				vh.stringLabel("Room", id, "--", row);
+			else
+				vh.stringLabel("Room", id, ResourceUtils.getHumanReadableShortName(deviceRoom), row);
+			//addRoomWidget(vh, id, req, row, appMan, deviceRoom);
+			
+			//addSubLocation(object, vh, id, req, row);
+			if(req == null)
+				vh.registerHeaderEntry("Location");
+			else {
+				final ValueResourceLabel<StringResource> locationLabel = new ValueResourceLabel<StringResource>(mainTable, "location" + id, req);
+				locationLabel.selectDefaultItem(object.installationLocation());
+				row.addCell("Location", locationLabel);
+			}
 		}
 		
-		addAdditionalWidgets(object, vh, id, req, row, appMan, deviceRoom, template);
+		addAdditionalWidgets(object, vh, id, req, row, appMan, device, template);
 		
 		return device;
 	}

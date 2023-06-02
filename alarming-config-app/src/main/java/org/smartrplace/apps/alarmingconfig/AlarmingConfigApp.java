@@ -99,7 +99,7 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
         
 		//register a web page with dynamically generated HTML
 		widgetApp = guiService.createWidgetApp(urlPath, appManager);
-		menu = new NavigationMenu("Select Page");
+		menu = new NavigationMenu(" Select Page");
 
         controller = new AlarmingConfigAppController(appMan, this);
         log.info("{} started", getClass().getName());
