@@ -27,9 +27,6 @@ import org.smartrplace.tissue.util.resource.GatewayUtil;
 
 import de.iwes.util.resource.ResourceHelper;
 
-/*
- * TODO Sending to be tested...
- */
 public class DeviceAlarmReminderService implements PatternListener<AlarmReminderPattern>, ResourceValueListener<TimeResource>, AutoCloseable {
 	
 	private static final long PAST_REMINDER_DURATION = 48*3_600_000; // 2 days
@@ -49,6 +46,8 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	
 	private void init(Timer timer) {
 		appMan.getLogger().info("{} starting", getClass().getName());
+		// initialize contacts in GatewaySuperiorData#responsibilityContacts... provisional
+		new ResponsibilityContactsInitializer(appMan).run();
 		this.appMan.getResourcePatternAccess().addPatternDemand(AlarmReminderPattern.class, this, AccessPriority.PRIO_LOWEST);
 		this.closeTimer();
 	}

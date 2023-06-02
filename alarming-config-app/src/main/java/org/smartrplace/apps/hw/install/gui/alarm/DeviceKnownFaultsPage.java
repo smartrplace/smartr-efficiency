@@ -22,6 +22,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
@@ -37,18 +38,22 @@ import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
+import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
+
+import com.google.common.base.Objects;
 
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
@@ -67,6 +72,7 @@ import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
+import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
@@ -75,6 +81,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
+import de.iwes.widgets.resource.widget.dropdown.ReferenceDropdown;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")
@@ -482,6 +489,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Assigned");
 					vh.registerHeaderEntry("Task Tracking");
 					vh.registerHeaderEntry("Priority");
+					vh.registerHeaderEntry("Responsible");
 					vh.getHeader().put("followup", "Follow-up");
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.registerHeaderEntry("Edit TT");
@@ -592,7 +600,76 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					row.addCell("Priority", prioField);
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
+					
+					// TODO do we need to display the email address as well?
+					final Dropdown responsibleDropdown = new Dropdown(mainTable, "responsible"+id, req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final GatewaySuperiorData supData = findSuperiorData();
+							if (supData == null || !supData.responsibilityContacts().isActive())
+								return;
+							final StringResource responsibility = object.knownFault().responsibility();
+							final String email = responsibility.isActive() ? responsibility.getValue() : "";
+							final NaturalPerson selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
+								.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
+								.findAny().orElse(null);
+							final List<DropdownOption> options = supData.responsibilityContacts().getAllElements().stream()
+								.map(contact -> new DropdownOption(
+										contact.getName(), contact.userRole().isActive() ? contact.userRole().getValue() :
+										contact.firstName().getValue() + " " + contact.lastName().getValue(), 
+										contact.equalsLocation(selected)
+								))
+								.collect(Collectors.toList());
+							setOptions(options, req);
+							if (selected != null) {
+								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
+								setToolTip(id + ": " + email, req);
+							} else {
+								setToolTip(email.isEmpty() ? "Select responsible" :  email, req);
+							}
+						}
+						
+						@Override
+						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+							final GatewaySuperiorData supData = findSuperiorData();
+							if (supData == null || !supData.responsibilityContacts().isActive())
+								return;
+							final String currentSelected = getSelectedValue(req);
+							final StringResource responsibility = object.knownFault().responsibility();
+							if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
+										|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
+								responsibility.delete();
+								return;
+							}
+							final NaturalPerson selected = supData.responsibilityContacts().getSubResource(currentSelected); 
+							final StringResource emailRes = selected.getSubResource("emailAddress");
+							final String email = emailRes.isActive() ? emailRes.getValue() : "";
+							if (email.isEmpty()) { // ?
+								return;
+							}
+							responsibility.<StringResource> create().setValue(email);
+							responsibility.activate(false);
+						}
+						
+						
+					};
+					responsibleDropdown.setDefaultAddEmptyOption(true);
+					responsibleDropdown.setDefaultMinWidth("8em");
+					responsibleDropdown.setComparator((o1, o2) ->  { // show default roles supervision and terminvereinbarung first
+						if (Objects.equal(o1, o2))
+							return 0;
+						final boolean comp1 = o1.id().indexOf('_') > 0;
+						final boolean comp2 = o2.id().indexOf('_') > 0;
+						if (comp1 == comp2)
+							return o1.id().compareTo(o2.id());
+						return comp1 ? 1 : -1;
+					});
+					responsibleDropdown.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					row.addCell("Responsible", responsibleDropdown);
+					
 				}
+				
 				final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 					
 					@Override
@@ -843,6 +920,13 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		List<InstallAppDevice> all = getDevicesSelected(pe, req);
 		List<InstallAppDevice> result = getDevicesWithKnownFault(all);
 		return result.isEmpty();
+	}
+	
+	private GatewaySuperiorData findSuperiorData() {
+		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
+		if (r instanceof GatewaySuperiorData)
+			return (GatewaySuperiorData) r;
+		return appMan.getResourceAccess().getResources(GatewaySuperiorData.class).stream().findAny().orElse(null);
 	}
 	
 	public static void releaseAllUnassigned(DatapointService dpService) {
