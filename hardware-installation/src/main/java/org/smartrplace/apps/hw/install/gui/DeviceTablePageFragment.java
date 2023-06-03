@@ -70,8 +70,8 @@ public abstract class DeviceTablePageFragment extends DeviceTableBase implements
 			OgemaHttpRequest req, Row row, ApplicationManager appMan,
 			Room deviceRoom) {
 		//vh.stringEdit("Location", id, object.installationLocation(), row, alert);
-		IntegerResource source = ResourceHelper.getSubResourceOfSibbling(object.device().getLocationResource(),
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		IntegerResource source = DeviceHandlerBase.getSubResourceOfSibblingOrDirectChildMaintenance(object.device().getLocationResource(),
+				"rssiDevice", IntegerResource.class);
 		vh.intLabel("RSSI", id, source, row, 0);
 		return source;
 	}

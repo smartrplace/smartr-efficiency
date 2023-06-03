@@ -624,10 +624,10 @@ public class ThermostatPage extends MainPage {
 							vh.registerHeaderEntry("EditMax");
 						}
 					} else {
-						final IntegerResource errorCode = ResourceHelper.getSubResourceOfSibbling(device,
-								"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "errorCode", IntegerResource.class);
-						final BooleanResource configPending = ResourceHelper.getSubResourceOfSibbling(device,
-								"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "configPending", BooleanResource.class);
+						final IntegerResource errorCode = DeviceHandlerBase.getSubResourceOfSibblingOrDirectChildMaintenance(device,
+								"errorCode", IntegerResource.class);
+						final BooleanResource configPending = DeviceHandlerBase.getSubResourceOfSibblingOrDirectChildMaintenance(device,
+								"configPending", BooleanResource.class);
 						final IntegerResource controlMode = device.getSubResource("controlMode", IntegerResource.class);
 						final IntegerResource controlModeFeedback = device.getSubResource("controlModeFeedback", IntegerResource.class);
 						Label errLabel = new Label(mainTable, "errLabel"+id, req) {
@@ -637,8 +637,8 @@ public class ThermostatPage extends MainPage {
 							public void onGET(OgemaHttpRequest req) {
 								String text = "";
 								int error = 0;
-								BooleanResource comDisturbed = ResourceHelper.getSubResourceOfSibbling(device,
-										"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "communicationStatus/communicationDisturbed", BooleanResource.class);
+								BooleanResource comDisturbed = DeviceHandlerBase.getSubResourceOfSibblingOrDirectChildMaintenance(device,
+										"communicationStatus/communicationDisturbed", BooleanResource.class);
 								if(comDisturbed != null && comDisturbed.exists() && comDisturbed.getValue()) {
 									text += "CD";
 									error = 2;
@@ -966,8 +966,8 @@ public class ThermostatPage extends MainPage {
 		if(batteryVoltage != null)
 			addDpToChart(batteryVoltage, plotTHDps, dpService);
 		
-		IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(dev,
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		IntegerResource rssiDevice = DeviceHandlerBase.getSubResourceOfSibblingOrDirectChildMaintenance(dev,
+				"rssiDevice", IntegerResource.class);
 		if(rssiDevice != null && rssiDevice.exists())
 			addDpToChart(rssiDevice, plotTHDps, dpService);
 
