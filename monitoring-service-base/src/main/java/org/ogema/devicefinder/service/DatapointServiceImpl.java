@@ -563,6 +563,15 @@ public abstract class DatapointServiceImpl implements DatapointService {
 	}
 	
 	@Override
+	public InstallAppDevice getMangedDeviceResource(String deviceId) {
+		if(installAppList() != null) for(InstallAppDevice iad: installAppList().getAllElements()) {
+			if(deviceId.equals(iad.deviceId().getValue()))
+				return iad;
+		}
+		return null;
+	}
+
+	@Override
 	public <T extends Resource> DeviceHandlerProviderDP<T> getDeviceHandlerProvider(
 			InstallAppDevice installAppDeviceRes) {
 		String devHandId = installAppDeviceRes.devHandlerInfo().getValue();

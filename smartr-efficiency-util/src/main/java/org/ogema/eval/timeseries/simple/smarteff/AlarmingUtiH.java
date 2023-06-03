@@ -48,10 +48,10 @@ public class AlarmingUtiH {
 	public static final String CUSTOMER_SP_SAME = "Both together";
 
 	public static List<String> roomAlarms = StringFormatHelper.getListFromString(
-			"setpointHighForLong, setpointHighOften, roomAboveSetpointValvesOpen, roomTempHighValvesClosedOutsideCold,"
-			+ "setpointLtOutsideAndOutsideWarm,"
-			+ "roomAboveSetpointValvesClosed");
-	public static List<String> deviceAlarms = StringFormatHelper.getListFromString("");
+			"setpointLtOutsideAndOutsideWarm,"
+			+ "setpointHighForLong, setpointHighOften");
+	public static List<String> deviceAlarms = StringFormatHelper.getListFromString("roomTempHighValvesClosedOutsideCold,"
+			+ "roomAboveSetpointValvesClosed, roomAboveSetpointValvesOpen");
 	public static List<String> effectiveAlarms = StringFormatHelper.getListFromString(
 			"setpointHighForLong, setpointHighOften, roomAboveSetpointValvesOpen, roomTempHighValvesClosedOutsideCold, "
 			+ "setpointLtOutsideAndOutsideWarm");
