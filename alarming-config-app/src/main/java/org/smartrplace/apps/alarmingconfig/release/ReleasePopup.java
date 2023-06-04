@@ -27,7 +27,6 @@ import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.EnumDropdown;
 import de.iwes.widgets.html.html5.Flexbox;
-import de.iwes.widgets.html.html5.flexbox.AlignContent;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
 
