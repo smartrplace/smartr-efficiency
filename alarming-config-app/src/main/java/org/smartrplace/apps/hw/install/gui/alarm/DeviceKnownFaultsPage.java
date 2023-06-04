@@ -36,6 +36,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
+import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.user.NaturalPerson;
@@ -43,6 +44,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
+import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
@@ -100,6 +102,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	private final Label lastMessageRoom;
 	private final Label lastMessageLocation;
 	private final Label lastMessage;
+	private final ReleasePopup releasePopup;
 	
 	public static final Map<String, String> dignosisVals = new HashMap<>();
 	static {
@@ -436,6 +439,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			
 		};
 		topTable.setContent(1, 4, thermostatPage);
+		
+		this.releasePopup = new ReleasePopup(page, "releasepop", appMan, alert);
+		releasePopup.append(page);
 	}
 
 
@@ -802,9 +808,18 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					row.addCell("For", forRelease);
 				}
 				
-				Button releaseBut;
-				if(res.assigned().isActive() &&
-						(res.assigned().getValue() > 0) && (res.forRelease().getValue() == 0)) {
+				Button releaseBut; 
+				
+				if (res.exists()) {
+					releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req);
+					releasePopup.trigger(releaseBut);
+				}
+				/*
+				if (res instanceof AlarmGroupDataMajor) {
+					releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req);
+					releasePopup.trigger(releaseBut);
+				} else if(res.assigned().isActive() &&
+						(res.assigned().getValue() > 0) && (res.forRelease().getValue() == 0)) {  // FIXME probably this case should not occur any more
 					ButtonConfirm butConfirm = new ButtonConfirm(mainTable, "releaseBut"+id, req) {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -836,7 +851,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							//res.ongoingAlarmStartTime().setValue(-1);
 						}
 					};
-				} else {
+				
+				} */ else {
 					releaseBut = new Button(mainTable, "releaseBut"+id, "Create", req) {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
