@@ -20,7 +20,6 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.spapi.model.WriteableDatapoint;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
-import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 
 public class WriteableDatapointManagement implements PatternListener<WriteableDatapointPattern> {
@@ -81,7 +80,7 @@ public class WriteableDatapointManagement implements PatternListener<WriteableDa
 
 	public void checkDatapoint(WriteableDatapoint wdp) {
 		//TODO: This criteria may be adapted in the future
-		if(wdp.deviceAssigned().isReference(false))
+		if(wdp.deviceAssigned().isReference(false) && (!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.writeabledps.cleanup")))
 			return;
 		
 		String name = "Unknown"+wdp.datapointLocation().getValue();
@@ -105,9 +104,13 @@ public class WriteableDatapointManagement implements PatternListener<WriteableDa
 			} else {
 				name += "(Room)";
 			}
-		} else if(AlarmingUtiH.deviceAlarms.contains(id)) {
+		} else if(AlarmingUtiH.deviceAlarms.contains(alarmType)) {
 			device = UserServletUtil.getDeviceById(id, appMan.getResourceAccess(), dpService);
 			if(device != null) {
+				if(device instanceof Room) {
+					wdp.delete();
+					return;
+				}
 				InstallAppDevice iad = dpService.getMangedDeviceResource(device);
 				if(iad != null)
 					name = iad.deviceId().getValue()+"::"+alarmType;
@@ -119,7 +122,8 @@ public class WriteableDatapointManagement implements PatternListener<WriteableDa
 			} else {
 				name +="(Device)";
 			}
-		}
+		} else if(Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.writeabledps.cleanup"))
+			wdp.delete();
 		
 		//Set name
 		ValueResourceHelper.setCreate(wdp.name(), name);		

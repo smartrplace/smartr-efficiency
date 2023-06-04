@@ -57,8 +57,8 @@ public class AlarmMessageUtil {
 	public static SingleValueResource findResponsibleResource(InstallAppDevice knownDevice, ApplicationManager appMan, Locale locale) {
 		final SingleValueResource mainValue = getMainSensorValue(knownDevice, appMan.getAppID().getBundle().getBundleContext());
 		final VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(knownDevice.device());
-		final IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(knownDevice.device(),
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		final IntegerResource rssiDevice = DeviceHandlerBase.getSubResourceOfSibblingOrDirectChildMaintenance(knownDevice.device(),
+				"rssiDevice", IntegerResource.class);
 		final FloatResource valveState = knownDevice.device() instanceof Thermostat ? 
 				((Thermostat) knownDevice.device()).valve().getSubResource("eq3state") : null;
 		final Map<SingleValueResource, String> priorityResources = new LinkedHashMap<>();
@@ -99,8 +99,8 @@ public class AlarmMessageUtil {
 	private static ValueData getValueData(InstallAppDevice knownDevice, ApplicationManager appMan, Locale locale) {
 		final SingleValueResource mainValue = getMainSensorValue(knownDevice, appMan.getAppID().getBundle().getBundleContext());
 		final VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(knownDevice.device());
-		final IntegerResource rssiDevice = ResourceHelper.getSubResourceOfSibbling(knownDevice.device(),
-				"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "rssiDevice", IntegerResource.class);
+		final IntegerResource rssiDevice = DeviceHandlerBase.getSubResourceOfSibblingOrDirectChildMaintenance(knownDevice.device(),
+				"rssiDevice", IntegerResource.class);
 		final FloatResource valveState = knownDevice.device() instanceof Thermostat ? 
 				((Thermostat) knownDevice.device()).valve().getSubResource("eq3state") : null;
 		final Map<SingleValueResource, String> priorityResources = new LinkedHashMap<>();

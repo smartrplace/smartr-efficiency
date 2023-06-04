@@ -191,8 +191,7 @@ public class BatteryPage extends MainPage {
 				List<InstallAppDevice> result = new ArrayList<InstallAppDevice>();
 				for(InstallAppDevice dev: all) {
 					PhysicalElement device2 = dev.device().getLocationResource();
-					VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(device2); //ResourceHelper.getSubResourceOfSibbling(device2,
-							//"org.ogema.drivers.homematic.xmlrpc.hl.types.HmMaintenance", "battery/internalVoltage/reading", VoltageResource.class);
+					VoltageResource batteryVoltage = DeviceHandlerBase.getBatteryVoltage(device2);
 					if(batteryVoltage != null && (!device2.getLocation().contains("HM_HmIP_HAP"))
 							&& (!device2.getLocation().contains("HM_HmIP_BS"))
 							&& (!device2.getLocation().contains("HM_HmIP_SCTH230"))
