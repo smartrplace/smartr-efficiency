@@ -26,7 +26,6 @@ import org.smartrplace.util.frontend.servlet.UserServlet.ServletPageProvider;
 import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
-import de.iwes.util.linkingresource.RoomHelper;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
@@ -103,7 +102,8 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 		result.put("locationConfig", locationConfig);
 		ServletNumProvider id = new ServletNumProvider(ServletPageProvider.getNumericalId(object.getLocation()));
 		result.put("id", id);
-
+		DatapointServlet.addManualEntrySet(locationStr, result);
+		
 		ServletStringProvider deviceId = new ServletStringProvider(object.deviceId().getValue());
 		result.put("deviceShortId", deviceId);
 

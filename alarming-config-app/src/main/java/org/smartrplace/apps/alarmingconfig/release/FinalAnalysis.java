@@ -180,5 +180,9 @@ public enum FinalAnalysis {
 		return category;
 	}
 	
+	@Override
+	public String toString() {
+		return code+"-"+description;
+	}
 
 }

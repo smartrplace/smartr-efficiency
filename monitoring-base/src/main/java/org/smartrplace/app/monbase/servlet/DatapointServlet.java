@@ -173,7 +173,8 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 		
 		ServletStringProvider location = new ServletStringProvider(locationStr);
 		result.put("location", location);
-		if(locationStr.startsWith("manualMeters/")) {
+		addManualEntrySet(locationStr, result);
+		/*if(locationStr.startsWith("manualMeters/")) {
 			int idx = locationStr.indexOf("/manualEntryData");
 			String base;
 			if(idx > 0) {
@@ -190,7 +191,7 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 				ServletStringProvider manualEntryLocation = new ServletStringProvider(manualEntryPath);
 				result.put("manualentryset", manualEntryLocation);
 			}
-		}
+		}*/
 
 		ServletStringProvider labelStd = new ServletStringProvider(object.label(null));
 		result.put("labelStd", labelStd);
@@ -248,6 +249,13 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 				String utily = utilityRes.getValue();
 				ServletStringProvider utility = new ServletStringProvider(utily);
 				result.put("utility", utility);
+			}
+			String displayName = null;
+			StringResource displayNameRes = iad.getSubResource("deviceDisplayName", StringResource.class);
+			if(displayNameRes != null && displayNameRes.exists()) {
+				displayName = displayNameRes.getValue();
+				ServletStringProvider deviceDisplayName = new ServletStringProvider(displayName);
+				result.put("deviceDisplayName", deviceDisplayName);
 			}
 
 		}
@@ -353,5 +361,30 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 	@Override
 	public String getObjectName() {
 		return "datapoint";
+	}
+	
+	public static ServletStringProvider addManualEntrySet(String locationStr, Map<String, ServletValueProvider> result) {
+		if(locationStr.startsWith("manualMeters/")) {
+			int idx = locationStr.indexOf("/manualEntryData");
+			String base;
+			if(idx > 0) {
+				base = locationStr.substring(0, idx);
+			} else {
+				idx = locationStr.indexOf('/', "manualMeters/".length());
+				if(idx > 0)
+					base = locationStr.substring(0, idx);
+				else if(locationStr.startsWith("manualMeters/"))
+					base = locationStr;
+				else
+					base = null;
+			}
+			if(base != null) {
+				String manualEntryPath = base+"/manualEntryData";
+				ServletStringProvider manualEntryLocation = new ServletStringProvider(manualEntryPath);
+				result.put("manualentryset", manualEntryLocation);
+				return manualEntryLocation;
+			}
+		}
+		return null;
 	}
 }

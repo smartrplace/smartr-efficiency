@@ -325,6 +325,7 @@ public class MainPageExpert extends MainPage {
 			ValueResourceDropdown<StringResource> drop = vh.dropdown("Utility_for_API_Selection", id, object.getSubResource("deviceUtility", StringResource.class), row,
 					utilityOptions, 3);
 			vh.stringEdit("Application_for_API_Freetext", id, object.getSubResource("apiApplication", StringResource.class), row, alert);
+			vh.stringEdit("Device_Display_Name_Freetext", id, object.getSubResource("deviceDisplayName", StringResource.class), row, alert);
 			
 			SubCustomerData subc = object.device().location().getSubResource("tenant", SubCustomerData.class);
 			if(subc != null) {
