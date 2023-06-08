@@ -423,6 +423,8 @@ public class ThermostatPage extends MainPage {
 					}					
 				} 
 				else if(type == ThermostatPageType.UPDATE_INTERVAL_CONFIG) {
+					final IntegerResource cyclicMsgOnOff = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_ONOFF, false);
+					final IntegerResource cyclicMsgOnOffFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_ONOFF, true);
 					final IntegerResource cyclicMsgChanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, false);
 					final IntegerResource cyclicMsgChangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, true);
 					final IntegerResource cyclicMsgUnchanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, false);
@@ -471,6 +473,29 @@ public class ThermostatPage extends MainPage {
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
 							addSetpEditField("EditUnchanged", cyclicMsgUnchanged, vh, id, req, row, 0, 255);
+						}
+					}					
+					if((req == null) || (cyclicMsgOnOff != null && cyclicMsgOnOff.exists())) {
+						if(req == null) {
+							vh.registerHeaderEntry("OnOff");
+							vh.registerHeaderEntry("Last_OnOff");
+							vh.registerHeaderEntry("EditOnOff");
+						} else {
+							//Label valveErrL = vh.floatLabel("VErr", id, valveError, row, "%.0f");
+							Label valveErrL = vh.stringLabel("OnOff", id, new LabelFormatter() {
+								
+								@Override
+								public OnGETData getData(OgemaHttpRequest req) {
+									int val = cyclicMsgOnOff.getValue();
+									int valFb = cyclicMsgOnOffFb.getValue();
+									int state = ValueResourceHelper.isAlmostEqual(val, valFb)?1:0;
+									return new OnGETData(String.format("%d / %d", val, valFb), state);
+								}
+							}, row);
+							Label lastContactValveErr = addLastContact("Last_OnOff", vh, id, req, row, cyclicMsgOnOffFb);
+							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
+							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
+							addSetpEditField("EditOnOff", cyclicMsgOnOff, vh, id, req, row, 0, 255);
 						}
 					}					
 				} 
@@ -1005,6 +1030,8 @@ public class ThermostatPage extends MainPage {
 		for(InstallAppDevice dev: all) {
 			if(dev.device() instanceof Thermostat) {
 				Thermostat device = (Thermostat) dev.device().getLocationResource();
+				final IntegerResource cyclicMsgOnOff = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_ONOFF, false);
+				final IntegerResource cyclicMsgOnOffFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_ONOFF, true);
 				final IntegerResource cyclicMsgChanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, false);
 				final IntegerResource cyclicMsgChangedFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, true);
 				final IntegerResource cyclicMsgUnchanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_UNCHANGED, false);
@@ -1022,6 +1049,14 @@ public class ThermostatPage extends MainPage {
 					int fbVal = cyclicMsgUnchangedFb.getValue();
 					if(ctVal != fbVal) {
 						cyclicMsgUnchanged.setValue(ctVal);
+						count++;
+					}
+				}
+				if(cyclicMsgOnOff != null && cyclicMsgOnOffFb != null && cyclicMsgOnOff.isActive() && cyclicMsgOnOffFb.exists()) {
+					int ctVal = cyclicMsgOnOff.getValue();
+					int fbVal = cyclicMsgOnOffFb.getValue();
+					if(ctVal != fbVal) {
+						cyclicMsgOnOff.setValue(ctVal);
 						count++;
 					}
 				}

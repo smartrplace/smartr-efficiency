@@ -31,6 +31,7 @@ import org.ogema.devicefinder.api.AlarmingExtension.BaseAlarmI;
 import org.ogema.devicefinder.api.AlarmingExtension.MessageDestination;
 import org.ogema.devicefinder.api.AlarmingService;
 import org.ogema.devicefinder.api.Datapoint;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.AlarmingConfigUtil.CopyAlarmsSettings;
 import org.ogema.devicefinder.util.AlarmingExtensionBase.AlarmListenerDataBase;
@@ -46,7 +47,6 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.TimeUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
-import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -185,15 +185,31 @@ public class AlarmingManager implements AlarmingStartedService {
 			data = AlarmingConfigUtil.getTemplateAlarmSettings(devT, iad);
 		} else
 			devT = null;
-		final Float minNoValue;
+		Float minNoValueDevice;
 		if(iad.minimumIntervalBetweenNewValues().isActive() &&
 				(iad.minimumIntervalBetweenNewValues().getValue() > 0)) {
-			minNoValue = iad.minimumIntervalBetweenNewValues().getValue();
+			minNoValueDevice = iad.minimumIntervalBetweenNewValues().getValue();
 		} else
-			minNoValue = null;
+			minNoValueDevice = null;
 		for(AlarmConfiguration ac: configs) {
 			if(!ac.sensorVal().exists())
 				continue; //we perform cleanup somewhere else
+			
+			final Float minNoValue;
+			Float minNoValueByProv = null;
+			DeviceHandlerProviderDP<Resource> devHand = controller.dpService.getDeviceHandlerProvider(iad);
+			if(devHand != null) {
+				float minValueByDatabase = 0; //AlarmValueListenerBasic.getMinNoValueDatapoint();
+				minNoValueByProv = devHand.getMinimumNoValueTime(iad, minValueByDatabase);
+			}
+			if(minNoValueByProv != null)
+				minNoValue = minNoValueByProv;
+			else if(iad.minimumIntervalBetweenNewValues().isActive() &&
+					(iad.minimumIntervalBetweenNewValues().getValue() > 0)) {
+				minNoValue = iad.minimumIntervalBetweenNewValues().getValue();
+			} else
+				minNoValue = null;
+			
 			Resource parent = ac.getParent();
 			if(parent != null &&  (parent instanceof ResourceList)) {
 				parent = parent.getParent();
