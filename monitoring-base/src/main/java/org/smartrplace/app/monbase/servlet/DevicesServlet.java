@@ -153,6 +153,12 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 				ServletStringProvider tenantName = new ServletStringProvider(ResourceUtils.getHumanReadableName(subc));
 				result.put("tenantName", tenantName);				
 			}
+			
+			IntegerResource cmsIdRes = subc.getSubResource("cmsTenancyId", IntegerResource.class);
+			if(cmsIdRes != null && cmsIdRes.exists()) {
+				ServletNumProvider tenId = new ServletNumProvider(cmsIdRes.getValue());
+				result.put("tenancyCmsId", tenId);
+			}
 		} catch(Exception e) {
 			e.printStackTrace();
 		}

@@ -180,7 +180,7 @@ public class ThermostatPage extends MainPage {
 				public void onPrePOST(String data, OgemaHttpRequest req) {
 					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
 					int count = resendOpenUpdateRate(all, null);
-					alert.showAlert("Sent update rate update to "+count+" thermostats", count>0, req);
+					alert.showAlert("Sent update rate update to "+count+" settings", count>0, req);
 				}
 			};
 			//updateAll.triggerOnPOST(alert);

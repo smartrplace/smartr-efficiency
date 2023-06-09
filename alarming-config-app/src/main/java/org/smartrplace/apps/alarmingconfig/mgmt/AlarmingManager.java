@@ -195,21 +195,6 @@ public class AlarmingManager implements AlarmingStartedService {
 			if(!ac.sensorVal().exists())
 				continue; //we perform cleanup somewhere else
 			
-			final Float minNoValue;
-			Float minNoValueByProv = null;
-			DeviceHandlerProviderDP<Resource> devHand = controller.dpService.getDeviceHandlerProvider(iad);
-			if(devHand != null) {
-				float minValueByDatabase = 0; //AlarmValueListenerBasic.getMinNoValueDatapoint();
-				minNoValueByProv = devHand.getMinimumNoValueTime(iad, minValueByDatabase);
-			}
-			if(minNoValueByProv != null)
-				minNoValue = minNoValueByProv;
-			else if(iad.minimumIntervalBetweenNewValues().isActive() &&
-					(iad.minimumIntervalBetweenNewValues().getValue() > 0)) {
-				minNoValue = iad.minimumIntervalBetweenNewValues().getValue();
-			} else
-				minNoValue = null;
-			
 			Resource parent = ac.getParent();
 			if(parent != null &&  (parent instanceof ResourceList)) {
 				parent = parent.getParent();
@@ -248,6 +233,22 @@ public class AlarmingManager implements AlarmingStartedService {
 			float currentValue = Float.NaN;
 			Long lastValueWritten = null; 
 			
+			final Float minNoValue;
+			Float minNoValueByProv = null;
+			DeviceHandlerProviderDP<Resource> devHand = controller.dpService.getDeviceHandlerProvider(iad);
+			if(devHand != null) {
+				float minValueByDatabase = AlarmValueListenerBasic.getMinNoValueDatapoint(ac, devTac, minNoValueDevice);
+				if(minValueByDatabase > 0) {
+					minNoValueByProv = devHand.getMinimumNoValueTime(iad, minValueByDatabase);
+				}
+			}
+			if(minNoValueByProv != null)
+				minNoValue = minNoValueByProv;
+			else if(iad.minimumIntervalBetweenNewValues().isActive() &&
+					(iad.minimumIntervalBetweenNewValues().getValue() > 0)) {
+				minNoValue = iad.minimumIntervalBetweenNewValues().getValue();
+			} else
+				minNoValue = null;
 			
 			if(ac.sensorVal() instanceof BooleanResource) {
 				BooleanResource res = (BooleanResource) ac.sensorVal().getLocationResource();
