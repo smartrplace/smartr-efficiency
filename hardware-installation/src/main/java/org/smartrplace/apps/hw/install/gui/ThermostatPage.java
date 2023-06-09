@@ -187,6 +187,19 @@ public class ThermostatPage extends MainPage {
 			updateAll.registerDependentWidget(alert);
 			updateAll.setDefaultConfirmMsg("Really re-send update date value to all selected thermostats with pending feedback?");
 			secondTopTable.setContent(0, 0, updateAll);
+
+			ButtonConfirm setAllByMode = new ButtonConfirm(page, "setAllByMode", "Set all values according to mode") {
+				@Override
+				public void onPrePOST(String data, OgemaHttpRequest req) {
+					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
+					int count = DeviceHandlerBase.setOpenIntervalConfigs(controller.appConfigData.sendIntervalMode(), all, null, false);
+					alert.showAlert("Set "+count+" settings", count>0, req);
+				}
+			};
+			updateAll.registerDependentWidget(alert);
+			updateAll.setDefaultConfirmMsg("Really set all values differing from Interval Mode?");
+			secondTopTable.setContent(0, 1, setAllByMode);
+						
 			page.append(secondTopTable);
 		}
 
@@ -423,6 +436,43 @@ public class ThermostatPage extends MainPage {
 					}					
 				} 
 				else if(type == ThermostatPageType.UPDATE_INTERVAL_CONFIG) {
+					IntegerResource sendIntervalModeSingle = null;
+					if(req == null)
+						vh.registerHeaderEntry("SendMode");
+					else {
+						sendIntervalModeSingle = DeviceHandlerBase.getSendIntervalModeSingle(device);
+						@SuppressWarnings("unchecked")
+						IntegerResourceMultiButton sendIntervalButton = new IntegerResourceMultiButton(mainTable,
+								"sendIntervalButton"+id, req, sendIntervalModeSingle,
+								new WidgetStyle[] {ButtonData.BOOTSTRAP_LIGHTGREY, ButtonData.BOOTSTRAP_DARKGREY,
+										ButtonData.BOOTSTRAP_RED, ButtonData.BOOTSTRAP_LIGHT_BLUE,
+										ButtonData.BOOTSTRAP_GREEN}) {
+							
+							@Override
+							protected String getText(int state, OgemaHttpRequest req) {
+								int overallState = 	controller.hwTableData.appConfigData.sendIntervalMode().getValue();
+								if(overallState == 3)
+									return "(Off Forced)";
+								switch(state) {
+								case 0:
+									return "("+AlarmingUtiH.getSendIntervalModeShort(overallState)+")";
+								case 1:
+									return AlarmingUtiH.getSendIntervalModeShort(0);
+								case 2:
+									return AlarmingUtiH.getSendIntervalModeShort(2);
+								case 3:
+									return AlarmingUtiH.getSendIntervalModeShort(4);
+								case 4:
+									return "Special";
+								default:
+									return "UNKNOWN ST:"+state;
+								}
+							}
+						};
+						row.addCell(WidgetHelper.getValidWidgetId("SendMode"), sendIntervalButton);
+					}
+					
+					
 					final IntegerResource cyclicMsgOnOff = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_ONOFF, false);
 					final IntegerResource cyclicMsgOnOffFb = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_ONOFF, true);
 					final IntegerResource cyclicMsgChanged = (IntegerResource) PropType.getHmParam(device, PropType.CYCLIC_MSG_CHANGED, false);
@@ -449,7 +499,8 @@ public class ThermostatPage extends MainPage {
 							Label lastContactValveErr = addLastContact("Last_Ch", vh, id, req, row, cyclicMsgChangedFb);
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
-							addSetpEditField("EditChanged", cyclicMsgChanged, vh, id, req, row, 0, 255);
+							if(sendIntervalModeSingle != null && sendIntervalModeSingle.getValue() == 4)
+								addSetpEditField("EditChanged", cyclicMsgChanged, vh, id, req, row, 0, 255);
 						}
 					}					
 					if((req == null) || (cyclicMsgUnchanged != null && cyclicMsgUnchanged.exists())) {
@@ -472,7 +523,8 @@ public class ThermostatPage extends MainPage {
 							Label lastContactValveErr = addLastContact("Last_Un", vh, id, req, row, cyclicMsgUnchangedFb);
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
-							addSetpEditField("EditUnchanged", cyclicMsgUnchanged, vh, id, req, row, 0, 255);
+							if(sendIntervalModeSingle != null && sendIntervalModeSingle.getValue() == 4)
+								addSetpEditField("EditUnchanged", cyclicMsgUnchanged, vh, id, req, row, 0, 255);
 						}
 					}					
 					if((req == null) || (cyclicMsgOnOff != null && cyclicMsgOnOff.exists())) {
@@ -495,7 +547,8 @@ public class ThermostatPage extends MainPage {
 							Label lastContactValveErr = addLastContact("Last_OnOff", vh, id, req, row, cyclicMsgOnOffFb);
 							valveErrL.setPollingInterval(DEFAULT_POLL_RATE, req);
 							lastContactValveErr.setPollingInterval(DEFAULT_POLL_RATE, req);
-							addSetpEditField("EditOnOff", cyclicMsgOnOff, vh, id, req, row, 0, 255);
+							if(sendIntervalModeSingle != null && sendIntervalModeSingle.getValue() == 4)
+								addSetpEditField("EditOnOff", cyclicMsgOnOff, vh, id, req, row, 0, 255);
 						}
 					}					
 				} 
@@ -841,6 +894,7 @@ public class ThermostatPage extends MainPage {
 						row.addCell(WidgetHelper.getValidWidgetId("Allow Auto"), autoModeButton);
 					}
 				}
+
 				if(req != null && ((type == ThermostatPageType.AUTO_MODE) || type == ThermostatPageType.STANDARD_VIEW_ONLY)) {
 					Label sendManLb = vh.stringLabel("SendMan", id, new LabelFormatter() {
 
@@ -1064,5 +1118,4 @@ public class ThermostatPage extends MainPage {
 		}
 		return count;
 	}
-
 }

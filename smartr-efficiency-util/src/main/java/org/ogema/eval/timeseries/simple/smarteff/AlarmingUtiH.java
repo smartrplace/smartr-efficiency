@@ -483,4 +483,23 @@ public class AlarmingUtiH {
 			return "UNKNOWN STATE:"+value;
 		}
 	}
+	
+	public static String getSendIntervalModeShort(int value) {
+		switch(value) {
+		case 0:
+			return "Default Cyclic";
+		case 1:
+			return "Default Cyclic Forced";
+		case 2:
+			return "No Cylic";
+		case 3:
+			return "No Cylic Forced";
+		case 4:
+			return "Saving Cylic";
+		case 5:
+			return "Saving Cylic Forced";
+		default:
+			return "UNKNOWN STATE:"+value;
+		}
+	}
 }
