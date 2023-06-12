@@ -20,6 +20,7 @@ import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
  *   - replacing an issue of type AlarmGroupData eligible for snychronization by another one of type AlarmGroupDataMajor, and 
  *   	setting a reference from the existing issue to the new one
  */
+@Deprecated
 public class SynchronizableIssueListener implements ResourceDemandListener<AlarmGroupData>, AutoCloseable {
 
 	private final ResourceValueListener<IntegerResource> assignmentListener = new ResourceValueListener<IntegerResource>() {

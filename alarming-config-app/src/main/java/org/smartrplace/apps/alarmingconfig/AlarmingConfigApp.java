@@ -108,7 +108,7 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
  
 		controllerProvider.setController(controller);
 		this.reminder = new DeviceAlarmReminderService(appManager);
-		this.syncListener = new SynchronizableIssueListener(appManager);
+		//this.syncListener = new SynchronizableIssueListener(appManager);
  	}
 
      /*

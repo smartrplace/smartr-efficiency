@@ -5,7 +5,6 @@ import java.util.List;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
-import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.resourcemanager.ResourceOperationException;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.model.extended.alarming.AlarmGroupData;
@@ -25,16 +24,27 @@ public class SuperiorIssuesSyncUtils {
 	 * @param appMan
 	 * @return
 	 */
+	public static GatewaySuperiorData getSuperiorData(ApplicationManager appMan) throws ResourceOperationException {
+		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
+		if (r instanceof GatewaySuperiorData)
+			return (GatewaySuperiorData) r;
+		final List<GatewaySuperiorData> superiors = appMan.getResourceAccess().getResources(GatewaySuperiorData.class);
+		if (superiors.isEmpty())
+			return null;
+		return superiors.get(0);
+	}
 	public static AlarmGroupDataMajor syncIssueToSuperior(AlarmGroupData issue, ApplicationManager appMan) throws ResourceOperationException {
 		if (issue instanceof AlarmGroupDataMajor)  // if it is synced already, do not create another issue
 			return (AlarmGroupDataMajor) issue;
-		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
+		GatewaySuperiorData sup = getSuperiorData(appMan);
+		return syncIssueToSuperior(issue, appMan, sup);
+		/*final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
 		if (r instanceof GatewaySuperiorData)
 			return syncIssueToSuperior(issue, appMan, (GatewaySuperiorData) r);
 		final List<GatewaySuperiorData> superiors = appMan.getResourceAccess().getResources(GatewaySuperiorData.class);
 		if (superiors.isEmpty())
 			return null;
-		return syncIssueToSuperior(issue, appMan, superiors.get(0));
+		return syncIssueToSuperior(issue, appMan, superiors.get(0));*/
 	}
 	
 	/**
