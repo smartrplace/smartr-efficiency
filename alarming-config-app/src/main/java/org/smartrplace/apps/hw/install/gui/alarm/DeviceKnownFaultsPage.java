@@ -45,6 +45,7 @@ import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
+import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
@@ -84,7 +85,6 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
-import de.iwes.widgets.resource.widget.dropdown.ReferenceDropdown;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")
@@ -93,7 +93,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	
 	public static enum KnownFaultsPageType {
 		OPERATION_STANDARD,
-		SUPERVISION_STANDARD
+		SUPERVISION_STANDARD,
+		MAJOR_ISSUES
 	}
 	final KnownFaultsPageType pageType;
 	private final Button createIssueSubmit;
@@ -122,10 +123,15 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	
 	protected boolean showAllDevices = false;
 	
+	// InstallAppDevice-location -> AlarmGroupData for major issue page
+	private final Map<String, AlarmGroupData> majorAlarms = new HashMap<>();
+	
 	@Override
-	protected String getHeader() {
+	public String getHeader() {
 		if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 			return "8. Device Issue Status Supervision";
+		if(pageType == KnownFaultsPageType.MAJOR_ISSUES)
+			return "8b. Major Device Issues";
 		return "3. Device Issue Status";
 	}
 	
@@ -161,6 +167,12 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		page.append(lastMessagePopup);
 		//
 		finishConstructor();
+		
+		if(pageType == KnownFaultsPageType.MAJOR_ISSUES) {
+			releasePopup = null;
+			createIssueSubmit = null;
+			return;
+		}
 		
 		Button switchAllDeviceBut = new Button(page, "switchAllDeviceBut") {
 			@Override
@@ -310,7 +322,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					return;
 				}
 				try {
-					final AlarmGroupData alarm = device.knownFault();
+					final AlarmGroupData alarm;
+					if(pageType == KnownFaultsPageType.MAJOR_ISSUES)
+						alarm = majorAlarms.get(device.getLocation());
+					else
+						alarm = device.knownFault();
 					final String comment = createIssueComment.getValue(req).trim();
 					if (comment.isEmpty())
 						alarm.comment().delete();
@@ -488,7 +504,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					PhysicalElement device, final InstallAppDevice template) {
 				if(req == null) {
 					//vh.registerHeaderEntry("Main value");
-					vh.getHeader().put("value", "Value/contact");
+					if(pageType == KnownFaultsPageType.MAJOR_ISSUES) {
+						vh.registerHeaderEntry("Release");
+						vh.registerHeaderEntry("Diagnosis");
+					} else
+						vh.getHeader().put("value", "Value/contact");
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Message");
 					vh.registerHeaderEntry("Details");
@@ -589,6 +609,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							} else {
 								//Blocking
 								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
+							}
+							if(pageType == KnownFaultsPageType.MAJOR_ISSUES)
+								return;
+							final AlarmGroupDataMajor newIssue = SuperiorIssuesSyncUtils.syncIssueToSuperior(res, appMan);
+							if (newIssue == null) {
+								appMan.getLogger().warn("Failed to synchronize device issue {} with superior", res);
+							} else {
+								appMan.getLogger().info("Device issue {} is now being synchronized with superior as new issue {}", res, newIssue);
 							}
 						}
 					};
@@ -913,6 +941,25 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			
 			@Override
 			public List<InstallAppDevice> getObjectsInTable(OgemaHttpRequest req) {
+				if(pageType == KnownFaultsPageType.MAJOR_ISSUES) {
+					GatewaySuperiorData sup = SuperiorIssuesSyncUtils.getSuperiorData(appMan);
+					List<AlarmGroupDataMajor> majors = sup.majorKnownIssues().getAllElements();
+					List<InstallAppDevice> result = new ArrayList<>();
+					for(AlarmGroupDataMajor major:majors) {
+						InstallAppDevice iad;
+						if(major.parentForOngoingIssues().isActive()) {
+							iad = major.parentForOngoingIssues();
+						} else {
+							String[] vals = major.devicesRelated().getValues();
+							if(vals.length == 0)
+								continue;
+							iad = controller.dpService.getMangedDeviceResource(vals[0]);
+						}
+						majorAlarms.put(iad.getLocation(), major);
+						result.add(iad);
+					}
+					return result;
+				}
 				List<InstallAppDevice> all = super.getObjectsInTable(req);
 				return getDevicesWithKnownFault(all);
 			}
