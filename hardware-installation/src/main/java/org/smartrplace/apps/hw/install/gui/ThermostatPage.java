@@ -68,7 +68,7 @@ import de.iwes.widgets.html.form.textfield.TextField;
 @SuppressWarnings("serial")
 public class ThermostatPage extends MainPage {
 
-	private static final int THERMOSTAT_MAX_FOR_ALL = 500;
+	static final int THERMOSTAT_MAX_FOR_ALL = 500;
 	DeviceTableBase devTable;
 	
 	public enum ThermostatPageType {

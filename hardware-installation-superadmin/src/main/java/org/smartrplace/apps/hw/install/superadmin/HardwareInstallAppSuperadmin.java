@@ -29,6 +29,8 @@ import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.alarming.extension.BatteryAlarmingExtension;
 import org.smartrplace.apps.hw.install.HWInstallExtensionProvider;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
+import org.smartrplace.apps.hw.install.gui.AirconPage;
+import org.smartrplace.apps.hw.install.gui.AirconPage.AirconPageType;
 import org.smartrplace.apps.hw.install.gui.BatteryPage;
 import org.smartrplace.apps.hw.install.gui.DeviceConfigPage;
 import org.smartrplace.apps.hw.install.gui.DeviceTypeConfigPage;
@@ -178,6 +180,11 @@ public class HardwareInstallAppSuperadmin implements Application, HWInstallExten
 			new CCUPage(ccuPage, controller);
 			menu.addEntry("CCU Details", ccuPage);
 			ccuPage.getMenuConfiguration().setCustomNavigation(menu);
+
+			WidgetPage<?> airconPage = widgetApp.createWidgetPage("airconDetails.hmtl");
+			new AirconPage(airconPage, controller, AirconPageType.STANDARD_VIEW_ONLY);
+			menu.addEntry("Aircondition Details", airconPage);
+			airconPage.getMenuConfiguration().setCustomNavigation(menu);
 
 			WidgetPage<?> trashPage = widgetApp.createWidgetPage("trashDevices.hmtl");
 			synchronized(controller.mainPageExts) {

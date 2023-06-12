@@ -129,7 +129,7 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 					}
 					MultiSwitch opMode = device.getSubResource("operationMode", MultiSwitch.class);
 					if(opMode != null && opMode.exists()) {
-						TextField opModeF = new TextFieldSetpoint(mainTable, "opMode"+id, alert, 0f, 3f, req) {
+						TextField opModeF = new TextFieldSetpoint(mainTable, "opMode"+id, alert, 0f, 7f, req) {
 							
 							@Override
 							protected boolean setValueOnPost(float value, OgemaHttpRequest req) {

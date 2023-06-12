@@ -70,12 +70,14 @@ public class UserAdminBaseUtil {
 	}
 
 	protected static void addGeneralUserApps(Collection<String> result) {
-		result.add("org.smartrplace.apps.overview-src");		
+		result.add("org.smartrplace.apps.overview-src");
 	}
 	
 	public static Collection<String> USER_APPS(UserPermissionService userPermService, boolean useWorkingCopy) {
 		Collection<String> result = getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
 		addGeneralUserApps(result);
+		if(Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior"))
+			result.add("org.smartrplace.internal.srcmon-app-server");
 		return result;
 	}
 
