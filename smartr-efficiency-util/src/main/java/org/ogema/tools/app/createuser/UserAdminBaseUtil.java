@@ -77,7 +77,7 @@ public class UserAdminBaseUtil {
 		Collection<String> result = getPermissionsCoordinates(UserStatus.USER_STD, userPermService, useWorkingCopy);
 		addGeneralUserApps(result);
 		if(Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior"))
-			result.add("org.smartrplace.internal.srcmon-app-server");
+			result.add("org.smartrplace.apps.srcmon-app-server");
 		return result;
 	}
 
@@ -206,7 +206,7 @@ public class UserAdminBaseUtil {
 				if(sysAdmin instanceof ConditionalPermissionAdmin) {
 					ConditionalPermissionAdmin cpa = (ConditionalPermissionAdmin) sysAdmin;
 					userPerms = UserAdminBaseUtil.getPermissions(userName, cpa);
-					if(!userPerms.contains("[(java.security.AllPermission)]")) {
+					if(!userPerms.contains("(java.security.AllPermission)")) {
 						result.status = UserAdminBaseUtil.getUserStatus(userPerms, appManPlus.userPermService(), useWorkingCopy);
 						result.addPerms = UserAdminBaseUtil.getAdditionalPerms(userPerms, result.status, appManPlus.userPermService(),
 								useWorkingCopy);
