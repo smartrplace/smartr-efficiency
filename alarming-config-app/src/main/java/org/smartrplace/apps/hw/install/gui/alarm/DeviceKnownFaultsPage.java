@@ -809,8 +809,31 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				Button releaseBut; 
 				
 				if (res.exists()) {
-					releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req);
-					releasePopup.trigger(releaseBut);
+					if(res.assigned().isActive() &&
+							(res.assigned().getValue() > 0) && (res.forRelease().getValue() == 0)) {
+						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req);
+						releasePopup.trigger(releaseBut);
+					} else {
+						//Unassigned issues shall still just be released without analysis
+						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
+							public void onGET(OgemaHttpRequest req) {
+								int status = res.forRelease().getValue();
+								if(status > 1)
+									setStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+								else if(status > 0)
+									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+								else
+									setStyles(Collections.emptyList(), req);							
+							};
+							@Override
+							public void onPOSTComplete(String data, OgemaHttpRequest req) {
+								//TODO: In the future we may want to keep this information in a log of solved issues
+								AlarmResourceUtil.release(res, appMan.getFrameworkTime());
+								//res.delete();
+								//res.ongoingAlarmStartTime().setValue(-1);
+							}
+						};						
+					}
 				}
 				/*
 				if (res instanceof AlarmGroupDataMajor) {
