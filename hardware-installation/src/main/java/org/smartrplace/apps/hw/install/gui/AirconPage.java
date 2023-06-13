@@ -7,6 +7,7 @@ import java.util.List;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
@@ -114,6 +115,8 @@ public class AirconPage extends MainPage {
 					formatter = new ControlFeedbackFormatter((FloatResource)control, (FloatResource)feedback, controller.dpService);
 				} else if(control instanceof StringResource) {
 					formatter = new ControlFeedbackFormatter((StringResource)control, (StringResource)feedback, controller.dpService);
+				} else if(control instanceof BooleanResource) {
+					formatter = new ControlFeedbackFormatter((BooleanResource)control, (BooleanResource)feedback, controller.dpService);
 				} else
 					formatter = new ControlFeedbackFormatter((IntegerResource)control, (IntegerResource)feedback, controller.dpService);
 				Label winMode = vh.stringLabel(widgetId, id, formatter, row);
@@ -176,10 +179,18 @@ public class AirconPage extends MainPage {
 					name = ResourceUtils.getHumanReadableShortName(device);
 				vh.stringLabel("Name", id, name, row);
 				vh.stringLabel("ID", id, object.deviceId().getValue(), row);
-				final Label setpointFB;
-				setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
-				Label lastContactFB = addLastContact("Last FB", vh, "FB"+id, req, row,device.temperatureSensor().deviceFeedback().setpoint());
+				//final Label setpointFB;
+				//setpointFB = vh.floatLabel("Setpoint", id, device.temperatureSensor().deviceFeedback().setpoint(), row, "%.1f");
+				//Label lastContactFB = addLastContact("Last FB", vh, "FB"+id, req, row,device.temperatureSensor().deviceFeedback().setpoint());
 				
+				addControlFeedbackLabel("Setp", device.temperatureSensor().settings().setpoint(), device.temperatureSensor().deviceFeedback().setpoint(),
+						"LastSetp", vh, id, req, row);
+				addSetpEditField("EditSetp", device.temperatureSensor().settings().setpoint(), vh, id, req, row, 273.15f, 313.15f);
+
+				addControlFeedbackLabel("OnOff", device.onOffSwitch().stateControl(), device.onOffSwitch().stateFeedback(),
+						"LastOnOff", vh, id, req, row);
+				vh.booleanEdit("EditOnOff", id, device.onOffSwitch().stateControl(), row);
+
 				addControlFeedbackLabel("Fan Speed", device.fan().setting().stateControl(), device.fan().setting().stateFeedback(),
 						"LastFan", vh, id, req, row);
 				addSetpEditField("EditSpeed", device.fan().setting().stateControl(), vh, id, req, row, 0, 999);
@@ -187,10 +198,10 @@ public class AirconPage extends MainPage {
 						"LastOp", vh, id, req, row);
 				addSetpEditField("EditOp", device.operationMode().stateControl(), vh, id, req, row, 0, 7);
 				
-				if(req != null) {
+				/*if(req != null) {
 					setpointFB.setPollingInterval(DEFAULT_POLL_RATE, req);
 					lastContactFB.setPollingInterval(DEFAULT_POLL_RATE, req);
-				}
+				}*/
 				
 				if(req != null) {
 					final GetPlotButtonResult logResultSpecial = getAirConditionerPlotButton(device, appManPlus, vh, id, row, req,

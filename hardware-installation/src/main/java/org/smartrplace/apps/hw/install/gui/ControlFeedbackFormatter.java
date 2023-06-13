@@ -1,5 +1,6 @@
 package org.smartrplace.apps.hw.install.gui;
 
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
@@ -19,6 +20,8 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 	private final IntegerResource feedbackInt;
 	private final StringResource controlStr;
 	private final StringResource feedbackStr;
+	private final BooleanResource controlBool;
+	private final BooleanResource feedbackBool;
 	private final DatapointService dpService;
 
 	public ControlFeedbackFormatter(FloatResource control, FloatResource feedback, DatapointService dpService) {
@@ -28,6 +31,8 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 		this.feedbackInt = null;
 		this.controlStr = null;
 		this.feedbackStr = null;
+		this.controlBool = null;
+		this.feedbackBool = null;
 		this.dpService = dpService;
 	}
 	
@@ -38,6 +43,8 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 		this.feedbackInt = feedback;
 		this.controlStr = null;
 		this.feedbackStr = null;
+		this.controlBool = null;
+		this.feedbackBool = null;
 		this.dpService = dpService;
 	}
 
@@ -48,6 +55,20 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 		this.feedbackInt = null;
 		this.controlStr = control;
 		this.feedbackStr = feedback;
+		this.controlBool = null;
+		this.feedbackBool = null;
+		this.dpService = dpService;
+	}
+
+	public ControlFeedbackFormatter(BooleanResource control, BooleanResource feedback, DatapointService dpService) {
+		this.control = null;
+		this.feedback = null;
+		this.controlInt = null;
+		this.feedbackInt = null;
+		this.controlStr = null;
+		this.feedbackStr = null;
+		this.controlBool = control;
+		this.feedbackBool = feedback;
 		this.dpService = dpService;
 	}
 
@@ -90,6 +111,16 @@ public class ControlFeedbackFormatter implements LabelFormatter {
 			int valFb = feedbackInt.getValue();
 			int state;
 			if(feedbackInt == null || (!feedbackInt.exists())) {
+				state = 2;
+				return new OnGETData(String.format("%d", val), state);
+			} else
+				state = (val==valFb)?1:0;
+			return new OnGETData(String.format("%d / %d", val, valFb), state);
+		} else if(controlBool != null) {
+			int val = controlBool.getValue()?1:0;
+			int valFb = feedbackBool.getValue()?1:0;
+			int state;
+			if(feedbackBool == null || (!feedbackBool.exists())) {
 				state = 2;
 				return new OnGETData(String.format("%d", val), state);
 			} else
