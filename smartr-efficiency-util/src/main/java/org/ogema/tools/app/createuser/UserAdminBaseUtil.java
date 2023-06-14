@@ -210,8 +210,14 @@ public class UserAdminBaseUtil {
 						result.status = UserAdminBaseUtil.getUserStatus(userPerms, appManPlus.userPermService(), useWorkingCopy);
 						result.addPerms = UserAdminBaseUtil.getAdditionalPerms(userPerms, result.status, appManPlus.userPermService(),
 								useWorkingCopy);
+					} else {
+						result.status = UserStatus.SUPERADMIN;
+						result.addPerms = Arrays.asList(new String[] {"(java.security.AllPermission)"});
 					}
 				}
+			} else {
+				result.status = UserStatus.SUPERADMIN;
+				result.addPerms = Arrays.asList(new String[] {"(java.security.AllPermission)"});				
 			}
 		}
 		return result;
