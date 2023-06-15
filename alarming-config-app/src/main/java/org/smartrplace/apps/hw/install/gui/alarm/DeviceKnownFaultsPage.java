@@ -418,7 +418,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String user = GUIUtilHelper.getUserLoggedIn(req);
-				if(user.equals("master"))
+				if(user.startsWith("master"))
 					setUrl("/ogema/index.html", req);
 			}
 			
@@ -429,7 +429,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String user = GUIUtilHelper.getUserLoggedIn(req);
-				if(user.equals("master")) {
+				if(user.startsWith("master")) {
 					setUrl("/org/smartrplace/hardwareinstall/expert/thermostatDetails2.hmtl.html", req);
 					setText("Thermostats", req);
 				}
