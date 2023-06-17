@@ -9,6 +9,7 @@ import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.core.resourcemanager.transaction.WriteConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
+import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import com.google.common.base.Objects;
@@ -112,21 +113,27 @@ public class ReleasePopup {
 				if (issue == null)
 					return;
 				final boolean isMajorIssue = issue instanceof AlarmGroupDataMajor;
-				final AlarmGroupDataMajor major = isMajorIssue ? (AlarmGroupDataMajor) issue.getLocationResource() : null;
+				AlarmGroupDataMajor major = isMajorIssue ? (AlarmGroupDataMajor) issue.getLocationResource() : null;
 				final ResourceTransaction trans = isMajorIssue ? basicRelease(major, appMan) : null;
 				final String selectedMode = releaseModeSelector.getSelectedValue(req);
 				switch(selectedMode) {
 				case "finalanalysis":
-					if (!isMajorIssue)
-						return;
+					//TODO: Move to major first
+					if (!isMajorIssue) {
+						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, appMan); 
+						//return;
+					}
 					final FinalAnalysis analysis = analysisSelector.getSelectedItem(req);
 					if (analysis == null) 
 						return;
 					trans.setString(major.finalDiagnosis(), analysis.name(), WriteConfiguration.CREATE_AND_ACTIVATE);
 					break;
 				case "trash":
-					if (!isMajorIssue)
-						return;
+					//TODO: Move to major first
+					if (!isMajorIssue) {
+						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, appMan); 
+						//return;
+					}
 					trans.setTime(major.keepAsTrashUntil(), appMan.getFrameworkTime() + 30 * 24 * 3_600_00);  // 30d hardcoded
 					break;
 				case "delete":

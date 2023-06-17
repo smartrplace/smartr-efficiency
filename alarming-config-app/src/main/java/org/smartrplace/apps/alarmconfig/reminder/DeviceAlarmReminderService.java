@@ -11,32 +11,40 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.resourcemanager.AccessPriority;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.core.resourcemanager.pattern.PatternListener;
+import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.messaging.api.MailSessionServiceI;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.gateway.LocalGatewayInformation;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 
 import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 
 public class DeviceAlarmReminderService implements PatternListener<AlarmReminderPattern>, ResourceValueListener<TimeResource>, AutoCloseable {
 	
 	private static final long PAST_REMINDER_DURATION = 48*3_600_000; // 2 days
 	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appManPlus;
 	private Timer timer;
 	
 	private final List<AlarmReminderPattern> alarms = new ArrayList<>();
 	
-	public DeviceAlarmReminderService(ApplicationManager appMan) {
-		this.appMan = appMan;
+	public DeviceAlarmReminderService(ApplicationManagerPlus appManPlus) {
+		this.appMan = appManPlus.appMan();
+		this.appManPlus = appManPlus;
 		long startupDelay = 200_000;
 		try {
 			startupDelay = Long.getLong("org.smartrplace.apps.alarmingconfig.devicealarmreminder.delay");
@@ -70,7 +78,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	private void retrigger() {
 		this.closeTimer();
 		final List<AlarmConfig> configs = alarms.stream()
-			.filter(alarm -> !alarm.releaseStatus.isActive() || alarm.releaseStatus.getValue() == 2) // not reminding of alarms proposed for release(?)
+			//.filter(alarm -> !alarm.s.isActive() || alarm.releaseStatus.getValue() == 2) // not reminding of alarms proposed for release(?)
 			.map(AlarmConfig::new)
 			.sorted()
 			.collect(Collectors.toList());
@@ -102,7 +110,10 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	}
 
 	private void trigger(AlarmConfig cfg, MailSessionServiceI emailService) {
-		cfg.config.dueDate.deactivate(false);
+		//cfg.config.dueDate.deactivate(false);
+		long startOfDay = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
+		long nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 3, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
+		cfg.config.dueDate.setValue(nextReminder);
 		final String recipient = cfg.config.responsible.isActive() && cfg.config.responsible.getValue().contains("@") ?
 				cfg.config.responsible.getValue() : "alarming@smartrplace.com";
 		try {
@@ -110,10 +121,15 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			final String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 			final StringBuilder sb = new StringBuilder()
 				.append("This is a reminder for the device alarm ");
-			String deviceName = alarm.getPath();
+			String deviceName; 
 			try {
-				deviceName = ResourceUtils.getHumanReadableName(AlarmResourceUtil.getDeviceForKnownFault(alarm).device());
-			} catch (Exception e) {}
+				InstallAppDevice iad = AlarmResourceUtil.getDeviceForKnownFault(alarm);
+				deviceName = iad.deviceId().getValue()+"("+ResourceUtils.getHumanReadableName(iad.device())+")";
+				String nameInHwInstall = DeviceTableRaw.getName(iad, appManPlus);
+				deviceName = nameInHwInstall + " : "+deviceName;
+			} catch (Exception e) {
+				deviceName = alarm.getPath();
+			}
 			sb.append(deviceName).append(" on gateway ").append(gwId);
 			sb.append('.');
 			if (alarm.comment().isActive()) {
@@ -132,7 +148,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			final String msg = sb.toString();
 			appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
 			emailService.newMessage()
-				.withSender("alarming@smartrplace.com") // ?
+				.withSender("no-reply@smartrplace.com", "Smartrplace Messaging")
 				.withSubject(subject)
 				.addText(msg)
 				.addTo(recipient)
@@ -140,6 +156,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		} catch (IOException e) {
 			appMan.getLogger().error("Failed to send alarm reminder for {} to {}", cfg.config.model, recipient, e);
 		}
+		retrigger();
 	}
 
 	@Override

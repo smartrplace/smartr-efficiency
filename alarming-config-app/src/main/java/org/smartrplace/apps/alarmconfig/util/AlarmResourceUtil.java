@@ -45,6 +45,9 @@ public class AlarmResourceUtil {
 		} else {
 			issue.delete();
 		}
+		TimeResource followup = issue.dueDateForResponsibility();
+		if (followup.isActive())
+			followup.deactivate(false);
 	}
 	
 }

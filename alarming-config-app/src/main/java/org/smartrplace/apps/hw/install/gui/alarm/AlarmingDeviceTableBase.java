@@ -5,7 +5,9 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DatapointGroup;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
@@ -14,6 +16,7 @@ import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.autoconfig.api.InitialConfig;
 import org.smartrplace.hwinstall.basetable.HardwareTableData;
@@ -217,18 +220,23 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 	
 	public PhysicalElement addNameWidget(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
+		return addNameWidgetStatic(object, vh, id, req, row, appManPlus.dpService(), devHand, resData.appConfigData);
+	}
+	public static <T extends Resource> PhysicalElement addNameWidgetStatic(InstallAppDevice object, ObjectResourceGUIHelper<T,T> vh, String id,
+			OgemaHttpRequest req, Row row, DatapointService dpService,
+			DeviceHandlerProviderDP<?> devHand, HardwareInstallConfig appConfigData) {
 		final PhysicalElement device;
 		if(req == null)
 			device = ResourceHelper.getSampleResource(PhysicalElement.class);
 		else
 			device = object.device().getLocationResource();
-		DatapointGroup devGrp = DpGroupUtil.getDeviceGroup(device.getLocation(), appManPlus.dpService(), false);
+		DatapointGroup devGrp = DpGroupUtil.getDeviceGroup(device.getLocation(), dpService, false);
 		String name;
 		if(devGrp != null)
 			name = devGrp.label(null);
 		else
 			name = ResourceUtils.getHumanReadableShortName(device);
-		if(!InitialConfig.isInitDone(object.deviceId().getValue()+devHand.getInitVersion(), resData.appConfigData.initDoneStatus()))
+		if(!InitialConfig.isInitDone(object.deviceId().getValue()+devHand.getInitVersion(), appConfigData.initDoneStatus()))
 			name += "*";
 		vh.stringLabel("Name", id, name, row);
 		vh.stringLabel("ID", id, object.deviceId().getValue(), row);

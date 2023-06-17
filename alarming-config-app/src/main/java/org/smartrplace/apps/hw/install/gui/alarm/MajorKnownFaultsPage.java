@@ -30,6 +30,7 @@ import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
+import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
@@ -64,6 +65,7 @@ import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor, AlarmGroupDataMajor> {
 	private final ApplicationManagerPlus appManPlus;
 	private final GatewaySuperiorData supData;
+	private final HardwareInstallConfig hwInstallConfig;
 
 	private Popup lastMessagePopup;
 	private final Label lastMessageDevice;
@@ -75,6 +77,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		super(page, appMan.appMan(), AlarmGroupDataMajor.class, false);
 		this.appManPlus = appMan;
 		this.supData = SuperiorIssuesSyncUtils.getSuperiorData(appMan.appMan());
+		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		
 		this.lastMessagePopup = new Popup(page, "lastMessagePopup", true);
 		lastMessagePopup.setDefaultTitle("Last alarm message");
@@ -111,6 +114,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			Row row, ApplicationManager appMan) {
 		if(req == null) {
 			//vh.registerHeaderEntry("Main value");
+			vh.registerHeaderEntry("Name");
+			vh.registerHeaderEntry("ID");
 			vh.registerHeaderEntry("Started");
 			vh.registerHeaderEntry("Release");
 			vh.registerHeaderEntry("Diagnosis");
@@ -138,6 +143,9 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		}
 		PhysicalElement device = object.device().getLocationResource();
 		final DeviceHandlerProviderDP<?> pe = appManPlus.dpService().getDeviceHandlerProvider(object);
+		
+		AlarmingDeviceTableBase.addNameWidgetStatic(object, vh, id, req, row, appManPlus.dpService(), pe, hwInstallConfig);
+		//vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 		
 		//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 		// some special sensor values... priority for display: battery voltage; mainSensorValue, rssi, eq3state

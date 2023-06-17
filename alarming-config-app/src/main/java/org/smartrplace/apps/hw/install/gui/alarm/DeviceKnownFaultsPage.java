@@ -44,6 +44,7 @@ import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
+import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
@@ -58,6 +59,8 @@ import org.smartrplace.widget.extensions.GUIUtilHelper;
 import com.google.common.base.Objects;
 
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -588,6 +591,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 								//Blocking
 								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
 							}
+							SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan);
 						}
 					};
 					row.addCell("Assigned", widgetPlus.myDrop);
@@ -733,7 +737,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							timestamp = Long.parseLong(value.substring("custom".length()));
 						else if (value.endsWith("d") && value.length() < 5) {
 							final int days = Integer.parseInt(value.substring(0, value.length()-1));
-							timestamp = now.plusDays(days).toEpochSecond()*1000;
+							long startOfDay0 = AbsoluteTimeHelper.getIntervalStart(now0, AbsoluteTiming.DAY);
+							ZonedDateTime startOfDay = ZonedDateTime.ofInstant(Instant.ofEpochMilli(startOfDay0), ZoneId.systemDefault());
+							timestamp = startOfDay.plusDays(days).plusMinutes(4*60).toEpochSecond()*1000;
 						} else if (value.equals("1min")) { // debug option
 							timestamp = now.plusMinutes(1).toEpochSecond()*1000;
 						} else if (value.equals("nextmonthend"))
@@ -810,7 +816,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				
 				if (res.exists()) {
 					if(res.assigned().isActive() &&
-							(res.assigned().getValue() > 0) && (res.forRelease().getValue() == 0)) {
+							(res.assigned().getValue() > 0) && (res.assigned().getValue() != AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT)) {
 						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req);
 						releasePopup.trigger(releaseBut);
 					} else {

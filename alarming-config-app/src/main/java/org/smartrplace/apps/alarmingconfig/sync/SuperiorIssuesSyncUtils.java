@@ -7,6 +7,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.resourcemanager.ResourceOperationException;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -72,4 +73,32 @@ public class SuperiorIssuesSyncUtils {
 		return major;
 	}
 
+	/** Copy issue to be synchronized to superior gateway if this is shall be done as default. If already synchronized return this resource anyways.
+	 * If copy is done: Copy the content of the passed issue information into a new resource that is synchronized with a superior gateway. The original issue resource
+	 * will be replaced by a reference to the new one.
+	 *  
+	 * Assumes that a GatewaySuperiorData configuration resource already exists, preferably at the default location "gatewaySuperiorDataRes".
+	 * @param issue
+	 * @param appMan
+	 * @return
+	 */
+	public static AlarmGroupDataMajor syncIssueToSuperiorIfRelevant(AlarmGroupData issue, ApplicationManager appMan) {
+		if (issue instanceof AlarmGroupDataMajor)  // if it is synced already, do not create another issue
+			return (AlarmGroupDataMajor) issue;
+		if(!eligibleForSync(issue))
+			return null;
+		return syncIssueToSuperior(issue, appMan);
+	};
+	
+	public static boolean eligibleForSync(AlarmGroupData issue) {
+		if (issue == null || !issue.isActive())
+			return false;
+		if (issue.assigned().isActive()) {
+			final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(issue.assigned().getValue() + "");
+			if (role != null && role.toLowerCase().startsWith("op"))
+				return true;
+		}
+		return issue.responsibility().isActive();
+	}
+	
 }

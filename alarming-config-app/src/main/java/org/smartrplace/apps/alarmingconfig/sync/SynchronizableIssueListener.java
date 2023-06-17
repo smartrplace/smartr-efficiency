@@ -28,7 +28,7 @@ public class SynchronizableIssueListener implements ResourceDemandListener<Alarm
 		@Override
 		public void resourceChanged(IntegerResource assigned) {
 			final AlarmGroupData issue = assigned.getParent();
-			if (eligibleForSync(issue))
+			if (SuperiorIssuesSyncUtils.eligibleForSync(issue))
 				trigger(issue);
 		}
 		
@@ -41,7 +41,7 @@ public class SynchronizableIssueListener implements ResourceDemandListener<Alarm
 			if (event.getType() != EventType.RESOURCE_ACTIVATED)
 				return;
 			final AlarmGroupData issue = event.getSource().getParent();
-			if (eligibleForSync(issue))
+			if (SuperiorIssuesSyncUtils.eligibleForSync(issue))
 				trigger(issue);
 		}
 	};
@@ -77,7 +77,7 @@ public class SynchronizableIssueListener implements ResourceDemandListener<Alarm
 	public void resourceAvailable(AlarmGroupData knownIssue) {
 		if (knownIssue instanceof AlarmGroupDataMajor)
 			return;
-		if (eligibleForSync(knownIssue)) {
+		if (SuperiorIssuesSyncUtils.eligibleForSync(knownIssue)) {
 			trigger(knownIssue);
 			return;
 		}
@@ -103,17 +103,4 @@ public class SynchronizableIssueListener implements ResourceDemandListener<Alarm
 		resourceUnavailable(issue); // remove listeners once issue has been made a major one
 		return newIssue;
 	}
-	
-	private static boolean eligibleForSync(AlarmGroupData issue) {
-		if (issue == null || !issue.isActive())
-			return false;
-		if (issue.assigned().isActive()) {
-			final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(issue.assigned().getValue() + "");
-			if (role != null && role.toLowerCase().startsWith("op"))
-				return true;
-		}
-		return issue.responsibility().isActive();
-	}
-	
-
 }
