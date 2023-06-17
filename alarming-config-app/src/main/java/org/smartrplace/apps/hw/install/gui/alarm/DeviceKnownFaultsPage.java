@@ -736,7 +736,19 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						if (value.startsWith("custom"))
 							timestamp = Long.parseLong(value.substring("custom".length()));
 						else if (value.endsWith("d") && value.length() < 5) {
-							final int days = Integer.parseInt(value.substring(0, value.length()-1));
+							final int days;
+							if(value.startsWith("+")) {
+								days = Integer.parseInt(value.substring(1, value.length()-1));
+								if(days < 6)
+									ValueResourceHelper.setCreate(res.reminderType(), 1);
+								else if(days < 25)
+									ValueResourceHelper.setCreate(res.reminderType(), 2);
+								else
+									ValueResourceHelper.setCreate(res.reminderType(), 3);
+							} else {
+								days = Integer.parseInt(value.substring(0, value.length()-1));
+								res.reminderType().setValue(0);
+							}
 							long startOfDay0 = AbsoluteTimeHelper.getIntervalStart(now0, AbsoluteTiming.DAY);
 							ZonedDateTime startOfDay = ZonedDateTime.ofInstant(Instant.ofEpochMilli(startOfDay0), ZoneId.systemDefault());
 							timestamp = startOfDay.plusDays(days).plusMinutes(4*60).toEpochSecond()*1000;
@@ -770,11 +782,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				followupemail.setDefaultOptions(Arrays.asList(
 					new DropdownOption("__EMPTY_OPT__", "inactive", true),
 					new DropdownOption("1d", "1 day", false),
+					new DropdownOption("+1d", "Daily", false),
 					new DropdownOption("2d", "2 days", false),
 					new DropdownOption("3d", "3 days", false),
 					new DropdownOption("7d", "7 days", false),
+					new DropdownOption("+7d", "Weekly", false),
 					new DropdownOption("30d", "30 days", false),
 					new DropdownOption("nextmonthend", "End of next month", false),
+					new DropdownOption("+30d", "Monthly", false),
 					new DropdownOption("3months", "3 months", false),
 					new DropdownOption("august", "End of August", false)
 				));

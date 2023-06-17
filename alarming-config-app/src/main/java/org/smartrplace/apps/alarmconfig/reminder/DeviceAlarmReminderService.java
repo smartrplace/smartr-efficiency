@@ -110,10 +110,27 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	}
 
 	private void trigger(AlarmConfig cfg, MailSessionServiceI emailService) {
-		//cfg.config.dueDate.deactivate(false);
-		long startOfDay = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
-		long nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 3, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
-		cfg.config.dueDate.setValue(nextReminder);
+		boolean reRemind = (cfg.config.reminderType == null) || (cfg.config.reminderType.getValue() >= 0);
+		if(!reRemind)
+			cfg.config.dueDate.deactivate(false);
+		else {
+			long startOfDay = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
+			int type = 0;
+			if(cfg.config.reminderType != null) {
+				type = cfg.config.reminderType.getValue();
+			}
+			long nextReminder;
+			if(type == 1)
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 1, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
+			else if(type == 2)
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 7, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
+			else if(type == 3) {
+				long startOfMonth = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.MONTH);
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfMonth, 1, AbsoluteTiming.MONTH) + 4*TimeProcUtil.HOUR_MILLIS;
+			} else
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 3, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
+			cfg.config.dueDate.setValue(nextReminder);
+		}
 		final String recipient = cfg.config.responsible.isActive() && cfg.config.responsible.getValue().contains("@") ?
 				cfg.config.responsible.getValue() : "alarming@smartrplace.com";
 		try {
@@ -156,7 +173,8 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		} catch (IOException e) {
 			appMan.getLogger().error("Failed to send alarm reminder for {} to {}", cfg.config.model, recipient, e);
 		}
-		retrigger();
+		if(reRemind)
+			retrigger();
 	}
 
 	@Override

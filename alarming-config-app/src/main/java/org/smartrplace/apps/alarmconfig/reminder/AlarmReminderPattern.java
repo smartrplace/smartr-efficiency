@@ -16,6 +16,9 @@ public class AlarmReminderPattern extends ResourcePattern<AlarmGroupData> {
 	public final TimeResource dueDate = model.dueDateForResponsibility();
 	
 	@Existence(required = CreateMode.OPTIONAL)
+	public final IntegerResource reminderType = model.reminderType();
+
+	@Existence(required = CreateMode.OPTIONAL)
 	public final StringResource responsible = model.responsibility();
 	
 	@Existence(required = CreateMode.OPTIONAL)
