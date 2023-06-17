@@ -161,6 +161,9 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			final String baseUrl = gwRes.gatewayBaseUrl().getValue();
 			final String subject = "Device issue reminder " + gwId + ": " + deviceName;
 			String msg = sb.toString();
+			if(alarm.linkToTaskTracking().isActive()) {
+				msg += "\r\nTask Tracking: " + alarm.linkToTaskTracking().getValue();
+			}
 			if (baseUrl != null && !baseUrl.isEmpty())
 				msg += "\r\nLink: " + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 			appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
