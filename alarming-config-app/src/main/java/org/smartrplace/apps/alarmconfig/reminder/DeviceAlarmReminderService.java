@@ -150,19 +150,19 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			sb.append(deviceName).append(" on gateway ").append(gwId);
 			sb.append('.');
 			if (alarm.comment().isActive()) {
-				sb.append(" Comment: ").append(alarm.comment().getValue());
+				sb.append("\r\nComment: ").append(alarm.comment().getValue());
 			}
 			if (alarm.ongoingAlarmStartTime().isActive()) {
-				sb.append(" In alarm state since: ")
+				sb.append("\r\nIn alarm state since: ")
 					.append(DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(alarm.ongoingAlarmStartTime().getValue()), ZoneId.systemDefault())))
 					.append('.');
 			}
 			final LocalGatewayInformation gwRes = ResourceHelper.getLocalGwInfo(appMan);
 			final String baseUrl = gwRes.gatewayBaseUrl().getValue();
 			final String subject = "Device issue reminder " + gwId + ": " + deviceName;
+			String msg = sb.toString();
 			if (baseUrl != null && !baseUrl.isEmpty())
-				sb.append(" Link: ").append(baseUrl).append("/org/smartrplace/alarmingexpert/deviceknownfaults.html");
-			final String msg = sb.toString();
+				msg += "\r\nLink: " + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html";
 			appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
 			emailService.newMessage()
 				.withSender("no-reply@smartrplace.com", "Smartrplace Messaging")
