@@ -8,7 +8,17 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 public class AlarmResourceUtil {
 
+	/**
+	 * Subresource of the responsible NaturalPerson, that determines whether or not to aggregate for this recipient.
+	 * Type: StringResource
+	 */
 	public static final String EMAIL_AGGREGATION_SUBRESOURCE = "emailAggregation";
+	
+	/**
+	 * Subresource of AlarmGroupData. This is an internal subresource, no need to specify a model for it.
+	 * Type: PendingEmail
+	 */
+	public static final String PENDING_REMINDER_EMAIL_SUBRESOURCE = "pendingReminder";
 	
 	private AlarmResourceUtil() {}
 

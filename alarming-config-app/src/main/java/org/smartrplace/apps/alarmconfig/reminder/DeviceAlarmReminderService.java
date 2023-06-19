@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
@@ -21,6 +23,7 @@ import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.messaging.api.MailSessionServiceI;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.gateway.LocalGatewayInformation;
+import org.ogema.model.user.NaturalPerson;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.osgi.framework.BundleContext;
@@ -33,11 +36,17 @@ import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 
+/**
+ * For device issues represented by AlarmGroupData resources this service creates reminder emails. Depending on the settings of the
+ * recipient (see {@link AlarmGroupData#responsibility()}), these are either sent immediately when the {@link AlarmGroupData#dueDateForResponsibility()} has passed, or are
+ * aggregated per recipient and sent once per day (see {@link ReminderAggregationService}).
+ */
 public class DeviceAlarmReminderService implements PatternListener<AlarmReminderPattern>, ResourceValueListener<TimeResource>, AutoCloseable {
 	
 	private static final long PAST_REMINDER_DURATION = 48*3_600_000; // 2 days
 	private final ApplicationManager appMan;
 	private final ApplicationManagerPlus appManPlus;
+	private final ReminderAggregationService aggregationService;
 	private Timer timer;
 	
 	private final List<AlarmReminderPattern> alarms = new ArrayList<>();
@@ -50,6 +59,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			startupDelay = Long.getLong("org.smartrplace.apps.alarmingconfig.devicealarmreminder.delay");
 		} catch (Exception ignore) {}
 		this.timer = appMan.createTimer(startupDelay, this::init);
+		this.aggregationService = new ReminderAggregationService(appMan);
 	}
 	
 	private void init(Timer timer) {
@@ -72,6 +82,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	@Override
 	public void close() {
 		this.closeTimer();
+		this.aggregationService.close();
 		this.appMan.getResourcePatternAccess().removePatternDemand(AlarmReminderPattern.class, this);
 	}
 	
@@ -88,6 +99,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		final List<AlarmConfig> alarmsToBeSent = configs.stream()
 			.filter(cfg -> cfg.t <= now && now - cfg.t < PAST_REMINDER_DURATION)  // at most 2 days old reminders are triggered
 			.collect(Collectors.toList());
+		// TODO for those reminders which should be aggregated, set the corresponding resources
 		if (!alarmsToBeSent.isEmpty()) {
 			final BundleContext ctx = appMan.getAppID().getBundle().getBundleContext();
 			final ServiceReference<MailSessionServiceI> serviceRef = ctx.getServiceReference(MailSessionServiceI.class);
@@ -166,13 +178,24 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			}
 			if (baseUrl != null && !baseUrl.isEmpty())
 				msg += "\r\nLink: " + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html";
-			appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
-			emailService.newMessage()
-				.withSender("no-reply@smartrplace.com", "Smartrplace Messaging")
-				.withSubject(subject)
-				.addText(msg)
-				.addTo(recipient)
-				.send();
+			final NaturalPerson responsible = findResponsible(recipient);
+			if (responsible != null && responsible.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE) != null && 
+					!"none".equals(((StringResource) responsible.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE)).getValue())) {
+				final PendingEmail pending = alarm.addDecorator(AlarmResourceUtil.PENDING_REMINDER_EMAIL_SUBRESOURCE, PendingEmail.class);
+				pending.senderEmail().<StringResource> create().setValue("no-reply@smartrplace.com");
+				pending.senderName().<StringResource> create().setValue("Smartrplace Messaging");
+				pending.subject().<StringResource> create().setValue(deviceName);
+				pending.message().<StringResource> create().setValue(msg);
+				pending.activate(true);
+			} else {
+				appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
+				emailService.newMessage()
+					.withSender("no-reply@smartrplace.com", "Smartrplace Messaging")
+					.withSubject(subject)
+					.addText(msg)
+					.addTo(recipient)
+					.send();
+			}
 		} catch (IOException e) {
 			appMan.getLogger().error("Failed to send alarm reminder for {} to {}", cfg.config.model, recipient, e);
 		}
@@ -180,6 +203,14 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			retrigger();
 	}
 
+	private NaturalPerson findResponsible(String email) {
+		final ResourceList<NaturalPerson> contacts = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes/responsibilityContacts");
+		if (contacts == null || !contacts.isActive())
+			return null;
+		return contacts.getAllElements().stream().filter(ctc -> email.equalsIgnoreCase(ctc.getSubResource("emailAddress", StringResource.class).getValue()))
+			.findAny().orElse(null);
+	}
+	
 	@Override
 	public void patternAvailable(AlarmReminderPattern pattern) {
 		alarms.add(pattern);
