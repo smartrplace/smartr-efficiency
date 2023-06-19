@@ -1,17 +1,26 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.model.extended.alarming.AlarmGroupData;
+import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
 
+import de.iwes.widgets.api.extended.WidgetData;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
@@ -27,6 +36,8 @@ import de.iwes.widgets.html.complextable.DynamicTableData;
 import de.iwes.widgets.html.complextable.RowTemplate;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.dropdown.Dropdown;
+import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
@@ -37,6 +48,11 @@ import de.iwes.widgets.html.popup.Popup;
 import de.iwes.widgets.resource.widget.label.ValueResourceLabel;
 
 public class ResponsibilityContactsPage {
+	
+	private static final List<DropdownOption> AGGREGATION_OPTIONS = Arrays.asList(
+		new DropdownOption("none", "None", true),
+		new DropdownOption("daily", "Daily", false)
+	);
 	
 	private final WidgetPage<?> page;
 	private final ApplicationManager appMan;
@@ -79,6 +95,8 @@ public class ResponsibilityContactsPage {
 				header.put("name", "Name");
 				header.put("role", "User role");
 				header.put("email", "Email");
+				header.put("assigned", "Issues assigned");
+				header.put("aggregation", "Email aggregation");
 				header.put("delete", "Delete");
 				return header;
 			}
@@ -104,6 +122,64 @@ public class ResponsibilityContactsPage {
 				final ValueResourceLabel<StringResource> email = new ValueResourceLabel<>(contactsTable, line + "_email", req);
 				email.selectDefaultItem(person.getSubResource("emailAddress", StringResource.class));
 				row.addCell("email", email);
+				
+				final Dropdown aggregation = new Dropdown(contactsTable, line + "_aggregation", req) {
+					
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						final StringResource aggregation = person.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE);
+						if (aggregation != null && aggregation.isActive() && "daily".equals(aggregation.getValue()))
+							selectSingleOption("daily", req);
+						else
+							selectSingleOption("none", req);
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						
+						final String selected = getSelectedValue(req);
+						if ("daily".equals(selected)) {
+							final StringResource aggregation = person.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE, StringResource.class).create();
+							aggregation.setValue(selected);
+							aggregation.activate(false);
+						} else {
+							final StringResource aggregation = person.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE);
+							if (aggregation != null && aggregation.exists())
+								aggregation.delete();
+						}
+					}
+					
+					
+				};
+				aggregation.setDefaultOptions(AGGREGATION_OPTIONS);
+				aggregation.setDefaultWidth("8em");
+				aggregation.setDefaultToolTip("Select the aggregation mode for emails related to device issues. Either: \"none\", "
+						+ "in which case emails are sent immediately when an issue occurs, or \"daily\", in wich case an email with new issues is sent once a day.");
+				row.addCell("aggregation", aggregation);
+				
+				final Label assignedLabel = new Label(contactsTable, line + "_assignedcnt", req) {
+					
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						final String email = person.getSubResource("emailAddress", StringResource.class).getValue();
+						if (email == null || "".equals(email)) {
+							setText("0", req);
+							return;
+						}
+						final ResourceList<InstallAppDevice> knownDevices = appMan.getResourceAccess().getResource("hardwareInstallConfig/knownDevices");
+						final ResourceList<AlarmGroupDataMajor> majorIssues = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes/majorKnownIssues");
+						final Stream<AlarmGroupData> stream1 = knownDevices == null ? Stream.empty() : knownDevices.getAllElements().stream().map(InstallAppDevice::knownFault).filter(Resource::isActive);
+						@SuppressWarnings({ "unchecked", "rawtypes" })
+						final Stream<AlarmGroupData> stream2 = majorIssues == null ? Stream.empty() : (Stream) majorIssues.getAllElements().stream();
+						final Stream<AlarmGroupData> stream = Stream.concat(stream1, stream2);
+						final long cnt = stream.map(AlarmGroupData::responsibility)
+							.filter(res -> res.isActive() && email.equalsIgnoreCase(res.getValue()))
+							.count();
+						setText(String.valueOf(cnt), req);
+					}
+					
+				};
+				row.addCell("assigned", assignedLabel);
 				
 				final ButtonConfirm delete = new ButtonConfirm(contactsTable, line + "_delete", req) {
 					
@@ -160,7 +236,7 @@ public class ResponsibilityContactsPage {
 			.append(info)
 			.append(alert).linebreak()
 			.append(existingContactsHeader).linebreak()
-			.append(contactsTable).linebreak()
+			.append(contactsTable)
 			.append(newContactsHeader)
 			.append(creationTriggerBtn);
 		

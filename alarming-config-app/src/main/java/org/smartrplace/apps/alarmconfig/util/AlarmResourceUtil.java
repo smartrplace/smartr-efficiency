@@ -8,6 +8,8 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 public class AlarmResourceUtil {
 
+	public static final String EMAIL_AGGREGATION_SUBRESOURCE = "emailAggregation";
+	
 	private AlarmResourceUtil() {}
 
 	/**
