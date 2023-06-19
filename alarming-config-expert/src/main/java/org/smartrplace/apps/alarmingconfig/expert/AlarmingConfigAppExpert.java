@@ -18,6 +18,7 @@ import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.MajorKnownFaultsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage.KnownFaultsPageType;
 import org.smartrplace.apps.hw.install.gui.alarm.MessagingAppConfigPage;
+import org.smartrplace.apps.hw.install.gui.alarm.ResponsibilityContactsPage;
 
 import de.iwes.util.logconfig.LogHelper;
 import de.iwes.widgets.api.OgemaGuiService;
@@ -144,7 +145,11 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			menu.addEntry("9. Device Issue Status Installation", pageRes15);
 			configMenuConfig(pageRes15.getMenuConfiguration());
 			
-
+			final WidgetPage<?> pageResponsibleContacts = widgetApp.createWidgetPage("responsiblecontacts.html");
+			new ResponsibilityContactsPage(pageResponsibleContacts, appMan);
+			menu.addEntry("10. Responsible contacts", pageResponsibleContacts);
+			configMenuConfig(pageResponsibleContacts.getMenuConfiguration());
+			
 			LogHelper.logStartup(4, appMan);
 		}
 	};
