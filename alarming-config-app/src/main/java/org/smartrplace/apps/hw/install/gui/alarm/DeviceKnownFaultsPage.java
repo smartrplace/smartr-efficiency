@@ -835,6 +835,17 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
 							
 							@Override
+							public void onGET(OgemaHttpRequest req) {
+								int status = res.forRelease().getValue();
+								if(status > 1)
+									setStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+								else if(status > 0)
+									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+								else
+									setStyles(Collections.emptyList(), req);							
+							}
+							
+							@Override
 							public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
 								releasePopup.selectIssue(res, req);
 							}
@@ -844,6 +855,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					} else {
 						//Unassigned issues shall still just be released without analysis
 						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
+							
+							@Override
 							public void onGET(OgemaHttpRequest req) {
 								int status = res.forRelease().getValue();
 								if(status > 1)
@@ -852,7 +865,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
 								else
 									setStyles(Collections.emptyList(), req);							
-							};
+							}
+							
 							@Override
 							public void onPOSTComplete(String data, OgemaHttpRequest req) {
 								//TODO: In the future we may want to keep this information in a log of solved issues

@@ -236,7 +236,7 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 			name = devGrp.label(null);
 		else
 			name = ResourceUtils.getHumanReadableShortName(device);
-		if(!InitialConfig.isInitDone(object.deviceId().getValue()+devHand.getInitVersion(), appConfigData.initDoneStatus()))
+		if(devHand == null || !InitialConfig.isInitDone(object.deviceId().getValue()+devHand.getInitVersion(), appConfigData.initDoneStatus()))
 			name += "*";
 		vh.stringLabel("Name", id, name, row);
 		vh.stringLabel("ID", id, object.deviceId().getValue(), row);

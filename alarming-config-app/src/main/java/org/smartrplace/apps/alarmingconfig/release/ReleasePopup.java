@@ -9,15 +9,19 @@ import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.core.resourcemanager.transaction.WriteConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
+import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import com.google.common.base.Objects;
 
+import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
+import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
@@ -27,6 +31,7 @@ import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.EnumDropdown;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
@@ -36,7 +41,10 @@ public class ReleasePopup {
 	private final Popup popup;
 	private final EmptyWidget issueContainer;
 	private final Dropdown releaseModeSelector;
+	private final Label finalAnalysisLabel;
+	private final Label device;
 	private final EnumDropdown<FinalAnalysis> analysisSelector;
+	
 	private final Button cancelButton;
 	private final ButtonConfirm submitButton;
 	
@@ -58,6 +66,7 @@ public class ReleasePopup {
 			new DropdownOption("delete", "Direct delete", false)
 		));
 		releaseModeSelector.setDefaultToolTip("Select the release mode. Either provide a final analysis, move the issue to the trash (only for assigned issues), or delete it directly.");
+		releaseModeSelector.setDefaultMinWidth("9em");
 		this.analysisSelector = new EnumDropdown<FinalAnalysis>(page, baseId + "_finalanalysis", FinalAnalysis.class) {
 			
 			@Override
@@ -167,20 +176,48 @@ public class ReleasePopup {
 		footerFlex.setJustifyContent(JustifyContent.FLEX_RIGHT, null);
 		footerFlex.addCssItem(">div", Map.of("column-gap", "1em"), null);
 		
-		
-		
-		final Flexbox bodyFlex = new Flexbox(page, baseId + "_body", true);
-		bodyFlex.addItem(releaseModeSelector, null).addItem(analysisSelector, null);
-		bodyFlex.setJustifyContent(JustifyContent.FLEX_LEFT, null);
-		bodyFlex.addCssItem(">div", Collections.singletonMap("column-gap", "1em"), null);
+		final PageSnippet bodySnippet = new PageSnippet(page, baseId + "_body", true);
+		final Label deviceLabel = new Label(page, baseId + "_deviceLabelInRelease", "Device");
+		this.device = new Label(page, baseId + "_deviceInRelease") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final AlarmGroupData alarm = getSelectedIssue(req);
+				final InstallAppDevice device = alarm != null ? AlarmResourceUtil.getDeviceForKnownFault(alarm) : null;
+				if (device == null) {
+					setText("", req);
+					return;
+				}
+				final String id = device.deviceId().isActive() ? device.deviceId().getValue() :
+					device.device().isActive() ? ResourceUtils.getHumanReadableName(device.device().getLocationResource()) :
+					device.getPath();
+				setText(id, req);
+			}
+			
+		};
+		final Label releaseModeLabel = new Label(page, baseId + "_releaseModeLabel", "Release mode");
+		this.finalAnalysisLabel = new Label(page, baseId + "_finalAnalysisLabel", "Final analysis") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final boolean visible = "finalanalysis".equals(releaseModeSelector.getSelectedValue(req));
+				setWidgetVisibility(visible, req);
+			}
+			
+		};
+		final StaticTable bodyTable = new StaticTable(3, 2, new int[] {3,9})
+				.setContent(0, 0, deviceLabel).setContent(0, 1, device)
+				.setContent(1, 0, releaseModeLabel).setContent(1, 1, releaseModeSelector)
+				.setContent(2, 0, finalAnalysisLabel).setContent(2, 1, analysisSelector);
+		bodySnippet.append(bodyTable, null);
 		
 		popup.setTitle("Release issue", null);
-		popup.setBody(bodyFlex, null);
+		popup.setBody(bodySnippet, null);
 		popup.setFooter(footerFlex, null);
 		popup.addCssItem(">div>div>div>div.modal-body", Collections.singletonMap("min-height", "10em"), null);
 		page.append(issueContainer);
 		
-		
+		releaseModeSelector.triggerAction(finalAnalysisLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseModeSelector.triggerAction(analysisSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseModeSelector.triggerAction(submitButton, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		cancelButton.triggerAction(popup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
@@ -206,7 +243,9 @@ public class ReleasePopup {
 	}
 	
 	public void trigger(OgemaWidget externalWidget) {
+		externalWidget.triggerAction(device, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		externalWidget.triggerAction(releaseModeSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		externalWidget.triggerAction(finalAnalysisLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(analysisSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(submitButton, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(popup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, 1);
