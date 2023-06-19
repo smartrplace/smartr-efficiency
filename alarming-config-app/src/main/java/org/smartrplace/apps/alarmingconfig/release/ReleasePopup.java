@@ -92,14 +92,17 @@ public class ReleasePopup {
 				case "finalanalysis":
 					setConfirmMsg("Do you really want to release the issue with final analysis?", req);
 					setConfirmBtnMsg("Release", req);
+					setText("Release issue", req);
 					break;
 				case "trash":
 					setConfirmMsg("Do you really want to move the issue to the trash?", req);
 					setConfirmBtnMsg("To trash", req);
+					setText("Issue to trash", req);
 					break;
 				case "delete":
 					setConfirmMsg("Do you really want to delete the issue permanently?", req);
 					setConfirmBtnMsg("Delete", req);
+					setText("Delete issue", req);
 					break;
 				default:
 					setConfirmBtnMsg("?", req);
@@ -175,6 +178,7 @@ public class ReleasePopup {
 		popup.setBody(bodyFlex, null);
 		popup.setFooter(footerFlex, null);
 		popup.addCssItem(">div>div>div>div.modal-body", Collections.singletonMap("min-height", "10em"), null);
+		page.append(issueContainer);
 		
 		
 		releaseModeSelector.triggerAction(analysisSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);

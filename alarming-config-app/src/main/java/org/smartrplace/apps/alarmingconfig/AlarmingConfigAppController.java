@@ -46,6 +46,7 @@ import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDic
 import org.smartrplace.apps.alarmingconfig.message.reader.dictionary.MessagesDictionary_fr;
 import org.smartrplace.apps.alarmingconfig.mgmt.AlarmingManager;
 import org.smartrplace.apps.alarmingconfig.mgmt.EscalationManager;
+import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.alarmingconfig.writeabledps.WriteableDatapointManagement;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -369,6 +370,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			appMan.getLogger().warn("Failed to instantiate quality eval util", e);
 		}
 		qualityEval = q;
+		SuperiorIssuesSyncUtils.checkIssuesSyncStatus(appMan);
 	}
 
 	public void setupMessageReceiverConfiguration(MessageReader mr, final ResourceList<MessagingApp> appList,

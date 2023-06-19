@@ -832,7 +832,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				if (res.exists()) {
 					if(res.assigned().isActive() &&
 							(res.assigned().getValue() > 0) && (res.assigned().getValue() != AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT)) {
-						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req);
+						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
+							
+							@Override
+							public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+								releasePopup.selectIssue(res, req);
+							}
+							
+						};
 						releasePopup.trigger(releaseBut);
 					} else {
 						//Unassigned issues shall still just be released without analysis

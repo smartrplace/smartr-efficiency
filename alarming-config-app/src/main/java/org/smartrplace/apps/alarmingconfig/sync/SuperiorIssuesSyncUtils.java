@@ -101,4 +101,26 @@ public class SuperiorIssuesSyncUtils {
 		return issue.responsibility().isActive();
 	}
 	
+	/**
+	 * Checks known device faults below hardwareInstallConfig/knownDevices if they should be synced to superior, 
+	 * and if so converts them to resources of type AlarmGroupDataMajor, below gatewaySuperiorDataRes.
+	 * Note that preferably all AlarmGroupData resources should be converted to major type resources and synced to
+	 * superior as soon as the relevant conditions are satisfied, so this mehtod is a cleanup operation for missed issues.
+	 * @param appMan
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public static long checkIssuesSyncStatus(ApplicationManager appMan) {
+		final Resource knownDevices = appMan.getResourceAccess().getResource("hardwareInstallConfig/knownDevices");
+		if (!(knownDevices instanceof ResourceList) || !knownDevices.isActive())
+			return 0;
+		return ((ResourceList<InstallAppDevice>) knownDevices).getAllElements().stream()
+			.map(cfg -> cfg.knownFault())
+			.filter(SuperiorIssuesSyncUtils::eligibleForSync)
+			.map(issue -> SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, appMan))
+			.count();
+		
+	}
+	
+	
 }
