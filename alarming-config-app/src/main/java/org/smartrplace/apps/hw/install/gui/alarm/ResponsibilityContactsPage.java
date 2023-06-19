@@ -167,11 +167,14 @@ public class ResponsibilityContactsPage {
 							return;
 						}
 						final ResourceList<InstallAppDevice> knownDevices = appMan.getResourceAccess().getResource("hardwareInstallConfig/knownDevices");
-						final ResourceList<AlarmGroupDataMajor> majorIssues = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes/majorKnownIssues");
 						final Stream<AlarmGroupData> stream1 = knownDevices == null ? Stream.empty() : knownDevices.getAllElements().stream().map(InstallAppDevice::knownFault).filter(Resource::isActive);
+						/*
+						final ResourceList<AlarmGroupDataMajor> majorIssues = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes/majorKnownIssues");
 						@SuppressWarnings({ "unchecked", "rawtypes" })
 						final Stream<AlarmGroupData> stream2 = majorIssues == null ? Stream.empty() : (Stream) majorIssues.getAllElements().stream();
 						final Stream<AlarmGroupData> stream = Stream.concat(stream1, stream2);
+						*/
+						final Stream<AlarmGroupData> stream = stream1; // sufficient, since we have a link from the knownFault() subresource to the major issue
 						final long cnt = stream.map(AlarmGroupData::responsibility)
 							.filter(res -> res.isActive() && email.equalsIgnoreCase(res.getValue()))
 							.count();

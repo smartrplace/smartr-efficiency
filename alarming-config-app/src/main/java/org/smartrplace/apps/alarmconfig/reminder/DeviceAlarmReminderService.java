@@ -8,6 +8,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.ogema.core.model.ResourceList;
@@ -43,9 +50,12 @@ import de.iwes.util.timer.AbsoluteTiming;
  */
 public class DeviceAlarmReminderService implements PatternListener<AlarmReminderPattern>, ResourceValueListener<TimeResource>, AutoCloseable {
 	
+	private static final AtomicLong THREAD_COUNT = new AtomicLong();
 	private static final long PAST_REMINDER_DURATION = 48*3_600_000; // 2 days
 	private final ApplicationManager appMan;
 	private final ApplicationManagerPlus appManPlus;
+	private final String senderEmail;
+	private final String senderName;
 	private final ReminderAggregationService aggregationService;
 	private Timer timer;
 	
@@ -58,6 +68,8 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		try {
 			startupDelay = Long.getLong("org.smartrplace.apps.alarmingconfig.devicealarmreminder.delay");
 		} catch (Exception ignore) {}
+		this.senderEmail = System.getProperty("org.smartrplace.apps.alarmingconfig.devicealarmreminder.sender.email", "no-reply@smartrplace.com");
+		this.senderName = System.getProperty("org.smartrplace.apps.alarmingconfig.devicealarmreminder.sender.name", "Smartrplace Messaging");
 		this.timer = appMan.createTimer(startupDelay, this::init);
 		this.aggregationService = new ReminderAggregationService(appMan);
 	}
@@ -107,14 +119,28 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			if (service == null) {
 				appMan.getLogger().error("No mail service configured, cannot send alarm reminders {}", alarmsToBeSent);
 			} else {
-				new Thread(() -> {
+				final ExecutorService exec = Executors.newSingleThreadExecutor(r -> new Thread(r, "device-alarm-reminder-" + THREAD_COUNT.getAndIncrement()));
+				final Future<?> future = exec.submit(() -> {
 					try {
 						alarmsToBeSent.forEach(a -> this.trigger(a, service));
 					} finally {
 						ctx.ungetService(serviceRef);
 					}
-				}, "device-alarm-reminder-service").start();
+				});
+				try {
+					future.get(15, TimeUnit.MINUTES);
+				} catch (ExecutionException|TimeoutException e) {
+					appMan.getLogger().warn("Sending {} device alarm reminders did not succeed", alarmsToBeSent.size(), e);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				} finally {
+					exec.shutdownNow();
+				}
 			}
+		}
+		if (Thread.interrupted()) {
+			Thread.currentThread().interrupt();
+			return;
 		}
 		final Optional<AlarmConfig> next = configs.stream().filter(a -> a.t > now).findFirst();
 		if (next.isPresent())
@@ -150,22 +176,26 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			final String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 			final StringBuilder sb = new StringBuilder()
 				.append("This is a reminder for the device alarm ");
-			String deviceName; 
+			String deviceName;
+			String deviceId;
 			try {
 				InstallAppDevice iad = AlarmResourceUtil.getDeviceForKnownFault(alarm);
-				deviceName = iad.deviceId().getValue()+"("+ResourceUtils.getHumanReadableName(iad.device())+")";
+				deviceId = iad.deviceId().getValue();
+				deviceName = deviceId +" ("+ResourceUtils.getHumanReadableName(iad.device())+")";
 				String nameInHwInstall = DeviceTableRaw.getName(iad, appManPlus);
 				deviceName = nameInHwInstall + " : "+deviceName;
+				deviceId = nameInHwInstall + " : "+deviceId;
 			} catch (Exception e) {
+				deviceId = alarm.getPath();
 				deviceName = alarm.getPath();
 			}
 			sb.append(deviceName).append(" on gateway ").append(gwId);
 			sb.append('.');
 			if (alarm.comment().isActive()) {
-				sb.append("\r\nComment: ").append(alarm.comment().getValue());
+				sb.append("<br>Comment: ").append(alarm.comment().getValue());
 			}
 			if (alarm.ongoingAlarmStartTime().isActive()) {
-				sb.append("\r\nIn alarm state since: ")
+				sb.append("<br>In alarm state since: ")
 					.append(DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(alarm.ongoingAlarmStartTime().getValue()), ZoneId.systemDefault())))
 					.append('.');
 			}
@@ -174,25 +204,25 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			final String subject = "Device issue reminder " + gwId + ": " + deviceName;
 			String msg = sb.toString();
 			if(alarm.linkToTaskTracking().isActive()) {
-				msg += "\r\nTask Tracking: " + alarm.linkToTaskTracking().getValue();
+				msg += "<br>Task Tracking: " + alarm.linkToTaskTracking().getValue();
 			}
 			if (baseUrl != null && !baseUrl.isEmpty())
-				msg += "\r\nLink: " + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html";
+				msg += "<br>Link: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html</a>";
 			final NaturalPerson responsible = findResponsible(recipient);
-			if (responsible != null && responsible.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE) != null && 
-					!"none".equals(((StringResource) responsible.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE)).getValue())) {
+			if (requiresAggregation(responsible)) {
 				final PendingEmail pending = alarm.addDecorator(AlarmResourceUtil.PENDING_REMINDER_EMAIL_SUBRESOURCE, PendingEmail.class);
-				pending.senderEmail().<StringResource> create().setValue("no-reply@smartrplace.com");
-				pending.senderName().<StringResource> create().setValue("Smartrplace Messaging");
-				pending.subject().<StringResource> create().setValue(deviceName);
+				pending.senderEmail().<StringResource> create().setValue(senderEmail);
+				pending.senderName().<StringResource> create().setValue(senderName);
+				pending.subject().<StringResource> create().setValue(deviceId);
 				pending.message().<StringResource> create().setValue(msg);
 				pending.activate(true);
 			} else {
 				appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
 				emailService.newMessage()
-					.withSender("no-reply@smartrplace.com", "Smartrplace Messaging")
+					.withSender(senderEmail, senderName)
 					.withSubject(subject)
-					.addText(msg)
+					.addHtml(msg)
+					//.addText(msg)
 					.addTo(recipient)
 					.send();
 			}
@@ -201,6 +231,13 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		}
 		if(reRemind)
 			retrigger();
+	}
+	
+	private static boolean requiresAggregation(NaturalPerson contact) {
+		if (contact == null)
+			return false;
+		final StringResource aggregationMode = contact.getSubResource(AlarmResourceUtil.EMAIL_AGGREGATION_SUBRESOURCE);
+		return aggregationMode != null && aggregationMode.isActive() && !"none".equals(aggregationMode.getValue());
 	}
 
 	private NaturalPerson findResponsible(String email) {

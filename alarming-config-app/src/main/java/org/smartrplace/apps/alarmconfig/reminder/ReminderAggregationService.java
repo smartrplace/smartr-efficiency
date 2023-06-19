@@ -5,6 +5,7 @@ import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -14,6 +15,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -35,6 +37,7 @@ import org.smartrplace.tissue.util.resource.GatewayUtil;
  */
 public class ReminderAggregationService implements TimerListener, AutoCloseable {
 
+	private static final AtomicLong THREAD_COUNT = new AtomicLong();
 	private final ApplicationManager appMan;
 	private final Timer timer;
 	
@@ -64,12 +67,12 @@ public class ReminderAggregationService implements TimerListener, AutoCloseable 
 			appMan.getLogger().error("No mail service configured, cannot send alarm reminders for issues {}", alarmsWithPendingReminders);
 			return;
 		}
-		final ExecutorService exec = Executors.newSingleThreadExecutor();
+		final ExecutorService exec = Executors.newSingleThreadExecutor(r -> new Thread(r, "device-alarm-reminder-aggregation-" + THREAD_COUNT.getAndIncrement()));
 		final Future<?> future = exec.submit(() -> sendAll(alarmsWithPendingReminders.stream(), ctx, serviceRef, service));
 		try {
 			future.get(15, TimeUnit.MINUTES);
 		} catch (ExecutionException|TimeoutException e) {
-			appMan.getLogger().warn("Sending {} device alarm reminders did not succeed", alarmsWithPendingReminders.size(), e);
+			appMan.getLogger().warn("Sending {} device alarm reminders in aggregation did not succeed", alarmsWithPendingReminders.size(), e);
 		} finally {
 			exec.shutdownNow();
 		}
@@ -100,11 +103,11 @@ public class ReminderAggregationService implements TimerListener, AutoCloseable 
 					String devices = activeAlarms.stream().map(msg -> msg.subject).limit(subjLimit).collect(Collectors.joining(", "));
 					if (sz > subjLimit)
 						devices += ", ...";
-					final String fullMessage = activeAlarms.stream().map(msg -> msg.message).collect(Collectors.joining("\r\n\r\n"));
+					final String fullMessage = activeAlarms.stream().map(msg -> msg.message).collect(Collectors.joining("<br><br>"));
 					service.newMessage()
 						.withSender(activeAlarms.get(0).senderEmail, activeAlarms.get(0).senderName)
 						.withSubject("Device issue reminder " + gwId + ": " + devices)
-						.addText(fullMessage)
+						.addHtml(fullMessage)
 						.addTo(alarmGroup.getKey())  // the recipient
 						.send();
 					activeAlarms.stream().map(alarm -> alarm.resource).forEach(Resource::delete);  // remove PendingEmail resource
@@ -130,9 +133,21 @@ public class ReminderAggregationService implements TimerListener, AutoCloseable 
 	private long untilNextExec() {
 		final long now = appMan.getFrameworkTime();
 		final ZonedDateTime nowZdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now), ZoneId.systemDefault());
-		ZonedDateTime nextExec = nowZdt.with(LocalTime.of(7, 0));  // executes at 7am every day, hardcoded => ok?
-		while (nextExec.compareTo(nowZdt) <= 0)
-			nextExec = nextExec.plusDays(1);
+		ZonedDateTime nextExec;
+		if (Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.devicealarmreminder.debug")) {  // truncate to full 5 minutes, for debugging only!
+			final int debugMinutesInterval = Integer.getInteger("org.smartrplace.apps.alarmingconfig.devicealarmreminder.debug.aggregation.minutes", 5);
+			nextExec = nowZdt.truncatedTo(ChronoUnit.MINUTES);
+			final int minute = nextExec.getMinute();
+	        final int remainder = minute % debugMinutesInterval;
+	        if (remainder != 0)
+	             nextExec = nextExec.withMinute(minute - remainder);
+	        while (nextExec.compareTo(nowZdt) <= 0)
+	        	nextExec = nextExec.plusMinutes(debugMinutesInterval);
+		} else { 
+			nextExec = nowZdt.with(LocalTime.of(7, 0));  // executes at 7am every day, hardcoded => ok?
+			while (nextExec.compareTo(nowZdt) <= 0)
+				nextExec = nextExec.plusDays(1);
+		}
 		final long millis = Duration.between(nowZdt, nextExec).toMillis();
 		return millis;
 	}
