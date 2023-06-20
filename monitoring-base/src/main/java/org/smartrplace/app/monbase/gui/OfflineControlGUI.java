@@ -261,13 +261,15 @@ public class OfflineControlGUI {
 		}
 		
 		//multiSelectRooms = new Checkbox2(page, "roomSelectionMS");
-		List<String> items = new ArrayList<>();
+		Set<String> items = new HashSet<>(); //new ArrayList<>();
 		List<String> ids = new ArrayList<>(controller.getAllRooms(null));
-		ids.add(controller.getAllRoomLabel(null));
 		for(String id: ids) {
 			items.add(id);
 		}
-		multiSelectRooms2 = new MultiSelectByButtons(items, "msroom", page,
+		List<String> itemsSorted = new ArrayList<>(items);
+		itemsSorted.sort(null);
+		itemsSorted.add(controller.getAllRoomLabel(null));
+		multiSelectRooms2 = new MultiSelectByButtons(itemsSorted, "msroom", page,
 				ButtonData.BOOTSTRAP_GREEN, ButtonData.BOOTSTRAP_LIGHTGREY);
 
 		//single value intervals drop-down
