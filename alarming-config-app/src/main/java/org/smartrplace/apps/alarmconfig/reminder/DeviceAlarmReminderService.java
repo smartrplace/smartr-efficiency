@@ -204,7 +204,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			final String subject = "Device issue reminder " + gwId + ": " + deviceName;
 			String msg = sb.toString();
 			if(alarm.linkToTaskTracking().isActive()) {
-				msg += "<br>Task Tracking: " + alarm.linkToTaskTracking().getValue();
+				msg += "<br>Task Tracking: " +generateHtmlLink(alarm.linkToTaskTracking().getValue());
 			}
 			if (baseUrl != null && !baseUrl.isEmpty())
 				msg += "<br>Link: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html</a>";
@@ -231,6 +231,10 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		}
 		if(reRemind)
 			retrigger();
+	}
+	
+	public static String generateHtmlLink(String link) {
+		return "<a href=\"" + link + "\">" + link + "</a>";
 	}
 	
 	private static boolean requiresAggregation(NaturalPerson contact) {

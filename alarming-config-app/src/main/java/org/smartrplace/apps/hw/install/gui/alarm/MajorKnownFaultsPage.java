@@ -37,9 +37,11 @@ import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
+import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import com.google.common.base.Objects;
 
@@ -129,6 +131,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			vh.registerHeaderEntry("Follow-up");
 			vh.registerHeaderEntry("TH-Plot");
 			vh.registerHeaderEntry("Plot");
+			vh.registerHeaderEntry("Delete");
 			return;
 		}
 
@@ -421,6 +424,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 				ScheduleViewerConfigProvAlarm.getInstance(), null);
 		row.addCell("Plot", logResult.plotButton);
+		
+		GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, "Delete", row, vh, req);
 	}
 
 	@Override
