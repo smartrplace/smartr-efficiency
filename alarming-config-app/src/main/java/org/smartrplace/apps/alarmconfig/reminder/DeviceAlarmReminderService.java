@@ -39,6 +39,7 @@ import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
@@ -196,18 +197,20 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			}
 			if (alarm.ongoingAlarmStartTime().isActive()) {
 				sb.append("<br>In alarm state since: ")
-					.append(DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(alarm.ongoingAlarmStartTime().getValue()), ZoneId.systemDefault())))
+					.append(StringFormatHelper.getTimeDateInLocalTimeZone(alarm.ongoingAlarmStartTime().getValue())) //DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(alarm.ongoingAlarmStartTime().getValue()), ZoneId.systemDefault())))
 					.append('.');
 			}
+			sb.append("<br>Next reminder: ")
+				.append(StringFormatHelper.getTimeDateInLocalTimeZone(alarm.dueDateForResponsibility().getValue()));
 			final LocalGatewayInformation gwRes = ResourceHelper.getLocalGwInfo(appMan);
 			final String baseUrl = gwRes.gatewayBaseUrl().getValue();
 			final String subject = "Device issue reminder " + gwId + ": " + deviceName;
 			String msg = sb.toString();
 			if(alarm.linkToTaskTracking().isActive()) {
-				msg += "<br>Task Tracking: " +generateHtmlLink(alarm.linkToTaskTracking().getValue());
+				msg += "<br>Issue Link: " +generateHtmlLink(alarm.linkToTaskTracking().getValue());
 			}
 			if (baseUrl != null && !baseUrl.isEmpty())
-				msg += "<br>Link: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html</a>";
+				msg += "<br>Issue Data: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html</a>";
 			final NaturalPerson responsible = findResponsible(recipient);
 			if (requiresAggregation(responsible)) {
 				final PendingEmail pending = alarm.addDecorator(AlarmResourceUtil.PENDING_REMINDER_EMAIL_SUBRESOURCE, PendingEmail.class);
