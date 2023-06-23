@@ -86,6 +86,8 @@ import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
+import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResourceTextField;
+import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResourceTextField.DatepickerTimeResourceTextFieldData;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")
@@ -107,6 +109,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	private final Label lastMessageTaskTracking;
 	private final Label lastMessageAssigned;
 	private final Label lastMessageResponsible;
+	private final PopupReminderSelector lastMessageReminderDatetime;  // TODO reminder frequency
 	
 	private final ReleasePopup releasePopup;
 	
@@ -155,8 +158,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		this.lastMessageTaskTracking = new Label(page, "lastMessagePopupTT");
 		this.lastMessageAssigned = new Label(page, "lastMessagePopupAssigned");
 		this.lastMessageResponsible = new Label(page, "lastMessagePopupResponsible");
+		this.lastMessageReminderDatetime = new PopupReminderSelector(page, "lastMessageReminderTime");
 		
-		final StaticTable tab = new StaticTable(8, 2, new int[]{3, 9});
+		final StaticTable tab = new StaticTable(9, 2, new int[]{3, 9});
 		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
 			.setContent(1, 0, "Room").setContent(1, 1, lastMessageRoom)
 			.setContent(2, 0, "Location").setContent(2, 1, lastMessageLocation)
@@ -164,12 +168,21 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			.setContent(4, 0, "Comment").setContent(4, 1, lastMessageComment)
 			.setContent(5, 0, "Assigned").setContent(5, 1, lastMessageAssigned)
 			.setContent(6, 0, "Responsible").setContent(6, 1, lastMessageResponsible)
-			.setContent(7, 0, "Task tracking").setContent(7, 1, lastMessageTaskTracking);
+			.setContent(7, 0, "Task tracking").setContent(7, 1, lastMessageTaskTracking)
+			.setContent(8, 0, "Reminder").setContent(8, 1, lastMessageReminderDatetime);
 		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
 		snip.append(tab, null);
 		lastMessagePopup.setBody(snip, null);
-		final Button closeLastMessage = new Button(page, "lastMessageClose", "Close");
+		final Button closeLastMessage = new Button(page, "lastMessageClose", "Close") {
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				lastMessageReminderDatetime.setTableReminder(null, req);
+			}
+			
+		};
 		closeLastMessage.triggerAction(lastMessagePopup, TriggeringAction.ON_CLICK, TriggeredAction.HIDE_WIDGET);
+		closeLastMessage.triggerAction(lastMessageReminderDatetime, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		lastMessagePopup.setFooter(closeLastMessage, null);
 		lastMessagePopup.setMinWidth("35em", null);
 		page.append(lastMessagePopup);
@@ -548,170 +561,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				//	valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
 				
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
-				final Button showMsg = new Button(mainTable, "msg" + id, req) {
-					
-					private String getOrEmpty(final StringResource res) {
-						return res.isActive() ? res.getValue() : "--";
-					}
-					
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						lastMessage.setText(res.lastMessage().getValue(), req);
-						lastMessageDevice.setText(object.deviceId().getValue(), req);
-						final String room = device.location().room().isActive() ? ResourceUtils.getHumanReadableShortName(device.location().room()) : "--";
-						lastMessageRoom.setText(room, req);
-						lastMessageLocation.setText(getOrEmpty(object.installationLocation()), req);
-						lastMessageComment.setText(getOrEmpty(res.comment()), req);
-						String role = "--";
-						if (res.assigned().isActive()) {
-							final int assigned = res.assigned().getValue();
-							final String roleAssigned = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(assigned);
-							if (roleAssigned != null)
-								role = roleAssigned;
-						}
-						lastMessageAssigned.setText(role, req);
-						lastMessageTaskTracking.setText(getOrEmpty(res.linkToTaskTracking()), req);
-						lastMessageResponsible.setText(getOrEmpty(res.responsibility()), req);
-						
-					}
-					
-				};
-				showMsg.setDefaultText("Last message");
-				showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
-				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
-				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				showMsg.triggerAction(lastMessageRoom,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				showMsg.triggerAction(lastMessageLocation,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				showMsg.triggerAction(lastMessageComment,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				showMsg.triggerAction(lastMessageAssigned,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				showMsg.triggerAction(lastMessageTaskTracking,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				showMsg.triggerAction(lastMessageResponsible,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				
-				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				row.addCell("Message", showMsg);
-				
-				final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Details", 
-						"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + object.deviceId().getValue(), req);
-				detailsRedirect.setToolTip("View alarm details in new tab", req);
-				row.addCell("Details", detailsRedirect);
-				
-				if(res.exists()) {
-					vh.stringEdit("Comment",  id, res.comment(), row, alert, res.comment());
-					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
-							"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
-						public void onGET(OgemaHttpRequest req) {
-							myDrop.selectItem(res.assigned(), req);
-							final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(String.valueOf(res.assigned().getValue()));
-							if (role != null)
-								myDrop.setToolTip(role, req);
-						}
-						@Override
-						public void onPrePOST(String data, OgemaHttpRequest req) {
-							IntegerResource source = res.assigned();
-							if(!source.exists()) {
-								source.create();
-								source.activate(true);
-							}
-						}
-						@Override
-						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							int val = res.assigned().getValue();
-							if(val >= 7000 && val < 8000) {
-								//Non-Blocking
-								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 0);
-							} else {
-								//Blocking
-								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
-							}
-							SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan);
-						}
-					};
-					row.addCell("Assigned", widgetPlus.myDrop);
-					
-					if(!res.linkToTaskTracking().getValue().isEmpty()) {
-						RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
-								res.linkToTaskTracking().getValue(), req);
-						row.addCell(WidgetHelper.getValidWidgetId("Task Tracking"), taskLink);
-					}
-					final ValueResourceTextField<FloatResource> prioField 
-						= new ValueResourceTextField<FloatResource>(mainTable, "prio" + id, res.getSubResource("processingOrder", FloatResource.class), req);
-					prioField.setDefaultToolTip("Alarm priority, e.g. 10, 20, 30, ...");
-					prioField.setDefaultWidth("4em");
-					prioField.triggerAction(prioField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-					row.addCell("Priority", prioField);
-					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
-						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
-					
-					// TODO do we need to display the email address as well?
-					final Dropdown responsibleDropdown = new Dropdown(mainTable, "responsible"+id, req) {
-						
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							final GatewaySuperiorData supData = findSuperiorData();
-							if (supData == null || !supData.responsibilityContacts().isActive())
-								return;
-							final StringResource responsibility = object.knownFault().responsibility();
-							final String email = responsibility.isActive() ? responsibility.getValue() : "";
-							final NaturalPerson selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
-								.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
-								.findAny().orElse(null);
-							final List<DropdownOption> options = supData.responsibilityContacts().getAllElements().stream()
-								.map(contact -> new DropdownOption(
-										contact.getName(), contact.userRole().isActive() ? contact.userRole().getValue() :
-										contact.firstName().getValue() + " " + contact.lastName().getValue(), 
-										contact.equalsLocation(selected)
-								))
-								.collect(Collectors.toList());
-							setOptions(options, req);
-							if (selected != null) {
-								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
-								setToolTip(id + ": " + email, req);
-							} else {
-								setToolTip(email.isEmpty() ? "Select responsible" :  email, req);
-							}
-						}
-						
-						@Override
-						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-							final GatewaySuperiorData supData = findSuperiorData();
-							if (supData == null || !supData.responsibilityContacts().isActive())
-								return;
-							final String currentSelected = getSelectedValue(req);
-							final StringResource responsibility = object.knownFault().responsibility();
-							if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
-										|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
-								responsibility.delete();
-								return;
-							}
-							final NaturalPerson selected = supData.responsibilityContacts().getSubResource(currentSelected); 
-							final StringResource emailRes = selected.getSubResource("emailAddress");
-							final String email = emailRes.isActive() ? emailRes.getValue() : "";
-							if (email.isEmpty()) { // ?
-								return;
-							}
-							responsibility.<StringResource> create().setValue(email);
-							responsibility.activate(false);
-						}
-						
-						
-					};
-					responsibleDropdown.setDefaultAddEmptyOption(true);
-					responsibleDropdown.setDefaultMinWidth("8em");
-					responsibleDropdown.setComparator((o1, o2) ->  { // show default roles supervision and terminvereinbarung first
-						if (Objects.equal(o1, o2))
-							return 0;
-						final boolean comp1 = o1.id().indexOf('_') > 0;
-						final boolean comp2 = o2.id().indexOf('_') > 0;
-						if (comp1 == comp2)
-							return o1.id().compareTo(o2.id());
-						return comp1 ? 1 : -1;
-					});
-					responsibleDropdown.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-					row.addCell("Responsible", responsibleDropdown);
-					
-				}
-				
-				final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
+final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 					
 					@Override
 					public void onGET(OgemaHttpRequest req) {
@@ -810,6 +661,173 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					}
 					
 				};
+				
+				final Button showMsg = new Button(mainTable, "msg" + id, req) {
+					
+					private String getOrEmpty(final StringResource res) {
+						return res.isActive() ? res.getValue() : "--";
+					}
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						lastMessage.setText(res.lastMessage().getValue(), req);
+						lastMessageDevice.setText(object.deviceId().getValue(), req);
+						final String room = device.location().room().isActive() ? ResourceUtils.getHumanReadableShortName(device.location().room()) : "--";
+						lastMessageRoom.setText(room, req);
+						lastMessageLocation.setText(getOrEmpty(object.installationLocation()), req);
+						lastMessageComment.setText(getOrEmpty(res.comment()), req);
+						String role = "--";
+						if (res.assigned().isActive()) {
+							final int assigned = res.assigned().getValue();
+							final String roleAssigned = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(String.valueOf(assigned));
+							if (roleAssigned != null)
+								role = roleAssigned;
+						}
+						lastMessageAssigned.setText(role, req);
+						lastMessageTaskTracking.setText(getOrEmpty(res.linkToTaskTracking()), req);
+						lastMessageResponsible.setText(getOrEmpty(res.responsibility()), req);
+						lastMessageReminderDatetime.selectItem(res.dueDateForResponsibility(), req);
+						lastMessageReminderDatetime.setTableReminder(followupemail, req);
+						
+					}
+					
+				};
+				showMsg.setDefaultText("Last message");
+				showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
+				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
+				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageRoom,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageLocation,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageComment,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageAssigned,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageTaskTracking,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageResponsible,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageReminderDatetime,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				
+				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				row.addCell("Message", showMsg);
+				
+				final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Details", 
+						"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + object.deviceId().getValue(), req);
+				detailsRedirect.setToolTip("View alarm details in new tab", req);
+				row.addCell("Details", detailsRedirect);
+				
+				if(res.exists()) {
+					vh.stringEdit("Comment",  id, res.comment(), row, alert, res.comment());
+					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
+							"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
+						public void onGET(OgemaHttpRequest req) {
+							myDrop.selectItem(res.assigned(), req);
+							final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(String.valueOf(res.assigned().getValue()));
+							if (role != null)
+								myDrop.setToolTip(role, req);
+						}
+						@Override
+						public void onPrePOST(String data, OgemaHttpRequest req) {
+							IntegerResource source = res.assigned();
+							if(!source.exists()) {
+								source.create();
+								source.activate(true);
+							}
+						}
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							int val = res.assigned().getValue();
+							if(val >= 7000 && val < 8000) {
+								//Non-Blocking
+								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), 0);
+							} else {
+								//Blocking
+								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
+							}
+							SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan);
+						}
+					};
+					row.addCell("Assigned", widgetPlus.myDrop);
+					
+					if(!res.linkToTaskTracking().getValue().isEmpty()) {
+						RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
+								res.linkToTaskTracking().getValue(), req);
+						row.addCell(WidgetHelper.getValidWidgetId("Task Tracking"), taskLink);
+					}
+					final ValueResourceTextField<FloatResource> prioField 
+						= new ValueResourceTextField<FloatResource>(mainTable, "prio" + id, res.getSubResource("processingOrder", FloatResource.class), req);
+					prioField.setDefaultToolTip("Alarm priority, e.g. 10, 20, 30, ...");
+					prioField.setDefaultWidth("4em");
+					prioField.triggerAction(prioField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+					row.addCell("Priority", prioField);
+					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
+						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
+					
+					final Dropdown responsibleDropdown = new Dropdown(mainTable, "responsible"+id, req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final GatewaySuperiorData supData = findSuperiorData();
+							if (supData == null || !supData.responsibilityContacts().isActive())
+								return;
+							final StringResource responsibility = object.knownFault().responsibility();
+							final String email = responsibility.isActive() ? responsibility.getValue() : "";
+							final NaturalPerson selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
+								.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
+								.findAny().orElse(null);
+							final List<DropdownOption> options = supData.responsibilityContacts().getAllElements().stream()
+								.map(contact -> new DropdownOption(
+										contact.getName(), contact.userRole().isActive() ? contact.userRole().getValue() :
+										contact.firstName().getValue() + " " + contact.lastName().getValue(), 
+										contact.equalsLocation(selected)
+								))
+								.collect(Collectors.toList());
+							setOptions(options, req);
+							if (selected != null) {
+								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
+								setToolTip(id + ": " + email, req);
+							} else {
+								setToolTip(email.isEmpty() ? "Select responsible" :  email, req);
+							}
+						}
+						
+						@Override
+						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+							final GatewaySuperiorData supData = findSuperiorData();
+							if (supData == null || !supData.responsibilityContacts().isActive())
+								return;
+							final String currentSelected = getSelectedValue(req);
+							final StringResource responsibility = object.knownFault().responsibility();
+							if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
+										|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
+								responsibility.delete();
+								return;
+							}
+							final NaturalPerson selected = supData.responsibilityContacts().getSubResource(currentSelected); 
+							final StringResource emailRes = selected.getSubResource("emailAddress");
+							final String email = emailRes.isActive() ? emailRes.getValue() : "";
+							if (email.isEmpty()) { // ?
+								return;
+							}
+							responsibility.<StringResource> create().setValue(email);
+							responsibility.activate(false);
+						}
+						
+						
+					};
+					responsibleDropdown.setDefaultAddEmptyOption(true);
+					responsibleDropdown.setDefaultMinWidth("8em");
+					responsibleDropdown.setComparator((o1, o2) ->  { // show default roles supervision and terminvereinbarung first
+						if (Objects.equal(o1, o2))
+							return 0;
+						final boolean comp1 = o1.id().indexOf('_') > 0;
+						final boolean comp2 = o2.id().indexOf('_') > 0;
+						if (comp1 == comp2)
+							return o1.id().compareTo(o2.id());
+						return comp1 ? 1 : -1;
+					});
+					responsibleDropdown.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					row.addCell("Responsible", responsibleDropdown);
+					
+				}
+				
+				
 				followupemail.setComparator(null);
 				followupemail.setDefaultOptions(Arrays.asList(
 					new DropdownOption("__EMPTY_OPT__", "inactive", true),
@@ -1110,5 +1128,44 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		
 		
 	}
+
+	private static class PopupReminderSelector extends DatepickerTimeResourceTextField {
+
+		public PopupReminderSelector(WidgetPage<?> page, String id) {
+			super(page, id);
+		}
+		
+		@Override
+		public DatepickerTimeResourceTextFieldData createNewSession() {
+			return new PopupReminderSelectorData(this);
+		}
+		
+		void setTableReminder(Dropdown reminder, OgemaHttpRequest req) {
+			final Dropdown oldReminder = getTableReminder(req);
+			if (oldReminder != null)
+				this.removeTriggerAction(oldReminder, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+			if (reminder != null)
+				this.triggerAction(reminder, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+			((PopupReminderSelectorData) getData(req)).tableReminderField = reminder;
+		}
+		
+		Dropdown getTableReminder(OgemaHttpRequest req) {
+			return ((PopupReminderSelectorData) getData(req)).tableReminderField;
+		}
+		
+	}
+	
+	
+	private static class PopupReminderSelectorData extends DatepickerTimeResourceTextFieldData {
+		
+		Dropdown tableReminderField = null;
+
+		public PopupReminderSelectorData(DatepickerTimeResourceTextField dtr) {
+			super(dtr);
+			// TODO Auto-generated constructor stub
+		}
+		
+	}
+	
 	
 }
