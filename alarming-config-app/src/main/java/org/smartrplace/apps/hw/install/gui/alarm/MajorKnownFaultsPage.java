@@ -48,12 +48,10 @@ import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
-import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
@@ -78,11 +76,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	private final GatewaySuperiorData supData;
 	private final HardwareInstallConfig hwInstallConfig;
 
-	private Popup lastMessagePopup;
-	private final Label lastMessageDevice;
-	private final Label lastMessageRoom;
-	private final Label lastMessageLocation;
-	private final Label lastMessage;
+	private IssueDetailsPopup lastMessagePopup;
 	
 	private final Popup diagnosisEditorPopup;
 	private final Header diagnosisEditorHeader;
@@ -95,28 +89,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		this.supData = SuperiorIssuesSyncUtils.getSuperiorData(appMan.appMan());
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		
-		this.lastMessagePopup = new Popup(page, "lastMessagePopup", true);
-		lastMessagePopup.setDefaultTitle("Last alarm message");
-		this.lastMessageDevice = new Label(page, "lastMessagePopupDevice");
-		this.lastMessageRoom = new Label(page, "lastMessagePopupRoom");
-		this.lastMessageLocation = new Label(page, "lastMessagePopupLocation");
-		this.lastMessage = new Label(page, "lastMessage");
-		
-		final StaticTable tab = new StaticTable(4, 2, new int[]{3, 9});
-		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
-			.setContent(1, 0, "Room").setContent(1, 1, lastMessageRoom)
-			.setContent(2, 0, "Location").setContent(2, 1, lastMessageLocation)
-			.setContent(3, 0, "Message").setContent(3,1, lastMessage);
-		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
-		snip.append(tab, null);
-		lastMessagePopup.setBody(snip, null);
-		final Button closeLastMessage = new Button(page, "lastMessageClose", "Close");
-		closeLastMessage.triggerAction(lastMessagePopup, TriggeringAction.ON_CLICK, TriggeredAction.HIDE_WIDGET);
-		lastMessagePopup.setFooter(closeLastMessage, null);
-		page.append(lastMessagePopup);
-		
-		
-
+		this.lastMessagePopup = new IssueDetailsPopup(page);
 		final Button cancel = new Button(page, "diagPopCancel", "Cancel");
 		this.diagnosisEditorSubmit = new Button(page, "diagPopSubmit", "Set") {
 			
@@ -269,27 +242,103 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		diagFlex.setAlignItems(AlignItems.BASELINE, req);
 		row.addCell("Diagnosis", diagFlex);
 		
+final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final TimeResource followup = res.dueDateForResponsibility();
+				final Optional<String> custom = getDropdownOptions(req).stream()
+					.map(opt -> opt.id())
+					.filter(opt -> opt.startsWith("custom"))
+					.findAny();
+				final boolean customConfigured = custom.isPresent();
+				final boolean needsCustom = followup.exists() && followup.getValue() >= appMan.getFrameworkTime();
+				if (!needsCustom) {
+					if (customConfigured) {
+						setOptions(getDropdownOptions(req).stream()
+								.filter(opt -> !opt.id().startsWith("custom"))
+								.collect(Collectors.toList()), req);
+					}
+					return;
+				}
+				final long target = followup.getValue();
+				final String id = "custom" + target;
+				if (customConfigured && custom.get().equals(id))
+					return;
+				final Stream<DropdownOption> standardOpts = getDropdownOptions(req).stream()
+					.filter(opt -> !opt.id().startsWith("custom"));
+				final long diff = target - appMan.getFrameworkTime();
+				final ZonedDateTime targetZdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(target), ZoneId.systemDefault());
+				final boolean printTime = Math.abs(diff) < 36 * 3_600_000;
+				final String dateTime = printTime ? DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(targetZdt) : DateTimeFormatter.ISO_LOCAL_DATE.format(targetZdt);
+				final Stream<DropdownOption> customOpt = Stream.of(new DropdownOption(id, dateTime, true));
+				final List<DropdownOption> newOptions = Stream.concat(customOpt, standardOpts).collect(Collectors.toList());
+				setOptions(newOptions, req);
+				selectSingleOption(followup.isActive() ? id : "__EMPTY_OPT__", req);
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				final String value = getSelectedValue(req);
+				if (value == null || value.isEmpty()) // ?
+					return;
+				final TimeResource followup = res.dueDateForResponsibility();
+				if ("__EMPTY_OPT__".equalsIgnoreCase(value)) {
+					if (followup.isActive()) {
+						followup.deactivate(false);
+						if (alert != null && object.device().exists()) {
+							alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
+								+ " has been cancelled", true, req);
+						}
+					}
+					return;
+				}
+				final long now0 = appMan.getFrameworkTime();
+				final ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now0), ZoneId.systemDefault());
+				final long timestamp;
+				if (value.startsWith("custom"))
+					timestamp = Long.parseLong(value.substring("custom".length()));
+				else if (value.endsWith("d") && value.length() < 5) {
+					final int days = Integer.parseInt(value.substring(0, value.length()-1));
+					timestamp = now.plusDays(days).toEpochSecond()*1000;
+				} else if (value.equals("1min")) { // debug option
+					timestamp = now.plusMinutes(1).toEpochSecond()*1000;
+				} else if (value.equals("nextmonthend"))
+					timestamp = now.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
+				else if (value.equals("3months"))
+					timestamp = now.plusMonths(3).toEpochSecond()*1000;
+				else if (value.equals("august")) {
+					final Month month = now.getMonth();
+					ZonedDateTime t0 = now;
+					if (month.compareTo(Month.AUGUST) > 0 || (month == Month.AUGUST && now.getDayOfMonth() == 31))
+						t0 = t0.plusYears(1);
+					timestamp = t0.with(Month.AUGUST).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
+				} else {
+					throw new IllegalArgumentException("unknown follow-up date " + value);
+				}
+				followup.<TimeResource> create().setValue(timestamp);
+				if (timestamp > now0) {
+					followup.activate(false);
+					if (alert != null && object.device().exists()) {
+						alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
+							+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
+					}
+				}
+			}
+			
+		};
+		
 		final Button showMsg = new Button(mainTable, "msg" + id, req) {
 			
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				lastMessage.setText(res.lastMessage().getValue(), req);
-				lastMessageDevice.setText(object.deviceId().getValue(), req);
-				final String room = device.location().room().isActive() ? ResourceUtils.getHumanReadableShortName(device.location().room()) : "--";
-				lastMessageRoom.setText(room, req);
-				final String location = object.installationLocation().isActive() ? object.installationLocation().getValue() : "--";
-				lastMessageLocation.setText(location, req);
+				lastMessagePopup.setValues(res, object, device, followupemail, req);
 			}
 			
 		};
 		showMsg.setDefaultText("Last message");
 		showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
-		showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
-		showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-		showMsg.triggerAction(lastMessageRoom,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-		showMsg.triggerAction(lastMessageLocation,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-		
-		showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+		lastMessagePopup.setTriggers(showMsg);
 		row.addCell("Message", showMsg);
 		
 		final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Details", 
@@ -410,91 +459,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			
 		}
 		
-		final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
-			
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				final TimeResource followup = res.dueDateForResponsibility();
-				final Optional<String> custom = getDropdownOptions(req).stream()
-					.map(opt -> opt.id())
-					.filter(opt -> opt.startsWith("custom"))
-					.findAny();
-				final boolean customConfigured = custom.isPresent();
-				final boolean needsCustom = followup.exists() && followup.getValue() >= appMan.getFrameworkTime();
-				if (!needsCustom) {
-					if (customConfigured) {
-						setOptions(getDropdownOptions(req).stream()
-								.filter(opt -> !opt.id().startsWith("custom"))
-								.collect(Collectors.toList()), req);
-					}
-					return;
-				}
-				final long target = followup.getValue();
-				final String id = "custom" + target;
-				if (customConfigured && custom.get().equals(id))
-					return;
-				final Stream<DropdownOption> standardOpts = getDropdownOptions(req).stream()
-					.filter(opt -> !opt.id().startsWith("custom"));
-				final long diff = target - appMan.getFrameworkTime();
-				final ZonedDateTime targetZdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(target), ZoneId.systemDefault());
-				final boolean printTime = Math.abs(diff) < 36 * 3_600_000;
-				final String dateTime = printTime ? DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(targetZdt) : DateTimeFormatter.ISO_LOCAL_DATE.format(targetZdt);
-				final Stream<DropdownOption> customOpt = Stream.of(new DropdownOption(id, dateTime, true));
-				final List<DropdownOption> newOptions = Stream.concat(customOpt, standardOpts).collect(Collectors.toList());
-				setOptions(newOptions, req);
-				selectSingleOption(followup.isActive() ? id : "__EMPTY_OPT__", req);
-			}
-			
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				final String value = getSelectedValue(req);
-				if (value == null || value.isEmpty()) // ?
-					return;
-				final TimeResource followup = res.dueDateForResponsibility();
-				if ("__EMPTY_OPT__".equalsIgnoreCase(value)) {
-					if (followup.isActive()) {
-						followup.deactivate(false);
-						if (alert != null && object.device().exists()) {
-							alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
-								+ " has been cancelled", true, req);
-						}
-					}
-					return;
-				}
-				final long now0 = appMan.getFrameworkTime();
-				final ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now0), ZoneId.systemDefault());
-				final long timestamp;
-				if (value.startsWith("custom"))
-					timestamp = Long.parseLong(value.substring("custom".length()));
-				else if (value.endsWith("d") && value.length() < 5) {
-					final int days = Integer.parseInt(value.substring(0, value.length()-1));
-					timestamp = now.plusDays(days).toEpochSecond()*1000;
-				} else if (value.equals("1min")) { // debug option
-					timestamp = now.plusMinutes(1).toEpochSecond()*1000;
-				} else if (value.equals("nextmonthend"))
-					timestamp = now.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
-				else if (value.equals("3months"))
-					timestamp = now.plusMonths(3).toEpochSecond()*1000;
-				else if (value.equals("august")) {
-					final Month month = now.getMonth();
-					ZonedDateTime t0 = now;
-					if (month.compareTo(Month.AUGUST) > 0 || (month == Month.AUGUST && now.getDayOfMonth() == 31))
-						t0 = t0.plusYears(1);
-					timestamp = t0.with(Month.AUGUST).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
-				} else {
-					throw new IllegalArgumentException("unknown follow-up date " + value);
-				}
-				followup.<TimeResource> create().setValue(timestamp);
-				if (timestamp > now0) {
-					followup.activate(false);
-					if (alert != null && object.device().exists()) {
-						alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
-							+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
-					}
-				}
-			}
-			
-		};
+		
 		followupemail.setComparator(null);
 		followupemail.setDefaultOptions(Arrays.asList(
 			new DropdownOption("__EMPTY_OPT__", "inactive", true),
