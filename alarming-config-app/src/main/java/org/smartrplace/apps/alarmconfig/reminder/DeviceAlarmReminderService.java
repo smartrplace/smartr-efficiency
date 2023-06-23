@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,6 +13,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
@@ -293,8 +293,13 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		}
 		
 		public boolean isActive() {
-			return this.config.dueDate.isActive();  
-					//&& (!this.config.releaseStatus.isActive() || this.config.releaseStatus.getValue() == 2);
+			if (!this.config.dueDate.isActive())
+				return false;
+			// see AlarmGroupDataMajor#releaseTime()
+			final Resource releaseTime = this.config.model.getSubResource("releaseTime");
+			if (releaseTime instanceof TimeResource && releaseTime.isActive() && ((TimeResource) releaseTime).getValue() > 0)
+				return false;
+			return true;
 		}
 
 		@Override
