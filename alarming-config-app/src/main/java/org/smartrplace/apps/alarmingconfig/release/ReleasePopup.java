@@ -1,8 +1,14 @@
 package org.smartrplace.apps.alarmingconfig.release;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
@@ -13,8 +19,6 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-
-import com.google.common.base.Objects;
 
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -73,13 +77,20 @@ public class ReleasePopup {
 			public void onGET(OgemaHttpRequest req) {
 				final String selectedMode = releaseModeSelector.getSelectedValue(req);
 				setWidgetVisibility("finalanalysis".equals(selectedMode), req);
+				final AlarmGroupData issue = getSelectedIssue(req);
+				if (issue != null && issue instanceof AlarmGroupDataMajor && ((AlarmGroupDataMajor) issue).finalDiagnosis().isActive()) {
+					try {
+						final FinalAnalysis selected = FinalAnalysis.valueOf(((AlarmGroupDataMajor) issue).finalDiagnosis().getValue());
+						selectItem(selected, req);
+					} catch (IllegalArgumentException e) {} // ?
+				}
 			}
 			
 		};
 		analysisSelector.setComparator((o1,o2) -> {
 			final String id1 = o1.id();
 			final String id2 = o2.id();
-			if (Objects.equal(id1, id2))
+			if (Objects.equals(id1, id2))
 				return 0;
 			if ("finalanalysis".equals(id1))
 				return -1;
@@ -236,10 +247,25 @@ public class ReleasePopup {
 	}
 	
 	public void selectIssue(AlarmGroupData issue, OgemaHttpRequest req) {
+		selectIssue(issue, Collections.emptyList(), req);
+	}
+	
+	public void selectIssue(AlarmGroupData issue, Collection<OgemaWidget> feedbackWidgets, OgemaHttpRequest req) {
 		((IssueContainer) this.issueContainer.getData(req)).issue = issue;
 		final boolean isMajor = issue instanceof AlarmGroupDataMajor;
 		releaseModeSelector.setWidgetVisibility(isMajor, req);
 		releaseModeSelector.selectSingleOption(isMajor ? "finalanalysis" : "delete", req);
+		final Collection<OgemaWidget> oldFeedbackWidgets = ((IssueContainer) this.issueContainer.getData(req)).feedbackWidgets;
+		final List<OgemaWidget> forRemoval = oldFeedbackWidgets.stream().filter(w -> !feedbackWidgets.contains(w)).collect(Collectors.toList());
+		final List<OgemaWidget> forAddition = feedbackWidgets.stream().filter(w -> !oldFeedbackWidgets.contains(w)).collect(Collectors.toList());
+		forRemoval.forEach(w -> {
+			submitButton.removeTriggerAction(w, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+			oldFeedbackWidgets.remove(w);
+		});
+		forAddition.forEach(w -> {
+			submitButton.triggerAction(w, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+			oldFeedbackWidgets.add(w);
+		});
 	}
 	
 	public void trigger(OgemaWidget externalWidget) {
@@ -248,7 +274,7 @@ public class ReleasePopup {
 		externalWidget.triggerAction(finalAnalysisLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(analysisSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(submitButton, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
-		externalWidget.triggerAction(popup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, 1);
+		externalWidget.triggerAction(popup, TriggeringAction.ON_CLICK, TriggeredAction.SHOW_WIDGET, 1);
 	}
 	
 	public void append(WidgetPage<?> page) {
@@ -262,7 +288,8 @@ public class ReleasePopup {
 	static class IssueContainer extends EmptyData {
 		
 		AlarmGroupData issue;
-
+		final Collection<OgemaWidget> feedbackWidgets = new ArrayList<>(4);
+		
 		public IssueContainer(EmptyWidget empty) {
 			super(empty);
 		}

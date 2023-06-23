@@ -17,9 +17,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.json.JSONObject;
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
@@ -27,13 +27,13 @@ import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
-import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
-import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.apps.alarmingconfig.release.FinalAnalysis;
+import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -48,26 +48,19 @@ import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
-import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
-import de.iwes.widgets.html.html5.Flexbox;
-import de.iwes.widgets.html.html5.flexbox.AlignItems;
-import de.iwes.widgets.html.html5.flexbox.JustifyContent;
-import de.iwes.widgets.html.popup.Popup;
-import de.iwes.widgets.html.textarea.TextArea;
-import de.iwes.widgets.html.textarea.TextAreaData;
+import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
 @SuppressWarnings("serial")
@@ -77,11 +70,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	private final HardwareInstallConfig hwInstallConfig;
 
 	private IssueDetailsPopup lastMessagePopup;
-	
-	private final Popup diagnosisEditorPopup;
-	private final Header diagnosisEditorHeader;
-	private final DiagnosisEditor diagnosisEditor;
-	private final Button diagnosisEditorSubmit; 
+	private final ReleasePopup releasePopup;
 
 	public MajorKnownFaultsPage(WidgetPage<?> page, ApplicationManagerPlus appMan) {
 		super(page, appMan.appMan(), AlarmGroupDataMajor.class, false);
@@ -90,56 +79,9 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		
 		this.lastMessagePopup = new IssueDetailsPopup(page);
-		final Button cancel = new Button(page, "diagPopCancel", "Cancel");
-		this.diagnosisEditorSubmit = new Button(page, "diagPopSubmit", "Set") {
-			
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				diagnosisEditor.set(req);
-			}
-			
-		};
-		this.diagnosisEditorHeader = new Header(page, "diagnosisHeader") {
-			
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				final AlarmGroupData fault = diagnosisEditor.getFaultResource(req);
-				final InstallAppDevice device = fault != null ? AlarmResourceUtil.getDeviceForKnownFault(fault) : null;
-				if (device == null) {
-					setText("", req);
-					return;
-				}
-				if (device.deviceId().isActive())
-					setText(device.deviceId().getValue(), req);
-				else {
-					setText(ResourceUtils.getHumanReadableName(device.device()), req);
-				}
-			}
-			
-		};
-		diagnosisEditorHeader.setDefaultHeaderType(3);
-		diagnosisEditorHeader.setDefaultColor("blue");
+		this.releasePopup = new ReleasePopup(page, "releasePop", appMan.appMan(), alert);
+		releasePopup.append(page);
 		
-		
-		this.diagnosisEditor = new DiagnosisEditor(page, "diagnosisEditor", diagnosisEditorSubmit);
-		diagnosisEditor.setDefaultToolTip("Provide the final analysis result for the device issue.");
-		this.diagnosisEditorPopup = new Popup(page, "diagnosisEdiorPopup", true);
-		diagnosisEditorPopup.setTitle("Device issue analysis", null);
-		diagnosisEditorPopup.setHeader(diagnosisEditorHeader, null);
-		diagnosisEditorPopup.setBody(diagnosisEditor, null);
-		diagnosisEditorSubmit.addDefaultStyle(ButtonData.BOOTSTRAP_BLUE);
-		cancel.triggerAction(diagnosisEditorPopup, TriggeringAction.ON_CLICK, TriggeredAction.HIDE_WIDGET);
-		diagnosisEditorSubmit.triggerAction(diagnosisEditorPopup, TriggeringAction.ON_CLICK, TriggeredAction.HIDE_WIDGET);
-		
-		final Flexbox diagPopFooter = new Flexbox(page, "diagFooterFlex", true);
-		diagPopFooter.setJustifyContent(JustifyContent.FLEX_RIGHT, null);
-		diagPopFooter.addCssItem(">div", Collections.singletonMap("column-gap", "0.5em"), null);
-		diagPopFooter.addItem(cancel, null).addItem(diagnosisEditorSubmit, null);
-		diagnosisEditorPopup.setFooter(diagPopFooter, null);
-		
-		page.append(diagnosisEditorPopup);
-		
-
 		triggerPageBuild();
 	}
 
@@ -199,50 +141,61 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		//	valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
 		
 		vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
-		if(res.releaseTime().isActive())
-			vh.timeLabel("Release", id, res.releaseTime(), row, 0);
-		
-		final Flexbox diagFlex = new Flexbox(mainTable, "diagFlex" + id, req);
+		final Label timeLabel = vh.timeLabel("Release", id, res.releaseTime(), row, 0);
+		// the Label is adapted such that it supports POST operations, and  
+		// a click on the label triggers a POST, in the onPOST method it sets the alarm resource of ReleasePopup, 
+		// then it triggers an update of the ReleasePopup widgets
 		final Label diag = new Label(mainTable, "diagLabel" + id, req) {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				if (!res.finalDiagnosis().isActive()) {
-					setText("", req);
-					setToolTip("", req);
+					setText("--", req);
+					setToolTip("Click to open release menu", req);
 				} else {
 					String v = res.finalDiagnosis().getValue();
-					if (v.length() > 50)
-						v = v.substring(0, 50) + " ...";
+					try {
+						final String descriptionSuffix =  ": " + FinalAnalysis.valueOf(v).description();
+						v += descriptionSuffix;
+					} catch (Exception e) {}
+					final String tooltip = v;
+					if (v.length() > 30)
+						v = v.substring(0, 30) + " ...";
 					setText(v, req);
-					setToolTip(v, req);
+					setToolTip(tooltip + "\nClick to edit", req);
+				}
+			}
+			
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				releasePopup.selectIssue(res, Arrays.asList(this, timeLabel), req);
+			}
+			
+			@Override
+			public LabelData createNewSession() {
+				return new PostableLabelData(this);
+			}
+			
+			class PostableLabelData extends LabelData {
+				
+				public PostableLabelData(Label l) {
+					super(l);
+				}
+			
+				@Override
+				public JSONObject onPOST(String data, OgemaHttpRequest req) {
+					return new JSONObject();
 				}
 			}
 			
 		};
-		//final ValueResourceLabel<StringResource> diag = new ValueResourceLabel<>(mainTable, "diagLabel" + id, req);
-		final Button diagMenuOpener = new Button(mainTable, "diagMenuOpener" + id, req) {
-			
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				diagnosisEditor.setTargets(res.finalDiagnosis(), diag, req);  // TODO update diag widget?
-				
-			}
-			
-		};
-		diagMenuOpener.setDefaultText("Edit");
-		diagMenuOpener.setDefaultMaxWidth("4em");
-		diagMenuOpener.triggerAction(diagnosisEditorPopup, TriggeringAction.ON_CLICK, TriggeredAction.SHOW_WIDGET);
-		diagMenuOpener.triggerAction(diagnosisEditor, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		diagMenuOpener.triggerAction(diagnosisEditorHeader, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		diagMenuOpener.triggerAction(diagnosisEditorSubmit, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		// TODO open diag edit popup and set resource and dependent widget on edit field
-		diagFlex.addItem(diag, req).addItem(diagMenuOpener, req);
-		diagFlex.addCssItem(">div", Collections.singletonMap("column-gap", "0.5em"), req);
-		diagFlex.setAlignItems(AlignItems.BASELINE, req);
-		row.addCell("Diagnosis", diagFlex);
+		diag.addCssItem(":hover", Collections.singletonMap("cursor", "pointer"), req);
+		diag.triggerAction(diag, TriggeringAction.ON_CLICK, TriggeredAction.POST_REQUEST);
+		diag.setDefaultMinWidth("5em;");
+		releasePopup.trigger(diag);
+		row.addCell("Diagnosis", diag);
 		
-final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
+		final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -507,80 +460,6 @@ final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 		GatewaySuperiorData sup = SuperiorIssuesSyncUtils.getSuperiorData(appMan);
 		List<AlarmGroupDataMajor> majors = sup.majorKnownIssues().getAllElements();
 		return majors;
-	}
-	
-	private static class DiagnosisEditor extends TextArea {
-
-		private final Button submitButton;
-		
-		public DiagnosisEditor(WidgetPage<?> page, String id, Button submitButton) {
-			super(page, id);
-			setDefaultWidth("100%");
-			this.submitButton = submitButton;
-		}
-		
-		@Override
-		public TextAreaData createNewSession() {
-			return new DiagnosisEditorData(this, submitButton);
-		}
-		
-		void setTargets(StringResource target, OgemaWidget dependent, OgemaHttpRequest req) {
-			((DiagnosisEditorData) getData(req)).setTargets(target, dependent, req);
-		}
-		
-		AlarmGroupData getFaultResource(OgemaHttpRequest req) {
-			final StringResource target = ((DiagnosisEditorData) getData(req)).targetResource;
-			final Resource parent = target != null ? target.getParent() : null;
-			if (!(parent instanceof AlarmGroupData))
-				return null;
-			return (AlarmGroupData) parent;
-		}
-		
-		boolean set(OgemaHttpRequest req) {
-			final StringResource target = ((DiagnosisEditorData) getData(req)).targetResource;
-
-			if (target == null)
-				return false;
-			String text = getText(req);
-			if (text != null)
-				text = text.trim();
-			if (text == null || text.isEmpty()) {
-				target.deactivate(false);
-			} else {
-				target.<StringResource> create().setValue(getText(req));
-				target.activate(false);
-			}
-			return true;
-		}
-		
-		private static class DiagnosisEditorData extends TextAreaData {
-			
-			private final Button submitButton;
-			StringResource targetResource;
-			OgemaWidget dependentWidget;
-
-			public DiagnosisEditorData(TextArea textArea, Button submitButton) {
-				super(textArea);
-				this.submitButton = submitButton;
-			}
-			
-			void setTargets(StringResource target, OgemaWidget dependent, OgemaHttpRequest req) {
-				if (!Objects.equals(target, targetResource)) {
-					this.targetResource = target;
-					final String newValue = target != null && target.isActive() ? target.getValue() : "";
-					setText(newValue);
-				} 
-				if (!Objects.equals(dependent, dependentWidget)) {
-					if (this.dependentWidget != null)
-						submitButton.removeTriggerAction(dependentWidget, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-					if (dependent != null)
-						submitButton.triggerAction(dependent, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-					this.dependentWidget = dependent;
-				}
-			}
-			
-		}
-		
 	}
 
 }

@@ -651,7 +651,7 @@ public class DeviceKnownFaultsInstallationPage {
 		alarmsHeader.setDefaultHeaderType(3);
 		alarmsHeader.setDefaultColor("darkblue");
 		page.append(header).append(filterHeader)
-			.append(filterFlex).append(alarmsHeader).append(table);
+			.append(filterFlex).append(alarmsHeader).append(table).linebreak().append(knownDevices);
 		
 		// popup for message display // copied over from DeviceKnownFaultsPage
 		/*
