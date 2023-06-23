@@ -110,6 +110,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	private final Label lastMessageAssigned;
 	private final Label lastMessageResponsible;
 	private final PopupReminderSelector lastMessageReminderDatetime;  // TODO reminder frequency
+	private final ReminderFrequencyDropdown lastMessageReminderFrequency;
 	
 	private final ReleasePopup releasePopup;
 	
@@ -159,8 +160,16 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		this.lastMessageAssigned = new Label(page, "lastMessagePopupAssigned");
 		this.lastMessageResponsible = new Label(page, "lastMessagePopupResponsible");
 		this.lastMessageReminderDatetime = new PopupReminderSelector(page, "lastMessageReminderTime");
+		this.lastMessageReminderFrequency = new ReminderFrequencyDropdown(page, "lastMessageReiminderFrequency");
+		lastMessageReminderFrequency.setDefaultOptions(Arrays.asList(
+			new DropdownOption("d", "daily", false),
+			new DropdownOption("w", "weekly", false),
+			new DropdownOption("m", "monthly", false)
+		));
+		lastMessageReminderFrequency.setDefaultAddEmptyOption(true, "");
 		
-		final StaticTable tab = new StaticTable(9, 2, new int[]{3, 9});
+		
+		final StaticTable tab = new StaticTable(10, 2, new int[]{3, 9});
 		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
 			.setContent(1, 0, "Room").setContent(1, 1, lastMessageRoom)
 			.setContent(2, 0, "Location").setContent(2, 1, lastMessageLocation)
@@ -169,7 +178,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			.setContent(5, 0, "Assigned").setContent(5, 1, lastMessageAssigned)
 			.setContent(6, 0, "Responsible").setContent(6, 1, lastMessageResponsible)
 			.setContent(7, 0, "Task tracking").setContent(7, 1, lastMessageTaskTracking)
-			.setContent(8, 0, "Reminder").setContent(8, 1, lastMessageReminderDatetime);
+			.setContent(8, 0, "Next reminder").setContent(8, 1, lastMessageReminderDatetime)
+			.setContent(9, 0, "Reminder frequency").setContent(9, 1, lastMessageReminderFrequency);
 		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
 		snip.append(tab, null);
 		lastMessagePopup.setBody(snip, null);
@@ -562,7 +572,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				
-final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
+				final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 					
 					@Override
 					public void onGET(OgemaHttpRequest req) {
@@ -688,6 +698,7 @@ final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 						lastMessageResponsible.setText(getOrEmpty(res.responsibility()), req);
 						lastMessageReminderDatetime.selectItem(res.dueDateForResponsibility(), req);
 						lastMessageReminderDatetime.setTableReminder(followupemail, req);
+						lastMessageReminderFrequency.setAlarm(res, req);
 						
 					}
 					
@@ -703,6 +714,7 @@ final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 				showMsg.triggerAction(lastMessageTaskTracking,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				showMsg.triggerAction(lastMessageResponsible,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				showMsg.triggerAction(lastMessageReminderDatetime,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+				showMsg.triggerAction(lastMessageReminderFrequency,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				
 				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				row.addCell("Message", showMsg);
@@ -1167,5 +1179,72 @@ final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
 		
 	}
 	
+	private static class ReminderFrequencyDropdown extends Dropdown {
+		
+		public ReminderFrequencyDropdown(WidgetPage<?> page, String id) {
+			super(page, id);
+			setComparator(null);
+		}
+
+		@Override
+		public void onPOSTComplete(String data, OgemaHttpRequest req) {
+			final AlarmGroupData alarm = ((AlarmData) getData(req)).alarm;
+			if (alarm == null)
+				return;
+			final String selected = getSelectedValue(req);
+			final int mode;
+			switch(selected) {
+			case "d":
+				mode = 1;
+				break;
+			case "w":
+				mode = 2;
+				break;
+			case "m":
+				mode = 3;
+				break;
+			default: 
+				mode = -1;
+			}
+			if (mode <= 0 && alarm.reminderType().exists())
+				alarm.reminderType().deactivate(false);
+			else {
+				alarm.reminderType().<IntegerResource> create().setValue(mode);
+				alarm.reminderType().activate(false);
+			}
+		}
+		
+		@Override
+		public void onGET(OgemaHttpRequest req) {
+			final AlarmGroupData alarm = ((AlarmData) getData(req)).alarm;
+			if (alarm == null || !alarm.reminderType().isActive()) {
+				selectSingleOption(DropdownData.EMPTY_OPT_ID, req);
+			} else {
+				final int type = alarm.reminderType().getValue();
+				final String selected = type == 1 ? "d" : type == 2 ? "w" : type == 3 ? "m" : DropdownData.EMPTY_OPT_ID;
+				selectSingleOption(selected, req);
+			}
+		}
+		
+		@Override
+		public DropdownData createNewSession() {
+			return new AlarmData(this);
+		}
+		
+		void setAlarm(AlarmGroupData alarm, OgemaHttpRequest req) {
+			((AlarmData) getData(req)).alarm = alarm;
+		}
+		
+		class AlarmData extends DropdownData {
+
+			AlarmGroupData alarm;
+			
+			public AlarmData(Dropdown dropdown) {
+				super(dropdown);
+			}
+			
+		}
+		
+	}
 	
 }
