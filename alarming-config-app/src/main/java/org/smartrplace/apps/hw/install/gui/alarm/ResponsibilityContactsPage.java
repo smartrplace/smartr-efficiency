@@ -153,8 +153,8 @@ public class ResponsibilityContactsPage {
 				};
 				aggregation.setDefaultOptions(AGGREGATION_OPTIONS);
 				aggregation.setDefaultWidth("8em");
-				aggregation.setDefaultToolTip("Select the aggregation mode for emails related to device issues. Either: \"none\", "
-						+ "in which case emails are sent immediately when an issue occurs, or \"daily\", in wich case an email with new issues is sent once a day.");
+				aggregation.setDefaultToolTip("Select the aggregation mode for reminder emails related to device issues. Either: \"none\", "
+						+ "in which case emails are sent immediately when an issue reminder is triggered, or \"daily\", in wich case an email with new issue reminders is sent once a day.");
 				row.addCell("aggregation", aggregation);
 				
 				final Label assignedLabel = new Label(contactsTable, line + "_assignedcnt", req) {

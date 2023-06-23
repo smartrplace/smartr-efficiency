@@ -1,13 +1,10 @@
 package org.smartrplace.apps.alarmconfig.reminder;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -99,11 +96,15 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		this.appMan.getResourcePatternAccess().removePatternDemand(AlarmReminderPattern.class, this);
 	}
 	
+	/**
+	 * Must only be called from app thread => use appMan#submitEvent if in doubt
+	 */
 	private void retrigger() {
 		this.closeTimer();
 		final List<AlarmConfig> configs = alarms.stream()
 			//.filter(alarm -> !alarm.s.isActive() || alarm.releaseStatus.getValue() == 2) // not reminding of alarms proposed for release(?)
 			.map(AlarmConfig::new)
+			.filter(AlarmConfig::isActive)  // this check should not normally be necessary, just a safeguard
 			.sorted()
 			.collect(Collectors.toList());
 		if (configs.isEmpty())
@@ -112,7 +113,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		final List<AlarmConfig> alarmsToBeSent = configs.stream()
 			.filter(cfg -> cfg.t <= now && now - cfg.t < PAST_REMINDER_DURATION)  // at most 2 days old reminders are triggered
 			.collect(Collectors.toList());
-		// TODO for those reminders which should be aggregated, set the corresponding resources
+		boolean retrigger = false;
 		if (!alarmsToBeSent.isEmpty()) {
 			final BundleContext ctx = appMan.getAppID().getBundle().getBundleContext();
 			final ServiceReference<MailSessionServiceI> serviceRef = ctx.getServiceReference(MailSessionServiceI.class);
@@ -121,15 +122,21 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 				appMan.getLogger().error("No mail service configured, cannot send alarm reminders {}", alarmsToBeSent);
 			} else {
 				final ExecutorService exec = Executors.newSingleThreadExecutor(r -> new Thread(r, "device-alarm-reminder-" + THREAD_COUNT.getAndIncrement()));
-				final Future<?> future = exec.submit(() -> {
+				final Future<Integer> future = exec.submit(() -> {
 					try {
-						alarmsToBeSent.forEach(a -> this.trigger(a, service));
+						final int retriggerCount = alarmsToBeSent.stream()
+							.map(a -> this.trigger(a, service))
+							.map(bool -> bool ? 1 : 0)
+							.reduce(0, (a,b) -> a+b);
+						return retriggerCount;
 					} finally {
 						ctx.ungetService(serviceRef);
 					}
 				});
 				try {
-					future.get(15, TimeUnit.MINUTES);
+					final int count = future.get(15, TimeUnit.MINUTES); // FIXME this blocks the app thread, may not be ideal... but should not take so long normally
+					if (count > 0)
+						retrigger = true;
 				} catch (ExecutionException|TimeoutException e) {
 					appMan.getLogger().warn("Sending {} device alarm reminders did not succeed", alarmsToBeSent.size(), e);
 				} catch (InterruptedException e) {
@@ -144,20 +151,20 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			return;
 		}
 		final Optional<AlarmConfig> next = configs.stream().filter(a -> a.t > now).findFirst();
-		if (next.isPresent())
-			this.timer = appMan.createTimer(next.get().t - now, t -> this.retrigger());
+		final long nextExec = retrigger ? 60_000 : next.isPresent() ? Math.max(next.get().t - now, 60_000) : -1;
+		if (nextExec > 0)
+			this.timer = appMan.createTimer(nextExec, t -> this.retrigger());
 	}
 
-	private void trigger(AlarmConfig cfg, MailSessionServiceI emailService) {
-		boolean reRemind = (cfg.config.reminderType == null) || (cfg.config.reminderType.getValue() >= 0);
+	private boolean trigger(AlarmConfig cfg, MailSessionServiceI emailService) {
+		if (!cfg.isActive())
+			return false;
+		boolean reRemind = cfg.config.reminderType==null || !cfg.config.reminderType.isActive() || cfg.config.reminderType.getValue() >= 0;
 		if(!reRemind)
 			cfg.config.dueDate.deactivate(false);
 		else {
 			long startOfDay = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
-			int type = 0;
-			if(cfg.config.reminderType != null) {
-				type = cfg.config.reminderType.getValue();
-			}
+			final int type = cfg.config.reminderType.isActive() ? cfg.config.reminderType.getValue() : 0;
 			long nextReminder;
 			if(type == 1)
 				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 1, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
@@ -232,8 +239,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		} catch (IOException e) {
 			appMan.getLogger().error("Failed to send alarm reminder for {} to {}", cfg.config.model, recipient, e);
 		}
-		if(reRemind)
-			retrigger();
+		return reRemind;
 	}
 	
 	public static String generateHtmlLink(String link) {
@@ -284,6 +290,11 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		public AlarmConfig(AlarmReminderPattern config) {
 			this.t = config.dueDate.getValue();
 			this.config = config;
+		}
+		
+		public boolean isActive() {
+			return this.config.dueDate.isActive();  
+					//&& (!this.config.releaseStatus.isActive() || this.config.releaseStatus.getValue() == 2);
 		}
 
 		@Override
