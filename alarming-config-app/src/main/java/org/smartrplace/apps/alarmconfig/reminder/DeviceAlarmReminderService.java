@@ -102,9 +102,8 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	private void retrigger() {
 		this.closeTimer();
 		final List<AlarmConfig> configs = alarms.stream()
-			//.filter(alarm -> !alarm.s.isActive() || alarm.releaseStatus.getValue() == 2) // not reminding of alarms proposed for release(?)
+			.filter(AlarmReminderPattern::isActive)
 			.map(AlarmConfig::new)
-			.filter(AlarmConfig::isActive)  // this check should not normally be necessary, just a safeguard
 			.sorted()
 			.collect(Collectors.toList());
 		if (configs.isEmpty())
@@ -139,6 +138,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 						retrigger = true;
 				} catch (ExecutionException|TimeoutException e) {
 					appMan.getLogger().warn("Sending {} device alarm reminders did not succeed", alarmsToBeSent.size(), e);
+					retrigger = true; // ?
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				} finally {
@@ -157,7 +157,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	}
 
 	private boolean trigger(AlarmConfig cfg, MailSessionServiceI emailService) {
-		if (!cfg.isActive())
+		if (!cfg.config.isActive())
 			return false;
 		boolean reRemind = cfg.config.reminderType==null || !cfg.config.reminderType.isActive() || cfg.config.reminderType.getValue() >= 0;
 		if(!reRemind)
@@ -292,16 +292,6 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			this.config = config;
 		}
 		
-		public boolean isActive() {
-			if (!this.config.dueDate.isActive())
-				return false;
-			// see AlarmGroupDataMajor#releaseTime()
-			final Resource releaseTime = this.config.model.getSubResource("releaseTime");
-			if (releaseTime instanceof TimeResource && releaseTime.isActive() && ((TimeResource) releaseTime).getValue() > 0)
-				return false;
-			return true;
-		}
-
 		@Override
 		public int compareTo(AlarmConfig other) {
 			return Long.compare(this.t, other.t);

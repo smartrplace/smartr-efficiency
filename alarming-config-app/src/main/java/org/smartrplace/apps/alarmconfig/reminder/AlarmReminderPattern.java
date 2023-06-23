@@ -24,7 +24,15 @@ public class AlarmReminderPattern extends ResourcePattern<AlarmGroupData> {
 	@Existence(required = CreateMode.OPTIONAL)
 	public final IntegerResource releaseStatus = model.forRelease();
 	
-	
+	public boolean isActive() {
+		if (!dueDate.isActive())  // should not normally be required, just a safeguard
+			return false;
+		// see AlarmGroupDataMajor#releaseTime()
+		final Resource releaseTime = model.getSubResource("releaseTime");
+		if (releaseTime instanceof TimeResource && releaseTime.isActive() && ((TimeResource) releaseTime).getValue() > 0)
+			return false;
+		return true;
+	}
 	
 	
 }
