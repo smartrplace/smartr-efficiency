@@ -1,16 +1,20 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -83,6 +87,7 @@ import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.html.form.textfield.TextFieldType;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
@@ -130,6 +135,21 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		dignosisVals.put("50", "Battery low");
 	}
 	
+	private static final Comparator<DropdownOption> RESPONSIBLES_COMPARATOR = (o1, o2) ->  { // show default roles supervision and terminvereinbarung first
+		if (Objects.equal(o1, o2))
+			return 0;
+		final boolean comp1 = o1.id().indexOf('_') > 0;
+		final boolean comp2 = o2.id().indexOf('_') > 0;
+		if (comp1 == comp2)
+			return o1.id().compareTo(o2.id());
+		return comp1 ? 1 : -1;
+	};
+	private static final List<DropdownOption> REMINDER_FREQUENCY_OPTIONS = Arrays.asList(
+		new DropdownOption("d", "daily", false),
+		new DropdownOption("w", "weekly", false),
+		new DropdownOption("m", "monthly", false)
+	);
+	
 	protected boolean showAllDevices = false;
 	
 	@Override
@@ -161,11 +181,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		this.lastMessageResponsible = new Label(page, "lastMessagePopupResponsible");
 		this.lastMessageReminderDatetime = new PopupReminderSelector(page, "lastMessageReminderTime");
 		this.lastMessageReminderFrequency = new ReminderFrequencyDropdown(page, "lastMessageReiminderFrequency");
-		lastMessageReminderFrequency.setDefaultOptions(Arrays.asList(
-			new DropdownOption("d", "daily", false),
-			new DropdownOption("w", "weekly", false),
-			new DropdownOption("m", "monthly", false)
-		));
+		lastMessageReminderFrequency.setDefaultOptions(REMINDER_FREQUENCY_OPTIONS);
 		lastMessageReminderFrequency.setDefaultAddEmptyOption(true, "");
 		
 		
@@ -230,7 +246,6 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		//createIssuePopup.setHeader(createHeader, null);
 		createIssuePopup.setTitle("Create known issue", null);
 		
-		final StaticTable createPopupTable = new StaticTable(4, 2, new int[] {4, 8});
 		final Label createIssueDeviceLab = new Label(page, "createIssueDeviceLab", "Select device");
 		final Autocomplete deviceSelector = new Autocomplete(page, "createIssueDeviceSelector") {
 			
@@ -257,10 +272,11 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
 				final InstallAppDevice device = getData(req).getSelectedItem();
 				final boolean active = device != null;
-				if (active)
+				if (active) {
 					createIssueSubmit.enable(req);
-				else
+				} else {
 					createIssueSubmit.disable(req);
+				}
 			}
 			
 		};
@@ -318,10 +334,107 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			.collect(Collectors.toList());
 		createIssueAssigned.setDefaultOptions(assignmentOpts);
 		
+		final Label createIssueRespLab = new Label(page, "createIssueRespLab", "Responsible");
+		final Dropdown responsibleDropdown = new Dropdown(page, "createIssueResponsible") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final GatewaySuperiorData supData = findSuperiorData();
+				if (supData == null || !supData.responsibilityContacts().isActive())
+					return;
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				final String existingResp = device == null || !device.knownFault().responsibility().isActive() ? null
+						: device.knownFault().responsibility().getValue();
+				final List<DropdownOption> options = supData.responsibilityContacts().getAllElements().stream()
+					.map(contact -> new DropdownOption(
+							contact.getName(), contact.userRole().isActive() ? contact.userRole().getValue() :
+							contact.firstName().getValue() + " " + contact.lastName().getValue(), 
+							(existingResp != null && contact.getSubResource("emailAddress", StringResource.class).isActive() ?
+								existingResp.equals(contact.getSubResource("emailAddress", StringResource.class).getValue()) : false)   
+					))
+					.collect(Collectors.toList());
+				setOptions(options, req);
+			}
+				
+		};
+		responsibleDropdown.setDefaultAddEmptyOption(true);
+		responsibleDropdown.setDefaultMinWidth("8em");
+		responsibleDropdown.setDefaultToolTip("Select responsible for the issue");
+		createIssueRespLab.setDefaultToolTip("Select responsible for the issue");
+		responsibleDropdown.setComparator(RESPONSIBLES_COMPARATOR);
+		
+		final Label createIssueReminderLab = new Label(page, "createIssueReminderLab", "Next reminder");
+		final TextField createIssueReminder = new TextField(page, "createIssueReminder") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null || !device.knownFault().dueDateForResponsibility().isActive()) {
+					setValue("", req);
+				} else {
+					final long next = device.knownFault().dueDateForResponsibility().getValue();
+					final boolean needsTime = Math.abs(appMan.getFrameworkTime()-next) < 48 * 3_600_000;
+					final DateTimeFormatter formatter = needsTime ? DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm") 
+							: DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					final ZonedDateTime zdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(next), ZoneId.systemDefault());
+					final String value;
+					if (needsTime)
+						 value = zdt.toLocalDateTime().format(formatter);
+					else
+						value = zdt.toLocalDate().format(formatter);
+					setValue(value, req);
+				}
+			}
+			
+		};
+		createIssueReminder.setDefaultType(TextFieldType.DATE);
+		
+		final Label createIssueReminderFreqLab = new Label(page, "createIssueReminderLFreqab", "Reminder frequency");
+		final Dropdown createIssueReminderFreq = new Dropdown(page, "createIssueReminderFreq") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null || !device.knownFault().reminderType().isActive()) {
+					selectSingleOption(DropdownData.EMPTY_OPT_ID, req);
+				} else {
+					final int val = device.knownFault().reminderType().getValue();
+					final String selected = val == 1 ? "d" : val == 2 ? "w" : val == 3 ? "m" : DropdownData.EMPTY_OPT_ID;
+					selectSingleOption(selected, req);
+				}
+			}
+			
+		};
+		createIssueReminderFreq.setDefaultAddEmptyOption(true);
+		createIssueReminderFreq.setComparator(null);
+		createIssueReminderFreq.setDefaultOptions(REMINDER_FREQUENCY_OPTIONS);
+		
+		
+		final Label createIssueTaskTrackingLab = new Label(page, "createIssueTaskTrackingLab", "Task tracking");
+		final TextField createIssueTaskTracking = new TextField(page, "createIssueTaskTrakcing") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null || !device.knownFault().linkToTaskTracking().isActive()) {
+					setValue("", req);
+				} else {
+					setValue(device.knownFault().linkToTaskTracking().getValue(), req);
+				}
+			}
+			
+		};
+		
+		
+		final StaticTable createPopupTable = new StaticTable(8, 2, new int[] {4, 8});
 		createPopupTable.setContent(0, 0, createIssueDeviceLab).setContent(0, 1, deviceSelector);
 		createPopupTable.setContent(1, 0, deviceFaultActiveLab).setContent(1, 1, deviceFaultActive);
 		createPopupTable.setContent(2, 0, createIssueCommentLab).setContent(2, 1, createIssueComment);
 		createPopupTable.setContent(3, 0, createIssueAssignedLab).setContent(3, 1, createIssueAssigned);
+		createPopupTable.setContent(4, 0, createIssueRespLab).setContent(4, 1, responsibleDropdown);
+		createPopupTable.setContent(5, 0, createIssueReminderLab).setContent(5, 1, createIssueReminder);
+		createPopupTable.setContent(6, 0, createIssueReminderFreqLab).setContent(6, 1, createIssueReminderFreq);
+		createPopupTable.setContent(7, 0, createIssueTaskTrackingLab).setContent(7, 1, createIssueTaskTracking);
 		
 		
 		final PageSnippet bodySnippet = new PageSnippet(page, "createIssueBodySnip", true);
@@ -362,6 +475,49 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					alarm.minimumTimeBetweenAlarms().<FloatResource> create().setValue(isBlocking ? -1 : 0);
 					if (!alarm.isActive())
 						alarm.ongoingAlarmStartTime().<TimeResource> create().setValue(appMan.getFrameworkTime());
+					final String responsible = responsibleDropdown.getSelectedValue(req);
+					if (responsible != null && !DropdownData.EMPTY_OPT_ID.equals(responsible)) {
+						final GatewaySuperiorData supData = findSuperiorData();
+						if (supData != null && supData.responsibilityContacts().isActive()) {
+							final NaturalPerson selected = supData.responsibilityContacts().getSubResource(responsible); 
+							final StringResource emailRes = selected.getSubResource("emailAddress");
+							final String email = emailRes.isActive() ? emailRes.getValue() : "";
+							if (!email.isEmpty())
+								alarm.responsibility().<StringResource> create().setValue(email);
+						}
+						
+					}
+					final String tt = createIssueTaskTracking.getValue(req).trim();
+					if (!tt.isEmpty())
+						alarm.linkToTaskTracking().<StringResource> create().setValue(tt);
+					final String reminderDate = createIssueReminder.getValue(req);
+					if (reminderDate != null && !reminderDate.isEmpty()) {
+						try {
+							final long nextReminder = LocalDate.parse(reminderDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay(ZoneId.systemDefault())
+									.toInstant().toEpochMilli();
+							alarm.dueDateForResponsibility().<TimeResource> create().setValue(nextReminder);
+							final String reminderFreq = createIssueReminderFreq.getSelectedValue(req);
+							if (reminderFreq != null) {
+								final int mode;
+								switch(reminderFreq) {
+								case "d":
+									mode = 1;
+									break;
+								case "w":
+									mode = 2;
+									break;
+								case "m":
+									mode = 3;
+									break;
+								default: 
+									mode = -1;
+								}
+								if (mode > 0)
+									alarm.reminderType().<IntegerResource> create().setValue(mode);
+							}
+							
+						} catch (DateTimeParseException ignore) {}  // ok? 
+					}
 					alarm.activate(true);
 					if (alert != null)
 						alert.showAlert("Alarm generation succeeded for device " + device.deviceId().getValue() + " (" + device.getLocation() + ")", true, req);
@@ -390,6 +546,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		deviceSelector.triggerAction(deviceFaultActive, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		deviceSelector.triggerAction(createIssueComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		deviceSelector.triggerAction(createIssueAssigned, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(createIssueTaskTracking, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(createIssueReminder, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		deviceSelector.triggerAction(createIssueReminderFreq, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		deviceSelector.triggerAction(submit, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		createKnownIssue.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);
 		cancel.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
@@ -825,15 +985,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					};
 					responsibleDropdown.setDefaultAddEmptyOption(true);
 					responsibleDropdown.setDefaultMinWidth("8em");
-					responsibleDropdown.setComparator((o1, o2) ->  { // show default roles supervision and terminvereinbarung first
-						if (Objects.equal(o1, o2))
-							return 0;
-						final boolean comp1 = o1.id().indexOf('_') > 0;
-						final boolean comp2 = o2.id().indexOf('_') > 0;
-						if (comp1 == comp2)
-							return o1.id().compareTo(o2.id());
-						return comp1 ? 1 : -1;
-					});
+					responsibleDropdown.setComparator(RESPONSIBLES_COMPARATOR);
 					responsibleDropdown.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 					row.addCell("Responsible", responsibleDropdown);
 					
