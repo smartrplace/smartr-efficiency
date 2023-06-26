@@ -20,12 +20,14 @@ import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DpUpdateAPI;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
+import org.smartrplace.tissue.util.format.StringFormatHelperSP;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.ServletTimeseriesProvider;
@@ -35,6 +37,7 @@ import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
+import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI.AggregationModePlus;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
@@ -257,6 +260,28 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 				ServletStringProvider deviceDisplayName = new ServletStringProvider(displayName);
 				result.put("deviceDisplayName", deviceDisplayName);
 			}
+			if(garo != null) {
+				AggregationModePlus agg = garo.aggregationMode();
+				if(agg != null && agg != AggregationModePlus.AVERAGE_VALUE_PER_STEP) {
+					ServletStringProvider deviceAggregationType = new ServletStringProvider(StringFormatHelperSP.getCamelCase(agg.toString()));
+					result.put("aggregationType", deviceAggregationType);
+					
+				}
+			}
+			
+			/*String aggregationType = null;
+			IntegerResource aggregationTypeRes = iad.getSubResource("aggregationType",IntegerResource.class);
+			if(aggregationTypeRes != null &&aggregationTypeRes.exists()) {
+				int aggInt = aggregationTypeRes.getValue();
+				if(aggInt > 0) {
+					aggregationType = DpUpdateAPI.aggregationOptions.get(""+aggInt);
+					if(aggregationType != null) {
+						ServletStringProvider deviceAggregationType = new ServletStringProvider(aggregationType);
+						result.put("aggregationType", deviceAggregationType);
+					}
+				}
+			}*/
+			
 
 		}
 		if(type != null && typeName.contains("HeatCostAllocator")) {

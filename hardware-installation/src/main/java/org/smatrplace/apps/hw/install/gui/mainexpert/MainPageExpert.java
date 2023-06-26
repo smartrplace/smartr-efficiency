@@ -13,6 +13,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.devicefinder.api.DatapointInfo;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP.ComType;
@@ -81,6 +82,7 @@ public class MainPageExpert extends MainPage {
 	public static String defaultActionAfterReload = LOG_ALL;
 	public static String defaultTrashActionAfterReload = LOG_ALL;
 
+	/** See also {@link DatapointInfo#getUtilityType()}*/
 	static {
 		utilityOptions.put("", "--");
 		utilityOptions.put("electricity", "Electricity");
@@ -326,6 +328,8 @@ public class MainPageExpert extends MainPage {
 					utilityOptions, 3);
 			vh.stringEdit("Application_for_API_Freetext", id, object.getSubResource("apiApplication", StringResource.class), row, alert);
 			vh.stringEdit("Device_Display_Name_Freetext", id, object.getSubResource("deviceDisplayName", StringResource.class), row, alert);
+			//ValueResourceDropdown<IntegerResource> dropInt = vh.dropdown("Aggregation", id, object.getSubResource("aggregationType",IntegerResource.class), row,
+			//		DpUpdateAPI.aggregationOptions, 2);
 			
 			SubCustomerData subc = object.device().location().getSubResource("tenant", SubCustomerData.class);
 			if(subc != null) {
