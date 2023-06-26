@@ -126,7 +126,7 @@ public class ActionHistoryPage extends ObjectGUITablePageNamed<ActionHistoryItem
 				item.tentant = vals.get(5);
 				item.roomType = vals.get(6);
 				item.singleRoomLocation = vals.get(7);
-				if(item.singleRoomLocation != null) {
+				if(item.singleRoomLocation != null && (!item.singleRoomLocation.startsWith("-"))) {
 					Room room = ResourceHelper.getResource(item.singleRoomLocation, Room.class, appMan.getResourceAccess());
 					if(room != null)
 						item.singleRoom = ResourceUtils.getHumanReadableShortName(room);
