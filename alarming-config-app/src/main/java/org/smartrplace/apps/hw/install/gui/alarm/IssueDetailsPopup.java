@@ -3,6 +3,7 @@ package org.smartrplace.apps.hw.install.gui.alarm;
 import java.util.Arrays;
 import java.util.List;
 
+import org.json.JSONObject;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
@@ -62,7 +63,7 @@ public class IssueDetailsPopup {
 		this.lastMessageReminderDatetime = new PopupReminderSelector(page, "lastMessageReminderTime");
 		this.lastMessageReminderFrequency = new ReminderFrequencyDropdown(page, "lastMessageReiminderFrequency");
 		lastMessageReminderFrequency.setDefaultOptions(REMINDER_FREQUENCY_OPTIONS);
-		lastMessageReminderFrequency.setDefaultAddEmptyOption(true, "");
+		lastMessageReminderFrequency.setDefaultAddEmptyOption(true, "Default");
 		
 		
 		final StaticTable tab = new StaticTable(10, 2, new int[]{3, 9});
@@ -157,7 +158,6 @@ public class IssueDetailsPopup {
 		Dropdown getTableReminder(OgemaHttpRequest req) {
 			return ((PopupReminderSelectorData) getData(req)).tableReminderField;
 		}
-		
 	}
 	
 	
@@ -167,6 +167,11 @@ public class IssueDetailsPopup {
 
 		public PopupReminderSelectorData(DatepickerTimeResourceTextField dtr) {
 			super(dtr);
+		}
+		
+		@Override
+		public JSONObject onPOST(String data, OgemaHttpRequest req) {
+			return super.onPOST(data, req);
 		}
 		
 	}

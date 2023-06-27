@@ -351,7 +351,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			}
 			
 		};
-		createIssueReminderFreq.setDefaultAddEmptyOption(true);
+		createIssueReminderFreq.setDefaultAddEmptyOption(true, "Default");
 		createIssueReminderFreq.setComparator(null);
 		createIssueReminderFreq.setDefaultOptions(REMINDER_FREQUENCY_OPTIONS);
 		
