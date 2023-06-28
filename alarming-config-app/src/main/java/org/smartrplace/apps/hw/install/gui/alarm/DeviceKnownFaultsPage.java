@@ -40,6 +40,7 @@ import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.DevelopmentTask;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -61,6 +62,7 @@ import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import com.google.common.base.Objects;
 
+import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
@@ -138,6 +140,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	);
 	
 	protected boolean showAllDevices = false;
+	
+	protected int getTopTableLines() {
+		return 3;
+	}
 	
 	@Override
 	protected String getHeader() {
@@ -563,26 +569,89 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String user = GUIUtilHelper.getUserLoggedIn(req);
-				if(user.startsWith("master"))
+				if(isMasterUser(user))
 					setUrl("/ogema/index.html", req);
 			}
 			
 		};
-		topTable.setContent(1, 3, homeScreen);
+		topTable.setContent(2, 0, homeScreen);
 		
 		RedirectButton thermostatPage = new RedirectButton(page, "thermostatPage", "Devices", "/org/smartrplace/hardwareinstall/index.html") {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String user = GUIUtilHelper.getUserLoggedIn(req);
-				if(user.startsWith("master")) {
+				if(isMasterUser(user)) {
 					setUrl("/org/smartrplace/hardwareinstall/expert/thermostatDetails2.hmtl.html", req);
 					setText("Thermostats", req);
 				}
 			}
 			
 		};
-		topTable.setContent(1, 4, thermostatPage);
+		topTable.setContent(2, 1, thermostatPage);
 		
+		RedirectButton networkPage = new RedirectButton(page, "networkPage", "Network", "/org/smartrplace/hardwareinstall/superadmin/index.html") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(isMasterUser(user)) {
+					setWidgetVisibility(true, req);;
+				} else
+					setWidgetVisibility(false, req);;
+			}
+			
+		};
+		topTable.setContent(2, 2, networkPage);
+
+		RedirectButton chartPage = new RedirectButton(page, "chartPage", "Charts", "/org/sp/app/srcmon/roomcontrolcharts.html") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(isMasterUser(user)) {
+					setUrl("/org/sp/app/srcmonexpert/roomcontrolcharts.html", req);
+				}
+			}
+			
+		};
+		topTable.setContent(2, 3, chartPage);
+
+		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan);
+		
+		RedirectButton wikiPage = new RedirectButton(page, "wikiPage", "Wiki Page", "https://smartrplace.onlyoffice.eu/Products/Files/#sbox-75287-%7Cpublic%7COperation%7CKunden") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(isMasterUser(user) && (gwInfo != null)) {
+					final StringResource linkOverviewUrlRes = gwInfo.gatewayLinkOverviewUrl();
+					if(linkOverviewUrlRes.exists()) {
+						String curLink = linkOverviewUrlRes.getValue();
+						setUrl(curLink, req);
+					}
+					setWidgetVisibility(true, req);
+				} else
+					setWidgetVisibility(false, req);
+			}
+			
+		};
+		topTable.setContent(2, 4, wikiPage);
+
+		RedirectButton floorPlanPage = new RedirectButton(page, "floorPlanPage", "Floor Plan", "https://smartrplace.onlyoffice.eu/Products/Files/#sbox-75287-%7Cpublic%7COperation%7CKunden") {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String user = GUIUtilHelper.getUserLoggedIn(req);
+				if(isMasterUser(user) && (gwInfo != null)) {
+					final StringResource databaseUrlRes = gwInfo.gatewayOperationDatabaseUrl();
+					if(databaseUrlRes.exists()) {
+						String curLink = databaseUrlRes.getValue();
+						setUrl(curLink, req);
+					}
+					setWidgetVisibility(true, req);
+				} else
+					setWidgetVisibility(false, req);
+			}
+			
+		};
+		topTable.setContent(2, 5, floorPlanPage);
+
 		this.releasePopup = new ReleasePopup(page, "releasepop", appMan, alert);
 		releasePopup.append(page);
 	}
@@ -1207,6 +1276,10 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		}
 		
 		
+	}
+	
+	public static boolean isMasterUser(String user) {
+		return user.startsWith("master") || (user.startsWith("support") && (!user.contains("@")));
 	}
 
 }

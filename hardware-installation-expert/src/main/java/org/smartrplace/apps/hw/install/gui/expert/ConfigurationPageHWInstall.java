@@ -64,6 +64,7 @@ import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.calendar.DatepickerTimeResource;
@@ -270,12 +271,32 @@ public class ConfigurationPageHWInstall {
 			StringResource baseUrlRes = gwInfo.gatewayBaseUrl();
 			ResourceTextField<StringResource> baseUrl = new ValueResourceTextField<StringResource>(page,
 					"baseUrlEdit", baseUrlRes);
-			StringResource databaseUrlRes = gwInfo.gatewayOperationDatabaseUrl();
+			final StringResource databaseUrlRes = gwInfo.gatewayOperationDatabaseUrl();
 			ResourceTextField<StringResource> databaseUrl = new ValueResourceTextField<StringResource>(page,
 					"databaseUrlEdit", databaseUrlRes);
-			StringResource linkOverviewUrlRes = gwInfo.gatewayLinkOverviewUrl();
+			RedirectButton testDatabase = new RedirectButton(page, "testDatabase", "Open Link") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					if(databaseUrlRes.exists() && (!databaseUrlRes.getValue().isEmpty())) {
+						setUrl(databaseUrlRes.getValue(), req);
+					} else
+						setWidgetVisibility(false, req);
+				}
+			};
+
+			
+			final StringResource linkOverviewUrlRes = gwInfo.gatewayLinkOverviewUrl();
 			ResourceTextField<StringResource> linkOverviewUrl = new ValueResourceTextField<StringResource>(page,
 					"linkOverviewUrlEdit", linkOverviewUrlRes);
+			RedirectButton testLinkOverview = new RedirectButton(page, "testLinkOverview", "Open Link") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					if(linkOverviewUrlRes.exists() && (!linkOverviewUrlRes.getValue().isEmpty())) {
+						setUrl(linkOverviewUrlRes.getValue(), req);
+					} else
+						setWidgetVisibility(false, req);
+				}
+			};
 						
 			Label gwIdLabel = new Label(page, "gwIdLabel") {
 				@Override
@@ -289,10 +310,10 @@ public class ConfigurationPageHWInstall {
 			setContent(i, 1, baseUrl);
 			i++;
 			configTable.setContent(i, 0, "Operation Documenation URL for access via internet:").
-			setContent(i, 1, databaseUrl);
+			setContent(i, 1, databaseUrl).setContent(i, 1, testDatabase);
 			i++;
 			configTable.setContent(i, 0, "Additional overview on gateway documentation data in the database and elsewhere:").
-			setContent(i, 1, linkOverviewUrl);
+			setContent(i, 1, linkOverviewUrl).setContent(i, 1, testLinkOverview);
 			i++;
 			configTable.setContent(i, 0, "GatewayId:").
 			setContent(i, 1, gwIdLabel);
