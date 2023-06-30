@@ -53,14 +53,24 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	
 	protected final long maxValueAlarmReleaseRetard = Long.getLong("org.smartrplace.apps.alarmingconfig.mgmt.maxValueReleaseRetard", 5*60000);
 	
-	public static long getMinNoValueDatapoint(AlarmConfiguration ac, AlarmConfiguration devTac, Float minNoValue) {
-		long dpResult;
+	/**
+	 * 
+	 * @param ac
+	 * @param devTac
+	 * @param minNoValue in minutes
+	 * @return in minutes
+	 */
+	public static float getMinNoValueDatapoint(AlarmConfiguration ac, AlarmConfiguration devTac, Float minNoValue) {
+		float dpResult;
 		if(devTac != null)
-			dpResult = (long) (devTac.maxIntervalBetweenNewValues().getValue()*60000l);
+			dpResult = devTac.maxIntervalBetweenNewValues().getValue();
 		else
-			dpResult = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);
-		if((minNoValue != null) && (dpResult < minNoValue) && (dpResult > 0))
-			return (long) (minNoValue*60000l);
+			dpResult = ac.maxIntervalBetweenNewValues().getValue();
+		if(minNoValue != null) {
+			//long minNoValueMSec = (long) (minNoValue*60000l);
+			if((dpResult < minNoValue) && (dpResult > 0))
+				return minNoValue;
+		}
 		return dpResult;
 	}
 	
@@ -75,7 +85,7 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 	 * @param devTac
 	 * @param minNoValue device minimum value for time duration after which a NoValue alarm is generated. If the datapoint-specific limit is larger
 	 * 		or no NoValue alarms shall be generated the larger value or no-alarm setting is maintained. Set paramter as null if
-	 * 		no device minimum value is active.
+	 * 		no device minimum value is active. PROVIDED IN MINUTES.
 	 * @param controller
 	 */
 	public AlarmValueListenerBasic(AlarmConfiguration ac, ValueListenerData vl,
@@ -103,13 +113,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 		vl.init(ac, resendRetardLoc);
 		this.ac = ac;
 		this.vl = vl;
-		vl.maxIntervalBetweenNewValues = getMinNoValueDatapoint(ac, devTac, minNoValue);
-		/*if(devTac != null)
-			vl.maxIntervalBetweenNewValues = (long) (devTac.maxIntervalBetweenNewValues().getValue()*60000l);
-		else
-			vl.maxIntervalBetweenNewValues = (long) (ac.maxIntervalBetweenNewValues().getValue()*60000l);*/
-		if((minNoValue != null) && (vl.maxIntervalBetweenNewValues < minNoValue) && (vl.maxIntervalBetweenNewValues > 0))
-			vl.maxIntervalBetweenNewValues = (long) (minNoValue*60000l);
+		vl.maxIntervalBetweenNewValues = (long)(getMinNoValueDatapoint(ac, devTac, minNoValue)*60000l);
+
 		String[] exts = ac.alarmingExtensions().getValues();
 		if(ac.sensorVal().exists() ) {
 			//Should always be the case here

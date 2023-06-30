@@ -71,6 +71,9 @@ public class ThermostatPage extends MainPage {
 	static final int THERMOSTAT_MAX_FOR_ALL = 500;
 	DeviceTableBase devTable;
 	
+	private boolean isSendModeChanged = false;
+	private ButtonConfirm setAllByMode;
+	
 	public enum ThermostatPageType {
 		SETPOINT_EMPTYPOS,
 		AUTO_MODE,
@@ -188,14 +191,23 @@ public class ThermostatPage extends MainPage {
 			updateAll.setDefaultConfirmMsg("Really re-send update date value to all selected thermostats with pending feedback?");
 			secondTopTable.setContent(0, 0, updateAll);
 
-			ButtonConfirm setAllByMode = new ButtonConfirm(page, "setAllByMode", "Set all values according to mode") {
+			setAllByMode = new ButtonConfirm(page, "setAllByMode", "Set all values according to mode") {
 				@Override
 				public void onPrePOST(String data, OgemaHttpRequest req) {
 					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
 					int count = DeviceHandlerBase.setOpenIntervalConfigs(controller.appConfigData.sendIntervalMode(), all, null, false);
 					alert.showAlert("Set "+count+" settings", count>0, req);
 				}
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					if(isSendModeChanged)
+						addStyle(ButtonData.BOOTSTRAP_RED, req);
+					else
+						removeStyle(ButtonData.BOOTSTRAP_RED, req);
+					isSendModeChanged = false;
+				}
 			};
+			setAllByMode.registerDependentWidget(setAllByMode);
 			updateAll.registerDependentWidget(alert);
 			updateAll.setDefaultConfirmMsg("Really set all values differing from Interval Mode?");
 			secondTopTable.setContent(0, 1, setAllByMode);
@@ -468,7 +480,14 @@ public class ThermostatPage extends MainPage {
 									return "UNKNOWN ST:"+state;
 								}
 							}
+							
+							public void onPOSTComplete(String data, OgemaHttpRequest req) {
+								super.onPOSTComplete(data, req);
+								isSendModeChanged = true;
+							};
 						};
+						sendIntervalButton.registerDependentWidget(setAllByMode);
+
 						row.addCell(WidgetHelper.getValidWidgetId("SendMode"), sendIntervalButton);
 					}
 					
