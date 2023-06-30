@@ -32,7 +32,6 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatUtil;
 import org.smartrplace.external.accessadmin.config.AccessAdminConfig;
 import org.smartrplace.external.accessadmin.config.AccessConfigUser;
-import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.format.StringFormatHelper;
