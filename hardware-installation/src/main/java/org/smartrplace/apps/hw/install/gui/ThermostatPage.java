@@ -207,7 +207,8 @@ public class ThermostatPage extends MainPage {
 					isSendModeChanged = false;
 				}
 			};
-			setAllByMode.registerDependentWidget(setAllByMode);
+			setAllByMode.triggerOnPOST(setAllByMode);
+			setAllByMode.triggerOnPOST(alert);
 			updateAll.registerDependentWidget(alert);
 			updateAll.setDefaultConfirmMsg("Really set all values differing from Interval Mode?");
 			secondTopTable.setContent(0, 1, setAllByMode);
@@ -486,7 +487,7 @@ public class ThermostatPage extends MainPage {
 								isSendModeChanged = true;
 							};
 						};
-						sendIntervalButton.registerDependentWidget(setAllByMode);
+						sendIntervalButton.triggerOnPOST(setAllByMode);
 
 						row.addCell(WidgetHelper.getValidWidgetId("SendMode"), sendIntervalButton);
 					}
