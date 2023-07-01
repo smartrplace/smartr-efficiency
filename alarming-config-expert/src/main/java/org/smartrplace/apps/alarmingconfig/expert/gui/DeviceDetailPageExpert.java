@@ -35,6 +35,7 @@ import org.smartrplace.gui.filtering.GenericFilterFixedSingle;
 import org.smartrplace.gui.filtering.GenericFilterOption;
 import org.smartrplace.gui.filtering.SingleFiltering.OptionSavingMode;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import org.smartrplace.util.format.WidgetHelper;
 
 import de.iwes.timeseries.eval.api.TimeSeriesData;
@@ -99,7 +100,7 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 		super.addWidgets(object, vh, id, req, row, appMan);
 		if(req == null) {
 			vh.registerHeaderEntry("Gap/Out");
-			//vh.registerHeaderEntry("Gap/Out");
+			vh.registerHeaderEntry("Delete Alarm Config");
 			vh.registerHeaderEntry("Chart");
 			addFinalWidgets(object, vh, id, req, row, appMan);
 			return;
@@ -156,11 +157,15 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 					return result;
 				}
 			};
+			
 			ScheduleViewerOpenButton plotButton = ScheduleViwerOpenUtil.getScheduleViewerOpenButton(vh.getParent(), "plotButton"+id,
 					"Plot", provider, ScheduleViewerConfigProvAlarmExp.getInstance(), req);
 			
 			row.addCell("Chart", plotButton);
 		}
+
+		GUIHelperExtension.addDeleteButton(null, object, updateEvalBut, id, alert, "Delete Alarm Config", row, vh, req);
+		
 		addFinalWidgets(object, vh, id, req, row, appMan);
 	}
 	
@@ -246,7 +251,7 @@ public class DeviceDetailPageExpert extends DeviceTypePage {
 			};			
 		} else {
 			deviceDropLoc = new DualFiltering2StepsStd<InstallAppDeviceBase, String, AlarmConfiguration>(page, "deviceDropDual", OptionSavingMode.GENERAL,
-					10000, false, true) {
+					10000, false, Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.expert.gui.alldevicesInAlarmingdetails")) {
 	
 				@Override
 				protected Map<String, InstallAppDeviceBase> getAttributesByGroup(String group) {
