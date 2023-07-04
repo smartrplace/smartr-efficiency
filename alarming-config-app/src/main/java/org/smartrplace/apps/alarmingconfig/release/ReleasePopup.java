@@ -50,7 +50,7 @@ public class ReleasePopup {
 	private final EnumDropdown<FinalAnalysis> analysisSelector;
 	
 	private final Button cancelButton;
-	private final ButtonConfirm submitButton;
+	private final Button submitButton;
 	
 	@SuppressWarnings("serial")
 	public ReleasePopup(WidgetPage<?> page, String baseId, ApplicationManager appMan, Alert alert) {
@@ -103,30 +103,30 @@ public class ReleasePopup {
 			return id1.compareTo(id2);
 		});
 		this.cancelButton = new Button(page, baseId + "_cancel", "Cancel");
-		this.submitButton = new ButtonConfirm(page, baseId + "submit") {
+		this.submitButton = new Button(page, baseId + "submit") {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				final String selectedMode = releaseModeSelector.getSelectedValue(req);
 				switch(selectedMode) {
 				case "finalanalysis":
-					setConfirmMsg("Do you really want to release the issue with final analysis?", req);
-					setConfirmBtnMsg("Release", req);
+					//setConfirmMsg("Do you really want to release the issue with final analysis?", req);
+					//setConfirmBtnMsg("Release", req);
 					setText("Release issue", req);
 					break;
 				case "trash":
-					setConfirmMsg("Do you really want to move the issue to the trash?", req);
-					setConfirmBtnMsg("To trash", req);
+					//setConfirmMsg("Do you really want to move the issue to the trash?", req);
+					//setConfirmBtnMsg("To trash", req);
 					setText("Issue to trash", req);
 					break;
 				case "delete":
-					setConfirmMsg("Do you really want to delete the issue permanently?", req);
-					setConfirmBtnMsg("Delete", req);
+					//setConfirmMsg("Do you really want to delete the issue permanently?", req);
+					//setConfirmBtnMsg("Delete", req);
 					setText("Delete issue", req);
 					break;
 				default:
-					setConfirmBtnMsg("?", req);
-					setConfirmMsg("", req);
+					//setConfirmBtnMsg("?", req);
+					//setConfirmMsg("", req);
 				}
 			}
 			
@@ -177,8 +177,8 @@ public class ReleasePopup {
 			}
 			
 		};
-		submitButton.setDefaultCancelBtnMsg("Cancel");
-		submitButton.setDefaultConfirmPopupTitle("Confirm release");
+		//submitButton.setDefaultCancelBtnMsg("Cancel");
+		//submitButton.setDefaultConfirmPopupTitle("Confirm release");
 		submitButton.setDefaultText("Release");
 		
 		
