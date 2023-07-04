@@ -7,6 +7,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.user.NaturalPerson;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
+import org.smartrplace.util.format.WidgetHelper;
 
 /**
  * Provisional initialization for GatewaySuperiorData#responsibilityContacts
@@ -33,8 +34,8 @@ public class ResponsibilityContactsInitializer {
 		final boolean existed = superiorData != null;
 		if (!existed)
 			superiorData = appMan.getResourceManagement().createResource("gatewaySuperiorDataRes", GatewaySuperiorData.class);
-		if (superiorData.responsibilityContacts().isActive())
-			return;
+		//if (superiorData.responsibilityContacts().isActive())
+		//	return;
 		final ResourceList<NaturalPerson> contacts = superiorData.responsibilityContacts().create();
 		Arrays.stream(DEFAULT_CONTACTS).forEach(contact -> add(contacts, contact));
 		if (!existed)
@@ -44,7 +45,7 @@ public class ResponsibilityContactsInitializer {
 	}
 	
 	private static NaturalPerson add(ResourceList<NaturalPerson> contacts, Contact contact) {
-		final String resourceName = contact.firstName != null && contact.lastName != null ? contact.firstName + "_" + contact.lastName : contact.role;
+		final String resourceName = WidgetHelper.getValidWidgetId(contact.firstName != null && contact.lastName != null ? contact.firstName + "_" + contact.lastName : contact.role);
 		final NaturalPerson person = contacts.addDecorator(resourceName.toLowerCase(), NaturalPerson.class);
 		if (contact.role != null)
 			person.userRole().<StringResource> create().setValue(contact.role);
