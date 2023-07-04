@@ -60,7 +60,7 @@ import de.iwes.widgets.html.form.label.Label;
 //@Service(DeviceHandlerProvider.class)
 public class DeviceHandlerMQTT_ElecConnBox extends DeviceHandlerBase<ElectricityConnectionBox> {
 	private final ApplicationManagerPlus appMan;
-	private final ResourceList<ElectricityConnectionBox> manualMeters;
+	private ResourceList<ElectricityConnectionBox> manualMeters;
 	
 	public DeviceHandlerMQTT_ElecConnBox(ApplicationManagerPlus appMan) {
 		this.appMan = appMan;
@@ -364,7 +364,7 @@ if(mapData1 == null) {
 			}
 			if(configData.governingResource == null) {
 				if(manualMeters == null) {
-					ResourceList<?> manualMeters = appMan.getResourceManagement().createResource("manualMeters", ResourceList.class);
+					manualMeters = appMan.getResourceManagement().createResource("manualMeters", ResourceList.class);
 					manualMeters.setElementType(ElectricityConnectionBox.class);
 				}
 				configData.governingResource = manualMeters.addDecorator(ResourceUtils.getValidResourceName(
