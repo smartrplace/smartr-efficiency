@@ -180,6 +180,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		final String recipient = cfg.config.responsible.isActive() && cfg.config.responsible.getValue().contains("@") ?
 				cfg.config.responsible.getValue() : "alarming@smartrplace.com";
 		try {
+			boolean deactivated = false;
 			final AlarmGroupData alarm = cfg.config.model;
 			final String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 			final StringBuilder sb = new StringBuilder()
@@ -188,6 +189,8 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			String deviceId;
 			try {
 				InstallAppDevice iad = AlarmResourceUtil.getDeviceForKnownFault(alarm);
+				if((!iad.device().isActive()) || iad.isTrash().getValue())
+					deactivated = true;
 				deviceId = iad.deviceId().getValue();
 				deviceName = deviceId +" ("+ResourceUtils.getHumanReadableName(iad.device())+")";
 				String nameInHwInstall = DeviceTableRaw.getName(iad, appManPlus);
@@ -196,6 +199,10 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			} catch (Exception e) {
 				deviceId = alarm.getPath();
 				deviceName = alarm.getPath();
+			}
+			if(deactivated) {
+				cfg.config.dueDate.deactivate(false);
+				return false;
 			}
 			sb.append(deviceName).append(" on gateway ").append(gwId);
 			sb.append('.');
