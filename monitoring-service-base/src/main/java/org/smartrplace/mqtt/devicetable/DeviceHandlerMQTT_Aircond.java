@@ -303,12 +303,17 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 		AirConditioner device = (AirConditioner) appDevice.device();
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().reading(), 5.0f, 45.0f, 15, 20);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().settings().setpoint(),
-				4.5f, 30.5f, 1, -1);
+				4.5f, 40f, 1, -1);
 		AlarmingUtiH.setTemplateValues(appDevice, device.temperatureSensor().deviceFeedback().setpoint(),
-				4.5f, 30.5f, 1, 20);
+				4.5f, 40f, 1, 20);
 		AlarmingUtiH.addAlarmingMQTT(device, appDevice);
 	}
 
+	@Override
+	public String getInitVersion() {
+		return "B";
+	}
+	
 	@Override
 	public SingleValueResource getMainSensorValue(AirConditioner device, InstallAppDevice deviceConfiguration) {
 		throw new UnsupportedOperationException("Table generated separately!");
