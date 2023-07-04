@@ -16,6 +16,7 @@ public class ResponsibilityContactsInitializer {
 	private static final Contact[] DEFAULT_CONTACTS = new Contact[] {
 		new Contact("Supervision", null, null, "alarming@smartrplace.com" ),
 		new Contact("Terminvereinbarung", null, null, "support@smartrplace.com" ),
+		new Contact("On-site Operation", null, null, "onsite@smartrplace.com" ),
 		new Contact(null, "David", "Nestle", "david.nestle@smartrplace.de"),
 		new Contact(null, "Jan", "Lapp", "jan.lapp@smartrplace.de")
 	
@@ -52,6 +53,8 @@ public class ResponsibilityContactsInitializer {
 		if (contact.lastName != null)
 			person.lastName().<StringResource> create().setValue(contact.lastName);
 		person.addDecorator("emailAddress", StringResource.class).setValue(contact.email);
+		if(!person.isActive())
+			person.activate(true);
 		return person;
 	}
 
