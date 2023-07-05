@@ -44,6 +44,10 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 			PhysicalElement device, final InstallAppDevice template) {}
 
+	protected void addFrontWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
+			OgemaHttpRequest req, Row row, final ApplicationManager appMan,
+			PhysicalElement device) {}
+
 	public AlarmingDeviceTableBase(WidgetPage<?> page, ApplicationManagerPlus appMan, Alert alert,
 			final String pageTitle,	final HardwareTableData resData, Button commitButton,
 			InstalledAppsSelector appSelector, DeviceHandlerProvider<?> devHand) {
@@ -96,8 +100,9 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 	public PhysicalElement addWidgetsInternal(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 			OgemaHttpRequest req, Row row, final ApplicationManager appMan) {
 
-		addNameWidget(object, vh, id, req, row, appMan);
 		PhysicalElement device = object.device();
+		addFrontWidgets(object, vh, id, req, row, appMan, device);
+		addNameWidget(object, vh, id, req, row, appMan);
 		final InstallAppDevice template;
 		if(req == null) {
 			vh.registerHeaderEntry("Active Alarms");

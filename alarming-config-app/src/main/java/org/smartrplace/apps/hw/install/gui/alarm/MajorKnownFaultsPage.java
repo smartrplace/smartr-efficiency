@@ -103,8 +103,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			vh.registerHeaderEntry("Diagnosis");
 			vh.registerHeaderEntry("Message");
 			vh.registerHeaderEntry("Details");
-			vh.registerHeaderEntry("Comment");
-			vh.registerHeaderEntry("Assigned");
+			vh.registerHeaderEntry("Comment_Analysis");
+			vh.registerHeaderEntry("Analysis_Assigned");
 			vh.registerHeaderEntry("Task Tracking");
 			vh.registerHeaderEntry("Priority");
 			vh.registerHeaderEntry("Responsible");
@@ -300,9 +300,9 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		row.addCell("Details", detailsRedirect);
 		
 		if(res.exists()) {
-			vh.stringEdit("Comment",  id, res.comment(), row, alert, res.comment());
+			vh.stringEdit("Comment_Analysis",  id, res.comment(), row, alert, res.comment());
 			ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
-					"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
+					"Analysis_Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
 				public void onGET(OgemaHttpRequest req) {
 					myDrop.selectItem(res.assigned(), req);
 					final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(String.valueOf(res.assigned().getValue()));
@@ -329,7 +329,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 					}
 				}
 			};
-			row.addCell("Assigned", widgetPlus.myDrop);
+			row.addCell(WidgetHelper.getValidWidgetId("Analysis_Assigned"), widgetPlus.myDrop);
 			
 			if(!res.linkToTaskTracking().getValue().isEmpty()) {
 				RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",

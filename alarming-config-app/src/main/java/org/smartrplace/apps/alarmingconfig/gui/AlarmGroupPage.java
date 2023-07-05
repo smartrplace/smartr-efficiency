@@ -42,8 +42,8 @@ public class AlarmGroupPage extends ObjectGUITablePageNamed<AlarmOngoingGroup, R
 			vh.registerHeaderEntry("Base Alarms");
 			vh.registerHeaderEntry("Type");
 			vh.registerHeaderEntry("Started");
-			vh.registerHeaderEntry("Comment");
-			vh.registerHeaderEntry("Assigned");
+			vh.registerHeaderEntry("Comment_Analysis");
+			vh.registerHeaderEntry("Analysis_Assigned");
 			vh.registerHeaderEntry("Task Tracking");
 			vh.registerHeaderEntry("Edit TT");
 			vh.registerHeaderEntry("ID");
@@ -56,7 +56,7 @@ public class AlarmGroupPage extends ObjectGUITablePageNamed<AlarmOngoingGroup, R
 		if(res != null) {
 			res.create();
 			vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
-			vh.stringEdit("Comment",  id, res.comment(), row, alert);
+			vh.stringEdit("Comment_Analysis",  id, res.comment(), row, alert);
 			/*Map<String, String> valuesToSet = new LinkedHashMap<>();
 			String curVal = res.acceptedByUser().getValue();
 			if(curVal != null && (!curVal.isEmpty()))
@@ -67,8 +67,8 @@ public class AlarmGroupPage extends ObjectGUITablePageNamed<AlarmOngoingGroup, R
 					continue;
 				valuesToSet.put(user.getName(), user.getName());
 			}
-			vh.dropdown("Assigned", id, res.acceptedByUser(), row, valuesToSet);*/
-			vh.dropdown("Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
+			vh.dropdown("Analysis_Assigned", id, res.acceptedByUser(), row, valuesToSet);*/
+			vh.dropdown("Analysis_Assigned", id, res.assigned(), row, AlarmingConfigUtil.ASSIGNEMENT_ROLES);
 			if(!res.linkToTaskTracking().getValue().isEmpty()) {
 				RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
 						res.linkToTaskTracking().getValue(), req);

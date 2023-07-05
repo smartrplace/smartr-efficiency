@@ -693,8 +693,17 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			pageTitle = "Devices of type "+ grp.label(null);
 		else
 			pageTitle = "Devices of type "+ pe.label(null);
-		final boolean showAlarmCtrl = pageType == KnownFaultsPageType.SUPERVISION_STANDARD;
-		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe, showAlarmCtrl, false) {
+		//final boolean showAlarmCtrl = pageType == KnownFaultsPageType.SUPERVISION_STANDARD;
+		final AlarmingDeviceTableBase result = new AlarmingDeviceTableBase(page, appManPlus, alert, pageTitle, resData, commitButton, appSelector, pe, false, false) {
+			@Override
+			protected void addFrontWidgets(InstallAppDevice object,
+					ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh, String id, OgemaHttpRequest req,
+					Row row, ApplicationManager appMan, PhysicalElement device) {
+				if(req == null) {
+					vh.registerHeaderEntry("Order Onsite");
+				}
+			}
+			
 			protected void addAdditionalWidgets(final InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice,InstallAppDevice> vh, String id,
 					OgemaHttpRequest req, Row row, final ApplicationManager appMan,
 					PhysicalElement device, final InstallAppDevice template) {
@@ -704,10 +713,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Message");
 					vh.registerHeaderEntry("Details");
-					vh.registerHeaderEntry("Comment");
-					vh.registerHeaderEntry("Assigned");
+					vh.registerHeaderEntry("Comment_Analysis");
+					vh.registerHeaderEntry("Analysis_Assigned");
 					vh.registerHeaderEntry("Task Tracking");
-					vh.registerHeaderEntry("Priority");
 					vh.registerHeaderEntry("Responsible");
 					vh.getHeader().put("followup", "Follow-up");
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
@@ -861,6 +869,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				};
 				showMsg.setDefaultText("Last message");
 				showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
+				showMsg.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
 				lastMessagePopup.setTriggers(showMsg);
 				row.addCell("Message", showMsg);
 				
@@ -870,7 +879,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				row.addCell("Details", detailsRedirect);
 				
 				if(res.exists()) {
-					vh.stringEdit("Comment",  id, res.comment(), row, alert, res.comment());
+					vh.stringEdit("Comment_Analysis",  id, res.comment(), row, alert, res.comment());
 					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
 							"Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
 						public void onGET(OgemaHttpRequest req) {
@@ -900,7 +909,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 							SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan);
 						}
 					};
-					row.addCell("Assigned", widgetPlus.myDrop);
+					row.addCell(WidgetHelper.getValidWidgetId("Analysis_Assigned"), widgetPlus.myDrop);
 					
 					if(!res.linkToTaskTracking().getValue().isEmpty()) {
 						RedirectButton taskLink = new RedirectButton(mainTable, "taskLink"+id, "Task Tracking",
@@ -912,7 +921,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					prioField.setDefaultToolTip("Alarm priority, e.g. 10, 20, 30, ...");
 					prioField.setDefaultWidth("4em");
 					prioField.triggerAction(prioField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-					row.addCell("Priority", prioField);
+					row.addCell(WidgetHelper.getValidWidgetId("Order Onsite"), prioField);
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 					

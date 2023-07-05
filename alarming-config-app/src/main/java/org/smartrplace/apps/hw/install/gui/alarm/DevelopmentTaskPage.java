@@ -60,7 +60,7 @@ public class DevelopmentTaskPage extends ObjectGUITablePageNamed<DevelopmentTask
 			String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		addNameLabel(object, vh, id, row, req);
 		vh.stringEdit("Name", id, object.name(), row, alert);
-		vh.stringEdit("Comment", id, object.comment(), row, alert);
+		vh.stringEdit("Comment_Analysis", id, object.comment(), row, alert);
 		if(req == null) {
 			vh.registerHeaderEntry("Task Tracking");
 			vh.registerHeaderEntry("Edit TT");
