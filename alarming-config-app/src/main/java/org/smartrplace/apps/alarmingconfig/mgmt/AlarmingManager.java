@@ -239,7 +239,7 @@ public class AlarmingManager implements AlarmingStartedService {
 			if(devHand != null) {
 				float minValueByDatabase = AlarmValueListenerBasic.getMinNoValueDatapoint(ac, devTac, minNoValueDevice);
 				if(minValueByDatabase > 0) {
-					minNoValueByProv = devHand.getMinimumNoValueTime(iad, minValueByDatabase);
+					minNoValueByProv = devHand.getMinimumNoValueTime(ac, iad, minValueByDatabase);
 				}
 			}
 			if(minNoValueByProv != null)

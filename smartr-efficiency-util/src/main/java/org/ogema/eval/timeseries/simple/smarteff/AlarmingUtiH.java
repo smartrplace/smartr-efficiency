@@ -491,13 +491,13 @@ public class AlarmingUtiH {
 		case 1:
 			return "Default Cyclic Forced";
 		case 2:
-			return "No Cylic";
+			return "No Cyclic";
 		case 3:
-			return "No Cylic Forced";
+			return "No Cyclic Forced";
 		case 4:
-			return "Saving Cylic";
+			return "Saving Cyclic";
 		case 5:
-			return "Saving Cylic Forced";
+			return "Saving Cyclic Forced";
 		default:
 			return "UNKNOWN STATE:"+value;
 		}

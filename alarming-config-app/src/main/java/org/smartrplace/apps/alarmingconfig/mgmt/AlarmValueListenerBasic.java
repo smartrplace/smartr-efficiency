@@ -68,6 +68,8 @@ public abstract class AlarmValueListenerBasic<T extends SingleValueResource> imp
 			dpResult = ac.maxIntervalBetweenNewValues().getValue();
 		if(minNoValue != null) {
 			//long minNoValueMSec = (long) (minNoValue*60000l);
+			if(minNoValue < 0)
+				return minNoValue;
 			if((dpResult < minNoValue) && (dpResult > 0))
 				return minNoValue;
 		}
