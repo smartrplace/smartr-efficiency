@@ -1,5 +1,6 @@
 package org.smartrplace.apps.hw.install.gui;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +24,9 @@ import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.devicefinder.util.LastContactLabel;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmDevice;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmInterfaceInfo;
+import org.ogema.drivers.homematic.xmlrpc.hl.types.HmLogicInterface;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.externalviewer.extensions.DefaultScheduleViewerConfigurationProviderExtended;
 import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
@@ -32,11 +36,13 @@ import org.ogema.model.devices.buildingtechnology.ThermostatProgram;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.ogema.tools.driver.api.HomeMaticConnectionI;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.eval.hardware.HmCCUPageUtils;
 import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.LabelFormatterFloatRes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -961,10 +967,68 @@ public class ThermostatPage extends MainPage {
 					InstallAppDevice ccuIad = HmSetpCtrlManager.getCCU(device, controller.dpService);
 					if(ccuIad != null)
 						vh.stringLabel("CCU", id, ccuIad.deviceId().getValue(), row);
+					
+					if((type == ThermostatPageType.AUTO_MODE) && (ccuIad != null) && (controller.hwInstApp.ccuAccess != null)) {
+						PhysicalElement deviceRaw = ccuIad.device();
+						if(deviceRaw instanceof HmInterfaceInfo) {
+							HmInterfaceInfo ccuDevice = ((HmInterfaceInfo) deviceRaw).getLocationResource();
+							Resource ccuParent = ccuDevice.getParent();
+							int state = HmCCUPageUtils.getTeachInState(ccuDevice);
+							Resource hmdRaw = device.getParent();
+							HmDevice hmd;
+							if(hmdRaw != null && (hmdRaw instanceof HmDevice))
+								hmd = (HmDevice) hmdRaw;
+							else
+								hmd = null;
+							if(hmd == null || (!(ccuParent != null && (ccuParent instanceof HmLogicInterface)))) {
+								vh.stringLabel("Reset", id, "No HM Device", row);
+							} else if(state == 3) {
+								String thName = hmd.getName();
+								ButtonConfirm resetButton = new ButtonConfirm(mainTable, "resetButton"+id, req) {
+									public void onPOSTComplete(String data, OgemaHttpRequest req) {
+										HmInterfaceInfo ccuDevice = (HmInterfaceInfo) deviceRaw;
+										int stateBeforeAction = HmCCUPageUtils.getTeachInState(ccuDevice);
+										if(stateBeforeAction != 3) {
+											alert.showAlert("CCU not in teach-in mode anymore! Will not perform reset.", false, req);
+											return;
+										}
+										HomeMaticConnectionI conn = controller.hwInstApp.ccuAccess.getConnection((HmLogicInterface) ccuParent);
+										try {
+											conn.setInstallMode(true, 10*60, 2);
+										} catch (IOException e) {
+											e.printStackTrace();
+											alert.showAlert("Special install mode 2 failed!", false, req);
+											return;
+										}
+										try {
+											conn.deleteDevice(thName, 1);
+										} catch (IOException e) {
+											e.printStackTrace();
+											alert.showAlert("Factory reset failed!", false, req);
+											return;
+										}
+										alert.showAlert("Started factory reset.", true, req);
+									};
+								};
+								resetButton.setText("Reset", req);
+								resetButton.setConfirmMsg("Really perform factory reset on "
+										+ (object.deviceId().getValue())+ " / "
+										+ ((thName.length()>4)?thName.substring(thName.length()-4):thName)+" and perform re-connect to CCU? Teach-in mode for CCU is recognized as active,"
+										+ " but it is recommended to check also manually. Also check that no other CCU is in teach-in mode.", req);
+								vh.registerHeaderEntry("Reset");
+								resetButton.registerDependentWidget(alert);
+								row.addCell("Reset", resetButton);
+							} else {
+								vh.stringLabel("Reset", id, "No CCU Teach-In", row);
+							}
+						}
+					}
+
 				} else {
 					if(type == ThermostatPageType.AUTO_MODE) {
 						vh.registerHeaderEntry("Allow Auto");
 						vh.registerHeaderEntry("SendMan");
+						vh.registerHeaderEntry("Reset");
 					} else if(type == ThermostatPageType.STANDARD_VIEW_ONLY) {
 						vh.registerHeaderEntry("KniStatus");
 						vh.registerHeaderEntry("SendMan");						
