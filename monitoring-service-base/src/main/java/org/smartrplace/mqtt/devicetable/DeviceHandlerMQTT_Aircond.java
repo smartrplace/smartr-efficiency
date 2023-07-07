@@ -11,6 +11,7 @@ import org.ogema.accessadmin.api.util.DeviceUtil;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.application.Timer;
 import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
@@ -19,11 +20,13 @@ import org.ogema.core.resourcemanager.pattern.ResourcePatternAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.InstalledAppsSelector;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceHandlerSimple;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.model.actors.MultiSwitch;
+import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.buildingtechnology.AirConditioner;
 import org.ogema.model.devices.buildingtechnology.MechanicalFan;
 import org.ogema.model.locations.Room;
@@ -281,6 +284,10 @@ public class DeviceHandlerMQTT_Aircond extends DeviceHandlerSimple<AirConditione
 		addDatapoint(dev.onOffSwitch().stateFeedback(), result);
 		addDatapoint(dev.getSubResource("operationMode", MultiSwitch.class).stateControl(), result);
 		addDatapoint(dev.getSubResource("operationMode", MultiSwitch.class).stateFeedback(), result);
+		addDatapoint(dev.getSubResource("globalButtonLock", OnOffSwitch.class).stateControl(), "globalButtonLockCt", result);
+		addDatapoint(dev.getSubResource("globalButtonLock", OnOffSwitch.class).stateFeedback(), "globalButtonLockFb", result);
+		addDatapoint(dev.getSubResource("controlMode", MultiSwitch.class).stateControl(), "controlModeSpecialCt", result);
+		addDatapoint(dev.getSubResource("controlMode", MultiSwitch.class).stateFeedback(), "controlModeSpecialFb", result);
 		
 		Resource parent = dev.getParent();
 		if(DeviceTableRaw.isRelativeSetpointSystem() && (parent != null) && (parent instanceof PhysicalElement)) {
