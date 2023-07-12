@@ -993,12 +993,18 @@ public class ThermostatPage extends MainPage {
 											return;
 										}
 										HomeMaticConnectionI conn = controller.hwInstApp.ccuAccess.getConnection((HmLogicInterface) ccuParent);
-										try {
-											conn.setInstallMode(true, 10*60, 2);
-										} catch (IOException e) {
-											e.printStackTrace();
-											alert.showAlert("Special install mode 2 failed!", false, req);
-											return;
+										if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.factoryReset.specialinstallmodeSkip")) {
+											try {
+												conn.setInstallMode(true, 10*60, 2);
+											} catch (IOException e) {
+												e.printStackTrace();
+												if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.factoryReset.specialinstallmodeOptional")) {
+													alert.showAlert("Special install mode 2 failed!", false, req);
+													return;
+												} else {
+													alert.showAlert("Special install mode 2 failed! This is optional for this gateway, so we continue...", false, req);													
+												}
+											}
 										}
 										try {
 											conn.deleteDevice(thName, 1);
