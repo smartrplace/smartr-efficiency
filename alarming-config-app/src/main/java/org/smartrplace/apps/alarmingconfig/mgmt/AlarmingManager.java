@@ -15,6 +15,7 @@ import org.ogema.core.application.Timer;
 import org.ogema.core.application.TimerListener;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.schedule.Schedule;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
@@ -99,6 +100,9 @@ public class AlarmingManager implements AlarmingStartedService {
 	}
 	protected final List<ValueListenerData> valueListeners  =
 			new ArrayList<>();
+	
+	/** ValueResource-Location -> ValueListenerData */ 
+	protected final Map<String, ValueListenerData> valueListenersMap = new HashMap<>();
 	protected final List<ValueListenerData> scheduleConfigs = new ArrayList<>();
 	protected Timer scheduleTimer = null;
 	protected long lastTimeStamp = -1;
@@ -258,6 +262,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				AlarmValueListenerBoolean mylistener = new AlarmValueListenerBoolean(ac, vl, appManPlus, dp, devTac, minNoValue, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
+				valueListenersMap.put(res.getLocation(), vl);
 				res.addValueListener(mylistener, true);
 				if(res.isActive())
 					lastValueWritten = LogHelper.getLastWriteTime(res);
@@ -272,6 +277,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				AlarmValueListenerInteger mylistener = new AlarmValueListenerInteger(ac, vl, appManPlus, dp, devTac, minNoValue, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
+				valueListenersMap.put(res.getLocation(), vl);
 				res.addValueListener(mylistener, true);
 				if(res.isActive())
 					lastValueWritten = LogHelper.getLastWriteTime(res);
@@ -286,6 +292,7 @@ public class AlarmingManager implements AlarmingStartedService {
 				AlarmValueListener mylistener = new AlarmValueListener(ac, vl, appManPlus, dp, devTac, minNoValue, controller);
 				vl.listener = mylistener;
 				valueListeners.add(vl);
+				valueListenersMap.put(res.getLocation(), vl);
 				res.addValueListener(mylistener, true);
 				if(res.isActive())
 					lastValueWritten = LogHelper.getLastWriteTime(res);
@@ -308,6 +315,7 @@ public class AlarmingManager implements AlarmingStartedService {
 						};
 						vlb.listener = onOffListener;
 						valueListeners.add(vlb);
+						valueListenersMap.put(bres.getLocation(), vl);
 						bres.addValueListener(onOffListener, false);					
 					}
 				}
@@ -864,5 +872,10 @@ System.out.println("Bulk messages aggregated: "+sd.numBulkMessage);
 			return AlarmingUtiH.CUSTOMER_SP_SAME;
 		}
 		throw new IllegalStateException("Unknown MessageDestination:"+md);
+	}
+	
+	@Override
+	public ValueListenerDataBase getValueListenerData(ValueResource res) {
+		return valueListenersMap.get(res.getLocation());
 	}
 }

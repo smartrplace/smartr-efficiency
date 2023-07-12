@@ -85,6 +85,13 @@ import de.iwes.widgets.api.widgets.navigation.NavigationMenu;
 		policy=ReferencePolicy.DYNAMIC,
 		bind="addCCUAccess",
 		unbind="removeCCUAccess"),
+	//@Reference(
+	//	name="alarmingInternal",
+	//	referenceInterface=AlarmingStartedService.class,
+	//	cardinality=ReferenceCardinality.OPTIONAL_MULTIPLE,
+	//	policy=ReferencePolicy.DYNAMIC,
+	//	bind="addAlarmingStarted",
+	//	unbind="removeAlarmingStarted"),
 	@Reference(
 		name="gwReplicationConnector",
 		referenceInterface=GatewaySyncResourceService.class,
@@ -136,6 +143,8 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
 	public volatile CCUAccessI ccuAccess = null;
 	
 	public volatile GatewaySyncResourceService gwSync = null;
+
+	//public volatile AlarmingStartedService alarmingInternal = null;
 
 	protected final GenericControllerProvider<HardwareInstallController> controllerProvider;
     public HardwareInstallApp() {
@@ -294,4 +303,14 @@ public class HardwareInstallApp implements Application, DeviceHandlerAccess {
        	if(gwSync != null && gwSync.equals(provider))
        		gwSync = null;
     }
+    
+    /*protected void addAlarmingStarted(AlarmingStartedService provider) {
+    	if(alarmingInternal == null) {
+    		alarmingInternal = provider;
+    	}
+    }
+    protected void removeAlarmingStarted(AlarmingStartedService provider) {
+       	if(alarmingInternal != null && alarmingInternal.equals(provider))
+       		alarmingInternal = null;
+    }*/
  }

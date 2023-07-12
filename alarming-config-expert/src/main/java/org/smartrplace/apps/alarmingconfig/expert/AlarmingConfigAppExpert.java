@@ -5,10 +5,12 @@ import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.timeseries.eval.simple.api.AlarmingStartedService;
 import org.ogema.util.controllerprovider.GenericControllerReceiver;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
+import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingServiceProvider;
 import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.AlarmingLevelPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
@@ -92,7 +94,14 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 
 			//if(Boolean.getBoolean("org.smartrplace.app.srcmon.isgateway")) { //&& (!Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.minimalview"))) {
 				WidgetPage<?> pageRes10 = widgetApp.createWidgetPage("ongoingbase.html");
-				new OngoingBaseAlarmsPage(pageRes10, controller.appManPlus); //, base);
+				AlarmingServiceProvider serviceProv = new AlarmingServiceProvider() {
+					
+					@Override
+					public AlarmingStartedService getStartedService() {
+						return controller.alarmMan;
+					}
+				};
+				new OngoingBaseAlarmsPage(pageRes10, controller.appManPlus, serviceProv); //, base);
 				menu.addEntry("4. Active Alarms", pageRes10);
 				configMenuConfig(pageRes10.getMenuConfiguration());
 			//}

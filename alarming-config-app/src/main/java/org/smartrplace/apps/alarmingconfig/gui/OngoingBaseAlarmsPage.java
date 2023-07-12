@@ -43,7 +43,11 @@ public class OngoingBaseAlarmsPage extends MainPage {
 	private Multiselect deviceSelector;
 	
 	public OngoingBaseAlarmsPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) {
-		super(page, appManPlus);
+		this(page, appManPlus, null);
+	}
+	public OngoingBaseAlarmsPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus,
+			AlarmingServiceProvider serviceProv) {
+		super(page, appManPlus, false, true, serviceProv!=null, serviceProv);
 	}
 
 	@Override

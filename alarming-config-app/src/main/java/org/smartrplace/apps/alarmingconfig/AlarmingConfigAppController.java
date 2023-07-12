@@ -13,11 +13,13 @@ import org.ogema.core.application.AppID;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.ResourceList;
+import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
+import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.messaging.basic.services.config.ReceiverPageBuilder;
@@ -130,7 +132,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		return null;
 	}
 	
-	protected AlarmingManager alarmMan = null;
+	public AlarmingManager alarmMan = null;
 	ResourceValueListener<BooleanResource> alarmingActiveListener = null;
 	private final Map<String, AppID> appsToSend;
 	public List<HardwareTablePage> mainPageExts = new ArrayList<>();
@@ -300,6 +302,14 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				@Override
 				public boolean isAlarmingStarted() {
 					return false;
+				}
+
+				@Override
+				public ValueListenerDataBase getValueListenerData(ValueResource res) {
+					if(alarmMan != null)
+						return alarmMan.getValueListenerData(res);
+					else
+						return null;
 				}
 			}, null);
 

@@ -15,9 +15,12 @@ import org.ogema.devicefinder.api.AlarmingExtension;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.AlarmingExtensionBase.ValueListenerDataBase;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.timeseries.eval.simple.api.AlarmingStartedService;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.gui.tablepages.PerMultiselectConfigPage;
@@ -61,21 +64,33 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 	//private final Resource baseResource;
 	protected final ApplicationManagerPlus appManPlus;
 	protected final DatapointService dpService;
+	private final boolean showRealParams;
+	
+	public static interface AlarmingServiceProvider {
+		AlarmingStartedService getStartedService();
+	}
+	private final AlarmingServiceProvider serviceProv;
 	
 
 	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus) {
 		this(page, appManPlus, false);
 	}
 	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns) {
-		this(page, appManPlus, showReducedColumns, true);
+		this(page, appManPlus, showReducedColumns, true, false, null);
 	}
 	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns, boolean showSuperAdmin) {
+		this(page, appManPlus, showReducedColumns, showSuperAdmin, false, null);
+	}
+	public MainPage(WidgetPage<?> page, ApplicationManagerPlus appManPlus, boolean showReducedColumns, boolean showSuperAdmin,
+			boolean showRealParams, AlarmingServiceProvider serviceProv) {
 		super(page, appManPlus.appMan(), ResourceHelper.getSampleResource(AlarmConfiguration.class), !showSuperAdmin);
 		//this.baseResource = baseResource;
 		this.appManPlus = appManPlus;
 		this.dpService = appManPlus.dpService();
 		this.showReducedColumns = showReducedColumns;
 		this.showSuperAdmin = showSuperAdmin;
+		this.showRealParams = showRealParams;
+		this.serviceProv = serviceProv;
 		appMan.getLogger().info("Alarming Config page created at {}", page.getFullUrl());
 		triggerPageBuild();
 	}
@@ -167,6 +182,21 @@ public class MainPage extends PerMultiselectConfigPage<AlarmConfiguration, Alarm
 		vh.floatEdit("Maximum duration until new value is received (min)",
 				id, sr.maxIntervalBetweenNewValues(), row, alert,
 				-Float.MAX_VALUE, Float.MAX_VALUE, "");
+		if(showRealParams && serviceProv != null) {
+			if(req == null)
+				vh.registerHeaderEntry("Effective Maximum Duration");
+			else {
+				AlarmingStartedService serv = serviceProv.getStartedService();
+				if(serv != null) {
+					ValueListenerDataBase vl = serv.getValueListenerData(sr.sensorVal());
+					if(vl != null) {
+						String effMaxWithout = String.format("%.1f", ((double)vl.maxIntervalBetweenNewValues)/TimeProcUtil.MINUTE_MILLIS);
+						vh.stringLabel("Effective Maximum Duration", id, effMaxWithout, row);
+					} else
+						vh.stringLabel("Effective Maximum Duration", id, "no vl", row);
+				}
+			}
+		}
 		if((!showReducedColumns) && showSuperAdmin)
 			vh.booleanEdit("Monitoring Switch active", id, sr.performAdditinalOperations(), row);
 		if(req == null)
