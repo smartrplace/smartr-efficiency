@@ -14,6 +14,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.TemperatureResource;
 import org.ogema.core.model.units.VoltageResource;
 import org.ogema.devicefinder.api.Datapoint;
@@ -39,6 +40,7 @@ import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.tools.driver.api.HomeMaticConnectionI;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
+import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -59,6 +61,8 @@ import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.util.timer.AbsoluteTimeHelper;
+import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
@@ -1012,8 +1016,32 @@ public class ThermostatPage extends MainPage {
 												}
 											}
 										}
+										long now = appMan.getFrameworkTime();
 										try {
+											Resource srcConfig = appMan.getResourceAccess().getResource("smartrplaceHeatcontrolConfig");
+											if(srcConfig != null) {
+												TimeResource batteryChangeModeUntil = srcConfig.getSubResource("batteryChangeModeUntil", TimeResource.class);
+												ValueResourceHelper.setCreate(batteryChangeModeUntil, now+7*TimeProcUtil.MINUTE_MILLIS);
+											}
 											conn.deleteDevice(thName, 1);
+											new CountDownDelayedExecutionTimer(appMan, 5*TimeProcUtil.MINUTE_MILLIS) {
+												
+												@Override
+												public void delayedExecution() {
+													//adapt and resend settings
+													final BooleanResource ada = device.valve().getSubResource("startAdaption", BooleanResource.class);
+													if(ada != null && ada.exists())
+														ada.setValue(true);
+													final IntegerResource controlMode = device.getSubResource("controlMode", IntegerResource.class);
+													if(controlMode != null && controlMode.exists())
+														controlMode.setValue(controlMode.getValue());
+													final IntegerResource update = device.getSubResource("program", ThermostatProgram.class).update();
+													if(update != null && update.isActive())
+														update.setValue((update.getValue()== 127)?255:127);
+													device.temperatureSensor().settings().setpoint().setValue(
+															device.temperatureSensor().settings().setpoint().getValue());
+												}
+											};
 										} catch (IOException e) {
 											e.printStackTrace();
 											alert.showAlert("Factory reset failed for "+thName+" !", false, req);
