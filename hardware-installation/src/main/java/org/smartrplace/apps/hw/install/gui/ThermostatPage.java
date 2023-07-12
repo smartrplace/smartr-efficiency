@@ -1003,7 +1003,7 @@ public class ThermostatPage extends MainPage {
 											return;
 										}
 										HomeMaticConnectionI conn = controller.hwInstApp.ccuAccess.getConnection((HmLogicInterface) ccuParent);
-										if(!Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.factoryReset.specialinstallmodeSkip")) {
+										if(Boolean.getBoolean("org.smartrplace.apps.hw.install.gui.factoryReset.specialinstallmodeUse")) {
 											try {
 												conn.setInstallMode(true, 10*60, 2);
 											} catch (IOException e) {
