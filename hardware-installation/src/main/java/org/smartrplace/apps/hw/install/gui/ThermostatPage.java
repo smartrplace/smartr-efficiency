@@ -983,7 +983,13 @@ public class ThermostatPage extends MainPage {
 							if(hmd == null || (!(ccuParent != null && (ccuParent instanceof HmLogicInterface)))) {
 								vh.stringLabel("Reset", id, "No HM Device", row);
 							} else if(state == 3) {
-								String thName = hmd.getName();
+								String thNameLong = hmd.getName();
+								int idx = thNameLong.lastIndexOf('_');
+								String thName;
+								if(idx > 0)
+									thName = thNameLong.substring(idx+1);
+								else
+									thName = thNameLong;
 								ButtonConfirm resetButton = new ButtonConfirm(mainTable, "resetButton"+id, req) {
 									public void onPOSTComplete(String data, OgemaHttpRequest req) {
 										HmInterfaceInfo ccuDevice = (HmInterfaceInfo) deviceRaw;
@@ -1010,10 +1016,10 @@ public class ThermostatPage extends MainPage {
 											conn.deleteDevice(thName, 1);
 										} catch (IOException e) {
 											e.printStackTrace();
-											alert.showAlert("Factory reset failed!", false, req);
+											alert.showAlert("Factory reset failed for "+thName+" !", false, req);
 											return;
 										}
-										alert.showAlert("Started factory reset.", true, req);
+										alert.showAlert("Started factory reset for "+thName+".", true, req);
 									};
 								};
 								resetButton.setText("Reset", req);
