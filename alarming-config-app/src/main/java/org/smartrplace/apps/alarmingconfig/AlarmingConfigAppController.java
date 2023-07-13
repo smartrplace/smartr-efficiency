@@ -273,6 +273,16 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			//we set this true later on
 			hwTableData.appConfigData.isAlarmingActive().setValue(false);
 		}
+		Integer initialRestartRetard = Integer.getInteger("org.smartrplace.apps.alarmingconfig.initialRestartAfterMinutes");
+		if(initialRestartRetard != null) {
+			new CountDownDelayedExecutionTimer(appMan, initialRestartRetard*TimeProcUtil.MINUTE_MILLIS) {
+				
+				@Override
+				public void delayedExecution() {
+					updateAlarming();
+				}
+			};
+		}
 		
 		hwTableData.appConfigData.isAlarmingActive().addValueListener(alarmingActiveListener, false);
 		

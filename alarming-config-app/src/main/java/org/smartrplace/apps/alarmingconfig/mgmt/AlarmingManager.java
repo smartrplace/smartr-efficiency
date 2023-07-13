@@ -102,7 +102,7 @@ public class AlarmingManager implements AlarmingStartedService {
 			new ArrayList<>();
 	
 	/** ValueResource-Location -> ValueListenerData */ 
-	protected final Map<String, ValueListenerData> valueListenersMap = new HashMap<>();
+	private final Map<String, ValueListenerData> valueListenersMap = new HashMap<>();
 	protected final List<ValueListenerData> scheduleConfigs = new ArrayList<>();
 	protected Timer scheduleTimer = null;
 	protected long lastTimeStamp = -1;
