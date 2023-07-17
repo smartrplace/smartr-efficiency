@@ -17,8 +17,9 @@ import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsInstallationPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
-import org.smartrplace.apps.hw.install.gui.alarm.MajorKnownFaultsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage.KnownFaultsPageType;
+import org.smartrplace.apps.hw.install.gui.alarm.GatewayMasterDataPage;
+import org.smartrplace.apps.hw.install.gui.alarm.MajorKnownFaultsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.MessagingAppConfigPage;
 import org.smartrplace.apps.hw.install.gui.alarm.ResponsibilityContactsPage;
 
@@ -159,6 +160,16 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			menu.addEntry("10. Responsible contacts", pageResponsibleContacts);
 			configMenuConfig(pageResponsibleContacts.getMenuConfiguration());
 			
+			WidgetPage<?> pageRes17 = widgetApp.createWidgetPage("masterdatabase.html");
+			new GatewayMasterDataPage(pageRes17, controller.appMan, true);
+			menu.addEntry("11. Contact and Installation Master Database", pageRes17);
+			configMenuConfig(pageRes17.getMenuConfiguration());
+
+			WidgetPage<?> pageRes18 = widgetApp.createWidgetPage("masterdatabasereadonly.html");
+			new GatewayMasterDataPage(pageRes18, controller.appMan, false);
+			menu.addEntry("11b. Contact and Installation Master Database (Read Only)", pageRes18);
+			configMenuConfig(pageRes18.getMenuConfiguration());
+
 			LogHelper.logStartup(4, appMan);
 		}
 	};
