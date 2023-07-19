@@ -14,6 +14,7 @@ import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
 import org.smartrplace.external.accessadmin.config.SubCustomerSuperiorData;
+import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 
@@ -55,6 +56,8 @@ public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperio
 			ObjectResourceGUIHelper<SubCustomerSuperiorData, SubCustomerSuperiorData> vh, String id,
 			OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 		if(req == null) {
+			if(Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior"))
+				vh.registerHeaderEntry("Gateway");
 			vh.registerHeaderEntry("Name");
 			vh.registerHeaderEntry("Email_Tech");
 			vh.registerHeaderEntry("Anrede_Tech");
@@ -77,6 +80,10 @@ public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperio
 			vh.registerHeaderEntry("TH-Adapter");
 
 			return;
+		}
+		if(Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior")) {
+			String gwId = GatewaySyncUtil.getGatewayBaseIdRemote(object, true);
+			vh.stringLabel("Gateway", id, gwId, row);
 		}
 		vh.stringLabel("Name", id, ResourceUtils.getHumanReadableShortName(object), row);
 		addStringElement("Email_Tech", object.additionalAdminEmailAddresses(), vh, id, row);
