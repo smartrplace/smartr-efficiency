@@ -342,7 +342,8 @@ System.out.println("ToRemoveAll:"+StringFormatHelper.getListToPrint(toRemovePerm
 
 //		toRemovePerms.removeAll(additionalPermissionstoMaintain);
 //System.out.println("ToRemoveReally:"+StringFormatHelper.getListToPrint(toRemovePerms));
-		removePerms(userData, toRemovePerms, appManPlus);
+		if(!userData.getName().startsWith("master"))	
+			removePerms(userData, toRemovePerms, appManPlus);
 		
 		addMissingPerms(userData, missingPerms, appManPlus);
 		return missingPerms;
