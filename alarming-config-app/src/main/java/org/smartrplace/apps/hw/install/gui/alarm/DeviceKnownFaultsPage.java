@@ -53,6 +53,7 @@ import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
+import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
@@ -709,6 +710,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					PhysicalElement device, final InstallAppDevice template) {
 				if(req == null) {
 					//vh.registerHeaderEntry("Main value");
+					if(Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior") && pe.label(null).equals("Gateway Device"))
+						vh.registerHeaderEntry("Gateway");
 					vh.getHeader().put("value", "Value/contact");
 					vh.registerHeaderEntry("Started");
 					vh.registerHeaderEntry("Message");
@@ -743,6 +746,14 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					vh.dropdown("Diagnosis",  id, res.diagnosis(), row, dignosisVals);
 					return;
 				}
+				
+				if(Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior") && pe.label(null).equals("Gateway Device")) {
+					String loc = object.installationLocation().getValue();
+					if(loc == null || loc.isEmpty())
+						loc = GatewaySyncUtil.getGatewayBaseIdIfRemoteDevice(object.device().getLocationResource());
+					vh.stringLabel("Gateway", id, loc, row);
+				}
+				
 				//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 				// some special sensor values... priority for display: battery voltage; mainSensorValue, rssi, eq3state
 				//final ValueData valueData = getValueData(object, appMan);
