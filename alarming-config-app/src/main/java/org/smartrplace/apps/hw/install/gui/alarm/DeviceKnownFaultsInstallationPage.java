@@ -598,9 +598,9 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("value", "Wert");
 				header.put("contact", "Letzter Kontakt");
 				header.put("activesince", "Fehler seit");
-				header.put("comment", "Analyse");
+				header.put("comment", "Kommentar");
 				header.put("details", "Details");
-				header.put("assigned", "Verantwortlich");
+				header.put("assigned", "Analyse");
 				header.put("installation", "Ergebnis Vor-Ort");
 				//header.put("message", "Fehlerbericht");
 				header.put("resolve", "Erledigt?");

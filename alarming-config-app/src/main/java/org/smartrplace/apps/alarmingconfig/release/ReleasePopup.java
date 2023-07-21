@@ -29,7 +29,6 @@ import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
-import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.emptywidget.EmptyData;
 import de.iwes.widgets.html.emptywidget.EmptyWidget;
 import de.iwes.widgets.html.form.button.Button;
@@ -332,6 +331,10 @@ public class ReleasePopup {
 	
 	public AlarmGroupData getSelectedIssue(OgemaHttpRequest req) {
 		return ((IssueContainer) this.issueContainer.getData(req)).issue; 
+	}
+	
+	public Popup popupWidget() {
+		return this.popup;
 	}
 	
 	static class IssueContainer extends EmptyData {

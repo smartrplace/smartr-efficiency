@@ -165,7 +165,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		cellSnippet0.addCssItem("#bodyDiv", Map.of("display", "flex", "column-gap", "1em"), null);
 		topTable.setContent(1, 5, cellSnippet0);
 		
-		this.createIssuePopup = new CreateIssuePopup(page, appMan, alert);
+		this.releasePopup = new ReleasePopup(page, "releasepop", appMan, alert);
+		this.createIssuePopup = new CreateIssuePopup(page, appMan, alert, releasePopup);
 		createIssuePopup.trigger(createKnownIssue);
 		
 		ButtonConfirm releaseAllUnassigned = new ButtonConfirm(page, "releaseAllUnassigned") {
@@ -311,7 +312,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		};
 		topTable.setContent(2, 5, floorPlanPage);
 
-		this.releasePopup = new ReleasePopup(page, "releasepop", appMan, alert);
+		
 		releasePopup.append(page);
 	}
 

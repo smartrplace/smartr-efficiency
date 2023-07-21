@@ -24,7 +24,9 @@ import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
+import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.user.NaturalPerson;
+import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -36,12 +38,17 @@ import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.html.StaticTable;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.autocomplete.Autocomplete;
 import de.iwes.widgets.html.autocomplete.AutocompleteData;
+import de.iwes.widgets.html.emptywidget.EmptyData;
+import de.iwes.widgets.html.emptywidget.EmptyWidget;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.checkbox.Checkbox2;
+import de.iwes.widgets.html.form.checkbox.CheckboxEntry;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
@@ -72,9 +79,17 @@ public class CreateIssuePopup {
 	private final ApplicationManager appMan;
 	private final Popup createIssuePopup;
 	private final Button createIssueSubmit;
+	private final Checkbox2 directRelease; // may be null
+	private final EmptyWidget releaseTrigger;
 	
+	/**
+	 * @param page
+	 * @param appMan
+	 * @param alert may be null
+	 * @param releasePopup may be null
+	 */
 	@SuppressWarnings("serial")
-	public CreateIssuePopup(WidgetPage<?> page, ApplicationManager appMan, Alert alert) {
+	public CreateIssuePopup(WidgetPage<?> page, ApplicationManager appMan, Alert alert, ReleasePopup releasePopup) {
 		
 		this.appMan = appMan;
 		final Popup createIssuePopup = new Popup(page, "createIssuePopup", true);
@@ -283,11 +298,10 @@ public class CreateIssuePopup {
 			}
 			
 		};
-		
-		
-		
-		
-		final StaticTable createPopupTable = new StaticTable(9, 2, new int[] {4, 8});
+		int tableRows = 9;
+		if (releasePopup != null)
+			tableRows += 1;
+		final StaticTable createPopupTable = new StaticTable(tableRows, 2, new int[] {4, 8});
 		createPopupTable.setContent(0, 0, createIssueDeviceLab).setContent(0, 1, deviceSelector);
 		createPopupTable.setContent(1, 0, deviceFaultActiveLab).setContent(1, 1, deviceFaultActive);
 		createPopupTable.setContent(2, 0, createIssueCommentLab).setContent(2, 1, createIssueComment);
@@ -297,6 +311,88 @@ public class CreateIssuePopup {
 		createPopupTable.setContent(6, 0, createIssueReminderFreqLab).setContent(6, 1, createIssueReminderFreq);
 		createPopupTable.setContent(7, 0, createIssueTaskTrackingLab).setContent(7, 1, createIssueTaskTracking);
 		createPopupTable.setContent(8, 0, devCommentLab).setContent(8, 1, devComment);
+		if (releasePopup != null) {
+			directRelease = new Checkbox2(page, "createIssueDirectRelease") {
+				
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					final int assignment = Integer.parseInt(createIssueAssigned.getSelectedValue(req));
+					boolean visible = false;
+					if (assignment > 0) {
+						final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(assignment + "");
+						if (role != null && role.toLowerCase().startsWith("op"))
+							visible = true;
+					}
+					if (!visible) {
+						final String responsible = responsibleDropdown.getSelectedValue(req);
+						if (responsible != null && !DropdownData.EMPTY_OPT_ID.equals(responsible))
+							visible = true;
+					}
+					setWidgetVisibility(visible, req);
+				}
+				
+				
+			};
+			directRelease.setDefaultCheckboxList(Collections.singleton(new CheckboxEntry("default") {
+				
+				@Override
+				public String label(OgemaLocale arg0) {
+					return "";
+				}
+			}));
+			// responsible for opening the release popup
+			releaseTrigger = new EmptyWidget(page,"createIssueReleaseTrigger") {
+
+				@Override
+				public EmptyData createNewSession() {  // only to avoid an unsupportedoperationexception... a bit annoying
+					return new EmptyData(this) {
+						
+						@Override
+						public org.json.JSONObject onPOST(String data, OgemaHttpRequest req) {
+							return new org.json.JSONObject();
+						}
+						
+					};
+				}
+				
+			};
+			releaseTrigger.triggerAction(releaseTrigger, TriggeringAction.GET_REQUEST, TriggeredAction.POST_REQUEST);
+			page.append(releaseTrigger);
+			
+			final Label directReleaseLab = new Label(page, "createIssueDirectReleaseLab", "Direct Release") {
+				
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					final int assignment = Integer.parseInt(createIssueAssigned.getSelectedValue(req));
+					boolean visible = false;
+					if (assignment > 0) {
+						final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(assignment + "");
+						if (role != null && role.toLowerCase().startsWith("op"))
+							visible = true;
+					}
+					if (!visible) {
+						final String responsible = responsibleDropdown.getSelectedValue(req);
+						if (responsible != null && !DropdownData.EMPTY_OPT_ID.equals(responsible))
+							visible = true;
+					}
+					setWidgetVisibility(visible, req);
+				}
+				
+			};
+			directReleaseLab.setDefaultToolTip("Immediately release the issue, i.e. create it for statistical purposes only?");
+			createPopupTable.setContent(9, 0, directReleaseLab).setContent(9, 1, directRelease);
+			
+			createIssueAssigned.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			createIssueAssigned.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			responsibleDropdown.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			responsibleDropdown.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			deviceSelector.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+			deviceSelector.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+			
+		} else {
+			directRelease = null;
+			releaseTrigger = null;
+		}
 		
 		
 		final PageSnippet bodySnippet = new PageSnippet(page, "createIssueBodySnip", true);
@@ -384,10 +480,21 @@ public class CreateIssuePopup {
 					if (!developmentComment.isEmpty())
 						alarm.addDecorator("featureUnderDevelopment", StringResource.class).setValue(developmentComment);
 					alarm.activate(true);
-					// only syncs if issue is eligible
-					SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, appMan);
+					// only syncs if issue is eligible; else major is null
+					final AlarmGroupDataMajor major = SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, appMan);
 					if (alert != null)
 						alert.showAlert("Alarm generation succeeded for device " + device.deviceId().getValue() + " (" + device.getLocation() + ")", true, req);
+					if (releasePopup != null) {
+						final boolean release = major != null && 
+								directRelease.getCheckboxList(req).stream().filter(e -> "default".equals(e.id())).findAny().get().isChecked();
+						if (release) {
+							releasePopup.selectIssue(major, req);
+							releaseTrigger.triggerAction(releasePopup.popupWidget(), TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);
+						}
+						else {
+							releaseTrigger.removeTriggerAction(releasePopup.popupWidget(), TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);
+						}
+					}
 				} catch (Exception e) {
 					if (alert != null)
 						alert.showAlert("Alarm generation failed: " + e, false, req);
@@ -419,6 +526,10 @@ public class CreateIssuePopup {
 		deviceSelector.triggerAction(submit, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		cancel.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
 		submit.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
+		if (releasePopup != null)
+			releasePopup.trigger(submit);
+		if (releaseTrigger != null)
+			submit.triggerAction(releaseTrigger, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		if (alert != null)
 			submit.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 	}
