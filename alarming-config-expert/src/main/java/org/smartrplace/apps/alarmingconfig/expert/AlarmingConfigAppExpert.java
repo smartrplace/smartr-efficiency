@@ -16,6 +16,7 @@ import org.smartrplace.apps.hw.install.gui.alarm.AlarmingLevelPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceAlarmingPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsInstallationPage;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsInstallationPage.AlternativeFaultsPageTarget;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage.KnownFaultsPageType;
 import org.smartrplace.apps.hw.install.gui.alarm.GatewayMasterDataPage;
@@ -143,31 +144,38 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 				configMenuConfig(pageRes16.getMenuConfiguration());
 			}
 
-			WidgetPage<?> pageRes15 = widgetApp.createWidgetPage("deviceknownfaultsinstall.html");
+			WidgetPage<?> pageInstall = widgetApp.createWidgetPage("deviceknownfaultsinstall.html");
+			WidgetPage<?> pageOp = widgetApp.createWidgetPage("deviceknownfaultsop.html");
 			synchronized (controller.accessAdminApp) {
-				DeviceKnownFaultsInstallationPage knownFaultsPage = new DeviceKnownFaultsInstallationPage(pageRes15, appMan, controller.accessAdminApp);
+				DeviceKnownFaultsInstallationPage knownFaultsPageAltInstall = new DeviceKnownFaultsInstallationPage(pageInstall, appMan, controller.accessAdminApp, 
+						AlternativeFaultsPageTarget.INSTALLATION);
+				DeviceKnownFaultsInstallationPage knownFaultsPageAltOp = new DeviceKnownFaultsInstallationPage(pageOp, appMan, controller.accessAdminApp, 
+						AlternativeFaultsPageTarget.OPERATION);
+				
 				/*
 				synchronized(controller.mainPageExts) {
 					controller.mainPageExts.add(knownFaultsPage);
 				}
 				*/
 			}
-			menu.addEntry("9. Device Issue Status Installation", pageRes15);
-			configMenuConfig(pageRes15.getMenuConfiguration());
+			menu.addEntry("9. Device Issue Status Installation", pageInstall);
+			configMenuConfig(pageInstall.getMenuConfiguration());
+			menu.addEntry("10. Device Issue Status Operations", pageOp);
+			configMenuConfig(pageOp.getMenuConfiguration());
 			
 			final WidgetPage<?> pageResponsibleContacts = widgetApp.createWidgetPage("responsiblecontacts.html");
 			new ResponsibilityContactsPage(pageResponsibleContacts, appMan);
-			menu.addEntry("10. Responsible contacts", pageResponsibleContacts);
+			menu.addEntry("11. Responsible contacts", pageResponsibleContacts);
 			configMenuConfig(pageResponsibleContacts.getMenuConfiguration());
 			
 			WidgetPage<?> pageRes17 = widgetApp.createWidgetPage("masterdatabase.html");
 			new GatewayMasterDataPage(pageRes17, controller.appMan, true);
-			menu.addEntry("11. Contact and Installation Master Database", pageRes17);
+			menu.addEntry("12. Contact and Installation Master Database", pageRes17);
 			configMenuConfig(pageRes17.getMenuConfiguration());
 
 			WidgetPage<?> pageRes18 = widgetApp.createWidgetPage("masterdatabasereadonly.html");
 			new GatewayMasterDataPage(pageRes18, controller.appMan, false);
-			menu.addEntry("11b. Contact and Installation Master Database (Read Only)", pageRes18);
+			menu.addEntry("12b. Contact and Installation Master Database (Read Only)", pageRes18);
 			configMenuConfig(pageRes18.getMenuConfiguration());
 
 			LogHelper.logStartup(4, appMan);

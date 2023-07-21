@@ -225,7 +225,7 @@ public class ResponsibilityContactsPage {
 	}
 	
 	private void buildPage() {
-		final Header header = new Header(page, "title", "10. Responsibility contacts");
+		final Header header = new Header(page, "title", "11. Responsibility contacts");
 		header.setDefaultHeaderType(1);
 		header.setDefaultColor("darkblue");
 		final Header existingContactsHeader = new Header(page, "exContactsHeader", "Existing contacts");

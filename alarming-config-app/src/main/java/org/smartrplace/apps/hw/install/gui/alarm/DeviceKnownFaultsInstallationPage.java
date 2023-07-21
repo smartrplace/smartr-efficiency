@@ -30,20 +30,21 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Supplier;
 
-import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
-import de.iwes.widgets.api.widgets.html.StaticTable;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
@@ -51,7 +52,6 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirmData;
 import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.DynamicTableData;
 import de.iwes.widgets.html.complextable.RowTemplate;
-import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
@@ -60,7 +60,7 @@ import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.AlignItems;
 import de.iwes.widgets.html.multiselect.TemplateMultiselect;
-import de.iwes.widgets.html.popup.Popup;
+import de.iwes.widgets.html.textarea.TextArea;
 import de.iwes.widgets.resource.widget.dropdown.ResourceListDropdown;
 import de.iwes.widgets.resource.widget.label.TimeResourceLabel;
 import de.iwes.widgets.resource.widget.label.ValueResourceLabel;
@@ -70,19 +70,29 @@ import de.iwes.widgets.template.DisplayTemplate;
 @SuppressWarnings("serial")
 public class DeviceKnownFaultsInstallationPage {
 	
+	public static enum AlternativeFaultsPageTarget {
+		
+		INSTALLATION,
+		OPERATION
+		
+	}
+	
 	private final WidgetPage<?> page;
 	private final ApplicationManager appMan;
 	private final DeviceHandlerAccess deviceHandlers;
+	private final AlternativeFaultsPageTarget target;
 	/*
 	private Popup lastMessagePopup;
 	private Label lastMessageDevice;
 	private Label lastMessage;
 	*/
 	
-	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan, DeviceHandlerAccess deviceHandlers) {
+	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan, DeviceHandlerAccess deviceHandlers,
+			AlternativeFaultsPageTarget target) {
 		this.page = page;
 		this.appMan = appMan;
 		this.deviceHandlers = deviceHandlers;
+		this.target = target;
 		this.buildPage();
 	}
 	
@@ -362,11 +372,44 @@ public class DeviceKnownFaultsInstallationPage {
 				final ValueResourceTextField<StringResource> comment = new ValueResourceTextField<StringResource>(table, id + "_comment", 
 						device.knownFault().comment(), req);
 						*/
-				final ValueResourceLabel<StringResource> comment = new ValueResourceLabel<StringResource>(table, id + "_comment", req); 
-				comment.selectDefaultItem(device.knownFault().comment());
-				if (device.knownFault().comment().isActive())
-					comment.setDefaultToolTip(device.knownFault().comment().getValue());
-				row.addCell("comment", comment);
+				if (target != AlternativeFaultsPageTarget.OPERATION) {
+					final ValueResourceLabel<StringResource> comment = new ValueResourceLabel<StringResource>(table, id + "_comment", req); 
+					comment.selectDefaultItem(device.knownFault().comment());
+					if (device.knownFault().comment().isActive())
+						comment.setDefaultToolTip(device.knownFault().comment().getValue());
+					row.addCell("comment", comment);
+				} else {
+					final TextArea comment = new TextArea(table, id + "_comment", req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							if (device.knownFault().comment().isActive()) {
+								setText(device.knownFault().comment().getValue(), req);
+								setToolTip(device.knownFault().comment().getValue(), req);
+							} else {
+								setText("", req);
+								setToolTip("", req);
+							}
+						}
+						
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							data = getText(req).trim();
+							if (data.isEmpty())
+								device.knownFault().comment().delete();
+							else {
+								device.knownFault().comment().<StringResource> create().setValue(data);
+								device.knownFault().comment().activate(false);
+							}
+						}
+						
+					};
+					comment.setDefaultRows(1);
+					comment.setDefaultCols(device.knownFault().comment().isActive() && device.knownFault().comment().getValue().length() >= 15 ? 15 : 10);
+					comment.triggerAction(comment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					row.addCell("comment", comment);
+				}
+				
 				
 				
 				final ValueResourceTextField<FloatResource> prioLabel = new ValueResourceTextField<FloatResource>(table, id + "_prio", 
@@ -476,81 +519,119 @@ public class DeviceKnownFaultsInstallationPage {
 					
 				};
 				row.addCell("assigned", assigned);
-				final StringResource installationComment = device.knownFault().getSubResource("installationResult", StringResource.class);
-				final ValueResourceTextField<StringResource> installComment = new ValueResourceTextField<StringResource>(table, id + "_installation", 
-						installationComment, req);
-				if (installationComment.isActive())
-					installComment.setDefaultToolTip(installationComment.getValue());
-				else
-					installComment.setDefaultToolTip("Ergebnis der Vor-Ort-Fehlerbehandlung hier eintragen.");
-				row.addCell("installation", installComment);
-				
-				/*
-				final Button showMsg = new Button(table, id + "_msg", req) {
+				if (target == AlternativeFaultsPageTarget.INSTALLATION) {
+					final StringResource installationComment = device.knownFault().getSubResource("installationResult", StringResource.class);
+					final ValueResourceTextField<StringResource> installComment = new ValueResourceTextField<StringResource>(table, id + "_installation", 
+							installationComment, req);
+					if (installationComment.isActive())
+						installComment.setDefaultToolTip(installationComment.getValue());
+					else
+						installComment.setDefaultToolTip("Ergebnis der Vor-Ort-Fehlerbehandlung hier eintragen.");
+					row.addCell("installation", installComment);
 					
-					@Override
-					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						lastMessage.setText(device.knownFault().lastMessage().getValue(), req);
-						lastMessageDevice.setText(device.deviceId().getValue(), req);
-					}
+					/*
+					final Button showMsg = new Button(table, id + "_msg", req) {
+						
+						@Override
+						public void onPOSTComplete(String data, OgemaHttpRequest req) {
+							lastMessage.setText(device.knownFault().lastMessage().getValue(), req);
+							lastMessageDevice.setText(device.deviceId().getValue(), req);
+						}
+						
+					};
+					showMsg.setDefaultText("Anzeigen");
+					showMsg.setDefaultToolTip("Letzte Alarm-Benachrichtigung für dieses Gerät anzeigen.");
+					showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
+					showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+					showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+					row.addCell("message", showMsg);
+					*/
 					
-				};
-				showMsg.setDefaultText("Anzeigen");
-				showMsg.setDefaultToolTip("Letzte Alarm-Benachrichtigung für dieses Gerät anzeigen.");
-				showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET, req);
-				showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				row.addCell("message", showMsg);
-				*/
-				
-				final ButtonConfirm doneBtn = new ButtonConfirm(table, id + "_done", req) {
-					
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						// we do not distinguish between the different statuses
-						final boolean done = device.knownFault().forRelease().isActive(); // && doneStatuses.contains(device.knownFault().forRelease().getValue());
-						if (done) {
-							if (device.knownFault().forRelease().getValue() == 11) {
-								enable(req);
-								setText("erledigt\n(rückgängig)", req);
-								setToolTip("Dieser Alarm wurde als erledigt markiert. Hier klicken um rückgängig zu machen.", req);
-								setConfirmMsg("Alarm als nicht erledigt kennzeichnen", req);
-								setConfirmBtnMsg("Zurück setzen", req);
+					final ButtonConfirm doneBtn = new ButtonConfirm(table, id + "_done", req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							// we do not distinguish between the different statuses
+							final boolean done = device.knownFault().forRelease().isActive(); // && doneStatuses.contains(device.knownFault().forRelease().getValue());
+							if (done) {
+								if (device.knownFault().forRelease().getValue() == 11) {
+									enable(req);
+									setText("erledigt\n(rückgängig)", req);
+									setToolTip("Dieser Alarm wurde als erledigt markiert. Hier klicken um rückgängig zu machen.", req);
+									setConfirmMsg("Alarm als nicht erledigt kennzeichnen", req);
+									setConfirmBtnMsg("Zurück setzen", req);
+								} else {
+									disable(req);
+									setText("erledigt", req);
+									setToolTip("Dieser Alarm wurde von extern als erledigt markiert.", req);
+									setConfirmMsg("??", req);
+									setConfirmBtnMsg("??", req);
+								}
 							} else {
-								disable(req);
-								setText("erledigt", req);
-								setToolTip("Dieser Alarm wurde von extern als erledigt markiert.", req);
-								setConfirmMsg("??", req);
-								setConfirmBtnMsg("??", req);
+								enable(req);
+								setText("fertigstellen", req);
+								setToolTip("Diesen Alarm als erledigt markieren", req);
+								setConfirmMsg("Diesen Alarm als erledigt markieren?", req);
+								setConfirmBtnMsg("Erledigt", req);
 							}
-						} else {
-							enable(req);
-							setText("fertigstellen", req);
-							setToolTip("Diesen Alarm als erledigt markieren", req);
-							setConfirmMsg("Diesen Alarm als erledigt markieren?", req);
-							setConfirmBtnMsg("Erledigt", req);
+						
 						}
-					
-					}
-					
-					@Override
-					public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-						final IntegerResource release = device.knownFault().forRelease();
-						if (release.isActive()) {
-							if (release.getValue() == 11) // we can only reset the status if it has been set via the installation page.
-								release.delete();
-						} else {
-							release.<IntegerResource> create().setValue(11);
-							release.activate(false);
+						
+						@Override
+						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+							final IntegerResource release = device.knownFault().forRelease();
+							if (release.isActive()) {
+								if (release.getValue() == 11) // we can only reset the status if it has been set via the installation page.
+									release.delete();
+							} else {
+								release.<IntegerResource> create().setValue(11);
+								release.activate(false);
+							}
 						}
-					}
-				};
-				doneBtn.setDefaultConfirmPopupTitle("Bestätigen");
-				doneBtn.setDefaultCancelBtnMsg("Abbrechen");
-				doneBtn.addDefaultStyle(ButtonConfirmData.CONFIRM_GREEN);
-				doneBtn.addDefaultStyle(ButtonConfirmData.CANCEL_ORANGE);
-				doneBtn.triggerAction(doneBtn, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				row.addCell("resolve", doneBtn);
+					};
+					doneBtn.setDefaultConfirmPopupTitle("Bestätigen");
+					doneBtn.setDefaultCancelBtnMsg("Abbrechen");
+					doneBtn.addDefaultStyle(ButtonConfirmData.CONFIRM_GREEN);
+					doneBtn.addDefaultStyle(ButtonConfirmData.CANCEL_ORANGE);
+					doneBtn.triggerAction(doneBtn, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
+					row.addCell("resolve", doneBtn);
+				} else if (target == AlternativeFaultsPageTarget.OPERATION) {
+					final Label responsible = new Label(table, id + "_responsible", req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final StringResource responsibility = device.knownFault().responsibility();
+							final String email = responsibility.isActive() ? device.knownFault().responsibility().getValue().trim() : "";
+							if (email.isEmpty()) {
+								setText("", req);
+								setToolTip("", req);
+								return;
+							}
+							NaturalPerson selected = null;
+							final GatewaySuperiorData supData =  AlarmResourceUtil.findSuperiorData(appMan);
+							if (supData != null && supData.responsibilityContacts().isActive()) {
+								selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
+									.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
+									.findAny().orElse(null);
+								
+							}
+							if (selected != null) {
+								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
+								setText(id, req);
+								setToolTip(id + " (email: " + email + ")", req);
+							} else {
+								setText(email, req);
+								setToolTip(email, req);
+							}
+						}
+						
+					};
+					
+					row.addCell("responsible", responsible);
+					
+					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device);
+					row.addCell("followup", followup);
+				}
 				
 				final SingleValueResource responsibleResource = AlarmMessageUtil.findResponsibleResource(device, appMan, Locale.GERMAN);
 				if (responsibleResource!= null) {
@@ -601,9 +682,14 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("comment", "Kommentar");
 				header.put("details", "Details");
 				header.put("assigned", "Analyse");
-				header.put("installation", "Ergebnis Vor-Ort");
-				//header.put("message", "Fehlerbericht");
-				header.put("resolve", "Erledigt?");
+				if (target == AlternativeFaultsPageTarget.INSTALLATION) {
+ 					header.put("installation", "Ergebnis Vor-Ort");
+					//header.put("message", "Fehlerbericht");
+					header.put("resolve", "Erledigt?");
+				} else if (target == AlternativeFaultsPageTarget.OPERATION) {
+					header.put("responsible", "Verantwortlich");
+					header.put("followup", "Erinnern");
+				}
 				return header;
 			}
 
@@ -640,8 +726,10 @@ public class DeviceKnownFaultsInstallationPage {
 		table.addDefaultCssItem(">div>div>table>tbody>tr:first-child", Collections.singletonMap("color", "darkblue"));
 		table.addDefaultCssItem(">div>div>table>tbody>tr:first-child", Collections.singletonMap("background-color", "lightgray"));
 
-		
-		final Header header = new Header(page, "title", "9. Gerätefehler (Installationssicht)");
+		final int pageCnt = target == AlternativeFaultsPageTarget.INSTALLATION ? 9 : 10;
+		String title = pageCnt + ". Gerätefehler ";
+		title += target == AlternativeFaultsPageTarget.INSTALLATION ? "(Installationssicht)" : "(Operations-Sicht)";
+		final Header header = new Header(page, "title", title);
 		header.setDefaultHeaderType(1);
 		header.setDefaultColor("darkblue");
 		final Header filterHeader = new Header(page, "filterHeader", "Filter");
@@ -690,7 +778,6 @@ public class DeviceKnownFaultsInstallationPage {
 	private static float prioForRowId(String rowId) {
 		 return Float.parseFloat(rowId.substring(0, rowId.indexOf("__priosep__")).replace("__dot__", ".").replace("__minus__", "-").replace("__plus__", "+"));
 	}
-	
-	
+
 
 }

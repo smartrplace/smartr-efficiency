@@ -1,10 +1,12 @@
 package org.smartrplace.apps.alarmconfig.util;
 
+import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.gateway.device.GatewaySuperiorData;
 
 public class AlarmResourceUtil {
 
@@ -62,6 +64,13 @@ public class AlarmResourceUtil {
 		TimeResource followup = issue.dueDateForResponsibility();
 		if (followup.isActive())
 			followup.deactivate(false);
+	}
+	
+	public static GatewaySuperiorData findSuperiorData(ApplicationManager appMan) {
+		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
+		if (r instanceof GatewaySuperiorData)
+			return (GatewaySuperiorData) r;
+		return appMan.getResourceAccess().getResources(GatewaySuperiorData.class).stream().findAny().orElse(null);
 	}
 	
 }
