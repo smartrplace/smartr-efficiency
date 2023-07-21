@@ -19,6 +19,9 @@ import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
  *      b) a responsibility is set
  *   - replacing an issue of type AlarmGroupData eligible for snychronization by another one of type AlarmGroupDataMajor, and 
  *   	setting a reference from the existing issue to the new one
+ *   
+ *   Currently @deprecated and the conversion has to be done manually whenever an issue becomes eligible, via. SuperiorIssuesSyncUtils#syncIssueToSuperiorIfRelevant 
+ *   This is quite error-prone, though.
  */
 @Deprecated
 public class SynchronizableIssueListener implements ResourceDemandListener<AlarmGroupData>, AutoCloseable {

@@ -1,6 +1,5 @@
 package org.smartrplace.apps.alarmingconfig.release;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +35,9 @@ import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.EnumDropdown;
 import de.iwes.widgets.html.form.label.Label;
+import de.iwes.widgets.html.form.label.Link;
 import de.iwes.widgets.html.html5.Flexbox;
+import de.iwes.widgets.html.html5.flexbox.FlexDirection;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
 
@@ -177,6 +178,9 @@ public class ReleasePopup {
 			}
 			
 		};
+		
+		
+		
 		//submitButton.setDefaultCancelBtnMsg("Cancel");
 		//submitButton.setDefaultConfirmPopupTitle("Confirm release");
 		submitButton.setDefaultText("Release");
@@ -216,10 +220,29 @@ public class ReleasePopup {
 			}
 			
 		};
+		
+		final Link analysisExplanation = new Link(page, baseId + "_releaseModeCodesLink") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final boolean visible = "finalanalysis".equals(releaseModeSelector.getSelectedValue(req));
+				setWidgetVisibility(visible, req);
+			}
+			
+		};
+		analysisExplanation.setDefaultText("See https://gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/Operation/Incidents_Operation");
+		analysisExplanation.setDefaultNewTab(true);
+		analysisExplanation.setDefaultUrl("https://gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/Operation/Incidents_Operation");
+		
+		final Flexbox analysisFlex = new Flexbox(page, baseId + "_analysisFlex", true);
+		analysisFlex.setDefaultFlexDirection(FlexDirection.COLUMN);
+		analysisFlex.addItem(analysisSelector, null);
+		analysisFlex.addItem(analysisExplanation, null);
+		
 		final StaticTable bodyTable = new StaticTable(3, 2, new int[] {3,9})
 				.setContent(0, 0, deviceLabel).setContent(0, 1, device)
 				.setContent(1, 0, releaseModeLabel).setContent(1, 1, releaseModeSelector)
-				.setContent(2, 0, finalAnalysisLabel).setContent(2, 1, analysisSelector);
+				.setContent(2, 0, finalAnalysisLabel).setContent(2, 1, analysisFlex);
 		bodySnippet.append(bodyTable, null);
 		
 		popup.setTitle("Release issue", null);
@@ -230,6 +253,7 @@ public class ReleasePopup {
 		
 		releaseModeSelector.triggerAction(finalAnalysisLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseModeSelector.triggerAction(analysisSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		releaseModeSelector.triggerAction(analysisExplanation, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseModeSelector.triggerAction(submitButton, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		cancelButton.triggerAction(popup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
 		submitButton.triggerAction(popup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
