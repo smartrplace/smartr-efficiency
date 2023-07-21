@@ -10,6 +10,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.model.Resource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.core.resourcemanager.transaction.WriteConfiguration;
 import org.ogema.model.extended.alarming.AlarmGroupData;
@@ -36,6 +38,7 @@ import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.EnumDropdown;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.Link;
+import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.FlexDirection;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
@@ -48,6 +51,11 @@ public class ReleasePopup {
 	private final Dropdown releaseModeSelector;
 	private final Label finalAnalysisLabel;
 	private final Label device;
+	private final Link analysisExplanation;
+	private final Label commentLabel;
+	private final TextField analysisComment;
+	private final Label devLabel;
+	private final TextField devComment;
 	private final EnumDropdown<FinalAnalysis> analysisSelector;
 	
 	private final Button cancelButton;
@@ -103,6 +111,9 @@ public class ReleasePopup {
 				return 1;
 			return id1.compareTo(id2);
 		});
+		this.analysisComment = new HideableTextField(page, baseId + "_analysisComment", "finalAnalysisComment");
+		this.devComment = new HideableTextField(page, baseId + "_devComment", "featureUnderDevelopment");
+		
 		this.cancelButton = new Button(page, baseId + "_cancel", "Cancel");
 		this.submitButton = new Button(page, baseId + "submit") {
 			
@@ -151,6 +162,12 @@ public class ReleasePopup {
 					if (analysis == null) 
 						return;
 					trans.setString(major.finalDiagnosis(), analysis.name(), WriteConfiguration.CREATE_AND_ACTIVATE);
+					final String comment = analysisComment.getValue(req).trim();
+					if (!comment.isEmpty())
+						trans.setString(issue.getSubResource("finalAnalysisComment", StringResource.class), comment, WriteConfiguration.CREATE_AND_ACTIVATE);
+					final String developmentComment = devComment.getValue(req).trim();
+					if (!developmentComment.isEmpty())
+						trans.setString(issue.getSubResource("featureUnderDevelopment", StringResource.class), developmentComment, WriteConfiguration.CREATE_AND_ACTIVATE);
 					break;
 				case "trash":
 					//TODO: Move to major first
@@ -211,7 +228,12 @@ public class ReleasePopup {
 			
 		};
 		final Label releaseModeLabel = new Label(page, baseId + "_releaseModeLabel", "Release mode");
-		this.finalAnalysisLabel = new Label(page, baseId + "_finalAnalysisLabel", "Final analysis") {
+		this.finalAnalysisLabel = new HideableLabel(page, baseId + "_finalAnalysisLabel", "Final analysis", releaseModeSelector);
+		this.commentLabel = new HideableLabel(page, baseId + "_commentLabel", "Final analysis comment", releaseModeSelector);
+		this.devLabel = new HideableLabel(page, baseId + "_devLabel", "Under development", releaseModeSelector);
+		this.devLabel.setDefaultToolTip("Is the issue linked to a feature under developmen/a special development task?");
+		
+		this.analysisExplanation = new Link(page, baseId + "_releaseModeCodesLink") {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
@@ -221,15 +243,7 @@ public class ReleasePopup {
 			
 		};
 		
-		final Link analysisExplanation = new Link(page, baseId + "_releaseModeCodesLink") {
-			
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				final boolean visible = "finalanalysis".equals(releaseModeSelector.getSelectedValue(req));
-				setWidgetVisibility(visible, req);
-			}
-			
-		};
+		
 		analysisExplanation.setDefaultText("See https://gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/Operation/Incidents_Operation");
 		analysisExplanation.setDefaultNewTab(true);
 		analysisExplanation.setDefaultUrl("https://gitlab.smartrplace.de/i1/smartrplace/smartrplace-main/-/wikis/Operation/Incidents_Operation");
@@ -239,10 +253,12 @@ public class ReleasePopup {
 		analysisFlex.addItem(analysisSelector, null);
 		analysisFlex.addItem(analysisExplanation, null);
 		
-		final StaticTable bodyTable = new StaticTable(3, 2, new int[] {3,9})
+		final StaticTable bodyTable = new StaticTable(5, 2, new int[] {3,9})
 				.setContent(0, 0, deviceLabel).setContent(0, 1, device)
 				.setContent(1, 0, releaseModeLabel).setContent(1, 1, releaseModeSelector)
-				.setContent(2, 0, finalAnalysisLabel).setContent(2, 1, analysisFlex);
+				.setContent(2, 0, finalAnalysisLabel).setContent(2, 1, analysisFlex)
+				.setContent(3, 0, commentLabel).setContent(3, 1, analysisComment)
+				.setContent(4, 0, devLabel).setContent(4, 1, devComment);
 		bodySnippet.append(bodyTable, null);
 		
 		popup.setTitle("Release issue", null);
@@ -254,6 +270,10 @@ public class ReleasePopup {
 		releaseModeSelector.triggerAction(finalAnalysisLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseModeSelector.triggerAction(analysisSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseModeSelector.triggerAction(analysisExplanation, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		releaseModeSelector.triggerAction(commentLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		releaseModeSelector.triggerAction(analysisComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		releaseModeSelector.triggerAction(devLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		releaseModeSelector.triggerAction(devComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseModeSelector.triggerAction(submitButton, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		cancelButton.triggerAction(popup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
 		submitButton.triggerAction(popup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
@@ -297,6 +317,11 @@ public class ReleasePopup {
 		externalWidget.triggerAction(releaseModeSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		externalWidget.triggerAction(finalAnalysisLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(analysisSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		externalWidget.triggerAction(analysisExplanation, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		externalWidget.triggerAction(commentLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		externalWidget.triggerAction(analysisComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		externalWidget.triggerAction(devLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+		externalWidget.triggerAction(devComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(submitButton, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(popup, TriggeringAction.ON_CLICK, TriggeredAction.SHOW_WIDGET, 1);
 	}
@@ -317,6 +342,54 @@ public class ReleasePopup {
 		public IssueContainer(EmptyWidget empty) {
 			super(empty);
 		}
+		
+	}
+	
+	@SuppressWarnings("serial")
+	static class HideableLabel extends Label {
+		
+		private final Dropdown releaseModeSelector;
+		
+		public HideableLabel(WidgetPage<?> page, String id, String text, Dropdown releaseModeSelector) {
+			super(page, id, text);
+			this.releaseModeSelector = releaseModeSelector;
+		}
+
+		@Override
+		public void onGET(OgemaHttpRequest req) {
+			final boolean visible = "finalanalysis".equals(releaseModeSelector.getSelectedValue(req));
+			setWidgetVisibility(visible, req);
+		}
+		
+	}
+	
+	class HideableTextField extends TextField {
+		
+		private final String subresourceName;
+		
+		public HideableTextField(WidgetPage<?> page, String id, String subresourceName) {
+			super(page, id);
+			this.subresourceName = subresourceName;
+		}
+			
+		@Override
+		public void onGET(OgemaHttpRequest req) {
+			final String selectedMode = releaseModeSelector.getSelectedValue(req);
+			final boolean visible = "finalanalysis".equals(selectedMode);
+			setWidgetVisibility(visible, req);
+			if (visible) {
+				final AlarmGroupData issue = getSelectedIssue(req);
+				if (issue == null)
+					return;
+				final Resource analysisComment = issue.getSubResource(subresourceName);
+				if (analysisComment instanceof StringResource && analysisComment.isActive())
+					setValue(((StringResource) analysisComment).getValue(), req);
+				else
+					setValue("", req);
+			}
+			
+		}
+			
 		
 	}
 	

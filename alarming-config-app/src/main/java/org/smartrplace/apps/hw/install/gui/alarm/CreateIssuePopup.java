@@ -73,6 +73,7 @@ public class CreateIssuePopup {
 	private final Popup createIssuePopup;
 	private final Button createIssueSubmit;
 	
+	@SuppressWarnings("serial")
 	public CreateIssuePopup(WidgetPage<?> page, ApplicationManager appMan, Alert alert) {
 		
 		this.appMan = appMan;
@@ -262,8 +263,31 @@ public class CreateIssuePopup {
 			
 		};
 		
+		final Label devCommentLab = new Label(page, "createIssueDevCommentLab", "Development feature");
+		devCommentLab.setDefaultToolTip("Is the issue linked to a feature under developmen/a special development task?");
+		final TextField devComment = new TextField(page, "createIssueDevComment") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
+				if (device == null) {
+					setValue("", req);
+					return;
+				}
+				final Resource devRes = device.getSubResource("featureUnderDevelopment");
+				if (!(devRes instanceof StringResource) || !devRes.isActive()) {
+					setValue("", req);
+				} else {
+					setValue(((StringResource) devRes).getValue(), req);
+				}
+			}
+			
+		};
 		
-		final StaticTable createPopupTable = new StaticTable(8, 2, new int[] {4, 8});
+		
+		
+		
+		final StaticTable createPopupTable = new StaticTable(9, 2, new int[] {4, 8});
 		createPopupTable.setContent(0, 0, createIssueDeviceLab).setContent(0, 1, deviceSelector);
 		createPopupTable.setContent(1, 0, deviceFaultActiveLab).setContent(1, 1, deviceFaultActive);
 		createPopupTable.setContent(2, 0, createIssueCommentLab).setContent(2, 1, createIssueComment);
@@ -272,6 +296,7 @@ public class CreateIssuePopup {
 		createPopupTable.setContent(5, 0, createIssueReminderLab).setContent(5, 1, createIssueReminder);
 		createPopupTable.setContent(6, 0, createIssueReminderFreqLab).setContent(6, 1, createIssueReminderFreq);
 		createPopupTable.setContent(7, 0, createIssueTaskTrackingLab).setContent(7, 1, createIssueTaskTracking);
+		createPopupTable.setContent(8, 0, devCommentLab).setContent(8, 1, devComment);
 		
 		
 		final PageSnippet bodySnippet = new PageSnippet(page, "createIssueBodySnip", true);
@@ -355,6 +380,9 @@ public class CreateIssuePopup {
 							
 						} catch (DateTimeParseException ignore) {}  // ok? 
 					}
+					final String developmentComment = devComment.getValue(req).trim();
+					if (!developmentComment.isEmpty())
+						alarm.addDecorator("featureUnderDevelopment", StringResource.class).setValue(developmentComment);
 					alarm.activate(true);
 					// only syncs if issue is eligible
 					SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, appMan);

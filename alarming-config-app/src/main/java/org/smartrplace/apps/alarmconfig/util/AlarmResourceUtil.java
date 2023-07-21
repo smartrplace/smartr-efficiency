@@ -29,6 +29,8 @@ public class AlarmResourceUtil {
 	 * 	 	so the caller is advised to handle this case. 
 	 */
 	public static InstallAppDevice getDeviceForKnownFault(AlarmGroupData issue) {
+		if (issue == null)
+			return null;
 		if (issue instanceof AlarmGroupDataMajor && ((AlarmGroupDataMajor) issue).parentForOngoingIssues().isActive())
 			return ((AlarmGroupDataMajor) issue).parentForOngoingIssues().getLocationResource();
 		final Resource parent = issue.getParent();
