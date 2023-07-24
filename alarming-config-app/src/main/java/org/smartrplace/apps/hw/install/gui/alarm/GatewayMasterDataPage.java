@@ -42,7 +42,46 @@ public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperio
 		batteryChangeLevelOptions.put("2", "customer changes single batteries in urgent cases");
 		batteryChangeLevelOptions.put("3", "customer performs all battery changes");
 		
-		//TODO: ...
+		summerWinterModeSwitchingOptions.put("0", "standard switching between seasons");
+		summerWinterModeSwitchingOptions.put("1", "no switching by service provider");
+		summerWinterModeSwitchingOptions.put("2", "service provider switches only from summer to winter");
+		summerWinterModeSwitchingOptions.put("3", "service provider switches only from winter to summer");
+		summerWinterModeSwitchingOptions.put("4", "special (see separate data)");
+		
+		networkRestrictionsOptions.put("0", "unknown");
+		networkRestrictionsOptions.put("0", "No known restrictions tested");
+		networkRestrictionsOptions.put("2", "Teach-in not possible");
+		networkRestrictionsOptions.put("3", "VPN blocked");
+		networkRestrictionsOptions.put("100", "Everything blocked");
+		
+		contactSalesBeforeInformationOptions.put("0", "unknown");
+		contactSalesBeforeInformationOptions.put("1", "not required");
+		contactSalesBeforeInformationOptions.put("2", "do contact sales first");
+		
+		centralHeatingWeekendModeOptions.put("0", "unknown");
+		centralHeatingWeekendModeOptions.put("1", "Full weekend saturday/sunday");
+		centralHeatingWeekendModeOptions.put("2", "Extension full saturday only");
+		centralHeatingWeekendModeOptions.put("3", "Extension full sunday only");
+		
+		antiTheftTypeOptions.put("0", "unknown");
+		antiTheftTypeOptions.put("1", "no anti-theft is installed");
+		antiTheftTypeOptions.put("2", "all thermostats have anti-theft installed (used also for single thermostat if it is anti-theft installed)");
+		antiTheftTypeOptions.put("3", "a few thermostats are protected (those protected should have indication on thermostat level)");
+		antiTheftTypeOptions.put("4", "thermostats are protected partially");
+		antiTheftTypeOptions.put("5", "most thermostats are protected (those not protected should have indication on thermostat level)");
+		
+		antiVandalismTypeOptions.put("0", "unknown");
+		antiVandalismTypeOptions.put("1", "no anti-Vandalism is installed");
+		antiVandalismTypeOptions.put("2", "all thermostats have anti-Vandalism installed (used also for single thermostat if it is anti-Vandalism installed)");
+		antiVandalismTypeOptions.put("3", "a few thermostats are protected (those protected should have indication on thermostat level)");
+		antiVandalismTypeOptions.put("4", "thermostats are protected partially");
+		antiVandalismTypeOptions.put("5", "most thermostats are protected (those not protected should have indication on thermostat level)");
+			
+		adapterTypeOptions.put("0", "unknown");
+		adapterTypeOptions.put("1", "no adapter");
+		adapterTypeOptions.put("2", "Danfoss");
+		adapterTypeOptions.put("3", "Oventrop");
+		adapterTypeOptions.put("999", "other");
 	}
 	
 	public GatewayMasterDataPage(WidgetPage<?> page, ApplicationManager appMan, boolean isEditable) {
@@ -94,7 +133,14 @@ public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperio
 		addStringElement("Telefon_IT", object.phoneNumbersIT(), vh, id, row);
 		
 		addDropdownElement("BatteryChange", object.batteryChangeLevel(), batteryChangeLevelOptions, vh, id, row);
-		//TODO ...
+		addDropdownElement("SummerWinter", object.summerWinterModeSwitching(), summerWinterModeSwitchingOptions, vh, id, row);
+		addDropdownElement("Network", object.networkRestrictions(), networkRestrictionsOptions, vh, id, row);
+		addDropdownElement("SalesFirst", object.contactSalesBeforeInformation(), contactSalesBeforeInformationOptions, vh, id, row);
+		addDropdownElement("LoweringWeekend", object.centralHeatingWeekendMode(), centralHeatingWeekendModeOptions, vh, id, row);
+		
+		addDropdownElement("Anti-Theft", object.thermostatInstallationData().antiTheftType(), antiTheftTypeOptions, vh, id, row);
+		addDropdownElement("Anti-Vandlm", object.thermostatInstallationData().antiVandalismType(), antiVandalismTypeOptions, vh, id, row);
+		addDropdownElement("TH-Adapter", object.thermostatInstallationData().adapterType(), adapterTypeOptions, vh, id, row);
 		
 		vh.booleanEdit("AdaptByCust", id, object.customerPerformsThermostatAdapt(), row);
 		vh.integerEdit("LoweringStart", id, object.centralHeatingNightlyLowering(), row, alert, 0, 1440, "Lowering allowed: 0=unknown, 1=yes, 2=no, otherise minutes from start of day");
