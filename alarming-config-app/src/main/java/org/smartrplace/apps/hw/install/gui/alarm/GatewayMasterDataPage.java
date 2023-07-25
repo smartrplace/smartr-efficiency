@@ -17,13 +17,21 @@ import org.smartrplace.external.accessadmin.config.SubCustomerSuperiorData;
 import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
+import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.widgets.api.extended.util.UserLocaleUtil;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.RedirectButton;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
+import de.iwes.widgets.template.DefaultDisplayTemplate;
 
+@SuppressWarnings("serial")
 public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperiorData, SubCustomerSuperiorData> {
 	final boolean isEditable;
 	
@@ -104,7 +112,11 @@ public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperio
 			vh.registerHeaderEntry("Email_IT");
 			vh.registerHeaderEntry("Anrede_IT");
 			vh.registerHeaderEntry("Telefon_IT");
-			
+
+			vh.registerHeaderEntry("Wiki_Page");
+			vh.registerHeaderEntry("Floor_Plan");
+			vh.registerHeaderEntry("Locale");
+
 			vh.registerHeaderEntry("BatteryChange");
 			vh.registerHeaderEntry("AdaptByCust");
 			vh.registerHeaderEntry("SummerWinter");
@@ -132,6 +144,35 @@ public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperio
 		addStringElement("Anrede_IT", object.personalSalutationsIT(), vh, id, row);
 		addStringElement("Telefon_IT", object.phoneNumbersIT(), vh, id, row);
 		
+		addLinkElement("Wiki_Page", object.gatewayLinkOverviewUrl(), vh, id, row);
+		addLinkElement("Floor_Plan", object.gatewayOperationDatabaseUrl(), vh, id, row);
+		TemplateDropdown<OgemaLocale> languageDrop = new TemplateDropdown<OgemaLocale>(mainTable,
+				"languageDrop"+id, req) {
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				String sel = object.systemLocale().getValue();
+				if(sel == null || sel.isEmpty())
+					sel = "de"; //TODO
+				OgemaLocale l = OgemaLocale.getLocale(sel);
+				selectItem(l, req);
+			}
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				OgemaLocale l = OgemaLocale.getLocale(getSelectedValue(req));
+				if (l == null) return;
+				ValueResourceHelper.setCreate(object.systemLocale(), l.getLanguage());
+				UserLocaleUtil.setSystemDefaultLocale(l.getLanguage(), null);
+			}
+		};
+		languageDrop.setTemplate(new DefaultDisplayTemplate<OgemaLocale>() {
+			@Override
+			public String getLabel(OgemaLocale object, OgemaLocale locale) {
+				return object.getLocale().getDisplayLanguage();
+			}
+		});
+		languageDrop.setDefaultItems(OgemaLocale.getAllLocales());
+		row.addCell(WidgetHelper.getValidWidgetId("Locale"), languageDrop);
+
 		addDropdownElement("BatteryChange", object.batteryChangeLevel(), batteryChangeLevelOptions, vh, id, row);
 		addDropdownElement("SummerWinter", object.summerWinterModeSwitching(), summerWinterModeSwitchingOptions, vh, id, row);
 		addDropdownElement("Network", object.networkRestrictions(), networkRestrictionsOptions, vh, id, row);
@@ -155,6 +196,24 @@ public class GatewayMasterDataPage extends ObjectGUITablePage<SubCustomerSuperio
 			return vh.stringLabel(label, id, res, row);
 	}
 	
+	private OgemaWidget addLinkElement(String label, StringResource res, ObjectResourceGUIHelper<SubCustomerSuperiorData, SubCustomerSuperiorData> vh,
+			String id, Row row) {
+		if(isEditable)
+			return vh.stringEdit(label, id, res, row, alert);
+		else {
+			RedirectButton linkButton = new RedirectButton(mainTable, WidgetHelper.getValidWidgetId(label+id), label, res.getValue(), vh.getReq()); /*{
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					setUrl(res.getValue(), req);
+					setText(label, req);
+				}
+				
+			};*/
+			row.addCell(WidgetHelper.getValidWidgetId(label), linkButton);
+			return linkButton;
+		}
+	}
+
 	private OgemaWidget addDropdownElement(String label, SingleValueResource res,
 			Map<String, String> options,
 			ObjectResourceGUIHelper<SubCustomerSuperiorData, SubCustomerSuperiorData> vh,

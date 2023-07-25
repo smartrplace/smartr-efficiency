@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
@@ -48,6 +49,7 @@ import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
+import org.smartrplace.external.accessadmin.config.SubCustomerSuperiorData;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
@@ -275,13 +277,18 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		topTable.setContent(2, 3, chartPage);
 
 		final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan);
+		final SubCustomerSuperiorData subc;
+		if(!Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior")) {
+			subc = SubcustomerUtil.getEntireBuildingSubcustomerDatabase(appMan);
+		} else
+			subc = null;
 		
 		RedirectButton wikiPage = new RedirectButton(page, "wikiPage", "Wiki Page", "https://smartrplace.onlyoffice.eu/Products/Files/#sbox-75287-%7Cpublic%7COperation%7CKunden") {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				String user = GUIUtilHelper.getUserLoggedIn(req);
 				if(isMasterUser(user) && (gwInfo != null)) {
-					final StringResource linkOverviewUrlRes = gwInfo.gatewayLinkOverviewUrl();
+					final StringResource linkOverviewUrlRes = subc != null? subc.gatewayLinkOverviewUrl():gwInfo.gatewayLinkOverviewUrl();
 					if(linkOverviewUrlRes.exists()) {
 						String curLink = linkOverviewUrlRes.getValue();
 						setUrl(curLink, req);
@@ -299,7 +306,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			public void onGET(OgemaHttpRequest req) {
 				String user = GUIUtilHelper.getUserLoggedIn(req);
 				if(isMasterUser(user) && (gwInfo != null)) {
-					final StringResource databaseUrlRes = gwInfo.gatewayOperationDatabaseUrl();
+					final StringResource databaseUrlRes = subc != null? subc.gatewayOperationDatabaseUrl():gwInfo.gatewayOperationDatabaseUrl();
 					if(databaseUrlRes.exists()) {
 						String curLink = databaseUrlRes.getValue();
 						setUrl(curLink, req);
