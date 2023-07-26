@@ -162,11 +162,17 @@ public class ReleasePopup {
 						return;
 					trans.setString(major.finalDiagnosis(), analysis.name(), WriteConfiguration.CREATE_AND_ACTIVATE);
 					final String comment = analysisComment.getValue(req).trim();
-					if (!comment.isEmpty())
-						trans.setString(issue.getSubResource("finalAnalysisComment", StringResource.class), comment, WriteConfiguration.CREATE_AND_ACTIVATE);
+					if (!comment.isEmpty()) {
+						StringResource comRes = issue.getSubResource("finalAnalysisComment", StringResource.class);
+						trans.create(comRes);
+						trans.setString(comRes, comment, WriteConfiguration.CREATE_AND_ACTIVATE);
+					}
 					final String developmentComment = devComment.getValue(req).trim();
-					if (!developmentComment.isEmpty())
-						trans.setString(issue.getSubResource("featureUnderDevelopment", StringResource.class), developmentComment, WriteConfiguration.CREATE_AND_ACTIVATE);
+					if (!developmentComment.isEmpty()) {
+						StringResource comRes = issue.getSubResource("featureUnderDevelopment", StringResource.class);
+						trans.create(comRes);
+						trans.setString(comRes, developmentComment, WriteConfiguration.CREATE_AND_ACTIVATE);
+					}
 					break;
 				case "trash":
 					//TODO: Move to major first
