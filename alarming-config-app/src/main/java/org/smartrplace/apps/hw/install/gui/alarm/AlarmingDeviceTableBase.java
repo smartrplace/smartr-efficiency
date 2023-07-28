@@ -12,9 +12,11 @@ import org.ogema.devicefinder.api.InstalledAppsSelector;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
+import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
@@ -31,6 +33,7 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.resource.widget.label.ValueResourceLabel;
 
 public class AlarmingDeviceTableBase extends DeviceTableBase {
@@ -111,7 +114,27 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 			template = null;
 		} else {
 			int[] alNum = AlarmingConfigUtil.getActiveAlarms(object);
-			vh.stringLabel("Active Alarms", id, String.format("%d / %d", alNum[0], alNum[1]), row);
+			String activeAlarms = String.format("%d / %d", alNum[0], alNum[1]);
+			String tooltip = null;
+			if (object != null) {
+				// XXX not very efficient to retrieve the AlarmGroupDataMajors again in every row... 
+				// but also not so easy to avoid with all this nested structure...
+				final long released = appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class).stream()
+					.filter(a -> object.equalsLocation(AlarmResourceUtil.getDeviceForKnownFault(a)))
+					.filter(a -> !object.knownFault().equals(a))
+					.filter(AlarmResourceUtil::isReleased)
+					.count();
+				if (released > 1) {
+					activeAlarms += " **";
+					tooltip = "Multiple released major issues exist for this device";
+				} else if (released > 0) {
+					activeAlarms += " *";
+					tooltip = "A released major issue exists for this device";
+				}
+			}
+			final Label alarm = vh.stringLabel("Active Alarms", id, activeAlarms, row);
+			if (tooltip != null)
+				alarm.setDefaultToolTip(tooltip);
 
 			template = AlarmingConfigUtil.getTemplate(object, appManPlus);
 			if(row == null) {
