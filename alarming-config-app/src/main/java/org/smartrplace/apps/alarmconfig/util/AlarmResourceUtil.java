@@ -66,6 +66,12 @@ public class AlarmResourceUtil {
 			followup.deactivate(false);
 	}
 	
+	public static boolean isReleased(AlarmGroupData issue) {
+		return issue instanceof AlarmGroupDataMajor 
+				&& ((AlarmGroupDataMajor) issue).releaseTime().isActive() 
+				&& ((AlarmGroupDataMajor) issue).releaseTime().getValue() > 0;
+	}
+	
 	public static GatewaySuperiorData findSuperiorData(ApplicationManager appMan) {
 		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
 		if (r instanceof GatewaySuperiorData)
