@@ -508,19 +508,18 @@ public class DeviceKnownFaultsInstallationPage {
 				assigned.setDefaultToolTip("Verantortlichkeit festlegen");
 				assigned.triggerAction(assigned, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				*/
-				// TODO editable for OPERATION
-				final Label assigned = new Label(table, id + "_assigned", req) {
-					
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						final int assigned = device.knownFault().assigned().isActive() ? device.knownFault().assigned().getValue() : 0;
-						final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.getOrDefault(assigned + "", "None");
-						setText(role, req);
-					}
-					
-				};
-				row.addCell("assigned", assigned);
 				if (target == AlternativeFaultsPageTarget.INSTALLATION) {
+					final Label assigned = new Label(table, id + "_assigned", req) {
+						
+						@Override
+						public void onGET(OgemaHttpRequest req) {
+							final int assigned = device.knownFault().assigned().isActive() ? device.knownFault().assigned().getValue() : 0;
+							final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.getOrDefault(assigned + "", "None");
+							setText(role, req);
+						}
+						
+					};
+					row.addCell("assigned", assigned);
 					final StringResource installationComment = device.knownFault().getSubResource("installationResult", StringResource.class);
 					final ValueResourceTextField<StringResource> installComment = new ValueResourceTextField<StringResource>(table, id + "_installation", 
 							installationComment, req);
@@ -597,6 +596,10 @@ public class DeviceKnownFaultsInstallationPage {
 					doneBtn.triggerAction(doneBtn, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 					row.addCell("resolve", doneBtn);
 				} else if (target == AlternativeFaultsPageTarget.OPERATION) {
+					
+					final Dropdown assigned = new AssignmentDropdown(table, id + "_assigned", req, device.knownFault(), appMan);
+					row.addCell("assigned", assigned);
+					
 					/*
 					final Label responsible = new Label(table, id + "_responsible", req) {
 						
