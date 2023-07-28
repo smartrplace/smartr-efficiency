@@ -1,6 +1,8 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.devicefinder.api.DatapointGroup;
@@ -19,6 +21,7 @@ import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
@@ -27,6 +30,8 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.dropdown.Dropdown;
+import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 
 @SuppressWarnings("serial")
@@ -156,6 +161,7 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				if(req == null) {
 					vh.registerHeaderEntry("Select Template");
 					vh.registerHeaderEntry("Special Settings(Dev)");
+					vh.registerHeaderEntry("Alarming delay");
 					return;
 				}
 				
@@ -192,6 +198,33 @@ public class DeviceAlarmingPage extends HardwareTablePage {
 				TemplateDropdown<DevelopmentTask> devTaskDrop = new DevelopmentTaskDropdown(object, resData, appMan, controller,
 						vh.getParent(), "devTaskDrop"+id, req);
 				row.addCell(WidgetHelper.getValidWidgetId("Special Settings(Dev)"), devTaskDrop);
+				final Dropdown alarmingDelayDrop = new Dropdown(mainTable, "alarmingDelayDrop"+id, req) {
+					
+					@Override
+					public void onGET(OgemaHttpRequest req) {
+						final int delayHours = (int)(object.minimumIntervalBetweenNewValues().getValue()/60);
+						selectSingleOption(String.valueOf(delayHours), req); // find closest option matching the delay?
+					}
+					
+					@Override
+					public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+						final String selected = getSelectedValue(req);
+						try {
+							final int delay = Integer.parseInt(selected);
+							if (delay == 0) {
+								object.minimumIntervalBetweenNewValues().setValue(-1);
+							} else {
+								ValueResourceHelper.setCreate(object.minimumIntervalBetweenNewValues(), delay*60);
+							}
+						} catch (NumberFormatException ignore) {}
+					}
+					
+				};
+				alarmingDelayDrop.setDefaultOptions(IntStream.builder().add(0).add(6).add(12).add(24).add(48).add(72).add(168).build()
+					.mapToObj(i -> new DropdownOption(i > 0 ? String.valueOf(i) : "", i > 0 ? i + "h" : "--", i == 0))
+					.collect(Collectors.toList()));
+				row.addCell(WidgetHelper.getValidWidgetId("Alarming delay"), alarmingDelayDrop);
+				
 			}			
 		};
 		
