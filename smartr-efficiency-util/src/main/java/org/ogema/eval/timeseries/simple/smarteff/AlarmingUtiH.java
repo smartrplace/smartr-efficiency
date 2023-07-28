@@ -31,6 +31,9 @@ import org.smartrplace.smarteff.util.editgeneric.EditPageGeneric.DefaultSetModes
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import extensionmodel.smarteff.api.common.BuildingUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AlarmingUtiH {
 	public static final String ACTIVESTATUS_RES_NAME = "activeStatus";
@@ -155,16 +158,58 @@ public class AlarmingUtiH {
 			EditPageGeneric.setDefault(data.performAdditinalOperations(), false, mode);
 	}
 	
+	final static Map<ResourceList<AlarmConfiguration>, Map<SingleValueResource, AlarmConfiguration>> alarmConfigs = new ConcurrentHashMap<>();
+	final static AtomicInteger callcounter = new AtomicInteger();
+	
+	static Map<SingleValueResource, AlarmConfiguration> createAlarmConfigMap(ResourceList<AlarmConfiguration> l) {
+		Map<SingleValueResource, AlarmConfiguration> m = new ConcurrentHashMap<>();
+		for(AlarmConfiguration ac : l.getAllElements()) {
+			m.put(ac.sensorVal(), ac);
+			m.put(ac.sensorVal().getLocationResource(), ac);
+		}
+		return m;
+	}
+	
+	static AlarmConfiguration findAlarmConfigInList(ResourceList<AlarmConfiguration> l, SingleValueResource res) {
+		return l.getAllElements().stream()
+				.filter(ac -> res.equalsLocation(ac.sensorVal()))
+				.findFirst().orElse(null);
+	}
+	
+	static AlarmConfiguration findAlarmInfo(ResourceList<AlarmConfiguration> l, SingleValueResource res) {
+		Map<SingleValueResource, AlarmConfiguration> res2ac = alarmConfigs.computeIfAbsent(l, AlarmingUtiH::createAlarmConfigMap);
+		return res2ac.computeIfAbsent(res, r -> findAlarmConfigInList(l, r));
+	}
+	
 	public static AlarmConfiguration getAlarmConfig(SingleValueResource sensVal, ResourceList<AlarmConfiguration> configs) {
+		return findAlarmInfo(configs, sensVal);
+		/*
 		for(AlarmConfiguration ac: configs.getAllElements()) {
 			if(ac.sensorVal().equalsLocation(sensVal)) {
 				return ac;
 			}
 		}
 		return null;
+		*/
 	}
 
 	public static AlarmConfiguration getOrCreateReferencingSensorVal(SingleValueResource sensVal, ResourceList<AlarmConfiguration> list) {
+		//System.err.printf("getOrCreateReferencingSensorVal(%s, %s) [%d]%n", sensVal.getPath(), list.getPath(), callcounter.incrementAndGet());
+		Map<SingleValueResource, AlarmConfiguration> m = alarmConfigs.computeIfAbsent(list, AlarmingUtiH::createAlarmConfigMap);
+		AlarmConfiguration ac = m.computeIfAbsent(sensVal, sv -> {
+			AlarmConfiguration result = AlarmingUtiH.findAlarmConfigInList(list, sv);
+			if (result != null) {
+				return result;
+			}
+			//System.err.printf("creating new AlarmingConfig for %s in %s%n", sensVal.getPath(), list.getPath());
+			result = list.add();
+			result.sensorVal().setAsReference(sensVal);
+			AlarmingUtiH.setDefaultValuesStatic(result, DefaultSetModes.OVERWRITE);
+			result.activate(true);
+			return result;
+		});
+		return ac;
+		/*
 		for(AlarmConfiguration ac: list.getAllElements()) {
 			if(ac.sensorVal().equalsLocation(sensVal))
 				return ac;
@@ -174,6 +219,7 @@ public class AlarmingUtiH {
 		AlarmingUtiH.setDefaultValuesStatic(result, DefaultSetModes.OVERWRITE);
 		result.activate(true);
 		return result;
+		*/
 	}
 	
 	
