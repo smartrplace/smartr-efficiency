@@ -39,6 +39,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
+import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -515,64 +516,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 					
-					final Dropdown responsibleDropdown = new Dropdown(mainTable, "responsible"+id, req) {
-						
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							final GatewaySuperiorData supData = AlarmResourceUtil.findSuperiorData(appMan);
-							if (supData == null || !supData.responsibilityContacts().isActive())
-								return;
-							final StringResource responsibility = object.knownFault().responsibility();
-							final String email = responsibility.isActive() ? responsibility.getValue() : "";
-							final NaturalPerson selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
-								.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
-								.findAny().orElse(null);
-							final List<DropdownOption> options = supData.responsibilityContacts().getAllElements().stream()
-								.map(contact -> new DropdownOption(
-										contact.getName(), contact.userRole().isActive() ? contact.userRole().getValue() :
-										contact.firstName().getValue() + " " + contact.lastName().getValue(), 
-										contact.equalsLocation(selected)
-								))
-								.collect(Collectors.toList());
-							setOptions(options, req);
-							if (selected != null) {
-								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
-								setToolTip(id + ": " + email, req);
-							} else {
-								setToolTip(email.isEmpty() ? "Select responsible" :  email, req);
-							}
-						}
-						
-						@Override
-						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-							final GatewaySuperiorData supData = AlarmResourceUtil.findSuperiorData(appMan);
-							if (supData == null || !supData.responsibilityContacts().isActive())
-								return;
-							final String currentSelected = getSelectedValue(req);
-							final StringResource responsibility = object.knownFault().responsibility();
-							if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
-										|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
-								responsibility.delete();
-								return;
-							}
-							final NaturalPerson selected = supData.responsibilityContacts().getSubResource(currentSelected); 
-							final StringResource emailRes = selected.getSubResource("emailAddress");
-							final String email = emailRes.isActive() ? emailRes.getValue() : "";
-							if (email.isEmpty()) { // ?
-								return;
-							}
-							responsibility.<StringResource> create().setValue(email);
-							responsibility.activate(false);
-							if (SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan) != null) {
-								// delete old release button and replace by new one...
-								updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req);
-							}
-						}
-					};
-					responsibleDropdown.setDefaultAddEmptyOption(true);
-					responsibleDropdown.setDefaultMinWidth("8em");
-					responsibleDropdown.setComparator(CreateIssuePopup.RESPONSIBLES_COMPARATOR);
-					responsibleDropdown.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					final Dropdown responsibleDropdown = new ResponsibleDropdown(mainTable, "responsible"+id, req, 
+							appMan, res, () -> updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req));
 					responsibleDropdown.triggerAction(releaseBtnSnippet, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 					row.addCell("Responsible", responsibleDropdown);
 					
@@ -739,8 +684,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 	
 	private Button createReleaseBtn(final AlarmGroupData res, final OgemaWidget parent, final String id, final OgemaHttpRequest req) {
 		final Button releaseBut;
-		if((res.assigned().isActive() &&
-				(res.assigned().getValue() > 0) && (res.assigned().getValue() != AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT)) 
+		if(res instanceof AlarmGroupDataMajor 
+				|| (res.assigned().isActive() &&
+						(res.assigned().getValue() > 0) && (res.assigned().getValue() != AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT)) 
 				|| res.responsibility().isActive()) {
 			releaseBut = new Button(parent, "releaseBut"+id, "Release", req) {
 				

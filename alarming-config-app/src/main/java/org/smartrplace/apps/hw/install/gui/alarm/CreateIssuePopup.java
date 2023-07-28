@@ -313,7 +313,7 @@ public class CreateIssuePopup {
 		createPopupTable.setContent(8, 0, devCommentLab).setContent(8, 1, devComment);
 		if (releasePopup != null) {
 			directRelease = new Checkbox2(page, "createIssueDirectRelease") {
-				
+				/*// always visible; before, only when a new major issue was to be created
 				@Override
 				public void onGET(OgemaHttpRequest req) {
 					final int assignment = Integer.parseInt(createIssueAssigned.getSelectedValue(req));
@@ -330,6 +330,7 @@ public class CreateIssuePopup {
 					}
 					setWidgetVisibility(visible, req);
 				}
+				*/ 
 				
 				
 			};
@@ -360,7 +361,7 @@ public class CreateIssuePopup {
 			page.append(releaseTrigger);
 			
 			final Label directReleaseLab = new Label(page, "createIssueDirectReleaseLab", "Direct Release") {
-				
+				/*
 				@Override
 				public void onGET(OgemaHttpRequest req) {
 					final int assignment = Integer.parseInt(createIssueAssigned.getSelectedValue(req));
@@ -377,17 +378,18 @@ public class CreateIssuePopup {
 					}
 					setWidgetVisibility(visible, req);
 				}
+				*/
 				
 			};
 			directReleaseLab.setDefaultToolTip("Immediately release the issue, i.e. create it for statistical purposes only?");
 			createPopupTable.setContent(9, 0, directReleaseLab).setContent(9, 1, directRelease);
-			
-			createIssueAssigned.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-			createIssueAssigned.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-			responsibleDropdown.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-			responsibleDropdown.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-			deviceSelector.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
-			deviceSelector.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+			// no longer necessary as the checkbox directRelease is always shown
+			//createIssueAssigned.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			//responsibleDropdown.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			//deviceSelector.triggerAction(directReleaseLab, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
+			//createIssueAssigned.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			//responsibleDropdown.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			//deviceSelector.triggerAction(directRelease, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 			
 		} else {
 			directRelease = null;
@@ -481,12 +483,14 @@ public class CreateIssuePopup {
 						alarm.addDecorator("featureUnderDevelopment", StringResource.class).setValue(developmentComment);
 					alarm.activate(true);
 					// only syncs if issue is eligible; else major is null
-					final AlarmGroupDataMajor major = SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, appMan);
+					AlarmGroupDataMajor major = SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, appMan);
+					final boolean doRelease = directRelease.getCheckboxList(req).stream().filter(e -> "default".equals(e.id())).findAny().get().isChecked();
+					if (doRelease && major == null)
+						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(alarm, appMan);
 					if (alert != null)
 						alert.showAlert("Alarm generation succeeded for device " + device.deviceId().getValue() + " (" + device.getLocation() + ")", true, req);
 					if (releasePopup != null) {
-						final boolean release = major != null && 
-								directRelease.getCheckboxList(req).stream().filter(e -> "default".equals(e.id())).findAny().get().isChecked();
+						final boolean release = major != null && doRelease;
 						if (release) {
 							releasePopup.selectIssue(major, req);
 							releaseTrigger.triggerAction(releasePopup.popupWidget(), TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);

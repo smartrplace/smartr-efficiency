@@ -508,6 +508,7 @@ public class DeviceKnownFaultsInstallationPage {
 				assigned.setDefaultToolTip("Verantortlichkeit festlegen");
 				assigned.triggerAction(assigned, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 				*/
+				// TODO editable for OPERATION
 				final Label assigned = new Label(table, id + "_assigned", req) {
 					
 					@Override
@@ -596,6 +597,7 @@ public class DeviceKnownFaultsInstallationPage {
 					doneBtn.triggerAction(doneBtn, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 					row.addCell("resolve", doneBtn);
 				} else if (target == AlternativeFaultsPageTarget.OPERATION) {
+					/*
 					final Label responsible = new Label(table, id + "_responsible", req) {
 						
 						@Override
@@ -628,6 +630,12 @@ public class DeviceKnownFaultsInstallationPage {
 					};
 					
 					row.addCell("responsible", responsible);
+					*/
+					final Dropdown responsibleDropdown = new ResponsibleDropdown(table, "responsible"+id, req, 
+							appMan, device.knownFault(), null);
+					//responsibleDropdown.triggerAction(releaseBtnSnippet, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					row.addCell("responsible", responsibleDropdown);
+					
 					
 					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device);
 					row.addCell("followup", followup);
