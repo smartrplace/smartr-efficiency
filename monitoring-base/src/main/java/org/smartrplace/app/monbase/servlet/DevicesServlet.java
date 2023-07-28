@@ -116,15 +116,27 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 			ServletStringProvider labelLocale = new ServletStringProvider(labelLoc);
 			result.put("labelLocale", labelLocale);
 		}
+		String physicalRoomRelation = "virtual";
 		if(devHand != null) {
 			ServletStringProvider typeId = new ServletStringProvider(typeIdStr);
 			result.put("typeId", typeId);
 			ServletStringProvider devHandLabel = new ServletStringProvider(devHand.label(null));
 			result.put("type", devHandLabel);
+			if(devHand.relevantForUsers()) {
+				if(!devHand.id().toLowerCase().contains("virtual")) {
+					if(devHand.isInRoom())
+						physicalRoomRelation = "room";
+					else
+						physicalRoomRelation = "building";
+				}
+			}
 		} else {
 			ServletStringProvider type = new ServletStringProvider(dev.getResourceType().getSimpleName());
 			result.put("type", type);
 		}
+		ServletStringProvider physicalRoomRelationP = new ServletStringProvider(physicalRoomRelation);
+		result.put("physicalRoomRelation", physicalRoomRelationP);
+		
 		if(room != null) {
 			ServletStringProvider roomName = new ServletStringProvider(ResourceUtils.getHumanReadableName(room));
 			result.put("roomName", roomName);
@@ -174,8 +186,6 @@ public class DevicesServlet implements ServletPageProvider<InstallAppDevice> {
 		IntegerResource installationElements = object.getSubResource("installFlags", IntegerResource.class);
 		ServletIntegerResourceProvider installFlags = new ServletIntegerResourceProvider(installationElements);
 		result.put("installFlags", installFlags);
-		
-		
 		
 		return result;
 	}
