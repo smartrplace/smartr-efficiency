@@ -25,6 +25,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
+import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.locations.BuildingPropertyUnit;
@@ -38,6 +39,8 @@ import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
+import org.smartrplace.util.virtualdevice.ChartsUtil;
+import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Supplier;
@@ -79,6 +82,7 @@ public class DeviceKnownFaultsInstallationPage {
 	
 	private final WidgetPage<?> page;
 	private final ApplicationManager appMan;
+	private final DatapointService dpService;
 	private final DeviceHandlerAccess deviceHandlers;
 	private final AlternativeFaultsPageTarget target;
 	/*
@@ -87,10 +91,12 @@ public class DeviceKnownFaultsInstallationPage {
 	private Label lastMessage;
 	*/
 	
-	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan, DeviceHandlerAccess deviceHandlers,
+	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan, DatapointService dpService,
+			DeviceHandlerAccess deviceHandlers,
 			AlternativeFaultsPageTarget target) {
 		this.page = page;
 		this.appMan = appMan;
+		this.dpService = dpService;
 		this.deviceHandlers = deviceHandlers;
 		this.target = target;
 		this.buildPage();
@@ -631,8 +637,13 @@ public class DeviceKnownFaultsInstallationPage {
 					
 					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device);
 					row.addCell("followup", followup);
+					
 				}
 				
+				final GetPlotButtonResult logResult = ChartsUtil.getPlotButtonBase(id, device, dpService, appMan, table, row, req,
+						ScheduleViewerConfigProvAlarm.getInstance());
+				row.addCell("Plot", logResult.plotButton);
+
 				final SingleValueResource responsibleResource = AlarmMessageUtil.findResponsibleResource(device, appMan, Locale.GERMAN);
 				if (responsibleResource!= null) {
 					final Label valueField = new Label(table, id + "_value", req) {
@@ -682,6 +693,7 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("comment", "Kommentar");
 				header.put("details", "Details");
 				header.put("assigned", "Analyse");
+				header.put("Plot", "Plot");
 				if (target == AlternativeFaultsPageTarget.INSTALLATION) {
  					header.put("installation", "Ergebnis Vor-Ort");
 					//header.put("message", "Fehlerbericht");

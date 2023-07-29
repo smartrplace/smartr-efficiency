@@ -147,9 +147,9 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			WidgetPage<?> pageInstall = widgetApp.createWidgetPage("deviceknownfaultsinstall.html");
 			WidgetPage<?> pageOp = widgetApp.createWidgetPage("deviceknownfaultsop.html");
 			synchronized (controller.accessAdminApp) {
-				DeviceKnownFaultsInstallationPage knownFaultsPageAltInstall = new DeviceKnownFaultsInstallationPage(pageInstall, appMan, controller.accessAdminApp, 
+				DeviceKnownFaultsInstallationPage knownFaultsPageAltInstall = new DeviceKnownFaultsInstallationPage(pageInstall, appMan, controller.dpService, controller.accessAdminApp, 
 						AlternativeFaultsPageTarget.INSTALLATION);
-				DeviceKnownFaultsInstallationPage knownFaultsPageAltOp = new DeviceKnownFaultsInstallationPage(pageOp, appMan, controller.accessAdminApp, 
+				DeviceKnownFaultsInstallationPage knownFaultsPageAltOp = new DeviceKnownFaultsInstallationPage(pageOp, appMan, controller.dpService, controller.accessAdminApp, 
 						AlternativeFaultsPageTarget.OPERATION);
 				
 				/*
