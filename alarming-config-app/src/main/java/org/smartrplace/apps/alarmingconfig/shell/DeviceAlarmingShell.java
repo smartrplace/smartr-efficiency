@@ -20,11 +20,13 @@ import org.ogema.core.application.Application;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
+import org.ogema.tools.resource.util.ResourceUtils;
 
 @Component(
 		service=DeviceAlarmingShell.class,
 		property= {
 				"osgi.command.scope=devicealarms",
+				"osgi.command.function=devices",
 				"osgi.command.function=deviceIssues"
 		}
 )
@@ -70,6 +72,44 @@ public class DeviceAlarmingShell {
 	private Stream<InstallAppDevice> getKnownDevices() {
 		return appMan.getResourceAccess().getResources(HardwareInstallConfig.class).stream()
 				.flatMap(cfg -> cfg.knownDevices().getAllElements().stream());
+	}
+	
+	@Descriptor("Show devices")
+	public void devices(CommandSession shell,
+			@Descriptor("Include trash")
+			@Parameter(names= {"-t", "--trash"}, absentValue="false", presentValue="true")
+			boolean trashIncluded,
+			@Descriptor("Include device resource path")
+			@Parameter(names= {"-d", "--device"}, absentValue="false", presentValue="true")
+			boolean showDevicePath,
+			@Descriptor("Include known device resource path")
+			@Parameter(names= {"-kd", "--known-device"}, absentValue="false", presentValue="true")
+			boolean showKnownDevicePath
+			) throws InterruptedException {
+		startLatch.await(30, TimeUnit.SECONDS);
+		final PrintStream console = shell.getConsole();
+		Stream<InstallAppDevice> stream = appMan.getResourceAccess().getResources(InstallAppDevice.class).stream();
+		if (!trashIncluded)
+			stream = stream.filter(d -> !d.isTrash().isActive() || !d.isTrash().getValue());
+		stream.forEach(d -> {
+			final StringBuilder sb = new StringBuilder();
+			if (d.deviceId().isActive())
+				sb.append("Device id: ").append(d.deviceId().getValue()).append(", ");
+			if (d.device().isActive()) {
+				final String name = ResourceUtils.getHumanReadableName(d.device());
+				final String loc = d.device().getLocation();
+				if (!loc.equals(name))
+					sb.append("device: ").append(name).append(", ");
+				if (showDevicePath)
+					sb.append("device resource: ").append(loc).append(", ");
+				if (d.device().location().room().isActive())
+					sb.append("room: ").append(ResourceUtils.getHumanReadableName(d.device().location().room())).append(", ");
+			}
+			if (showKnownDevicePath)
+				sb.append("resource: ").append(d.getLocation()).append(", ");
+			sb.append("device in fault state: ").append(d.knownFault().isActive());
+			console.println(sb.toString());
+		});		
 	}
 	
 	// TODO filter by building, room, device type, ...

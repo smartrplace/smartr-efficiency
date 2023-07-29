@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -37,6 +39,7 @@ import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupData;
+import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -64,12 +67,14 @@ import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
+import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
+import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
@@ -457,6 +462,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				detailsRedirect.setToolTip("View alarm details in new tab", req);
 				row.addCell("Details", detailsRedirect);
 				
+				final AtomicReference<Button> releaseBtnRef = new AtomicReference<>(null);
+				final AtomicInteger releaseCnt = new AtomicInteger(0);
+				final PageSnippet releaseBtnSnippet = new PageSnippet(mainTable, "releasesnippet" + id, req);
 				if(res.exists()) {
 					vh.stringEdit("Comment_Analysis",  id, res.comment(), row, alert, res.comment());
 					ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
@@ -485,9 +493,13 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 								//Blocking
 								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
 							}
-							SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan);
+							if (SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan) != null) {
+								// delete old release button and replace by new one...
+								updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req);
+							}
 						}
 					};
+					widgetPlus.myDrop.triggerAction(releaseBtnSnippet, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 					row.addCell(WidgetHelper.getValidWidgetId("Analysis_Assigned"), widgetPlus.myDrop);
 					
 					if(!res.linkToTaskTracking().getValue().isEmpty()) {
@@ -504,62 +516,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					if(pageType == KnownFaultsPageType.SUPERVISION_STANDARD)
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 					
-					final Dropdown responsibleDropdown = new Dropdown(mainTable, "responsible"+id, req) {
-						
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							final GatewaySuperiorData supData = AlarmResourceUtil.findSuperiorData(appMan);
-							if (supData == null || !supData.responsibilityContacts().isActive())
-								return;
-							final StringResource responsibility = object.knownFault().responsibility();
-							final String email = responsibility.isActive() ? responsibility.getValue() : "";
-							final NaturalPerson selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
-								.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
-								.findAny().orElse(null);
-							final List<DropdownOption> options = supData.responsibilityContacts().getAllElements().stream()
-								.map(contact -> new DropdownOption(
-										contact.getName(), contact.userRole().isActive() ? contact.userRole().getValue() :
-										contact.firstName().getValue() + " " + contact.lastName().getValue(), 
-										contact.equalsLocation(selected)
-								))
-								.collect(Collectors.toList());
-							setOptions(options, req);
-							if (selected != null) {
-								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
-								setToolTip(id + ": " + email, req);
-							} else {
-								setToolTip(email.isEmpty() ? "Select responsible" :  email, req);
-							}
-						}
-						
-						@Override
-						public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-							final GatewaySuperiorData supData = AlarmResourceUtil.findSuperiorData(appMan);
-							if (supData == null || !supData.responsibilityContacts().isActive())
-								return;
-							final String currentSelected = getSelectedValue(req);
-							final StringResource responsibility = object.knownFault().responsibility();
-							if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
-										|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
-								responsibility.delete();
-								return;
-							}
-							final NaturalPerson selected = supData.responsibilityContacts().getSubResource(currentSelected); 
-							final StringResource emailRes = selected.getSubResource("emailAddress");
-							final String email = emailRes.isActive() ? emailRes.getValue() : "";
-							if (email.isEmpty()) { // ?
-								return;
-							}
-							responsibility.<StringResource> create().setValue(email);
-							responsibility.activate(false);
-						}
-						
-						
-					};
-					responsibleDropdown.setDefaultAddEmptyOption(true);
-					responsibleDropdown.setDefaultMinWidth("8em");
-					responsibleDropdown.setComparator(CreateIssuePopup.RESPONSIBLES_COMPARATOR);
-					responsibleDropdown.triggerAction(responsibleDropdown, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					final Dropdown responsibleDropdown = new ResponsibleDropdown(mainTable, "responsible"+id, req, 
+							appMan, res, () -> updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req));
+					responsibleDropdown.triggerAction(releaseBtnSnippet, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 					row.addCell("Responsible", responsibleDropdown);
 					
 				}
@@ -590,52 +549,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				Button releaseBut; 
 				
 				if (res.exists()) {
-					if(res.assigned().isActive() &&
-							(res.assigned().getValue() > 0) && (res.assigned().getValue() != AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT)) {
-						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
-							
-							@Override
-							public void onGET(OgemaHttpRequest req) {
-								int status = res.forRelease().getValue();
-								if(status > 1)
-									setStyle(ButtonData.BOOTSTRAP_ORANGE, req);
-								else if(status > 0)
-									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
-								else
-									setStyles(Collections.emptyList(), req);							
-							}
-							
-							@Override
-							public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-								releasePopup.selectIssue(res, req);
-							}
-							
-						};
-						releasePopup.trigger(releaseBut);
-					} else {
-						//Unassigned issues shall still just be released without analysis
-						releaseBut = new Button(mainTable, "releaseBut"+id, "Release", req) {
-							
-							@Override
-							public void onGET(OgemaHttpRequest req) {
-								int status = res.forRelease().getValue();
-								if(status > 1)
-									setStyle(ButtonData.BOOTSTRAP_ORANGE, req);
-								else if(status > 0)
-									setStyle(ButtonData.BOOTSTRAP_GREEN, req);
-								else
-									setStyles(Collections.emptyList(), req);							
-							}
-							
-							@Override
-							public void onPOSTComplete(String data, OgemaHttpRequest req) {
-								//TODO: In the future we may want to keep this information in a log of solved issues
-								AlarmResourceUtil.release(res, appMan.getFrameworkTime());
-								//res.delete();
-								//res.ongoingAlarmStartTime().setValue(-1);
-							}
-						};						
-					}
+					releaseBut = createReleaseBtn(res, releaseBtnSnippet, id, req);
 				}
 				/*
 				if (res instanceof AlarmGroupDataMajor) {
@@ -676,7 +590,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					};
 				
 				} */ else {
-					releaseBut = new Button(mainTable, "releaseBut"+id, "Create", req) {
+					releaseBut = new Button(releaseBtnSnippet, "releaseBut"+id, "Create", req) {
 						@Override
 						public void onPOSTComplete(String data, OgemaHttpRequest req) {
 							res.create();
@@ -688,7 +602,9 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					};
 					releaseBut.addDefaultStyle(ButtonData.BOOTSTRAP_ORANGE);
 				}
-				row.addCell("Release", releaseBut);
+				releaseBtnRef.set(releaseBut);
+				releaseBtnSnippet.append(releaseBut, req);
+				row.addCell("Release", releaseBtnSnippet);
 				
 				if(object.device() instanceof Thermostat) {
 					Thermostat dev = (Thermostat)object.device();
@@ -741,6 +657,87 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			}
 		};
 		return result;
+	}
+	
+	private Button updateReleaseBtn(
+			final AlarmGroupData res,
+			final AtomicReference<Button> releaseBtnRef, 
+			final AtomicInteger releaseCnt,
+			final PageSnippet releaseBtnSnippet,
+			final String id,
+			final OgemaHttpRequest req) {
+		final Button release = releaseBtnRef.get();
+		if (release == null) // XXX?
+			return release;
+		releaseBtnSnippet.remove(release, req);
+		try {
+			Thread.sleep(1000); // replacement of the alarm resource by a reference is done by some other listener...
+		} catch(InterruptedException e) {
+			Thread.currentThread().interrupt();
+			return null;
+		}
+		final Button newRelease = createReleaseBtn(res.getLocationResource(), releaseBtnSnippet, id + releaseCnt.getAndIncrement(), req);
+		releaseBtnSnippet.append(newRelease, req);
+		releaseBtnRef.set(newRelease);
+		return newRelease;
+	}
+	
+	private Button createReleaseBtn(final AlarmGroupData res, final OgemaWidget parent, final String id, final OgemaHttpRequest req) {
+		final Button releaseBut;
+		if(res instanceof AlarmGroupDataMajor 
+				|| (res.assigned().isActive() &&
+						(res.assigned().getValue() > 0) && (res.assigned().getValue() != AlarmingConfigUtil.ASSIGNMENT_DEPDENDENT)) 
+				|| res.responsibility().isActive()) {
+			releaseBut = new Button(parent, "releaseBut"+id, "Release", req) {
+				
+				/*  // opens a popup 
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					int status = res.forRelease().getValue();
+					if(status > 1)
+						setStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+					else if(status > 0)
+						setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+					else
+						setStyles(Collections.emptyList(), req);							
+				}
+				*/
+				
+				@Override
+				public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
+					releasePopup.selectIssue(res, req);
+				}
+				
+			};
+			releasePopup.trigger(releaseBut);
+			releaseBut.addDefaultStyle(ButtonData.BOOTSTRAP_LIGHT_BLUE);
+			releaseBut.setDefaultToolTip("Open the release popup to provide release information");
+		} else {
+			//Unassigned issues shall still just be released without analysis
+			releaseBut = new Button(parent, "releaseBut"+id, "Release", req) {
+				
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					int status = res.forRelease().getValue();
+					if(status > 1)
+						setStyle(ButtonData.BOOTSTRAP_ORANGE, req);
+					else if(status > 0)
+						setStyle(ButtonData.BOOTSTRAP_GREEN, req);
+					else
+						setStyles(Collections.emptyList(), req); // red maybe?
+				}
+				
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					//TODO: In the future we may want to keep this information in a log of solved issues
+					AlarmResourceUtil.release(res, appMan.getFrameworkTime());
+					//res.delete();
+					//res.ongoingAlarmStartTime().setValue(-1);
+				}
+			};
+			releaseBut.setDefaultToolTip("Directly delete the issue.");
+		}
+		return releaseBut;
 	}
 	
 	protected List<InstallAppDevice> getDevicesWithKnownFault(List<InstallAppDevice> all) {
