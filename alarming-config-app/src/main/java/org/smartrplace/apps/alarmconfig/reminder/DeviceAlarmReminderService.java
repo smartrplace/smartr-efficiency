@@ -180,7 +180,6 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		final String recipient = cfg.config.responsible.isActive() && cfg.config.responsible.getValue().contains("@") ?
 				cfg.config.responsible.getValue() : "alarming@smartrplace.com";
 		try {
-			boolean deactivated = false;
 			final AlarmGroupData alarm = cfg.config.model;
 			final String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
 			final StringBuilder sb = new StringBuilder()
@@ -189,8 +188,10 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			String deviceId;
 			try {
 				InstallAppDevice iad = AlarmResourceUtil.getDeviceForKnownFault(alarm);
-				if((!iad.device().isActive()) || iad.isTrash().getValue())
-					deactivated = true;
+				if (iad == null || !iad.device().isActive() || (iad.isTrash().isActive() && iad.isTrash().getValue())) {
+					cfg.config.dueDate.deactivate(false);
+					return false;
+				}
 				deviceId = iad.deviceId().getValue();
 				deviceName = deviceId +" ("+ResourceUtils.getHumanReadableName(iad.device())+")";
 				String nameInHwInstall = DeviceTableRaw.getName(iad, appManPlus);
@@ -199,10 +200,6 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			} catch (Exception e) {
 				deviceId = alarm.getPath();
 				deviceName = alarm.getPath();
-			}
-			if(deactivated) {
-				cfg.config.dueDate.deactivate(false);
-				return false;
 			}
 			sb.append(deviceName).append(" on gateway ").append(gwId);
 			sb.append('.');
@@ -223,9 +220,14 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 			if(alarm.linkToTaskTracking().isActive()) {
 				msg += "<br>Issue Link: " +generateHtmlLink(alarm.linkToTaskTracking().getValue());
 			}
-			if (baseUrl != null && !baseUrl.isEmpty())
-				msg += "<br>Issue Data: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults.html</a>";
 			final NaturalPerson responsible = findResponsible(recipient);
+			if (baseUrl != null && !baseUrl.isEmpty()) {
+				// if addressed at operations then the operations page shall be linked
+				final boolean forOperations = responsible != null && responsible.userRole().isActive() 
+						&& responsible.userRole().getValue().toLowerCase().contains("operation");
+				String ending = forOperations ? "op" : "";
+				msg += "<br>Issue Data: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults" + ending + ".html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults" + ending + ".html</a>";
+			}
 			if (requiresAggregation(responsible)) {
 				final PendingEmail pending = alarm.addDecorator(AlarmResourceUtil.PENDING_REMINDER_EMAIL_SUBRESOURCE, PendingEmail.class);
 				pending.senderEmail().<StringResource> create().setValue(senderEmail);
