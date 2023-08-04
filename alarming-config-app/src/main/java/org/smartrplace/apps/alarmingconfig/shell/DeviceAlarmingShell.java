@@ -133,7 +133,7 @@ public class DeviceAlarmingShell {
 			@Parameter(names= {"-d", "--device"}, absentValue="false", presentValue="true")
 			boolean showDevicePath,
 			@Descriptor("Include alarm resource path")
-			@Parameter(names= {"--alarm"}, absentValue="false", presentValue="true")
+			@Parameter(names= {"-a", "--alarm"}, absentValue="false", presentValue="true")
 			boolean showAlarmPath,
 			@Descriptor("Include assignments")
 			@Parameter(names= {"-ass", "--assigned"}, absentValue="false", presentValue="true")
@@ -183,7 +183,6 @@ public class DeviceAlarmingShell {
 	}
 	
 	// TODO filter for released alarms? And trashed/inactive devices?
-	// TODO test
 	@Descriptor("Show pending alarm reminders")
 	public void reminders(
 			CommandSession shell,
@@ -224,9 +223,9 @@ public class DeviceAlarmingShell {
 					final int reminder = alarm.model.reminderType().getValue();
 					sb.append(" (").append(reminder == 1 ? "daily" : reminder == 2 ? "weekly" : reminder == 3 ? "monthly" : "default frequency").append(")");
 				}
-				
 				if (alarm.responsible.isActive())
 					sb.append(", responsible: ").append(alarm.responsible.getValue());
+				sb.append(", alarm resource: ").append(alarm.model.getLocation());
 				sb.append("]");
 				out.println(sb.toString());
 			});
