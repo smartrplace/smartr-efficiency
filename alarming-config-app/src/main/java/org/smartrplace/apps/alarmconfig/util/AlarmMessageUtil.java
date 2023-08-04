@@ -24,19 +24,39 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmConfiguration;
+import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
-import de.iwes.util.resource.ResourceHelper;
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.form.label.Label;
 
 public class AlarmMessageUtil {
+	
 	public static final boolean addAlarmDocLink = !Boolean.getBoolean("org.smartrplace.apps.alarmconfig.util.suppressAlarmDocLink");
+	
+	public static enum ReminderFrequency {
+		
+		NONE(-1), DEFAULT(0), DAILY(1), WEEKLY(2), MONTHLY(3);
+		
+		private final int code;
+		
+		private ReminderFrequency(int code) {
+			this.code=code;
+		}
+		
+		public int getCode() {
+			return this.code;
+		}
+		
+	}
 	
 	public static String getAlarmGuideLink(String alarmMessage) {
 		for(AlarmType type: AlarmType.getKnownTypes()) {
@@ -239,6 +259,39 @@ public class AlarmMessageUtil {
 			return device.getSubResource("systemRestart");  // ?
 		}
 		return null;
+	}
+
+	public static void setNextReminder(long timestamp, ReminderFrequency frequency, AlarmGroupData alarm, InstallAppDevice device,
+			ApplicationManager appMan) {
+		AlarmMessageUtil.setNextReminder(timestamp, frequency, alarm, device, appMan, null, null);
+	}
+
+	public static void setNextReminder(long timestamp, ReminderFrequency frequency, AlarmGroupData alarm, InstallAppDevice device,
+			ApplicationManager appMan, Alert alert, OgemaHttpRequest req) {
+		final TimeResource followup = alarm.dueDateForResponsibility();
+		if (timestamp == -1l) {
+			if (followup.isActive()) {
+				followup.deactivate(false);
+				if (alert != null && device.device().exists()) {
+					alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(device.device().getLocationResource()) 
+						+ " has been cancelled", true, req);
+				}
+			}
+			return;
+		}
+		followup.<TimeResource> create().setValue(timestamp);
+		final long now0 = appMan.getFrameworkTime();
+		if (timestamp > now0) {
+			followup.activate(false);
+			if (alert != null && device.device().exists()) {
+				alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(device.device().getLocationResource()) 
+					+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
+			}
+		}
+		if (frequency != null && frequency != ReminderFrequency.NONE)  
+			ValueResourceHelper.setCreate(alarm.reminderType(), frequency.getCode());
+		else
+			alarm.reminderType().delete();
 	}
 	
 	private static class AlarmStatus {

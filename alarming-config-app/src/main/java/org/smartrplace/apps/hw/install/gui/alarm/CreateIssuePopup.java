@@ -1,11 +1,5 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,12 +20,15 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.user.NaturalPerson;
+import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil.ReminderFrequency;
 import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.alarm.FollowUpDropdown.FollowUpSettings;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
 
+import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -54,7 +51,6 @@ import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
-import de.iwes.widgets.html.form.textfield.TextFieldType;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.JustifyContent;
 import de.iwes.widgets.html.popup.Popup;
@@ -217,6 +213,9 @@ public class CreateIssuePopup {
 		responsibleDropdown.setComparator(RESPONSIBLES_COMPARATOR);
 		
 		final Label createIssueReminderLab = new Label(page, "createIssueReminderLab", "Next reminder");
+		
+		final FollowUpDropdown createIssueReminder = new FollowUpDropdown(page, "createIssueReminder", appMan, alert);
+		/*
 		final TextField createIssueReminder = new TextField(page, "createIssueReminder") {
 			
 			@Override
@@ -241,12 +240,21 @@ public class CreateIssuePopup {
 			
 		};
 		createIssueReminder.setDefaultType(TextFieldType.DATE);
+		*/
 		
 		final Label createIssueReminderFreqLab = new Label(page, "createIssueReminderLFreqab", "Reminder frequency");
 		final Dropdown createIssueReminderFreq = new Dropdown(page, "createIssueReminderFreq") {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
+				final FollowUpSettings reminder = createIssueReminder.getSelectedTimestamp(req);
+				if (reminder.timestamp != -1 && reminder.reminderType != ReminderFrequency.NONE && reminder.reminderType != ReminderFrequency.DEFAULT) {
+					final String selected = 
+							reminder.reminderType == ReminderFrequency.MONTHLY ? "m"
+						:   reminder.reminderType == ReminderFrequency.WEEKLY ? "w": "d";
+					selectSingleOption(selected, req);
+					return;
+				}
 				final InstallAppDevice device = ((DeviceSelectorData) deviceSelector.getData(req)).getSelectedItem();
 				if (device == null || !device.knownFault().reminderType().isActive()) {
 					selectSingleOption(DropdownData.EMPTY_OPT_ID, req);
@@ -261,6 +269,7 @@ public class CreateIssuePopup {
 		createIssueReminderFreq.setDefaultAddEmptyOption(true, "Default");
 		createIssueReminderFreq.setComparator(null);
 		createIssueReminderFreq.setDefaultOptions(REMINDER_FREQUENCY_OPTIONS);
+		createIssueReminder.triggerAction(createIssueReminderFreq, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		
 		
 		final Label createIssueTaskTrackingLab = new Label(page, "createIssueTaskTrackingLab", "Task tracking");
@@ -450,33 +459,30 @@ public class CreateIssuePopup {
 					final String tt = createIssueTaskTracking.getValue(req).trim();
 					if (!tt.isEmpty())
 						alarm.linkToTaskTracking().<StringResource> create().setValue(tt);
-					final String reminderDate = createIssueReminder.getValue(req);
-					if (reminderDate != null && !reminderDate.isEmpty()) {
-						try {
-							final long nextReminder = LocalDate.parse(reminderDate, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay(ZoneId.systemDefault())
-									.toInstant().toEpochMilli();
-							alarm.dueDateForResponsibility().<TimeResource> create().setValue(nextReminder);
-							final String reminderFreq = createIssueReminderFreq.getSelectedValue(req);
-							if (reminderFreq != null) {
-								final int mode;
-								switch(reminderFreq) {
-								case "d":
-									mode = 1;
-									break;
-								case "w":
-									mode = 2;
-									break;
-								case "m":
-									mode = 3;
-									break;
-								default: 
-									mode = -1;
-								}
-								if (mode > 0)
-									alarm.reminderType().<IntegerResource> create().setValue(mode);
+					final FollowUpSettings reminder = createIssueReminder.getSelectedTimestamp(req);
+					if (reminder.timestamp != -1L) {
+						alarm.dueDateForResponsibility().<TimeResource> create().setValue(reminder.timestamp);
+						if (reminder.reminderType != ReminderFrequency.NONE)
+							ValueResourceHelper.setCreate(alarm.reminderType(), reminder.reminderType.getCode());
+						final String reminderFreq = createIssueReminderFreq.getSelectedValue(req);
+						if (reminderFreq != null) {
+							final int mode;
+							switch(reminderFreq) {
+							case "d":
+								mode = 1;
+								break;
+							case "w":
+								mode = 2;
+								break;
+							case "m":
+								mode = 3;
+								break;
+							default: 
+								mode = -1;
 							}
-							
-						} catch (DateTimeParseException ignore) {}  // ok? 
+							if (mode > 0)
+								alarm.reminderType().<IntegerResource> create().setValue(mode);
+						}
 					}
 					final String developmentComment = devComment.getValue(req).trim();
 					if (!developmentComment.isEmpty())

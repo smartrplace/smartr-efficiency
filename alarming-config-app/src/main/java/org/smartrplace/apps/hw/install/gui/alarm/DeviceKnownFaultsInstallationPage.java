@@ -470,11 +470,12 @@ public class DeviceKnownFaultsInstallationPage {
 				};
 				activeSince.selectDefaultItem(device.knownFault().ongoingAlarmStartTime());
 				row.addCell("activesince", activeSince);
-
+				/*
 				final RedirectButton detailsRedirect = new RedirectButton(table, id + "_details", "Details", 
 						"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + device.deviceId().getValue(), req);
 				detailsRedirect.setToolTip("Alarmdetails in neuem Tab anzeigen", req);
 				row.addCell("details", detailsRedirect);
+				*/
 				/*
 				final Dropdown assigned = new Dropdown(table, id + "_assigned", req) {
 					
@@ -702,7 +703,7 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("contact", "Letzter Kontakt");
 				header.put("activesince", "Fehler seit");
 				header.put("comment", "Kommentar");
-				header.put("details", "Details");
+				//header.put("details", "Details");
 				header.put("assigned", "Analyse");
 				header.put("Plot", "Plot");
 				if (target == AlternativeFaultsPageTarget.INSTALLATION) {
