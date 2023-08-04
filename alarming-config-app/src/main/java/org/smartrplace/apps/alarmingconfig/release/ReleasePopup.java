@@ -318,6 +318,10 @@ public class ReleasePopup {
 	}
 	
 	public void trigger(OgemaWidget externalWidget) {
+		trigger(externalWidget, true);
+	}
+	
+	public void trigger(OgemaWidget externalWidget, boolean showPopup) {
 		externalWidget.triggerAction(device, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		externalWidget.triggerAction(releaseModeSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		externalWidget.triggerAction(finalAnalysisLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
@@ -328,7 +332,8 @@ public class ReleasePopup {
 		externalWidget.triggerAction(devLabel, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(devComment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		externalWidget.triggerAction(submitButton, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
-		externalWidget.triggerAction(popup, TriggeringAction.ON_CLICK, TriggeredAction.SHOW_WIDGET, 1);
+		if (showPopup)
+			externalWidget.triggerAction(popup, TriggeringAction.ON_CLICK, TriggeredAction.SHOW_WIDGET, 1);
 	}
 	
 	public void append(WidgetPage<?> page) {

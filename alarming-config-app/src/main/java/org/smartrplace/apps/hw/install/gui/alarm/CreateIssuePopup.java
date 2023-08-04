@@ -354,7 +354,7 @@ public class CreateIssuePopup {
 			releaseTrigger = new EmptyWidget(page,"createIssueReleaseTrigger") {
 
 				@Override
-				public EmptyData createNewSession() {  // only to avoid an unsupportedoperationexception... a bit annoying
+				public EmptyData createNewSession() {  // only to avoid an unsupportedoperationexception...
 					return new EmptyData(this) {
 						
 						@Override
@@ -537,9 +537,9 @@ public class CreateIssuePopup {
 		cancel.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
 		submit.triggerAction(createIssuePopup, TriggeringAction.POST_REQUEST, TriggeredAction.HIDE_WIDGET);
 		if (releasePopup != null)
-			releasePopup.trigger(submit);
+			releasePopup.trigger(submit, false);
 		if (releaseTrigger != null)
-			submit.triggerAction(releaseTrigger, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			submit.triggerAction(releaseTrigger, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, 1);
 		if (alert != null)
 			submit.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 	}
