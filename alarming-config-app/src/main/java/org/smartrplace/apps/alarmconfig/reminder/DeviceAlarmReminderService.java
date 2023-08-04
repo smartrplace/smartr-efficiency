@@ -157,98 +157,36 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 	}
 
 	private boolean trigger(AlarmConfig cfg, MailSessionServiceI emailService) {
-		if (!cfg.config.isActive())
-			return false;
-		boolean reRemind = cfg.config.reminderType==null || !cfg.config.reminderType.isActive() || cfg.config.reminderType.getValue() >= 0;
-		if(!reRemind)
-			cfg.config.dueDate.deactivate(false);
-		else {
-			long startOfDay = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
-			final int type = cfg.config.reminderType.isActive() ? cfg.config.reminderType.getValue() : 0;
-			long nextReminder;
-			if(type == 1)
-				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 1, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
-			else if(type == 2)
-				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 7, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
-			else if(type == 3) {
-				long startOfMonth = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.MONTH);
-				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfMonth, 1, AbsoluteTiming.MONTH) + 4*TimeProcUtil.HOUR_MILLIS;
-			} else
-				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 3, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
-			cfg.config.dueDate.setValue(nextReminder);
-		}
-		final String recipient = cfg.config.responsible.isActive() && cfg.config.responsible.getValue().contains("@") ?
-				cfg.config.responsible.getValue() : "alarming@smartrplace.com";
+		final AlarmGroupData alarm = cfg.config.model;
+		String recipient = null;
 		try {
-			final AlarmGroupData alarm = cfg.config.model;
-			final String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
-			final StringBuilder sb = new StringBuilder()
-				.append("This is a reminder for the device alarm ");
-			String deviceName;
-			String deviceId;
-			try {
-				InstallAppDevice iad = AlarmResourceUtil.getDeviceForKnownFault(alarm);
-				if (iad == null || !iad.device().isActive() || (iad.isTrash().isActive() && iad.isTrash().getValue())) {
-					cfg.config.dueDate.deactivate(false);
-					return false;
-				}
-				deviceId = iad.deviceId().getValue();
-				deviceName = deviceId +" ("+ResourceUtils.getHumanReadableName(iad.device())+")";
-				String nameInHwInstall = DeviceTableRaw.getName(iad, appManPlus);
-				deviceName = nameInHwInstall + " : "+deviceName;
-				deviceId = nameInHwInstall + " : "+deviceId;
-			} catch (Exception e) {
-				deviceId = alarm.getPath();
-				deviceName = alarm.getPath();
-			}
-			sb.append(deviceName).append(" on gateway ").append(gwId);
-			sb.append('.');
-			if (alarm.comment().isActive()) {
-				sb.append("<br>Comment: ").append(alarm.comment().getValue());
-			}
-			if (alarm.ongoingAlarmStartTime().isActive()) {
-				sb.append("<br>In alarm state since: ")
-					.append(StringFormatHelper.getTimeDateInLocalTimeZone(alarm.ongoingAlarmStartTime().getValue())) //DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(alarm.ongoingAlarmStartTime().getValue()), ZoneId.systemDefault())))
-					.append('.');
-			}
-			sb.append("<br>Next reminder: ")
-				.append(StringFormatHelper.getTimeDateInLocalTimeZone(alarm.dueDateForResponsibility().getValue()));
-			final LocalGatewayInformation gwRes = ResourceHelper.getLocalGwInfo(appMan);
-			final String baseUrl = gwRes.gatewayBaseUrl().getValue();
-			final String subject = "Device issue reminder " + gwId + ": " + deviceName;
-			String msg = sb.toString();
-			if(alarm.linkToTaskTracking().isActive()) {
-				msg += "<br>Issue Link: " +generateHtmlLink(alarm.linkToTaskTracking().getValue());
-			}
-			final NaturalPerson responsible = findResponsible(recipient);
-			if (baseUrl != null && !baseUrl.isEmpty()) {
-				// if addressed at operations then the operations page shall be linked
-				final boolean forOperations = responsible != null && responsible.userRole().isActive() 
-						&& responsible.userRole().getValue().toLowerCase().contains("operation");
-				String ending = forOperations ? "op" : "";
-				msg += "<br>Issue Data: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults" + ending + ".html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults" + ending + ".html</a>";
-			}
-			if (requiresAggregation(responsible)) {
+			final EmailData emailData = extractEmailData(cfg, appMan, appManPlus, true);
+			if (emailData == null)
+				return false;
+			recipient = emailData.recipient;
+			if (requiresAggregation(emailData.responsible)) {
 				final PendingEmail pending = alarm.addDecorator(AlarmResourceUtil.PENDING_REMINDER_EMAIL_SUBRESOURCE, PendingEmail.class);
 				pending.senderEmail().<StringResource> create().setValue(senderEmail);
 				pending.senderName().<StringResource> create().setValue(senderName);
-				pending.subject().<StringResource> create().setValue(deviceId);
-				pending.message().<StringResource> create().setValue(msg);
+				pending.subject().<StringResource> create().setValue(emailData.deviceId);
+				pending.message().<StringResource> create().setValue(emailData.msg);
 				pending.activate(true);
 			} else {
-				appMan.getLogger().info("Sending device alarm reminder to {}: {}", recipient, msg);
+				appMan.getLogger().info("Sending device alarm reminder to {}: {}", emailData.recipient, emailData.msg);
 				emailService.newMessage()
 					.withSender(senderEmail, senderName)
-					.withSubject(subject)
-					.addHtml(msg)
+					.withSubject(emailData.subject)
+					.addHtml(emailData.msg)
 					//.addText(msg)
-					.addTo(recipient)
+					.addTo(emailData.recipient)
 					.send();
 			}
+			return emailData.reRemind;
 		} catch (IOException e) {
 			appMan.getLogger().error("Failed to send alarm reminder for {} to {}", cfg.config.model, recipient, e);
+			return false;
 		}
-		return reRemind;
+		
 	}
 	
 	public static String generateHtmlLink(String link) {
@@ -262,7 +200,7 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		return aggregationMode != null && aggregationMode.isActive() && !"none".equals(aggregationMode.getValue());
 	}
 
-	private NaturalPerson findResponsible(String email) {
+	private static NaturalPerson findResponsible(String email, ApplicationManager appMan) {
 		final ResourceList<NaturalPerson> contacts = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes/responsibilityContacts");
 		if (contacts == null || !contacts.isActive())
 			return null;
@@ -291,7 +229,104 @@ public class DeviceAlarmReminderService implements PatternListener<AlarmReminder
 		this.retrigger();
 	}
 	
-	private static class AlarmConfig implements Comparable<AlarmConfig> {
+	public static EmailData extractEmailData(AlarmConfig cfg, ApplicationManager appMan, 
+				ApplicationManagerPlus appManPlus, boolean updateSettings) {
+		if (!cfg.config.isActive())
+			return null;
+		boolean reRemind = cfg.config.reminderType==null || !cfg.config.reminderType.isActive() || cfg.config.reminderType.getValue() >= 0;
+		if(!reRemind)
+			cfg.config.dueDate.deactivate(false);
+		else {
+			long startOfDay = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.DAY);
+			final int type = cfg.config.reminderType.isActive() ? cfg.config.reminderType.getValue() : 0;
+			long nextReminder;
+			if(type == 1)
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 1, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
+			else if(type == 2)
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 7, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
+			else if(type == 3) {
+				long startOfMonth = AbsoluteTimeHelper.getIntervalStart(appMan.getFrameworkTime(), AbsoluteTiming.MONTH);
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfMonth, 1, AbsoluteTiming.MONTH) + 4*TimeProcUtil.HOUR_MILLIS;
+			} else
+				nextReminder = AbsoluteTimeHelper.addIntervalsFromAlignedTime(startOfDay, 3, AbsoluteTiming.DAY) + 4*TimeProcUtil.HOUR_MILLIS;
+			cfg.config.dueDate.setValue(nextReminder);
+		}
+		final String recipient = cfg.config.responsible.isActive() && cfg.config.responsible.getValue().contains("@") ?
+				cfg.config.responsible.getValue() : "alarming@smartrplace.com";
+		final AlarmGroupData alarm = cfg.config.model;
+		final String gwId = GatewayUtil.getGatewayId(appMan.getResourceAccess());
+		final StringBuilder sb = new StringBuilder()
+			.append("This is a reminder for the device alarm ");
+		String deviceName;
+		String deviceId;
+		try {
+			InstallAppDevice iad = AlarmResourceUtil.getDeviceForKnownFault(alarm);
+			if (iad == null || !iad.device().isActive() || (iad.isTrash().isActive() && iad.isTrash().getValue())) {
+				cfg.config.dueDate.deactivate(false);
+				return null;
+			}
+			deviceId = iad.deviceId().getValue();
+			deviceName = deviceId +" ("+ResourceUtils.getHumanReadableName(iad.device())+")";
+			String nameInHwInstall = appManPlus != null ? DeviceTableRaw.getName(iad, appManPlus) : ResourceUtils.getHumanReadableName(iad);
+			deviceName = nameInHwInstall + " : "+deviceName;
+			deviceId = nameInHwInstall + " : "+deviceId;
+		} catch (Exception e) {
+			deviceId = alarm.getPath();
+			deviceName = alarm.getPath();
+		}
+		sb.append(deviceName).append(" on gateway ").append(gwId);
+		sb.append('.');
+		if (alarm.comment().isActive()) {
+			sb.append("<br>Comment: ").append(alarm.comment().getValue());
+		}
+		if (alarm.ongoingAlarmStartTime().isActive()) {
+			sb.append("<br>In alarm state since: ")
+				.append(StringFormatHelper.getTimeDateInLocalTimeZone(alarm.ongoingAlarmStartTime().getValue())) //DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(alarm.ongoingAlarmStartTime().getValue()), ZoneId.systemDefault())))
+				.append('.');
+		}
+		final long due = cfg.config.dueDate.getValue();
+		sb.append("<br>Next reminder: ").append(StringFormatHelper.getTimeDateInLocalTimeZone(due));
+		final LocalGatewayInformation gwRes = ResourceHelper.getLocalGwInfo(appMan);
+		final String baseUrl = gwRes.gatewayBaseUrl().getValue();
+		final String subject = "Device issue reminder " + gwId + ": " + deviceName;
+		if(alarm.linkToTaskTracking().isActive()) {
+			sb.append("<br>Issue Link: " +generateHtmlLink(alarm.linkToTaskTracking().getValue()));
+		}
+		final NaturalPerson responsible = findResponsible(recipient, appMan);
+		if (baseUrl != null && !baseUrl.isEmpty()) {
+			// if addressed at operations then the operations page shall be linked
+			final boolean forOperations = responsible != null && responsible.userRole().isActive() 
+					&& responsible.userRole().getValue().toLowerCase().contains("operation");
+			String ending = forOperations ? "op" : "";
+			sb.append("<br>Issue Data: <a href=\"" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults" + ending + ".html\">" + baseUrl + "/org/smartrplace/alarmingexpert/deviceknownfaults" + ending + ".html</a>");
+		}
+		return new EmailData(recipient, subject, sb.toString(), deviceId, responsible, due, reRemind); 
+	}
+	
+	public static class EmailData {
+		
+		public final String recipient;
+		public final String subject;
+		public final String msg;
+		public final String deviceId;
+		public final NaturalPerson responsible;
+		public final long due;
+		public final boolean reRemind;
+		
+		public EmailData(String recipient, String subject, String msg, String deviceId, 
+				NaturalPerson responsible, long due, boolean reRemind) {
+			this.recipient = recipient;
+			this.subject = subject;
+			this.msg = msg;
+			this.deviceId = deviceId;
+			this.responsible = responsible;
+			this.reRemind = reRemind;
+			this.due = due;
+		} 
+		
+	}
+	
+	public static class AlarmConfig implements Comparable<AlarmConfig> {
 		
 		private final long t;
 		private final AlarmReminderPattern config;
