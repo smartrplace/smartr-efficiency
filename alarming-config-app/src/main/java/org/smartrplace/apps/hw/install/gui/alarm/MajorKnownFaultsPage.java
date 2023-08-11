@@ -10,9 +10,12 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,10 +47,15 @@ import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
 
+import com.google.common.base.Supplier;
+
 import de.iwes.util.resource.ValueResourceHelper;
+import de.iwes.widgets.api.extended.mode.UpdateMode;
+import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
+import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
@@ -55,16 +63,30 @@ import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
+import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
+import de.iwes.widgets.html.html5.Flexbox;
+import de.iwes.widgets.html.html5.flexbox.AlignItems;
+import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
+import de.iwes.widgets.template.DisplayTemplate;
 
 @SuppressWarnings("serial")
 public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor, AlarmGroupDataMajor> {
+	
+	private static final List<DropdownOption> RELEASE_FILTER_OPTIONS = Arrays.asList(
+			new DropdownOption("all", "All alarms", true),
+			new DropdownOption("released", "Released", false),
+			new DropdownOption("nonreleased", "Not released", false)
+	);
 	private final ApplicationManagerPlus appManPlus;
 	private final GatewaySuperiorData supData;
 	private final HardwareInstallConfig hwInstallConfig;
+	private final boolean isSuperior;
+	private final TemplateDropdown<GatewaySuperiorData> gatewaySelector; // may be null
+	private final Dropdown releaseStatusFilter;
 
 	private IssueDetailsPopup lastMessagePopup;
 	private final ReleasePopup releasePopup;
@@ -74,17 +96,77 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		this.appManPlus = appMan;
 		this.supData = SuperiorIssuesSyncUtils.getSuperiorData(appMan.appMan());
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
+		this.isSuperior = Boolean.getBoolean("org.smartrplace.app.srcmon.server.issuperior");
+		if (isSuperior) {
+			gatewaySelector = new ResourceDropdown<GatewaySuperiorData>(page, "gatewaySelector", false, 
+					GatewaySuperiorData.class, UpdateMode.AUTO_ON_GET, appMan.getResourceAccess());
+			gatewaySelector.setTemplate(new DefaultResourceTemplate<GatewaySuperiorData>() {
+				
+				@Override
+				public String getLabel(GatewaySuperiorData res, OgemaLocale req) {
+					return SuperiorIssuesSyncUtils.findGatewayId(res, isSuperior);
+				}
+				
+			});
+			gatewaySelector.setDefaultAddEmptyOption(true, "All");
+		} else {
+			gatewaySelector = null;
+		}
+		this.releaseStatusFilter = new Dropdown(page, "releaseStatusFilter");
+		releaseStatusFilter.setDefaultOptions(RELEASE_FILTER_OPTIONS);
 		
 		this.lastMessagePopup = new IssueDetailsPopup(page);
 		this.releasePopup = new ReleasePopup(page, "releasePop", appMan.appMan(), alert);
 		releasePopup.append(page);
 		
 		triggerPageBuild();
+		gatewaySelector.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 	}
 
 	@Override
 	public void addWidgetsAboveTable() {
 		page.append(new Header(page, "header", "8b. Major Device Issues"));	
+		
+		final Map<String, String> subFlexCss = new HashMap<>(4);
+		subFlexCss.put("column-gap", "1em");
+		subFlexCss.put("flex-wrap", "nowrap");
+		final Map<String, String> subFlexFirstCss = new HashMap<>(4);
+		//subFlexFirstCss.put("color", "darkblue");
+		subFlexFirstCss.put("font-weight", "bold");
+		final Map<String, String> filterFlexCss = new HashMap<>(8);
+		filterFlexCss.put("column-gap", "3em");
+		filterFlexCss.put("row-gap", "1em");
+		filterFlexCss.put("flex-wrap", "wrap");
+		filterFlexCss.put("padding", "0.5em");
+		filterFlexCss.put("background-color", "lightgray");
+		
+		final Flexbox filterFlex = new Flexbox(page, "filterflex", true);
+		filterFlex.addCssItem(">div", filterFlexCss, null);
+		filterFlex.setAlignItems(AlignItems.CENTER, null);
+		
+		final AtomicInteger subCnt = new AtomicInteger();
+		final Supplier<Flexbox> subFlexSupplier = () -> {
+			final Flexbox sub  = new Flexbox(page, "filterflex_sub" + subCnt.getAndIncrement(), true);
+			sub.addCssItem(">div", subFlexCss, null);
+			sub.addCssItem(">div>div:first-child", subFlexFirstCss, null);
+			sub.setAlignItems(AlignItems.CENTER, null);
+			filterFlex.addItem(sub, null);
+			return sub;
+		};
+		if (isSuperior) {
+			subFlexSupplier.get().addItem(new Label(page, "gatewaySelectLabel", "Select gateway"), null)
+				.addItem(gatewaySelector, null);
+		}
+		subFlexSupplier.get().addItem(new Label(page, "releasedFilterLabel", "Release status"), null)
+			.addItem(releaseStatusFilter, null);
+		
+		final Header filterHeader = new Header(page, "filterHeader", "Filters");
+		filterHeader.setDefaultHeaderType(3);
+		//filterHeader.setDefaultColor("darkblue");
+		final Header alarmsHeader = new Header(page, "alarmsHeader", "Device alarms");
+		alarmsHeader.setDefaultHeaderType(3);
+		//alarmsHeader.setDefaultColor("darkblue");
+		page.append(filterHeader).append(filterFlex).append(alarmsHeader);
 	}
 	
 	@Override
@@ -92,6 +174,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			ObjectResourceGUIHelper<AlarmGroupDataMajor, AlarmGroupDataMajor> vh, String id, OgemaHttpRequest req,
 			Row row, ApplicationManager appMan) {
 		if(req == null) {
+			if (isSuperior)
+				vh.registerHeaderEntry("Gateway");
 			//vh.registerHeaderEntry("Main value");
 			vh.registerHeaderEntry("Name");
 			vh.registerHeaderEntry("ID");
@@ -123,6 +207,12 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		} else {
 			object = null;
 		}
+		if (isSuperior) {
+			final String gwId = SuperiorIssuesSyncUtils.findGatewayId(res, isSuperior);
+			if (gwId != null)
+				vh.stringLabel("Gateway", id, gwId, row);
+		}
+		
 		final DeviceHandlerProviderDP<?> pe = object != null ? appManPlus.dpService().getDeviceHandlerProvider(object) : null;
 		
 		if (object != null) {
@@ -302,13 +392,13 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			}
 			
 		};
-		showMsg.setDefaultText("Show details");
+		showMsg.setDefaultText("Details");
 		showMsg.setDefaultToolTip("Show the last alarm message sent for this device and othr details about the source of the alarm.");
 		lastMessagePopup.setTriggers(showMsg);
 		row.addCell("Details", showMsg);
 		
 		if (object != null) {
-			final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Alarms", 
+			final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Redirect", 
 					"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + object.deviceId().getValue(), req);
 			detailsRedirect.setToolTip("View alarm details in new tab", req);
 			row.addCell("Alarms", detailsRedirect);
@@ -477,7 +567,12 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		List<AlarmGroupDataMajor> majors = sup.majorKnownIssues().getAllElements();
 		return majors;
 		*/
-		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class);
+		if (this.gatewaySelector != null) {
+			final GatewaySuperiorData data = gatewaySelector.getSelectedItem(req);
+			if (data != null)
+				return data.majorKnownIssues().getAllElements();
+		}
+ 		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class);
 	}
 
 }

@@ -16,15 +16,6 @@ import org.smartrplace.gateway.device.GatewaySuperiorData;
 
 public class SuperiorIssuesSyncUtils {
 	
-	/**
-	 * Copy the content of the passed issue information into a new resource that is synchronized with a superior gateway. The original issue resource
-	 * will be replaced by a reference to the new one.
-	 *  
-	 * Assumes that a GatewaySuperiorData configuration resource already exists, preferably at the default location "gatewaySuperiorDataRes".
-	 * @param issue
-	 * @param appMan
-	 * @return
-	 */
 	public static GatewaySuperiorData getSuperiorData(ApplicationManager appMan) throws ResourceOperationException {
 		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
 		if (r instanceof GatewaySuperiorData)
@@ -34,20 +25,23 @@ public class SuperiorIssuesSyncUtils {
 			return null;
 		return superiors.get(0);
 	}
+	
+	/**
+	 * Copy the content of the passed issue information into a new resource that is synchronized with a superior gateway. The original issue resource
+	 * will be replaced by a reference to the new one.
+	 *  
+	 * Assumes that a GatewaySuperiorData configuration resource already exists, preferably at the default location "gatewaySuperiorDataRes".
+	 * @param issue
+	 * @param appMan
+	 * @return
+	 */
 	public static AlarmGroupDataMajor syncIssueToSuperior(AlarmGroupData issue, ApplicationManager appMan) throws ResourceOperationException {
 		if (issue instanceof AlarmGroupDataMajor)  // if it is synced already, do not create another issue
 			return (AlarmGroupDataMajor) issue;
 		GatewaySuperiorData sup = getSuperiorData(appMan);
 		return syncIssueToSuperior(issue, appMan, sup);
-		/*final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
-		if (r instanceof GatewaySuperiorData)
-			return syncIssueToSuperior(issue, appMan, (GatewaySuperiorData) r);
-		final List<GatewaySuperiorData> superiors = appMan.getResourceAccess().getResources(GatewaySuperiorData.class);
-		if (superiors.isEmpty())
-			return null;
-		return syncIssueToSuperior(issue, appMan, superiors.get(0));*/
 	}
-	
+
 	/**
 	 * Copy the content of the passed issue information into a new resource that is synchronized with a superior gateway. The original issue resource
 	 * will be replaced by a reference to the new one.
@@ -122,5 +116,21 @@ public class SuperiorIssuesSyncUtils {
 		
 	}
 	
+	// 
+	public static String findGatewayId(final GatewaySuperiorData res, boolean isSuperior) {
+		if (res.isTopLevel())
+			return "Superior"; 
+		return res.getParent().getName();
+	}
+	
+	public static String findGatewayId(final AlarmGroupDataMajor alarm, boolean isSuperior) {
+		// we expect those resource in a resource list GatewaySuperiorData#majorKnownIssues()
+		if (alarm == null || alarm.getParent() == null)
+			return null;
+		final Resource parent = alarm.getParent().getParent();
+		if (!(parent instanceof GatewaySuperiorData))
+			return null;
+		return findGatewayId((GatewaySuperiorData) parent, isSuperior);
+	}
 	
 }
