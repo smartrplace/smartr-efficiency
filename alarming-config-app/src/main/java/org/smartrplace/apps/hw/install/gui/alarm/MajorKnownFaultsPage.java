@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,10 +27,8 @@ import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
-import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
-import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmingconfig.release.FinalAnalysis;
 import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
@@ -89,7 +86,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	public void addWidgetsAboveTable() {
 		page.append(new Header(page, "header", "8b. Major Device Issues"));	
 	}
-
+	
 	@Override
 	public void addWidgets(AlarmGroupDataMajor res,
 			ObjectResourceGUIHelper<AlarmGroupDataMajor, AlarmGroupDataMajor> vh, String id, OgemaHttpRequest req,
@@ -101,8 +98,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			vh.registerHeaderEntry("Started");
 			vh.registerHeaderEntry("Release");
 			vh.registerHeaderEntry("Diagnosis");
-			vh.registerHeaderEntry("Message");
 			vh.registerHeaderEntry("Details");
+			vh.registerHeaderEntry("Alarms");
 			vh.registerHeaderEntry("Comment_Analysis");
 			vh.registerHeaderEntry("Analysis_Assigned");
 			vh.registerHeaderEntry("Task Tracking");
@@ -115,28 +112,41 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			return;
 		}
 
-		InstallAppDevice object;
+		final InstallAppDevice object; // may be null
 		if(res.parentForOngoingIssues().isActive()) {
 			object = res.parentForOngoingIssues();
-		} else {
+		} else if (res.devicesRelated().isActive()) { // FIXME on superior, only if this is not a gateway related issue 
 			String[] vals = res.devicesRelated().getValues();
-			if(vals.length == 0)
-				return;
-			object = appManPlus.dpService().getMangedDeviceResource(vals[0]);
+			//if(vals.length == 0)
+			//	return;
+			object = vals.length > 0 ? appManPlus.dpService().getMangedDeviceResource(vals[0]) : null;
+		} else {
+			object = null;
 		}
-		PhysicalElement device = object.device().getLocationResource();
-		final DeviceHandlerProviderDP<?> pe = appManPlus.dpService().getDeviceHandlerProvider(object);
+		final DeviceHandlerProviderDP<?> pe = object != null ? appManPlus.dpService().getDeviceHandlerProvider(object) : null;
 		
-		AlarmingDeviceTableBase.addNameWidgetStatic(object, vh, id, req, row, appManPlus.dpService(), pe, hwInstallConfig);
+		if (object != null) {
+			AlarmingDeviceTableBase.addNameWidgetStatic(object, vh, id, req, row, appManPlus.dpService(), pe, hwInstallConfig);
+		} else if (res.devicesRelated().isActive()) {
+			final String[] devices = res.devicesRelated().getValues();
+			if (devices.length > 0) {
+				String devId = Arrays.stream(devices).collect(Collectors.joining(", "));
+				vh.stringLabel("Name", id, devId, row);
+				vh.stringLabel("ID", id, devId, row);
+			}
+		} // TODO show something else as id, name?
+		
 		//vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 		
 		//vh.stringLabel("Finished", id, ""+res.isFinished().getValue(), row);
 		// some special sensor values... priority for display: battery voltage; mainSensorValue, rssi, eq3state
 		//final ValueData valueData = getValueData(object, appMan);
+		/*
 		final Label valueField = new Label(mainTable, "valueField" + id, req);
 		AlarmMessageUtil.configureAlarmValueLabel(object, appMan, valueField, req, Locale.ENGLISH);
 		//valueField.setText(valueData.message, req);
 		row.addCell("value", valueField);
+		*/
 		//if (valueData.responsibleResource != null)
 		//	valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
 		
@@ -239,7 +249,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 				if ("__EMPTY_OPT__".equalsIgnoreCase(value)) {
 					if (followup.isActive()) {
 						followup.deactivate(false);
-						if (alert != null && object.device().exists()) {
+						if (alert != null && object != null && object.device().exists()) {
+							// TODO if this relates to a gateway, show gateway id
 							alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
 								+ " has been cancelled", true, req);
 						}
@@ -272,7 +283,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 				followup.<TimeResource> create().setValue(timestamp);
 				if (timestamp > now0) {
 					followup.activate(false);
-					if (alert != null && object.device().exists()) {
+					if (alert != null && object != null && object.device().exists()) {
+						// TODO if this relates to a gateway, show gateway id
 						alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
 							+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
 					}
@@ -285,20 +297,22 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				lastMessagePopup.setValues(res, object, device, followupemail, req);
+				// TODO handle case of null object, supply gateway id instead?
+				lastMessagePopup.setValues(res, object, object.device().getLocationResource(), followupemail, req);
 			}
 			
 		};
-		showMsg.setDefaultText("Last message");
-		showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
+		showMsg.setDefaultText("Show details");
+		showMsg.setDefaultToolTip("Show the last alarm message sent for this device and othr details about the source of the alarm.");
 		lastMessagePopup.setTriggers(showMsg);
-		row.addCell("Message", showMsg);
+		row.addCell("Details", showMsg);
 		
-		final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Details", 
-				"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + object.deviceId().getValue(), req);
-		detailsRedirect.setToolTip("View alarm details in new tab", req);
-		row.addCell("Details", detailsRedirect);
-		
+		if (object != null) {
+			final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Alarms", 
+					"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + object.deviceId().getValue(), req);
+			detailsRedirect.setToolTip("View alarm details in new tab", req);
+			row.addCell("Alarms", detailsRedirect);
+		}
 		if(res.exists()) {
 			vh.stringEdit("Comment_Analysis",  id, res.comment(), row, alert, res.comment());
 			ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
@@ -351,7 +365,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 					//final GatewaySuperiorData supData = findSuperiorData();
 					if (supData == null || !supData.responsibilityContacts().isActive())
 						return;
-					final StringResource responsibility = object.knownFault().responsibility();
+					final StringResource responsibility = res.responsibility();
 					final String email = responsibility.isActive() ? responsibility.getValue() : "";
 					final NaturalPerson selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
 						.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
@@ -378,7 +392,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 					if (supData == null || !supData.responsibilityContacts().isActive())
 						return;
 					final String currentSelected = getSelectedValue(req);
-					final StringResource responsibility = object.knownFault().responsibility();
+					final StringResource responsibility = res.responsibility();
 					if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
 								|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
 						responsibility.delete();
@@ -437,17 +451,18 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			followupemail.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		row.addCell(WidgetHelper.getValidWidgetId("Follow-up"), followupemail);
 		
-		if(object.device() instanceof Thermostat) {
+		if(object != null && object.device() instanceof Thermostat) {
 			Thermostat dev = (Thermostat)object.device();
 			final GetPlotButtonResult logResultSpecial = ThermostatPage.getThermostatPlotButton(dev, appManPlus, vh, id, row, req, ScheduleViewerConfigProvAlarm.getInstance());
 			row.addCell(WidgetHelper.getValidWidgetId("TH-Plot"), logResultSpecial.plotButton);
 		}
 		
+		// TODO object == null ?
 		final GetPlotButtonResult logResult = ChartsUtil.getPlotButton(id, object, appManPlus.dpService(), appMan, false, vh, row, req, pe,
 				ScheduleViewerConfigProvAlarm.getInstance(), null);
 		row.addCell("Plot", logResult.plotButton);
 		
-		GUIHelperExtension.addDeleteButton(null, object, mainTable, id, alert, "Delete", row, vh, req);
+		GUIHelperExtension.addDeleteButton(null, res, mainTable, id, alert, "Delete", row, vh, req);
 	}
 
 	@Override
@@ -457,9 +472,12 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 
 	@Override
 	public Collection<AlarmGroupDataMajor> getObjectsInTable(OgemaHttpRequest req) {
+		/*
 		GatewaySuperiorData sup = SuperiorIssuesSyncUtils.getSuperiorData(appMan);
 		List<AlarmGroupDataMajor> majors = sup.majorKnownIssues().getAllElements();
 		return majors;
+		*/
+		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class);
 	}
 
 }
