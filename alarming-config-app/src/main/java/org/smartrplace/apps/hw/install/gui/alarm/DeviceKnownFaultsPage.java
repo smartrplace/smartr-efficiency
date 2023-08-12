@@ -437,7 +437,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				
-				final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object);
+				final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object, res);
 				
 				final Button showMsg = new Button(mainTable, "msg" + id, req) {
 					
