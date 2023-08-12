@@ -86,7 +86,6 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	
 	private final ApplicationManagerPlus appManPlus;
 	private final AlarmingConfigAppController controller;
-	private final GatewaySuperiorData supData;
 	private final HardwareInstallConfig hwInstallConfig;
 	private final boolean isSuperior;
 	private final TemplateDropdown<GatewaySuperiorData> gatewaySelector; // may be null
@@ -101,7 +100,6 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		super(page, controller.appMan, AlarmGroupDataMajor.class, false);
 		this.appManPlus = controller.appManPlus;
 		this.controller = controller;
-		this.supData = SuperiorIssuesSyncUtils.getSuperiorData(appManPlus.appMan());
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		this.isSuperior = Boolean.getBoolean("org.smartrplace.app.srcmon.server.issuperior");
 		if (isSuperior) {
@@ -431,12 +429,11 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			prioField.triggerAction(prioField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
 			row.addCell("Priority", prioField);
 			
-			// TODO do we need to display the email address as well?
 			final Dropdown responsibleDropdown = new Dropdown(mainTable, "responsible"+id, req) {
 				
 				@Override
 				public void onGET(OgemaHttpRequest req) {
-					//final GatewaySuperiorData supData = findSuperiorData();
+					final GatewaySuperiorData supData = SuperiorIssuesSyncUtils.getSuperiorData(res, appMan);
 					if (supData == null || !supData.responsibilityContacts().isActive())
 						return;
 					final StringResource responsibility = res.responsibility();
@@ -462,7 +459,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 				
 				@Override
 				public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-					//final GatewaySuperiorData supData = findSuperiorData();
+					final GatewaySuperiorData supData = SuperiorIssuesSyncUtils.getSuperiorData(res, appMan);
 					if (supData == null || !supData.responsibilityContacts().isActive())
 						return;
 					final String currentSelected = getSelectedValue(req);

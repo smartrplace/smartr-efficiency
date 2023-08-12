@@ -368,8 +368,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						vh.registerHeaderEntry("Gateway");
 					vh.getHeader().put("value", "Value/contact");
 					vh.registerHeaderEntry("Started");
-					vh.registerHeaderEntry("Message");
 					vh.registerHeaderEntry("Details");
+					vh.registerHeaderEntry("Alarms");
 					vh.registerHeaderEntry("Comment_Analysis");
 					vh.registerHeaderEntry("Analysis_Assigned");
 					vh.registerHeaderEntry("Task Tracking");
@@ -430,16 +430,16 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					}
 					
 				};
-				showMsg.setDefaultText("Last message");
-				showMsg.setDefaultToolTip("Show the last alarm message sent for this device, which contains some details about the source of the alarm.");
+				showMsg.setDefaultText("Details");
+				showMsg.setDefaultToolTip("Show the last alarm message sent for this device and additional details about the source of the alarm.");
 				showMsg.addDefaultStyle(ButtonData.BOOTSTRAP_GREEN);
 				lastMessagePopup.setTriggers(showMsg);
-				row.addCell("Message", showMsg);
+				row.addCell("Details", showMsg);
 				
-				final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Details", 
+				final RedirectButton detailsRedirect = new RedirectButton(mainTable, "details" + id, "Alarms", 
 						"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + object.deviceId().getValue(), req);
 				detailsRedirect.setToolTip("View alarm details in new tab", req);
-				row.addCell("Details", detailsRedirect);
+				row.addCell("Alarms", detailsRedirect);
 				
 				final AtomicReference<Button> releaseBtnRef = new AtomicReference<>(null);
 				final AtomicInteger releaseCnt = new AtomicInteger(0);

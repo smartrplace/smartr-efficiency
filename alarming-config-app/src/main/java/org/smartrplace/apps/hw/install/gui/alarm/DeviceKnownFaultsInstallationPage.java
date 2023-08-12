@@ -54,6 +54,7 @@ import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.DynamicTableData;
 import de.iwes.widgets.html.complextable.RowTemplate;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.label.Header;
@@ -542,6 +543,11 @@ public class DeviceKnownFaultsInstallationPage {
 					
 					followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device, device.knownFault(), controller);
 					row.addCell("followup", followup);
+					
+					final RedirectButton detailsRedirect = new RedirectButton(table, id + "_alarms", "Alarme", 
+							"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + device.deviceId().getValue(), req);
+					detailsRedirect.setToolTip("Alarm details in neuem Tab anzeigen", req);
+					row.addCell("alarms", detailsRedirect);
 				}
 				final Dropdown followupEmail = followup;
 				final Button showDetails = new Button(table, id + "_detailsopener", req) {
@@ -608,6 +614,9 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("contact", "Letzter Kontakt");
 				header.put("activesince", "Fehler seit");
 				header.put("details", "Details");
+				if (target == AlternativeFaultsPageTarget.OPERATION)
+					header.put("alarms", "Alarme");
+				
 				header.put("comment", "Kommentar");
 				header.put("assigned", "Analyse");
 				header.put("Plot", "Plot");

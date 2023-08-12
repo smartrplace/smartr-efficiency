@@ -432,8 +432,12 @@ public class CreateIssuePopup {
 						alert.showAlert("Device " + device + " not found", false, req);
 					return;
 				}
+				// in this case we do not want to overwrite the existing issue, it would need to be released first
+				// we only support the creation of major issues not directly linked from the device in this case
+				final boolean issueExists = device.knownFault().isActive(); 
+				final boolean doRelease = directRelease.getCheckboxList(req).stream().filter(e -> "default".equals(e.id())).findAny().get().isChecked();
 				try {
-					final AlarmGroupData alarm = device.knownFault();
+					final AlarmGroupData alarm = !issueExists ? device.knownFault() : SuperiorIssuesSyncUtils.newMajorIssue(appMan, device);
 					final String comment = createIssueComment.getValue(req).trim();
 					if (comment.isEmpty())
 						alarm.comment().delete();
@@ -494,7 +498,6 @@ public class CreateIssuePopup {
 					alarm.activate(true);
 					// only syncs if issue is eligible; else major is null
 					AlarmGroupDataMajor major = SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, appMan);
-					final boolean doRelease = directRelease.getCheckboxList(req).stream().filter(e -> "default".equals(e.id())).findAny().get().isChecked();
 					if (doRelease && major == null)
 						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(alarm, appMan);
 					if (alert != null)
