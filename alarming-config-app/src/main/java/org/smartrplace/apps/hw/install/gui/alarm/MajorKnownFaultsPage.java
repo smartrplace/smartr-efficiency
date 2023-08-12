@@ -71,22 +71,26 @@ import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.AlignItems;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
-import de.iwes.widgets.template.DisplayTemplate;
 
 @SuppressWarnings("serial")
 public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor, AlarmGroupDataMajor> {
 	
 	private static final List<DropdownOption> RELEASE_FILTER_OPTIONS = Arrays.asList(
-			new DropdownOption("all", "All alarms", true),
+			new DropdownOption("all", "All", true),
 			new DropdownOption("released", "Released", false),
 			new DropdownOption("nonreleased", "Not released", false)
 	);
+	private static final List<DropdownOption> ASSIGNMENT_FILTER_OPTIONS = AlarmingConfigUtil.ASSIGNEMENT_ROLES.entrySet().stream()
+			.map(entry -> new DropdownOption(entry.getKey(), entry.getValue(), false))
+			.collect(Collectors.toList());
+	
 	private final ApplicationManagerPlus appManPlus;
 	private final GatewaySuperiorData supData;
 	private final HardwareInstallConfig hwInstallConfig;
 	private final boolean isSuperior;
 	private final TemplateDropdown<GatewaySuperiorData> gatewaySelector; // may be null
 	private final Dropdown releaseStatusFilter;
+	private final Dropdown assignmentStatusFilter;
 
 	private IssueDetailsPopup lastMessagePopup;
 	private final ReleasePopup releasePopup;
@@ -114,6 +118,9 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		}
 		this.releaseStatusFilter = new Dropdown(page, "releaseStatusFilter");
 		releaseStatusFilter.setDefaultOptions(RELEASE_FILTER_OPTIONS);
+		this.assignmentStatusFilter = new Dropdown(page, "assignmentStatusFilter");
+		assignmentStatusFilter.setDefaultOptions(ASSIGNMENT_FILTER_OPTIONS);
+		assignmentStatusFilter.setDefaultAddEmptyOption(true);
 		
 		this.lastMessagePopup = new IssueDetailsPopup(page);
 		this.releasePopup = new ReleasePopup(page, "releasePop", appMan.appMan(), alert);
@@ -121,6 +128,11 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		
 		triggerPageBuild();
 		gatewaySelector.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		releaseStatusFilter.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		assignmentStatusFilter.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		this.mainTable.postponeLoading();
+		this.mainTable.setComposite();
+		page.showOverlay(true);
 	}
 
 	@Override
@@ -159,7 +171,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		}
 		subFlexSupplier.get().addItem(new Label(page, "releasedFilterLabel", "Release status"), null)
 			.addItem(releaseStatusFilter, null);
-		
+		subFlexSupplier.get().addItem(new Label(page, "assignmentFilterLabel", "Assignment"), null)
+			.addItem(assignmentStatusFilter, null);
 		final Header filterHeader = new Header(page, "filterHeader", "Filters");
 		filterHeader.setDefaultHeaderType(3);
 		//filterHeader.setDefaultColor("darkblue");
@@ -562,17 +575,36 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 
 	@Override
 	public Collection<AlarmGroupDataMajor> getObjectsInTable(OgemaHttpRequest req) {
-		/*
-		GatewaySuperiorData sup = SuperiorIssuesSyncUtils.getSuperiorData(appMan);
-		List<AlarmGroupDataMajor> majors = sup.majorKnownIssues().getAllElements();
-		return majors;
-		*/
+		Stream<AlarmGroupDataMajor> alarms = getAlarms(req);
+		final String statusFilter = releaseStatusFilter.getSelectedValue(req);
+		switch(statusFilter) {
+		case "released":
+			alarms = alarms.filter(MajorKnownFaultsPage::isReleased);
+			break;
+		case "nonreleased":
+			alarms = alarms.filter(a -> !isReleased(a));
+			break;
+		default:
+			break;
+		}
+		final String assignmentFilter = assignmentStatusFilter.getSelectedValue(req);
+		if (assignmentFilter != null && assignmentFilter != DropdownData.EMPTY_OPT_ID)
+			alarms = alarms.filter(a -> a.assigned().isActive() && assignmentFilter.equals(String.valueOf(a.assigned().getValue())));
+		return alarms.collect(Collectors.toList());
+	}
+	
+	private static boolean isReleased(AlarmGroupDataMajor alarm) {
+		return alarm.releaseTime().isActive() && alarm.releaseTime().getValue() > 0;
+	}
+	
+	private Stream<AlarmGroupDataMajor> getAlarms(OgemaHttpRequest req) {
 		if (this.gatewaySelector != null) {
 			final GatewaySuperiorData data = gatewaySelector.getSelectedItem(req);
 			if (data != null)
-				return data.majorKnownIssues().getAllElements();
+				return data.majorKnownIssues().getAllElements().stream();
 		}
- 		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class);
+ 		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class).stream();
 	}
+	
 
 }
