@@ -554,7 +554,7 @@ public class DeviceKnownFaultsInstallationPage {
 					
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						lastMessagePopup.setValues(device.knownFault(), device, device.device(), followupEmail, req);
+						lastMessagePopup.setValues(device.knownFault(), device, followupEmail, req);
 					}
 					
 				};

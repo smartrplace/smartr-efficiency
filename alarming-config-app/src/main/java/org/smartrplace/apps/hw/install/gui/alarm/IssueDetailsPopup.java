@@ -8,8 +8,10 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
-import org.ogema.model.prototypes.PhysicalElement;
+import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
@@ -36,8 +38,9 @@ public class IssueDetailsPopup {
 		new DropdownOption("w", "weekly", false),
 		new DropdownOption("m", "monthly", false)
 	);
-	
+
 	private final Popup lastMessagePopup;
+	private final Label lastMessageGateway; // may be null
 	private final Label lastMessageDevice;
 	private final Label lastMessageRoom;
 	private final Label lastMessageLocation;
@@ -50,8 +53,13 @@ public class IssueDetailsPopup {
 	private final ReminderFrequencyDropdown lastMessageReminderFrequency;
 	
 	public IssueDetailsPopup(WidgetPage<?> page) {
+		this(page, false);
+	}
+	
+	public IssueDetailsPopup(WidgetPage<?> page, boolean showGatewayId) {
 		this.lastMessagePopup = new Popup(page, "lastMessagePopup", true);
 		lastMessagePopup.setDefaultTitle("Last alarm message");
+		this.lastMessageGateway = showGatewayId ? new Label(page, "lastMessagePopupGw") : null;
 		this.lastMessageDevice = new Label(page, "lastMessagePopupDevice");
 		this.lastMessageRoom = new Label(page, "lastMessagePopupRoom");
 		this.lastMessageLocation = new Label(page, "lastMessagePopupLocation");
@@ -65,18 +73,21 @@ public class IssueDetailsPopup {
 		lastMessageReminderFrequency.setDefaultOptions(REMINDER_FREQUENCY_OPTIONS);
 		lastMessageReminderFrequency.setDefaultAddEmptyOption(true, "Default");
 		
-		
-		final StaticTable tab = new StaticTable(10, 2, new int[]{3, 9});
-		tab.setContent(0, 0, "Device").setContent(0, 1, lastMessageDevice)
-			.setContent(1, 0, "Room").setContent(1, 1, lastMessageRoom)
-			.setContent(2, 0, "Location").setContent(2, 1, lastMessageLocation)
-			.setContent(3, 0, "Message").setContent(3,1, lastMessage)
-			.setContent(4, 0, "Comment_Analysis").setContent(4, 1, lastMessageComment)
-			.setContent(5, 0, "Analysis_Assigned").setContent(5, 1, lastMessageAssigned)
-			.setContent(6, 0, "Responsible").setContent(6, 1, lastMessageResponsible)
-			.setContent(7, 0, "Task tracking").setContent(7, 1, lastMessageTaskTracking)
-			.setContent(8, 0, "Next reminder").setContent(8, 1, lastMessageReminderDatetime)
-			.setContent(9, 0, "Reminder frequency").setContent(9, 1, lastMessageReminderFrequency);
+		final int rows = showGatewayId ? 11 : 10;
+		int row = 0;
+		final StaticTable tab = new StaticTable(rows, 2, new int[]{3, 9});
+		if (showGatewayId)
+			tab.setContent(row, 0, "Gateway").setContent(row++, 1, lastMessageGateway);
+		tab.setContent(row, 0, "Device").setContent(row++, 1, lastMessageDevice)
+			.setContent(row, 0, "Room").setContent(row++, 1, lastMessageRoom)
+			.setContent(row, 0, "Location").setContent(row++, 1, lastMessageLocation)
+			.setContent(row, 0, "Message").setContent(row++,1, lastMessage)
+			.setContent(row, 0, "Comment_Analysis").setContent(row++, 1, lastMessageComment)
+			.setContent(row, 0, "Analysis_Assigned").setContent(row++, 1, lastMessageAssigned)
+			.setContent(row, 0, "Responsible").setContent(row++, 1, lastMessageResponsible)
+			.setContent(row, 0, "Task tracking").setContent(row++, 1, lastMessageTaskTracking)
+			.setContent(row, 0, "Next reminder").setContent(row++, 1, lastMessageReminderDatetime)
+			.setContent(row, 0, "Reminder frequency").setContent(row++, 1, lastMessageReminderFrequency);
 		final PageSnippet snip = new PageSnippet(page, "lastMessageSnip", true);
 		snip.append(tab, null);
 		lastMessagePopup.setBody(snip, null);
@@ -97,6 +108,8 @@ public class IssueDetailsPopup {
 	
 	public void setTriggers(OgemaWidget showMsg) {
 		showMsg.triggerAction(lastMessagePopup, TriggeringAction.POST_REQUEST, TriggeredAction.SHOW_WIDGET);
+		if (lastMessageGateway != null)
+			showMsg.triggerAction(lastMessageGateway,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		showMsg.triggerAction(lastMessageDevice,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		showMsg.triggerAction(lastMessageRoom,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		showMsg.triggerAction(lastMessageLocation,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
@@ -109,12 +122,25 @@ public class IssueDetailsPopup {
 		showMsg.triggerAction(lastMessage,  TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 	}
 	
-	public void setValues(AlarmGroupData issue, InstallAppDevice knownDevice, PhysicalElement device, Dropdown followupemail, OgemaHttpRequest req) {
+	public void setValues(AlarmGroupData issue, InstallAppDevice knownDevice, Dropdown followupemail, OgemaHttpRequest req) {
 		lastMessage.setText(issue.lastMessage().getValue(), req);
-		lastMessageDevice.setText(knownDevice.deviceId().getValue(), req);
-		final String room = device.location().room().isActive() ? ResourceUtils.getHumanReadableShortName(device.location().room()) : "--";
+		if (lastMessageGateway != null) {
+			final String gwId = issue instanceof AlarmGroupDataMajor ? 
+					SuperiorIssuesSyncUtils.findGatewayId((AlarmGroupDataMajor) issue, true) : "--";
+			lastMessageGateway.setText(gwId, req);
+		}
+		String deviceId = AlarmResourceUtil.getDeviceIdForKnownFault(issue);
+		if (deviceId == null)
+			deviceId = "--";
+		lastMessageDevice.setText(deviceId, req);
+		String room = "--";
+		if (knownDevice != null && knownDevice.device().location().room().isActive())
+			room = ResourceUtils.getHumanReadableShortName(knownDevice.device().location().room().getLocationResource());
 		lastMessageRoom.setText(room, req);
-		lastMessageLocation.setText(getOrEmpty(knownDevice.installationLocation()), req);
+		String installationLoc = "--";
+		if (knownDevice != null && knownDevice.installationLocation().isActive())
+			installationLoc = getOrEmpty(knownDevice.installationLocation());
+		lastMessageLocation.setText(installationLoc, req);
 		lastMessageComment.setText(getOrEmpty(issue.comment()), req);
 		String role = "--";
 		if (issue.assigned().isActive()) {
@@ -132,7 +158,7 @@ public class IssueDetailsPopup {
 		lastMessageReminderFrequency.setAlarm(issue, req);
 	}
 	
-	private String getOrEmpty(final StringResource res) {
+	private static String getOrEmpty(final StringResource res) {
 		return res.isActive() ? res.getValue() : "--";
 	}
 	

@@ -426,7 +426,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 					
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
-						lastMessagePopup.setValues(res, object, device, followupemail, req);
+						lastMessagePopup.setValues(res, object, followupemail, req);
 					}
 					
 				};

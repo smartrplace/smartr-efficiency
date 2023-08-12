@@ -165,7 +165,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		};
 		trashStatusFilter.setDefaultSelectByUrlParam(TRASH_URL_PARAM);
 		
-		this.lastMessagePopup = new IssueDetailsPopup(page);
+		this.lastMessagePopup = new IssueDetailsPopup(page, isSuperior);
 		this.releasePopup = new ReleasePopup(page, "releasePop", controller.appMan, alert, controller);
 		releasePopup.append(page);
 		
@@ -368,8 +368,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				// TODO handle case of null object, supply gateway id instead?
-				lastMessagePopup.setValues(res, object, object.device().getLocationResource(), followupemail, req);
+				lastMessagePopup.setValues(res, object, followupemail, req);
 			}
 			
 		};
