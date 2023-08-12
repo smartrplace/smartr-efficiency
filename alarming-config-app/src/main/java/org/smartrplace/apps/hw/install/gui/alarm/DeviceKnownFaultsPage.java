@@ -424,10 +424,6 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				
 				final Button showMsg = new Button(mainTable, "msg" + id, req) {
 					
-					private String getOrEmpty(final StringResource res) {
-						return res.isActive() ? res.getValue() : "--";
-					}
-					
 					@Override
 					public void onPOSTComplete(String data, OgemaHttpRequest req) {
 						lastMessagePopup.setValues(res, object, device, followupemail, req);

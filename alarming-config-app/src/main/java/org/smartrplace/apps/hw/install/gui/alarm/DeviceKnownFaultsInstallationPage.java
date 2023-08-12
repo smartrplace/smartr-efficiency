@@ -53,6 +53,7 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirmData;
 import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.DynamicTableData;
 import de.iwes.widgets.html.complextable.RowTemplate;
+import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.label.Header;
@@ -83,6 +84,7 @@ public class DeviceKnownFaultsInstallationPage {
 	private final DatapointService dpService;
 	private final DeviceHandlerAccess deviceHandlers;
 	private final AlternativeFaultsPageTarget target;
+	private final IssueDetailsPopup lastMessagePopup;
 	/*
 	private Popup lastMessagePopup;
 	private Label lastMessageDevice;
@@ -100,6 +102,7 @@ public class DeviceKnownFaultsInstallationPage {
 		this.deviceHandlers = deviceHandlers;
 		this.target = target;
 		this.buildPage();
+		this.lastMessagePopup = new IssueDetailsPopup(page);
 	}
 	
 	private final void buildPage() {
@@ -440,51 +443,7 @@ public class DeviceKnownFaultsInstallationPage {
 				};
 				activeSince.selectDefaultItem(device.knownFault().ongoingAlarmStartTime());
 				row.addCell("activesince", activeSince);
-				/*
-				final RedirectButton detailsRedirect = new RedirectButton(table, id + "_details", "Details", 
-						"/org/smartrplace/alarmingexpert/ongoingbase.html?device=" + device.deviceId().getValue(), req);
-				detailsRedirect.setToolTip("Alarmdetails in neuem Tab anzeigen", req);
-				row.addCell("details", detailsRedirect);
-				*/
-				/*
-				final Dropdown assigned = new Dropdown(table, id + "_assigned", req) {
-					
-					@Override
-					public void onGET(OgemaHttpRequest req) {
-						final int assigned = device.knownFault().assigned().isActive() ? device.knownFault().assigned().getValue() : 0;
-						if (assigned == 0) {
-							selectSingleOption("0", req);
-							setToolTip("Verantortlichkeit festlegen", req);
-						} else {
-							selectSingleOption(assigned + "", req);
-							final String role = AlarmingConfigUtil.ASSIGNEMENT_ROLES.get(assigned + "");
-							if (role != null)
-								setToolTip(role, req);
-						}
-					}
-					
-					@Override
-					public void onPOSTComplete(String arg0, OgemaHttpRequest req) {
-						final String selectedStr = getSelectedValue(req);
-						final int selected = selectedStr != null && !selectedStr.isEmpty() ? Integer.parseInt(selectedStr) : 0;
-						if (selected == 0)
-							device.knownFault().assigned().delete();
-						else {
-							device.knownFault().assigned().<IntegerResource> create().setValue(selected);
-							device.knownFault().assigned().activate(false);
-						}
-						
-						
-					}
-					
-				};
-				final Collection<DropdownOption> assignmentOpts = AlarmingConfigUtil.ASSIGNEMENT_ROLES.entrySet().stream()
-					.map(entry -> new DropdownOption(entry.getKey(), entry.getValue(), "0".equals(entry.getKey())))
-					.collect(Collectors.toList());
-				assigned.setDefaultOptions(assignmentOpts);
-				assigned.setDefaultToolTip("Verantortlichkeit festlegen");
-				assigned.triggerAction(assigned, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST, req);
-				*/
+				Dropdown followup = null;
 				if (target == AlternativeFaultsPageTarget.INSTALLATION) {
 					final Label assigned = new Label(table, id + "_assigned", req) {
 						
@@ -576,51 +535,27 @@ public class DeviceKnownFaultsInstallationPage {
 					
 					final Dropdown assigned = new AssignmentDropdown(table, id + "_assigned", req, device.knownFault(), appMan);
 					row.addCell("assigned", assigned);
-					
-					/*
-					final Label responsible = new Label(table, id + "_responsible", req) {
-						
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							final StringResource responsibility = device.knownFault().responsibility();
-							final String email = responsibility.isActive() ? device.knownFault().responsibility().getValue().trim() : "";
-							if (email.isEmpty()) {
-								setText("", req);
-								setToolTip("", req);
-								return;
-							}
-							NaturalPerson selected = null;
-							final GatewaySuperiorData supData =  AlarmResourceUtil.findSuperiorData(appMan);
-							if (supData != null && supData.responsibilityContacts().isActive()) {
-								selected = email.isEmpty() ? null : supData.responsibilityContacts().getAllElements().stream()
-									.filter(c -> email.equals(c.getSubResource("emailAddress", StringResource.class).getValue()))
-									.findAny().orElse(null);
-								
-							}
-							if (selected != null) {
-								final String id = selected.userRole().isActive() ? selected.userRole().getValue() : selected.firstName().getValue() + " " + selected.lastName().getValue();
-								setText(id, req);
-								setToolTip(id + " (email: " + email + ")", req);
-							} else {
-								setText(email, req);
-								setToolTip(email, req);
-							}
-						}
-						
-					};
-					
-					row.addCell("responsible", responsible);
-					*/
 					final Dropdown responsibleDropdown = new ResponsibleDropdown(table, "responsible"+id, req, 
 							appMan, device.knownFault(), null, device, controller);
 					//responsibleDropdown.triggerAction(releaseBtnSnippet, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 					row.addCell("responsible", responsibleDropdown);
 					
-					
-					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device, device.knownFault(), controller);
+					followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device, device.knownFault(), controller);
 					row.addCell("followup", followup);
-					
 				}
+				final Dropdown followupEmail = followup;
+				final Button showDetails = new Button(table, id + "_detailsopener", req) {
+					
+					@Override
+					public void onPOSTComplete(String data, OgemaHttpRequest req) {
+						lastMessagePopup.setValues(device.knownFault(), device, device.device(), followupEmail, req);
+					}
+					
+				};
+				showDetails.setDefaultText("Details");
+				showDetails.setDefaultToolTip("Letzte Alarmmeldung für das Gerät anzeigen.");
+				lastMessagePopup.setTriggers(showDetails);
+				row.addCell("details", showDetails);
 				
 				final GetPlotButtonResult logResult = ChartsUtil.getPlotButtonBase(id, device, dpService, appMan, table, row, req,
 						ScheduleViewerConfigProvAlarm.getInstance());
@@ -672,8 +607,8 @@ public class DeviceKnownFaultsInstallationPage {
 				header.put("value", "Wert");
 				header.put("contact", "Letzter Kontakt");
 				header.put("activesince", "Fehler seit");
+				header.put("details", "Details");
 				header.put("comment", "Kommentar");
-				//header.put("details", "Details");
 				header.put("assigned", "Analyse");
 				header.put("Plot", "Plot");
 				if (target == AlternativeFaultsPageTarget.INSTALLATION) {

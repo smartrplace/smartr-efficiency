@@ -16,8 +16,10 @@ import org.smartrplace.gateway.device.GatewaySuperiorData;
 
 public class SuperiorIssuesSyncUtils {
 	
+	public static final String GW_SUPERIOR_DATA_RESOURCE = "gatewaySuperiorDataRes";
+	
 	public static GatewaySuperiorData getSuperiorData(ApplicationManager appMan) throws ResourceOperationException {
-		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
+		final Resource r = appMan.getResourceAccess().getResource(GW_SUPERIOR_DATA_RESOURCE);
 		if (r instanceof GatewaySuperiorData)
 			return (GatewaySuperiorData) r;
 		final List<GatewaySuperiorData> superiors = appMan.getResourceAccess().getResources(GatewaySuperiorData.class);

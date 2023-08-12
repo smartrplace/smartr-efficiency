@@ -22,7 +22,6 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.user.NaturalPerson;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.release.FinalAnalysis;
 import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;

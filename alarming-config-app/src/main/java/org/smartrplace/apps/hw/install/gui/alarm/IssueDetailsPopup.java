@@ -127,7 +127,8 @@ public class IssueDetailsPopup {
 		lastMessageTaskTracking.setText(getOrEmpty(issue.linkToTaskTracking()), req);
 		lastMessageResponsible.setText(getOrEmpty(issue.responsibility()), req);
 		lastMessageReminderDatetime.selectItem(issue.dueDateForResponsibility(), req);
-		lastMessageReminderDatetime.setTableReminder(followupemail, req);
+		if (followupemail != null)
+			lastMessageReminderDatetime.setTableReminder(followupemail, req);
 		lastMessageReminderFrequency.setAlarm(issue, req);
 	}
 	

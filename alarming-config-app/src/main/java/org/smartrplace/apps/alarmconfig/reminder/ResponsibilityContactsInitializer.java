@@ -6,6 +6,7 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.user.NaturalPerson;
+import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.util.format.WidgetHelper;
 
@@ -30,12 +31,12 @@ public class ResponsibilityContactsInitializer {
 	}
 	
 	public void run() {
-		GatewaySuperiorData superiorData = appMan.getResourceAccess().getResources(GatewaySuperiorData.class).stream().findAny().orElse(null);
-		final boolean existed = superiorData != null;
+		GatewaySuperiorData superiorData = appMan.getResourceAccess().getResource(SuperiorIssuesSyncUtils.GW_SUPERIOR_DATA_RESOURCE);
+		final boolean existed = superiorData != null && superiorData.exists();
 		if (!existed)
-			superiorData = appMan.getResourceManagement().createResource("gatewaySuperiorDataRes", GatewaySuperiorData.class);
-		//if (superiorData.responsibilityContacts().isActive())
-		//	return;
+			superiorData = appMan.getResourceManagement().createResource(SuperiorIssuesSyncUtils.GW_SUPERIOR_DATA_RESOURCE, GatewaySuperiorData.class);
+		if (superiorData.responsibilityContacts().isActive())  // do not overwrite configured settings
+			return;
 		final ResourceList<NaturalPerson> contacts = superiorData.responsibilityContacts().create();
 		Arrays.stream(DEFAULT_CONTACTS).forEach(contact -> add(contacts, contact));
 		if (!existed)

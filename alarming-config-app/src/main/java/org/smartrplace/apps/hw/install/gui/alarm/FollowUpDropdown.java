@@ -131,7 +131,8 @@ public class FollowUpDropdown extends Dropdown {
 		selectSingleOption(followup.isActive() ? id : "__EMPTY_OPT__", req);
 	}
 	
-	Long preValue;
+	// XXX global variable used in session-specific context
+	volatile Long preValue;
 	@Override
 	public void onPrePOST(String data, OgemaHttpRequest req) {
 		final TimeResource followup = alarm.dueDateForResponsibility();
