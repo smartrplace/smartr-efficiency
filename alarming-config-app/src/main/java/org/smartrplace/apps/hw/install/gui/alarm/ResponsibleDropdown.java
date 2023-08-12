@@ -8,7 +8,9 @@ import org.ogema.core.model.simple.StringResource;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.user.NaturalPerson;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
+import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
 
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -23,14 +25,19 @@ import de.iwes.widgets.html.form.dropdown.DropdownOption;
 public class ResponsibleDropdown extends Dropdown {
 
 	private final ApplicationManager appMan;
+	private final AlarmingConfigAppController controller;
 	private final AlarmGroupData res;
+	private final InstallAppDevice iad;
 	private final Runnable majorTrafoCallback;
 	
 	public ResponsibleDropdown(OgemaWidget parent, String id, OgemaHttpRequest req,
-			ApplicationManager appMan, AlarmGroupData alarm, Runnable majorTrafoCallback) {
+			ApplicationManager appMan, AlarmGroupData alarm, Runnable majorTrafoCallback,
+			InstallAppDevice iad, AlarmingConfigAppController controller) {
 		super(parent, id, req);
 		this.appMan = appMan;
+		this.controller = controller;
 		this.res = alarm;
+		this.iad = iad;
 		this.majorTrafoCallback = majorTrafoCallback;
 		this.setDefaultAddEmptyOption(true);
 		this.setDefaultMinWidth("8em");
@@ -74,6 +81,8 @@ public class ResponsibleDropdown extends Dropdown {
 		if (currentSelected == null || currentSelected.isEmpty() || currentSelected.equals(DropdownData.EMPTY_OPT_ID) 
 					|| supData.responsibilityContacts().getSubResource(currentSelected) == null) {
 			responsibility.delete();
+			DeviceKnownFaultsPage.setHistoryForResponsibleChange(iad.deviceId().getValue(),
+					null, responsibility, req, controller);
 			return;
 		}
 		final NaturalPerson selected = supData.responsibilityContacts().getSubResource(currentSelected); 
@@ -82,6 +91,7 @@ public class ResponsibleDropdown extends Dropdown {
 		if (email.isEmpty()) { // ?
 			return;
 		}
+		String preValue = responsibility.getValue();
 		responsibility.<StringResource> create().setValue(email);
 		responsibility.activate(false);
 		if (SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan) != null && majorTrafoCallback != null) {
@@ -89,6 +99,8 @@ public class ResponsibleDropdown extends Dropdown {
 			// delete old release button and replace by new one...
 			//updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req);
 		}
+		DeviceKnownFaultsPage.setHistoryForResponsibleChange(iad.deviceId().getValue(),
+				preValue, responsibility, req, controller);
 	}
 	
 

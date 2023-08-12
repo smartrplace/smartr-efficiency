@@ -21,6 +21,7 @@ import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.user.NaturalPerson;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil.ReminderFrequency;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -73,6 +74,7 @@ public class CreateIssuePopup {
 	);
 	
 	private final ApplicationManager appMan;
+	private final AlarmingConfigAppController controller;
 	private final Popup createIssuePopup;
 	private final Button createIssueSubmit;
 	private final Checkbox2 directRelease; // may be null
@@ -85,9 +87,11 @@ public class CreateIssuePopup {
 	 * @param releasePopup may be null
 	 */
 	@SuppressWarnings("serial")
-	public CreateIssuePopup(WidgetPage<?> page, ApplicationManager appMan, Alert alert, ReleasePopup releasePopup) {
+	public CreateIssuePopup(WidgetPage<?> page, ApplicationManager appMan, Alert alert, ReleasePopup releasePopup,
+			AlarmingConfigAppController controller) {
 		
 		this.appMan = appMan;
+		this.controller = controller;
 		final Popup createIssuePopup = new Popup(page, "createIssuePopup", true);
 		//final Header createHeader = new Header(page, "createIssueHeader", "Create known issue");
 		//createHeader.setDefaultHeaderType(2);
@@ -214,7 +218,7 @@ public class CreateIssuePopup {
 		
 		final Label createIssueReminderLab = new Label(page, "createIssueReminderLab", "Next reminder");
 		
-		final FollowUpDropdown createIssueReminder = new FollowUpDropdown(page, "createIssueReminder", appMan, alert);
+		final FollowUpDropdown createIssueReminder = new FollowUpDropdown(page, "createIssueReminder", appMan, alert, controller);
 		/*
 		final TextField createIssueReminder = new TextField(page, "createIssueReminder") {
 			

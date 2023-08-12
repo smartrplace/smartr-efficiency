@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
+import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
@@ -34,6 +35,7 @@ import org.ogema.externalviewer.extensions.ScheduleViewerOpenButtonEval;
 import org.ogema.model.actors.MultiSwitch;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.devices.buildingtechnology.ThermostatProgram;
+import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
@@ -41,16 +43,19 @@ import org.ogema.tools.driver.api.HomeMaticConnectionI;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
+import org.ogema.util.extended.eval.widget.IntegerMultiButton;
 import org.ogema.util.extended.eval.widget.IntegerResourceMultiButton;
 import org.smartrplace.apps.hw.install.HardwareInstallController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.eval.hardware.HmCCUPageUtils;
+import org.smartrplace.external.accessadmin.config.SubCustomerSuperiorData;
 import org.smartrplace.util.directobjectgui.LabelFormatter;
 import org.smartrplace.util.directobjectgui.LabelFormatterFloatRes;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
+import org.smartrplace.widget.extensions.GUIUtilHelper;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManager;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHControlMode;
 import org.smartrplace.util.virtualdevice.HmSetpCtrlManagerTHIntTrigger;
@@ -61,8 +66,6 @@ import org.smatrplace.apps.hw.install.gui.mainexpert.MainPageExpert;
 import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.util.timer.AbsoluteTimeHelper;
-import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.WidgetStyle;
 import de.iwes.widgets.api.widgets.html.StaticTable;
@@ -71,9 +74,11 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
+import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.resource.widget.textfield.BooleanResourceCheckbox;
 
 @SuppressWarnings("serial")
 public class ThermostatPage extends MainPage {
@@ -187,7 +192,7 @@ public class ThermostatPage extends MainPage {
 			page.append(secondTopTable);
 		} else if(type == ThermostatPageType.UPDATE_INTERVAL_CONFIG) {
 			page.append(alert).linebreak();
-			StaticTable secondTopTable = new StaticTable(1, 5);
+			StaticTable secondTopTable = new StaticTable(1, 6);
 			ButtonConfirm updateAll = new ButtonConfirm(page, "updateallFbFaultyUpdate", "Resend Update Rates") {
 				@Override
 				public void onPrePOST(String data, OgemaHttpRequest req) {
@@ -205,7 +210,7 @@ public class ThermostatPage extends MainPage {
 				@Override
 				public void onPrePOST(String data, OgemaHttpRequest req) {
 					List<InstallAppDevice> all = MainPage.getDevicesSelectedDefault(null, controller, roomsDrop, typeFilterDrop, req);
-					int count = DeviceHandlerBase.setOpenIntervalConfigs(controller.appConfigData.sendIntervalMode(), all, null, false);
+					int count = DeviceHandlerBase.setOpenIntervalConfigs(controller.appConfigData.sendIntervalMode(), all, null, false, appMan.getResourceAccess());
 					alert.showAlert("Set "+count+" settings", count>0, req);
 				}
 				@Override
@@ -222,7 +227,57 @@ public class ThermostatPage extends MainPage {
 			updateAll.registerDependentWidget(alert);
 			updateAll.setDefaultConfirmMsg("Really set all values differing from Interval Mode?");
 			secondTopTable.setContent(0, 1, setAllByMode);
-						
+
+			TimeResource maxSendUntilRes = controller.appConfigData.maxSendModeUntil();
+			@SuppressWarnings("unchecked")
+			IntegerMultiButton maxSendButton = new IntegerMultiButton(page, "maxSendButton", new WidgetStyle[] {ButtonData.BOOTSTRAP_LIGHTGREY, ButtonData.BOOTSTRAP_RED}) {
+				
+				@Override
+				protected String getText(int state, OgemaHttpRequest req) {
+					if(maxSendUntilRes.getValue() > 0) {
+						return "Stop Max Sending, remain: "+StringFormatHelper.getFormattedFutureValue(appMan, maxSendUntilRes);
+					}
+					return "Start Max Sending for 48h for all";
+				}
+
+				@Override
+				protected int getState(OgemaHttpRequest req) {
+					return (maxSendUntilRes.getValue() > 0)?1:0;
+				}
+
+				@Override
+				protected void setState(int state, OgemaHttpRequest req) {
+					controller.setMaxSendingTimerForAllThermostats(state>0);
+				}
+			};
+			secondTopTable.setContent(0, 2, maxSendButton);
+					
+			final LocalGatewayInformation gwInfo = ResourceHelper.getLocalGwInfo(controller.appMan);
+			final SubCustomerSuperiorData subc;
+			if(!Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior")) {
+				subc = SubcustomerUtil.getEntireBuildingSubcustomerDatabase(appMan);
+			} else
+				subc = null;
+			RedirectButton wikiPage = new RedirectButton(page, "wikiPage", "Wiki Page", "https://smartrplace.onlyoffice.eu/Products/Files/#sbox-75287-%7Cpublic%7COperation%7CKunden") {
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					if(gwInfo != null) {
+						final StringResource linkOverviewUrlRes = subc != null? subc.gatewayLinkOverviewUrl():gwInfo.gatewayLinkOverviewUrl();
+						if(linkOverviewUrlRes.exists()) {
+							String curLink = linkOverviewUrlRes.getValue();
+							setUrl(curLink, req);
+						}
+						setWidgetVisibility(true, req);
+					} else
+						setWidgetVisibility(false, req);
+				}
+				
+			};
+			secondTopTable.setContent(0, 3, wikiPage);
+
+			RedirectButton batteryChangeExcel = new RedirectButton(page, "batChangeTable", "Battery Change Table", "https://smartrplace.onlyoffice.eu/Products/Files/DocEditor.aspx?fileid=sbox-75287-%7Cpublic%7COperation%7CProcess%7CIncidents_Operation_Log.xlsx");
+			secondTopTable.setContent(0, 4, batteryChangeExcel);
+			
 			page.append(secondTopTable);
 		}
 
@@ -460,9 +515,11 @@ public class ThermostatPage extends MainPage {
 				} 
 				else if(type == ThermostatPageType.UPDATE_INTERVAL_CONFIG) {
 					IntegerResource sendIntervalModeSingle = null;
-					if(req == null)
+					if(req == null) {
+						vh.registerHeaderEntry("MaxSend");
+						vh.registerHeaderEntry("ShortBat");
 						vh.registerHeaderEntry("SendMode");
-					else {
+					} else {
 						sendIntervalModeSingle = DeviceHandlerBase.getSendIntervalModeSingle(device);
 						@SuppressWarnings("unchecked")
 						IntegerResourceMultiButton sendIntervalButton = new IntegerResourceMultiButton(mainTable,
@@ -500,6 +557,19 @@ public class ThermostatPage extends MainPage {
 						sendIntervalButton.triggerOnPOST(setAllByMode);
 
 						row.addCell(WidgetHelper.getValidWidgetId("SendMode"), sendIntervalButton);
+						
+						BooleanResourceCheckbox sendMaxCheck = new BooleanResourceCheckbox(mainTable, "sendMaxCheck"+id,
+								"", req) {
+							public void onPOSTComplete(String data, OgemaHttpRequest req) {
+								long now = appMan.getFrameworkTime();
+								controller.updateMaxSendingTimer(device, now, true);
+							};
+						};
+						BooleanResource maxSendUntil = DeviceHandlerBase.getMaxSendSingle(device);
+						sendMaxCheck.selectItem(maxSendUntil, req);
+						row.addCell(WidgetHelper.getValidWidgetId("MaxSend"), sendMaxCheck);
+						
+						vh.booleanEdit("ShortBat", id, DeviceHandlerBase.getShortBatteryLifetimeIndicator(device), row);
 					}
 					
 					

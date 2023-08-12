@@ -31,13 +31,11 @@ import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.locations.BuildingPropertyUnit;
 import org.ogema.model.locations.Room;
 import org.ogema.model.prototypes.PhysicalElement;
-import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
-import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
-import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
@@ -55,7 +53,6 @@ import de.iwes.widgets.html.buttonconfirm.ButtonConfirmData;
 import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.DynamicTableData;
 import de.iwes.widgets.html.complextable.RowTemplate;
-import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.label.Header;
@@ -82,6 +79,7 @@ public class DeviceKnownFaultsInstallationPage {
 	
 	private final WidgetPage<?> page;
 	private final ApplicationManager appMan;
+	private final AlarmingConfigAppController controller;
 	private final DatapointService dpService;
 	private final DeviceHandlerAccess deviceHandlers;
 	private final AlternativeFaultsPageTarget target;
@@ -93,9 +91,11 @@ public class DeviceKnownFaultsInstallationPage {
 	
 	public DeviceKnownFaultsInstallationPage(WidgetPage<?> page, ApplicationManager appMan, DatapointService dpService,
 			DeviceHandlerAccess deviceHandlers,
-			AlternativeFaultsPageTarget target) {
+			AlternativeFaultsPageTarget target,
+			AlarmingConfigAppController controller) {
 		this.page = page;
 		this.appMan = appMan;
+		this.controller = controller;
 		this.dpService = dpService;
 		this.deviceHandlers = deviceHandlers;
 		this.target = target;
@@ -642,12 +642,12 @@ public class DeviceKnownFaultsInstallationPage {
 					row.addCell("responsible", responsible);
 					*/
 					final Dropdown responsibleDropdown = new ResponsibleDropdown(table, "responsible"+id, req, 
-							appMan, device.knownFault(), null);
+							appMan, device.knownFault(), null, device, controller);
 					//responsibleDropdown.triggerAction(releaseBtnSnippet, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 					row.addCell("responsible", responsibleDropdown);
 					
 					
-					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device);
+					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device, controller);
 					row.addCell("followup", followup);
 					
 				}

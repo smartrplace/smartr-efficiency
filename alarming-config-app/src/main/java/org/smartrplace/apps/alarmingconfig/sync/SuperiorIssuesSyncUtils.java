@@ -60,8 +60,10 @@ public class SuperiorIssuesSyncUtils {
 			superiorConfig.majorKnownIssues().activate(false);
 		final ResourceTransaction transaction = ResourceUtils.prepareCopy(issue, major, appMan.getResourceAccess());
 		final Resource pp = issue.getParent();
-		if (pp instanceof InstallAppDevice)
+		if (pp instanceof InstallAppDevice) {
 			transaction.setAsReference(major.parentForOngoingIssues(), pp);
+			transaction.setStringArray(major.devicesRelated(), new String[] {((InstallAppDevice) pp).deviceId().getValue()});
+		}
 		transaction.setAsReference(issue, major);
 		transaction.commit();
 		return major;

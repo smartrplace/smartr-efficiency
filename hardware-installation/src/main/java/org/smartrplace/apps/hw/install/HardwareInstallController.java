@@ -25,6 +25,8 @@ import java.util.Set;
 
 import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
+import org.ogema.core.application.Timer;
+import org.ogema.core.application.TimerListener;
 import org.ogema.core.logging.OgemaLogger;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
@@ -45,9 +47,11 @@ import org.ogema.devicefinder.api.TimedJobProvider;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.devicefinder.util.DatapointImpl;
 import org.ogema.devicefinder.util.DatapointImpl.DeviceLabelPlus;
+import org.ogema.devicefinder.util.DeviceHandlerBase;
 import org.ogema.devicefinder.util.DeviceTableRaw;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH;
 import org.ogema.eval.timeseries.simple.smarteff.AlarmingUtiH.AlarmingUpdater;
+import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.gateway.remotesupervision.DataLogTransferInfo;
 import org.ogema.model.prototypes.PhysicalElement;
@@ -55,6 +59,7 @@ import org.ogema.simulation.shared.api.RoomInsideSimulationBase;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.TimeseriesSimpleProcUtil3;
 import org.ogema.tools.resource.util.LoggingUtils;
+import org.ogema.tools.resourcemanipulator.timer.CountDownAbsoluteTimer;
 import org.ogema.tools.resourcemanipulator.timer.CountDownDelayedExecutionTimer;
 import org.smartrplace.apps.eval.timedjob.TimedJobConfig;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
@@ -134,6 +139,8 @@ public class HardwareInstallController {
 	}
 	
 	ResourceValueListener<BooleanResource> searchForHwListener = null;
+	
+	CountDownAbsoluteTimer maxSendingTimer;
 	
 	//OGEMADriverPropertyService administration
 	// Resource location -> services that have added at least one property to the resource
@@ -879,6 +886,104 @@ public class HardwareInstallController {
 					}
 				}
 			}
+		}
+	}
+	
+	public boolean restoreMaxSendingTimerAfterRestart() {
+		Collection<InstallAppDevice> all = getDevices(null);
+		long now = appMan.getFrameworkTime();
+		boolean result = false;
+		for(InstallAppDevice dev: all) {
+			if(dev.isTrash().getValue())
+				continue;
+			if(dev.device() instanceof Thermostat) {
+				if(updateMaxSendingTimer((Thermostat) dev.device(), now, false))
+					result = true;
+			}
+		}
+		if(appConfigData.maxSendModeUntil().getValue() <= now) {
+			if(maxSendingTimer != null) {
+				 maxSendingTimer.destroy();
+				 maxSendingTimer = null;
+			}
+			if(appConfigData.maxSendModeUntil().getValue() > 0) {
+				DeviceHandlerBase.setOpenIntervalConfigs(appConfigData.sendIntervalMode(), all, null, false, appMan.getResourceAccess());					
+				appConfigData.maxSendModeUntil().setValue(-1);
+			}			
+		}
+		return result;
+	}
+
+	public boolean setMaxSendingTimerForAllThermostats(boolean state) {
+		Collection<InstallAppDevice> all = getDevices(null);
+		long now = appMan.getFrameworkTime();
+		boolean result = false;
+		for(InstallAppDevice dev: all) {
+			if(dev.isTrash().getValue())
+				continue;
+			if(dev.device() instanceof Thermostat) {
+				Thermostat device = (Thermostat) dev.device();
+				BooleanResource maxSendUntil = DeviceHandlerBase.getMaxSendSingle(device);
+				if(state)
+					ValueResourceHelper.setCreate(maxSendUntil, true);
+				else {
+					maxSendUntil.setValue(false);
+					if(maxSendingTimer != null) {
+						 maxSendingTimer.destroy();
+						 maxSendingTimer = null;					
+						 appConfigData.maxSendModeUntil().setValue(-1);
+					}
+				}
+				if(updateMaxSendingTimer(device, now, true))
+					result = true;
+			}
+		}
+		return result;
+	}
+
+	public static final long MAX_SEND_TIME = 48*TimeProcUtil.HOUR_MILLIS;
+	public static final long MAX_SEND_TIME_RESET = 47*TimeProcUtil.HOUR_MILLIS;
+	/**
+	 * 
+	 * @param device
+	 * @param now
+	 * @param thermostatWasJustUpated only relevant if thermostat is set to max sending. If true then the timer will be restarted
+	 * 		if already running for more than an hour to get back to the full duration. If false then the max sending period will
+	 * 		just be continued, usually after a restrt of the system.
+	 * @return
+	 */
+	public boolean updateMaxSendingTimer(Thermostat device, long now, boolean thermostatWasJustUpated) {
+		synchronized (appConfigData) {
+			BooleanResource maxSendUntil = DeviceHandlerBase.getMaxSendSingle(device);
+			if(maxSendUntil != null && maxSendUntil.getValue()) {
+				if(appConfigData.maxSendModeUntil().getValue() - now < MAX_SEND_TIME_RESET) {
+					ValueResourceHelper.setCreate(appConfigData.maxSendModeUntil(), now+MAX_SEND_TIME);
+				}
+				if(appConfigData.maxSendModeUntil().getValue() > now) {
+					DeviceHandlerBase.setSendIntervalByMode(device.getLocationResource(), 3, false, appMan.getResourceAccess());
+					if(maxSendingTimer != null &&
+							Math.abs(maxSendingTimer.getNextRunTime() - appConfigData.maxSendModeUntil().getValue()) > TimeProcUtil.MINUTE_MILLIS) {
+						 maxSendingTimer.destroy();
+						 maxSendingTimer = null;					
+					}
+					if(maxSendingTimer == null) {
+						maxSendingTimer = new CountDownAbsoluteTimer(appMan, appConfigData.maxSendModeUntil().getValue(), true,
+								new TimerListener() {
+									
+									@Override
+									public void timerElapsed(Timer timer) {
+										Collection<InstallAppDevice> all = getDevices(null);
+										DeviceHandlerBase.setOpenIntervalConfigs(appConfigData.sendIntervalMode(), all, null, false, appMan.getResourceAccess());
+										appConfigData.maxSendModeUntil().setValue(-1);
+									}
+								});
+					}
+				}
+				return true;
+			} else {
+				DeviceHandlerBase.setSendIntervalByMode(device.getLocationResource(), appConfigData.sendIntervalMode(), false, appMan.getResourceAccess());
+				return false;
+			}			
 		}
 	}
 }

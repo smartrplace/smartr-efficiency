@@ -11,6 +11,7 @@ import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.AlarmingExtensionProvider;
 import org.smartrplace.apps.alarmingconfig.expert.gui.DeviceDetailPageExpert;
 import org.smartrplace.apps.alarmingconfig.gui.MainPage.AlarmingServiceProvider;
+import org.smartrplace.apps.alarmingconfig.history.IssueHistoryPage;
 import org.smartrplace.apps.alarmingconfig.gui.OngoingBaseAlarmsPage;
 import org.smartrplace.apps.hw.install.gui.alarm.AlarmingLevelPage;
 import org.smartrplace.apps.hw.install.gui.alarm.DevelopmentTaskPage;
@@ -135,22 +136,27 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 			configMenuConfig(pageRes14.getMenuConfiguration());
 			
 			WidgetPage<?> pageRes16 = widgetApp.createWidgetPage("majorknownfaults.html");
+			WidgetPage<?> pageRes16c = widgetApp.createWidgetPage("issuehistory.html");
 			synchronized (controller.accessAdminApp) {
-				MajorKnownFaultsPage knownFaultsPage = new MajorKnownFaultsPage(pageRes16, controller.appManPlus);
+				MajorKnownFaultsPage knownFaultsPage = new MajorKnownFaultsPage(pageRes16, controller);
 				//synchronized(controller.mainPageExts) {
 				//	controller.mainPageExts.add(knownFaultsPage);
 				//}
 				menu.addEntry("8b. Major Device Issues", pageRes16);
 				configMenuConfig(pageRes16.getMenuConfiguration());
+				
+				new IssueHistoryPage(pageRes16c, controller.appMan);
+				menu.addEntry("8c. Issue Setting History", pageRes16c);
+				configMenuConfig(pageRes16c.getMenuConfiguration());
 			}
 
 			WidgetPage<?> pageInstall = widgetApp.createWidgetPage("deviceknownfaultsinstall.html");
 			WidgetPage<?> pageOp = widgetApp.createWidgetPage("deviceknownfaultsop.html");
 			synchronized (controller.accessAdminApp) {
 				DeviceKnownFaultsInstallationPage knownFaultsPageAltInstall = new DeviceKnownFaultsInstallationPage(pageInstall, appMan, controller.dpService, controller.accessAdminApp, 
-						AlternativeFaultsPageTarget.INSTALLATION);
+						AlternativeFaultsPageTarget.INSTALLATION, controller);
 				DeviceKnownFaultsInstallationPage knownFaultsPageAltOp = new DeviceKnownFaultsInstallationPage(pageOp, appMan, controller.dpService, controller.accessAdminApp, 
-						AlternativeFaultsPageTarget.OPERATION);
+						AlternativeFaultsPageTarget.OPERATION, controller);
 				
 				/*
 				synchronized(controller.mainPageExts) {

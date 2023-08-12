@@ -1,14 +1,6 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
-import java.time.Instant;
-import java.time.Month;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,16 +8,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.ogema.accessadmin.api.SubcustomerUtil;
 import org.ogema.core.application.ApplicationManager;
-import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
@@ -43,8 +32,7 @@ import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.extended.alarming.DevelopmentTask;
 import org.ogema.model.gateway.LocalGatewayInformation;
 import org.ogema.model.prototypes.PhysicalElement;
-import org.ogema.model.user.NaturalPerson;
-import org.ogema.tools.resource.util.ResourceUtils;
+import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
@@ -53,7 +41,6 @@ import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.gui.ThermostatPage;
 import org.smartrplace.external.accessadmin.config.SubCustomerSuperiorData;
-import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.tissue.util.resource.GatewaySyncUtil;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -64,8 +51,6 @@ import org.smartrplace.widget.extensions.GUIUtilHelper;
 
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
-import de.iwes.util.timer.AbsoluteTimeHelper;
-import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
@@ -74,14 +59,12 @@ import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
-import de.iwes.widgets.html.complextable.DynamicTable;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
 import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.checkbox.SimpleCheckbox;
 import de.iwes.widgets.html.form.dropdown.Dropdown;
-import de.iwes.widgets.html.form.dropdown.DropdownData;
 import de.iwes.widgets.html.form.dropdown.DropdownOption;
 import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Label;
@@ -172,8 +155,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		cellSnippet0.addCssItem("#bodyDiv", Map.of("display", "flex", "column-gap", "1em"), null);
 		topTable.setContent(1, 5, cellSnippet0);
 		
-		this.releasePopup = new ReleasePopup(page, "releasepop", appMan, alert);
-		this.createIssuePopup = new CreateIssuePopup(page, appMan, alert, releasePopup);
+		this.releasePopup = new ReleasePopup(page, "releasepop", appMan, alert, controller);
+		this.createIssuePopup = new CreateIssuePopup(page, appMan, alert, releasePopup, controller);
 		createIssuePopup.trigger(createKnownIssue);
 		
 		ButtonConfirm releaseAllUnassigned = new ButtonConfirm(page, "releaseAllUnassigned") {
@@ -437,7 +420,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				
-				final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object);
+				final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object, controller);
 				
 				final Button showMsg = new Button(mainTable, "msg" + id, req) {
 					
@@ -517,7 +500,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 						vh.stringEdit("Edit TT",  id, res.linkToTaskTracking(), row, alert);
 					
 					final Dropdown responsibleDropdown = new ResponsibleDropdown(mainTable, "responsible"+id, req, 
-							appMan, res, () -> updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req));
+							appMan, res, () -> updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req), object, controller);
 					responsibleDropdown.triggerAction(releaseBtnSnippet, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 					row.addCell("Responsible", responsibleDropdown);
 					
@@ -800,4 +783,41 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 		return user.startsWith("master") || (user.startsWith("support") && (!user.contains("@")));
 	}
 
+	public static void setHistoryForFollowupChange(String deviceId,
+			Long preValue, TimeResource newValue, String responsibility, 
+			OgemaHttpRequest req,
+			AlarmingConfigAppController controller) {
+		if(preValue == null)
+			return;
+		long now = controller.appMan.getFrameworkTime();
+		float oldValueF = (float) (((double)(preValue-now))/TimeProcUtil.DAY_MILLIS);
+		String user = GUIUtilHelper.getUserLoggedIn(req);
+		if(newValue == null || (!newValue.isActive())) {
+			controller.addHistoryItem(user, "Disabled reminder for "+responsibility, null, oldValueF, deviceId);
+		}
+		float newValueF = (float) (((double)(newValue.getValue()-now))/TimeProcUtil.DAY_MILLIS);
+		controller.addHistoryItem(user, "Set reminder days for "+responsibility, newValueF, oldValueF, deviceId);
+	}
+	
+	public static void setHistoryForResponsibleChange(String deviceId,
+			String preValue, StringResource responsibility, OgemaHttpRequest req,
+			AlarmingConfigAppController controller) {
+		if(preValue == null || preValue.isEmpty())
+			return;
+		String user = GUIUtilHelper.getUserLoggedIn(req);
+		if(responsibility == null || (!responsibility.isActive())) {
+			controller.addHistoryItem(user, "Disabled responsibility", null, preValue, deviceId);
+		}
+		controller.addHistoryItem(user, "Set responsibility", responsibility.getValue(), preValue, deviceId);
+	}
+	
+	public static void setHistoryForTaskDelete(String deviceId,
+			String responsibility, boolean movedToTrash, OgemaHttpRequest req,
+			AlarmingConfigAppController controller) {
+		String user = GUIUtilHelper.getUserLoggedIn(req);
+		if(!movedToTrash) {
+			controller.addHistoryItem(user, "Deleted Device Issue for "+responsibility, "--", "--", deviceId);
+		}
+		controller.addHistoryItem(user, "Set Device Issue to Trash for "+responsibility, "--", "--", deviceId);
+	}
 }

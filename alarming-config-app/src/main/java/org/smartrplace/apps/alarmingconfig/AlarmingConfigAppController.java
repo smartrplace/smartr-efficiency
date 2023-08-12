@@ -16,6 +16,7 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.ValueResource;
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
+import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.resourcemanager.ResourceValueListener;
 import org.ogema.devicefinder.api.DatapointService;
 import org.ogema.devicefinder.api.DeviceHandlerProvider;
@@ -60,6 +61,7 @@ import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 import org.smartrplace.tissue.util.resource.GatewayUtil;
 import org.smartrplace.util.format.WidgetHelper;
 
+import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.logconfig.CountdownTimerMulti2Single;
 import de.iwes.util.resource.ResourceHelper;
 import de.iwes.util.resource.ValueResourceHelper;
@@ -100,6 +102,8 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
     public final EscalationManager escMan;
     public final WriteableDatapointManagement writeDPMan;
     
+	private ResourceList<StringResource> history;
+
 	public MainPage mainPage;
 	public DeviceTypePage devicePage;
 	//public DeviceAlarmingPage deviceOverviewPage;
@@ -391,6 +395,12 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 		}
 		qualityEval = q;
 		SuperiorIssuesSyncUtils.checkIssuesSyncStatus(appMan);
+		
+		HardwareInstallConfig hwConfig = getHardwareConfig();
+		if (hwConfig != null) {
+			history = hwConfig.issueHistory();
+			history.create().activate(false);
+		}
 	}
 
 	public void setupMessageReceiverConfiguration(MessageReader mr, final ResourceList<MessagingApp> appList,
@@ -695,5 +705,28 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 				prov.timedJobData().disable().setValue(false);
 			ResourceListHelper.addReferenceUnique(prov.messagingApps(), app0);
 		}
+	}
+	
+	public String addHistoryItem(String user, String action, float newValue, String deviceId) {
+		return addHistoryItem(user, action, String.format("%.2f", newValue), null, deviceId);
+	}
+	public String addHistoryItem(String user, String action, Float newValue, float oldValue, String deviceId) {
+		return addHistoryItem(user, action, newValue==null?"--":String.format("%.2f", newValue), String.format("%.2f", oldValue), deviceId);
+	}
+	public String addHistoryItem(String user, String action, String newValue, String oldValue, String deviceId) {
+		long now = appMan.getFrameworkTime();
+		//historyID++;
+		int historyID;
+		if(!hardwareConfig.issueHistoryID().exists()) {
+			ValueResourceHelper.setCreate(hardwareConfig.issueHistoryID(), 101);
+			historyID = 100;
+		} else
+			historyID = hardwareConfig.issueHistoryID().getAndAdd(1);
+		String result = String.format("%04d", historyID)+"$,"+user+"$,"+StringFormatHelper.getTimeDateInLocalTimeZone(now)+"$,"+action+"$,"+newValue+"$,"+deviceId+"$,"+
+				(oldValue == null?"--":oldValue);
+		StringResource newItem = history.add();
+		newItem.setValue(result);
+		newItem.activate(false);
+		return result;
 	}
 }

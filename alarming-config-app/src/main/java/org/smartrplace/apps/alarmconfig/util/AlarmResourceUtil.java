@@ -41,6 +41,21 @@ public class AlarmResourceUtil {
 		return null;
 	}
 	
+	public static String getDeviceIdForKnownFault(AlarmGroupData issue) {
+		if (issue == null)
+			return null;
+		if (issue instanceof AlarmGroupDataMajor) {
+			AlarmGroupDataMajor major = (AlarmGroupDataMajor) issue;
+			if(major.parentForOngoingIssues().isActive())
+				return major.parentForOngoingIssues().getLocationResource();
+			else if(major.devicesRelated().isActive() && major.devicesRelated().size() > 0)
+				return major.devicesRelated().getValues()[0];
+		}
+		final Resource parent = issue.getParent();
+		if (parent instanceof InstallAppDevice)
+			return ((InstallAppDevice) parent).deviceId().getValue();
+		return null;
+	}
 	
 	/**
 	 * Deletes the issue, unless this is a major issue (type AlarmGroupDataMajor) synced to superior, 

@@ -32,6 +32,7 @@ import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.user.NaturalPerson;
 import org.ogema.tools.resource.util.ResourceUtils;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.release.FinalAnalysis;
 import org.smartrplace.apps.alarmingconfig.release.ReleasePopup;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
@@ -71,7 +72,6 @@ import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.AlignItems;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
-import de.iwes.widgets.template.DisplayTemplate;
 
 @SuppressWarnings("serial")
 public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor, AlarmGroupDataMajor> {
@@ -91,10 +91,10 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	private IssueDetailsPopup lastMessagePopup;
 	private final ReleasePopup releasePopup;
 
-	public MajorKnownFaultsPage(WidgetPage<?> page, ApplicationManagerPlus appMan) {
-		super(page, appMan.appMan(), AlarmGroupDataMajor.class, false);
-		this.appManPlus = appMan;
-		this.supData = SuperiorIssuesSyncUtils.getSuperiorData(appMan.appMan());
+	public MajorKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
+		super(page, controller.appMan, AlarmGroupDataMajor.class, false);
+		this.appManPlus = controller.appManPlus;
+		this.supData = SuperiorIssuesSyncUtils.getSuperiorData(appManPlus.appMan());
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		this.isSuperior = Boolean.getBoolean("org.smartrplace.app.srcmon.server.issuperior");
 		if (isSuperior) {
@@ -116,11 +116,12 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		releaseStatusFilter.setDefaultOptions(RELEASE_FILTER_OPTIONS);
 		
 		this.lastMessagePopup = new IssueDetailsPopup(page);
-		this.releasePopup = new ReleasePopup(page, "releasePop", appMan.appMan(), alert);
+		this.releasePopup = new ReleasePopup(page, "releasePop", controller.appMan, alert, controller);
 		releasePopup.append(page);
 		
 		triggerPageBuild();
-		gatewaySelector.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		if(gatewaySelector != null)
+			gatewaySelector.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 	}
 
 	@Override
@@ -199,6 +200,10 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		final InstallAppDevice object; // may be null
 		if(res.parentForOngoingIssues().isActive()) {
 			object = res.parentForOngoingIssues();
+			if(!res.devicesRelated().isActive()) {
+				//should be there already, but legacy issues may not have it
+				ValueResourceHelper.setCreate(res.devicesRelated(), new String[] {object.deviceId().getValue()});
+			}
 		} else if (res.devicesRelated().isActive()) { // FIXME on superior, only if this is not a gateway related issue 
 			String[] vals = res.devicesRelated().getValues();
 			//if(vals.length == 0)

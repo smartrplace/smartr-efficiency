@@ -74,6 +74,7 @@ public class BatteryPage extends MainPage {
 			public void addWidgets(InstallAppDevice object, ObjectResourceGUIHelper<InstallAppDevice, InstallAppDevice> vh,
 					String id, OgemaHttpRequest req, Row row, ApplicationManager appMan) {
 				final PhysicalElement device2 = addNameWidget(object, vh, id, req, row, appMan).getLocationResource();
+				vh.booleanEdit("Short", id, DeviceHandlerBase.getShortBatteryLifetimeIndicator(device2), row);
 				AddBatteryVoltageResult voltageLab = addBatteryVoltage(vh, id, req, row, device2);
 				Label lastContactVoltage = null;
 				Label lastContactStatus = null;

@@ -1,11 +1,6 @@
 package org.smatrplace.apps.hw.install.gui.mainexpert;
 
-public class ActionHistoryItem {
-	public int id;
-	public String user;
-	public String time;
-	public String action;
-	public String newValue;
+public class ActionHistoryItem extends ActionHistoryItemBase {
 	public String tentant;
 	public String roomType;
 	public String singleRoom;

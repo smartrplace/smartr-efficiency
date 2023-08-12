@@ -14,12 +14,15 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.core.resourcemanager.transaction.WriteConfiguration;
+import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
+import org.smartrplace.apps.hw.install.gui.alarm.DeviceKnownFaultsPage;
 
 import de.iwes.widgets.api.extended.html.bricks.PageSnippet;
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -61,7 +64,8 @@ public class ReleasePopup {
 	private final Button submitButton;
 	
 	@SuppressWarnings("serial")
-	public ReleasePopup(WidgetPage<?> page, String baseId, ApplicationManager appMan, Alert alert) {
+	public ReleasePopup(WidgetPage<?> page, String baseId, ApplicationManager appMan, Alert alert,
+			AlarmingConfigAppController controller) {
 		this.popup = new Popup(page, baseId + "_popup", true);
 		this.issueContainer = new EmptyWidget(page, baseId + "_issuecontainer") {
 			
@@ -181,9 +185,13 @@ public class ReleasePopup {
 						//return;
 					}
 					trans.setTime(major.keepAsTrashUntil(), appMan.getFrameworkTime() + 30 * 24 * 3_600_00);  // 30d hardcoded
+					String deviceId = AlarmResourceUtil.getDeviceIdForKnownFault(major);
+					DeviceKnownFaultsPage.setHistoryForTaskDelete(deviceId, issue.responsibility().getValue(), true, req, controller);
 					break;
 				case "delete":
 					issue.delete();
+					deviceId = AlarmResourceUtil.getDeviceIdForKnownFault(major);
+					DeviceKnownFaultsPage.setHistoryForTaskDelete(deviceId, issue.responsibility().getValue(), false, req, controller);
 					if (alert != null)
 						alert.showAlert("Issue deleted successfully", true, req);
 					break;
@@ -220,14 +228,15 @@ public class ReleasePopup {
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				final AlarmGroupData alarm = getSelectedIssue(req);
-				final InstallAppDevice device = alarm != null ? AlarmResourceUtil.getDeviceForKnownFault(alarm) : null;
-				if (device == null) {
+				final String id = alarm != null ? AlarmResourceUtil.getDeviceIdForKnownFault(alarm) : null;
+				//final InstallAppDevice device = alarm != null ? AlarmResourceUtil.getDeviceForKnownFault(alarm) : null;
+				if (id == null) {
 					setText("", req);
 					return;
 				}
-				final String id = device.deviceId().isActive() ? device.deviceId().getValue() :
-					device.device().isActive() ? ResourceUtils.getHumanReadableName(device.device().getLocationResource()) :
-					device.getPath();
+				//final String id = device.deviceId().isActive() ? device.deviceId().getValue() :
+				//	device.device().isActive() ? ResourceUtils.getHumanReadableName(device.device().getLocationResource()) :
+				//	device.getPath();
 				setText(id, req);
 			}
 			

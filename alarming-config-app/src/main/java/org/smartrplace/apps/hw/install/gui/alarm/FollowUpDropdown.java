@@ -19,6 +19,7 @@ import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil.ReminderFrequency;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
 import de.iwes.util.resource.ValueResourceHelper;
@@ -52,13 +53,16 @@ public class FollowUpDropdown extends Dropdown {
 		);
 
 	private final ApplicationManager appMan;
+	private final AlarmingConfigAppController controller;
 	private final Alert alert;
 	private final InstallAppDevice device;  // may be null (in create issue popup)
   	private final AlarmGroupData alarm;     // may be null
 	
-  	public FollowUpDropdown(WidgetPage<?> page, String id, ApplicationManager appMan, Alert alert) {
+  	public FollowUpDropdown(WidgetPage<?> page, String id, ApplicationManager appMan, Alert alert,
+  			AlarmingConfigAppController controller) {
 		super(page, id);
 		this.appMan = appMan;
+		this.controller = controller;
 		this.alert = alert;
 		this.device = null;
 		this.alarm = null;
@@ -77,9 +81,11 @@ public class FollowUpDropdown extends Dropdown {
   	}
   	
 	public FollowUpDropdown(OgemaWidget parent, String id, OgemaHttpRequest req,
-			ApplicationManager appMan, Alert alert, InstallAppDevice object) {
+			ApplicationManager appMan, Alert alert, InstallAppDevice object,
+			AlarmingConfigAppController controller) {
 		super(parent, id, req);
 		this.appMan = appMan;
+		this.controller = controller;
 		this.alert = alert;
 		this.device = object;
 		this.alarm = object != null ? object.knownFault() : null;
@@ -130,6 +136,16 @@ public class FollowUpDropdown extends Dropdown {
 		selectSingleOption(followup.isActive() ? id : "__EMPTY_OPT__", req);
 	}
 	
+	Long preValue;
+	@Override
+	public void onPrePOST(String data, OgemaHttpRequest req) {
+		final TimeResource followup = alarm.dueDateForResponsibility();
+		if(!followup.isActive())
+			preValue = null;
+		else
+			preValue = followup.getValue();
+	}
+	
 	@Override
 	public void onPOSTComplete(String data, OgemaHttpRequest req) {
 		if (alarm == null || device == null)  // in create popup
@@ -150,6 +166,9 @@ public class FollowUpDropdown extends Dropdown {
 						+ " has been cancelled", true, req);
 				}
 			}
+			String responsibility = alarm.responsibility().getValue();
+			DeviceKnownFaultsPage.setHistoryForFollowupChange(device.deviceId().getValue(), preValue, null, responsibility,
+					req, controller);
 			return;
 		}
 		followup.<TimeResource> create().setValue(settings.timestamp);
@@ -165,6 +184,9 @@ public class FollowUpDropdown extends Dropdown {
 			ValueResourceHelper.setCreate(alarm.reminderType(), settings.reminderType.getCode());
 		else
 			alarm.reminderType().delete();
+		String responsibility = alarm.responsibility().getValue();
+		DeviceKnownFaultsPage.setHistoryForFollowupChange(device.deviceId().getValue(), preValue, followup, responsibility,
+				req, controller);
 	}
 	
 	/**
