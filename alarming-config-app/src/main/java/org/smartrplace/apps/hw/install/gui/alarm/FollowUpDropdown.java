@@ -16,13 +16,11 @@ import java.util.stream.Stream;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.model.extended.alarming.AlarmGroupData;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil;
 import org.smartrplace.apps.alarmconfig.util.AlarmMessageUtil.ReminderFrequency;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 
-import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.timer.AbsoluteTimeHelper;
 import de.iwes.util.timer.AbsoluteTiming;
 import de.iwes.widgets.api.widgets.OgemaWidget;
@@ -39,6 +37,7 @@ public class FollowUpDropdown extends Dropdown {
 	
 	private static List<DropdownOption> DEFAULT_OPTIONS = Arrays.asList(
 			new DropdownOption("__EMPTY_OPT__", "inactive", true),
+			new DropdownOption("1min", "Urgent", false),
 			new DropdownOption("1d", "1 day", false),
 			new DropdownOption("+1d", "Daily", false),
 			new DropdownOption("2d", "2 days", false),
@@ -66,37 +65,33 @@ public class FollowUpDropdown extends Dropdown {
 		this.alert = alert;
 		this.device = null;
 		this.alarm = null;
-		setComparator(null);
-		setDefaultOptions(DEFAULT_OPTIONS);
-		// add a 1 minute option for debugging purposes
-		if (Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.devicealarmreminder.debug")) {
-			setDefaultOptions(Stream.concat(Stream.of(new DropdownOption("1min", "1 minute", false)), getDefaultOptions().stream())
-				.collect(Collectors.toList()));
-		}
-		setDefaultToolTip("Send a reminder email after the specified period");
-		setDefaultMinWidth("8em");
-		this.triggerAction(this, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		if (alert != null)
-			this.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		this.finishConstructor();
   	}
   	
 	public FollowUpDropdown(OgemaWidget parent, String id, OgemaHttpRequest req,
-			ApplicationManager appMan, Alert alert, InstallAppDevice object,
-			AlarmingConfigAppController controller) {
+				ApplicationManager appMan, Alert alert, InstallAppDevice object, AlarmGroupData alarm,
+				AlarmingConfigAppController controller) {
 		super(parent, id, req);
 		this.appMan = appMan;
 		this.controller = controller;
 		this.alert = alert;
 		this.device = object;
-		this.alarm = object != null ? object.knownFault() : null;
+		this.alarm = alarm;
+		this.finishConstructor();
+	}
+	
+	private final void finishConstructor() {
 		setComparator(null);
 		setDefaultOptions(DEFAULT_OPTIONS);
-		// add a 1 minute option for debugging purposes
+		// add a 1 minute option for debugging purposes => now added by default, see "urgent" option
+		/*
 		if (Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.devicealarmreminder.debug")) {
 			setDefaultOptions(Stream.concat(Stream.of(new DropdownOption("1min", "1 minute", false)), getDefaultOptions().stream())
 				.collect(Collectors.toList()));
 		}
-		setDefaultToolTip("Send a reminder email after the specified period");
+		*/
+		setDefaultToolTip("Send a reminder email after the specified period; "
+				+ "\"urgent\" reminders will be sent immediately (1 minute delay) and resent daily.");
 		setDefaultMinWidth("8em");
 		this.triggerAction(this, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		if (alert != null)
@@ -148,44 +143,18 @@ public class FollowUpDropdown extends Dropdown {
 	
 	@Override
 	public void onPOSTComplete(String data, OgemaHttpRequest req) {
-		if (alarm == null || device == null)  // in create popup
+		if (alarm == null)  // in create popup
 			return;
 		final String value = getSelectedValue(req);
 		if (value == null || value.isEmpty()) // ?
 			return;
 		final FollowUpSettings settings = getSelectedTimestamp(req);
-		AlarmMessageUtil.setNextReminder(settings.timestamp, settings.reminderType, alarm, device, 
-				appMan, alert, req);
+		AlarmMessageUtil.setNextReminder(settings.timestamp, settings.reminderType, alarm, device, appMan, alert, req);
 		
 		final TimeResource followup = alarm.dueDateForResponsibility();
-		if (settings.timestamp == -1l) {
-			if (followup.isActive()) {
-				followup.deactivate(false);
-				if (alert != null && device.device().exists()) {
-					alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(device.device().getLocationResource()) 
-						+ " has been cancelled", true, req);
-				}
-			}
-			String responsibility = alarm.responsibility().getValue();
-			DeviceKnownFaultsPage.setHistoryForFollowupChange(device.deviceId().getValue(), preValue, null, responsibility,
-					req, controller);
-			return;
-		}
-		followup.<TimeResource> create().setValue(settings.timestamp);
-		final long now0 = appMan.getFrameworkTime();
-		if (settings.timestamp > now0) {
-			followup.activate(false);
-			if (alert != null && device.device().exists()) {
-				alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(device.device().getLocationResource()) 
-					+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(settings.timestamp), ZoneId.systemDefault()), true, req);
-			}
-		}
-		if (settings.reminderType != ReminderFrequency.NONE)  
-			ValueResourceHelper.setCreate(alarm.reminderType(), settings.reminderType.getCode());
-		else
-			alarm.reminderType().delete();
 		String responsibility = alarm.responsibility().getValue();
-		DeviceKnownFaultsPage.setHistoryForFollowupChange(device.deviceId().getValue(), preValue, followup, responsibility,
+		if(device != null)
+			DeviceKnownFaultsPage.setHistoryForFollowupChange(device.deviceId().getValue(), preValue, followup, responsibility,
 				req, controller);
 	}
 	
@@ -202,9 +171,9 @@ public class FollowUpDropdown extends Dropdown {
 		if (value.startsWith("custom"))
 			return new FollowUpSettings(Long.parseLong(value.substring("custom".length())));
 		final long timestamp;
+		ReminderFrequency reminderType = ReminderFrequency.NONE;
 		if (value.endsWith("d") && value.length() < 5) {
 			final int days;
-			final ReminderFrequency reminderType;
 			if(value.startsWith("+")) {
 				days = Integer.parseInt(value.substring(1, value.length()-1));
 				if(days < 6)
@@ -221,8 +190,9 @@ public class FollowUpDropdown extends Dropdown {
 			ZonedDateTime startOfDay = ZonedDateTime.ofInstant(Instant.ofEpochMilli(startOfDay0), ZoneId.systemDefault());
 			timestamp = startOfDay.plusDays(days).plusMinutes(4*60).toEpochSecond()*1000;
 			return new FollowUpSettings(timestamp, reminderType);
-		} else if (value.equals("1min")) { // debug option
+		} else if (value.equals("1min")) { // urgent option
 			timestamp = now.plusMinutes(1).toEpochSecond()*1000;
+			reminderType = ReminderFrequency.DAILY;
 		} else if (value.equals("nextmonthend"))
 			timestamp = now.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
 		else if (value.equals("3months"))
@@ -236,7 +206,7 @@ public class FollowUpDropdown extends Dropdown {
 		} else {
 			throw new IllegalArgumentException("unknown follow-up date " + value);
 		}
-		return new FollowUpSettings(timestamp);
+		return new FollowUpSettings(timestamp, reminderType);
 	}
 	
 	public static class FollowUpSettings {

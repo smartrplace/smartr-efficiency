@@ -47,7 +47,7 @@ public class AlarmResourceUtil {
 		if (issue instanceof AlarmGroupDataMajor) {
 			AlarmGroupDataMajor major = (AlarmGroupDataMajor) issue;
 			if(major.parentForOngoingIssues().isActive())
-				return major.parentForOngoingIssues().getLocationResource();
+				return major.parentForOngoingIssues().deviceId().getValue();
 			else if(major.devicesRelated().isActive() && major.devicesRelated().size() > 0)
 				return major.devicesRelated().getValues()[0];
 		}

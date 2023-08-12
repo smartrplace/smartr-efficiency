@@ -420,7 +420,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 				
 				vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 				
-				final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object, controller);
+				final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object, res, controller);
 				
 				final Button showMsg = new Button(mainTable, "msg" + id, req) {
 					
@@ -789,6 +789,8 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			AlarmingConfigAppController controller) {
 		if(preValue == null)
 			return;
+		if(responsibility == null || responsibility.isBlank())
+			return;
 		long now = controller.appMan.getFrameworkTime();
 		float oldValueF = (float) (((double)(preValue-now))/TimeProcUtil.DAY_MILLIS);
 		String user = GUIUtilHelper.getUserLoggedIn(req);
@@ -815,9 +817,13 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 			String responsibility, boolean movedToTrash, OgemaHttpRequest req,
 			AlarmingConfigAppController controller) {
 		String user = GUIUtilHelper.getUserLoggedIn(req);
+		String text;
 		if(!movedToTrash) {
-			controller.addHistoryItem(user, "Deleted Device Issue for "+responsibility, "--", "--", deviceId);
-		}
-		controller.addHistoryItem(user, "Set Device Issue to Trash for "+responsibility, "--", "--", deviceId);
+			text = "Deleted Device Issue";
+		} else
+			text = "Set Device Issue to Trash";
+		if(responsibility != null && (!responsibility.isBlank()))
+			text += " for "+responsibility;
+		controller.addHistoryItem(user,  text, "--", "--", deviceId);
 	}
 }

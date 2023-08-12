@@ -1,12 +1,5 @@
 package org.smartrplace.apps.hw.install.gui.alarm;
 
-import java.time.Instant;
-import java.time.Month;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,7 +17,6 @@ import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
-import org.ogema.core.model.simple.TimeResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
@@ -76,17 +67,26 @@ import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 @SuppressWarnings("serial")
 public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor, AlarmGroupDataMajor> {
 	
+	private static final String GW_URL_PARAM = "gw";
+	private static final String RELEASE_URL_PARAM = "release";
+	private static final String ASSIGNED_URL_PARAM = "assigned";
 	private static final List<DropdownOption> RELEASE_FILTER_OPTIONS = Arrays.asList(
-			new DropdownOption("all", "All alarms", true),
+			new DropdownOption("all", "All", true),
 			new DropdownOption("released", "Released", false),
 			new DropdownOption("nonreleased", "Not released", false)
 	);
+	private static final List<DropdownOption> ASSIGNMENT_FILTER_OPTIONS = AlarmingConfigUtil.ASSIGNEMENT_ROLES.entrySet().stream()
+			.map(entry -> new DropdownOption(entry.getKey(), entry.getValue(), false))
+			.collect(Collectors.toList());
+	
 	private final ApplicationManagerPlus appManPlus;
+	private final AlarmingConfigAppController controller;
 	private final GatewaySuperiorData supData;
 	private final HardwareInstallConfig hwInstallConfig;
 	private final boolean isSuperior;
 	private final TemplateDropdown<GatewaySuperiorData> gatewaySelector; // may be null
 	private final Dropdown releaseStatusFilter;
+	private final Dropdown assignmentStatusFilter;
 
 	private IssueDetailsPopup lastMessagePopup;
 	private final ReleasePopup releasePopup;
@@ -94,6 +94,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	public MajorKnownFaultsPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
 		super(page, controller.appMan, AlarmGroupDataMajor.class, false);
 		this.appManPlus = controller.appManPlus;
+		this.controller = controller;
 		this.supData = SuperiorIssuesSyncUtils.getSuperiorData(appManPlus.appMan());
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		this.isSuperior = Boolean.getBoolean("org.smartrplace.app.srcmon.server.issuperior");
@@ -109,11 +110,41 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 				
 			});
 			gatewaySelector.setDefaultAddEmptyOption(true, "All");
+			gatewaySelector.setDefaultSelectByUrlParam(GW_URL_PARAM);
 		} else {
 			gatewaySelector = null;
 		}
-		this.releaseStatusFilter = new Dropdown(page, "releaseStatusFilter");
-		releaseStatusFilter.setDefaultOptions(RELEASE_FILTER_OPTIONS);
+		this.releaseStatusFilter = new Dropdown(page, "releaseStatusFilter") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final List<DropdownOption> opts = getDropdownOptions(req); 
+				if (opts == null || opts.isEmpty()) {
+					setOptions(RELEASE_FILTER_OPTIONS, req);
+					final String[] initialStatus = getPage().getPageParameters(req).get(RELEASE_URL_PARAM);
+					if (initialStatus != null && initialStatus.length > 0)
+						selectSingleOption(initialStatus[0], req);
+				}
+			} 
+			
+		};
+		releaseStatusFilter.setDefaultSelectByUrlParam(RELEASE_URL_PARAM);
+		this.assignmentStatusFilter = new Dropdown(page, "assignmentStatusFilter") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final List<DropdownOption> opts = getDropdownOptions(req); 
+				if (opts == null || opts.isEmpty()) {
+					setOptions(ASSIGNMENT_FILTER_OPTIONS, req);
+					final String[] initialStatus = getPage().getPageParameters(req).get(ASSIGNED_URL_PARAM);
+					if (initialStatus != null && initialStatus.length > 0)
+						selectSingleOption(initialStatus[0], req);
+				}
+			} 
+			
+		};
+		assignmentStatusFilter.setDefaultAddEmptyOption(true);
+		assignmentStatusFilter.setDefaultSelectByUrlParam(ASSIGNED_URL_PARAM);
 		
 		this.lastMessagePopup = new IssueDetailsPopup(page);
 		this.releasePopup = new ReleasePopup(page, "releasePop", controller.appMan, alert, controller);
@@ -122,6 +153,11 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		triggerPageBuild();
 		if(gatewaySelector != null)
 			gatewaySelector.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		releaseStatusFilter.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		assignmentStatusFilter.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		this.mainTable.postponeLoading();
+		this.mainTable.setComposite();
+		page.showOverlay(true);
 	}
 
 	@Override
@@ -160,7 +196,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		}
 		subFlexSupplier.get().addItem(new Label(page, "releasedFilterLabel", "Release status"), null)
 			.addItem(releaseStatusFilter, null);
-		
+		subFlexSupplier.get().addItem(new Label(page, "assignmentFilterLabel", "Assignment"), null)
+			.addItem(assignmentStatusFilter, null);
 		final Header filterHeader = new Header(page, "filterHeader", "Filters");
 		filterHeader.setDefaultHeaderType(3);
 		//filterHeader.setDefaultColor("darkblue");
@@ -300,93 +337,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		releasePopup.trigger(diag);
 		row.addCell("Diagnosis", diag);
 		
-		final Dropdown followupemail = new Dropdown(mainTable, "followup" + id, req) {
-			
-			@Override
-			public void onGET(OgemaHttpRequest req) {
-				final TimeResource followup = res.dueDateForResponsibility();
-				final Optional<String> custom = getDropdownOptions(req).stream()
-					.map(opt -> opt.id())
-					.filter(opt -> opt.startsWith("custom"))
-					.findAny();
-				final boolean customConfigured = custom.isPresent();
-				final boolean needsCustom = followup.exists() && followup.getValue() >= appMan.getFrameworkTime();
-				if (!needsCustom) {
-					if (customConfigured) {
-						setOptions(getDropdownOptions(req).stream()
-								.filter(opt -> !opt.id().startsWith("custom"))
-								.collect(Collectors.toList()), req);
-					}
-					return;
-				}
-				final long target = followup.getValue();
-				final String id = "custom" + target;
-				if (customConfigured && custom.get().equals(id))
-					return;
-				final Stream<DropdownOption> standardOpts = getDropdownOptions(req).stream()
-					.filter(opt -> !opt.id().startsWith("custom"));
-				final long diff = target - appMan.getFrameworkTime();
-				final ZonedDateTime targetZdt = ZonedDateTime.ofInstant(Instant.ofEpochMilli(target), ZoneId.systemDefault());
-				final boolean printTime = Math.abs(diff) < 36 * 3_600_000;
-				final String dateTime = printTime ? DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(targetZdt) : DateTimeFormatter.ISO_LOCAL_DATE.format(targetZdt);
-				final Stream<DropdownOption> customOpt = Stream.of(new DropdownOption(id, dateTime, true));
-				final List<DropdownOption> newOptions = Stream.concat(customOpt, standardOpts).collect(Collectors.toList());
-				setOptions(newOptions, req);
-				selectSingleOption(followup.isActive() ? id : "__EMPTY_OPT__", req);
-			}
-			
-			@Override
-			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				final String value = getSelectedValue(req);
-				if (value == null || value.isEmpty()) // ?
-					return;
-				final TimeResource followup = res.dueDateForResponsibility();
-				if ("__EMPTY_OPT__".equalsIgnoreCase(value)) {
-					if (followup.isActive()) {
-						followup.deactivate(false);
-						if (alert != null && object != null && object.device().exists()) {
-							// TODO if this relates to a gateway, show gateway id
-							alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
-								+ " has been cancelled", true, req);
-						}
-					}
-					return;
-				}
-				final long now0 = appMan.getFrameworkTime();
-				final ZonedDateTime now = ZonedDateTime.ofInstant(Instant.ofEpochMilli(now0), ZoneId.systemDefault());
-				final long timestamp;
-				if (value.startsWith("custom"))
-					timestamp = Long.parseLong(value.substring("custom".length()));
-				else if (value.endsWith("d") && value.length() < 5) {
-					final int days = Integer.parseInt(value.substring(0, value.length()-1));
-					timestamp = now.plusDays(days).toEpochSecond()*1000;
-				} else if (value.equals("1min")) { // debug option
-					timestamp = now.plusMinutes(1).toEpochSecond()*1000;
-				} else if (value.equals("nextmonthend"))
-					timestamp = now.plusMonths(1).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
-				else if (value.equals("3months"))
-					timestamp = now.plusMonths(3).toEpochSecond()*1000;
-				else if (value.equals("august")) {
-					final Month month = now.getMonth();
-					ZonedDateTime t0 = now;
-					if (month.compareTo(Month.AUGUST) > 0 || (month == Month.AUGUST && now.getDayOfMonth() == 31))
-						t0 = t0.plusYears(1);
-					timestamp = t0.with(Month.AUGUST).with(TemporalAdjusters.lastDayOfMonth()).truncatedTo(ChronoUnit.DAYS).toEpochSecond()*1000;
-				} else {
-					throw new IllegalArgumentException("unknown follow-up date " + value);
-				}
-				followup.<TimeResource> create().setValue(timestamp);
-				if (timestamp > now0) {
-					followup.activate(false);
-					if (alert != null && object != null && object.device().exists()) {
-						// TODO if this relates to a gateway, show gateway id
-						alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(object.device().getLocationResource()) 
-							+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
-					}
-				}
-			}
-			
-		};
+		final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object, res, controller);
 		
 		final Button showMsg = new Button(mainTable, "msg" + id, req) {
 			
@@ -409,7 +360,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			row.addCell("Alarms", detailsRedirect);
 		}
 		if(res.exists()) {
-			vh.stringEdit("Comment_Analysis",  id, res.comment(), row, alert, res.comment());
+			row.addCell("Comment_Analysis", new CommentEditTextArea(mainTable, id, req, res));
+			//vh.stringEdit("Comment_Analysis",  id, res.comment(), row, alert, res.comment());
 			ValueResourceDropdownFlex<IntegerResource> widgetPlus = new ValueResourceDropdownFlex<IntegerResource>(
 					"Analysis_Assigned"+id, vh, AlarmingConfigUtil.ASSIGNEMENT_ROLES) {
 				public void onGET(OgemaHttpRequest req) {
@@ -520,30 +472,6 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			row.addCell("Responsible", responsibleDropdown);
 			
 		}
-		
-		
-		followupemail.setComparator(null);
-		followupemail.setDefaultOptions(Arrays.asList(
-			new DropdownOption("__EMPTY_OPT__", "inactive", true),
-			new DropdownOption("1d", "1 day", false),
-			new DropdownOption("2d", "2 days", false),
-			new DropdownOption("3d", "3 days", false),
-			new DropdownOption("7d", "7 days", false),
-			new DropdownOption("30d", "30 days", false),
-			new DropdownOption("nextmonthend", "End of next month", false),
-			new DropdownOption("3months", "3 months", false),
-			new DropdownOption("august", "End of August", false)
-		));
-		// add a 1 minute option for debugging purposes
-		if (Boolean.getBoolean("org.smartrplace.apps.alarmingconfig.devicealarmreminder.debug")) {
-			followupemail.setDefaultOptions(Stream.concat(Stream.of(new DropdownOption("1min", "1 minute", false)), followupemail.getDefaultOptions().stream())
-				.collect(Collectors.toList()));
-		}
-		followupemail.setDefaultToolTip("Send a reminder email after the specified period");
-		followupemail.setDefaultMinWidth("8em");
-		followupemail.triggerAction(followupemail, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		if (alert != null)
-			followupemail.triggerAction(alert, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		row.addCell(WidgetHelper.getValidWidgetId("Follow-up"), followupemail);
 		
 		if(object != null && object.device() instanceof Thermostat) {
@@ -567,17 +495,36 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 
 	@Override
 	public Collection<AlarmGroupDataMajor> getObjectsInTable(OgemaHttpRequest req) {
-		/*
-		GatewaySuperiorData sup = SuperiorIssuesSyncUtils.getSuperiorData(appMan);
-		List<AlarmGroupDataMajor> majors = sup.majorKnownIssues().getAllElements();
-		return majors;
-		*/
+		Stream<AlarmGroupDataMajor> alarms = getAlarms(req);
+		final String statusFilter = releaseStatusFilter.getSelectedValue(req);
+		switch(statusFilter) {
+		case "released":
+			alarms = alarms.filter(MajorKnownFaultsPage::isReleased);
+			break;
+		case "nonreleased":
+			alarms = alarms.filter(a -> !isReleased(a));
+			break;
+		default:
+			break;
+		}
+		final String assignmentFilter = assignmentStatusFilter.getSelectedValue(req);
+		if (assignmentFilter != null && assignmentFilter != DropdownData.EMPTY_OPT_ID)
+			alarms = alarms.filter(a -> a.assigned().isActive() && assignmentFilter.equals(String.valueOf(a.assigned().getValue())));
+		return alarms.collect(Collectors.toList());
+	}
+	
+	private static boolean isReleased(AlarmGroupDataMajor alarm) {
+		return alarm.releaseTime().isActive() && alarm.releaseTime().getValue() > 0;
+	}
+	
+	private Stream<AlarmGroupDataMajor> getAlarms(OgemaHttpRequest req) {
 		if (this.gatewaySelector != null) {
 			final GatewaySuperiorData data = gatewaySelector.getSelectedItem(req);
 			if (data != null)
-				return data.majorKnownIssues().getAllElements();
+				return data.majorKnownIssues().getAllElements().stream();
 		}
- 		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class);
+ 		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class).stream();
 	}
+	
 
 }

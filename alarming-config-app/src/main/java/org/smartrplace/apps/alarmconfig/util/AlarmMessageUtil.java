@@ -268,11 +268,12 @@ public class AlarmMessageUtil {
 
 	public static void setNextReminder(long timestamp, ReminderFrequency frequency, AlarmGroupData alarm, InstallAppDevice device,
 			ApplicationManager appMan, Alert alert, OgemaHttpRequest req) {
+		// TODO better handling of device  == null case
 		final TimeResource followup = alarm.dueDateForResponsibility();
 		if (timestamp == -1l) {
 			if (followup.isActive()) {
 				followup.deactivate(false);
-				if (alert != null && device.device().exists()) {
+				if (alert != null && device != null && device.device().exists()) {
 					alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(device.device().getLocationResource()) 
 						+ " has been cancelled", true, req);
 				}
@@ -283,7 +284,7 @@ public class AlarmMessageUtil {
 		final long now0 = appMan.getFrameworkTime();
 		if (timestamp > now0) {
 			followup.activate(false);
-			if (alert != null && device.device().exists()) {
+			if (alert != null && device != null && device.device().exists()) {
 				alert.showAlert("Email reminder for device " + ResourceUtils.getHumanReadableName(device.device().getLocationResource()) 
 					+ " has been configured for " + ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()), true, req);
 			}

@@ -348,7 +348,7 @@ public class DeviceKnownFaultsInstallationPage {
 			
 		};
 		final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mmZ");
-		table.setRowTemplate(new RowTemplate<InstallAppDevice>() {
+		table.setRowTemplate(new RowTemplate<InstallAppDevice>() {  // FIXME using the device as primary resource is problematic
 
 			@Override
 			public Row addRow(InstallAppDevice device, OgemaHttpRequest req) {
@@ -385,39 +385,9 @@ public class DeviceKnownFaultsInstallationPage {
 						comment.setDefaultToolTip(device.knownFault().comment().getValue());
 					row.addCell("comment", comment);
 				} else {
-					final TextArea comment = new TextArea(table, id + "_comment", req) {
-						
-						@Override
-						public void onGET(OgemaHttpRequest req) {
-							if (device.knownFault().comment().isActive()) {
-								setText(device.knownFault().comment().getValue(), req);
-								setToolTip(device.knownFault().comment().getValue(), req);
-							} else {
-								setText("", req);
-								setToolTip("", req);
-							}
-						}
-						
-						@Override
-						public void onPOSTComplete(String data, OgemaHttpRequest req) {
-							data = getText(req).trim();
-							if (data.isEmpty())
-								device.knownFault().comment().delete();
-							else {
-								device.knownFault().comment().<StringResource> create().setValue(data);
-								device.knownFault().comment().activate(false);
-							}
-						}
-						
-					};
-					comment.setDefaultRows(1);
-					comment.setDefaultCols(device.knownFault().comment().isActive() && device.knownFault().comment().getValue().length() >= 15 ? 15 : 10);
-					comment.triggerAction(comment, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+					final TextArea comment = new CommentEditTextArea(table, id, req, device.knownFault());
 					row.addCell("comment", comment);
 				}
-				
-				
-				
 				final ValueResourceTextField<FloatResource> prioLabel = new ValueResourceTextField<FloatResource>(table, id + "_prio", 
 						device.knownFault().getSubResource("processingOrder", FloatResource.class), req) { // optional element processingOrder is rather new
 					
@@ -647,7 +617,7 @@ public class DeviceKnownFaultsInstallationPage {
 					row.addCell("responsible", responsibleDropdown);
 					
 					
-					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device, controller);
+					final Dropdown followup = new FollowUpDropdown(table, id + "_followup", req, appMan, null, device, device.knownFault(), controller);
 					row.addCell("followup", followup);
 					
 				}
