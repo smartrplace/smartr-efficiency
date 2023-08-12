@@ -69,6 +69,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	private static final String GW_URL_PARAM = "gw";
 	private static final String RELEASE_URL_PARAM = "release";
 	private static final String ASSIGNED_URL_PARAM = "assigned";
+	private static final String TRASH_URL_PARAM = "trash";
 	private static final List<DropdownOption> RELEASE_FILTER_OPTIONS = Arrays.asList(
 			new DropdownOption("all", "All", true),
 			new DropdownOption("released", "Released", false),
@@ -77,6 +78,11 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	private static final List<DropdownOption> ASSIGNMENT_FILTER_OPTIONS = AlarmingConfigUtil.ASSIGNEMENT_ROLES.entrySet().stream()
 			.map(entry -> new DropdownOption(entry.getKey(), entry.getValue(), false))
 			.collect(Collectors.toList());
+	private static final List<DropdownOption> TRASH_FILTER_OPTIONS = Arrays.asList(
+			new DropdownOption("nontrash", "Active", true),
+			new DropdownOption("all", "All", false),
+			new DropdownOption("trash", "Trash", false)
+	); 
 	
 	private final ApplicationManagerPlus appManPlus;
 	private final AlarmingConfigAppController controller;
@@ -86,6 +92,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	private final TemplateDropdown<GatewaySuperiorData> gatewaySelector; // may be null
 	private final Dropdown releaseStatusFilter;
 	private final Dropdown assignmentStatusFilter;
+	private final Dropdown trashStatusFilter;
 
 	private IssueDetailsPopup lastMessagePopup;
 	private final ReleasePopup releasePopup;
@@ -144,6 +151,21 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		};
 		assignmentStatusFilter.setDefaultAddEmptyOption(true);
 		assignmentStatusFilter.setDefaultSelectByUrlParam(ASSIGNED_URL_PARAM);
+		this.trashStatusFilter = new Dropdown(page, "trashStatusFilter") {
+			
+			@Override
+			public void onGET(OgemaHttpRequest req) {
+				final List<DropdownOption> opts = getDropdownOptions(req); 
+				if (opts == null || opts.isEmpty()) {
+					setOptions(TRASH_FILTER_OPTIONS, req);
+					final String[] initialStatus = getPage().getPageParameters(req).get(TRASH_URL_PARAM);
+					if (initialStatus != null && initialStatus.length > 0)
+						selectSingleOption(initialStatus[0], req);
+				}
+			}
+			
+		};
+		trashStatusFilter.setDefaultSelectByUrlParam(TRASH_URL_PARAM);
 		
 		this.lastMessagePopup = new IssueDetailsPopup(page);
 		this.releasePopup = new ReleasePopup(page, "releasePop", controller.appMan, alert, controller);
@@ -154,6 +176,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			gatewaySelector.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		releaseStatusFilter.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		assignmentStatusFilter.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		trashStatusFilter.triggerAction(mainTable, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		this.mainTable.postponeLoading();
 		this.mainTable.setComposite();
 		page.showOverlay(true);
@@ -197,6 +220,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			.addItem(releaseStatusFilter, null);
 		subFlexSupplier.get().addItem(new Label(page, "assignmentFilterLabel", "Assignment"), null)
 			.addItem(assignmentStatusFilter, null);
+		subFlexSupplier.get().addItem(new Label(page, "trashFilterLabel", "Trash status"), null)
+			.addItem(trashStatusFilter, null);
 		final Header filterHeader = new Header(page, "filterHeader", "Filters");
 		filterHeader.setDefaultHeaderType(3);
 		//filterHeader.setDefaultColor("darkblue");
@@ -290,8 +315,9 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
+				final boolean isTrash = res.keepAsTrashUntil().isActive() && res.keepAsTrashUntil().getValue() > 0;
 				if (!res.finalDiagnosis().isActive()) {
-					setText("--", req);
+					setText(isTrash ? "Trash" : "--", req);
 					setToolTip("Click to open release menu", req);
 				} else {
 					String v = res.finalDiagnosis().getValue();
@@ -302,6 +328,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 					final String tooltip = v;
 					if (v.length() > 30)
 						v = v.substring(0, 30) + " ...";
+					if (isTrash)
+						v += " (Trash)";
 					setText(v, req);
 					setToolTip(tooltip + "\nClick to edit", req);
 				}
@@ -509,6 +537,15 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		final String assignmentFilter = assignmentStatusFilter.getSelectedValue(req);
 		if (assignmentFilter != null && assignmentFilter != DropdownData.EMPTY_OPT_ID)
 			alarms = alarms.filter(a -> a.assigned().isActive() && assignmentFilter.equals(String.valueOf(a.assigned().getValue())));
+		final String trashFilter = trashStatusFilter.getSelectedValue(req);
+		switch (trashFilter) {
+		case "trash":
+			alarms = alarms.filter(a -> a.keepAsTrashUntil().isActive() && a.keepAsTrashUntil().getValue() > 0);
+			break;
+		case "nontrash":
+			alarms = alarms.filter(a -> !a.keepAsTrashUntil().isActive() || a.keepAsTrashUntil().getValue() <= 0);
+			break;
+		}
 		return alarms.collect(Collectors.toList());
 	}
 	

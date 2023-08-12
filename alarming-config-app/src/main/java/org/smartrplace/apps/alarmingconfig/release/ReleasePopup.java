@@ -179,7 +179,7 @@ public class ReleasePopup {
 					}
 					break;
 				case "trash":
-					//TODO: Move to major first
+					// Move to major first
 					if (!isMajorIssue) {
 						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, appMan); 
 						//return;
