@@ -22,7 +22,6 @@ import org.ogema.util.controllerprovider.GenericControllerProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.smartrplace.apps.alarmconfig.reminder.DeviceAlarmReminderService;
-import org.smartrplace.apps.alarmingconfig.sync.SynchronizableIssueListener;
 import org.smartrplace.hwinstall.basetable.DeviceHandlerAccess;
 import org.smartrplace.hwinstall.basetable.HardwareTablePage;
 
@@ -72,7 +71,7 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
 	//private BundleContext bc;
 	protected ServiceRegistration<UserPermissionService> srUserAccService = null;
 	private DeviceAlarmReminderService reminder;
-	private SynchronizableIssueListener syncListener;
+	//private SynchronizableIssueListener syncListener;
 	
 	@Reference
 	public UserPermissionService userAccService;
@@ -121,12 +120,12 @@ public class AlarmingConfigApp implements Application, DeviceHandlerAccess {
     		controller.close();
 		if (reminder != null)
 			reminder.close();
-		if (syncListener != null)
-			syncListener.close();
+		//if (syncListener != null)
+		//	syncListener.close();
 		widgetApp =null;
 		controller = null;
 		reminder = null;
-		syncListener = null;
+		//syncListener = null;
         log.info("{} stopped", getClass().getName());
     }
     

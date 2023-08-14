@@ -592,8 +592,8 @@ public class HardwareInstallController {
 		//handlerByDevice.put(appDevice.getLocation(), tableProvider);
 		//if(Boolean.getBoolean("org.smartrplace.apps.hw.install.autologging")) {
 		if(appConfigData.autoConfigureNewDevicesBasedOnTemplate().getValue())
+			updateDatapoints(tableProvider, appDevice);
 		
-		updateDatapoints(tableProvider, appDevice);
 		if(appConfigData.autoLoggingActivation().getValue() == 2) {
 			activateLogging(tableProvider, appDevice, true, false);
 		}
