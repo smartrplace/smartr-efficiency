@@ -79,9 +79,7 @@ public class QualityEvalUtil {
 			
 			@Override
 			public void timerElapsed(Timer timer) {
-				ViaHeartbeatUtil.updateEvalResources(kniData, c.appMan);				
-				OGEMAResourceCopyHelper.copySubResourceIntoDestination(kniDataSync, kniData, c.appMan, true);
-				updateActiveAlarms(kniDataSync, c.appMan.getResourceAccess());
+				performEval(c);
 			}
 		});
 		updateQualityResources(c);
@@ -95,6 +93,12 @@ public class QualityEvalUtil {
 		});
 		kniData.referenceForDeviceHandler().create();
 		kniData.activate(true);
+	}
+	
+	public void performEval(AlarmingConfigAppController c) {
+		ViaHeartbeatUtil.updateEvalResources(kniData, c.appMan);				
+		OGEMAResourceCopyHelper.copySubResourceIntoDestination(kniDataSync, kniData, c.appMan, true);
+		updateActiveAlarms(kniDataSync, c.appMan.getResourceAccess());		
 	}
 	
 	public void updateQualityResources(AlarmingConfigAppController c) {
@@ -264,6 +268,5 @@ public class QualityEvalUtil {
 		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesOpStd(), issuesOpStd);
 		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesManufacturer(), issuesManufacturer);
 		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesCustomer(), issuesCustomer);
-
 	}
 }

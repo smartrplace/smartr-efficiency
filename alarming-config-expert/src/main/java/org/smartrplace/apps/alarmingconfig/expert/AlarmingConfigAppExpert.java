@@ -145,7 +145,7 @@ public class AlarmingConfigAppExpert implements Application, AlarmingExtensionPr
 				menu.addEntry("8b. Major Device Issues", pageRes16);
 				configMenuConfig(pageRes16.getMenuConfiguration());
 				
-				new IssueHistoryPage(pageRes16c, controller.appMan);
+				new IssueHistoryPage(pageRes16c, controller);
 				menu.addEntry("8c. Issue Setting History", pageRes16c);
 				configMenuConfig(pageRes16c.getMenuConfiguration());
 			}

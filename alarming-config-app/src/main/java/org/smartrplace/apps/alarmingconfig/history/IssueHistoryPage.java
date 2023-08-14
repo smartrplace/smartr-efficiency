@@ -9,6 +9,7 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
+import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.gui.tablepages.ObjectGUITablePageNamed;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
@@ -20,18 +21,21 @@ import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
 import de.iwes.widgets.html.buttonconfirm.ButtonConfirm;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
+import de.iwes.widgets.html.form.button.Button;
 
 @SuppressWarnings("serial")
 public class IssueHistoryPage extends ObjectGUITablePageNamed<IssueHistoryItem, Resource> {
 	private final static Long cleanUpAgoHours = Long.getLong("org.smatrplace.apps.hw.install.gui.mainexpert.historyCleanupMaintenanceHours", 680);
 	private final HardwareInstallConfig hwConfig;
 	private final ResourceList<StringResource> history;
+	private final AlarmingConfigAppController controller;
 	//private final boolean isExpert;
 	
-	public IssueHistoryPage(WidgetPage<?> page, ApplicationManager appMan) {
-		super(page, appMan, new IssueHistoryItem());
+	public IssueHistoryPage(WidgetPage<?> page, AlarmingConfigAppController controller) {
+		super(page, controller.appMan, new IssueHistoryItem());
 		hwConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
 		history = hwConfig.issueHistory();
+		this.controller = controller;
 		triggerPageBuild();
 	}
 
@@ -69,6 +73,14 @@ public class IssueHistoryPage extends ObjectGUITablePageNamed<IssueHistoryItem, 
 		};
 		clearButton.setDefaultConfirmMsg("Really delete older messages?");
 		topTable.setContent(0, 5, clearButton);
+		
+		Button updateIssueEvaluationForSuperior = new Button(page, "updateIssueEvaluationForSuperior", "Update Eval for Superior") {
+			@Override
+			public void onPOSTComplete(String data, OgemaHttpRequest req) {
+				controller.qualityEval.performEval(controller);
+			}
+		};
+		topTable.setContent(0, 4, updateIssueEvaluationForSuperior);
 		page.append(topTable);
 	}
 	
