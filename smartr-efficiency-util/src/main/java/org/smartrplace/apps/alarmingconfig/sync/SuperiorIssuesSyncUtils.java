@@ -15,11 +15,38 @@ import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.gateway.device.GatewaySuperiorData;
 
 public class SuperiorIssuesSyncUtils {
+	/** Number of devices types evaluated in detail for superior synchronization*/
+	public static final int DEVICE_TYPE_NUM = 16;
+	
+	public static final String GW_SUPERIOR_DATA_RESOURCE = "gatewaySuperiorDataRes";
 	
 	public static GatewaySuperiorData getSuperiorData(ApplicationManager appMan) throws ResourceOperationException {
-		final Resource r = appMan.getResourceAccess().getResource("gatewaySuperiorDataRes");
+		final Resource r = appMan.getResourceAccess().getResource(GW_SUPERIOR_DATA_RESOURCE);
 		if (r instanceof GatewaySuperiorData)
 			return (GatewaySuperiorData) r;
+		final List<GatewaySuperiorData> superiors = appMan.getResourceAccess().getResources(GatewaySuperiorData.class);
+		if (superiors.isEmpty())
+			return null;
+		return superiors.get(0);
+	}
+	
+	/**
+	 * Also applicable on superior
+	 * @param alarm
+	 * @param appMan
+	 * @return
+	 * @throws ResourceOperationException
+	 */
+	public static GatewaySuperiorData getSuperiorData(AlarmGroupData alarm, ApplicationManager appMan) throws ResourceOperationException {
+		if (alarm instanceof AlarmGroupDataMajor && alarm.getParent() != null) {
+			final Resource parent = alarm.getParent().getParent();
+			if (parent instanceof GatewaySuperiorData)
+				return (GatewaySuperiorData) parent;
+		}
+		final Resource r = appMan.getResourceAccess().getResource(GW_SUPERIOR_DATA_RESOURCE);
+		if (r instanceof GatewaySuperiorData)
+			return (GatewaySuperiorData) r;
+		// this is questionable
 		final List<GatewaySuperiorData> superiors = appMan.getResourceAccess().getResources(GatewaySuperiorData.class);
 		if (superiors.isEmpty())
 			return null;
@@ -41,6 +68,25 @@ public class SuperiorIssuesSyncUtils {
 		GatewaySuperiorData sup = getSuperiorData(appMan);
 		return syncIssueToSuperior(issue, appMan, sup);
 	}
+	
+	/**
+	 * Not for use with gateway-related issues on superior.
+	 * @param appMan
+	 * @return
+	 */
+	public static AlarmGroupDataMajor newMajorIssue(ApplicationManager appMan, InstallAppDevice device) {
+		final GatewaySuperiorData sup = getSuperiorData(appMan);
+		if (sup == null)
+			return null;
+		final ResourceList<AlarmGroupDataMajor> major = sup.majorKnownIssues();
+		if (!major.isActive())
+			major.create().activate(false);
+		final AlarmGroupDataMajor alarm = major.add();
+		if (device != null)
+			alarm.parentForOngoingIssues().setAsReference(device);
+		return alarm;
+	}
+	
 
 	/**
 	 * Copy the content of the passed issue information into a new resource that is synchronized with a superior gateway. The original issue resource

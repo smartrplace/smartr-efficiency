@@ -22,6 +22,7 @@ import org.ogema.timeseries.eval.simple.api.ProcessedReadOnlyTimeSeries3;
 import org.ogema.timeseries.eval.simple.api.TimeProcUtil;
 import org.ogema.timeseries.eval.simple.mon3.std.StandardEvalAccess;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
+import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
 import org.smartrplace.apps.hw.install.config.HardwareInstallConfig;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.apps.hw.install.prop.ViaHeartbeatSchedules;
@@ -155,7 +156,6 @@ public class QualityEvalUtil {
 		return result;
 	}
 	
-	public static final int DEVICE_TYPE_NUM = 16;
 	/** Version of {@link AlarmingConfigUtil#getActiveAlarms(ResourceAccess) }for data directly evaluated into {@link KnownIssueDataGw}
 	 * 
 	 * @param resAcc
@@ -163,19 +163,19 @@ public class QualityEvalUtil {
 	 */
 	public static void updateActiveAlarms(KnownIssueDataGw kni, ResourceAccess resAcc) {
 		HardwareInstallConfig hwInstall = ResourceHelper.getTopLevelResource(HardwareInstallConfig.class, resAcc);
-		int[] devs = new int[DEVICE_TYPE_NUM];
-		int[] datapoints = new int[DEVICE_TYPE_NUM];
-		int[] dpConfiguredForAlarm = new int[DEVICE_TYPE_NUM];
-		int[] devsWithActiveAlarm = new int[DEVICE_TYPE_NUM];
-		int[] issues = new int[DEVICE_TYPE_NUM];
-		int[] issuesNone = new int[DEVICE_TYPE_NUM];
-		int[] issuesSupDevUrgent = new int[DEVICE_TYPE_NUM];
-		int[] issuesSupDevStd = new int[DEVICE_TYPE_NUM];
-		int[] issuesOpUrgent = new int[DEVICE_TYPE_NUM];
-		int[] issuesOpStd = new int[DEVICE_TYPE_NUM];
-		int[] issuesManufacturer = new int[DEVICE_TYPE_NUM];
-		int[] issuesCustomer = new int[DEVICE_TYPE_NUM];
-		int[] issuesDependent = new int[DEVICE_TYPE_NUM];
+		int[] devs = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] datapoints = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] dpConfiguredForAlarm = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] devsWithActiveAlarm = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issues = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesNone = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesSupDevUrgent = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesSupDevStd = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesOpUrgent = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesOpStd = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesManufacturer = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesCustomer = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
+		int[] issuesDependent = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
 		for(InstallAppDevice iad: hwInstall.knownDevices().getAllElements()) {
 			if(iad.isTrash().getValue())
 				continue;
@@ -262,6 +262,7 @@ public class QualityEvalUtil {
 		ValueResourceHelper.setCreate(kni.devicesByTypeWithActiveAlarms(), devsWithActiveAlarm);
 		
 		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesNone(), issuesNone);
+		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesBacklog(), issuesDependent);
 		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesSupDevUrgent(), issuesSupDevUrgent);
 		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesSupDevStd(), issuesSupDevStd);
 		ValueResourceHelper.setCreate(kni.devicesByTypeIssuesOpUrgent(), issuesOpUrgent);
