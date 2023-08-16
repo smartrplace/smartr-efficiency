@@ -394,7 +394,7 @@ public class AlarmingConfigAppController implements AlarmingUpdater { //, RoomLa
 			appMan.getLogger().warn("Failed to instantiate quality eval util", e);
 		}
 		qualityEval = q;
-		SuperiorIssuesSyncUtils.checkIssuesSyncStatus(appMan);
+		SuperiorIssuesSyncUtils.checkIssuesSyncStatus(appManPlus);
 		
 		HardwareInstallConfig hwConfig = getHardwareConfig();
 		if (hwConfig != null) {

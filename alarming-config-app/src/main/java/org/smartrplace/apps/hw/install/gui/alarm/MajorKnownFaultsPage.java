@@ -19,6 +19,7 @@ import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.devices.buildingtechnology.Thermostat;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.model.user.NaturalPerson;
@@ -101,7 +102,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		this.appManPlus = controller.appManPlus;
 		this.controller = controller;
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
-		this.isSuperior = Boolean.getBoolean("org.smartrplace.app.srcmon.server.issuperior");
+		this.isSuperior = Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior");
 		if (isSuperior) {
 			gatewaySelector = new ResourceDropdown<GatewaySuperiorData>(page, "gatewaySelector", false, 
 					GatewaySuperiorData.class, UpdateMode.AUTO_ON_GET, appMan.getResourceAccess());
@@ -168,6 +169,24 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		this.lastMessagePopup = new IssueDetailsPopup(page, isSuperior);
 		this.releasePopup = new ReleasePopup(page, "releasePop", controller.appMan, alert, controller);
 		releasePopup.append(page);
+		
+		//cleanup resource
+		List<AlarmGroupDataMajor> allres = appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class);
+		for(AlarmGroupDataMajor major: allres) {
+			if(!(major.devicesRelated().isActive() && major.firstDeviceName().isActive())) {
+				if(major.parentForOngoingIssues().exists()) {
+					InstallAppDevice iad = major.parentForOngoingIssues();
+					if(!major.devicesRelated().isActive()) {
+						ValueResourceHelper.setCreate(major.devicesRelated(), new String[] {iad.deviceId().getValue()});
+					}
+					if(!major.firstDeviceName().isActive()) {
+						String firstDeviceName = DeviceTableBase.getName(iad, appManPlus);
+						ValueResourceHelper.setCreate(major.firstDeviceName(), firstDeviceName);
+					}
+				} else if(!major.devicesRelated().isActive())
+					major.delete();
+			}
+		}
 		
 		triggerPageBuild();
 		if(gatewaySelector != null)
@@ -243,7 +262,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			vh.registerHeaderEntry("Release");
 			vh.registerHeaderEntry("Diagnosis");
 			vh.registerHeaderEntry("Details");
-			vh.registerHeaderEntry("Alarms");
+			if (!isSuperior)
+				vh.registerHeaderEntry("Alarms");
 			vh.registerHeaderEntry("Comment_Analysis");
 			vh.registerHeaderEntry("Analysis_Assigned");
 			vh.registerHeaderEntry("Task Tracking");
@@ -279,16 +299,21 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		
 		final DeviceHandlerProviderDP<?> pe = object != null ? appManPlus.dpService().getDeviceHandlerProvider(object) : null;
 		
-		if (object != null) {
-			AlarmingDeviceTableBase.addNameWidgetStatic(object, vh, id, req, row, appManPlus.dpService(), pe, hwInstallConfig);
-		} else if (res.devicesRelated().isActive()) {
+		if (res.devicesRelated().isActive()) {
 			final String[] devices = res.devicesRelated().getValues();
 			if (devices.length > 0) {
 				String devId = Arrays.stream(devices).collect(Collectors.joining(", "));
-				vh.stringLabel("Name", id, devId, row);
 				vh.stringLabel("ID", id, devId, row);
 			}
 		} // TODO show something else as id, name?
+		final String firstDeviceName;
+		if(res.firstDeviceName().isActive())
+			firstDeviceName = res.firstDeviceName().getValue();
+		else if (object != null) {
+			firstDeviceName = AlarmingDeviceTableBase.getDeviceName(object, id, appManPlus.dpService(), pe, hwInstallConfig);
+		} else
+			firstDeviceName = "-";
+		vh.stringLabel("Name", id, firstDeviceName, row);
 		
 		//vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 		
@@ -558,5 +583,8 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
  		return appMan.getResourceAccess().getResources(AlarmGroupDataMajor.class).stream();
 	}
 	
-
+	@Override
+	public String getLineId(AlarmGroupDataMajor object) {
+		return String.format("%014d", object.ongoingAlarmStartTime().getValue())+super.getLineId(object);
+	}
 }

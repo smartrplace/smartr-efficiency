@@ -43,6 +43,7 @@ import de.iwes.widgets.html.alert.Alert;
 import de.iwes.widgets.html.alert.AlertData;
 import de.iwes.widgets.html.complextable.RowTemplate.Row;
 import de.iwes.widgets.html.form.button.Button;
+import de.iwes.widgets.html.form.button.ButtonData;
 import de.iwes.widgets.html.form.button.RedirectButton;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.HeaderData;
@@ -182,7 +183,8 @@ public class HardwareTablePage implements InstalledAppsSelector { //extends Devi
 					(resData.appConfigData.isInstallationActive().getValue()?"active":"inactive"));
 		} else {
 			installMode = new BooleanResourceButton(page, "installMode", "Search for new devices",
-					resData.appConfigData.isInstallationActive()) {
+					resData.appConfigData.isInstallationActive(), ButtonData.BOOTSTRAP_GREEN,
+					ButtonData.BOOTSTRAP_RED) {
 				private static final long serialVersionUID = 1L;
 	
 				@Override

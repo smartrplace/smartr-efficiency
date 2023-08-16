@@ -94,7 +94,7 @@ public class ResponsibleDropdown extends Dropdown {
 		String preValue = responsibility.getValue();
 		responsibility.<StringResource> create().setValue(email);
 		responsibility.activate(false);
-		if (SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan) != null && majorTrafoCallback != null) {
+		if (SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, controller.appManPlus) != null && majorTrafoCallback != null) {
 			majorTrafoCallback.run();
 			// delete old release button and replace by new one...
 			//updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req);

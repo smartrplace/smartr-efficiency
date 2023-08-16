@@ -472,7 +472,7 @@ public class DeviceKnownFaultsPage extends DeviceAlarmingPage {
 								//Blocking
 								ValueResourceHelper.setCreate(res.minimumTimeBetweenAlarms(), -1);
 							}
-							if (SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appMan) != null) {
+							if (SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(res, appManPlus) != null) {
 								// delete old release button and replace by new one...
 								updateReleaseBtn(res, releaseBtnRef, releaseCnt, releaseBtnSnippet, id, req);
 							}

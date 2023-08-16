@@ -534,7 +534,7 @@ public class DeviceKnownFaultsInstallationPage {
 					row.addCell("resolve", doneBtn);
 				} else if (target == AlternativeFaultsPageTarget.OPERATION) {
 					
-					final Dropdown assigned = new AssignmentDropdown(table, id + "_assigned", req, device.knownFault(), appMan);
+					final Dropdown assigned = new AssignmentDropdown(table, id + "_assigned", req, device.knownFault(), controller.appManPlus);
 					row.addCell("assigned", assigned);
 					final Dropdown responsibleDropdown = new ResponsibleDropdown(table, "responsible"+id, req, 
 							appMan, device.knownFault(), null, device, controller);

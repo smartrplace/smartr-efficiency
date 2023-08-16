@@ -497,9 +497,9 @@ public class CreateIssuePopup {
 						alarm.addDecorator("featureUnderDevelopment", StringResource.class).setValue(developmentComment);
 					alarm.activate(true);
 					// only syncs if issue is eligible; else major is null
-					AlarmGroupDataMajor major = SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, appMan);
+					AlarmGroupDataMajor major = SuperiorIssuesSyncUtils.syncIssueToSuperiorIfRelevant(alarm, controller.appManPlus);
 					if (doRelease && major == null)
-						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(alarm, appMan);
+						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(alarm, controller.appManPlus);
 					if (alert != null)
 						alert.showAlert("Alarm generation succeeded for device " + device.deviceId().getValue() + " (" + device.getLocation() + ")", true, req);
 					if (releasePopup != null) {

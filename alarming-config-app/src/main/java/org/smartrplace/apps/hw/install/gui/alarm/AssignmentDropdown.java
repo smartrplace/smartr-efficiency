@@ -3,6 +3,7 @@ package org.smartrplace.apps.hw.install.gui.alarm;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
@@ -26,9 +27,9 @@ public class AssignmentDropdown extends Dropdown {
 		.collect(Collectors.toSet());
 
 	private final AlarmGroupData alarm;
-	private final ApplicationManager appMan;
+	private final ApplicationManagerPlus appMan;
 	
-    public AssignmentDropdown(OgemaWidget parent, String id, OgemaHttpRequest req, AlarmGroupData alarm, ApplicationManager appMan) {
+    public AssignmentDropdown(OgemaWidget parent, String id, OgemaHttpRequest req, AlarmGroupData alarm, ApplicationManagerPlus appMan) {
 		super(parent, id, options, req);
 		this.alarm = alarm;
 		this.appMan = appMan;

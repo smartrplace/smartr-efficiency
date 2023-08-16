@@ -2,12 +2,14 @@ package org.smartrplace.apps.alarmingconfig.sync;
 
 import java.util.List;
 
+import org.ogema.accessadmin.api.ApplicationManagerPlus;
 import org.ogema.core.application.ApplicationManager;
 import org.ogema.core.model.Resource;
 import org.ogema.core.model.ResourceList;
 import org.ogema.core.resourcemanager.ResourceOperationException;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
+import org.ogema.devicefinder.util.DeviceTableBase;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
 import org.ogema.tools.resource.util.ResourceUtils;
@@ -62,10 +64,10 @@ public class SuperiorIssuesSyncUtils {
 	 * @param appMan
 	 * @return
 	 */
-	public static AlarmGroupDataMajor syncIssueToSuperior(AlarmGroupData issue, ApplicationManager appMan) throws ResourceOperationException {
+	public static AlarmGroupDataMajor syncIssueToSuperior(AlarmGroupData issue, ApplicationManagerPlus appMan) throws ResourceOperationException {
 		if (issue instanceof AlarmGroupDataMajor)  // if it is synced already, do not create another issue
 			return (AlarmGroupDataMajor) issue;
-		GatewaySuperiorData sup = getSuperiorData(appMan);
+		GatewaySuperiorData sup = getSuperiorData(appMan.appMan());
 		return syncIssueToSuperior(issue, appMan, sup);
 	}
 	
@@ -97,7 +99,7 @@ public class SuperiorIssuesSyncUtils {
 	 * @param appMan
 	 * @return
 	 */
-	public static AlarmGroupDataMajor syncIssueToSuperior(AlarmGroupData issue, ApplicationManager appMan, GatewaySuperiorData superiorConfig) 
+	public static AlarmGroupDataMajor syncIssueToSuperior(AlarmGroupData issue, ApplicationManagerPlus appMan, GatewaySuperiorData superiorConfig) 
 				throws ResourceOperationException {
 		if (issue instanceof AlarmGroupDataMajor)  // if it is synced already, do not create another issue
 			return (AlarmGroupDataMajor) issue;
@@ -109,6 +111,8 @@ public class SuperiorIssuesSyncUtils {
 		if (pp instanceof InstallAppDevice) {
 			transaction.setAsReference(major.parentForOngoingIssues(), pp);
 			transaction.setStringArray(major.devicesRelated(), new String[] {((InstallAppDevice) pp).deviceId().getValue()});
+			String firstDeviceName = DeviceTableBase.getName((InstallAppDevice) pp, appMan);
+			transaction.setString(major.firstDeviceName(), firstDeviceName);
 		}
 		transaction.setAsReference(issue, major);
 		transaction.commit();
@@ -124,7 +128,7 @@ public class SuperiorIssuesSyncUtils {
 	 * @param appMan
 	 * @return
 	 */
-	public static AlarmGroupDataMajor syncIssueToSuperiorIfRelevant(AlarmGroupData issue, ApplicationManager appMan) {
+	public static AlarmGroupDataMajor syncIssueToSuperiorIfRelevant(AlarmGroupData issue, ApplicationManagerPlus appMan) {
 		if (issue instanceof AlarmGroupDataMajor)  // if it is synced already, do not create another issue
 			return (AlarmGroupDataMajor) issue;
 		if(!eligibleForSync(issue))
@@ -152,7 +156,7 @@ public class SuperiorIssuesSyncUtils {
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static long checkIssuesSyncStatus(ApplicationManager appMan) {
+	public static long checkIssuesSyncStatus(ApplicationManagerPlus appMan) {
 		final Resource knownDevices = appMan.getResourceAccess().getResource("hardwareInstallConfig/knownDevices");
 		if (!(knownDevices instanceof ResourceList) || !knownDevices.isActive())
 			return 0;

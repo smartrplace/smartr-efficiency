@@ -14,10 +14,8 @@ import org.ogema.core.model.Resource;
 import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.resourcemanager.transaction.ResourceTransaction;
 import org.ogema.core.resourcemanager.transaction.WriteConfiguration;
-import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.extended.alarming.AlarmGroupData;
 import org.ogema.model.extended.alarming.AlarmGroupDataMajor;
-import org.ogema.tools.resource.util.ResourceUtils;
 import org.smartrplace.apps.alarmconfig.util.AlarmResourceUtil;
 import org.smartrplace.apps.alarmingconfig.AlarmingConfigAppController;
 import org.smartrplace.apps.alarmingconfig.sync.SuperiorIssuesSyncUtils;
@@ -158,7 +156,7 @@ public class ReleasePopup {
 				case "finalanalysis":
 					//TODO: Move to major first
 					if (!isMajorIssue) {
-						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, appMan); 
+						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, controller.appManPlus); 
 						//return;
 					}
 					final FinalAnalysis analysis = analysisSelector.getSelectedItem(req);
@@ -181,7 +179,7 @@ public class ReleasePopup {
 				case "trash":
 					// Move to major first
 					if (!isMajorIssue) {
-						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, appMan); 
+						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, controller.appManPlus); 
 						//return;
 					}
 					trans.setTime(major.keepAsTrashUntil(), appMan.getFrameworkTime() + 30 * 24 * 3_600_00);  // 30d hardcoded

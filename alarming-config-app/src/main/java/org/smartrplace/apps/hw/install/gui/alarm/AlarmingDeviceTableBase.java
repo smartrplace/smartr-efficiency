@@ -270,5 +270,20 @@ public class AlarmingDeviceTableBase extends DeviceTableBase {
 		vh.stringLabel("ID", id, object.deviceId().getValue(), row);
 		return device;
 	}	
+	
+	public static String getDeviceName(InstallAppDevice object, String id,
+			DatapointService dpService,
+			DeviceHandlerProviderDP<?> devHand, HardwareInstallConfig appConfigData) {
+		final PhysicalElement device = object.device().getLocationResource();
+		DatapointGroup devGrp = DpGroupUtil.getDeviceGroup(device.getLocation(), dpService, false);
+		String name;
+		if(devGrp != null)
+			name = devGrp.label(null);
+		else
+			name = ResourceUtils.getHumanReadableShortName(device);
+		if(devHand == null || !InitialConfig.isInitDone(object.deviceId().getValue()+devHand.getInitVersion(), appConfigData.initDoneStatus()))
+			name += "*";
+		return name;
+	}	
 
 }
