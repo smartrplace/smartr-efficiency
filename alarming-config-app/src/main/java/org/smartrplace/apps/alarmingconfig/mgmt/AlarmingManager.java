@@ -240,7 +240,7 @@ public class AlarmingManager implements AlarmingStartedService {
 			final Float minNoValue;
 			Float minNoValueByProv = null;
 			DeviceHandlerProviderDP<Resource> devHand = controller.dpService.getDeviceHandlerProvider(iad);
-			if(devHand != null) {
+			if(devHand != null) { //usually in initial start devHand is not found, so we restart after org.smartrplace.apps.alarmingconfig.initialRestartAfterMinutes=15 
 				float minValueByDatabase = AlarmValueListenerBasic.getMinNoValueDatapoint(ac, devTac, minNoValueDevice);
 				if(minValueByDatabase > 0) {
 					minNoValueByProv = devHand.getMinimumNoValueTime(ac, iad, minValueByDatabase);

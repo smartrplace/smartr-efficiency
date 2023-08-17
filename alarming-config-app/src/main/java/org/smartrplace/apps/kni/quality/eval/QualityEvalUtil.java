@@ -8,6 +8,8 @@ import org.ogema.core.model.ResourceList;
 import org.ogema.core.resourcemanager.ResourceAccess;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
+import org.ogema.devicefinder.api.DatapointService;
+import org.ogema.devicefinder.api.DeviceHandlerProviderDP;
 import org.ogema.devicefinder.util.AlarmingConfigUtil;
 import org.ogema.model.actors.OnOffSwitch;
 import org.ogema.model.devices.buildingtechnology.AirConditioner;
@@ -99,7 +101,7 @@ public class QualityEvalUtil {
 	public void performEval(AlarmingConfigAppController c) {
 		ViaHeartbeatUtil.updateEvalResources(kniData, c.appMan);				
 		OGEMAResourceCopyHelper.copySubResourceIntoDestination(kniDataSync, kniData, c.appMan, true);
-		updateActiveAlarms(kniDataSync, c.appMan.getResourceAccess());		
+		updateActiveAlarms(kniDataSync, c.appMan.getResourceAccess(), c.dpService);		
 	}
 	
 	public void updateQualityResources(AlarmingConfigAppController c) {
@@ -161,7 +163,7 @@ public class QualityEvalUtil {
 	 * @param resAcc
 	 * @return
 	 */
-	public static void updateActiveAlarms(KnownIssueDataGw kni, ResourceAccess resAcc) {
+	public static void updateActiveAlarms(KnownIssueDataGw kni, ResourceAccess resAcc, DatapointService dpService) {
 		HardwareInstallConfig hwInstall = ResourceHelper.getTopLevelResource(HardwareInstallConfig.class, resAcc);
 		int[] devs = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
 		int[] datapoints = new int[SuperiorIssuesSyncUtils.DEVICE_TYPE_NUM];
@@ -181,7 +183,10 @@ public class QualityEvalUtil {
 				continue;
 			PhysicalElement dev = iad.device();
 			int idx;
+			DeviceHandlerProviderDP<Resource> devHand = dpService.getDeviceHandlerProvider(iad);
 			if(iad.devHandlerInfo().getValue().toLowerCase().contains("virtual"))
+				idx = 1;
+			if(devHand != null && devHand.getTableTitle().toLowerCase().contains("virtual"))
 				idx = 1;
 			else if(iad.devHandlerInfo().getValue().equals("org.smartrplace.homematic.devicetable.WallThermostatHandler"))
 				idx = 4;
@@ -208,7 +213,7 @@ public class QualityEvalUtil {
 			else if(dev instanceof Room)
 				idx = 9;
 			else if(iad.devHandlerInfo().getValue().toLowerCase().contains("fault") ||
-					iad.devHandlerInfo().getValue().toLowerCase().equals("org.smartrplace.driverhandler.more.MemoryTsPSTHandler") ||
+					iad.devHandlerInfo().getValue().equals("org.smartrplace.driverhandler.more.MemoryTsPSTHandler") ||
 					iad.devHandlerInfo().getValue().toLowerCase().contains("gateway"))
 				idx = 2;
 			//else {if(iad.devHandlerInfo().getValue().toLowerCase().contains("meter"))
