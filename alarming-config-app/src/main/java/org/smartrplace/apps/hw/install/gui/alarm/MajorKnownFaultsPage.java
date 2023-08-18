@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +44,7 @@ import com.google.common.base.Supplier;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.widgets.api.extended.mode.UpdateMode;
 import de.iwes.widgets.api.extended.resource.DefaultResourceTemplate;
+import de.iwes.widgets.api.widgets.OgemaWidget;
 import de.iwes.widgets.api.widgets.WidgetPage;
 import de.iwes.widgets.api.widgets.dynamics.TriggeredAction;
 import de.iwes.widgets.api.widgets.dynamics.TriggeringAction;
@@ -318,7 +320,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 					gwLink.enable();
 					gwLink.setDefaultWidth("12px");
 					gwLink.setDefaultLink("https://google.com");	 // FIXME
-					gwLink.setDefaultToolTip("Switch to gateway frontend");
+					gwLink.setDefaultToolTip("Open gateway frontend");
 					flex.addItem(gwLink, req);
 				}
 				row.addCell("Gateway", flex);
@@ -361,15 +363,22 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		
 		vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
 		final Label timeLabel = vh.timeLabel("Released", id, res.releaseTime(), row, 0);
+		
+		final Flexbox releaseFlex = new Flexbox(mainTable, "releaseFlex_" + id, req);
+		final Collection<OgemaWidget> releaseFeedbackWidgets = new CopyOnWriteArrayList<>();
 		// the Label is adapted such that it supports POST operations, and  
 		// a click on the label triggers a POST, in the onPOST method it sets the alarm resource of ReleasePopup, 
 		// then it triggers an update of the ReleasePopup widgets
-		final Label diag = new Label(mainTable, "diagLabel" + id, req) {
+		final Label diag = new Label(releaseFlex, "diagLabel" + id, req) {
 			
 			@Override
 			public void onGET(OgemaHttpRequest req) {
 				final boolean isTrash = res.keepAsTrashUntil().isActive() && res.keepAsTrashUntil().getValue() > 0;
-				if (!res.finalDiagnosis().isActive()) {
+				final boolean released = res.finalDiagnosis().isActive();
+				setWidgetVisibility(isTrash || released, req);
+				if (!isTrash && !released)
+					return;
+				if (!released) {
 					setText(isTrash ? "Trash" : "--", req);
 					setToolTip("Click to open release menu", req);
 				} else {
@@ -390,7 +399,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			
 			@Override
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
-				releasePopup.selectIssue(res, Arrays.asList(this, timeLabel), req);
+				releasePopup.selectIssue(res, releaseFeedbackWidgets, req);
 			}
 			
 			@Override
@@ -415,7 +424,33 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		diag.triggerAction(diag, TriggeringAction.ON_CLICK, TriggeredAction.POST_REQUEST);
 		diag.setDefaultMinWidth("5em;");
 		releasePopup.trigger(diag);
-		row.addCell("Diagnosis", diag);
+		releaseFlex.addItem(diag, req);
+		releaseFeedbackWidgets.addAll(Arrays.asList(diag, timeLabel));
+        // not released yet => add a button for the release popup
+		// otherwise the popup can still be opened by clicking the diagnosis cell
+		if (!res.finalDiagnosis().isActive()) {
+			final Button releaseOpener = new Button(releaseFlex, "releaseOpener_" + id, req) {
+				
+				@Override
+				public void onGET(OgemaHttpRequest req) {
+					final boolean released = res.finalDiagnosis().isActive();
+					final boolean isTrash = released ? false : res.keepAsTrashUntil().isActive() && res.keepAsTrashUntil().getValue() > 0;
+					setWidgetVisibility(!released && !isTrash, req);
+				}
+				
+				@Override
+				public void onPOSTComplete(String data, OgemaHttpRequest req) {
+					releasePopup.selectIssue(res, releaseFeedbackWidgets, req);
+				}
+				
+			};
+			releaseOpener.setDefaultText("Release");
+			releaseOpener.setDefaultToolTip("Click to open release menu");
+			releaseFeedbackWidgets.add(releaseOpener);
+			releasePopup.trigger(releaseOpener);
+			releaseFlex.addItem(releaseOpener, req);
+		}
+		row.addCell("Diagnosis", releaseFlex);
 		
 		final Dropdown followupemail = new FollowUpDropdown(mainTable, "followup" + id, req, appMan, alert, object, res, controller);
 		

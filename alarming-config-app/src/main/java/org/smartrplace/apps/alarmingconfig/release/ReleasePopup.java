@@ -130,7 +130,8 @@ public class ReleasePopup {
 				case "trash":
 					//setConfirmMsg("Do you really want to move the issue to the trash?", req);
 					//setConfirmBtnMsg("To trash", req);
-					setText("Issue to trash", req);
+					final boolean wasTrash = ((IssueContainer) issueContainer.getData(req)).initiallyTrash;
+					setText(wasTrash ? "Restore from trash" : "Issue to trash", req);
 					break;
 				case "delete":
 					//setConfirmMsg("Do you really want to delete the issue permanently?", req);
@@ -150,6 +151,7 @@ public class ReleasePopup {
 					return;
 				final boolean isMajorIssue = issue instanceof AlarmGroupDataMajor;
 				AlarmGroupDataMajor major = isMajorIssue ? (AlarmGroupDataMajor) issue.getLocationResource() : null;
+				String alarmMessage = "Released";
 				final ResourceTransaction trans = isMajorIssue ? basicRelease(major, appMan) : null;
 				final String selectedMode = releaseModeSelector.getSelectedValue(req);
 				switch(selectedMode) {
@@ -182,9 +184,16 @@ public class ReleasePopup {
 						major = SuperiorIssuesSyncUtils.syncIssueToSuperior(issue, controller.appManPlus); 
 						//return;
 					}
-					trans.setTime(major.keepAsTrashUntil(), appMan.getFrameworkTime() + 30 * 24 * 3_600_00);  // 30d hardcoded
+					final boolean wasTrash = ((IssueContainer) issueContainer.getData(req)).initiallyTrash;
 					String deviceId = AlarmResourceUtil.getDeviceIdForKnownFault(major);
-					DeviceKnownFaultsPage.setHistoryForTaskDelete(deviceId, issue.responsibility().getValue(), true, req, controller);
+					if (wasTrash) {
+						trans.delete(major.keepAsTrashUntil());
+						alarmMessage = "Trash status removed";
+						// TODO history: resurrected from trash
+					} else {
+						trans.setTime(major.keepAsTrashUntil(), appMan.getFrameworkTime() + 30 * 24 * 3_600_00);  // 30d hardcoded
+						DeviceKnownFaultsPage.setHistoryForTaskDelete(deviceId, issue.responsibility().getValue(), true, req, controller);
+					}
 					break;
 				case "delete":
 					issue.delete();
@@ -192,7 +201,7 @@ public class ReleasePopup {
 					DeviceKnownFaultsPage.setHistoryForTaskDelete(deviceId, issue.responsibility().getValue(), false, req, controller);
 					if (alert != null)
 						alert.showAlert("Issue deleted successfully", true, req);
-					break;
+					return;
 				default:
 					alert.showAlert("Something went wrong, unexpected mode " + selectedMode, false, req);	
 					return;
@@ -200,7 +209,7 @@ public class ReleasePopup {
 				if (trans != null) {
 					trans.commit();
 					if (alert != null)
-						alert.showAlert("Released", true, req);
+						alert.showAlert(alarmMessage, true, req);
 				}
 				
 			}
@@ -309,8 +318,11 @@ public class ReleasePopup {
 	public void selectIssue(AlarmGroupData issue, Collection<OgemaWidget> feedbackWidgets, OgemaHttpRequest req) {
 		((IssueContainer) this.issueContainer.getData(req)).issue = issue;
 		final boolean isMajor = issue instanceof AlarmGroupDataMajor;
+		final AlarmGroupDataMajor major = isMajor ? (AlarmGroupDataMajor) issue : null;
+		final boolean isTrash = isMajor && (major.keepAsTrashUntil().isActive() && major.keepAsTrashUntil().getValue() > 0);
+		((IssueContainer) this.issueContainer.getData(req)).initiallyTrash = isTrash;
 		releaseModeSelector.setWidgetVisibility(isMajor, req);
-		releaseModeSelector.selectSingleOption(isMajor ? "finalanalysis" : "delete", req);
+		releaseModeSelector.selectSingleOption(isMajor ? (isTrash ? "trash" : "finalanalysis") : "delete", req);
 		final Collection<OgemaWidget> oldFeedbackWidgets = ((IssueContainer) this.issueContainer.getData(req)).feedbackWidgets;
 		final List<OgemaWidget> forRemoval = oldFeedbackWidgets.stream().filter(w -> !feedbackWidgets.contains(w)).collect(Collectors.toList());
 		final List<OgemaWidget> forAddition = feedbackWidgets.stream().filter(w -> !oldFeedbackWidgets.contains(w)).collect(Collectors.toList());
@@ -358,6 +370,7 @@ public class ReleasePopup {
 	static class IssueContainer extends EmptyData {
 		
 		AlarmGroupData issue;
+		boolean initiallyTrash = false;
 		final Collection<OgemaWidget> feedbackWidgets = new ArrayList<>(4);
 		
 		public IssueContainer(EmptyWidget empty) {
