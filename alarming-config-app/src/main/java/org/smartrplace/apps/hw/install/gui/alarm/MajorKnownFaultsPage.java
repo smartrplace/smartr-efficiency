@@ -34,7 +34,6 @@ import org.smartrplace.gateway.device.GatewaySuperiorData;
 import org.smartrplace.util.directobjectgui.ObjectGUIHelperBase.ValueResourceDropdownFlex;
 import org.smartrplace.util.directobjectgui.ObjectGUITablePage;
 import org.smartrplace.util.directobjectgui.ObjectResourceGUIHelper;
-import org.smartrplace.util.directresourcegui.GUIHelperExtension;
 import org.smartrplace.util.format.WidgetHelper;
 import org.smartrplace.util.virtualdevice.ChartsUtil;
 import org.smartrplace.util.virtualdevice.ChartsUtil.GetPlotButtonResult;
@@ -61,6 +60,8 @@ import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.label.LabelData;
 import de.iwes.widgets.html.html5.Flexbox;
 import de.iwes.widgets.html.html5.flexbox.AlignItems;
+import de.iwes.widgets.html.icon.Icon;
+import de.iwes.widgets.html.icon.IconType;
 import de.iwes.widgets.resource.widget.dropdown.ResourceDropdown;
 import de.iwes.widgets.resource.widget.textfield.ValueResourceTextField;
 
@@ -72,9 +73,9 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 	private static final String ASSIGNED_URL_PARAM = "assigned";
 	private static final String TRASH_URL_PARAM = "trash";
 	private static final List<DropdownOption> RELEASE_FILTER_OPTIONS = Arrays.asList(
-			new DropdownOption("all", "All", true),
+			new DropdownOption("all", "All", false),
 			new DropdownOption("released", "Released", false),
-			new DropdownOption("nonreleased", "Not released", false)
+			new DropdownOption("nonreleased", "Not released", true)
 	);
 	private static final List<DropdownOption> ASSIGNMENT_FILTER_OPTIONS = AlarmingConfigUtil.ASSIGNEMENT_ROLES.entrySet().stream()
 			.map(entry -> new DropdownOption(entry.getKey(), entry.getValue(), false))
@@ -102,7 +103,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		this.appManPlus = controller.appManPlus;
 		this.controller = controller;
 		hwInstallConfig = appMan.getResourceAccess().getResource("hardwareInstallConfig");
-		this.isSuperior = Boolean.getBoolean("org.smartplace.app.srcmon.server.issuperior");
+		this.isSuperior = Boolean.getBoolean("org.smartrplace.app.srcmon.server.issuperior");
 		if (isSuperior) {
 			gatewaySelector = new ResourceDropdown<GatewaySuperiorData>(page, "gatewaySelector", false, 
 					GatewaySuperiorData.class, UpdateMode.AUTO_ON_GET, appMan.getResourceAccess());
@@ -116,6 +117,12 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			});
 			gatewaySelector.setDefaultAddEmptyOption(true, "All");
 			gatewaySelector.setDefaultSelectByUrlParam(GW_URL_PARAM);
+			final List<GatewaySuperiorData> topSuperiors = appMan.getResourceAccess().getToplevelResources(GatewaySuperiorData.class);
+			topSuperiors.stream()
+				.filter(r -> SuperiorIssuesSyncUtils.GW_SUPERIOR_DATA_RESOURCE.equals(r.getPath()))
+				.findAny()
+				.or(() -> topSuperiors.stream().findAny())
+				.ifPresent(gatewaySelector::selectDefaultItem);
 		} else {
 			gatewaySelector = null;
 		}
@@ -259,9 +266,10 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			vh.registerHeaderEntry("Name");
 			vh.registerHeaderEntry("ID");
 			vh.registerHeaderEntry("Started");
-			vh.registerHeaderEntry("Release");
+			vh.registerHeaderEntry("Released");
 			vh.registerHeaderEntry("Diagnosis");
-			vh.registerHeaderEntry("Details");
+			//vh.registerHeaderEntry("Details");
+			vh.getHeader().put("Diagnosis", "Diagnosis / Release");
 			if (!isSuperior)
 				vh.registerHeaderEntry("Alarms");
 			vh.registerHeaderEntry("Comment_Analysis");
@@ -272,7 +280,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 			vh.registerHeaderEntry("Follow-up");
 			vh.registerHeaderEntry("TH-Plot");
 			vh.registerHeaderEntry("Plot");
-			vh.registerHeaderEntry("Delete");
+			//vh.registerHeaderEntry("Delete");
 			return;
 		}
 
@@ -293,8 +301,30 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		}
 		if (isSuperior) {
 			final String gwId = SuperiorIssuesSyncUtils.findGatewayId(res, isSuperior);
-			if (gwId != null)
-				vh.stringLabel("Gateway", id, gwId, row);
+			if (gwId != null) {
+				final Flexbox flex = new Flexbox(mainTable, "gwflex_" + id, req);
+				final Map<String, String> subFlexCss = new HashMap<>(4);
+				subFlexCss.put("column-gap", "0.5em");
+				subFlexCss.put("flex-wrap", "nowrap");
+				flex.addCssItem(">div", subFlexCss, req);
+				final Label lab = new Label(flex, "gw_" + id, req);
+				lab.setDefaultText(gwId);
+				flex.addItem(lab, req);
+				final GatewaySuperiorData sup = SuperiorIssuesSyncUtils.getSuperiorData(res, appMan);
+				if (sup != null && !sup.getPath().equals(SuperiorIssuesSyncUtils.GW_SUPERIOR_DATA_RESOURCE)) {
+					// TODO find out if gateway link can be determined and create icon only if this is the case
+					final Icon gwLink = new Icon(flex, "gwicon_" + id, req);
+					gwLink.setDefaultIconType(IconType.EXTERNAL_LINK);
+					gwLink.enable();
+					gwLink.setDefaultWidth("12px");
+					gwLink.setDefaultLink("https://google.com");	 // FIXME
+					gwLink.setDefaultToolTip("Switch to gateway frontend");
+					flex.addItem(gwLink, req);
+				}
+				row.addCell("Gateway", flex);
+				//vh.stringLabel("Gateway", id, gwId, row);				
+			}
+
 		}
 		
 		final DeviceHandlerProviderDP<?> pe = object != null ? appManPlus.dpService().getDeviceHandlerProvider(object) : null;
@@ -330,7 +360,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 		//	valueField.setToolTip("Value resource: " + valueData.responsibleResource.getLocationResource(), req);
 		
 		vh.timeLabel("Started", id, res.ongoingAlarmStartTime(), row, 0);
-		final Label timeLabel = vh.timeLabel("Release", id, res.releaseTime(), row, 0);
+		final Label timeLabel = vh.timeLabel("Released", id, res.releaseTime(), row, 0);
 		// the Label is adapted such that it supports POST operations, and  
 		// a click on the label triggers a POST, in the onPOST method it sets the alarm resource of ReleasePopup, 
 		// then it triggers an update of the ReleasePopup widgets
@@ -533,7 +563,7 @@ public class MajorKnownFaultsPage extends ObjectGUITablePage<AlarmGroupDataMajor
 				ScheduleViewerConfigProvAlarm.getInstance(), null);
 		row.addCell("Plot", logResult.plotButton);
 		
-		GUIHelperExtension.addDeleteButton(null, res, mainTable, id, alert, "Delete", row, vh, req);
+		//GUIHelperExtension.addDeleteButton(null, res, mainTable, id, alert, "Delete", row, vh, req);
 	}
 
 	@Override
