@@ -1,17 +1,14 @@
 package org.smartrplace.app.monbase.servlet;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.ogema.core.model.simple.BooleanResource;
 import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
-import org.ogema.core.model.simple.StringResource;
 import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.PhysicalUnit;
 import org.ogema.core.model.units.PhysicalUnitResource;
@@ -20,14 +17,13 @@ import org.ogema.devicefinder.api.DPRoom;
 import org.ogema.devicefinder.api.Datapoint;
 import org.ogema.devicefinder.api.DatapointGroup;
 import org.ogema.devicefinder.api.DatapointService;
-import org.ogema.devicefinder.api.DpUpdateAPI;
 import org.ogema.devicefinder.util.DpGroupUtil;
 import org.ogema.tools.resource.util.ResourceUtils;
 import org.ogema.tools.resource.util.ValueResourceUtils;
 import org.smartrplace.app.monbase.MonitoringController;
 import org.smartrplace.apps.hw.install.config.InstallAppDevice;
 import org.smartrplace.external.accessadmin.config.SubCustomerData;
-import org.smartrplace.tissue.util.format.StringFormatHelperSP;
+import org.smartrplace.timeseries.manual.servlet.ManualTimeseriesServlet;
 import org.smartrplace.util.frontend.servlet.ServletNumProvider;
 import org.smartrplace.util.frontend.servlet.ServletStringProvider;
 import org.smartrplace.util.frontend.servlet.ServletTimeseriesProvider;
@@ -37,13 +33,11 @@ import org.smartrplace.util.frontend.servlet.UserServlet.ServletValueProvider;
 import org.smartrplace.util.frontend.servlet.UserServletUtil;
 
 import de.iwes.timeseries.eval.garo.api.base.GaRoDataType;
-import de.iwes.timeseries.eval.garo.api.base.GaRoDataTypeI.AggregationModePlus;
 import de.iwes.widgets.api.widgets.localisation.OgemaLocale;
 
 /** Implementation of servlet on /org/sp/app/monappserv/userdata */
 public class DatapointServlet implements ServletPageProvider<Datapoint> {
-	public static final List<String> knownApplications = Arrays.asList(new String[] {"Grid", "Battery", "Solar", "Water", "Heating", "Elevator", "Tenant"});
-	
+
 	/** Hash location or other ID -> Timeseries*/
 	//final Map<String, TimeSeriesDataImpl> knownTimeseries = UserServlet.knownTS;
 	final MonitoringController controller;
@@ -234,7 +228,8 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 			ServletStringProvider deviceShortId = new ServletStringProvider(iad.deviceId().getValue());
 			result.put("deviceShortId", deviceShortId);			
 
-			String devInstallLocation = null;
+			ManualTimeseriesServlet.addInfoDpFields(iad, garo, result);
+			/*String devInstallLocation = null;
 			StringResource devAppRes = iad.getSubResource("apiApplication", StringResource.class);
 			if(devAppRes != null && devAppRes.exists())
 				devInstallLocation = devAppRes.getValue();
@@ -267,7 +262,7 @@ public class DatapointServlet implements ServletPageProvider<Datapoint> {
 					result.put("aggregationType", deviceAggregationType);
 					
 				}
-			}
+			}*/
 			
 			/*String aggregationType = null;
 			IntegerResource aggregationTypeRes = iad.getSubResource("aggregationType",IntegerResource.class);
