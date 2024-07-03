@@ -38,6 +38,7 @@ import de.iwes.util.format.StringFormatHelper;
 import de.iwes.util.resource.ValueResourceHelper;
 import de.iwes.util.resourcelist.ResourceListHelper;
 import de.iwes.widgets.api.widgets.sessionmanagement.OgemaHttpRequest;
+import java.util.stream.Collectors;
 
 public class UserAdminBaseUtil {
 	protected static final String WEB_ACCESS_PERM_STARTSTRING = "(org.ogema.accesscontrol.WebAccessPermission \"name=";
@@ -369,10 +370,23 @@ System.out.println("ToRemoveReally:"+StringFormatHelper.getListToPrint(toRemoveP
 
 	public static void addMissingPerms(UserAccount userData,
 			Collection<String> missingPerms, ApplicationManagerPlus appManPlus) {
+		/*
 		for(String misPerm: missingPerms) {
 			addBundlePermissionForUser(userData.getName(), misPerm, appManPlus);
 		}
+		*/
+		List<AppPermissionFilter> missingFilters = missingPerms.stream()
+				.map(p -> new AppPermissionFilter(p, "*", "*", Version.emptyVersion.toString()))
+				.collect(Collectors.toList());
+		String username = userData.getName();
+		try {
+			appManPlus.appMan().getLogger().debug("Adding {} permissions for user {}", missingFilters.size(), username);
+			appManPlus.permMan().getAccessManager().addPermission(username, missingFilters);
+		} catch (Exception e) {
+			appManPlus.appMan().getLogger().error("Could not add permissions for user {}",username,e);
+		}
 	}
+	
 	public static void removePerms(UserAccount userData,
 			Collection<String> toRemovePerms, ApplicationManagerPlus appManPlus) {
 		for(String misPerm: toRemovePerms) {
